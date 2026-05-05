@@ -60,9 +60,9 @@
 
 // Export main manager class
 // Import for createSubagentManager
-import { SubagentManager } from './manager'
+import { SubagentManager } from './manager';
 
-export { SubagentManager } from './manager'
+export { SubagentManager } from './manager';
 
 // Export transcript utilities
 export {
@@ -71,7 +71,7 @@ export {
   listTranscripts,
   loadTranscript,
   saveTranscript,
-} from './transcript'
+} from './transcript';
 
 // Export all types
 export type {
@@ -85,7 +85,7 @@ export type {
   TranscriptEntry,
   TranscriptEntryType,
   TranscriptSaveOptions,
-} from './types'
+} from './types';
 
 /**
  * Create a default SubagentManager instance
@@ -105,5 +105,5 @@ export type {
  * ```
  */
 export function createSubagentManager(options?: import('./types').SubagentManagerOptions): import('./manager').SubagentManager {
-  return new SubagentManager(options)
+  return new SubagentManager(options);
 }

@@ -14,31 +14,31 @@
  * @module config-watcher
  */
 
-import type { FSWatcher } from 'chokidar'
-import { EventEmitter } from 'node:events'
-import { existsSync } from 'node:fs'
-import { watch } from 'chokidar'
+import type { FSWatcher } from 'chokidar';
+import { EventEmitter } from 'node:events';
+import { existsSync } from 'node:fs';
+import { watch } from 'chokidar';
 
 /**
  * Configuration change event types
  */
-export type ConfigChangeEventType = 'added' | 'changed' | 'removed'
+export type ConfigChangeEventType = 'added' | 'changed' | 'removed';
 
 /**
  * Configuration change event data
  */
 export interface ConfigChangeEvent {
   /** Event type (added, changed, or removed) */
-  type: ConfigChangeEventType
+  type: ConfigChangeEventType;
 
   /** File path that triggered the event */
-  filePath: string
+  filePath: string;
 
   /** Event timestamp */
-  timestamp: Date
+  timestamp: Date;
 
   /** Configuration content (undefined for removed events) */
-  content?: any
+  content?: any;
 }
 
 /**
@@ -50,38 +50,38 @@ export interface ConfigWatcherOptions {
    * Prevents excessive reloads when files change rapidly
    * @default 300
    */
-  debounceMs?: number
+  debounceMs?: number;
 
   /**
    * Whether to ignore initial scan events
    * If true, only watches for changes after initial load
    * @default true
    */
-  ignoreInitial?: boolean
+  ignoreInitial?: boolean;
 
   /**
    * Whether to watch for file additions
    * @default true
    */
-  watchAdded?: boolean
+  watchAdded?: boolean;
 
   /**
    * Whether to watch for file changes
    * @default true
    */
-  watchChanged?: boolean
+  watchChanged?: boolean;
 
   /**
    * Whether to watch for file removals
    * @default true
    */
-  watchRemoved?: boolean
+  watchRemoved?: boolean;
 
   /**
    * Custom file parser function
    * If not provided, uses JSON.parse for .json files
    */
-  parser?: (filePath: string) => Promise<any>
+  parser?: (filePath: string) => Promise<any>;
 }
 
 /**
@@ -114,10 +114,10 @@ export interface ConfigWatcherOptions {
  * ```
  */
 export class ConfigWatcher extends EventEmitter {
-  private watcher: FSWatcher | null = null
-  private debounceTimers: Map<string, NodeJS.Timeout> = new Map()
-  private options: Required<Omit<ConfigWatcherOptions, 'parser'>> & { parser?: (filePath: string) => Promise<any> }
-  private watchedPaths: Set<string> = new Set()
+  private watcher: FSWatcher | null = null;
+  private debounceTimers: Map<string, NodeJS.Timeout> = new Map();
+  private options: Required<Omit<ConfigWatcherOptions, 'parser'>> & { parser?: (filePath: string) => Promise<any> };
+  private watchedPaths: Set<string> = new Set();
 
   /**
    * Create a new configuration watcher
@@ -133,7 +133,7 @@ export class ConfigWatcher extends EventEmitter {
    * ```
    */
   constructor(options: ConfigWatcherOptions = {}) {
-    super()
+    super();
 
     // Set default options
     this.options = {
@@ -143,7 +143,7 @@ export class ConfigWatcher extends EventEmitter {
       watchChanged: options.watchChanged ?? true,
       watchRemoved: options.watchRemoved ?? true,
       parser: options.parser,
-    }
+    };
   }
 
   /**
@@ -169,19 +169,19 @@ export class ConfigWatcher extends EventEmitter {
    * ```
    */
   watch(configPath: string | string[]): void {
-    const paths = Array.isArray(configPath) ? configPath : [configPath]
+    const paths = Array.isArray(configPath) ? configPath : [configPath];
 
     // Validate paths exist
     for (const path of paths) {
       if (!existsSync(path)) {
-        this.emit('error', new Error(`Config file does not exist: ${path}`), path)
-        continue
+        this.emit('error', new Error(`Config file does not exist: ${path}`), path);
+        continue;
       }
-      this.watchedPaths.add(path)
+      this.watchedPaths.add(path);
     }
 
     if (this.watchedPaths.size === 0) {
-      throw new Error('No valid configuration files to watch')
+      throw new Error('No valid configuration files to watch');
     }
 
     // Initialize or update chokidar watcher
@@ -193,15 +193,15 @@ export class ConfigWatcher extends EventEmitter {
           stabilityThreshold: 100,
           pollInterval: 50,
         },
-      })
+      });
 
-      this.setupEventHandlers()
+      this.setupEventHandlers();
     }
     else {
       // Add new paths to existing watcher
       for (const path of paths) {
         if (existsSync(path)) {
-          this.watcher.add(path)
+          this.watcher.add(path);
         }
       }
     }
@@ -220,16 +220,16 @@ export class ConfigWatcher extends EventEmitter {
    */
   async stopWatching(): Promise<void> {
     if (this.watcher) {
-      await this.watcher.close()
-      this.watcher = null
+      await this.watcher.close();
+      this.watcher = null;
     }
 
     // Clear all debounce timers
     for (const timer of this.debounceTimers.values()) {
-      clearTimeout(timer)
+      clearTimeout(timer);
     }
-    this.debounceTimers.clear()
-    this.watchedPaths.clear()
+    this.debounceTimers.clear();
+    this.watchedPaths.clear();
   }
 
   /**
@@ -249,18 +249,18 @@ export class ConfigWatcher extends EventEmitter {
    * ```
    */
   onConfigChange(callback: (event: ConfigChangeEvent) => void): () => void {
-    const handler = (event: ConfigChangeEvent): void => callback(event)
+    const handler = (event: ConfigChangeEvent): void => callback(event);
 
-    this.on('config-added', handler)
-    this.on('config-changed', handler)
-    this.on('config-removed', handler)
+    this.on('config-added', handler);
+    this.on('config-changed', handler);
+    this.on('config-removed', handler);
 
     // Return unsubscribe function
     return () => {
-      this.off('config-added', handler)
-      this.off('config-changed', handler)
-      this.off('config-removed', handler)
-    }
+      this.off('config-added', handler);
+      this.off('config-changed', handler);
+      this.off('config-removed', handler);
+    };
   }
 
   /**
@@ -269,7 +269,7 @@ export class ConfigWatcher extends EventEmitter {
    * @returns Array of watched file paths
    */
   getWatchedPaths(): string[] {
-    return Array.from(this.watchedPaths)
+    return Array.from(this.watchedPaths);
   }
 
   /**
@@ -279,7 +279,7 @@ export class ConfigWatcher extends EventEmitter {
    * @returns true if path is being watched
    */
   isWatching(path: string): boolean {
-    return this.watchedPaths.has(path)
+    return this.watchedPaths.has(path);
   }
 
   /**
@@ -289,37 +289,37 @@ export class ConfigWatcher extends EventEmitter {
    */
   private setupEventHandlers(): void {
     if (!this.watcher) {
-      return
+      return;
     }
 
     // Set up event handlers
     if (this.options.watchAdded) {
       this.watcher.on('add', (filePath: string) => {
-        this.handleFileChange('added', filePath)
-      })
+        this.handleFileChange('added', filePath);
+      });
     }
 
     if (this.options.watchChanged) {
       this.watcher.on('change', (filePath: string) => {
-        this.handleFileChange('changed', filePath)
-      })
+        this.handleFileChange('changed', filePath);
+      });
     }
 
     if (this.options.watchRemoved) {
       this.watcher.on('unlink', (filePath: string) => {
-        this.handleFileRemove(filePath)
-      })
+        this.handleFileRemove(filePath);
+      });
     }
 
     // Handle watcher errors
     this.watcher.on('error', (error: unknown): void => {
-      this.emit('error', error instanceof Error ? error : new Error(String(error)), 'watcher')
-    })
+      this.emit('error', error instanceof Error ? error : new Error(String(error)), 'watcher');
+    });
 
     // Emit ready event when watcher is ready
     this.watcher.on('ready', () => {
-      this.emit('ready')
-    })
+      this.emit('ready');
+    });
   }
 
   /**
@@ -335,14 +335,14 @@ export class ConfigWatcher extends EventEmitter {
    */
   private handleFileChange(type: 'added' | 'changed', filePath: string): void {
     // Clear existing debounce timer for this file
-    const existingTimer = this.debounceTimers.get(filePath)
+    const existingTimer = this.debounceTimers.get(filePath);
     if (existingTimer) {
-      clearTimeout(existingTimer)
+      clearTimeout(existingTimer);
     }
 
     // Set new debounce timer
     const timer = setTimeout(() => {
-      this.debounceTimers.delete(filePath)
+      this.debounceTimers.delete(filePath);
 
       // Parse the configuration file
       this.parseConfigFile(filePath)
@@ -352,22 +352,22 @@ export class ConfigWatcher extends EventEmitter {
             filePath,
             timestamp: new Date(),
             content,
-          }
+          };
 
           // Emit appropriate event
           if (type === 'added') {
-            this.emit('config-added', event)
+            this.emit('config-added', event);
           }
           else {
-            this.emit('config-changed', event)
+            this.emit('config-changed', event);
           }
         })
         .catch((error) => {
-          this.emit('error', error, filePath)
-        })
-    }, this.options.debounceMs)
+          this.emit('error', error, filePath);
+        });
+    }, this.options.debounceMs);
 
-    this.debounceTimers.set(filePath, timer)
+    this.debounceTimers.set(filePath, timer);
   }
 
   /**
@@ -380,15 +380,15 @@ export class ConfigWatcher extends EventEmitter {
    * @private
    */
   private handleFileRemove(filePath: string): void {
-    this.watchedPaths.delete(filePath)
+    this.watchedPaths.delete(filePath);
 
     const event: ConfigChangeEvent = {
       type: 'removed',
       filePath,
       timestamp: new Date(),
-    }
+    };
 
-    this.emit('config-removed', event)
+    this.emit('config-removed', event);
   }
 
   /**
@@ -403,13 +403,13 @@ export class ConfigWatcher extends EventEmitter {
    */
   private async parseConfigFile(filePath: string): Promise<any> {
     if (this.options.parser) {
-      return this.options.parser(filePath)
+      return this.options.parser(filePath);
     }
 
     // Default JSON parser
-    const { readFile } = await import('node:fs/promises')
-    const content = await readFile(filePath, 'utf-8')
-    return JSON.parse(content)
+    const { readFile } = await import('node:fs/promises');
+    const content = await readFile(filePath, 'utf-8');
+    return JSON.parse(content);
   }
 }
 
@@ -427,5 +427,5 @@ export class ConfigWatcher extends EventEmitter {
  * ```
  */
 export function createConfigWatcher(options?: ConfigWatcherOptions): ConfigWatcher {
-  return new ConfigWatcher(options)
+  return new ConfigWatcher(options);
 }

@@ -1,12 +1,12 @@
 import type { FastifyInstance } from 'fastify';
 import {
-    createLocalAuthCredential,
-    exchangeGitHubCode,
-    findOrCreateUserFromGitHub,
-    generateToken,
-    getGitHubUser,
-    isLocalAuthCredential,
-    verifyLocalAuthCredential,
+  createLocalAuthCredential,
+  exchangeGitHubCode,
+  findOrCreateUserFromGitHub,
+  generateToken,
+  getGitHubUser,
+  isLocalAuthCredential,
+  verifyLocalAuthCredential,
 } from '../auth';
 import { CONFIG } from '../config';
 import { prisma } from '../db';
@@ -143,7 +143,8 @@ export async function authRoutes(fastify: FastifyInstance) {
           avatar: user.avatar,
         },
       });
-    } catch (error) {
+    }
+    catch (error) {
       console.error('GitHub OAuth error:', error);
       return sendMappedError(reply, 500, 'Authentication failed');
     }
@@ -181,7 +182,8 @@ export async function authRoutes(fastify: FastifyInstance) {
           avatar: user.avatar,
         },
       });
-    } catch (error) {
+    }
+    catch (error) {
       console.error('Mobile auth error:', error);
       return sendMappedError(reply, 500, 'Authentication failed');
     }
@@ -211,7 +213,8 @@ export async function authRoutes(fastify: FastifyInstance) {
           avatar: user.avatar,
         },
       });
-    } catch (error) {
+    }
+    catch (_error) {
       return sendMappedError(reply, 401, 'Invalid token');
     }
   });

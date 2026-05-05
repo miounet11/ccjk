@@ -1,6 +1,7 @@
+import type { SessionEvent } from './events';
 import { createId, isCuid } from '@paralleldrive/cuid2';
 import { z } from 'zod';
-import { sessionEventSchema, type SessionEvent } from './events';
+import { sessionEventSchema } from './events';
 
 /**
  * CCJK Remote Control Protocol
@@ -18,7 +19,7 @@ export type SessionRole = z.infer<typeof sessionRoleSchema>;
 
 // Message envelope
 export const sessionEnvelopeSchema = z.object({
-  id: z.string().refine((value) => isCuid(value), {
+  id: z.string().refine(value => isCuid(value), {
     message: 'id must be a cuid2 value',
   }),
   time: z.number(),
@@ -101,7 +102,7 @@ export function createEnvelope(
     turnId?: string;
     subagent?: string;
     encrypted?: boolean;
-  } = {}
+  } = {},
 ): SessionEnvelope {
   return sessionEnvelopeSchema.parse({
     id: opts.id ?? createId(),

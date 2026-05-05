@@ -1,26 +1,26 @@
 import type {
   ApiConfigResult,
-} from './types'
+} from './types';
 /**
  * CCJK API Router - Unified Manager
  * Provides a unified interface for all API routing modes
  */
-import ansis from 'ansis'
-import inquirer from 'inquirer'
-import { i18n } from '../../i18n'
+import ansis from 'ansis';
+import inquirer from 'inquirer';
+import { i18n } from '../../i18n';
 import {
   getAllPresets,
   getChinesePresets,
   getPresetById,
   getRecommendedPresets,
-} from './presets'
+} from './presets';
 import {
   configureOfficialMode,
   configureSimpleMode,
   configureWithPreset,
   detectCurrentMode,
   getCurrentConfig,
-} from './simple-mode'
+} from './simple-mode';
 
 // Re-export for convenience
 export {
@@ -29,7 +29,7 @@ export {
   getPresetById,
   getPresetsByCategory,
   getRecommendedPresets,
-} from './presets'
+} from './presets';
 
 export {
   clearApiConfig,
@@ -40,35 +40,35 @@ export {
   getCurrentConfig,
   quickSetup,
   validateApiKey,
-} from './simple-mode'
+} from './simple-mode';
 
-type ApiRouterLang = 'en' | 'zh-CN'
+type ApiRouterLang = 'en' | 'zh-CN';
 
 function resolveApiRouterLang(lang?: ApiRouterLang | string): ApiRouterLang {
-  const effectiveLang = lang || i18n.language
+  const effectiveLang = lang || i18n.language;
   return typeof effectiveLang === 'string' && effectiveLang.toLowerCase().startsWith('zh')
     ? 'zh-CN'
-    : 'en'
+    : 'en';
 }
 
 /**
  * Display current API configuration status
  */
 export function displayCurrentStatus(lang?: ApiRouterLang): void {
-  lang = resolveApiRouterLang(lang)
-  const { mode, provider } = detectCurrentMode()
-  const config = getCurrentConfig()
+  lang = resolveApiRouterLang(lang);
+  const { mode, provider } = detectCurrentMode();
+  const config = getCurrentConfig();
 
-  console.log('')
-  console.log(ansis.green('═'.repeat(50)))
-  console.log(ansis.bold.cyan(lang === 'zh-CN' ? '  当前 API 配置' : '  Current API Configuration'))
-  console.log(ansis.green('═'.repeat(50)))
-  console.log('')
+  console.log('');
+  console.log(ansis.green('═'.repeat(50)));
+  console.log(ansis.bold.cyan(lang === 'zh-CN' ? '  当前 API 配置' : '  Current API Configuration'));
+  console.log(ansis.green('═'.repeat(50)));
+  console.log('');
 
   if (mode === 'none') {
-    console.log(ansis.yellow(lang === 'zh-CN' ? '  ⚠ 未配置 API' : '  ⚠ No API configured'))
-    console.log('')
-    return
+    console.log(ansis.yellow(lang === 'zh-CN' ? '  ⚠ 未配置 API' : '  ⚠ No API configured'));
+    console.log('');
+    return;
   }
 
   // Mode
@@ -76,42 +76,42 @@ export function displayCurrentStatus(lang?: ApiRouterLang): void {
     official: lang === 'zh-CN' ? '官方 Anthropic' : 'Official Anthropic',
     simple: lang === 'zh-CN' ? '简单模式 (API 中转)' : 'Simple Mode (API Proxy)',
     ccr: lang === 'zh-CN' ? 'CCR 高级路由' : 'CCR Advanced Router',
-  }
-  console.log(`  ${ansis.bold(lang === 'zh-CN' ? '模式:' : 'Mode:')} ${ansis.green(modeLabels[mode])}`)
+  };
+  console.log(`  ${ansis.bold(lang === 'zh-CN' ? '模式:' : 'Mode:')} ${ansis.green(modeLabels[mode])}`);
 
   // Provider
   if (provider) {
-    const preset = getPresetById(provider)
+    const preset = getPresetById(provider);
     const providerName = preset
       ? (lang === 'zh-CN' ? preset.nameZh : preset.name)
-      : provider
-    console.log(`  ${ansis.bold(lang === 'zh-CN' ? '提供商:' : 'Provider:')} ${ansis.green(providerName)}`)
+      : provider;
+    console.log(`  ${ansis.bold(lang === 'zh-CN' ? '提供商:' : 'Provider:')} ${ansis.green(providerName)}`);
   }
 
   // Base URL (masked)
   if (config?.ANTHROPIC_BASE_URL) {
-    console.log(`  ${ansis.bold('Base URL:')} ${ansis.gray(config.ANTHROPIC_BASE_URL)}`)
+    console.log(`  ${ansis.bold('Base URL:')} ${ansis.gray(config.ANTHROPIC_BASE_URL)}`);
   }
 
   // API Key (masked)
   if (config?.ANTHROPIC_API_KEY) {
-    const masked = `${config.ANTHROPIC_API_KEY.substring(0, 10)}...`
-    console.log(`  ${ansis.bold('API Key:')} ${ansis.gray(masked)}`)
+    const masked = `${config.ANTHROPIC_API_KEY.substring(0, 10)}...`;
+    console.log(`  ${ansis.bold('API Key:')} ${ansis.gray(masked)}`);
   }
 
-  console.log('')
+  console.log('');
 }
 
 /**
  * Interactive API configuration wizard
  */
 export async function runConfigWizard(lang?: ApiRouterLang): Promise<ApiConfigResult> {
-  lang = resolveApiRouterLang(lang)
-  console.log('')
-  console.log(ansis.green('═'.repeat(50)))
-  console.log(ansis.bold.cyan(lang === 'zh-CN' ? '  API 配置向导' : '  API Configuration Wizard'))
-  console.log(ansis.green('═'.repeat(50)))
-  console.log('')
+  lang = resolveApiRouterLang(lang);
+  console.log('');
+  console.log(ansis.green('═'.repeat(50)));
+  console.log(ansis.bold.cyan(lang === 'zh-CN' ? '  API 配置向导' : '  API Configuration Wizard'));
+  console.log(ansis.green('═'.repeat(50)));
+  console.log('');
 
   // Step 1: Choose configuration mode
   const modeChoices = [
@@ -139,26 +139,26 @@ export async function runConfigWizard(lang?: ApiRouterLang): Promise<ApiConfigRe
         : '4. Quick Setup (Recommended) - Choose preset provider',
       value: 'quick' as const,
     },
-  ]
+  ];
 
   const { mode } = await inquirer.prompt<{ mode: 'quick' | 'official' | 'custom' | 'ccr' }>({
     type: 'list',
     name: 'mode',
     message: lang === 'zh-CN' ? '选择配置模式:' : 'Select configuration mode:',
     choices: modeChoices,
-  })
+  });
 
   switch (mode) {
     case 'quick':
-      return await runQuickSetup(lang)
+      return await runQuickSetup(lang);
     case 'official':
-      return await runOfficialSetup(lang)
+      return await runOfficialSetup(lang);
     case 'custom':
-      return await runCustomSetup(lang)
+      return await runCustomSetup(lang);
     case 'ccr':
-      return await runCcrSetup(lang)
+      return await runCcrSetup(lang);
     default:
-      return { success: false, mode: 'simple', error: 'Unknown mode' }
+      return { success: false, mode: 'simple', error: 'Unknown mode' };
   }
 }
 
@@ -167,9 +167,9 @@ export async function runConfigWizard(lang?: ApiRouterLang): Promise<ApiConfigRe
  */
 async function runQuickSetup(lang: 'en' | 'zh-CN'): Promise<ApiConfigResult> {
   // Show recommended presets first
-  const recommended = getRecommendedPresets()
-  const chinese = getChinesePresets().filter(p => !recommended.find(r => r.id === p.id))
-  const all = getAllPresets()
+  const recommended = getRecommendedPresets();
+  const chinese = getChinesePresets().filter(p => !recommended.find(r => r.id === p.id));
+  const all = getAllPresets();
 
   const choices = [
     new inquirer.Separator(lang === 'zh-CN' ? '─── 推荐 ───' : '─── Recommended ───'),
@@ -187,7 +187,7 @@ async function runQuickSetup(lang: 'en' | 'zh-CN'): Promise<ApiConfigResult> {
       name: lang === 'zh-CN' ? '查看所有提供商...' : 'View all providers...',
       value: '__all__',
     },
-  ]
+  ];
 
   const { providerId } = await inquirer.prompt<{ providerId: string }>({
     type: 'list',
@@ -195,15 +195,15 @@ async function runQuickSetup(lang: 'en' | 'zh-CN'): Promise<ApiConfigResult> {
     message: lang === 'zh-CN' ? '选择 API 提供商:' : 'Select API provider:',
     choices,
     pageSize: 15,
-  })
+  });
 
   // If user wants to see all providers
-  let finalProviderId = providerId
+  let finalProviderId = providerId;
   if (providerId === '__all__') {
     const allChoices = all.map((p, i) => ({
       name: `${i + 1}. [${p.category}] ${lang === 'zh-CN' ? p.nameZh : p.name}`,
       value: p.id,
-    }))
+    }));
 
     const result = await inquirer.prompt<{ providerId: string }>({
       type: 'list',
@@ -211,25 +211,25 @@ async function runQuickSetup(lang: 'en' | 'zh-CN'): Promise<ApiConfigResult> {
       message: lang === 'zh-CN' ? '选择提供商:' : 'Select provider:',
       choices: allChoices,
       pageSize: 20,
-    })
-    finalProviderId = result.providerId
+    });
+    finalProviderId = result.providerId;
   }
 
-  const preset = getPresetById(finalProviderId)
+  const preset = getPresetById(finalProviderId);
   if (!preset) {
-    return { success: false, mode: 'simple', error: 'Provider not found' }
+    return { success: false, mode: 'simple', error: 'Provider not found' };
   }
 
   // Show provider instructions
-  console.log('')
-  console.log(ansis.green(`📋 ${lang === 'zh-CN' ? preset.nameZh : preset.name}`))
+  console.log('');
+  console.log(ansis.green(`📋 ${lang === 'zh-CN' ? preset.nameZh : preset.name}`));
   if (preset.instructions) {
-    console.log(ansis.gray(`   ${lang === 'zh-CN' ? preset.instructions.zh : preset.instructions.en}`))
+    console.log(ansis.gray(`   ${lang === 'zh-CN' ? preset.instructions.zh : preset.instructions.en}`));
   }
-  console.log('')
+  console.log('');
 
   // Get API key if required
-  let apiKey = ''
+  let apiKey = '';
   if (preset.requiresApiKey) {
     const { key } = await inquirer.prompt<{ key: string }>({
       type: 'password',
@@ -238,39 +238,39 @@ async function runQuickSetup(lang: 'en' | 'zh-CN'): Promise<ApiConfigResult> {
       mask: '*',
       validate: (value) => {
         if (!value)
-          return lang === 'zh-CN' ? 'API 密钥不能为空' : 'API key is required'
-        return true
+          return lang === 'zh-CN' ? 'API 密钥不能为空' : 'API key is required';
+        return true;
       },
-    })
-    apiKey = key
+    });
+    apiKey = key;
   }
 
   // Configure
-  const result = configureWithPreset(preset, apiKey)
+  const result = configureWithPreset(preset, apiKey);
 
   if (result.success) {
-    console.log('')
-    console.log(ansis.green(`✔ ${lang === 'zh-CN' ? 'API 配置成功!' : 'API configured successfully!'}`))
-    console.log(ansis.gray(`  ${lang === 'zh-CN' ? '提供商:' : 'Provider:'} ${lang === 'zh-CN' ? preset.nameZh : preset.name}`))
-    console.log(ansis.gray(`  ${lang === 'zh-CN' ? '默认模型:' : 'Default model:'} ${preset.defaultModel}`))
-    console.log('')
+    console.log('');
+    console.log(ansis.green(`✔ ${lang === 'zh-CN' ? 'API 配置成功!' : 'API configured successfully!'}`));
+    console.log(ansis.gray(`  ${lang === 'zh-CN' ? '提供商:' : 'Provider:'} ${lang === 'zh-CN' ? preset.nameZh : preset.name}`));
+    console.log(ansis.gray(`  ${lang === 'zh-CN' ? '默认模型:' : 'Default model:'} ${preset.defaultModel}`));
+    console.log('');
   }
 
-  return result
+  return result;
 }
 
 /**
  * Official Anthropic API setup
  */
 async function runOfficialSetup(lang: 'en' | 'zh-CN'): Promise<ApiConfigResult> {
-  console.log('')
+  console.log('');
   console.log(ansis.green(lang === 'zh-CN'
     ? '📋 官方 Anthropic API'
-    : '📋 Official Anthropic API'))
+    : '📋 Official Anthropic API'));
   console.log(ansis.gray(lang === 'zh-CN'
     ? '   从 https://console.anthropic.com/settings/keys 获取 API 密钥'
-    : '   Get your API key from https://console.anthropic.com/settings/keys'))
-  console.log('')
+    : '   Get your API key from https://console.anthropic.com/settings/keys'));
+  console.log('');
 
   const { apiKey } = await inquirer.prompt<{ apiKey: string }>({
     type: 'password',
@@ -279,36 +279,36 @@ async function runOfficialSetup(lang: 'en' | 'zh-CN'): Promise<ApiConfigResult> 
     mask: '*',
     validate: (value) => {
       if (!value)
-        return lang === 'zh-CN' ? 'API 密钥不能为空' : 'API key is required'
+        return lang === 'zh-CN' ? 'API 密钥不能为空' : 'API key is required';
       if (!value.startsWith('sk-ant-')) {
         return lang === 'zh-CN'
           ? 'Anthropic API 密钥应以 sk-ant- 开头'
-          : 'Anthropic API key should start with sk-ant-'
+          : 'Anthropic API key should start with sk-ant-';
       }
-      return true
+      return true;
     },
-  })
+  });
 
-  const result = configureOfficialMode(apiKey)
+  const result = configureOfficialMode(apiKey);
 
   if (result.success) {
-    console.log('')
-    console.log(ansis.green(`✔ ${lang === 'zh-CN' ? '官方 API 配置成功!' : 'Official API configured successfully!'}`))
-    console.log('')
+    console.log('');
+    console.log(ansis.green(`✔ ${lang === 'zh-CN' ? '官方 API 配置成功!' : 'Official API configured successfully!'}`));
+    console.log('');
   }
 
-  return result
+  return result;
 }
 
 /**
  * Custom API configuration
  */
 async function runCustomSetup(lang: 'en' | 'zh-CN'): Promise<ApiConfigResult> {
-  console.log('')
+  console.log('');
   console.log(ansis.green(lang === 'zh-CN'
     ? '📋 自定义 API 配置'
-    : '📋 Custom API Configuration'))
-  console.log('')
+    : '📋 Custom API Configuration'));
+  console.log('');
 
   const { baseUrl } = await inquirer.prompt<{ baseUrl: string }>({
     type: 'input',
@@ -316,13 +316,13 @@ async function runCustomSetup(lang: 'en' | 'zh-CN'): Promise<ApiConfigResult> {
     message: lang === 'zh-CN' ? '输入 API Base URL:' : 'Enter API Base URL:',
     validate: (value) => {
       if (!value)
-        return lang === 'zh-CN' ? 'URL 不能为空' : 'URL is required'
+        return lang === 'zh-CN' ? 'URL 不能为空' : 'URL is required';
       if (!value.startsWith('http')) {
-        return lang === 'zh-CN' ? 'URL 必须以 http:// 或 https:// 开头' : 'URL must start with http:// or https://'
+        return lang === 'zh-CN' ? 'URL 必须以 http:// 或 https:// 开头' : 'URL must start with http:// or https://';
       }
-      return true
+      return true;
     },
-  })
+  });
 
   const { apiKey } = await inquirer.prompt<{ apiKey: string }>({
     type: 'password',
@@ -331,44 +331,44 @@ async function runCustomSetup(lang: 'en' | 'zh-CN'): Promise<ApiConfigResult> {
     mask: '*',
     validate: (value) => {
       if (!value)
-        return lang === 'zh-CN' ? 'API 密钥不能为空' : 'API key is required'
-      return true
+        return lang === 'zh-CN' ? 'API 密钥不能为空' : 'API key is required';
+      return true;
     },
-  })
+  });
 
   const result = configureSimpleMode({
     mode: 'simple',
     provider: 'custom',
     apiKey,
     baseUrl,
-  })
+  });
 
   if (result.success) {
-    console.log('')
-    console.log(ansis.green(`✔ ${lang === 'zh-CN' ? '自定义 API 配置成功!' : 'Custom API configured successfully!'}`))
-    console.log('')
+    console.log('');
+    console.log(ansis.green(`✔ ${lang === 'zh-CN' ? '自定义 API 配置成功!' : 'Custom API configured successfully!'}`));
+    console.log('');
   }
 
-  return result
+  return result;
 }
 
 /**
  * CCR Advanced Router setup
  */
 async function runCcrSetup(lang: 'en' | 'zh-CN'): Promise<ApiConfigResult> {
-  console.log('')
+  console.log('');
   console.log(ansis.green(lang === 'zh-CN'
     ? '📋 CCR 高级路由配置'
-    : '📋 CCR Advanced Router Configuration'))
+    : '📋 CCR Advanced Router Configuration'));
   console.log(ansis.gray(lang === 'zh-CN'
     ? '   CCR 提供完整的模型路由、转换和多提供商支持'
-    : '   CCR provides full model routing, transformation, and multi-provider support'))
-  console.log('')
+    : '   CCR provides full model routing, transformation, and multi-provider support'));
+  console.log('');
 
   // Import CCR configuration
   try {
-    const { setupCcrConfiguration } = await import('../ccr/config')
-    const success = await setupCcrConfiguration()
+    const { setupCcrConfiguration } = await import('../ccr/config');
+    const success = await setupCcrConfiguration();
 
     return {
       success,
@@ -377,14 +377,14 @@ async function runCcrSetup(lang: 'en' | 'zh-CN'): Promise<ApiConfigResult> {
       message: success
         ? (lang === 'zh-CN' ? 'CCR 配置成功' : 'CCR configured successfully')
         : (lang === 'zh-CN' ? 'CCR 配置失败' : 'CCR configuration failed'),
-    }
+    };
   }
   catch (error) {
     return {
       success: false,
       mode: 'ccr',
       error: error instanceof Error ? error.message : String(error),
-    }
+    };
   }
 }
 
@@ -392,20 +392,20 @@ async function runCcrSetup(lang: 'en' | 'zh-CN'): Promise<ApiConfigResult> {
  * Test API connection
  */
 export async function testApiConnection(lang?: ApiRouterLang): Promise<boolean> {
-  lang = resolveApiRouterLang(lang)
-  const config = getCurrentConfig()
+  lang = resolveApiRouterLang(lang);
+  const config = getCurrentConfig();
 
   if (!config || (!config.ANTHROPIC_API_KEY && !config.ANTHROPIC_AUTH_TOKEN)) {
-    console.log(ansis.yellow(lang === 'zh-CN' ? '⚠ 未配置 API' : '⚠ No API configured'))
-    return false
+    console.log(ansis.yellow(lang === 'zh-CN' ? '⚠ 未配置 API' : '⚠ No API configured'));
+    return false;
   }
 
-  console.log(ansis.green(lang === 'zh-CN' ? '🔍 测试 API 连接...' : '🔍 Testing API connection...'))
+  console.log(ansis.green(lang === 'zh-CN' ? '🔍 测试 API 连接...' : '🔍 Testing API connection...'));
 
   try {
     // Simple fetch test to the base URL
-    const baseUrl = config.ANTHROPIC_BASE_URL || 'https://api.anthropic.com'
-    const testUrl = baseUrl.includes('v1') ? baseUrl : `${baseUrl}/v1/models`
+    const baseUrl = config.ANTHROPIC_BASE_URL || 'https://api.anthropic.com';
+    const testUrl = baseUrl.includes('v1') ? baseUrl : `${baseUrl}/v1/models`;
 
     const response = await fetch(testUrl, {
       method: 'GET',
@@ -413,21 +413,21 @@ export async function testApiConnection(lang?: ApiRouterLang): Promise<boolean> 
         'x-api-key': config.ANTHROPIC_API_KEY || '',
         'anthropic-version': '2023-06-01',
       },
-    })
+    });
 
     if (response.ok || response.status === 401) {
       // 401 means API is reachable but key might be wrong
-      console.log(ansis.green(lang === 'zh-CN' ? '✔ API 连接成功' : '✔ API connection successful'))
-      return true
+      console.log(ansis.green(lang === 'zh-CN' ? '✔ API 连接成功' : '✔ API connection successful'));
+      return true;
     }
     else {
-      console.log(ansis.yellow(`⚠ API returned status: ${response.status}`))
-      return false
+      console.log(ansis.yellow(`⚠ API returned status: ${response.status}`));
+      return false;
     }
   }
   catch (error) {
-    console.log(ansis.red(lang === 'zh-CN' ? '✖ API 连接失败' : '✖ API connection failed'))
-    console.log(ansis.gray(`  ${error instanceof Error ? error.message : String(error)}`))
-    return false
+    console.log(ansis.red(lang === 'zh-CN' ? '✖ API 连接失败' : '✖ API connection failed'));
+    console.log(ansis.gray(`  ${error instanceof Error ? error.message : String(error)}`));
+    return false;
   }
 }

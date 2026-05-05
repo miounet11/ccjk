@@ -27,7 +27,8 @@ export function setupSocketHandlers(io: SocketIOServer) {
       socket.userId = payload.userId;
       socket.machineId = machineId;
       next();
-    } catch (error) {
+    }
+    catch (_error) {
       next(new Error('Invalid token'));
     }
   });
@@ -139,7 +140,8 @@ export function setupSocketHandlers(io: SocketIOServer) {
 
           io.to(`user:${socket.userId}`).emit('notification', notificationPayload);
         }
-      } catch (error) {
+      }
+      catch (error) {
         console.error('Error handling session event:', error);
         socket.emit('error', { message: 'Failed to process event' });
       }
@@ -173,7 +175,8 @@ export function setupSocketHandlers(io: SocketIOServer) {
         });
 
         console.log(`Forwarded command to machine ${session.machine.machineId}`);
-      } catch (error) {
+      }
+      catch (error) {
         console.error('Error handling remote command:', error);
         socket.emit('error', { message: 'Failed to process command' });
       }
@@ -217,7 +220,8 @@ export function setupSocketHandlers(io: SocketIOServer) {
             });
           }
         }
-      } catch (error) {
+      }
+      catch (error) {
         console.error('Error handling approval response:', error);
       }
     });
@@ -238,7 +242,7 @@ async function sendPushNotificationToUser(
     title: string;
     body: string;
     data?: Record<string, any>;
-  }
+  },
 ) {
   try {
     // Get user's devices with push tokens
@@ -252,7 +256,7 @@ async function sendPushNotificationToUser(
 
     // Send to all devices
     const promises = devices.map(device =>
-      sendPushNotification(device.pushToken!, notification)
+      sendPushNotification(device.pushToken!, notification),
     );
 
     await Promise.allSettled(promises);
@@ -268,7 +272,8 @@ async function sendPushNotificationToUser(
         sentAt: new Date(),
       },
     });
-  } catch (error) {
+  }
+  catch (error) {
     console.error('Error sending push notification:', error);
   }
 }

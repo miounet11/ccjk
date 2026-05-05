@@ -4,7 +4,7 @@
  * Main exports for the credential management system
  */
 
-export * from './manager'
+export * from './manager';
 export type {
   Credential,
   CredentialQueryOptions,
@@ -13,5 +13,5 @@ export type {
   EncryptedCredential,
   EncryptedCredentialStorage,
   KeyDerivationOptions,
-} from './types'
-export { DEFAULT_KEY_DERIVATION } from './types'
+} from './types';
+export { DEFAULT_KEY_DERIVATION } from './types';

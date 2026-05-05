@@ -13,18 +13,18 @@ import type {
   WorkflowSession,
   WorkflowStatus,
   WorkflowTask,
-} from './types'
-import { EventEmitter } from 'node:events'
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
-import { homedir } from 'node:os'
-import { dirname, join } from 'pathe'
-import { PHASE_CONFIGS, WORKFLOW_PERSISTENCE_VERSION } from './types'
+} from './types';
+import { EventEmitter } from 'node:events';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { homedir } from 'node:os';
+import { dirname, join } from 'pathe';
+import { PHASE_CONFIGS, WORKFLOW_PERSISTENCE_VERSION } from './types';
 
 /**
  * Generate a unique ID
  */
 function generateId(): string {
-  return `wf-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
+  return `wf-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 }
 
 /**
@@ -32,13 +32,13 @@ function generateId(): string {
  */
 export interface StateMachineOptions {
   /** Path to persist workflow state */
-  persistPath?: string
+  persistPath?: string;
 
   /** Auto-save on state changes */
-  autoSave?: boolean
+  autoSave?: boolean;
 
   /** Enable verbose logging */
-  verbose?: boolean
+  verbose?: boolean;
 }
 
 /**
@@ -48,7 +48,7 @@ const DEFAULT_OPTIONS: Required<StateMachineOptions> = {
   persistPath: join(homedir(), '.ccjk', 'workflow-state.json'),
   autoSave: true,
   verbose: false,
-}
+};
 
 /**
  * WorkflowStateMachine - Manages workflow sessions and phase transitions
@@ -73,13 +73,13 @@ const DEFAULT_OPTIONS: Required<StateMachineOptions> = {
  * ```
  */
 export class WorkflowStateMachine extends EventEmitter {
-  private sessions: Map<string, WorkflowSession> = new Map()
-  private options: Required<StateMachineOptions>
+  private sessions: Map<string, WorkflowSession> = new Map();
+  private options: Required<StateMachineOptions>;
 
   constructor(options: StateMachineOptions = {}) {
-    super()
-    this.options = { ...DEFAULT_OPTIONS, ...options }
-    this.loadState()
+    super();
+    this.options = { ...DEFAULT_OPTIONS, ...options };
+    this.loadState();
   }
 
   // ==========================================================================
@@ -99,12 +99,12 @@ export class WorkflowStateMachine extends EventEmitter {
    * @returns Created session
    */
   createSession(params: {
-    name: string
-    description?: string
-    initialPhase?: WorkflowPhase
-    branch?: string
-    skills?: string[]
-    metadata?: Record<string, any>
+    name: string;
+    description?: string;
+    initialPhase?: WorkflowPhase;
+    branch?: string;
+    skills?: string[];
+    metadata?: Record<string, any>;
   }): WorkflowSession {
     const session: WorkflowSession = {
       id: generateId(),
@@ -125,63 +125,63 @@ export class WorkflowStateMachine extends EventEmitter {
       metadata: params.metadata || {},
       createdAt: new Date(),
       updatedAt: new Date(),
-    }
+    };
 
-    this.sessions.set(session.id, session)
-    this.emit('session:created', session)
-    this.log(`Created session: ${session.id} - ${session.name}`)
-    this.saveState()
+    this.sessions.set(session.id, session);
+    this.emit('session:created', session);
+    this.log(`Created session: ${session.id} - ${session.name}`);
+    this.saveState();
 
-    return session
+    return session;
   }
 
   /**
    * Get a session by ID
    */
   getSession(id: string): WorkflowSession | null {
-    return this.sessions.get(id) || null
+    return this.sessions.get(id) || null;
   }
 
   /**
    * Get all sessions
    */
   getAllSessions(): WorkflowSession[] {
-    return Array.from(this.sessions.values())
+    return Array.from(this.sessions.values());
   }
 
   /**
    * Get active sessions
    */
   getActiveSessions(): WorkflowSession[] {
-    return this.getAllSessions().filter(s => s.status === 'active' || s.status === 'paused')
+    return this.getAllSessions().filter(s => s.status === 'active' || s.status === 'paused');
   }
 
   /**
    * Update session metadata
    */
   updateSession(id: string, updates: Partial<Pick<WorkflowSession, 'name' | 'description' | 'metadata' | 'branch' | 'worktreePath'>>): WorkflowSession {
-    const session = this.getSessionOrThrow(id)
+    const session = this.getSessionOrThrow(id);
 
-    Object.assign(session, updates, { updatedAt: new Date() })
-    this.saveState()
+    Object.assign(session, updates, { updatedAt: new Date() });
+    this.saveState();
 
-    return session
+    return session;
   }
 
   /**
    * Delete a session
    */
   deleteSession(id: string): boolean {
-    const session = this.sessions.get(id)
+    const session = this.sessions.get(id);
     if (!session) {
-      return false
+      return false;
     }
 
-    this.sessions.delete(id)
-    this.log(`Deleted session: ${id}`)
-    this.saveState()
+    this.sessions.delete(id);
+    this.log(`Deleted session: ${id}`);
+    this.saveState();
 
-    return true
+    return true;
   }
 
   // ==========================================================================
@@ -202,83 +202,83 @@ export class WorkflowStateMachine extends EventEmitter {
     targetPhase: WorkflowPhase,
     reason?: string,
   ): WorkflowSession {
-    const session = this.getSessionOrThrow(sessionId)
+    const session = this.getSessionOrThrow(sessionId);
 
     // Validate transition
-    this.validateTransition(session, targetPhase)
+    this.validateTransition(session, targetPhase);
 
-    const oldPhase = session.currentPhase
+    const oldPhase = session.currentPhase;
     const transition: PhaseTransition = {
       from: oldPhase,
       to: targetPhase,
       timestamp: new Date(),
       reason: reason || `Transition from ${oldPhase} to ${targetPhase}`,
       triggeredBy: 'user',
-    }
+    };
 
-    session.currentPhase = targetPhase
-    session.phaseHistory.push(transition)
-    session.updatedAt = new Date()
+    session.currentPhase = targetPhase;
+    session.phaseHistory.push(transition);
+    session.updatedAt = new Date();
 
-    this.emit('phase:changed', session, transition)
-    this.log(`Phase transition: ${oldPhase} -> ${targetPhase} (${session.name})`)
-    this.saveState()
+    this.emit('phase:changed', session, transition);
+    this.log(`Phase transition: ${oldPhase} -> ${targetPhase} (${session.name})`);
+    this.saveState();
 
-    return session
+    return session;
   }
 
   /**
    * Check if a transition is allowed
    */
   canTransitionTo(sessionId: string, targetPhase: WorkflowPhase): boolean {
-    const session = this.sessions.get(sessionId)
+    const session = this.sessions.get(sessionId);
     if (!session) {
-      return false
+      return false;
     }
 
-    const currentConfig = PHASE_CONFIGS[session.currentPhase]
-    return currentConfig.allowedTransitions.includes(targetPhase)
+    const currentConfig = PHASE_CONFIGS[session.currentPhase];
+    return currentConfig.allowedTransitions.includes(targetPhase);
   }
 
   /**
    * Get allowed transitions for a session
    */
   getAllowedTransitions(sessionId: string): WorkflowPhase[] {
-    const session = this.sessions.get(sessionId)
+    const session = this.sessions.get(sessionId);
     if (!session) {
-      return []
+      return [];
     }
 
-    return PHASE_CONFIGS[session.currentPhase].allowedTransitions
+    return PHASE_CONFIGS[session.currentPhase].allowedTransitions;
   }
 
   /**
    * Auto-advance to next phase if conditions are met
    */
   autoAdvance(sessionId: string): WorkflowSession | null {
-    const session = this.getSessionOrThrow(sessionId)
-    const currentConfig = PHASE_CONFIGS[session.currentPhase]
+    const session = this.getSessionOrThrow(sessionId);
+    const currentConfig = PHASE_CONFIGS[session.currentPhase];
 
     // Don't auto-advance if confirmation is required
     if (currentConfig.requiresConfirmation) {
-      return null
+      return null;
     }
 
     // Check if all tasks in current phase are completed
-    const phaseTasks = this.getTasksForPhase(session, session.currentPhase)
-    const allCompleted = phaseTasks.every(t => t.status === 'completed')
+    const phaseTasks = this.getTasksForPhase(session, session.currentPhase);
+    const allCompleted = phaseTasks.every(t => t.status === 'completed');
 
     if (!allCompleted || phaseTasks.length === 0) {
-      return null
+      return null;
     }
 
     // Get next phase
-    const nextPhase = currentConfig.allowedTransitions[0]
+    const nextPhase = currentConfig.allowedTransitions[0];
     if (!nextPhase) {
-      return null
+      return null;
     }
 
-    return this.transitionTo(sessionId, nextPhase, 'Auto-advanced after task completion')
+    return this.transitionTo(sessionId, nextPhase, 'Auto-advanced after task completion');
   }
 
   // ==========================================================================
@@ -289,69 +289,69 @@ export class WorkflowStateMachine extends EventEmitter {
    * Pause a session
    */
   pauseSession(sessionId: string): WorkflowSession {
-    const session = this.getSessionOrThrow(sessionId)
+    const session = this.getSessionOrThrow(sessionId);
 
     if (session.status !== 'active') {
-      throw new Error(`Cannot pause session with status: ${session.status}`)
+      throw new Error(`Cannot pause session with status: ${session.status}`);
     }
 
-    return this.changeSessionStatus(session, 'paused')
+    return this.changeSessionStatus(session, 'paused');
   }
 
   /**
    * Resume a paused session
    */
   resumeSession(sessionId: string): WorkflowSession {
-    const session = this.getSessionOrThrow(sessionId)
+    const session = this.getSessionOrThrow(sessionId);
 
     if (session.status !== 'paused') {
-      throw new Error(`Cannot resume session with status: ${session.status}`)
+      throw new Error(`Cannot resume session with status: ${session.status}`);
     }
 
-    return this.changeSessionStatus(session, 'active')
+    return this.changeSessionStatus(session, 'active');
   }
 
   /**
    * Complete a session
    */
   completeSession(sessionId: string): WorkflowSession {
-    const session = this.getSessionOrThrow(sessionId)
+    const session = this.getSessionOrThrow(sessionId);
 
     if (session.status !== 'active') {
-      throw new Error(`Cannot complete session with status: ${session.status}`)
+      throw new Error(`Cannot complete session with status: ${session.status}`);
     }
 
-    session.completedAt = new Date()
-    const updated = this.changeSessionStatus(session, 'completed')
-    this.emit('workflow:completed', updated)
+    session.completedAt = new Date();
+    const updated = this.changeSessionStatus(session, 'completed');
+    this.emit('workflow:completed', updated);
 
-    return updated
+    return updated;
   }
 
   /**
    * Fail a session
    */
   failSession(sessionId: string, error: string): WorkflowSession {
-    const session = this.getSessionOrThrow(sessionId)
+    const session = this.getSessionOrThrow(sessionId);
 
-    session.error = error
-    const updated = this.changeSessionStatus(session, 'failed')
-    this.emit('workflow:failed', updated, error)
+    session.error = error;
+    const updated = this.changeSessionStatus(session, 'failed');
+    this.emit('workflow:failed', updated, error);
 
-    return updated
+    return updated;
   }
 
   /**
    * Cancel a session
    */
   cancelSession(sessionId: string): WorkflowSession {
-    const session = this.getSessionOrThrow(sessionId)
+    const session = this.getSessionOrThrow(sessionId);
 
     if (session.status === 'completed' || session.status === 'failed') {
-      throw new Error(`Cannot cancel session with status: ${session.status}`)
+      throw new Error(`Cannot cancel session with status: ${session.status}`);
     }
 
-    return this.changeSessionStatus(session, 'cancelled')
+    return this.changeSessionStatus(session, 'cancelled');
   }
 
   // ==========================================================================
@@ -362,63 +362,63 @@ export class WorkflowStateMachine extends EventEmitter {
    * Add a task to a session
    */
   addTask(sessionId: string, task: Omit<WorkflowTask, 'id' | 'createdAt' | 'status'>): WorkflowTask {
-    const session = this.getSessionOrThrow(sessionId)
+    const session = this.getSessionOrThrow(sessionId);
 
     const newTask: WorkflowTask = {
       ...task,
       id: `task-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
       status: 'pending',
       createdAt: new Date(),
-    }
+    };
 
-    session.tasks.push(newTask)
-    session.updatedAt = new Date()
+    session.tasks.push(newTask);
+    session.updatedAt = new Date();
 
-    this.emit('task:created', session, newTask)
-    this.saveState()
+    this.emit('task:created', session, newTask);
+    this.saveState();
 
-    return newTask
+    return newTask;
   }
 
   /**
    * Update task status
    */
   updateTaskStatus(sessionId: string, taskId: string, status: WorkflowTask['status']): WorkflowTask {
-    const session = this.getSessionOrThrow(sessionId)
-    const task = session.tasks.find(t => t.id === taskId)
+    const session = this.getSessionOrThrow(sessionId);
+    const task = session.tasks.find(t => t.id === taskId);
 
     if (!task) {
-      throw new Error(`Task not found: ${taskId}`)
+      throw new Error(`Task not found: ${taskId}`);
     }
 
-    const oldStatus = task.status
-    task.status = status
+    const oldStatus = task.status;
+    task.status = status;
 
     if (status === 'running' && !task.startedAt) {
-      task.startedAt = new Date()
+      task.startedAt = new Date();
     }
 
     if (status === 'completed' || status === 'failed' || status === 'cancelled') {
-      task.completedAt = new Date()
+      task.completedAt = new Date();
       if (task.startedAt) {
-        task.actualMinutes = Math.round((task.completedAt.getTime() - task.startedAt.getTime()) / 60000)
+        task.actualMinutes = Math.round((task.completedAt.getTime() - task.startedAt.getTime()) / 60000);
       }
     }
 
-    session.updatedAt = new Date()
+    session.updatedAt = new Date();
 
-    this.emit('task:status', session, task, oldStatus, status)
+    this.emit('task:status', session, task, oldStatus, status);
 
     if (status === 'completed') {
-      this.emit('task:completed', session, task)
+      this.emit('task:completed', session, task);
     }
     else if (status === 'failed') {
-      this.emit('task:failed', session, task, task.error || 'Unknown error')
+      this.emit('task:failed', session, task, task.error || 'Unknown error');
     }
 
-    this.saveState()
+    this.saveState();
 
-    return task
+    return task;
   }
 
   /**
@@ -426,23 +426,23 @@ export class WorkflowStateMachine extends EventEmitter {
    */
   getTasksForPhase(session: WorkflowSession, phase: WorkflowPhase): WorkflowTask[] {
     // Tasks are associated with phases via metadata or skill mapping
-    return session.tasks.filter(t => t.metadata?.phase === phase)
+    return session.tasks.filter(t => t.metadata?.phase === phase);
   }
 
   /**
    * Get pending tasks
    */
   getPendingTasks(sessionId: string): WorkflowTask[] {
-    const session = this.getSessionOrThrow(sessionId)
-    return session.tasks.filter(t => t.status === 'pending' || t.status === 'queued')
+    const session = this.getSessionOrThrow(sessionId);
+    return session.tasks.filter(t => t.status === 'pending' || t.status === 'queued');
   }
 
   /**
    * Get running tasks
    */
   getRunningTasks(sessionId: string): WorkflowTask[] {
-    const session = this.getSessionOrThrow(sessionId)
-    return session.tasks.filter(t => t.status === 'running')
+    const session = this.getSessionOrThrow(sessionId);
+    return session.tasks.filter(t => t.status === 'running');
   }
 
   // ==========================================================================
@@ -454,31 +454,31 @@ export class WorkflowStateMachine extends EventEmitter {
    */
   saveState(): void {
     if (!this.options.autoSave) {
-      return
+      return;
     }
 
     const state: WorkflowPersistenceState = {
       version: WORKFLOW_PERSISTENCE_VERSION,
       sessions: Array.from(this.sessions.values()),
       lastUpdated: new Date(),
-    }
+    };
 
     try {
-      const dir = dirname(this.options.persistPath)
+      const dir = dirname(this.options.persistPath);
       if (!existsSync(dir)) {
-        mkdirSync(dir, { recursive: true })
+        mkdirSync(dir, { recursive: true });
       }
 
       writeFileSync(
         this.options.persistPath,
         JSON.stringify(state, null, 2),
         'utf-8',
-      )
+      );
 
-      this.log(`State saved to ${this.options.persistPath}`)
+      this.log(`State saved to ${this.options.persistPath}`);
     }
     catch (error) {
-      console.error('Failed to save workflow state:', error)
+      console.error('Failed to save workflow state:', error);
     }
   }
 
@@ -488,48 +488,48 @@ export class WorkflowStateMachine extends EventEmitter {
   loadState(): void {
     try {
       if (!existsSync(this.options.persistPath)) {
-        this.log('No existing state file found')
-        return
+        this.log('No existing state file found');
+        return;
       }
 
-      const content = readFileSync(this.options.persistPath, 'utf-8')
-      const state: WorkflowPersistenceState = JSON.parse(content)
+      const content = readFileSync(this.options.persistPath, 'utf-8');
+      const state: WorkflowPersistenceState = JSON.parse(content);
 
       // Version migration if needed
       if (state.version !== WORKFLOW_PERSISTENCE_VERSION) {
-        this.log(`Migrating state from version ${state.version} to ${WORKFLOW_PERSISTENCE_VERSION}`)
+        this.log(`Migrating state from version ${state.version} to ${WORKFLOW_PERSISTENCE_VERSION}`);
         // Add migration logic here when needed
       }
 
       // Restore sessions
-      this.sessions.clear()
+      this.sessions.clear();
       for (const session of state.sessions) {
         // Convert date strings back to Date objects
-        session.createdAt = new Date(session.createdAt)
-        session.updatedAt = new Date(session.updatedAt)
+        session.createdAt = new Date(session.createdAt);
+        session.updatedAt = new Date(session.updatedAt);
         if (session.completedAt) {
-          session.completedAt = new Date(session.completedAt)
+          session.completedAt = new Date(session.completedAt);
         }
 
         for (const task of session.tasks) {
-          task.createdAt = new Date(task.createdAt)
+          task.createdAt = new Date(task.createdAt);
           if (task.startedAt)
-            task.startedAt = new Date(task.startedAt)
+            task.startedAt = new Date(task.startedAt);
           if (task.completedAt)
-            task.completedAt = new Date(task.completedAt)
+            task.completedAt = new Date(task.completedAt);
         }
 
         for (const transition of session.phaseHistory) {
-          transition.timestamp = new Date(transition.timestamp)
+          transition.timestamp = new Date(transition.timestamp);
         }
 
-        this.sessions.set(session.id, session)
+        this.sessions.set(session.id, session);
       }
 
-      this.log(`Loaded ${this.sessions.size} sessions from state file`)
+      this.log(`Loaded ${this.sessions.size} sessions from state file`);
     }
     catch (error) {
-      console.error('Failed to load workflow state:', error)
+      console.error('Failed to load workflow state:', error);
     }
   }
 
@@ -537,9 +537,9 @@ export class WorkflowStateMachine extends EventEmitter {
    * Clear all state
    */
   clearState(): void {
-    this.sessions.clear()
-    this.saveState()
-    this.log('State cleared')
+    this.sessions.clear();
+    this.saveState();
+    this.log('State cleared');
   }
 
   // ==========================================================================
@@ -550,21 +550,21 @@ export class WorkflowStateMachine extends EventEmitter {
    * Get workflow statistics
    */
   getStats(): {
-    totalSessions: number
-    activeSessions: number
-    completedSessions: number
-    failedSessions: number
-    totalTasks: number
-    completedTasks: number
-    averageTaskDuration: number
+    totalSessions: number;
+    activeSessions: number;
+    completedSessions: number;
+    failedSessions: number;
+    totalTasks: number;
+    completedTasks: number;
+    averageTaskDuration: number;
   } {
-    const sessions = this.getAllSessions()
-    const allTasks = sessions.flatMap(s => s.tasks)
-    const completedTasks = allTasks.filter(t => t.status === 'completed' && t.actualMinutes)
+    const sessions = this.getAllSessions();
+    const allTasks = sessions.flatMap(s => s.tasks);
+    const completedTasks = allTasks.filter(t => t.status === 'completed' && t.actualMinutes);
 
     const avgDuration = completedTasks.length > 0
       ? completedTasks.reduce((sum, t) => sum + (t.actualMinutes || 0), 0) / completedTasks.length
-      : 0
+      : 0;
 
     return {
       totalSessions: sessions.length,
@@ -574,7 +574,7 @@ export class WorkflowStateMachine extends EventEmitter {
       totalTasks: allTasks.length,
       completedTasks: completedTasks.length,
       averageTaskDuration: Math.round(avgDuration * 10) / 10,
-    }
+    };
   }
 
   // ==========================================================================
@@ -582,42 +582,42 @@ export class WorkflowStateMachine extends EventEmitter {
   // ==========================================================================
 
   private getSessionOrThrow(id: string): WorkflowSession {
-    const session = this.sessions.get(id)
+    const session = this.sessions.get(id);
     if (!session) {
-      throw new Error(`Session not found: ${id}`)
+      throw new Error(`Session not found: ${id}`);
     }
-    return session
+    return session;
   }
 
   private validateTransition(session: WorkflowSession, targetPhase: WorkflowPhase): void {
     if (session.status !== 'active') {
-      throw new Error(`Cannot transition session with status: ${session.status}`)
+      throw new Error(`Cannot transition session with status: ${session.status}`);
     }
 
-    const currentConfig = PHASE_CONFIGS[session.currentPhase]
+    const currentConfig = PHASE_CONFIGS[session.currentPhase];
     if (!currentConfig.allowedTransitions.includes(targetPhase)) {
       throw new Error(
         `Invalid transition: ${session.currentPhase} -> ${targetPhase}. `
         + `Allowed: ${currentConfig.allowedTransitions.join(', ')}`,
-      )
+      );
     }
   }
 
   private changeSessionStatus(session: WorkflowSession, newStatus: WorkflowStatus): WorkflowSession {
-    const oldStatus = session.status
-    session.status = newStatus
-    session.updatedAt = new Date()
+    const oldStatus = session.status;
+    session.status = newStatus;
+    session.updatedAt = new Date();
 
-    this.emit('session:status', session, oldStatus, newStatus)
-    this.log(`Session status: ${oldStatus} -> ${newStatus} (${session.name})`)
-    this.saveState()
+    this.emit('session:status', session, oldStatus, newStatus);
+    this.log(`Session status: ${oldStatus} -> ${newStatus} (${session.name})`);
+    this.saveState();
 
-    return session
+    return session;
   }
 
   private log(message: string): void {
     if (this.options.verbose) {
-      console.log(`[WorkflowStateMachine] ${message}`)
+      console.log(`[WorkflowStateMachine] ${message}`);
     }
   }
 
@@ -626,40 +626,40 @@ export class WorkflowStateMachine extends EventEmitter {
   // ==========================================================================
 
   on<K extends keyof WorkflowEvents>(event: K, listener: WorkflowEvents[K]): this {
-    return super.on(event, listener as any)
+    return super.on(event, listener as any);
   }
 
   emit<K extends keyof WorkflowEvents>(event: K, ...args: Parameters<WorkflowEvents[K]>): boolean {
-    return super.emit(event, ...args)
+    return super.emit(event, ...args);
   }
 
   once<K extends keyof WorkflowEvents>(event: K, listener: WorkflowEvents[K]): this {
-    return super.once(event, listener as any)
+    return super.once(event, listener as any);
   }
 
   off<K extends keyof WorkflowEvents>(event: K, listener: WorkflowEvents[K]): this {
-    return super.off(event, listener as any)
+    return super.off(event, listener as any);
   }
 }
 
 /**
  * Singleton instance
  */
-let instance: WorkflowStateMachine | null = null
+let instance: WorkflowStateMachine | null = null;
 
 /**
  * Get the workflow state machine instance
  */
 export function getWorkflowStateMachine(options?: StateMachineOptions): WorkflowStateMachine {
   if (!instance) {
-    instance = new WorkflowStateMachine(options)
+    instance = new WorkflowStateMachine(options);
   }
-  return instance
+  return instance;
 }
 
 /**
  * Reset the singleton instance (for testing)
  */
 export function resetWorkflowStateMachine(): void {
-  instance = null
+  instance = null;
 }

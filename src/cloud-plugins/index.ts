@@ -21,7 +21,7 @@ export {
   CCJK_CLOUD_PLUGINS_INSTALLED_DIR,
   CLOUD_PLUGINS_CACHE_TTL,
   CLOUD_PLUGINS_MAX_CACHE_SIZE,
-} from '../constants'
+} from '../constants';
 
 // =============================================================================
 // Local Cache
@@ -35,7 +35,7 @@ export {
   loadCachedPlugins,
   LocalPluginCache,
   updatePluginCache,
-} from './cache'
+} from './cache';
 
 // =============================================================================
 // Cloud Client
@@ -45,10 +45,10 @@ export {
   createCloudClient,
   createMockClient,
   getDefaultCloudClient,
-} from './cloud-client'
+} from './cloud-client';
 
 // Alias for backward compatibility
-export { getDefaultCloudClient as getCloudClient } from './cloud-client'
+export { getDefaultCloudClient as getCloudClient } from './cloud-client';
 
 export type {
   CloudApiResponse as CloudClientApiResponse,
@@ -58,7 +58,7 @@ export type {
   RecommendationResult as CloudRecommendationResult,
   PluginCategoryInfo,
   PluginDownloadResult,
-} from './cloud-client'
+} from './cloud-client';
 
 // =============================================================================
 // Plugin Manager
@@ -66,14 +66,14 @@ export type {
 export {
   CloudPluginManager,
   getCloudPluginManager,
-} from './manager'
+} from './manager';
 
 // =============================================================================
 // Recommendation Engine
 // =============================================================================
 export {
   RecommendationEngine,
-} from './recommendation-engine'
+} from './recommendation-engine';
 
 // =============================================================================
 // Types
@@ -91,4 +91,4 @@ export type {
   RecommendationContext,
   RecommendationResult,
   UserPreferences,
-} from './types'
+} from './types';

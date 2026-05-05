@@ -15,19 +15,19 @@ import type {
   PlatformInfo,
   PlatformVariant,
   ShellType,
-} from './types'
-import * as fs from 'node:fs'
-import * as os from 'node:os'
-import * as path from 'node:path'
+} from './types';
+import * as fs from 'node:fs';
+import * as os from 'node:os';
+import * as path from 'node:path';
 
-import * as process from 'node:process'
+import * as process from 'node:process';
 
 // ============================================================================
 // Platform Detection Cache
 // ============================================================================
 
-let cachedPlatformInfo: PlatformInfo | null = null
-let cachedCapabilities: PlatformCapabilities | null = null
+let cachedPlatformInfo: PlatformInfo | null = null;
+let cachedCapabilities: PlatformCapabilities | null = null;
 
 // ============================================================================
 // OS Detection
@@ -39,17 +39,17 @@ let cachedCapabilities: PlatformCapabilities | null = null
 export function detectOS(): OSType {
   switch (process.platform) {
     case 'win32':
-      return 'windows'
+      return 'windows';
     case 'darwin':
-      return 'macos'
+      return 'macos';
     case 'linux':
     case 'freebsd':
     case 'openbsd':
     case 'sunos':
     case 'aix':
-      return 'linux'
+      return 'linux';
     default:
-      return 'linux' // Default to Linux for unknown Unix-like systems
+      return 'linux'; // Default to Linux for unknown Unix-like systems
   }
 }
 
@@ -62,15 +62,15 @@ export function detectOS(): OSType {
  */
 export function isWSL(): boolean {
   if (process.platform !== 'linux') {
-    return false
+    return false;
   }
 
   // Check for WSL-specific indicators
   try {
     // Check /proc/version for Microsoft/WSL
-    const procVersion = fs.readFileSync('/proc/version', 'utf8').toLowerCase()
+    const procVersion = fs.readFileSync('/proc/version', 'utf8').toLowerCase();
     if (procVersion.includes('microsoft') || procVersion.includes('wsl')) {
-      return true
+      return true;
     }
   }
   catch {
@@ -79,15 +79,15 @@ export function isWSL(): boolean {
 
   // Check for WSL environment variables
   if (process.env.WSL_DISTRO_NAME || process.env.WSL_INTEROP) {
-    return true
+    return true;
   }
 
   // Check for /mnt/c (common WSL mount point)
   try {
-    return fs.existsSync('/mnt/c/Windows')
+    return fs.existsSync('/mnt/c/Windows');
   }
   catch {
-    return false
+    return false;
   }
 }
 
@@ -96,7 +96,7 @@ export function isWSL(): boolean {
  */
 export function isTermux(): boolean {
   if (process.platform !== 'linux') {
-    return false
+    return false;
   }
 
   // Check for Termux-specific paths and environment
@@ -104,7 +104,7 @@ export function isTermux(): boolean {
     process.env.TERMUX_VERSION
     || process.env.PREFIX?.includes('com.termux')
     || fs.existsSync('/data/data/com.termux')
-  )
+  );
 }
 
 /**
@@ -113,14 +113,14 @@ export function isTermux(): boolean {
 export function isDocker(): boolean {
   // Check for .dockerenv file
   if (fs.existsSync('/.dockerenv')) {
-    return true
+    return true;
   }
 
   // Check cgroup for docker
   try {
-    const cgroup = fs.readFileSync('/proc/1/cgroup', 'utf8')
+    const cgroup = fs.readFileSync('/proc/1/cgroup', 'utf8');
     if (cgroup.includes('docker') || cgroup.includes('kubepods')) {
-      return true
+      return true;
     }
   }
   catch {
@@ -129,10 +129,10 @@ export function isDocker(): boolean {
 
   // Check for container environment variable
   if (process.env.container === 'docker') {
-    return true
+    return true;
   }
 
-  return false
+  return false;
 }
 
 /**
@@ -151,7 +151,7 @@ export function isCI(): boolean {
     || process.env.TEAMCITY_VERSION
     || process.env.TF_BUILD // Azure Pipelines
     || process.env.BITBUCKET_BUILD_NUMBER
-  )
+  );
 }
 
 /**
@@ -160,14 +160,14 @@ export function isCI(): boolean {
 export function detectVariant(): PlatformVariant {
   // Check in order of specificity
   if (isCI())
-    return 'ci'
+    return 'ci';
   if (isDocker())
-    return 'docker'
+    return 'docker';
   if (isWSL())
-    return 'wsl'
+    return 'wsl';
   if (isTermux())
-    return 'termux'
-  return 'standard'
+    return 'termux';
+  return 'standard';
 }
 
 // ============================================================================
@@ -178,25 +178,25 @@ export function detectVariant(): PlatformVariant {
  * Detect CPU architecture
  */
 export function detectArchitecture(): Architecture {
-  const arch = process.arch as string
+  const arch = process.arch as string;
 
   // x64/x86_64
   if (arch === 'x64' || arch === 'x86_64') {
-    return 'x64'
+    return 'x64';
   }
 
   // arm64/aarch64
   if (arch === 'arm64' || arch === 'aarch64') {
-    return 'arm64'
+    return 'arm64';
   }
 
   // arm/armv7l
   if (arch === 'arm' || arch === 'armv7l') {
-    return 'arm'
+    return 'arm';
   }
 
   // Default to x64 for unknown architectures
-  return 'x64'
+  return 'x64';
 }
 
 // ============================================================================
@@ -207,32 +207,32 @@ export function detectArchitecture(): Architecture {
  * Detect the default shell
  */
 export function detectShell(): ShellType {
-  const osType = detectOS()
+  const osType = detectOS();
 
   if (osType === 'windows') {
     // Check for PowerShell preference
     if (process.env.PSModulePath) {
-      return 'powershell'
+      return 'powershell';
     }
-    return 'cmd'
+    return 'cmd';
   }
 
   // Unix-like systems
-  const shell = process.env.SHELL || ''
-  const shellName = path.basename(shell)
+  const shell = process.env.SHELL || '';
+  const shellName = path.basename(shell);
 
   switch (shellName) {
     case 'bash':
-      return 'bash'
+      return 'bash';
     case 'zsh':
-      return 'zsh'
+      return 'zsh';
     case 'fish':
-      return 'fish'
+      return 'fish';
     case 'sh':
-      return 'sh'
+      return 'sh';
     default:
       // Default to bash for Unix-like systems
-      return 'bash'
+      return 'bash';
   }
 }
 
@@ -246,10 +246,10 @@ export function detectShell(): ShellType {
 export function getHomeDir(): string {
   // Handle Termux special case
   if (isTermux()) {
-    return process.env.HOME || '/data/data/com.termux/files/home'
+    return process.env.HOME || '/data/data/com.termux/files/home';
   }
 
-  return os.homedir()
+  return os.homedir();
 }
 
 /**
@@ -258,72 +258,72 @@ export function getHomeDir(): string {
 export function getTempDir(): string {
   // Handle Termux special case
   if (isTermux()) {
-    const termuxTmp = `${process.env.PREFIX}/tmp`
+    const termuxTmp = `${process.env.PREFIX}/tmp`;
     if (fs.existsSync(termuxTmp)) {
-      return termuxTmp
+      return termuxTmp;
     }
   }
 
-  return os.tmpdir()
+  return os.tmpdir();
 }
 
 /**
  * Get the user config directory
  */
 export function getConfigDir(): string {
-  const osType = detectOS()
-  const home = getHomeDir()
+  const osType = detectOS();
+  const home = getHomeDir();
 
   if (osType === 'windows') {
-    return process.env.APPDATA || path.join(home, 'AppData', 'Roaming')
+    return process.env.APPDATA || path.join(home, 'AppData', 'Roaming');
   }
 
   if (osType === 'macos') {
-    return path.join(home, 'Library', 'Application Support')
+    return path.join(home, 'Library', 'Application Support');
   }
 
   // Linux and others - follow XDG spec
-  return process.env.XDG_CONFIG_HOME || path.join(home, '.config')
+  return process.env.XDG_CONFIG_HOME || path.join(home, '.config');
 }
 
 /**
  * Get the user data directory
  */
 export function getDataDir(): string {
-  const osType = detectOS()
-  const home = getHomeDir()
+  const osType = detectOS();
+  const home = getHomeDir();
 
   if (osType === 'windows') {
-    return process.env.LOCALAPPDATA || path.join(home, 'AppData', 'Local')
+    return process.env.LOCALAPPDATA || path.join(home, 'AppData', 'Local');
   }
 
   if (osType === 'macos') {
-    return path.join(home, 'Library', 'Application Support')
+    return path.join(home, 'Library', 'Application Support');
   }
 
   // Linux and others - follow XDG spec
-  return process.env.XDG_DATA_HOME || path.join(home, '.local', 'share')
+  return process.env.XDG_DATA_HOME || path.join(home, '.local', 'share');
 }
 
 /**
  * Get the user cache directory
  */
 export function getCacheDir(): string {
-  const osType = detectOS()
-  const home = getHomeDir()
+  const osType = detectOS();
+  const home = getHomeDir();
 
   if (osType === 'windows') {
     return process.env.LOCALAPPDATA
       ? path.join(process.env.LOCALAPPDATA, 'Cache')
-      : path.join(home, 'AppData', 'Local', 'Cache')
+      : path.join(home, 'AppData', 'Local', 'Cache');
   }
 
   if (osType === 'macos') {
-    return path.join(home, 'Library', 'Caches')
+    return path.join(home, 'Library', 'Caches');
   }
 
   // Linux and others - follow XDG spec
-  return process.env.XDG_CACHE_HOME || path.join(home, '.cache')
+  return process.env.XDG_CACHE_HOME || path.join(home, '.cache');
 }
 
 // ============================================================================
@@ -334,31 +334,31 @@ export function getCacheDir(): string {
  * Detect if GUI is available
  */
 export function hasGui(): boolean {
-  const osType = detectOS()
-  const variant = detectVariant()
+  const osType = detectOS();
+  const variant = detectVariant();
 
   // CI and Docker typically don't have GUI
   if (variant === 'ci' || variant === 'docker') {
-    return false
+    return false;
   }
 
   // Termux on Android may have limited GUI
   if (variant === 'termux') {
-    return false
+    return false;
   }
 
   if (osType === 'windows') {
     // Windows typically has GUI unless in Server Core
-    return true
+    return true;
   }
 
   if (osType === 'macos') {
     // macOS typically has GUI
-    return true
+    return true;
   }
 
   // Linux - check for display
-  return !!(process.env.DISPLAY || process.env.WAYLAND_DISPLAY)
+  return !!(process.env.DISPLAY || process.env.WAYLAND_DISPLAY);
 }
 
 // ============================================================================
@@ -369,21 +369,21 @@ export function hasGui(): boolean {
  * Detect if running with elevated privileges
  */
 export function isElevated(): boolean {
-  const osType = detectOS()
+  const osType = detectOS();
 
   if (osType === 'windows') {
     // On Windows, check for admin by trying to access a protected path
     try {
-      fs.accessSync('C:\\Windows\\System32\\config', fs.constants.R_OK)
-      return true
+      fs.accessSync('C:\\Windows\\System32\\config', fs.constants.R_OK);
+      return true;
     }
     catch {
-      return false
+      return false;
     }
   }
 
   // Unix-like systems - check for root
-  return process.getuid?.() === 0
+  return process.getuid?.() === 0;
 }
 
 // ============================================================================
@@ -399,10 +399,10 @@ export function isElevated(): boolean {
  */
 export function getPlatformInfo(): PlatformInfo {
   if (cachedPlatformInfo) {
-    return cachedPlatformInfo
+    return cachedPlatformInfo;
   }
 
-  const osType = detectOS()
+  const osType = detectOS();
 
   cachedPlatformInfo = {
     os: osType,
@@ -420,9 +420,9 @@ export function getPlatformInfo(): PlatformInfo {
     isElevated: isElevated(),
     nodeVersion: process.version,
     rawPlatform: process.platform,
-  }
+  };
 
-  return cachedPlatformInfo
+  return cachedPlatformInfo;
 }
 
 // ============================================================================
@@ -436,11 +436,11 @@ export function getPlatformInfo(): PlatformInfo {
  */
 export function getPlatformCapabilities(): PlatformCapabilities {
   if (cachedCapabilities) {
-    return cachedCapabilities
+    return cachedCapabilities;
   }
 
-  const osType = detectOS()
-  const variant = detectVariant()
+  const osType = detectOS();
+  const variant = detectVariant();
 
   cachedCapabilities = {
     // Symlinks: Windows requires admin or developer mode
@@ -469,9 +469,9 @@ export function getPlatformCapabilities(): PlatformCapabilities {
 
     // Native watch: available on all modern platforms
     nativeWatch: true,
-  }
+  };
 
-  return cachedCapabilities
+  return cachedCapabilities;
 }
 
 // ============================================================================
@@ -484,8 +484,8 @@ export function getPlatformCapabilities(): PlatformCapabilities {
  * Useful for testing or when environment changes
  */
 export function clearPlatformCache(): void {
-  cachedPlatformInfo = null
-  cachedCapabilities = null
+  cachedPlatformInfo = null;
+  cachedCapabilities = null;
 }
 
 // ============================================================================
@@ -496,29 +496,29 @@ export function clearPlatformCache(): void {
  * Check if running on Windows
  */
 export function isWindows(): boolean {
-  return detectOS() === 'windows'
+  return detectOS() === 'windows';
 }
 
 /**
  * Check if running on macOS
  */
 export function isMacOS(): boolean {
-  return detectOS() === 'macos'
+  return detectOS() === 'macos';
 }
 
 /**
  * Check if running on Linux
  */
 export function isLinux(): boolean {
-  return detectOS() === 'linux'
+  return detectOS() === 'linux';
 }
 
 /**
  * Check if running on a Unix-like system (macOS or Linux)
  */
 export function isUnix(): boolean {
-  const os = detectOS()
-  return os === 'macos' || os === 'linux'
+  const os = detectOS();
+  return os === 'macos' || os === 'linux';
 }
 
 /**
@@ -528,22 +528,22 @@ export function isUnix(): boolean {
  * @returns The value for the current platform
  */
 export function getPlatformValue<T>(values: {
-  windows?: T
-  macos?: T
-  linux?: T
-  default: T
+  windows?: T;
+  macos?: T;
+  linux?: T;
+  default: T;
 }): T {
-  const osType = detectOS()
+  const osType = detectOS();
 
   if (osType === 'windows' && values.windows !== undefined) {
-    return values.windows
+    return values.windows;
   }
   if (osType === 'macos' && values.macos !== undefined) {
-    return values.macos
+    return values.macos;
   }
   if (osType === 'linux' && values.linux !== undefined) {
-    return values.linux
+    return values.linux;
   }
 
-  return values.default
+  return values.default;
 }

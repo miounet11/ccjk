@@ -5,28 +5,28 @@
  * This includes sessions, cache info, and update tracking
  */
 
-import type { CodeToolType, SupportedLang } from '../../constants'
-import type { CacheState, PartialRuntimeState, RuntimeState, SessionState, UpdateState } from './types'
+import type { CodeToolType, SupportedLang } from '../../constants';
+import type { CacheState, PartialRuntimeState, RuntimeState, SessionState, UpdateState } from './types';
 
-import { join } from 'pathe'
-import { CCJK_CONFIG_DIR } from '../../constants'
-import { ensureDir, exists } from '../../utils/fs-operations'
-import { readJsonConfig, writeJsonConfig } from '../../utils/json-config'
+import { join } from 'pathe';
+import { CCJK_CONFIG_DIR } from '../../constants';
+import { ensureDir, exists } from '../../utils/fs-operations';
+import { readJsonConfig, writeJsonConfig } from '../../utils/json-config';
 
 /**
  * Default state file path
  */
-export const STATE_FILE = join(CCJK_CONFIG_DIR, 'state.json')
+export const STATE_FILE = join(CCJK_CONFIG_DIR, 'state.json');
 
 /**
  * Default state version
  */
-const DEFAULT_STATE_VERSION = '4.0.0'
+const DEFAULT_STATE_VERSION = '4.0.0';
 
 /**
  * Default cache TTL (24 hours)
  */
-const DEFAULT_CACHE_TTL = 24 * 60 * 60 * 1000
+const DEFAULT_CACHE_TTL = 24 * 60 * 60 * 1000;
 
 /**
  * Create default runtime state
@@ -47,7 +47,7 @@ export function createDefaultState(): RuntimeState {
       currentVersion: DEFAULT_STATE_VERSION,
       updateAvailable: false,
     },
-  }
+  };
 }
 
 /**
@@ -56,14 +56,14 @@ export function createDefaultState(): RuntimeState {
 export function readState(statePath: string = STATE_FILE): RuntimeState | null {
   try {
     if (!exists(statePath)) {
-      return null
+      return null;
     }
 
-    return readJsonConfig<RuntimeState>(statePath) || null
+    return readJsonConfig<RuntimeState>(statePath) || null;
   }
   catch (error) {
-    console.error(`Failed to read state from ${statePath}:`, error)
-    return null
+    console.error(`Failed to read state from ${statePath}:`, error);
+    return null;
   }
 }
 
@@ -76,17 +76,17 @@ export function writeState(
 ): void {
   try {
     // Ensure directory exists
-    ensureDir(CCJK_CONFIG_DIR)
+    ensureDir(CCJK_CONFIG_DIR);
 
     // Update timestamp
-    state.lastUpdated = new Date().toISOString()
+    state.lastUpdated = new Date().toISOString();
 
     // Write state file
-    writeJsonConfig(statePath, state, { pretty: true, atomic: true })
+    writeJsonConfig(statePath, state, { pretty: true, atomic: true });
   }
   catch (error) {
-    console.error(`Failed to write state to ${statePath}:`, error)
-    throw new Error(`Failed to write state: ${error instanceof Error ? error.message : String(error)}`)
+    console.error(`Failed to write state to ${statePath}:`, error);
+    throw new Error(`Failed to write state: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
 
@@ -97,7 +97,7 @@ export function updateState(
   updates: PartialRuntimeState,
   statePath: string = STATE_FILE,
 ): RuntimeState {
-  const existingState = readState(statePath) || createDefaultState()
+  const existingState = readState(statePath) || createDefaultState();
 
   const updatedState: RuntimeState = {
     version: updates.version || existingState.version,
@@ -111,18 +111,18 @@ export function updateState(
       ...existingState.updates,
       ...(updates.updates || {}),
     },
-  }
+  };
 
-  writeState(updatedState, statePath)
-  return updatedState
+  writeState(updatedState, statePath);
+  return updatedState;
 }
 
 /**
  * Get or create runtime state
  */
 export function getState(statePath: string = STATE_FILE): RuntimeState {
-  const state = readState(statePath)
-  return state || createDefaultState()
+  const state = readState(statePath);
+  return state || createDefaultState();
 }
 
 /**
@@ -141,18 +141,18 @@ export function createSession(
     tool,
     lang,
     profile,
-  }
+  };
 
-  const state = getState(statePath)
-  state.sessions.unshift(session) // Add to beginning
+  const state = getState(statePath);
+  state.sessions.unshift(session); // Add to beginning
 
   // Limit sessions to 100
   if (state.sessions.length > 100) {
-    state.sessions = state.sessions.slice(0, 100)
+    state.sessions = state.sessions.slice(0, 100);
   }
 
-  writeState(state, statePath)
-  return session
+  writeState(state, statePath);
+  return session;
 }
 
 /**
@@ -162,15 +162,15 @@ export function updateSessionActivity(
   sessionId: string,
   statePath: string = STATE_FILE,
 ): void {
-  const state = readState(statePath)
+  const state = readState(statePath);
   if (!state) {
-    return
+    return;
   }
 
-  const session = state.sessions.find(s => s.id === sessionId)
+  const session = state.sessions.find(s => s.id === sessionId);
   if (session) {
-    session.lastActivity = new Date().toISOString()
-    writeState(state, statePath)
+    session.lastActivity = new Date().toISOString();
+    writeState(state, statePath);
   }
 }
 
@@ -181,15 +181,15 @@ export function endSession(
   sessionId: string,
   statePath: string = STATE_FILE,
 ): void {
-  const state = readState(statePath)
+  const state = readState(statePath);
   if (!state) {
-    return
+    return;
   }
 
-  const index = state.sessions.findIndex(s => s.id === sessionId)
+  const index = state.sessions.findIndex(s => s.id === sessionId);
   if (index !== -1) {
-    state.sessions.splice(index, 1)
-    writeState(state, statePath)
+    state.sessions.splice(index, 1);
+    writeState(state, statePath);
   }
 }
 
@@ -197,21 +197,21 @@ export function endSession(
  * Get active sessions (within last hour)
  */
 export function getActiveSessions(statePath: string = STATE_FILE): SessionState[] {
-  const state = readState(statePath)
+  const state = readState(statePath);
   if (!state) {
-    return []
+    return [];
   }
 
-  const oneHourAgo = Date.now() - 60 * 60 * 1000
-  return state.sessions.filter(s => new Date(s.lastActivity).getTime() > oneHourAgo)
+  const oneHourAgo = Date.now() - 60 * 60 * 1000;
+  return state.sessions.filter(s => new Date(s.lastActivity).getTime() > oneHourAgo);
 }
 
 /**
  * Get all sessions
  */
 export function getAllSessions(statePath: string = STATE_FILE): SessionState[] {
-  const state = readState(statePath)
-  return state?.sessions || []
+  const state = readState(statePath);
+  return state?.sessions || [];
 }
 
 /**
@@ -221,17 +221,17 @@ export function clearOldSessions(
   days: number = 7,
   statePath: string = STATE_FILE,
 ): void {
-  const state = readState(statePath)
+  const state = readState(statePath);
   if (!state) {
-    return
+    return;
   }
 
-  const cutoff = Date.now() - days * 24 * 60 * 60 * 1000
-  const originalLength = state.sessions.length
-  state.sessions = state.sessions.filter(s => new Date(s.lastActivity).getTime() > cutoff)
+  const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
+  const originalLength = state.sessions.length;
+  state.sessions = state.sessions.filter(s => new Date(s.lastActivity).getTime() > cutoff);
 
   if (state.sessions.length !== originalLength) {
-    writeState(state, statePath)
+    writeState(state, statePath);
   }
 }
 
@@ -239,8 +239,8 @@ export function clearOldSessions(
  * Get cache state
  */
 export function getCacheState(statePath: string = STATE_FILE): CacheState {
-  const state = getState(statePath)
-  return state.cache
+  const state = getState(statePath);
+  return state.cache;
 }
 
 /**
@@ -250,7 +250,7 @@ export function updateCacheState(
   updates: Partial<CacheState>,
   statePath: string = STATE_FILE,
 ): void {
-  updateState({ cache: updates as CacheState & Partial<CacheState> }, statePath)
+  updateState({ cache: updates as CacheState & Partial<CacheState> }, statePath);
 }
 
 /**
@@ -260,15 +260,15 @@ export function recordCacheCleanup(size: number, statePath: string = STATE_FILE)
   updateCacheState({
     lastCleanup: new Date().toISOString(),
     size,
-  }, statePath)
+  }, statePath);
 }
 
 /**
  * Get update state
  */
 export function getUpdateState(statePath: string = STATE_FILE): UpdateState {
-  const state = getState(statePath)
-  return state.updates
+  const state = getState(statePath);
+  return state.updates;
 }
 
 /**
@@ -278,7 +278,7 @@ export function updateUpdateState(
   updates: Partial<UpdateState>,
   statePath: string = STATE_FILE,
 ): void {
-  updateState({ updates: updates as UpdateState & Partial<UpdateState> }, statePath)
+  updateState({ updates: updates as UpdateState & Partial<UpdateState> }, statePath);
 }
 
 /**
@@ -295,22 +295,22 @@ export function recordUpdateCheck(
     currentVersion,
     lastVersion: latestVersion,
     updateAvailable,
-  }, statePath)
+  }, statePath);
 }
 
 /**
  * Check if update check is needed (daily check)
  */
 export function shouldCheckForUpdates(statePath: string = STATE_FILE): boolean {
-  const state = readState(statePath)
+  const state = readState(statePath);
   if (!state) {
-    return true
+    return true;
   }
 
-  const lastCheck = new Date(state.updates.lastCheck).getTime()
-  const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000
+  const lastCheck = new Date(state.updates.lastCheck).getTime();
+  const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
 
-  return lastCheck < oneDayAgo
+  return lastCheck < oneDayAgo;
 }
 
 /**
@@ -318,24 +318,24 @@ export function shouldCheckForUpdates(statePath: string = STATE_FILE): boolean {
  */
 export function backupState(statePath: string = STATE_FILE): string | null {
   if (!exists(statePath)) {
-    return null
+    return null;
   }
 
-  const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5)
-  const backupPath = `${statePath}.backup.${timestamp}`
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+  const backupPath = `${statePath}.backup.${timestamp}`;
 
   try {
-    const state = readState(statePath)
+    const state = readState(statePath);
     if (state) {
-      writeJsonConfig(backupPath, state, { pretty: true })
-      return backupPath
+      writeJsonConfig(backupPath, state, { pretty: true });
+      return backupPath;
     }
   }
   catch {
     // Ignore backup errors
   }
 
-  return null
+  return null;
 }
 
 /**
@@ -345,8 +345,8 @@ export function cleanupOldBackups(
   _keep: number = 5,
   statePath: string = STATE_FILE,
 ): void {
-  const _stateDir = CCJK_CONFIG_DIR
-  const _baseName = statePath.split('/').pop() || 'state.json'
+  const _stateDir = CCJK_CONFIG_DIR;
+  const _baseName = statePath.split('/').pop() || 'state.json';
 
   // This would require fs.readdir which we don't have in current utils
   // For now, manual cleanup is recommended
@@ -356,46 +356,46 @@ export function cleanupOldBackups(
  * Generate unique session ID
  */
 function generateSessionId(): string {
-  return `session-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`
+  return `session-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
 }
 
 /**
  * Validate state structure
  */
-export function validateState(state: unknown): { valid: boolean, errors: string[] } {
-  const errors: string[] = []
+export function validateState(state: unknown): { valid: boolean; errors: string[] } {
+  const errors: string[] = [];
 
   if (!state || typeof state !== 'object') {
-    return { valid: false, errors: ['State must be an object'] }
+    return { valid: false, errors: ['State must be an object'] };
   }
 
-  const s = state as Partial<RuntimeState>
+  const s = state as Partial<RuntimeState>;
 
   if (!s.version || typeof s.version !== 'string') {
-    errors.push('Invalid or missing version')
+    errors.push('Invalid or missing version');
   }
 
   if (!Array.isArray(s.sessions)) {
-    errors.push('Invalid sessions array')
+    errors.push('Invalid sessions array');
   }
 
   if (!s.cache || typeof s.cache !== 'object') {
-    errors.push('Invalid or missing cache section')
+    errors.push('Invalid or missing cache section');
   }
 
   if (!s.updates || typeof s.updates !== 'object') {
-    errors.push('Invalid or missing updates section')
+    errors.push('Invalid or missing updates section');
   }
 
   return {
     valid: errors.length === 0,
     errors,
-  }
+  };
 }
 
 /**
  * Ensure state directory exists
  */
 export function ensureStateDir(): void {
-  ensureDir(CCJK_CONFIG_DIR)
+  ensureDir(CCJK_CONFIG_DIR);
 }

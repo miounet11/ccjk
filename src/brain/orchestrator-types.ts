@@ -8,8 +8,8 @@
  * @module brain/orchestrator-types
  */
 
-import type { AgentCapability as AgentCapabilityFromTypes, CloudAgent } from '../types/agent.js'
-import type { AgentRole } from './types.js'
+import type { AgentCapability as AgentCapabilityFromTypes, CloudAgent } from '../types/agent.js';
+import type { AgentRole } from './types.js';
 
 // ============================================================================
 // Agent Communication Types
@@ -22,36 +22,36 @@ import type { AgentRole } from './types.js'
  */
 export interface AgentMessage {
   /** Unique message identifier */
-  id: string
+  id: string;
 
   /** Message role */
-  role: 'user' | 'agent' | 'system'
+  role: 'user' | 'agent' | 'system';
 
   /** Message content */
-  content: string
+  content: string;
 
   /** Message timestamp */
-  timestamp: number
+  timestamp: number;
 
   /** Additional metadata */
-  metadata?: Record<string, unknown>
+  metadata?: Record<string, unknown>;
 }
 
 /**
  * Agent execution result
  */
 export interface AgentResult<T = unknown> {
-  success: boolean
-  data?: T
-  error?: Error
-  message?: string
-  metadata?: Record<string, unknown>
+  success: boolean;
+  data?: T;
+  error?: Error;
+  message?: string;
+  metadata?: Record<string, unknown>;
 }
 
 /**
  * Agent state enumeration
  */
-export type AgentState = 'idle' | 'busy' | 'error' | 'offline'
+export type AgentState = 'idle' | 'busy' | 'error' | 'offline';
 
 /**
  * Agent execution context
@@ -60,19 +60,19 @@ export type AgentState = 'idle' | 'busy' | 'error' | 'offline'
  */
 export interface AgentContext {
   /** Working directory for agent operations */
-  workingDirectory: string
+  workingDirectory: string;
 
   /** Project root directory */
-  projectRoot: string
+  projectRoot: string;
 
   /** Programming language context */
-  language: string
+  language: string;
 
   /** Environment variables */
-  environment: Record<string, string>
+  environment: Record<string, string>;
 
   /** Message history */
-  history: AgentMessage[]
+  history: AgentMessage[];
 }
 
 /**
@@ -81,7 +81,7 @@ export interface AgentContext {
  * Defines a specific capability that an agent possesses.
  * This is the orchestration-level capability (from types/agent.ts).
  */
-export type AgentCapability = AgentCapabilityFromTypes
+export type AgentCapability = AgentCapabilityFromTypes;
 
 /**
  * Base agent capability definition
@@ -91,13 +91,13 @@ export type AgentCapability = AgentCapabilityFromTypes
  */
 export interface BaseAgentCapability {
   /** Capability name */
-  name: string
+  name: string;
 
   /** Capability description */
-  description: string
+  description: string;
 
   /** Optional parameters */
-  parameters?: Record<string, unknown>
+  parameters?: Record<string, unknown>;
 }
 
 /**
@@ -105,7 +105,7 @@ export interface BaseAgentCapability {
  *
  * Determines execution order when multiple tasks are ready.
  */
-export type TaskPriority = 'critical' | 'high' | 'normal' | 'low'
+export type TaskPriority = 'critical' | 'high' | 'normal' | 'low';
 
 /**
  * Task execution status
@@ -119,7 +119,7 @@ export type TaskStatus
     | 'completed' // Successfully completed
     | 'failed' // Execution failed
     | 'cancelled' // Cancelled by user or system
-    | 'blocked' // Blocked by failed dependencies
+    | 'blocked'; // Blocked by failed dependencies
 
 /**
  * Agent execution status
@@ -130,7 +130,7 @@ export type AgentStatus
   = | 'idle' // Not currently executing
     | 'busy' // Executing a task
     | 'error' // Encountered an error
-    | 'terminated' // Shut down
+    | 'terminated'; // Shut down
 
 /**
  * Conflict resolution strategy
@@ -143,7 +143,7 @@ export type ConflictResolutionStrategy
     | 'vote' // Use majority vote
     | 'merge' // Attempt to merge results
     | 'manual' // Require manual resolution
-    | 'highest-confidence' // Use result with highest confidence score
+    | 'highest-confidence'; // Use result with highest confidence score
 
 /**
  * Task dependency type
@@ -154,7 +154,7 @@ export type DependencyType
   = | 'sequential' // Must complete before dependent task starts
     | 'data' // Provides data to dependent task
     | 'conditional' // Dependent task only runs if condition met
-    | 'parallel' // Can run in parallel but must complete before dependent
+    | 'parallel'; // Can run in parallel but must complete before dependent
 
 /**
  * Task decomposition strategy
@@ -166,7 +166,7 @@ export type DecompositionStrategy
     | 'parallel' // Break into parallel subtasks
     | 'hierarchical' // Break into nested subtasks
     | 'pipeline' // Break into data pipeline stages
-    | 'map-reduce' // Break into map and reduce phases
+    | 'map-reduce'; // Break into map and reduce phases
 
 /**
  * Task definition
@@ -175,76 +175,76 @@ export type DecompositionStrategy
  */
 export interface Task {
   /** Unique task identifier */
-  id: string
+  id: string;
 
   /** Human-readable task name */
-  name: string
+  name: string;
 
   /** Detailed task description */
-  description: string
+  description: string;
 
   /** Task type/category */
-  type: string
+  type: string;
 
   /** Task priority */
-  priority: TaskPriority
+  priority: TaskPriority;
 
   /** Current execution status */
-  status: TaskStatus
+  status: TaskStatus;
 
   /** Required capabilities to execute this task */
-  requiredCapabilities: AgentCapability[]
+  requiredCapabilities: AgentCapability[];
 
   /** Task input data */
-  input: TaskInput
+  input: TaskInput;
 
   /** Task output data (populated after completion) */
-  output?: TaskOutput
+  output?: TaskOutput;
 
   /** Task dependencies */
-  dependencies: TaskDependency[]
+  dependencies: TaskDependency[];
 
   /** Estimated execution time in milliseconds */
-  estimatedDuration?: number
+  estimatedDuration?: number;
 
   /** Actual execution time in milliseconds */
-  actualDuration?: number
+  actualDuration?: number;
 
   /** Maximum retry attempts */
-  maxRetries: number
+  maxRetries: number;
 
   /** Current retry count */
-  retryCount: number
+  retryCount: number;
 
   /** Timeout in milliseconds */
-  timeout?: number
+  timeout?: number;
 
   /** Task metadata */
-  metadata: TaskMetadata
+  metadata: TaskMetadata;
 
   /** Assigned agent ID */
-  assignedAgentId?: string
+  assignedAgentId?: string;
 
   /** Task creation timestamp */
-  createdAt: string
+  createdAt: string;
 
   /** Task start timestamp */
-  startedAt?: string
+  startedAt?: string;
 
   /** Task completion timestamp */
-  completedAt?: string
+  completedAt?: string;
 
   /** Error information (if failed) */
-  error?: TaskError
+  error?: TaskError;
 
   /** Task progress (0-100) */
-  progress: number
+  progress: number;
 
   /** Child tasks (for hierarchical decomposition) */
-  children?: Task[]
+  children?: Task[];
 
   /** Parent task ID (for hierarchical decomposition) */
-  parentId?: string
+  parentId?: string;
 }
 
 /**
@@ -254,19 +254,19 @@ export interface Task {
  */
 export interface TaskInput {
   /** Input parameters */
-  parameters: Record<string, unknown>
+  parameters: Record<string, unknown>;
 
   /** Input files */
-  files?: string[]
+  files?: string[];
 
   /** Context from previous tasks */
-  context?: Record<string, unknown>
+  context?: Record<string, unknown>;
 
   /** User instructions */
-  instructions?: string
+  instructions?: string;
 
   /** Additional constraints */
-  constraints?: string[]
+  constraints?: string[];
 }
 
 /**
@@ -276,22 +276,22 @@ export interface TaskInput {
  */
 export interface TaskOutput {
   /** Output data */
-  data: Record<string, unknown>
+  data: Record<string, unknown>;
 
   /** Generated files */
-  files?: string[]
+  files?: string[];
 
   /** Output artifacts */
-  artifacts?: TaskArtifact[]
+  artifacts?: TaskArtifact[];
 
   /** Execution logs */
-  logs?: string[]
+  logs?: string[];
 
   /** Confidence score (0-1) */
-  confidence?: number
+  confidence?: number;
 
   /** Output metadata */
-  metadata?: Record<string, unknown>
+  metadata?: Record<string, unknown>;
 }
 
 /**
@@ -301,22 +301,22 @@ export interface TaskOutput {
  */
 export interface TaskArtifact {
   /** Artifact type */
-  type: 'file' | 'directory' | 'url' | 'data'
+  type: 'file' | 'directory' | 'url' | 'data';
 
   /** Artifact path or URL */
-  path: string
+  path: string;
 
   /** Artifact description */
-  description?: string
+  description?: string;
 
   /** MIME type */
-  mimeType?: string
+  mimeType?: string;
 
   /** File size in bytes */
-  size?: number
+  size?: number;
 
   /** Checksum */
-  checksum?: string
+  checksum?: string;
 }
 
 /**
@@ -326,19 +326,19 @@ export interface TaskArtifact {
  */
 export interface TaskDependency {
   /** ID of the task this depends on */
-  taskId: string
+  taskId: string;
 
   /** Dependency type */
-  type: DependencyType
+  type: DependencyType;
 
   /** Whether this is a required dependency */
-  required: boolean
+  required: boolean;
 
   /** Condition for conditional dependencies */
-  condition?: DependencyCondition
+  condition?: DependencyCondition;
 
   /** Data mapping for data dependencies */
-  dataMapping?: Record<string, string>
+  dataMapping?: Record<string, string>;
 }
 
 /**
@@ -348,13 +348,13 @@ export interface TaskDependency {
  */
 export interface DependencyCondition {
   /** Field to check */
-  field: string
+  field: string;
 
   /** Comparison operator */
-  operator: 'eq' | 'ne' | 'gt' | 'gte' | 'lt' | 'lte' | 'in' | 'contains'
+  operator: 'eq' | 'ne' | 'gt' | 'gte' | 'lt' | 'lte' | 'in' | 'contains';
 
   /** Value to compare against */
-  value: unknown
+  value: unknown;
 }
 
 /**
@@ -364,16 +364,16 @@ export interface DependencyCondition {
  */
 export interface TaskMetadata {
   /** Task tags */
-  tags: string[]
+  tags: string[];
 
   /** Task category */
-  category?: string
+  category?: string;
 
   /** User who created the task */
-  createdBy?: string
+  createdBy?: string;
 
   /** Custom metadata */
-  custom?: Record<string, unknown>
+  custom?: Record<string, unknown>;
 }
 
 /**
@@ -383,22 +383,22 @@ export interface TaskMetadata {
  */
 export interface TaskError {
   /** Error code */
-  code: string
+  code: string;
 
   /** Error message */
-  message: string
+  message: string;
 
   /** Error stack trace */
-  stack?: string
+  stack?: string;
 
   /** Whether error is recoverable */
-  recoverable: boolean
+  recoverable: boolean;
 
   /** Suggested recovery action */
-  recoveryAction?: string
+  recoveryAction?: string;
 
   /** Original error object */
-  originalError?: unknown
+  originalError?: unknown;
 }
 
 /**
@@ -408,37 +408,37 @@ export interface TaskError {
  */
 export interface AgentInstance {
   /** Instance identifier */
-  id: string
+  id: string;
 
   /** Agent role */
-  role: AgentRole
+  role: AgentRole;
 
   /** Agent definition */
-  agent: CloudAgent
+  agent: CloudAgent;
 
   /** Current status */
-  status: AgentStatus
+  status: AgentStatus;
 
   /** Currently executing task */
-  currentTask?: Task
+  currentTask?: Task;
 
   /** Task execution history */
-  taskHistory: TaskExecutionRecord[]
+  taskHistory: TaskExecutionRecord[];
 
   /** Agent capabilities */
-  capabilities: AgentCapability[]
+  capabilities: AgentCapability[];
 
   /** Agent performance metrics */
-  metrics: AgentMetrics
+  metrics: AgentMetrics;
 
   /** Instance creation timestamp */
-  createdAt: string
+  createdAt: string;
 
   /** Last activity timestamp */
-  lastActivityAt?: string
+  lastActivityAt?: string;
 
   /** Instance configuration */
-  config: AgentInstanceConfig
+  config: AgentInstanceConfig;
 }
 
 /**
@@ -448,16 +448,16 @@ export interface AgentInstance {
  */
 export interface AgentInstanceConfig {
   /** Maximum concurrent tasks */
-  maxConcurrentTasks: number
+  maxConcurrentTasks: number;
 
   /** Task timeout in milliseconds */
-  taskTimeout: number
+  taskTimeout: number;
 
   /** Enable detailed logging */
-  verboseLogging: boolean
+  verboseLogging: boolean;
 
   /** Custom configuration */
-  custom?: Record<string, unknown>
+  custom?: Record<string, unknown>;
 }
 
 /**
@@ -467,28 +467,28 @@ export interface AgentInstanceConfig {
  */
 export interface TaskExecutionRecord {
   /** Task ID */
-  taskId: string
+  taskId: string;
 
   /** Task name */
-  taskName: string
+  taskName: string;
 
   /** Execution status */
-  status: TaskStatus
+  status: TaskStatus;
 
   /** Start timestamp */
-  startedAt: string
+  startedAt: string;
 
   /** Completion timestamp */
-  completedAt?: string
+  completedAt?: string;
 
   /** Execution duration in milliseconds */
-  duration?: number
+  duration?: number;
 
   /** Whether execution succeeded */
-  success: boolean
+  success: boolean;
 
   /** Error message (if failed) */
-  error?: string
+  error?: string;
 }
 
 /**
@@ -498,46 +498,46 @@ export interface TaskExecutionRecord {
  */
 export interface AgentMetrics {
   /** Total tasks executed */
-  tasksExecuted: number
+  tasksExecuted: number;
 
   /** Tasks completed successfully */
-  tasksSucceeded: number
+  tasksSucceeded: number;
 
   /** Tasks failed */
-  tasksFailed: number
+  tasksFailed: number;
 
   /** Average task duration in milliseconds */
-  avgTaskDuration: number
+  avgTaskDuration: number;
 
   /** Success rate (0-1) */
-  successRate: number
+  successRate: number;
 
   /** Total execution time in milliseconds */
-  totalExecutionTime: number
+  totalExecutionTime: number;
 
   /** Average confidence score */
-  avgConfidence: number
+  avgConfidence: number;
 
   /** Last updated timestamp */
-  lastUpdated: string
+  lastUpdated: string;
 
   /** CPU usage percentage (0-100) */
-  cpuUsage?: number
+  cpuUsage?: number;
 
   /** Memory usage percentage (0-100) */
-  memoryUsage?: number
+  memoryUsage?: number;
 
   /** Average response time in ms */
-  avgResponseTime?: number
+  avgResponseTime?: number;
 
   /** Error rate (0-1) */
-  errorRate?: number
+  errorRate?: number;
 
   /** Task count */
-  taskCount?: number
+  taskCount?: number;
 
   /** Timestamp */
-  timestamp?: number
+  timestamp?: number;
 }
 
 /**
@@ -547,37 +547,37 @@ export interface AgentMetrics {
  */
 export interface OrchestrationPlan {
   /** Plan identifier */
-  id: string
+  id: string;
 
   /** Plan name */
-  name: string
+  name: string;
 
   /** Plan description */
-  description: string
+  description: string;
 
   /** Root task */
-  rootTask: Task
+  rootTask: Task;
 
   /** All tasks in the plan */
-  tasks: Task[]
+  tasks: Task[];
 
   /** Task execution graph */
-  executionGraph: TaskExecutionGraph
+  executionGraph: TaskExecutionGraph;
 
   /** Required agents */
-  requiredAgents: AgentRequirement[]
+  requiredAgents: AgentRequirement[];
 
   /** Decomposition strategy used */
-  decompositionStrategy: DecompositionStrategy
+  decompositionStrategy: DecompositionStrategy;
 
   /** Estimated total duration in milliseconds */
-  estimatedDuration: number
+  estimatedDuration: number;
 
   /** Plan creation timestamp */
-  createdAt: string
+  createdAt: string;
 
   /** Plan metadata */
-  metadata: Record<string, unknown>
+  metadata: Record<string, unknown>;
 }
 
 /**
@@ -587,13 +587,13 @@ export interface OrchestrationPlan {
  */
 export interface TaskExecutionGraph {
   /** Graph nodes (tasks) */
-  nodes: TaskGraphNode[]
+  nodes: TaskGraphNode[];
 
   /** Graph edges (dependencies) */
-  edges: TaskGraphEdge[]
+  edges: TaskGraphEdge[];
 
   /** Execution stages (for parallel execution) */
-  stages: TaskStage[]
+  stages: TaskStage[];
 }
 
 /**
@@ -603,22 +603,22 @@ export interface TaskExecutionGraph {
  */
 export interface TaskGraphNode {
   /** Task ID */
-  taskId: string
+  taskId: string;
 
   /** Node level in the graph */
-  level: number
+  level: number;
 
   /** Whether this is a leaf node */
-  isLeaf: boolean
+  isLeaf: boolean;
 
   /** Whether this is a root node */
-  isRoot: boolean
+  isRoot: boolean;
 
   /** Incoming edges */
-  incomingEdges: string[]
+  incomingEdges: string[];
 
   /** Outgoing edges */
-  outgoingEdges: string[]
+  outgoingEdges: string[];
 }
 
 /**
@@ -628,19 +628,19 @@ export interface TaskGraphNode {
  */
 export interface TaskGraphEdge {
   /** Edge identifier */
-  id: string
+  id: string;
 
   /** Source task ID */
-  from: string
+  from: string;
 
   /** Target task ID */
-  to: string
+  to: string;
 
   /** Dependency type */
-  type: DependencyType
+  type: DependencyType;
 
   /** Edge weight (for optimization) */
-  weight: number
+  weight: number;
 }
 
 /**
@@ -650,13 +650,13 @@ export interface TaskGraphEdge {
  */
 export interface TaskStage {
   /** Stage number */
-  stage: number
+  stage: number;
 
   /** Tasks in this stage */
-  tasks: string[]
+  tasks: string[];
 
   /** Estimated stage duration */
-  estimatedDuration: number
+  estimatedDuration: number;
 }
 
 /**
@@ -666,19 +666,19 @@ export interface TaskStage {
  */
 export interface AgentRequirement {
   /** Required capabilities */
-  capabilities: AgentCapability[]
+  capabilities: AgentCapability[];
 
   /** Minimum number of instances */
-  minInstances: number
+  minInstances: number;
 
   /** Maximum number of instances */
-  maxInstances: number
+  maxInstances: number;
 
   /** Preferred agent IDs */
-  preferredAgents?: string[]
+  preferredAgents?: string[];
 
   /** Required tools */
-  requiredTools?: string[]
+  requiredTools?: string[];
 }
 
 /**
@@ -688,43 +688,43 @@ export interface AgentRequirement {
  */
 export interface OrchestrationResult {
   /** Plan ID */
-  planId: string
+  planId: string;
 
   /** Whether execution succeeded */
-  success: boolean
+  success: boolean;
 
   /** Execution status */
-  status: 'completed' | 'partial' | 'failed' | 'cancelled'
+  status: 'completed' | 'partial' | 'failed' | 'cancelled';
 
   /** Completed tasks */
-  completedTasks: string[]
+  completedTasks: string[];
 
   /** Failed tasks */
-  failedTasks: string[]
+  failedTasks: string[];
 
   /** Cancelled tasks */
-  cancelledTasks: string[]
+  cancelledTasks: string[];
 
   /** Aggregated results */
-  results: Record<string, TaskOutput>
+  results: Record<string, TaskOutput>;
 
   /** Execution metrics */
-  metrics: OrchestrationMetrics
+  metrics: OrchestrationMetrics;
 
   /** Execution errors */
-  errors: TaskError[]
+  errors: TaskError[];
 
   /** Execution warnings */
-  warnings: string[]
+  warnings: string[];
 
   /** Start timestamp */
-  startedAt: string
+  startedAt: string;
 
   /** Completion timestamp */
-  completedAt?: string
+  completedAt?: string;
 
   /** Total duration in milliseconds */
-  duration?: number
+  duration?: number;
 }
 
 /**
@@ -734,31 +734,31 @@ export interface OrchestrationResult {
  */
 export interface OrchestrationMetrics {
   /** Total tasks */
-  totalTasks: number
+  totalTasks: number;
 
   /** Tasks completed */
-  tasksCompleted: number
+  tasksCompleted: number;
 
   /** Tasks failed */
-  tasksFailed: number
+  tasksFailed: number;
 
   /** Tasks cancelled */
-  tasksCancelled: number
+  tasksCancelled: number;
 
   /** Success rate */
-  successRate: number
+  successRate: number;
 
   /** Average task duration */
-  avgTaskDuration: number
+  avgTaskDuration: number;
 
   /** Total execution time */
-  totalExecutionTime: number
+  totalExecutionTime: number;
 
   /** Parallel efficiency (0-1) */
-  parallelEfficiency: number
+  parallelEfficiency: number;
 
   /** Agent utilization (0-1) */
-  agentUtilization: number
+  agentUtilization: number;
 }
 
 /**
@@ -768,22 +768,22 @@ export interface OrchestrationMetrics {
  */
 export interface ConflictResolutionContext {
   /** Conflicting task IDs */
-  conflictingTasks: string[]
+  conflictingTasks: string[];
 
   /** Conflicting results */
-  results: TaskOutput[]
+  results: TaskOutput[];
 
   /** Resolution strategy */
-  strategy: ConflictResolutionStrategy
+  strategy: ConflictResolutionStrategy;
 
   /** Conflict type */
-  conflictType: 'data' | 'file' | 'decision' | 'state'
+  conflictType: 'data' | 'file' | 'decision' | 'state';
 
   /** Conflict description */
-  description: string
+  description: string;
 
   /** Resolution metadata */
-  metadata?: Record<string, unknown>
+  metadata?: Record<string, unknown>;
 }
 
 /**
@@ -793,22 +793,22 @@ export interface ConflictResolutionContext {
  */
 export interface ConflictResolutionResult {
   /** Whether conflict was resolved */
-  resolved: boolean
+  resolved: boolean;
 
   /** Resolved result */
-  result?: TaskOutput
+  result?: TaskOutput;
 
   /** Resolution method used */
-  method: string
+  method: string;
 
   /** Confidence in resolution (0-1) */
-  confidence: number
+  confidence: number;
 
   /** Resolution explanation */
-  explanation?: string
+  explanation?: string;
 
   /** Discarded results */
-  discarded?: TaskOutput[]
+  discarded?: TaskOutput[];
 }
 
 /**
@@ -818,37 +818,37 @@ export interface ConflictResolutionResult {
  */
 export interface OrchestratorConfig {
   /** Maximum concurrent tasks */
-  maxConcurrentTasks: number
+  maxConcurrentTasks: number;
 
   /** Maximum concurrent agents */
-  maxConcurrentAgents: number
+  maxConcurrentAgents: number;
 
   /** Default task timeout in milliseconds */
-  defaultTaskTimeout: number
+  defaultTaskTimeout: number;
 
   /** Default task retry count */
-  defaultRetryCount: number
+  defaultRetryCount: number;
 
   /** Enable automatic retry on failure */
-  autoRetry: boolean
+  autoRetry: boolean;
 
   /** Conflict resolution strategy */
-  conflictResolutionStrategy: ConflictResolutionStrategy
+  conflictResolutionStrategy: ConflictResolutionStrategy;
 
   /** Enable parallel execution */
-  enableParallelExecution: boolean
+  enableParallelExecution: boolean;
 
   /** Enable task result caching */
-  enableCaching: boolean
+  enableCaching: boolean;
 
   /** Cache TTL in milliseconds */
-  cacheTtl: number
+  cacheTtl: number;
 
   /** Enable detailed logging */
-  verboseLogging: boolean
+  verboseLogging: boolean;
 
   /** Custom configuration */
-  custom?: Record<string, unknown>
+  custom?: Record<string, unknown>;
 }
 
 /**
@@ -858,34 +858,34 @@ export interface OrchestratorConfig {
  */
 export interface OrchestratorState {
   /** Current orchestration plan */
-  currentPlan?: OrchestrationPlan
+  currentPlan?: OrchestrationPlan;
 
   /** Active tasks */
-  activeTasks: Map<string, Task>
+  activeTasks: Map<string, Task>;
 
   /** Active agents */
-  activeAgents: Map<string, AgentInstance>
+  activeAgents: Map<string, AgentInstance>;
 
   /** Task queue */
-  taskQueue: Task[]
+  taskQueue: Task[];
 
   /** Completed tasks */
-  completedTasks: Map<string, Task>
+  completedTasks: Map<string, Task>;
 
   /** Failed tasks */
-  failedTasks: Map<string, Task>
+  failedTasks: Map<string, Task>;
 
   /** Orchestrator status */
-  status: 'idle' | 'planning' | 'executing' | 'paused' | 'error'
+  status: 'idle' | 'planning' | 'executing' | 'paused' | 'error';
 
   /** Execution start time */
-  startTime?: string
+  startTime?: string;
 
   /** Total tasks processed */
-  totalTasksProcessed: number
+  totalTasksProcessed: number;
 
   /** Current metrics */
-  metrics: OrchestrationMetrics
+  metrics: OrchestrationMetrics;
 }
 
 /**
@@ -895,25 +895,25 @@ export interface OrchestratorState {
  */
 export interface TaskDecompositionResult {
   /** Original task */
-  originalTask: Task
+  originalTask: Task;
 
   /** Decomposed subtasks */
-  subtasks: Task[]
+  subtasks: Task[];
 
   /** Task dependencies */
-  dependencies: TaskDependency[]
+  dependencies: TaskDependency[];
 
   /** Decomposition strategy used */
-  strategy: DecompositionStrategy
+  strategy: DecompositionStrategy;
 
   /** Execution graph */
-  executionGraph: TaskExecutionGraph
+  executionGraph: TaskExecutionGraph;
 
   /** Estimated total duration */
-  estimatedDuration: number
+  estimatedDuration: number;
 
   /** Decomposition metadata */
-  metadata: Record<string, unknown>
+  metadata: Record<string, unknown>;
 }
 
 /**
@@ -923,19 +923,19 @@ export interface TaskDecompositionResult {
  */
 export interface AgentSelectionCriteria {
   /** Required capabilities */
-  requiredCapabilities: AgentCapability[]
+  requiredCapabilities: AgentCapability[];
 
   /** Preferred agent IDs */
-  preferredAgents?: string[]
+  preferredAgents?: string[];
 
   /** Minimum success rate */
-  minSuccessRate?: number
+  minSuccessRate?: number;
 
   /** Maximum current load */
-  maxCurrentLoad?: number
+  maxCurrentLoad?: number;
 
   /** Selection strategy */
-  strategy: 'best-fit' | 'least-loaded' | 'round-robin' | 'random' | 'fastest'
+  strategy: 'best-fit' | 'least-loaded' | 'round-robin' | 'random' | 'fastest';
 }
 
 /**
@@ -945,14 +945,14 @@ export interface AgentSelectionCriteria {
  */
 export interface AgentSelectionResult {
   /** Selected agent */
-  agent: AgentInstance
+  agent: AgentInstance;
 
   /** Selection score */
-  score: number
+  score: number;
 
   /** Selection reason */
-  reason: string
+  reason: string;
 
   /** Alternative agents */
-  alternatives?: AgentInstance[]
+  alternatives?: AgentInstance[];
 }

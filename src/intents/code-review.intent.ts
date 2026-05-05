@@ -6,7 +6,7 @@
  * @module intents/code-review
  */
 
-import type { Intent } from '../types/intent'
+import type { Intent } from '../types/intent';
 
 /**
  * Code Review Intent
@@ -99,4 +99,4 @@ export const codeReviewIntent: Intent = {
     category: 'development',
     estimatedTokens: 2000,
   },
-}
+};

@@ -9,8 +9,8 @@ import type {
   RawProjectAnalysisResponse,
   RawRecommendation,
   RawTemplate,
-} from '../../src/cloud-client/dto'
-import { describe, expect, it } from 'vitest'
+} from '../../src/cloud-client/dto';
+import { describe, expect, it } from 'vitest';
 import {
   convertBatchTemplateResponse,
   convertConfig,
@@ -25,31 +25,31 @@ import {
   validateBatchTemplateRequest,
   validateProjectAnalysisRequest,
   validateUsageReport,
-} from '../../src/cloud-client/dto'
+} from '../../src/cloud-client/dto';
 
 describe('dTO Converters', () => {
   describe('extractString', () => {
     it('should extract string from string value', () => {
-      expect(extractString('Hello', 'fallback')).toBe('Hello')
-    })
+      expect(extractString('Hello', 'fallback')).toBe('Hello');
+    });
 
     it('should extract string from multilingual object', () => {
-      expect(extractString({ 'en': 'Hello', 'zh-CN': '你好' }, 'fallback', 'en')).toBe('Hello')
-      expect(extractString({ 'en': 'Hello', 'zh-CN': '你好' }, 'fallback', 'zh-CN')).toBe('你好')
-    })
+      expect(extractString({ 'en': 'Hello', 'zh-CN': '你好' }, 'fallback', 'en')).toBe('Hello');
+      expect(extractString({ 'en': 'Hello', 'zh-CN': '你好' }, 'fallback', 'zh-CN')).toBe('你好');
+    });
 
     it('should fallback to en when preferred language not available', () => {
-      expect(extractString({ en: 'Hello' }, 'fallback', 'zh-CN')).toBe('Hello')
-    })
+      expect(extractString({ en: 'Hello' }, 'fallback', 'zh-CN')).toBe('Hello');
+    });
 
     it('should return fallback for undefined', () => {
-      expect(extractString(undefined, 'fallback')).toBe('fallback')
-    })
+      expect(extractString(undefined, 'fallback')).toBe('fallback');
+    });
 
     it('should return fallback for empty object', () => {
-      expect(extractString({}, 'fallback')).toBe('fallback')
-    })
-  })
+      expect(extractString({}, 'fallback')).toBe('fallback');
+    });
+  });
 
   describe('convertConfig', () => {
     it('should convert MCP server config', () => {
@@ -57,7 +57,7 @@ describe('dTO Converters', () => {
         command: 'npx',
         args: ['-y', '@anthropic/mcp-server-filesystem'],
         type: 'stdio',
-      })
+      });
 
       expect(config).toEqual({
         command: 'npx',
@@ -66,23 +66,23 @@ describe('dTO Converters', () => {
         env: undefined,
         npmPackage: undefined,
         installCommand: undefined,
-      })
-    })
+      });
+    });
 
     it('should convert skill config', () => {
       const config = convertConfig({
         enabled: true,
         priority: 10,
         triggers: ['test', 'debug'],
-      })
+      });
 
       expect(config).toEqual({
         enabled: true,
         priority: 10,
         triggers: ['test', 'debug'],
         parameters: undefined,
-      })
-    })
+      });
+    });
 
     it('should convert agent config', () => {
       const config = convertConfig({
@@ -90,7 +90,7 @@ describe('dTO Converters', () => {
         capabilities: ['code', 'debug'],
         skills: ['typescript', 'react'],
         temperature: 0.7,
-      })
+      });
 
       expect(config).toEqual({
         persona: 'helpful assistant',
@@ -99,50 +99,50 @@ describe('dTO Converters', () => {
         mcpServers: undefined,
         temperature: 0.7,
         maxTokens: undefined,
-      })
-    })
+      });
+    });
 
     it('should return undefined for invalid config', () => {
-      expect(convertConfig(null)).toBeUndefined()
-      expect(convertConfig('string')).toBeUndefined()
-      expect(convertConfig(123)).toBeUndefined()
-    })
-  })
+      expect(convertConfig(null)).toBeUndefined();
+      expect(convertConfig('string')).toBeUndefined();
+      expect(convertConfig(123)).toBeUndefined();
+    });
+  });
 
   describe('convertParameterDefault', () => {
     it('should convert primitive values', () => {
-      expect(convertParameterDefault('string')).toBe('string')
-      expect(convertParameterDefault(123)).toBe(123)
-      expect(convertParameterDefault(true)).toBe(true)
-      expect(convertParameterDefault(null)).toBe(null)
-    })
+      expect(convertParameterDefault('string')).toBe('string');
+      expect(convertParameterDefault(123)).toBe(123);
+      expect(convertParameterDefault(true)).toBe(true);
+      expect(convertParameterDefault(null)).toBe(null);
+    });
 
     it('should convert string arrays', () => {
-      expect(convertParameterDefault(['a', 'b', 'c'])).toEqual(['a', 'b', 'c'])
-    })
+      expect(convertParameterDefault(['a', 'b', 'c'])).toEqual(['a', 'b', 'c']);
+    });
 
     it('should convert number arrays', () => {
-      expect(convertParameterDefault([1, 2, 3])).toEqual([1, 2, 3])
-    })
+      expect(convertParameterDefault([1, 2, 3])).toEqual([1, 2, 3]);
+    });
 
     it('should convert objects with primitive values', () => {
       expect(convertParameterDefault({ a: 'string', b: 123, c: true })).toEqual({
         a: 'string',
         b: 123,
         c: true,
-      })
-    })
+      });
+    });
 
     it('should return null for mixed arrays', () => {
-      expect(convertParameterDefault(['a', 1, true])).toBe(null)
-    })
+      expect(convertParameterDefault(['a', 1, true])).toBe(null);
+    });
 
     it('should filter out non-primitive object values', () => {
       expect(convertParameterDefault({ a: 'string', b: { nested: 'object' } })).toEqual({
         a: 'string',
-      })
-    })
-  })
+      });
+    });
+  });
 
   describe('convertRecommendation', () => {
     it('should convert raw recommendation with string name/description', () => {
@@ -152,9 +152,9 @@ describe('dTO Converters', () => {
         description: 'Test description',
         category: 'skill',
         relevanceScore: 0.9,
-      }
+      };
 
-      const converted = convertRecommendation(raw)
+      const converted = convertRecommendation(raw);
 
       expect(converted).toEqual({
         id: 'test-rec',
@@ -166,8 +166,8 @@ describe('dTO Converters', () => {
         config: undefined,
         tags: undefined,
         dependencies: undefined,
-      })
-    })
+      });
+    });
 
     it('should convert raw recommendation with multilingual name/description', () => {
       const raw: RawRecommendation = {
@@ -177,14 +177,14 @@ describe('dTO Converters', () => {
         category: 'mcp',
         relevanceScore: 0.95,
         tags: ['test', 'mcp'],
-      }
+      };
 
-      const converted = convertRecommendation(raw)
+      const converted = convertRecommendation(raw);
 
-      expect(converted.name).toEqual({ 'en': 'Test', 'zh-CN': '测试' })
-      expect(converted.description).toEqual({ 'en': 'Description', 'zh-CN': '描述' })
-    })
-  })
+      expect(converted.name).toEqual({ 'en': 'Test', 'zh-CN': '测试' });
+      expect(converted.description).toEqual({ 'en': 'Description', 'zh-CN': '描述' });
+    });
+  });
 
   describe('convertTemplate', () => {
     it('should convert raw template', () => {
@@ -197,9 +197,9 @@ describe('dTO Converters', () => {
         version: '1.0.0',
         createdAt: '2026-01-01T00:00:00Z',
         updatedAt: '2026-01-01T00:00:00Z',
-      }
+      };
 
-      const converted = convertTemplate(raw)
+      const converted = convertTemplate(raw);
 
       expect(converted).toEqual({
         id: 'test-template',
@@ -213,8 +213,8 @@ describe('dTO Converters', () => {
         parameters: undefined,
         createdAt: '2026-01-01T00:00:00Z',
         updatedAt: '2026-01-01T00:00:00Z',
-      })
-    })
+      });
+    });
 
     it('should convert template with parameters', () => {
       const raw: RawTemplate = {
@@ -234,20 +234,20 @@ describe('dTO Converters', () => {
         ],
         createdAt: '2026-01-01T00:00:00Z',
         updatedAt: '2026-01-01T00:00:00Z',
-      }
+      };
 
-      const converted = convertTemplate(raw)
+      const converted = convertTemplate(raw);
 
-      expect(converted.parameters).toHaveLength(1)
+      expect(converted.parameters).toHaveLength(1);
       expect(converted.parameters![0]).toEqual({
         name: 'param1',
         type: 'string',
         required: true,
         default: 'default value',
         description: undefined,
-      })
-    })
-  })
+      });
+    });
+  });
 
   describe('convertProjectAnalysisResponse', () => {
     it('should convert raw project analysis response', () => {
@@ -264,16 +264,16 @@ describe('dTO Converters', () => {
         ],
         projectType: 'typescript',
         frameworks: ['react', 'vite'],
-      }
+      };
 
-      const converted = convertProjectAnalysisResponse(raw)
+      const converted = convertProjectAnalysisResponse(raw);
 
-      expect(converted.requestId).toBe('req-123')
-      expect(converted.recommendations).toHaveLength(1)
-      expect(converted.projectType).toBe('typescript')
-      expect(converted.frameworks).toEqual(['react', 'vite'])
-    })
-  })
+      expect(converted.requestId).toBe('req-123');
+      expect(converted.recommendations).toHaveLength(1);
+      expect(converted.projectType).toBe('typescript');
+      expect(converted.frameworks).toEqual(['react', 'vite']);
+    });
+  });
 
   describe('convertBatchTemplateResponse', () => {
     it('should convert raw batch template response', () => {
@@ -292,15 +292,15 @@ describe('dTO Converters', () => {
           },
         },
         notFound: ['tpl-2', 'tpl-3'],
-      }
+      };
 
-      const converted = convertBatchTemplateResponse(raw)
+      const converted = convertBatchTemplateResponse(raw);
 
-      expect(converted.requestId).toBe('req-456')
-      expect(Object.keys(converted.templates)).toHaveLength(1)
-      expect(converted.notFound).toEqual(['tpl-2', 'tpl-3'])
-    })
-  })
+      expect(converted.requestId).toBe('req-456');
+      expect(Object.keys(converted.templates)).toHaveLength(1);
+      expect(converted.notFound).toEqual(['tpl-2', 'tpl-3']);
+    });
+  });
 
   describe('validation Functions', () => {
     describe('validateProjectAnalysisRequest', () => {
@@ -308,58 +308,58 @@ describe('dTO Converters', () => {
         const result = validateProjectAnalysisRequest({
           projectRoot: '/test/project',
           dependencies: { react: '^18.0.0' },
-        })
+        });
 
-        expect(result.valid).toBe(true)
-        expect(result.errors).toHaveLength(0)
-      })
+        expect(result.valid).toBe(true);
+        expect(result.errors).toHaveLength(0);
+      });
 
       it('should reject request without projectRoot', () => {
-        const result = validateProjectAnalysisRequest({} as any)
+        const result = validateProjectAnalysisRequest({} as any);
 
-        expect(result.valid).toBe(false)
-        expect(result.errors).toContain('projectRoot is required and must be a string')
-      })
+        expect(result.valid).toBe(false);
+        expect(result.errors).toContain('projectRoot is required and must be a string');
+      });
 
       it('should reject invalid language', () => {
         const result = validateProjectAnalysisRequest({
           projectRoot: '/test',
           language: 'invalid' as any,
-        })
+        });
 
-        expect(result.valid).toBe(false)
-        expect(result.errors.some(e => e.includes('language'))).toBe(true)
-      })
-    })
+        expect(result.valid).toBe(false);
+        expect(result.errors.some(e => e.includes('language'))).toBe(true);
+      });
+    });
 
     describe('validateBatchTemplateRequest', () => {
       it('should validate valid request', () => {
         const result = validateBatchTemplateRequest({
           ids: ['tpl-1', 'tpl-2'],
-        })
+        });
 
-        expect(result.valid).toBe(true)
-        expect(result.errors).toHaveLength(0)
-      })
+        expect(result.valid).toBe(true);
+        expect(result.errors).toHaveLength(0);
+      });
 
       it('should reject empty ids array', () => {
         const result = validateBatchTemplateRequest({
           ids: [],
-        })
+        });
 
-        expect(result.valid).toBe(false)
-        expect(result.errors).toContain('ids array cannot be empty')
-      })
+        expect(result.valid).toBe(false);
+        expect(result.errors).toContain('ids array cannot be empty');
+      });
 
       it('should reject non-string ids', () => {
         const result = validateBatchTemplateRequest({
           ids: ['tpl-1', 123 as any],
-        })
+        });
 
-        expect(result.valid).toBe(false)
-        expect(result.errors).toContain('all ids must be strings')
-      })
-    })
+        expect(result.valid).toBe(false);
+        expect(result.errors).toContain('all ids must be strings');
+      });
+    });
 
     describe('validateUsageReport', () => {
       it('should validate valid report', () => {
@@ -370,11 +370,11 @@ describe('dTO Converters', () => {
           ccjkVersion: '12.0.0',
           nodeVersion: 'v20.0.0',
           platform: 'darwin',
-        })
+        });
 
-        expect(result.valid).toBe(true)
-        expect(result.errors).toHaveLength(0)
-      })
+        expect(result.valid).toBe(true);
+        expect(result.errors).toHaveLength(0);
+      });
 
       it('should reject invalid metric type', () => {
         const result = validateUsageReport({
@@ -384,58 +384,58 @@ describe('dTO Converters', () => {
           ccjkVersion: '12.0.0',
           nodeVersion: 'v20.0.0',
           platform: 'darwin',
-        })
+        });
 
-        expect(result.valid).toBe(false)
-        expect(result.errors.some(e => e.includes('metricType'))).toBe(true)
-      })
-    })
-  })
+        expect(result.valid).toBe(false);
+        expect(result.errors.some(e => e.includes('metricType'))).toBe(true);
+      });
+    });
+  });
 
   describe('type Guards', () => {
     describe('isRecommendationConfig', () => {
       it('should return true for valid config', () => {
-        expect(isRecommendationConfig({ command: 'npx' })).toBe(true)
-        expect(isRecommendationConfig({ enabled: true })).toBe(true)
-        expect(isRecommendationConfig({ persona: 'assistant' })).toBe(true)
-      })
+        expect(isRecommendationConfig({ command: 'npx' })).toBe(true);
+        expect(isRecommendationConfig({ enabled: true })).toBe(true);
+        expect(isRecommendationConfig({ persona: 'assistant' })).toBe(true);
+      });
 
       it('should return false for invalid config', () => {
-        expect(isRecommendationConfig(null)).toBe(false)
-        expect(isRecommendationConfig('string')).toBe(false)
-        expect(isRecommendationConfig({})).toBe(false)
-      })
-    })
+        expect(isRecommendationConfig(null)).toBe(false);
+        expect(isRecommendationConfig('string')).toBe(false);
+        expect(isRecommendationConfig({})).toBe(false);
+      });
+    });
 
     describe('isTelemetryEventData', () => {
       it('should return true for valid telemetry data', () => {
-        expect(isTelemetryEventData({ timestamp: Date.now() })).toBe(true)
-        expect(isTelemetryEventData({ timestamp: '2026-01-01T00:00:00Z' })).toBe(true)
-      })
+        expect(isTelemetryEventData({ timestamp: Date.now() })).toBe(true);
+        expect(isTelemetryEventData({ timestamp: '2026-01-01T00:00:00Z' })).toBe(true);
+      });
 
       it('should return false for invalid telemetry data', () => {
-        expect(isTelemetryEventData(null)).toBe(false)
-        expect(isTelemetryEventData({})).toBe(false)
-        expect(isTelemetryEventData({ data: 'test' })).toBe(false)
-      })
-    })
+        expect(isTelemetryEventData(null)).toBe(false);
+        expect(isTelemetryEventData({})).toBe(false);
+        expect(isTelemetryEventData({ data: 'test' })).toBe(false);
+      });
+    });
 
     describe('isTemplateParameterValue', () => {
       it('should return true for valid parameter values', () => {
-        expect(isTemplateParameterValue(null)).toBe(true)
-        expect(isTemplateParameterValue('string')).toBe(true)
-        expect(isTemplateParameterValue(123)).toBe(true)
-        expect(isTemplateParameterValue(true)).toBe(true)
-        expect(isTemplateParameterValue(['a', 'b'])).toBe(true)
-        expect(isTemplateParameterValue([1, 2, 3])).toBe(true)
-        expect(isTemplateParameterValue({ a: 'string', b: 123 })).toBe(true)
-      })
+        expect(isTemplateParameterValue(null)).toBe(true);
+        expect(isTemplateParameterValue('string')).toBe(true);
+        expect(isTemplateParameterValue(123)).toBe(true);
+        expect(isTemplateParameterValue(true)).toBe(true);
+        expect(isTemplateParameterValue(['a', 'b'])).toBe(true);
+        expect(isTemplateParameterValue([1, 2, 3])).toBe(true);
+        expect(isTemplateParameterValue({ a: 'string', b: 123 })).toBe(true);
+      });
 
       it('should return false for invalid parameter values', () => {
-        expect(isTemplateParameterValue(undefined)).toBe(false)
-        expect(isTemplateParameterValue(['a', 1])).toBe(false)
-        expect(isTemplateParameterValue({ a: { nested: 'object' } })).toBe(false)
-      })
-    })
-  })
-})
+        expect(isTemplateParameterValue(undefined)).toBe(false);
+        expect(isTemplateParameterValue(['a', 1])).toBe(false);
+        expect(isTemplateParameterValue({ a: { nested: 'object' } })).toBe(false);
+      });
+    });
+  });
+});

@@ -3,22 +3,22 @@
  */
 
 // Re-export SupportedLang from constants to ensure type compatibility
-export type { SupportedLang } from '../../constants'
+export type { SupportedLang } from '../../constants';
 
 /**
  * Activation status information
  */
 export interface ActivationStatus {
   /** Whether Superpowers is installed */
-  isInstalled: boolean
+  isInstalled: boolean;
   /** Whether core skills are loaded */
-  coreSkillsLoaded: boolean
+  coreSkillsLoaded: boolean;
   /** List of loaded skills */
-  loadedSkills: string[]
+  loadedSkills: string[];
   /** Whether activation is needed */
-  needsActivation: boolean
+  needsActivation: boolean;
   /** Last activation timestamp (ISO string or undefined) */
-  lastActivation?: string
+  lastActivation?: string;
 }
 
 /**
@@ -26,13 +26,13 @@ export interface ActivationStatus {
  */
 export interface SkillLoadResult {
   /** Skill name */
-  skill: string
+  skill: string;
   /** Whether load was successful */
-  success: boolean
+  success: boolean;
   /** Error message if failed */
-  error?: string
+  error?: string;
   /** Whether skill was already loaded */
-  alreadyLoaded?: boolean
+  alreadyLoaded?: boolean;
 }
 
 /**
@@ -46,7 +46,7 @@ export const CORE_SKILLS = [
   'systematic-debugging',
   'test-driven-development',
   'using-git-worktrees',
-] as const
+] as const;
 
 /**
  * Chinese trigger keywords for core skills
@@ -61,6 +61,6 @@ export const CORE_SKILL_TRIGGERS_ZH = [
   '头脑风暴',
   '设计',
   '构思',
-] as const
+] as const;
 
-export type CoreSkill = typeof CORE_SKILLS[number]
+export type CoreSkill = typeof CORE_SKILLS[number];

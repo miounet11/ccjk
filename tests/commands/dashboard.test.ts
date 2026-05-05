@@ -2,7 +2,7 @@
  * Dashboard command tests
  */
 
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest';
 
 // Mock dependencies
 vi.mock('../../src/context/persistence', () => ({
@@ -35,9 +35,9 @@ vi.mock('../../src/context/persistence', () => ({
             compressedTokens: 800,
             timestamp: Date.now() - 3600000,
           },
-        ]
+        ];
       }
-      return []
+      return [];
     }),
     getHotContexts: vi.fn(() => [
       { id: '1', accessCount: 10, lastAccessed: Date.now() },
@@ -50,125 +50,125 @@ vi.mock('../../src/context/persistence', () => ({
       { id: '4', accessCount: 1, timestamp: Date.now() - 86400000 * 7 },
     ]),
   })),
-}))
+}));
 
 vi.mock('node:fs', () => ({
   existsSync: vi.fn(() => true),
   statSync: vi.fn(() => ({ size: 1024 * 1024 })), // 1MB
-}))
+}));
 
 vi.mock('../../src/i18n', () => ({
   i18n: {
     language: 'en',
   },
-}))
+}));
 
 describe('dashboard command', () => {
   it('should collect dashboard data', async () => {
-    const { dashboardCommand } = await import('../../src/commands/dashboard')
+    const { dashboardCommand } = await import('../../src/commands/dashboard');
 
     // Mock console.log to capture output
-    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
-    await dashboardCommand()
+    await dashboardCommand();
 
     // Verify output was generated
-    expect(logSpy).toHaveBeenCalled()
+    expect(logSpy).toHaveBeenCalled();
 
-    logSpy.mockRestore()
-  })
+    logSpy.mockRestore();
+  });
 
   it('should output JSON when json option is true', async () => {
-    const { dashboardCommand } = await import('../../src/commands/dashboard')
+    const { dashboardCommand } = await import('../../src/commands/dashboard');
 
-    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
-    await dashboardCommand({ json: true })
+    await dashboardCommand({ json: true });
 
     // Verify JSON output
     expect(logSpy).toHaveBeenCalledWith(
       expect.stringContaining('compression'),
-    )
+    );
 
-    logSpy.mockRestore()
-  })
+    logSpy.mockRestore();
+  });
 
   it('should handle missing persistence gracefully', async () => {
     // Mock persistence to throw error
     vi.doMock('../../src/context/persistence', () => ({
       getContextPersistence: vi.fn(() => {
-        throw new Error('Persistence not available')
+        throw new Error('Persistence not available');
       }),
-    }))
+    }));
 
-    const { dashboardCommand } = await import('../../src/commands/dashboard')
+    const { dashboardCommand } = await import('../../src/commands/dashboard');
 
-    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
     // Should not throw
-    await expect(dashboardCommand()).resolves.not.toThrow()
+    await expect(dashboardCommand()).resolves.not.toThrow();
 
-    logSpy.mockRestore()
-  })
+    logSpy.mockRestore();
+  });
 
   it('should generate recommendations based on data', async () => {
-    const { dashboardCommand } = await import('../../src/commands/dashboard')
+    const { dashboardCommand } = await import('../../src/commands/dashboard');
 
-    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
-    await dashboardCommand()
+    await dashboardCommand();
 
     // Check if recommendations section is present
-    const output = logSpy.mock.calls.map(call => call[0]).join('\n')
+    const output = logSpy.mock.calls.map(call => call[0]).join('\n');
 
     // Should have some output
-    expect(output.length).toBeGreaterThan(0)
+    expect(output.length).toBeGreaterThan(0);
 
-    logSpy.mockRestore()
-  })
+    logSpy.mockRestore();
+  });
 
   it('should format bytes correctly', async () => {
-    const { dashboardCommand } = await import('../../src/commands/dashboard')
+    const { dashboardCommand } = await import('../../src/commands/dashboard');
 
-    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
-    await dashboardCommand()
+    await dashboardCommand();
 
-    const output = logSpy.mock.calls.map(call => call[0]).join('\n')
+    const output = logSpy.mock.calls.map(call => call[0]).join('\n');
 
     // Should contain formatted byte sizes (KB, MB, etc.)
-    expect(output).toMatch(/\d+\.\d+\s+(B|KB|MB|GB)/)
+    expect(output).toMatch(/\d+\.\d+\s+(B|KB|MB|GB)/);
 
-    logSpy.mockRestore()
-  })
+    logSpy.mockRestore();
+  });
 
   it('should show compression metrics', async () => {
-    const { dashboardCommand } = await import('../../src/commands/dashboard')
+    const { dashboardCommand } = await import('../../src/commands/dashboard');
 
-    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
-    await dashboardCommand()
+    await dashboardCommand();
 
-    const output = logSpy.mock.calls.map(call => call[0]).join('\n')
+    const output = logSpy.mock.calls.map(call => call[0]).join('\n');
 
     // Should contain compression-related terms
-    expect(output.toLowerCase()).toMatch(/compression|savings|ratio/)
+    expect(output.toLowerCase()).toMatch(/compression|savings|ratio/);
 
-    logSpy.mockRestore()
-  })
+    logSpy.mockRestore();
+  });
 
   it('should show tier distribution', async () => {
-    const { dashboardCommand } = await import('../../src/commands/dashboard')
+    const { dashboardCommand } = await import('../../src/commands/dashboard');
 
-    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
-    await dashboardCommand()
+    await dashboardCommand();
 
-    const output = logSpy.mock.calls.map(call => call[0]).join('\n')
+    const output = logSpy.mock.calls.map(call => call[0]).join('\n');
 
     // Should contain tier information
-    expect(output.toLowerCase()).toMatch(/hot|warm|cold|tier/)
+    expect(output.toLowerCase()).toMatch(/hot|warm|cold|tier/);
 
-    logSpy.mockRestore()
-  })
-})
+    logSpy.mockRestore();
+  });
+});

@@ -1,9 +1,9 @@
-import type { HookContext } from './types'
-import { logger } from '../../utils/logger'
-import { hookRegistry } from './registry'
+import type { HookContext } from './types';
+import { logger } from '../../utils/logger';
+import { hookRegistry } from './registry';
 
 export interface CommandHookEventPayload {
-  [key: string]: unknown
+  [key: string]: unknown;
 }
 
 /**
@@ -23,11 +23,11 @@ export async function emitCommandHookEvent(
       metadata: {
         source: 'brain-router',
       },
-    }
+    };
 
-    await hookRegistry.execute(context)
+    await hookRegistry.execute(context);
   }
   catch (error) {
-    logger.debug(`Command hook bridge skipped for "${event}": ${String(error)}`)
+    logger.debug(`Command hook bridge skipped for "${event}": ${String(error)}`);
   }
 }

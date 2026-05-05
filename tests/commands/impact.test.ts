@@ -1,36 +1,36 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mockStorage = {
   getRecordsByDateRange: vi.fn(),
   getAvailableDates: vi.fn(),
-}
+};
 
 const mockPersistence = {
   getCompressionMetrics: vi.fn(),
   listProjects: vi.fn(),
-}
+};
 
 vi.mock('../../src/stats-storage', () => ({
   getStatsStorage: vi.fn(() => mockStorage),
-}))
+}));
 
 vi.mock('../../src/context/persistence', () => ({
   getContextPersistence: vi.fn(() => mockPersistence),
-}))
+}));
 
 describe('impact command', () => {
   beforeEach(() => {
-    vi.useFakeTimers()
-    vi.setSystemTime(new Date('2026-03-08T12:00:00Z'))
-    vi.clearAllMocks()
-  })
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-03-08T12:00:00Z'));
+    vi.clearAllMocks();
+  });
 
   afterEach(() => {
-    vi.useRealTimers()
-  })
+    vi.useRealTimers();
+  });
 
   it('builds a comparison from early and recent active windows', async () => {
-    const { buildComparison } = await import('../../src/commands/impact')
+    const { buildComparison } = await import('../../src/commands/impact');
 
     const comparison = buildComparison([
       { date: '2026-03-01', requests: 1, tokens: 1000, cost: 1, savedTokens: 100, savedCost: 0.1 },
@@ -39,17 +39,17 @@ describe('impact command', () => {
       { date: '2026-03-04', requests: 1, tokens: 700, cost: 0.7, savedTokens: 200, savedCost: 0.2 },
       { date: '2026-03-05', requests: 1, tokens: 650, cost: 0.6, savedTokens: 220, savedCost: 0.2 },
       { date: '2026-03-06', requests: 1, tokens: 600, cost: 0.5, savedTokens: 240, savedCost: 0.2 },
-    ])
+    ]);
 
-    expect(comparison).toBeDefined()
-    expect(comparison!.baseline.startDate).toBe('2026-03-01')
-    expect(comparison!.recent.endDate).toBe('2026-03-06')
-    expect(comparison!.tokenDeltaPercent).toBeLessThan(0)
-    expect(comparison!.savedTokensDeltaPercent).toBeGreaterThan(0)
-  })
+    expect(comparison).toBeDefined();
+    expect(comparison!.baseline.startDate).toBe('2026-03-01');
+    expect(comparison!.recent.endDate).toBe('2026-03-06');
+    expect(comparison!.tokenDeltaPercent).toBeLessThan(0);
+    expect(comparison!.savedTokensDeltaPercent).toBeGreaterThan(0);
+  });
 
   it('collects report data from usage and compression sources', async () => {
-    mockStorage.getAvailableDates.mockReturnValue(['2026-03-01'])
+    mockStorage.getAvailableDates.mockReturnValue(['2026-03-01']);
     mockStorage.getRecordsByDateRange.mockReturnValue([
       {
         timestamp: new Date('2026-03-07T10:00:00Z').getTime(),
@@ -73,7 +73,7 @@ describe('impact command', () => {
         success: true,
         cost: 0.31,
       },
-    ])
+    ]);
 
     mockPersistence.getCompressionMetrics.mockReturnValue([
       {
@@ -88,7 +88,7 @@ describe('impact command', () => {
         strategy: 'balanced',
         timestamp: new Date('2026-03-08T11:30:00Z').getTime(),
       },
-    ])
+    ]);
     mockPersistence.listProjects.mockReturnValue([
       {
         name: 'demo-project',
@@ -97,22 +97,22 @@ describe('impact command', () => {
         total_tokens: 2400,
         updated_at: new Date('2026-03-08T11:40:00Z').getTime(),
       },
-    ])
+    ]);
 
-    const { collectImpactReport } = await import('../../src/commands/impact')
-    const report = collectImpactReport(7)
+    const { collectImpactReport } = await import('../../src/commands/impact');
+    const report = collectImpactReport(7);
 
-    expect(report.today.date).toBe('2026-03-08')
-    expect(report.today.tokens).toBe(600)
-    expect(report.today.savedTokens).toBe(600)
-    expect(report.totals.totalTokens).toBe(1400)
-    expect(report.topProviders[0].provider).toBe('anthropic')
-    expect(report.topProjects[0].name).toBe('demo-project')
-    expect(report.notes.some(note => note.includes('Tracking currently starts'))).toBe(true)
-  })
+    expect(report.today.date).toBe('2026-03-08');
+    expect(report.today.tokens).toBe(600);
+    expect(report.today.savedTokens).toBe(600);
+    expect(report.totals.totalTokens).toBe(1400);
+    expect(report.topProviders[0].provider).toBe('anthropic');
+    expect(report.topProjects[0].name).toBe('demo-project');
+    expect(report.notes.some(note => note.includes('Tracking currently starts'))).toBe(true);
+  });
 
   it('renders an html page with visible product proof sections', async () => {
-    const { generateImpactHtml } = await import('../../src/commands/impact')
+    const { generateImpactHtml } = await import('../../src/commands/impact');
 
     const html = generateImpactHtml({
       generatedAt: '2026-03-08T12:00:00.000Z',
@@ -152,11 +152,11 @@ describe('impact command', () => {
         { date: '2026-03-08', requests: 4, tokens: 1200, cost: 1.2, savedTokens: 600, savedCost: 0.9 },
       ],
       notes: ['Tracking currently starts at 2026-03-01.'],
-    })
+    });
 
-    expect(html).toContain('CCJK Usage Impact')
-    expect(html).toContain('Daily effect')
-    expect(html).toContain('Provider and model summary')
-    expect(html).toContain('Code and optimization summary')
-  })
-})
+    expect(html).toContain('CCJK Usage Impact');
+    expect(html).toContain('Daily effect');
+    expect(html).toContain('Provider and model summary');
+    expect(html).toContain('Code and optimization summary');
+  });
+});

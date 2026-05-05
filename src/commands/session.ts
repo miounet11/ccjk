@@ -1,21 +1,21 @@
-import type { CliOptions } from '../cli-lazy'
-import { existsSync } from 'node:fs'
-import { mkdir, readdir, readFile, rm, stat, writeFile } from 'node:fs/promises'
-import { homedir } from 'node:os'
-import { join } from 'node:path'
-import process from 'node:process'
-import ansis from 'ansis'
-import inquirer from 'inquirer'
-import { getSessionManager } from '../session-manager'
+import type { CliOptions } from '../cli-lazy';
+import { existsSync } from 'node:fs';
+import { mkdir, readdir, readFile, rm, stat, writeFile } from 'node:fs/promises';
+import { homedir } from 'node:os';
+import { join } from 'node:path';
+import process from 'node:process';
+import ansis from 'ansis';
+import inquirer from 'inquirer';
+import { getSessionManager } from '../session-manager';
 
-const SESSIONS_DIR = join(homedir(), '.ccjk', 'sessions')
-const CCJK_DIR = join(homedir(), '.ccjk')
-const CLAUDE_DIR = join(homedir(), '.claude')
+const SESSIONS_DIR = join(homedir(), '.ccjk', 'sessions');
+const CCJK_DIR = join(homedir(), '.ccjk');
+const CLAUDE_DIR = join(homedir(), '.claude');
 
 interface SessionMetadata {
-  id: string
-  timestamp: Date
-  description?: string
+  id: string;
+  timestamp: Date;
+  description?: string;
 }
 
 /**
@@ -23,38 +23,38 @@ interface SessionMetadata {
  */
 export async function saveSession(): Promise<void> {
   try {
-    const timestamp = new Date().toISOString()
-    const sessionId = `session-${Date.now()}`
+    const timestamp = new Date().toISOString();
+    const sessionId = `session-${Date.now()}`;
 
     // Prompt for description
     const { description } = await inquirer.prompt<{ description: string }>({
       type: 'input',
       name: 'description',
       message: 'Session description (optional):',
-    })
+    });
 
     const metadata: SessionMetadata = {
       id: sessionId,
       timestamp: new Date(timestamp),
       description,
-    }
+    };
 
     // Ensure sessions directory exists
     if (!existsSync(SESSIONS_DIR)) {
-      await mkdir(SESSIONS_DIR, { recursive: true })
+      await mkdir(SESSIONS_DIR, { recursive: true });
     }
 
     // Save metadata
-    const sessionFile = join(SESSIONS_DIR, `${sessionId}.json`)
-    await writeFile(sessionFile, JSON.stringify(metadata, null, 2))
+    const sessionFile = join(SESSIONS_DIR, `${sessionId}.json`);
+    await writeFile(sessionFile, JSON.stringify(metadata, null, 2));
 
-    console.log(ansis.green(`✔ Session saved: ${sessionId}`))
+    console.log(ansis.green(`✔ Session saved: ${sessionId}`));
     if (description) {
-      console.log(ansis.gray(`  ${description}`))
+      console.log(ansis.gray(`  ${description}`));
     }
   }
   catch (error) {
-    console.error(ansis.red('Failed to save session:'), error)
+    console.error(ansis.red('Failed to save session:'), error);
   }
 }
 
@@ -63,54 +63,54 @@ export async function saveSession(): Promise<void> {
  */
 export async function listSessions(): Promise<void> {
   try {
-    const sessionManager = getSessionManager()
-    const sessions = await sessionManager.listSessions()
+    const sessionManager = getSessionManager();
+    const sessions = await sessionManager.listSessions();
 
     if (sessions.length === 0) {
-      console.log(ansis.yellow('No sessions found'))
-      console.log(ansis.gray(`\nCreate a new session with: ${ansis.green('ccjk session create')}`))
-      return
+      console.log(ansis.yellow('No sessions found'));
+      console.log(ansis.gray(`\nCreate a new session with: ${ansis.green('ccjk session create')}`));
+      return;
     }
 
-    console.log(ansis.green.bold('\n📋 Saved Sessions:\n'))
+    console.log(ansis.green.bold('\n📋 Saved Sessions:\n'));
 
     // Sort by last accessed (most recent first)
     const sortedSessions = [...sessions].sort((a, b) => {
-      const aTime = a.lastUsedAt?.getTime() || a.createdAt.getTime()
-      const bTime = b.lastUsedAt?.getTime() || b.createdAt.getTime()
-      return bTime - aTime
-    })
+      const aTime = a.lastUsedAt?.getTime() || a.createdAt.getTime();
+      const bTime = b.lastUsedAt?.getTime() || b.createdAt.getTime();
+      return bTime - aTime;
+    });
 
     for (const session of sortedSessions) {
-      const nameDisplay = session.name ? ansis.green(session.name) : ansis.gray('(unnamed)')
-      const idDisplay = ansis.gray(`[${session.id.substring(0, 8)}]`)
+      const nameDisplay = session.name ? ansis.green(session.name) : ansis.gray('(unnamed)');
+      const idDisplay = ansis.gray(`[${session.id.substring(0, 8)}]`);
 
-      console.log(`  ${nameDisplay} ${idDisplay}`)
+      console.log(`  ${nameDisplay} ${idDisplay}`);
 
       if (session.provider) {
-        console.log(ansis.gray(`    Provider: ${session.provider}`))
+        console.log(ansis.gray(`    Provider: ${session.provider}`));
       }
 
-      const createdDate = session.createdAt.toLocaleString()
-      console.log(ansis.gray(`    Created: ${createdDate}`))
+      const createdDate = session.createdAt.toLocaleString();
+      console.log(ansis.gray(`    Created: ${createdDate}`));
 
       if (session.lastUsedAt) {
-        const accessedDate = session.lastUsedAt.toLocaleString()
-        console.log(ansis.gray(`    Last accessed: ${accessedDate}`))
+        const accessedDate = session.lastUsedAt.toLocaleString();
+        console.log(ansis.gray(`    Last accessed: ${accessedDate}`));
       }
 
       if (session.history.length > 0) {
-        console.log(ansis.gray(`    History: ${session.history.length} entries`))
+        console.log(ansis.gray(`    History: ${session.history.length} entries`));
       }
 
-      console.log('')
+      console.log('');
     }
 
-    console.log(ansis.gray(`Total: ${sessions.length} session(s)`))
-    console.log(ansis.gray(`\nUse ${ansis.green('ccjk --resume <name|id>')} to resume a session`))
+    console.log(ansis.gray(`Total: ${sessions.length} session(s)`));
+    console.log(ansis.gray(`\nUse ${ansis.green('ccjk --resume <name|id>')} to resume a session`));
   }
   catch (error) {
-    console.error(ansis.red('Failed to list sessions:'), error)
+    console.error(ansis.red('Failed to list sessions:'), error);
   }
 }
 
@@ -120,58 +120,58 @@ export async function listSessions(): Promise<void> {
 export async function restoreSession(sessionId?: string): Promise<void> {
   try {
     if (!existsSync(SESSIONS_DIR)) {
-      console.log(ansis.yellow('No sessions found'))
-      return
+      console.log(ansis.yellow('No sessions found'));
+      return;
     }
 
-    const files = await readdir(SESSIONS_DIR)
-    const sessions = files.filter(f => f.endsWith('.json'))
+    const files = await readdir(SESSIONS_DIR);
+    const sessions = files.filter(f => f.endsWith('.json'));
 
     if (sessions.length === 0) {
-      console.log(ansis.yellow('No sessions found'))
-      return
+      console.log(ansis.yellow('No sessions found'));
+      return;
     }
 
     // If no ID provided, prompt user to select
     if (!sessionId) {
       const choices = await Promise.all(
         sessions.map(async (file) => {
-          const content = await readFile(join(SESSIONS_DIR, file), 'utf-8')
-          const metadata: SessionMetadata = JSON.parse(content)
-          const date = new Date(metadata.timestamp).toLocaleString()
+          const content = await readFile(join(SESSIONS_DIR, file), 'utf-8');
+          const metadata: SessionMetadata = JSON.parse(content);
+          const date = new Date(metadata.timestamp).toLocaleString();
           return {
             name: `${metadata.id} - ${date}${metadata.description ? ` - ${metadata.description}` : ''}`,
             value: metadata.id,
-          }
+          };
         }),
-      )
+      );
 
       const { selected } = await inquirer.prompt<{ selected: string }>({
         type: 'list',
         name: 'selected',
         message: 'Select session to restore:',
         choices,
-      })
+      });
 
-      sessionId = selected
+      sessionId = selected;
     }
 
-    const sessionFile = join(SESSIONS_DIR, `${sessionId}.json`)
+    const sessionFile = join(SESSIONS_DIR, `${sessionId}.json`);
     if (!existsSync(sessionFile)) {
-      console.log(ansis.red(`Session not found: ${sessionId}`))
-      return
+      console.log(ansis.red(`Session not found: ${sessionId}`));
+      return;
     }
 
-    const content = await readFile(sessionFile, 'utf-8')
-    const metadata: SessionMetadata = JSON.parse(content)
+    const content = await readFile(sessionFile, 'utf-8');
+    const metadata: SessionMetadata = JSON.parse(content);
 
-    console.log(ansis.green(`✔ Session restored: ${metadata.id}`))
+    console.log(ansis.green(`✔ Session restored: ${metadata.id}`));
     if (metadata.description) {
-      console.log(ansis.gray(`  ${metadata.description}`))
+      console.log(ansis.gray(`  ${metadata.description}`));
     }
   }
   catch (error) {
-    console.error(ansis.red('Failed to restore session:'), error)
+    console.error(ansis.red('Failed to restore session:'), error);
   }
 }
 
@@ -181,50 +181,50 @@ export async function restoreSession(sessionId?: string): Promise<void> {
 export async function exportSession(sessionId?: string): Promise<void> {
   try {
     if (!existsSync(SESSIONS_DIR)) {
-      console.log(ansis.yellow('No sessions found'))
-      return
+      console.log(ansis.yellow('No sessions found'));
+      return;
     }
 
-    const files = await readdir(SESSIONS_DIR)
-    const sessions = files.filter(f => f.endsWith('.json'))
+    const files = await readdir(SESSIONS_DIR);
+    const sessions = files.filter(f => f.endsWith('.json'));
 
     if (sessions.length === 0) {
-      console.log(ansis.yellow('No sessions found'))
-      return
+      console.log(ansis.yellow('No sessions found'));
+      return;
     }
 
     // If no ID provided, prompt user to select
     if (!sessionId) {
       const choices = await Promise.all(
         sessions.map(async (file) => {
-          const content = await readFile(join(SESSIONS_DIR, file), 'utf-8')
-          const metadata: SessionMetadata = JSON.parse(content)
-          const date = new Date(metadata.timestamp).toLocaleString()
+          const content = await readFile(join(SESSIONS_DIR, file), 'utf-8');
+          const metadata: SessionMetadata = JSON.parse(content);
+          const date = new Date(metadata.timestamp).toLocaleString();
           return {
             name: `${metadata.id} - ${date}${metadata.description ? ` - ${metadata.description}` : ''}`,
             value: metadata.id,
-          }
+          };
         }),
-      )
+      );
 
       const { selected } = await inquirer.prompt<{ selected: string }>({
         type: 'list',
         name: 'selected',
         message: 'Select session to export:',
         choices,
-      })
+      });
 
-      sessionId = selected
+      sessionId = selected;
     }
 
-    const sessionFile = join(SESSIONS_DIR, `${sessionId}.json`)
+    const sessionFile = join(SESSIONS_DIR, `${sessionId}.json`);
     if (!existsSync(sessionFile)) {
-      console.log(ansis.red(`Session not found: ${sessionId}`))
-      return
+      console.log(ansis.red(`Session not found: ${sessionId}`));
+      return;
     }
 
-    const content = await readFile(sessionFile, 'utf-8')
-    const metadata: SessionMetadata = JSON.parse(content)
+    const content = await readFile(sessionFile, 'utf-8');
+    const metadata: SessionMetadata = JSON.parse(content);
 
     // Generate markdown
     const markdown = `# Session: ${metadata.id}
@@ -234,15 +234,15 @@ ${metadata.description ? `**Description:** ${metadata.description}\n` : ''}
 ## Details
 
 Session data would be exported here.
-`
+`;
 
-    const outputFile = join(process.cwd(), `${sessionId}.md`)
-    await writeFile(outputFile, markdown)
+    const outputFile = join(process.cwd(), `${sessionId}.md`);
+    await writeFile(outputFile, markdown);
 
-    console.log(ansis.green(`✔ Session exported: ${outputFile}`))
+    console.log(ansis.green(`✔ Session exported: ${outputFile}`));
   }
   catch (error) {
-    console.error(ansis.red('Failed to export session:'), error)
+    console.error(ansis.red('Failed to export session:'), error);
   }
 }
 
@@ -251,11 +251,11 @@ Session data would be exported here.
  */
 function formatBytes(bytes: number): string {
   if (bytes === 0)
-    return '0 B'
-  const k = 1024
-  const sizes = ['B', 'KB', 'MB', 'GB']
-  const i = Math.floor(Math.log(bytes) / Math.log(k))
-  return `${Number.parseFloat((bytes / k ** i).toFixed(2))} ${sizes[i]}`
+    return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return `${Number.parseFloat((bytes / k ** i).toFixed(2))} ${sizes[i]}`;
 }
 
 /**
@@ -263,26 +263,26 @@ function formatBytes(bytes: number): string {
  */
 async function getDirSize(dirPath: string): Promise<number> {
   if (!existsSync(dirPath))
-    return 0
+    return 0;
 
-  let totalSize = 0
+  let totalSize = 0;
   try {
-    const entries = await readdir(dirPath, { withFileTypes: true })
+    const entries = await readdir(dirPath, { withFileTypes: true });
     for (const entry of entries) {
-      const fullPath = join(dirPath, entry.name)
+      const fullPath = join(dirPath, entry.name);
       if (entry.isDirectory()) {
-        totalSize += await getDirSize(fullPath)
+        totalSize += await getDirSize(fullPath);
       }
       else {
-        const fileStat = await stat(fullPath)
-        totalSize += fileStat.size
+        const fileStat = await stat(fullPath);
+        totalSize += fileStat.size;
       }
     }
   }
   catch {
     // Ignore permission errors
   }
-  return totalSize
+  return totalSize;
 }
 
 /**
@@ -290,41 +290,41 @@ async function getDirSize(dirPath: string): Promise<number> {
  */
 async function countFiles(dirPath: string): Promise<number> {
   if (!existsSync(dirPath))
-    return 0
+    return 0;
 
-  let count = 0
+  let count = 0;
   try {
-    const entries = await readdir(dirPath, { withFileTypes: true })
+    const entries = await readdir(dirPath, { withFileTypes: true });
     for (const entry of entries) {
-      const fullPath = join(dirPath, entry.name)
+      const fullPath = join(dirPath, entry.name);
       if (entry.isDirectory()) {
-        count += await countFiles(fullPath)
+        count += await countFiles(fullPath);
       }
       else {
-        count++
+        count++;
       }
     }
   }
   catch {
     // Ignore permission errors
   }
-  return count
+  return count;
 }
 
 interface CleanupTarget {
-  name: string
-  path: string
-  description: string
-  size: number
-  fileCount: number
-  safe: boolean // Whether it's safe to delete without affecting functionality
+  name: string;
+  path: string;
+  description: string;
+  size: number;
+  fileCount: number;
+  safe: boolean; // Whether it's safe to delete without affecting functionality
 }
 
 /**
  * Analyze cleanup targets
  */
 async function analyzeCleanupTargets(): Promise<CleanupTarget[]> {
-  const targets: CleanupTarget[] = []
+  const targets: CleanupTarget[] = [];
 
   // CCJK cache directories
   const ccjkCacheDirs = [
@@ -332,7 +332,7 @@ async function analyzeCleanupTargets(): Promise<CleanupTarget[]> {
     { name: 'ccjk/sessions', path: join(CCJK_DIR, 'sessions'), desc: 'Saved session data', safe: true },
     { name: 'ccjk/logs', path: join(CCJK_DIR, 'logs'), desc: 'Log files', safe: true },
     { name: 'ccjk/temp', path: join(CCJK_DIR, 'temp'), desc: 'Temporary files', safe: true },
-  ]
+  ];
 
   // Claude directories - these are the actual directories that accumulate data
   const claudeDirs = [
@@ -345,12 +345,12 @@ async function analyzeCleanupTargets(): Promise<CleanupTarget[]> {
     { name: 'claude/plans', path: join(CLAUDE_DIR, 'plans'), desc: 'Plan files', safe: true },
     { name: 'claude/session-env', path: join(CLAUDE_DIR, 'session-env'), desc: 'Session environment data', safe: true },
     { name: 'claude/ide', path: join(CLAUDE_DIR, 'ide'), desc: 'IDE integration cache', safe: true },
-  ]
+  ];
 
   for (const dir of [...ccjkCacheDirs, ...claudeDirs]) {
     if (existsSync(dir.path)) {
-      const size = await getDirSize(dir.path)
-      const fileCount = await countFiles(dir.path)
+      const size = await getDirSize(dir.path);
+      const fileCount = await countFiles(dir.path);
       if (size > 0) {
         targets.push({
           name: dir.name,
@@ -359,49 +359,49 @@ async function analyzeCleanupTargets(): Promise<CleanupTarget[]> {
           size,
           fileCount,
           safe: dir.safe,
-        })
+        });
       }
     }
   }
 
-  return targets.sort((a, b) => b.size - a.size)
+  return targets.sort((a, b) => b.size - a.size);
 }
 
 /**
  * Clean up session and cache data
  */
-export async function cleanupSession(options: { all?: boolean, force?: boolean } = {}): Promise<void> {
+export async function cleanupSession(options: { all?: boolean; force?: boolean } = {}): Promise<void> {
   try {
-    console.log(ansis.green.bold('\n🧹 Session & Cache Cleanup\n'))
+    console.log(ansis.green.bold('\n🧹 Session & Cache Cleanup\n'));
 
     // Analyze targets
-    console.log(ansis.gray('Analyzing cleanup targets...'))
-    const targets = await analyzeCleanupTargets()
+    console.log(ansis.gray('Analyzing cleanup targets...'));
+    const targets = await analyzeCleanupTargets();
 
     if (targets.length === 0) {
-      console.log(ansis.green('✔ No cleanup needed - everything is clean!'))
-      return
+      console.log(ansis.green('✔ No cleanup needed - everything is clean!'));
+      return;
     }
 
     // Display targets
-    console.log(ansis.white.bold('\nCleanup Targets:\n'))
-    let totalSize = 0
-    let totalFiles = 0
+    console.log(ansis.white.bold('\nCleanup Targets:\n'));
+    let totalSize = 0;
+    let totalFiles = 0;
 
     for (const target of targets) {
-      totalSize += target.size
-      totalFiles += target.fileCount
-      const sizeStr = formatBytes(target.size).padStart(10)
-      const filesStr = `${target.fileCount} files`.padStart(12)
-      console.log(`  ${ansis.yellow(sizeStr)} ${ansis.gray(filesStr)}  ${ansis.white(target.name)}`)
-      console.log(`  ${ansis.gray(`                        ${target.description}`)}`)
-      console.log(`  ${ansis.gray(`                        ${target.path}`)}`)
-      console.log('')
+      totalSize += target.size;
+      totalFiles += target.fileCount;
+      const sizeStr = formatBytes(target.size).padStart(10);
+      const filesStr = `${target.fileCount} files`.padStart(12);
+      console.log(`  ${ansis.yellow(sizeStr)} ${ansis.gray(filesStr)}  ${ansis.white(target.name)}`);
+      console.log(`  ${ansis.gray(`                        ${target.description}`)}`);
+      console.log(`  ${ansis.gray(`                        ${target.path}`)}`);
+      console.log('');
     }
 
-    console.log(ansis.white.bold('─'.repeat(50)))
-    console.log(`  ${ansis.green(formatBytes(totalSize).padStart(10))} ${ansis.gray(`${totalFiles} files`.padStart(12))}  ${ansis.white.bold('Total')}`)
-    console.log('')
+    console.log(ansis.white.bold('─'.repeat(50)));
+    console.log(`  ${ansis.green(formatBytes(totalSize).padStart(10))} ${ansis.gray(`${totalFiles} files`.padStart(12))}  ${ansis.white.bold('Total')}`);
+    console.log('');
 
     // Confirm cleanup
     if (!options.force) {
@@ -412,16 +412,16 @@ export async function cleanupSession(options: { all?: boolean, force?: boolean }
           ? `Delete ALL ${targets.length} targets (${formatBytes(totalSize)})?`
           : 'Select targets to clean?',
         default: false,
-      })
+      });
 
       if (!confirm) {
-        console.log(ansis.yellow('Cleanup cancelled'))
-        return
+        console.log(ansis.yellow('Cleanup cancelled'));
+        return;
       }
     }
 
     // Select targets if not --all
-    let selectedTargets = targets
+    let selectedTargets = targets;
     if (!options.all && !options.force) {
       const { selected } = await inquirer.prompt<{ selected: string[] }>({
         type: 'checkbox',
@@ -432,39 +432,39 @@ export async function cleanupSession(options: { all?: boolean, force?: boolean }
           value: t.path,
           checked: t.safe,
         })),
-      })
+      });
 
-      selectedTargets = targets.filter(t => selected.includes(t.path))
+      selectedTargets = targets.filter(t => selected.includes(t.path));
     }
 
     if (selectedTargets.length === 0) {
-      console.log(ansis.yellow('No targets selected'))
-      return
+      console.log(ansis.yellow('No targets selected'));
+      return;
     }
 
     // Perform cleanup
-    console.log(ansis.gray('\nCleaning up...'))
-    let cleanedSize = 0
-    let cleanedFiles = 0
+    console.log(ansis.gray('\nCleaning up...'));
+    let cleanedSize = 0;
+    let cleanedFiles = 0;
 
     for (const target of selectedTargets) {
       try {
-        await rm(target.path, { recursive: true, force: true })
-        cleanedSize += target.size
-        cleanedFiles += target.fileCount
-        console.log(ansis.green(`  ✔ ${target.name}`))
+        await rm(target.path, { recursive: true, force: true });
+        cleanedSize += target.size;
+        cleanedFiles += target.fileCount;
+        console.log(ansis.green(`  ✔ ${target.name}`));
       }
       catch (error) {
-        console.log(ansis.red(`  ✖ ${target.name}: ${error}`))
+        console.log(ansis.red(`  ✖ ${target.name}: ${error}`));
       }
     }
 
-    console.log('')
-    console.log(ansis.green.bold(`✔ Cleanup complete!`))
-    console.log(ansis.gray(`  Freed ${formatBytes(cleanedSize)} (${cleanedFiles} files)`))
+    console.log('');
+    console.log(ansis.green.bold(`✔ Cleanup complete!`));
+    console.log(ansis.gray(`  Freed ${formatBytes(cleanedSize)} (${cleanedFiles} files)`));
   }
   catch (error) {
-    console.error(ansis.red('Failed to cleanup:'), error)
+    console.error(ansis.red('Failed to cleanup:'), error);
   }
 }
 
@@ -473,56 +473,56 @@ export async function cleanupSession(options: { all?: boolean, force?: boolean }
  */
 export async function sessionStatus(): Promise<void> {
   try {
-    console.log(ansis.green.bold('\n📊 Session & Cache Status\n'))
+    console.log(ansis.green.bold('\n📊 Session & Cache Status\n'));
 
-    const targets = await analyzeCleanupTargets()
+    const targets = await analyzeCleanupTargets();
 
     if (targets.length === 0) {
-      console.log(ansis.green('✔ All clean - no cached data found'))
-      return
+      console.log(ansis.green('✔ All clean - no cached data found'));
+      return;
     }
 
-    let totalSize = 0
-    let totalFiles = 0
+    let totalSize = 0;
+    let totalFiles = 0;
 
-    console.log(ansis.white.bold('Directory                Size        Files'))
-    console.log(ansis.gray('─'.repeat(50)))
+    console.log(ansis.white.bold('Directory                Size        Files'));
+    console.log(ansis.gray('─'.repeat(50)));
 
     for (const target of targets) {
-      totalSize += target.size
-      totalFiles += target.fileCount
-      const name = target.name.padEnd(24)
-      const size = formatBytes(target.size).padStart(10)
-      const files = String(target.fileCount).padStart(8)
-      console.log(`${ansis.white(name)} ${ansis.yellow(size)} ${ansis.gray(files)}`)
+      totalSize += target.size;
+      totalFiles += target.fileCount;
+      const name = target.name.padEnd(24);
+      const size = formatBytes(target.size).padStart(10);
+      const files = String(target.fileCount).padStart(8);
+      console.log(`${ansis.white(name)} ${ansis.yellow(size)} ${ansis.gray(files)}`);
     }
 
-    console.log(ansis.gray('─'.repeat(50)))
-    console.log(`${ansis.white.bold('Total'.padEnd(24))} ${ansis.green.bold(formatBytes(totalSize).padStart(10))} ${ansis.gray(String(totalFiles).padStart(8))}`)
-    console.log('')
-    console.log(ansis.gray(`Run ${ansis.green('ccjk session cleanup')} to free up space`))
+    console.log(ansis.gray('─'.repeat(50)));
+    console.log(`${ansis.white.bold('Total'.padEnd(24))} ${ansis.green.bold(formatBytes(totalSize).padStart(10))} ${ansis.gray(String(totalFiles).padStart(8))}`);
+    console.log('');
+    console.log(ansis.gray(`Run ${ansis.green('ccjk session cleanup')} to free up space`));
 
     // Show enhanced session statistics
-    const sessionManager = getSessionManager()
-    const stats = await sessionManager.getStatistics()
+    const sessionManager = getSessionManager();
+    const stats = await sessionManager.getStatistics();
 
     if (stats.totalSessions > 0) {
-      console.log(ansis.green.bold('\n📝 Session Statistics\n'))
-      console.log(ansis.white(`Total Sessions: ${ansis.yellow(String(stats.totalSessions))}`))
-      console.log(ansis.white(`Total History Entries: ${ansis.yellow(String(stats.totalHistoryEntries))}`))
+      console.log(ansis.green.bold('\n📝 Session Statistics\n'));
+      console.log(ansis.white(`Total Sessions: ${ansis.yellow(String(stats.totalSessions))}`));
+      console.log(ansis.white(`Total History Entries: ${ansis.yellow(String(stats.totalHistoryEntries))}`));
       if (stats.oldestSession) {
-        console.log(ansis.white(`Oldest Session: ${ansis.gray(stats.oldestSession.toLocaleString())}`))
+        console.log(ansis.white(`Oldest Session: ${ansis.gray(stats.oldestSession.toLocaleString())}`));
       }
       if (stats.newestSession) {
-        console.log(ansis.white(`Newest Session: ${ansis.gray(stats.newestSession.toLocaleString())}`))
+        console.log(ansis.white(`Newest Session: ${ansis.gray(stats.newestSession.toLocaleString())}`));
       }
       if (stats.mostRecentlyUsed) {
-        console.log(ansis.white(`Most Recently Used: ${ansis.gray(stats.mostRecentlyUsed.toLocaleString())}`))
+        console.log(ansis.white(`Most Recently Used: ${ansis.gray(stats.mostRecentlyUsed.toLocaleString())}`));
       }
     }
   }
   catch (error) {
-    console.error(ansis.red('Failed to get status:'), error)
+    console.error(ansis.red('Failed to get status:'), error);
   }
 }
 
@@ -531,20 +531,20 @@ export async function sessionStatus(): Promise<void> {
  */
 export async function createSessionCommand(options: CliOptions): Promise<void> {
   try {
-    const sessionManager = getSessionManager()
+    const sessionManager = getSessionManager();
 
     // Prompt for session details if not provided
-    let name = options.name as string | undefined
-    let provider = options.provider as string | undefined
-    let apiKey = options.apiKey as string | undefined
+    let name = options.name as string | undefined;
+    let provider = options.provider as string | undefined;
+    let apiKey = options.apiKey as string | undefined;
 
     if (!name) {
       const { sessionName } = await inquirer.prompt<{ sessionName: string }>({
         type: 'input',
         name: 'sessionName',
         message: 'Session name (optional):',
-      })
-      name = sessionName || undefined
+      });
+      name = sessionName || undefined;
     }
 
     if (!provider) {
@@ -559,8 +559,8 @@ export async function createSessionCommand(options: CliOptions): Promise<void> {
           { name: 'Custom', value: 'custom' },
           { name: 'Skip (use default)', value: '' },
         ],
-      })
-      provider = providerChoice || undefined
+      });
+      provider = providerChoice || undefined;
     }
 
     if (provider && !apiKey) {
@@ -569,26 +569,26 @@ export async function createSessionCommand(options: CliOptions): Promise<void> {
         name: 'key',
         message: `Enter API key for ${provider} (optional):`,
         mask: '*',
-      })
-      apiKey = key || undefined
+      });
+      apiKey = key || undefined;
     }
 
     const session = await sessionManager.createSession(name, provider, apiKey, {
       codeType: options.codeType as any,
-    })
+    });
 
-    console.log(ansis.green(`\n✔ Session created successfully!`))
-    console.log(ansis.white(`  ID: ${ansis.green(session.id)}`))
+    console.log(ansis.green(`\n✔ Session created successfully!`));
+    console.log(ansis.white(`  ID: ${ansis.green(session.id)}`));
     if (session.name) {
-      console.log(ansis.white(`  Name: ${ansis.green(session.name)}`))
+      console.log(ansis.white(`  Name: ${ansis.green(session.name)}`));
     }
     if (session.provider) {
-      console.log(ansis.white(`  Provider: ${ansis.green(session.provider)}`))
+      console.log(ansis.white(`  Provider: ${ansis.green(session.provider)}`));
     }
-    console.log(ansis.gray(`\nUse ${ansis.green(`ccjk --resume ${session.name || session.id}`)} to resume this session`))
+    console.log(ansis.gray(`\nUse ${ansis.green(`ccjk --resume ${session.name || session.id}`)} to resume this session`));
   }
   catch (error) {
-    console.error(ansis.red('Failed to create session:'), error)
+    console.error(ansis.red('Failed to create session:'), error);
   }
 }
 
@@ -597,14 +597,14 @@ export async function createSessionCommand(options: CliOptions): Promise<void> {
  */
 export async function renameSessionCommand(sessionId: string, options: CliOptions): Promise<void> {
   try {
-    const sessionManager = getSessionManager()
+    const sessionManager = getSessionManager();
 
     if (!sessionId) {
-      console.log(ansis.red('Please provide a session ID or name'))
-      return
+      console.log(ansis.red('Please provide a session ID or name'));
+      return;
     }
 
-    let newName = options.name as string | undefined
+    let newName = options.name as string | undefined;
 
     if (!newName) {
       const { name } = await inquirer.prompt<{ name: string }>({
@@ -612,21 +612,21 @@ export async function renameSessionCommand(sessionId: string, options: CliOption
         name: 'name',
         message: 'Enter new session name:',
         validate: (input: string) => input.trim().length > 0 || 'Name cannot be empty',
-      })
-      newName = name
+      });
+      newName = name;
     }
 
-    const success = await sessionManager.renameSession(sessionId, newName!)
+    const success = await sessionManager.renameSession(sessionId, newName!);
 
     if (success) {
-      console.log(ansis.green(`✔ Session renamed to: ${ansis.green(newName!)}`))
+      console.log(ansis.green(`✔ Session renamed to: ${ansis.green(newName!)}`));
     }
     else {
-      console.log(ansis.red(`Session not found: ${sessionId}`))
+      console.log(ansis.red(`Session not found: ${sessionId}`));
     }
   }
   catch (error) {
-    console.error(ansis.red('Failed to rename session:'), error)
+    console.error(ansis.red('Failed to rename session:'), error);
   }
 }
 
@@ -635,55 +635,55 @@ export async function renameSessionCommand(sessionId: string, options: CliOption
  */
 export async function deleteSessionCommand(sessionId: string, options: CliOptions): Promise<void> {
   try {
-    const sessionManager = getSessionManager()
+    const sessionManager = getSessionManager();
 
     if (!sessionId) {
-      console.log(ansis.red('Please provide a session ID or name'))
-      return
+      console.log(ansis.red('Please provide a session ID or name'));
+      return;
     }
 
     // Load session to show details
-    const session = await sessionManager.loadSession(sessionId)
+    const session = await sessionManager.loadSession(sessionId);
 
     if (!session) {
-      console.log(ansis.red(`Session not found: ${sessionId}`))
-      return
+      console.log(ansis.red(`Session not found: ${sessionId}`));
+      return;
     }
 
     // Confirm deletion unless --force
     if (!options.force) {
-      console.log(ansis.yellow('\n⚠️  You are about to delete:'))
-      console.log(ansis.white(`  ID: ${ansis.green(session.id)}`))
+      console.log(ansis.yellow('\n⚠️  You are about to delete:'));
+      console.log(ansis.white(`  ID: ${ansis.green(session.id)}`));
       if (session.name) {
-        console.log(ansis.white(`  Name: ${ansis.green(session.name)}`))
+        console.log(ansis.white(`  Name: ${ansis.green(session.name)}`));
       }
-      console.log(ansis.white(`  Created: ${ansis.gray(session.createdAt.toLocaleString())}`))
-      console.log(ansis.white(`  History entries: ${ansis.gray(String(session.history.length))}`))
+      console.log(ansis.white(`  Created: ${ansis.gray(session.createdAt.toLocaleString())}`));
+      console.log(ansis.white(`  History entries: ${ansis.gray(String(session.history.length))}`));
 
       const { confirm } = await inquirer.prompt<{ confirm: boolean }>({
         type: 'confirm',
         name: 'confirm',
         message: 'Are you sure you want to delete this session?',
         default: false,
-      })
+      });
 
       if (!confirm) {
-        console.log(ansis.yellow('Deletion cancelled'))
-        return
+        console.log(ansis.yellow('Deletion cancelled'));
+        return;
       }
     }
 
-    const success = await sessionManager.deleteSession(sessionId)
+    const success = await sessionManager.deleteSession(sessionId);
 
     if (success) {
-      console.log(ansis.green(`✔ Session deleted: ${sessionId}`))
+      console.log(ansis.green(`✔ Session deleted: ${sessionId}`));
     }
     else {
-      console.log(ansis.red(`Failed to delete session: ${sessionId}`))
+      console.log(ansis.red(`Failed to delete session: ${sessionId}`));
     }
   }
   catch (error) {
-    console.error(ansis.red('Failed to delete session:'), error)
+    console.error(ansis.red('Failed to delete session:'), error);
   }
 }
 
@@ -692,71 +692,71 @@ export async function deleteSessionCommand(sessionId: string, options: CliOption
  * Routes to appropriate sub-command based on action
  */
 export async function handleSessionCommand(args: string[]): Promise<void> {
-  const [action, sessionId] = args
+  const [action, sessionId] = args;
 
   switch (action) {
     case 'save':
-      await saveSession()
-      break
+      await saveSession();
+      break;
     case 'list':
     case 'ls':
-      await listSessions()
-      break
+      await listSessions();
+      break;
     case 'restore':
     case 'load':
-      await restoreSession(sessionId)
-      break
+      await restoreSession(sessionId);
+      break;
     case 'export':
-      await exportSession(sessionId)
-      break
+      await exportSession(sessionId);
+      break;
     case 'cleanup':
     case 'clean':
-      await cleanupSession()
-      break
+      await cleanupSession();
+      break;
     case 'status':
-      await sessionStatus()
-      break
+      await sessionStatus();
+      break;
     case 'create':
     case 'new':
-      await createSessionCommand({})
-      break
+      await createSessionCommand({});
+      break;
     case 'rename':
       if (!sessionId) {
-        console.log(ansis.red('Please provide a session ID to rename'))
-        return
+        console.log(ansis.red('Please provide a session ID to rename'));
+        return;
       }
-      await renameSessionCommand(sessionId, {})
-      break
+      await renameSessionCommand(sessionId, {});
+      break;
     case 'delete':
     case 'rm':
       if (!sessionId) {
-        console.log(ansis.red('Please provide a session ID to delete'))
-        return
+        console.log(ansis.red('Please provide a session ID to delete'));
+        return;
       }
-      await deleteSessionCommand(sessionId, {})
-      break
+      await deleteSessionCommand(sessionId, {});
+      break;
     default:
       // Show help
-      console.log()
-      console.log(ansis.cyan.bold('📦 Session Management Commands'))
-      console.log()
-      console.log(ansis.white('Usage: ccjk session <action> [id]'))
-      console.log()
-      console.log(ansis.white('Actions:'))
-      console.log(`${ansis.gray('  save       ')}Save current session`)
-      console.log(`${ansis.gray('  list       ')}List all sessions`)
-      console.log(`${ansis.gray('  restore    ')}Restore a session`)
-      console.log(`${ansis.gray('  export     ')}Export a session`)
-      console.log(`${ansis.gray('  cleanup    ')}Clean up old sessions`)
-      console.log(`${ansis.gray('  status     ')}Show session status`)
-      console.log(`${ansis.gray('  create     ')}Create a new session`)
-      console.log(`${ansis.gray('  rename     ')}Rename a session`)
-      console.log(`${ansis.gray('  delete     ')}Delete a session`)
-      console.log()
-      console.log(ansis.white('Examples:'))
-      console.log(ansis.gray('  ccjk session save'))
-      console.log(ansis.gray('  ccjk session list'))
-      console.log(ansis.gray('  ccjk session restore abc123'))
-      break
+      console.log();
+      console.log(ansis.cyan.bold('📦 Session Management Commands'));
+      console.log();
+      console.log(ansis.white('Usage: ccjk session <action> [id]'));
+      console.log();
+      console.log(ansis.white('Actions:'));
+      console.log(`${ansis.gray('  save       ')}Save current session`);
+      console.log(`${ansis.gray('  list       ')}List all sessions`);
+      console.log(`${ansis.gray('  restore    ')}Restore a session`);
+      console.log(`${ansis.gray('  export     ')}Export a session`);
+      console.log(`${ansis.gray('  cleanup    ')}Clean up old sessions`);
+      console.log(`${ansis.gray('  status     ')}Show session status`);
+      console.log(`${ansis.gray('  create     ')}Create a new session`);
+      console.log(`${ansis.gray('  rename     ')}Rename a session`);
+      console.log(`${ansis.gray('  delete     ')}Delete a session`);
+      console.log();
+      console.log(ansis.white('Examples:'));
+      console.log(ansis.gray('  ccjk session save'));
+      console.log(ansis.gray('  ccjk session list'));
+      console.log(ansis.gray('  ccjk session restore abc123'));
+      break;
   }
 }

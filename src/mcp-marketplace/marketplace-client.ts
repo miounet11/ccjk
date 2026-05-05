@@ -20,27 +20,27 @@ import type {
   SearchResult,
   UpdateInfo,
   VersionInfo,
-} from './types'
-import { existsSync, mkdirSync, readFileSync, statSync, unlinkSync } from 'node:fs'
-import { homedir } from 'node:os'
-import { join } from 'pathe'
-import { writeFileAtomic } from '../utils/fs-operations'
-import { CLOUD_ENDPOINTS } from '../constants'
+} from './types';
+import { existsSync, mkdirSync, readFileSync, statSync, unlinkSync } from 'node:fs';
+import { homedir } from 'node:os';
+import { join } from 'pathe';
+import { CLOUD_ENDPOINTS } from '../constants';
+import { writeFileAtomic } from '../utils/fs-operations';
 
 // ============================================================================
 // Constants
 // ============================================================================
 
-const DEFAULT_API_URL = `${CLOUD_ENDPOINTS.MAIN.BASE_URL}${CLOUD_ENDPOINTS.MAIN.API_VERSION}/skills`
-const REQUEST_TIMEOUT = 30000 // 30 seconds
-const MAX_RETRY_ATTEMPTS = 3
-const RETRY_DELAY = 1000 // 1 second
-const DEFAULT_CACHE_TTL = 3600000 // 1 hour
-const DEFAULT_THROTTLE_INTERVAL = 100 // 100ms between requests
-const CACHE_VERSION = '1.0.0'
+const DEFAULT_API_URL = `${CLOUD_ENDPOINTS.MAIN.BASE_URL}${CLOUD_ENDPOINTS.MAIN.API_VERSION}/skills`;
+const REQUEST_TIMEOUT = 30000; // 30 seconds
+const MAX_RETRY_ATTEMPTS = 3;
+const RETRY_DELAY = 1000; // 1 second
+const DEFAULT_CACHE_TTL = 3600000; // 1 hour
+const DEFAULT_THROTTLE_INTERVAL = 100; // 100ms between requests
+const CACHE_VERSION = '1.0.0';
 
 // Cache directory
-const CACHE_BASE_DIR = join(homedir(), '.ccjk', 'mcp-marketplace', 'cache')
+const CACHE_BASE_DIR = join(homedir(), '.ccjk', 'mcp-marketplace', 'cache');
 
 // ============================================================================
 // Request Deduplication & Throttling
@@ -50,8 +50,8 @@ const CACHE_BASE_DIR = join(homedir(), '.ccjk', 'mcp-marketplace', 'cache')
  * Pending request tracker for deduplication
  */
 interface PendingRequest<T> {
-  promise: Promise<MarketplaceApiResponse<T>>
-  timestamp: number
+  promise: Promise<MarketplaceApiResponse<T>>;
+  timestamp: number;
 }
 
 // ============================================================================
@@ -70,46 +70,46 @@ interface PendingRequest<T> {
  * - Request throttling
  */
 export class MarketplaceClient {
-  private baseUrl: string
-  private apiKey?: string
-  private timeout: number
-  private offlineMode: boolean
-  private enableLogging: boolean
-  private maxRetries: number
-  private retryDelay: number
-  private cacheTTL: number
-  private enableDeduplication: boolean
-  private throttleInterval: number
+  private baseUrl: string;
+  private apiKey?: string;
+  private timeout: number;
+  private offlineMode: boolean;
+  private enableLogging: boolean;
+  private maxRetries: number;
+  private retryDelay: number;
+  private cacheTTL: number;
+  private enableDeduplication: boolean;
+  private throttleInterval: number;
 
   // In-memory cache
-  private memoryCache: Map<string, { data: unknown, timestamp: number, ttl: number }>
+  private memoryCache: Map<string, { data: unknown; timestamp: number; ttl: number }>;
   // Pending requests for deduplication
-  private pendingRequests: Map<string, PendingRequest<unknown>>
+  private pendingRequests: Map<string, PendingRequest<unknown>>;
   // Last request timestamp for throttling
-  private lastRequestTime: number
+  private lastRequestTime: number;
 
   // File-based cache
-  private cacheDir: string
-  private cacheFile: string
+  private cacheDir: string;
+  private cacheFile: string;
 
   constructor(options: MarketplaceClientOptions = {}) {
-    this.baseUrl = options.baseUrl || DEFAULT_API_URL
-    this.apiKey = options.apiKey
-    this.timeout = options.timeout || REQUEST_TIMEOUT
-    this.offlineMode = options.offlineMode || false
-    this.enableLogging = options.enableLogging || false
-    this.maxRetries = options.maxRetries || MAX_RETRY_ATTEMPTS
-    this.retryDelay = options.retryDelay || RETRY_DELAY
-    this.cacheTTL = options.cacheTTL || DEFAULT_CACHE_TTL
-    this.enableDeduplication = options.enableDeduplication !== false
-    this.throttleInterval = options.throttleInterval || DEFAULT_THROTTLE_INTERVAL
+    this.baseUrl = options.baseUrl || DEFAULT_API_URL;
+    this.apiKey = options.apiKey;
+    this.timeout = options.timeout || REQUEST_TIMEOUT;
+    this.offlineMode = options.offlineMode || false;
+    this.enableLogging = options.enableLogging || false;
+    this.maxRetries = options.maxRetries || MAX_RETRY_ATTEMPTS;
+    this.retryDelay = options.retryDelay || RETRY_DELAY;
+    this.cacheTTL = options.cacheTTL || DEFAULT_CACHE_TTL;
+    this.enableDeduplication = options.enableDeduplication !== false;
+    this.throttleInterval = options.throttleInterval || DEFAULT_THROTTLE_INTERVAL;
 
-    this.memoryCache = new Map()
-    this.pendingRequests = new Map()
-    this.lastRequestTime = 0
+    this.memoryCache = new Map();
+    this.pendingRequests = new Map();
+    this.lastRequestTime = 0;
 
-    this.cacheDir = CACHE_BASE_DIR
-    this.cacheFile = join(this.cacheDir, 'marketplace.json')
+    this.cacheDir = CACHE_BASE_DIR;
+    this.cacheFile = join(this.cacheDir, 'marketplace.json');
   }
 
   // ==========================================================================
@@ -120,16 +120,16 @@ export class MarketplaceClient {
    * Search packages with filters and sorting
    */
   async search(options: SearchOptions = {}): Promise<SearchResult> {
-    this.log('Searching packages with options:', options)
+    this.log('Searching packages with options:', options);
 
-    const params = this.buildSearchParams(options)
+    const params = this.buildSearchParams(options);
     const response = await this.request<SearchResult>('', {
       method: 'GET',
       params,
-    })
+    });
 
     if (response.success && response.data) {
-      return response.data
+      return response.data;
     }
 
     return {
@@ -139,90 +139,90 @@ export class MarketplaceClient {
       limit: options.limit || 20,
       totalPages: 0,
       hasMore: false,
-    }
+    };
   }
 
   /**
    * Get detailed information about a specific package
    */
   async getPackage(id: string): Promise<MCPPackage | null> {
-    this.log('Getting package:', id)
+    this.log('Getting package:', id);
 
-    const encodedId = encodeURIComponent(id)
+    const encodedId = encodeURIComponent(id);
     const response = await this.request<MCPPackage>(`/packages/${encodedId}`, {
       method: 'GET',
-    })
+    });
 
-    return response.success && response.data ? response.data : null
+    return response.success && response.data ? response.data : null;
   }
 
   /**
    * Get version history for a package
    */
   async getVersions(id: string): Promise<VersionInfo[]> {
-    this.log('Getting versions for package:', id)
+    this.log('Getting versions for package:', id);
 
-    const encodedId = encodeURIComponent(id)
+    const encodedId = encodeURIComponent(id);
     const response = await this.request<VersionInfo[]>(`/packages/${encodedId}/versions`, {
       method: 'GET',
-    })
+    });
 
-    return response.success && response.data ? response.data : []
+    return response.success && response.data ? response.data : [];
   }
 
   /**
    * Get trending/popular packages
    */
   async getTrending(limit: number = 10): Promise<MCPPackage[]> {
-    this.log('Getting trending packages, limit:', limit)
+    this.log('Getting trending packages, limit:', limit);
 
     const response = await this.request<MCPPackage[]>('/trending', {
       method: 'GET',
       params: { limit },
-    })
+    });
 
-    return response.success && response.data ? response.data : []
+    return response.success && response.data ? response.data : [];
   }
 
   /**
    * Get personalized recommendations based on installed packages
    */
   async getRecommendations(installed: string[]): Promise<MCPPackage[]> {
-    this.log('Getting recommendations for installed packages:', installed)
+    this.log('Getting recommendations for installed packages:', installed);
 
     const response = await this.request<MCPPackage[]>('/recommendations', {
       method: 'POST',
       body: JSON.stringify({ installed }),
-    })
+    });
 
-    return response.success && response.data ? response.data : []
+    return response.success && response.data ? response.data : [];
   }
 
   /**
    * Get all available categories
    */
   async getCategories(): Promise<CategoryInfo[]> {
-    this.log('Getting categories')
+    this.log('Getting categories');
 
     const response = await this.request<CategoryInfo[]>('/categories', {
       method: 'GET',
-    })
+    });
 
-    return response.success && response.data ? response.data : []
+    return response.success && response.data ? response.data : [];
   }
 
   /**
    * Check for updates for installed packages
    */
   async checkUpdates(installed: InstalledPackage[]): Promise<UpdateInfo[]> {
-    this.log('Checking updates for', installed.length, 'packages')
+    this.log('Checking updates for', installed.length, 'packages');
 
     const response = await this.request<UpdateInfo[]>('/updates/check', {
       method: 'POST',
       body: JSON.stringify({ packages: installed }),
-    })
+    });
 
-    return response.success && response.data ? response.data : []
+    return response.success && response.data ? response.data : [];
   }
 
   // ==========================================================================
@@ -233,48 +233,48 @@ export class MarketplaceClient {
    * Clear all cached data (memory and file)
    */
   clearCache(): void {
-    this.memoryCache.clear()
-    this.pendingRequests.clear()
+    this.memoryCache.clear();
+    this.pendingRequests.clear();
 
     try {
       if (existsSync(this.cacheFile)) {
-        unlinkSync(this.cacheFile)
+        unlinkSync(this.cacheFile);
       }
     }
     catch (error) {
-      this.log('Failed to clear file cache:', error)
+      this.log('Failed to clear file cache:', error);
     }
 
-    this.log('Cache cleared')
+    this.log('Cache cleared');
   }
 
   /**
    * Clear expired cache entries
    */
   clearExpiredCache(): void {
-    const now = Date.now()
-    const keysToDelete: string[] = []
+    const now = Date.now();
+    const keysToDelete: string[] = [];
 
     this.memoryCache.forEach((entry, key) => {
       if (now - entry.timestamp > entry.ttl) {
-        keysToDelete.push(key)
+        keysToDelete.push(key);
       }
-    })
+    });
 
-    keysToDelete.forEach(key => this.memoryCache.delete(key))
-    this.log('Cleared', keysToDelete.length, 'expired cache entries')
+    keysToDelete.forEach(key => this.memoryCache.delete(key));
+    this.log('Cleared', keysToDelete.length, 'expired cache entries');
   }
 
   /**
    * Get cache statistics
    */
   getCacheStats(): MarketplaceCacheStats {
-    const fileCache = this.loadFileCache()
+    const fileCache = this.loadFileCache();
 
-    let cacheSize = 0
+    let cacheSize = 0;
     try {
       if (existsSync(this.cacheFile)) {
-        cacheSize = statSync(this.cacheFile).size
+        cacheSize = statSync(this.cacheFile).size;
       }
     }
     catch {
@@ -288,15 +288,15 @@ export class MarketplaceClient {
       expiresAt: fileCache?.expiresAt || null,
       isExpired: this.isFileCacheExpired(),
       cachedCategories: fileCache?.categories.length || 0,
-    }
+    };
   }
 
   /**
    * Set offline mode
    */
   setOfflineMode(enabled: boolean): void {
-    this.offlineMode = enabled
-    this.log('Offline mode:', enabled ? 'enabled' : 'disabled')
+    this.offlineMode = enabled;
+    this.log('Offline mode:', enabled ? 'enabled' : 'disabled');
   }
 
   // ==========================================================================
@@ -309,47 +309,47 @@ export class MarketplaceClient {
   private async request<T>(
     endpoint: string,
     options: {
-      method?: 'GET' | 'POST' | 'PUT' | 'DELETE'
-      params?: Record<string, unknown>
-      body?: string
-      skipCache?: boolean
+      method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
+      params?: Record<string, unknown>;
+      body?: string;
+      skipCache?: boolean;
     } = {},
   ): Promise<MarketplaceApiResponse<T>> {
-    const url = this.buildUrl(endpoint, options.params)
-    const cacheKey = `${options.method || 'GET'}:${url}`
+    const url = this.buildUrl(endpoint, options.params);
+    const cacheKey = `${options.method || 'GET'}:${url}`;
 
     // Check memory cache first (for GET requests)
     if (!options.skipCache && (options.method === 'GET' || !options.method)) {
-      const cached = this.getFromMemoryCache<T>(cacheKey)
+      const cached = this.getFromMemoryCache<T>(cacheKey);
       if (cached) {
-        this.log('Memory cache hit:', cacheKey)
+        this.log('Memory cache hit:', cacheKey);
         return {
           success: true,
           data: cached,
           timestamp: new Date().toISOString(),
-        }
+        };
       }
     }
 
     // Request deduplication
     if (this.enableDeduplication && (options.method === 'GET' || !options.method)) {
-      const pending = this.pendingRequests.get(cacheKey) as PendingRequest<T> | undefined
+      const pending = this.pendingRequests.get(cacheKey) as PendingRequest<T> | undefined;
       if (pending) {
-        this.log('Deduplicating request:', cacheKey)
-        return pending.promise as Promise<MarketplaceApiResponse<T>>
+        this.log('Deduplicating request:', cacheKey);
+        return pending.promise as Promise<MarketplaceApiResponse<T>>;
       }
     }
 
     // Offline mode - return cached data or error
     if (this.offlineMode) {
-      const cached = this.getFromMemoryCache<T>(cacheKey)
+      const cached = this.getFromMemoryCache<T>(cacheKey);
       if (cached) {
-        this.log('Offline mode: returning cached data')
+        this.log('Offline mode: returning cached data');
         return {
           success: true,
           data: cached,
           timestamp: new Date().toISOString(),
-        }
+        };
       }
       return {
         success: false,
@@ -358,29 +358,29 @@ export class MarketplaceClient {
           message: 'Offline mode enabled and no cached data available',
         },
         timestamp: new Date().toISOString(),
-      }
+      };
     }
 
     // Throttling
-    await this.throttle()
+    await this.throttle();
 
     // Create request promise
-    const requestPromise = this.executeRequest<T>(url, options, cacheKey)
+    const requestPromise = this.executeRequest<T>(url, options, cacheKey);
 
     // Track pending request for deduplication
     if (this.enableDeduplication && (options.method === 'GET' || !options.method)) {
       this.pendingRequests.set(cacheKey, {
         promise: requestPromise as Promise<MarketplaceApiResponse<unknown>>,
         timestamp: Date.now(),
-      })
+      });
 
       // Clean up pending request after completion
       requestPromise.finally(() => {
-        this.pendingRequests.delete(cacheKey)
-      })
+        this.pendingRequests.delete(cacheKey);
+      });
     }
 
-    return requestPromise
+    return requestPromise;
   }
 
   /**
@@ -389,39 +389,39 @@ export class MarketplaceClient {
   private async executeRequest<T>(
     url: string,
     options: {
-      method?: 'GET' | 'POST' | 'PUT' | 'DELETE'
-      body?: string
-      skipCache?: boolean
+      method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
+      body?: string;
+      skipCache?: boolean;
     },
     cacheKey: string,
   ): Promise<MarketplaceApiResponse<T>> {
-    let lastError: Error | null = null
+    let lastError: Error | null = null;
 
     for (let attempt = 1; attempt <= this.maxRetries; attempt++) {
       try {
-        this.log(`Request attempt ${attempt}/${this.maxRetries}:`, url)
+        this.log(`Request attempt ${attempt}/${this.maxRetries}:`, url);
 
-        const response = await this.makeRequest<T>(url, options)
+        const response = await this.makeRequest<T>(url, options);
 
         // Cache successful GET requests
         if (response.success && response.data && (options.method === 'GET' || !options.method)) {
-          this.setMemoryCache(cacheKey, response.data, this.cacheTTL)
+          this.setMemoryCache(cacheKey, response.data, this.cacheTTL);
         }
 
-        return response
+        return response;
       }
       catch (error) {
-        lastError = error instanceof Error ? error : new Error(String(error))
-        this.log(`Request failed (attempt ${attempt}):`, lastError.message)
+        lastError = error instanceof Error ? error : new Error(String(error));
+        this.log(`Request failed (attempt ${attempt}):`, lastError.message);
 
         // Don't retry on abort
         if (lastError.name === 'AbortError') {
-          break
+          break;
         }
 
         // Wait before retry (except on last attempt)
         if (attempt < this.maxRetries) {
-          await this.sleep(this.retryDelay * attempt)
+          await this.sleep(this.retryDelay * attempt);
         }
       }
     }
@@ -434,7 +434,7 @@ export class MarketplaceClient {
         message: lastError?.message || 'Request failed after all retries',
       },
       timestamp: new Date().toISOString(),
-    }
+    };
   }
 
   /**
@@ -443,12 +443,12 @@ export class MarketplaceClient {
   private async makeRequest<T>(
     url: string,
     options: {
-      method?: 'GET' | 'POST' | 'PUT' | 'DELETE'
-      body?: string
+      method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
+      body?: string;
     },
   ): Promise<MarketplaceApiResponse<T>> {
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), this.timeout)
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), this.timeout);
 
     try {
       const response = await fetch(url, {
@@ -456,12 +456,12 @@ export class MarketplaceClient {
         headers: this.getHeaders(),
         body: options.body,
         signal: controller.signal,
-      })
+      });
 
-      clearTimeout(timeoutId)
-      this.lastRequestTime = Date.now()
+      clearTimeout(timeoutId);
+      this.lastRequestTime = Date.now();
 
-      const data = await response.json() as MarketplaceApiResponse<T>
+      const data = await response.json() as MarketplaceApiResponse<T>;
 
       if (!response.ok) {
         return {
@@ -471,20 +471,20 @@ export class MarketplaceClient {
             message: `HTTP ${response.status}: ${response.statusText}`,
           },
           timestamp: new Date().toISOString(),
-        }
+        };
       }
 
       return {
         ...data,
         success: true,
         timestamp: new Date().toISOString(),
-      }
+      };
     }
     catch (error) {
-      clearTimeout(timeoutId)
+      clearTimeout(timeoutId);
 
       if (error instanceof Error && error.name === 'AbortError') {
-        throw error
+        throw error;
       }
 
       return {
@@ -494,7 +494,7 @@ export class MarketplaceClient {
           message: error instanceof Error ? error.message : String(error),
         },
         timestamp: new Date().toISOString(),
-      }
+      };
     }
   }
 
@@ -506,22 +506,22 @@ export class MarketplaceClient {
    * Build full URL with query parameters
    */
   private buildUrl(endpoint: string, params?: Record<string, unknown>): string {
-    const url = new URL(endpoint, this.baseUrl)
+    const url = new URL(endpoint, this.baseUrl);
 
     if (params) {
       for (const [key, value] of Object.entries(params)) {
         if (value !== undefined && value !== null) {
           if (Array.isArray(value)) {
-            value.forEach(v => url.searchParams.append(key, String(v)))
+            value.forEach(v => url.searchParams.append(key, String(v)));
           }
           else {
-            url.searchParams.append(key, String(value))
+            url.searchParams.append(key, String(value));
           }
         }
       }
     }
 
-    return url.toString()
+    return url.toString();
   }
 
   /**
@@ -542,7 +542,7 @@ export class MarketplaceClient {
       minRating: options.minRating,
       page: options.page || 1,
       limit: options.limit || 20,
-    }
+    };
   }
 
   /**
@@ -552,25 +552,25 @@ export class MarketplaceClient {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       'User-Agent': 'CCJK-MCP-Marketplace-Client/1.0',
-    }
+    };
 
     if (this.apiKey) {
-      headers.Authorization = `Bearer ${this.apiKey}`
+      headers.Authorization = `Bearer ${this.apiKey}`;
     }
 
-    return headers
+    return headers;
   }
 
   /**
    * Throttle requests
    */
   private async throttle(): Promise<void> {
-    const now = Date.now()
-    const elapsed = now - this.lastRequestTime
-    const remaining = this.throttleInterval - elapsed
+    const now = Date.now();
+    const elapsed = now - this.lastRequestTime;
+    const remaining = this.throttleInterval - elapsed;
 
     if (remaining > 0) {
-      await this.sleep(remaining)
+      await this.sleep(remaining);
     }
   }
 
@@ -578,7 +578,7 @@ export class MarketplaceClient {
    * Sleep for specified milliseconds
    */
   private sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms))
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
   /**
@@ -586,7 +586,7 @@ export class MarketplaceClient {
    */
   private log(...args: unknown[]): void {
     if (this.enableLogging) {
-      console.log('[MarketplaceClient]', ...args)
+      console.log('[MarketplaceClient]', ...args);
     }
   }
 
@@ -598,18 +598,18 @@ export class MarketplaceClient {
    * Get data from memory cache
    */
   private getFromMemoryCache<T>(key: string): T | null {
-    const entry = this.memoryCache.get(key)
+    const entry = this.memoryCache.get(key);
     if (!entry) {
-      return null
+      return null;
     }
 
-    const now = Date.now()
+    const now = Date.now();
     if (now - entry.timestamp > entry.ttl) {
-      this.memoryCache.delete(key)
-      return null
+      this.memoryCache.delete(key);
+      return null;
     }
 
-    return entry.data as T
+    return entry.data as T;
   }
 
   /**
@@ -620,7 +620,7 @@ export class MarketplaceClient {
       data,
       timestamp: Date.now(),
       ttl,
-    })
+    });
   }
 
   // ==========================================================================
@@ -632,7 +632,7 @@ export class MarketplaceClient {
    */
   private ensureCacheDir(): void {
     if (!existsSync(this.cacheDir)) {
-      mkdirSync(this.cacheDir, { recursive: true })
+      mkdirSync(this.cacheDir, { recursive: true });
     }
   }
 
@@ -642,20 +642,20 @@ export class MarketplaceClient {
   private loadFileCache(): MarketplaceCache | null {
     try {
       if (!existsSync(this.cacheFile)) {
-        return null
+        return null;
       }
 
-      const content = readFileSync(this.cacheFile, 'utf-8')
-      const cache = JSON.parse(content) as MarketplaceCache
+      const content = readFileSync(this.cacheFile, 'utf-8');
+      const cache = JSON.parse(content) as MarketplaceCache;
 
       if (cache.version !== CACHE_VERSION) {
-        return null
+        return null;
       }
 
-      return cache
+      return cache;
     }
     catch {
-      return null
+      return null;
     }
   }
 
@@ -664,10 +664,10 @@ export class MarketplaceClient {
    */
   saveFileCache(packages: MCPPackage[], categories: CategoryInfo[]): void {
     try {
-      this.ensureCacheDir()
+      this.ensureCacheDir();
 
-      const now = new Date().toISOString()
-      const expiresAt = new Date(Date.now() + this.cacheTTL).toISOString()
+      const now = new Date().toISOString();
+      const expiresAt = new Date(Date.now() + this.cacheTTL).toISOString();
 
       const cache: MarketplaceCache = {
         version: CACHE_VERSION,
@@ -676,12 +676,12 @@ export class MarketplaceClient {
         createdAt: now,
         expiresAt,
         lastUpdated: now,
-      }
+      };
 
-      writeFileAtomic(this.cacheFile, JSON.stringify(cache, null, 2), 'utf-8')
+      writeFileAtomic(this.cacheFile, JSON.stringify(cache, null, 2), 'utf-8');
     }
     catch (error) {
-      this.log('Failed to save file cache:', error)
+      this.log('Failed to save file cache:', error);
     }
   }
 
@@ -689,13 +689,13 @@ export class MarketplaceClient {
    * Check if file cache is expired
    */
   private isFileCacheExpired(): boolean {
-    const cache = this.loadFileCache()
+    const cache = this.loadFileCache();
     if (!cache) {
-      return true
+      return true;
     }
 
-    const expiresAt = new Date(cache.expiresAt).getTime()
-    return Date.now() >= expiresAt
+    const expiresAt = new Date(cache.expiresAt).getTime();
+    return Date.now() >= expiresAt;
   }
 }
 
@@ -842,7 +842,7 @@ export const MOCK_MCP_PACKAGES: MCPPackage[] = [
     publishedAt: '2024-11-20T00:00:00Z',
     updatedAt: '2025-01-05T00:00:00Z',
   },
-]
+];
 
 /**
  * Mock categories data
@@ -890,7 +890,7 @@ export const MOCK_CATEGORIES: CategoryInfo[] = [
     count: 56,
     icon: '🛠️',
   },
-]
+];
 
 // ============================================================================
 // Convenience Functions
@@ -900,26 +900,26 @@ export const MOCK_CATEGORIES: CategoryInfo[] = [
  * Create a marketplace client instance
  */
 export function createMarketplaceClient(options?: MarketplaceClientOptions): MarketplaceClient {
-  return new MarketplaceClient(options)
+  return new MarketplaceClient(options);
 }
 
 /**
  * Get the default marketplace client instance (singleton)
  */
-let defaultClientInstance: MarketplaceClient | null = null
+let defaultClientInstance: MarketplaceClient | null = null;
 
 export function getDefaultMarketplaceClient(): MarketplaceClient {
   if (!defaultClientInstance) {
-    defaultClientInstance = new MarketplaceClient()
+    defaultClientInstance = new MarketplaceClient();
   }
-  return defaultClientInstance
+  return defaultClientInstance;
 }
 
 /**
  * Reset the default client instance (for testing)
  */
 export function resetDefaultMarketplaceClient(): void {
-  defaultClientInstance = null
+  defaultClientInstance = null;
 }
 
 /**
@@ -930,5 +930,5 @@ export function createMockMarketplaceClient(options: MarketplaceClientOptions = 
     ...options,
     offlineMode: true,
     enableLogging: true,
-  })
+  });
 }

@@ -8,11 +8,11 @@
  * @module config/thinking-config
  */
 
-import type { ThinkingModeConfig, ThinkingModeSettings } from '../types/thinking'
-import { SETTINGS_FILE } from '../constants'
-import { normalizeClaudeFamilySettings } from '../utils/claude-settings-normalizer'
-import { readJsonConfig, writeJsonConfig } from '../utils/json-config'
-import { deepMerge } from '../utils/object-utils'
+import type { ThinkingModeConfig, ThinkingModeSettings } from '../types/thinking';
+import { SETTINGS_FILE } from '../constants';
+import { normalizeClaudeFamilySettings } from '../utils/claude-settings-normalizer';
+import { readJsonConfig, writeJsonConfig } from '../utils/json-config';
+import { deepMerge } from '../utils/object-utils';
 
 /**
  * JSON Schema for thinking mode configuration
@@ -57,7 +57,7 @@ export const THINKING_MODE_SCHEMA = {
       required: ['enabled', 'budgetTokens', 'inheritForSubAgents', 'subAgentReduction', 'alwaysUseThinking'],
     },
   },
-} as const
+} as const;
 
 /**
  * Default thinking mode settings
@@ -68,16 +68,16 @@ export const DEFAULT_THINKING_SETTINGS: ThinkingModeSettings = {
   inheritForSubAgents: true,
   subAgentReduction: 0.5,
   alwaysUseThinking: false,
-}
+};
 
 /**
  * Get thinking mode configuration from settings.json
  */
 export function getThinkingModeConfig(): ThinkingModeConfig | null {
-  const settings = readJsonConfig<any>(SETTINGS_FILE)
+  const settings = readJsonConfig<any>(SETTINGS_FILE);
 
   if (!settings?.thinking) {
-    return null
+    return null;
   }
 
   return {
@@ -88,41 +88,41 @@ export function getThinkingModeConfig(): ThinkingModeConfig | null {
       subAgentReduction: settings.thinking.subAgentReduction ?? DEFAULT_THINKING_SETTINGS.subAgentReduction,
       alwaysUseThinking: settings.thinking.alwaysUseThinking ?? DEFAULT_THINKING_SETTINGS.alwaysUseThinking,
     },
-  }
+  };
 }
 
 /**
  * Set thinking mode configuration in settings.json
  */
 export function setThinkingModeConfig(config: ThinkingModeConfig): void {
-  const settings = readJsonConfig<any>(SETTINGS_FILE) || {}
+  const settings = readJsonConfig<any>(SETTINGS_FILE) || {};
 
   // Merge with existing settings
-  const merged = deepMerge(settings, config)
+  const merged = deepMerge(settings, config);
 
-  normalizeClaudeFamilySettings(merged)
-  writeJsonConfig(SETTINGS_FILE, merged)
+  normalizeClaudeFamilySettings(merged);
+  writeJsonConfig(SETTINGS_FILE, merged);
 }
 
 /**
  * Update thinking mode settings
  */
 export function updateThinkingModeSettings(updates: Partial<ThinkingModeSettings>): void {
-  const settings = readJsonConfig<any>(SETTINGS_FILE) || {}
+  const settings = readJsonConfig<any>(SETTINGS_FILE) || {};
 
   // Ensure thinking object exists
   if (!settings.thinking) {
-    settings.thinking = { ...DEFAULT_THINKING_SETTINGS }
+    settings.thinking = { ...DEFAULT_THINKING_SETTINGS };
   }
 
   // Merge updates
   settings.thinking = {
     ...settings.thinking,
     ...updates,
-  }
+  };
 
-  normalizeClaudeFamilySettings(settings)
-  writeJsonConfig(SETTINGS_FILE, settings)
+  normalizeClaudeFamilySettings(settings);
+  writeJsonConfig(SETTINGS_FILE, settings);
 }
 
 /**
@@ -133,8 +133,8 @@ export function mergeThinkingModeConfig(
   templateConfig: ThinkingModeConfig,
   userSettings: any,
 ): ThinkingModeConfig {
-  const userThinking = userSettings?.thinking || {}
-  const templateThinking = templateConfig.thinking
+  const userThinking = userSettings?.thinking || {};
+  const templateThinking = templateConfig.thinking;
 
   const mergedThinking: ThinkingModeSettings = {
     enabled: userThinking.enabled ?? templateThinking.enabled,
@@ -142,11 +142,11 @@ export function mergeThinkingModeConfig(
     inheritForSubAgents: userThinking.inheritForSubAgents ?? templateThinking.inheritForSubAgents,
     subAgentReduction: userThinking.subAgentReduction ?? templateThinking.subAgentReduction,
     alwaysUseThinking: userThinking.alwaysUseThinking ?? templateThinking.alwaysUseThinking,
-  }
+  };
 
   return {
     thinking: mergedThinking,
-  }
+  };
 }
 
 /**
@@ -154,81 +154,81 @@ export function mergeThinkingModeConfig(
  */
 export function validateThinkingModeConfig(
   config: unknown,
-): { valid: boolean, errors: string[] } {
-  const errors: string[] = []
+): { valid: boolean; errors: string[] } {
+  const errors: string[] = [];
 
   if (typeof config !== 'object' || config === null) {
     return {
       valid: false,
       errors: ['Configuration must be an object'],
-    }
+    };
   }
 
-  const thinking = (config as any).thinking
+  const thinking = (config as any).thinking;
 
   if (typeof thinking !== 'object' || thinking === null) {
     return {
       valid: false,
       errors: ['thinking field must be an object'],
-    }
+    };
   }
 
   // Validate enabled
   if ('enabled' in thinking && typeof thinking.enabled !== 'boolean') {
-    errors.push('thinking.enabled must be a boolean')
+    errors.push('thinking.enabled must be a boolean');
   }
 
   // Validate budgetTokens
   if ('budgetTokens' in thinking) {
     if (typeof thinking.budgetTokens !== 'number') {
-      errors.push('thinking.budgetTokens must be a number')
+      errors.push('thinking.budgetTokens must be a number');
     }
     else if (thinking.budgetTokens < 1000) {
-      errors.push('thinking.budgetTokens must be at least 1000')
+      errors.push('thinking.budgetTokens must be at least 1000');
     }
     else if (thinking.budgetTokens > 200000) {
-      errors.push('thinking.budgetTokens cannot exceed 200000')
+      errors.push('thinking.budgetTokens cannot exceed 200000');
     }
   }
 
   // Validate inheritForSubAgents
   if ('inheritForSubAgents' in thinking && typeof thinking.inheritForSubAgents !== 'boolean') {
-    errors.push('thinking.inheritForSubAgents must be a boolean')
+    errors.push('thinking.inheritForSubAgents must be a boolean');
   }
 
   // Validate subAgentReduction
   if ('subAgentReduction' in thinking) {
     if (typeof thinking.subAgentReduction !== 'number') {
-      errors.push('thinking.subAgentReduction must be a number')
+      errors.push('thinking.subAgentReduction must be a number');
     }
     else if (thinking.subAgentReduction < 0.1 || thinking.subAgentReduction > 1.0) {
-      errors.push('thinking.subAgentReduction must be between 0.1 and 1.0')
+      errors.push('thinking.subAgentReduction must be between 0.1 and 1.0');
     }
   }
 
   // Validate alwaysUseThinking
   if ('alwaysUseThinking' in thinking && typeof thinking.alwaysUseThinking !== 'boolean') {
-    errors.push('thinking.alwaysUseThinking must be a boolean')
+    errors.push('thinking.alwaysUseThinking must be a boolean');
   }
 
   return {
     valid: errors.length === 0,
     errors,
-  }
+  };
 }
 
 /**
  * Migration configuration for legacy thinking mode settings
  */
 interface LegacyThinkingSettings {
-  thinkingModeEnabled?: boolean
-  thinking_enabled?: boolean
-  thinkingBudget?: number
-  thinking_budget?: number
+  thinkingModeEnabled?: boolean;
+  thinking_enabled?: boolean;
+  thinkingBudget?: number;
+  thinking_budget?: number;
   thinkingMode?: {
-    enabled?: boolean
-    budgetTokens?: number
-  }
+    enabled?: boolean;
+    budgetTokens?: number;
+  };
 }
 
 /**
@@ -251,7 +251,7 @@ export function migrateLegacyThinkingSettings(
     inheritForSubAgents: DEFAULT_THINKING_SETTINGS.inheritForSubAgents,
     subAgentReduction: DEFAULT_THINKING_SETTINGS.subAgentReduction,
     alwaysUseThinking: DEFAULT_THINKING_SETTINGS.alwaysUseThinking,
-  }
+  };
 }
 
 /**
@@ -264,7 +264,7 @@ export function hasLegacyThinkingSettings(settings: any): boolean {
     || settings?.thinkingBudget
     || settings?.thinking_budget
     || settings?.thinkingMode
-  )
+  );
 }
 
 /**
@@ -272,7 +272,7 @@ export function hasLegacyThinkingSettings(settings: any): boolean {
  */
 export function applyThinkingModeMigration(settings: any): void {
   if (!hasLegacyThinkingSettings(settings)) {
-    return
+    return;
   }
 
   // Extract legacy settings
@@ -282,48 +282,48 @@ export function applyThinkingModeMigration(settings: any): void {
     thinkingBudget: settings.thinkingBudget,
     thinking_budget: settings.thinking_budget,
     thinkingMode: settings.thinkingMode,
-  }
+  };
 
   // Migrate to new format
-  const newSettings = migrateLegacyThinkingSettings(legacy)
+  const newSettings = migrateLegacyThinkingSettings(legacy);
 
   // Remove legacy keys
-  delete settings.thinkingModeEnabled
-  delete settings.thinking_enabled
-  delete settings.thinkingBudget
-  delete settings.thinking_budget
-  delete settings.thinkingMode
+  delete settings.thinkingModeEnabled;
+  delete settings.thinking_enabled;
+  delete settings.thinkingBudget;
+  delete settings.thinking_budget;
+  delete settings.thinkingMode;
 
   // Set new format
-  settings.thinking = newSettings
+  settings.thinking = newSettings;
 
   // Save updated settings
-  normalizeClaudeFamilySettings(settings)
-  writeJsonConfig(SETTINGS_FILE, settings)
+  normalizeClaudeFamilySettings(settings);
+  writeJsonConfig(SETTINGS_FILE, settings);
 }
 
 /**
  * Initialize thinking mode configuration with defaults
  */
 export function initializeThinkingModeConfig(): void {
-  const settings = readJsonConfig<any>(SETTINGS_FILE) || {}
+  const settings = readJsonConfig<any>(SETTINGS_FILE) || {};
 
   // Skip if already configured
   if (settings.thinking) {
-    return
+    return;
   }
 
   // Check for legacy settings and migrate
   if (hasLegacyThinkingSettings(settings)) {
-    applyThinkingModeMigration(settings)
-    return
+    applyThinkingModeMigration(settings);
+    return;
   }
 
   // Initialize with defaults
-  settings.thinking = { ...DEFAULT_THINKING_SETTINGS }
+  settings.thinking = { ...DEFAULT_THINKING_SETTINGS };
 
-  normalizeClaudeFamilySettings(settings)
-  writeJsonConfig(SETTINGS_FILE, settings)
+  normalizeClaudeFamilySettings(settings);
+  writeJsonConfig(SETTINGS_FILE, settings);
 }
 
 /**
@@ -331,27 +331,27 @@ export function initializeThinkingModeConfig(): void {
  * Generates the appropriate flags and environment variables
  */
 export function exportThinkingModeForCLI(settings?: ThinkingModeSettings): {
-  flags: string[]
-  env: Record<string, string>
+  flags: string[];
+  env: Record<string, string>;
 } {
-  const config = settings || getThinkingModeConfig()?.thinking || DEFAULT_THINKING_SETTINGS
+  const config = settings || getThinkingModeConfig()?.thinking || DEFAULT_THINKING_SETTINGS;
 
-  const flags: string[] = []
-  const env: Record<string, string> = {}
+  const flags: string[] = [];
+  const env: Record<string, string> = {};
 
   if (config.enabled) {
-    flags.push('--thinking=true')
-    flags.push(`--thinking-budget-tokens=${config.budgetTokens}`)
+    flags.push('--thinking=true');
+    flags.push(`--thinking-budget-tokens=${config.budgetTokens}`);
   }
 
   if (config.alwaysUseThinking) {
-    flags.push('--thinking-always=true')
+    flags.push('--thinking-always=true');
   }
 
   // Sub-agent inheritance is handled at application level
   // via the config object, not CLI flags
 
-  return { flags, env }
+  return { flags, env };
 }
 
 /**
@@ -363,8 +363,8 @@ export function calculateEffectiveBudget(
   isSubAgent: boolean = false,
 ): number {
   if (isSubAgent && settings.inheritForSubAgents) {
-    return Math.floor(settings.budgetTokens * settings.subAgentReduction)
+    return Math.floor(settings.budgetTokens * settings.subAgentReduction);
   }
 
-  return settings.budgetTokens
+  return settings.budgetTokens;
 }

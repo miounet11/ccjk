@@ -7,11 +7,11 @@
  * @module context/health-alerts
  */
 
-import type { HealthStatus } from './health-check'
-import type { ContextPersistence } from './persistence'
-import { existsSync } from 'node:fs'
-import { dirname, join } from 'pathe'
-import { DatabaseHealthMonitor } from './health-check'
+import type { HealthStatus } from './health-check';
+import type { ContextPersistence } from './persistence';
+import { existsSync } from 'node:fs';
+import { dirname, join } from 'pathe';
+import { DatabaseHealthMonitor } from './health-check';
 
 /**
  * Alert severity levels
@@ -26,21 +26,21 @@ export enum AlertSeverity {
  * Health alert
  */
 export interface HealthAlert {
-  severity: AlertSeverity
-  category: 'corruption' | 'wal' | 'disk' | 'backup' | 'performance'
-  message: string
-  action?: string
-  timestamp: number
+  severity: AlertSeverity;
+  category: 'corruption' | 'wal' | 'disk' | 'backup' | 'performance';
+  message: string;
+  action?: string;
+  timestamp: number;
 }
 
 /**
  * Alert history entry
  */
 export interface AlertHistoryEntry {
-  timestamp: number
-  alerts: HealthAlert[]
-  healthStatus: HealthStatus
-  resolved: boolean
+  timestamp: number;
+  alerts: HealthAlert[];
+  healthStatus: HealthStatus;
+  resolved: boolean;
 }
 
 /**
@@ -48,15 +48,15 @@ export interface AlertHistoryEntry {
  */
 export interface HealthAlertsConfig {
   /** Skip alerts on startup */
-  silent?: boolean
+  silent?: boolean;
   /** WAL size threshold in MB */
-  walThresholdMB?: number
+  walThresholdMB?: number;
   /** Disk utilization threshold percentage */
-  diskUtilizationThreshold?: number
+  diskUtilizationThreshold?: number;
   /** Backup age threshold in days */
-  backupAgeThresholdDays?: number
+  backupAgeThresholdDays?: number;
   /** Enable alert history logging */
-  enableHistory?: boolean
+  enableHistory?: boolean;
 }
 
 /**
@@ -68,36 +68,36 @@ const DEFAULT_CONFIG: Required<HealthAlertsConfig> = {
   diskUtilizationThreshold: 70,
   backupAgeThresholdDays: 7,
   enableHistory: true,
-}
+};
 
 /**
  * Health Alerts Manager
  */
 export class HealthAlertsManager {
-  private monitor: DatabaseHealthMonitor
-  private config: Required<HealthAlertsConfig>
-  private historyPath: string
-  private dbPath: string
+  private monitor: DatabaseHealthMonitor;
+  private config: Required<HealthAlertsConfig>;
+  private historyPath: string;
+  private dbPath: string;
 
   constructor(
     dbPath: string,
     config?: HealthAlertsConfig,
   ) {
-    this.dbPath = dbPath
-    this.monitor = new DatabaseHealthMonitor(dbPath)
-    this.config = { ...DEFAULT_CONFIG, ...config }
-    this.historyPath = join(dirname(dbPath), 'alert-history.json')
+    this.dbPath = dbPath;
+    this.monitor = new DatabaseHealthMonitor(dbPath);
+    this.config = { ...DEFAULT_CONFIG, ...config };
+    this.historyPath = join(dirname(dbPath), 'alert-history.json');
   }
 
   /**
    * Run health checks and generate alerts
    */
   async checkHealth(): Promise<HealthAlert[]> {
-    const alerts: HealthAlert[] = []
+    const alerts: HealthAlert[] = [];
 
     try {
       // Run comprehensive health check
-      const health = await this.monitor.runHealthCheck()
+      const health = await this.monitor.runHealthCheck();
 
       // Check for database corruption
       if (!health.checks.integrity.passed) {
@@ -107,7 +107,7 @@ export class HealthAlertsManager {
           message: 'Database corruption detected',
           action: 'Run: ccjk context recover',
           timestamp: Date.now(),
-        })
+        });
 
         // Add specific corruption details
         for (const error of health.checks.integrity.errors) {
@@ -116,12 +116,12 @@ export class HealthAlertsManager {
             category: 'corruption',
             message: error,
             timestamp: Date.now(),
-          })
+          });
         }
       }
 
       // Check WAL size
-      const walSizeMB = health.checks.wal.walSize / (1024 * 1024)
+      const walSizeMB = health.checks.wal.walSize / (1024 * 1024);
       if (walSizeMB > this.config.walThresholdMB) {
         alerts.push({
           severity: AlertSeverity.WARNING,
@@ -129,7 +129,7 @@ export class HealthAlertsManager {
           message: `WAL file is ${walSizeMB.toFixed(1)}MB (threshold: ${this.config.walThresholdMB}MB)`,
           action: 'Run: ccjk context checkpoint',
           timestamp: Date.now(),
-        })
+        });
       }
       else if (walSizeMB > this.config.walThresholdMB / 2) {
         alerts.push({
@@ -138,7 +138,7 @@ export class HealthAlertsManager {
           message: `WAL file is ${walSizeMB.toFixed(1)}MB`,
           action: 'Consider checkpointing soon',
           timestamp: Date.now(),
-        })
+        });
       }
 
       // Check disk utilization
@@ -149,13 +149,13 @@ export class HealthAlertsManager {
           message: `Disk utilization is ${health.checks.size.utilizationPercent.toFixed(1)}% (threshold: ${this.config.diskUtilizationThreshold}%)`,
           action: 'Run: ccjk context vacuum',
           timestamp: Date.now(),
-        })
+        });
       }
 
       // Check backup status
-      const backupAlert = await this.checkBackupStatus()
+      const backupAlert = await this.checkBackupStatus();
       if (backupAlert) {
-        alerts.push(backupAlert)
+        alerts.push(backupAlert);
       }
 
       // Check performance
@@ -166,15 +166,15 @@ export class HealthAlertsManager {
           message: `Query performance is slow (${health.checks.performance.queryTime}ms)`,
           action: 'Check database indexes',
           timestamp: Date.now(),
-        })
+        });
       }
 
       // Log to history if enabled
       if (this.config.enableHistory && alerts.length > 0) {
-        await this.logToHistory(alerts, health.status)
+        await this.logToHistory(alerts, health.status);
       }
 
-      return alerts
+      return alerts;
     }
     catch (error) {
       // Return critical alert on check failure
@@ -183,7 +183,7 @@ export class HealthAlertsManager {
         category: 'corruption',
         message: `Health check failed: ${error instanceof Error ? error.message : String(error)}`,
         timestamp: Date.now(),
-      }]
+      }];
     }
   }
 
@@ -192,7 +192,7 @@ export class HealthAlertsManager {
    */
   private async checkBackupStatus(): Promise<HealthAlert | null> {
     try {
-      const backups = this.monitor.listBackups()
+      const backups = this.monitor.listBackups();
 
       if (backups.length === 0) {
         return {
@@ -201,13 +201,13 @@ export class HealthAlertsManager {
           message: 'No backups found',
           action: 'Run: ccjk context backup',
           timestamp: Date.now(),
-        }
+        };
       }
 
       // Check age of latest backup
-      const latestBackup = backups[0]
-      const ageMs = Date.now() - latestBackup.metadata.timestamp
-      const ageDays = ageMs / (1000 * 60 * 60 * 24)
+      const latestBackup = backups[0];
+      const ageMs = Date.now() - latestBackup.metadata.timestamp;
+      const ageDays = ageMs / (1000 * 60 * 60 * 24);
 
       if (ageDays > this.config.backupAgeThresholdDays) {
         return {
@@ -216,7 +216,7 @@ export class HealthAlertsManager {
           message: `Latest backup is ${Math.floor(ageDays)} days old (threshold: ${this.config.backupAgeThresholdDays} days)`,
           action: 'Run: ccjk context backup',
           timestamp: Date.now(),
-        }
+        };
       }
 
       // Info alert if backup is getting old
@@ -227,13 +227,13 @@ export class HealthAlertsManager {
           message: `Latest backup is ${Math.floor(ageDays)} days old`,
           action: 'Consider creating a new backup',
           timestamp: Date.now(),
-        }
+        };
       }
 
-      return null
+      return null;
     }
     catch {
-      return null
+      return null;
     }
   }
 
@@ -242,52 +242,52 @@ export class HealthAlertsManager {
    */
   displayAlerts(alerts: HealthAlert[]): void {
     if (alerts.length === 0) {
-      return
+      return;
     }
 
-    console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-    console.log('📊 Database Health Alerts')
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n')
+    console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('📊 Database Health Alerts');
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
     // Group alerts by severity
-    const critical = alerts.filter(a => a.severity === AlertSeverity.CRITICAL)
-    const warnings = alerts.filter(a => a.severity === AlertSeverity.WARNING)
-    const info = alerts.filter(a => a.severity === AlertSeverity.INFO)
+    const critical = alerts.filter(a => a.severity === AlertSeverity.CRITICAL);
+    const warnings = alerts.filter(a => a.severity === AlertSeverity.WARNING);
+    const info = alerts.filter(a => a.severity === AlertSeverity.INFO);
 
     // Display critical alerts
     if (critical.length > 0) {
       for (const alert of critical) {
-        console.log(`🔴 CRITICAL: ${alert.message}`)
+        console.log(`🔴 CRITICAL: ${alert.message}`);
         if (alert.action) {
-          console.log(`   → ${alert.action}`)
+          console.log(`   → ${alert.action}`);
         }
       }
-      console.log()
+      console.log();
     }
 
     // Display warnings
     if (warnings.length > 0) {
       for (const alert of warnings) {
-        console.log(`🟡 WARNING: ${alert.message}`)
+        console.log(`🟡 WARNING: ${alert.message}`);
         if (alert.action) {
-          console.log(`   → ${alert.action}`)
+          console.log(`   → ${alert.action}`);
         }
       }
-      console.log()
+      console.log();
     }
 
     // Display info
     if (info.length > 0) {
       for (const alert of info) {
-        console.log(`💡 INFO: ${alert.message}`)
+        console.log(`💡 INFO: ${alert.message}`);
         if (alert.action) {
-          console.log(`   → ${alert.action}`)
+          console.log(`   → ${alert.action}`);
         }
       }
-      console.log()
+      console.log();
     }
 
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n')
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
   }
 
   /**
@@ -295,13 +295,13 @@ export class HealthAlertsManager {
    */
   private async logToHistory(alerts: HealthAlert[], healthStatus: HealthStatus): Promise<void> {
     try {
-      const fs = await import('node:fs/promises')
+      const fs = await import('node:fs/promises');
 
       // Load existing history
-      let history: AlertHistoryEntry[] = []
+      let history: AlertHistoryEntry[] = [];
       if (existsSync(this.historyPath)) {
-        const content = await fs.readFile(this.historyPath, 'utf-8')
-        history = JSON.parse(content)
+        const content = await fs.readFile(this.historyPath, 'utf-8');
+        history = JSON.parse(content);
       }
 
       // Add new entry
@@ -310,13 +310,13 @@ export class HealthAlertsManager {
         alerts,
         healthStatus,
         resolved: false,
-      })
+      });
 
       // Keep last 100 entries
-      history = history.slice(0, 100)
+      history = history.slice(0, 100);
 
       // Save history
-      await fs.writeFile(this.historyPath, JSON.stringify(history, null, 2))
+      await fs.writeFile(this.historyPath, JSON.stringify(history, null, 2));
     }
     catch {
       // Ignore history logging errors
@@ -329,17 +329,17 @@ export class HealthAlertsManager {
   async getHistory(limit = 10): Promise<AlertHistoryEntry[]> {
     try {
       if (!existsSync(this.historyPath)) {
-        return []
+        return [];
       }
 
-      const fs = await import('node:fs/promises')
-      const content = await fs.readFile(this.historyPath, 'utf-8')
-      const history: AlertHistoryEntry[] = JSON.parse(content)
+      const fs = await import('node:fs/promises');
+      const content = await fs.readFile(this.historyPath, 'utf-8');
+      const history: AlertHistoryEntry[] = JSON.parse(content);
 
-      return history.slice(0, limit)
+      return history.slice(0, limit);
     }
     catch {
-      return []
+      return [];
     }
   }
 
@@ -349,18 +349,18 @@ export class HealthAlertsManager {
   async markResolved(timestamp: number): Promise<void> {
     try {
       if (!existsSync(this.historyPath)) {
-        return
+        return;
       }
 
-      const fs = await import('node:fs/promises')
-      const content = await fs.readFile(this.historyPath, 'utf-8')
-      const history: AlertHistoryEntry[] = JSON.parse(content)
+      const fs = await import('node:fs/promises');
+      const content = await fs.readFile(this.historyPath, 'utf-8');
+      const history: AlertHistoryEntry[] = JSON.parse(content);
 
       // Find and mark entry as resolved
-      const entry = history.find(e => e.timestamp === timestamp)
+      const entry = history.find(e => e.timestamp === timestamp);
       if (entry) {
-        entry.resolved = true
-        await fs.writeFile(this.historyPath, JSON.stringify(history, null, 2))
+        entry.resolved = true;
+        await fs.writeFile(this.historyPath, JSON.stringify(history, null, 2));
       }
     }
     catch {
@@ -374,8 +374,8 @@ export class HealthAlertsManager {
   async clearHistory(): Promise<void> {
     try {
       if (existsSync(this.historyPath)) {
-        const fs = await import('node:fs/promises')
-        await fs.unlink(this.historyPath)
+        const fs = await import('node:fs/promises');
+        await fs.unlink(this.historyPath);
       }
     }
     catch {
@@ -387,14 +387,14 @@ export class HealthAlertsManager {
    * Get summary statistics
    */
   async getSummary(): Promise<{
-    totalAlerts: number
-    criticalCount: number
-    warningCount: number
-    infoCount: number
-    unresolvedCount: number
-    lastCheckTime?: number
+    totalAlerts: number;
+    criticalCount: number;
+    warningCount: number;
+    infoCount: number;
+    unresolvedCount: number;
+    lastCheckTime?: number;
   }> {
-    const history = await this.getHistory(100)
+    const history = await this.getHistory(100);
 
     if (history.length === 0) {
       return {
@@ -403,11 +403,11 @@ export class HealthAlertsManager {
         warningCount: 0,
         infoCount: 0,
         unresolvedCount: 0,
-      }
+      };
     }
 
-    const unresolved = history.filter(e => !e.resolved)
-    const allAlerts = unresolved.flatMap(e => e.alerts)
+    const unresolved = history.filter(e => !e.resolved);
+    const allAlerts = unresolved.flatMap(e => e.alerts);
 
     return {
       totalAlerts: allAlerts.length,
@@ -416,14 +416,14 @@ export class HealthAlertsManager {
       infoCount: allAlerts.filter(a => a.severity === AlertSeverity.INFO).length,
       unresolvedCount: unresolved.length,
       lastCheckTime: history[0]?.timestamp,
-    }
+    };
   }
 
   /**
    * Close monitor
    */
   close(): void {
-    this.monitor.close()
+    this.monitor.close();
   }
 }
 
@@ -436,28 +436,28 @@ export async function runStartupHealthCheck(
 ): Promise<HealthAlert[]> {
   // Skip if database doesn't exist yet
   if (!existsSync(dbPath)) {
-    return []
+    return [];
   }
 
   // Skip if silent mode
   if (config?.silent) {
-    return []
+    return [];
   }
 
-  const manager = new HealthAlertsManager(dbPath, config)
+  const manager = new HealthAlertsManager(dbPath, config);
 
   try {
-    const alerts = await manager.checkHealth()
+    const alerts = await manager.checkHealth();
 
     // Display alerts if any
     if (alerts.length > 0) {
-      manager.displayAlerts(alerts)
+      manager.displayAlerts(alerts);
     }
 
-    return alerts
+    return alerts;
   }
   finally {
-    manager.close()
+    manager.close();
   }
 }
 
@@ -469,6 +469,6 @@ export function createHealthAlertsManager(
   config?: HealthAlertsConfig,
 ): HealthAlertsManager {
   // Access private dbPath through reflection
-  const dbPath = (persistence as any).dbPath
-  return new HealthAlertsManager(dbPath, config)
+  const dbPath = (persistence as any).dbPath;
+  return new HealthAlertsManager(dbPath, config);
 }

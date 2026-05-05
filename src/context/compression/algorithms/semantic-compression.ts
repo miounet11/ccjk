@@ -3,20 +3,20 @@
  * Uses LLM-based summarization to compress context while preserving meaning
  */
 
-import type { AnthropicApiClient } from '../../../utils/context/api-client'
-import { CompressionAlgorithm } from '../../types'
+import type { AnthropicApiClient } from '../../../utils/context/api-client';
+import { CompressionAlgorithm } from '../../types';
 
 export interface SemanticCompressionResult {
-  compressed: string
-  removedInfo: string[]
-  originalSize: number
-  compressedSize: number
+  compressed: string;
+  removedInfo: string[];
+  originalSize: number;
+  compressedSize: number;
 }
 
 export interface SemanticDecompressionResult {
-  decompressed: string
-  success: boolean
-  error?: string
+  decompressed: string;
+  success: boolean;
+  error?: string;
 }
 
 /**
@@ -25,13 +25,13 @@ export interface SemanticDecompressionResult {
  * Falls back to rule-based compression when API is unavailable
  */
 export class SemanticCompression {
-  private readonly aggressiveness: number
-  private apiClient?: AnthropicApiClient
+  private readonly aggressiveness: number;
+  private apiClient?: AnthropicApiClient;
 
   constructor(aggressiveness: number = 0.5, apiClient?: AnthropicApiClient) {
     // Aggressiveness: 0 (conservative) to 1 (aggressive)
-    this.aggressiveness = Math.max(0, Math.min(1, aggressiveness))
-    this.apiClient = apiClient
+    this.aggressiveness = Math.max(0, Math.min(1, aggressiveness));
+    this.apiClient = apiClient;
   }
 
   /**
@@ -39,7 +39,7 @@ export class SemanticCompression {
    * For LLM-based compression, use compressAsync()
    */
   compress(text: string): SemanticCompressionResult {
-    return this.compressRuleBased(text)
+    return this.compressRuleBased(text);
   }
 
   /**
@@ -47,22 +47,22 @@ export class SemanticCompression {
    * Falls back to rule-based compression if API is unavailable
    */
   async compressAsync(text: string): Promise<SemanticCompressionResult> {
-    const originalSize = text.length
+    const originalSize = text.length;
 
     // Try LLM-based compression first if API is available
     if (this.apiClient && originalSize > 500) {
       try {
-        const llmResult = await this.compressWithLLM(text)
-        return llmResult
+        const llmResult = await this.compressWithLLM(text);
+        return llmResult;
       }
       catch (error) {
         // Fall back to rule-based compression on error
-        console.warn('LLM compression failed, falling back to rule-based:', error)
+        console.warn('LLM compression failed, falling back to rule-based:', error);
       }
     }
 
     // Rule-based compression fallback
-    return this.compressRuleBased(text)
+    return this.compressRuleBased(text);
   }
 
   /**
@@ -70,28 +70,28 @@ export class SemanticCompression {
    * Uses intelligent summarization to preserve semantic meaning while reducing tokens
    */
   private async compressWithLLM(text: string): Promise<SemanticCompressionResult> {
-    const originalSize = text.length
-    const targetRatio = this.getTargetRatio()
+    const originalSize = text.length;
+    const targetRatio = this.getTargetRatio();
 
-    const prompt = this.buildCompressionPrompt(text, targetRatio)
+    const prompt = this.buildCompressionPrompt(text, targetRatio);
 
     // Calculate appropriate max tokens for response
     // Estimate: 1 token ≈ 4 chars, target ratio determines output size
-    const estimatedInputTokens = Math.ceil(originalSize / 4)
-    const targetOutputTokens = Math.ceil(estimatedInputTokens * targetRatio)
-    const maxTokens = Math.min(Math.max(targetOutputTokens, 256), 4096)
+    const estimatedInputTokens = Math.ceil(originalSize / 4);
+    const targetOutputTokens = Math.ceil(estimatedInputTokens * targetRatio);
+    const maxTokens = Math.min(Math.max(targetOutputTokens, 256), 4096);
 
     const compressed = await this.apiClient!.sendMessage(prompt, {
       maxTokens,
       temperature: 0.3, // Low temperature for consistent, focused compression
-    })
+    });
 
     return {
       compressed: compressed.trim(),
       removedInfo: ['LLM-based compression applied'],
       originalSize,
       compressedSize: compressed.length,
-    }
+    };
   }
 
   /**
@@ -99,7 +99,7 @@ export class SemanticCompression {
    * Prompts are designed to preserve semantic meaning while reducing verbosity
    */
   private buildCompressionPrompt(text: string, targetRatio: number): string {
-    const targetPercent = Math.round(targetRatio * 100)
+    const targetPercent = Math.round(targetRatio * 100);
 
     if (this.aggressiveness < 0.3) {
       // Conservative: preserve details
@@ -122,7 +122,7 @@ COMPRESS:
 Text to compress:
 ${text}
 
-Provide the compressed version maintaining maximum fidelity:`
+Provide the compressed version maintaining maximum fidelity:`;
     }
     else if (this.aggressiveness < 0.7) {
       // Balanced: preserve core meaning
@@ -151,7 +151,7 @@ OMIT:
 Text to compress:
 ${text}
 
-Provide the compressed version:`
+Provide the compressed version:`;
     }
     else {
       // Aggressive: extract essence only
@@ -172,7 +172,7 @@ COMPRESS AGGRESSIVELY:
 Text to compress:
 ${text}
 
-Provide only the essential information in bullet points:`
+Provide only the essential information in bullet points:`;
     }
   }
 
@@ -184,28 +184,28 @@ Provide only the essential information in bullet points:`
     // Conservative (0.0-0.3): 60-70% of original (30-40% reduction)
     // Balanced (0.3-0.7): 40-60% of original (40-60% reduction)
     // Aggressive (0.7-1.0): 30-40% of original (60-70% reduction)
-    return 0.7 - (this.aggressiveness * 0.4)
+    return 0.7 - (this.aggressiveness * 0.4);
   }
 
   /**
    * Rule-based compression fallback
    */
   private compressRuleBased(text: string): SemanticCompressionResult {
-    const originalSize = text.length
-    let compressed = text
-    const removedInfo: string[] = []
+    const originalSize = text.length;
+    let compressed = text;
+    const removedInfo: string[] = [];
 
     // Apply compression techniques based on aggressiveness
-    compressed = this.removeRedundantWhitespace(compressed)
-    compressed = this.compressCommonPhrases(compressed, removedInfo)
-    compressed = this.removeFillerWords(compressed, removedInfo)
+    compressed = this.removeRedundantWhitespace(compressed);
+    compressed = this.compressCommonPhrases(compressed, removedInfo);
+    compressed = this.removeFillerWords(compressed, removedInfo);
 
     if (this.aggressiveness > 0.3) {
-      compressed = this.abbreviateCommonTerms(compressed, removedInfo)
+      compressed = this.abbreviateCommonTerms(compressed, removedInfo);
     }
 
     if (this.aggressiveness > 0.6) {
-      compressed = this.removeRedundantSentences(compressed, removedInfo)
+      compressed = this.removeRedundantSentences(compressed, removedInfo);
     }
 
     return {
@@ -213,7 +213,7 @@ Provide only the essential information in bullet points:`
       removedInfo,
       originalSize,
       compressedSize: compressed.length,
-    }
+    };
   }
 
   /**
@@ -229,29 +229,29 @@ Provide only the essential information in bullet points:`
         return {
           decompressed: compressed,
           success: true,
-        }
+        };
       }
 
       // Semantic compression is mostly lossy, but we can restore some patterns
-      let decompressed = compressed
+      let decompressed = compressed;
 
       // Restore abbreviated terms
-      decompressed = this.restoreAbbreviations(decompressed)
+      decompressed = this.restoreAbbreviations(decompressed);
 
       // Restore common phrases
-      decompressed = this.restoreCommonPhrases(decompressed)
+      decompressed = this.restoreCommonPhrases(decompressed);
 
       return {
         decompressed,
         success: true,
-      }
+      };
     }
     catch (error) {
       return {
         decompressed: '',
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
-      }
+      };
     }
   }
 
@@ -262,7 +262,7 @@ Provide only the essential information in bullet points:`
     return text
       .replace(/\s+/g, ' ') // Multiple spaces to single space
       .replace(/\n\s*\n\s*\n/g, '\n\n') // Multiple newlines to double newline
-      .trim()
+      .trim();
   }
 
   /**
@@ -285,19 +285,19 @@ Provide only the essential information in bullet points:`
       'on a regular basis': 'regularly',
       'in spite of the fact that': 'although',
       'until such time as': 'until',
-    }
+    };
 
-    let compressed = text
+    let compressed = text;
 
     for (const [phrase, replacement] of Object.entries(phraseMap)) {
-      const regex = new RegExp(phrase, 'gi')
+      const regex = new RegExp(phrase, 'gi');
       if (regex.test(compressed)) {
-        removedInfo.push(`phrase:${phrase}->${replacement}`)
-        compressed = compressed.replace(regex, replacement)
+        removedInfo.push(`phrase:${phrase}->${replacement}`);
+        compressed = compressed.replace(regex, replacement);
       }
     }
 
-    return compressed
+    return compressed;
   }
 
   /**
@@ -318,22 +318,22 @@ Provide only the essential information in bullet points:`
       'simply',
       'merely',
       'only',
-    ]
+    ];
 
-    let compressed = text
+    let compressed = text;
 
     // Only remove if aggressiveness is high enough
     if (this.aggressiveness > 0.4) {
       for (const word of fillerWords) {
-        const regex = new RegExp(`\\b${word}\\b`, 'gi')
+        const regex = new RegExp(`\\b${word}\\b`, 'gi');
         if (regex.test(compressed)) {
-          removedInfo.push(`filler:${word}`)
-          compressed = compressed.replace(regex, '')
+          removedInfo.push(`filler:${word}`);
+          compressed = compressed.replace(regex, '');
         }
       }
     }
 
-    return compressed
+    return compressed;
   }
 
   /**
@@ -368,49 +368,49 @@ Provide only the essential information in bullet points:`
       error: 'err',
       response: 'resp',
       request: 'req',
-    }
+    };
 
-    let compressed = text
+    let compressed = text;
 
     for (const [term, abbr] of Object.entries(abbreviations)) {
-      const regex = new RegExp(`\\b${term}\\b`, 'gi')
+      const regex = new RegExp(`\\b${term}\\b`, 'gi');
       if (regex.test(compressed)) {
-        removedInfo.push(`abbr:${term}->${abbr}`)
-        compressed = compressed.replace(regex, abbr)
+        removedInfo.push(`abbr:${term}->${abbr}`);
+        compressed = compressed.replace(regex, abbr);
       }
     }
 
-    return compressed
+    return compressed;
   }
 
   /**
    * Remove redundant sentences (aggressive)
    */
   private removeRedundantSentences(text: string, removedInfo: string[]): string {
-    const sentences = text.split(/[.!?]+/).filter(s => s.trim())
-    const uniqueSentences = new Set<string>()
-    const kept: string[] = []
+    const sentences = text.split(/[.!?]+/).filter(s => s.trim());
+    const uniqueSentences = new Set<string>();
+    const kept: string[] = [];
 
     for (const sentence of sentences) {
-      const normalized = sentence.toLowerCase().trim()
+      const normalized = sentence.toLowerCase().trim();
 
       // Check for semantic similarity (simple approach)
-      let isDuplicate = false
+      let isDuplicate = false;
       for (const existing of uniqueSentences) {
         if (this.areSimilar(normalized, existing)) {
-          isDuplicate = true
-          removedInfo.push(`duplicate:${sentence.trim()}`)
-          break
+          isDuplicate = true;
+          removedInfo.push(`duplicate:${sentence.trim()}`);
+          break;
         }
       }
 
       if (!isDuplicate) {
-        uniqueSentences.add(normalized)
-        kept.push(sentence.trim())
+        uniqueSentences.add(normalized);
+        kept.push(sentence.trim());
       }
     }
 
-    return kept.join('. ') + (kept.length > 0 ? '.' : '')
+    return kept.join('. ') + (kept.length > 0 ? '.' : '');
   }
 
   /**
@@ -418,18 +418,18 @@ Provide only the essential information in bullet points:`
    */
   private areSimilar(s1: string, s2: string): boolean {
     // Simple similarity check based on word overlap
-    const words1 = new Set(s1.split(/\s+/))
-    const words2 = new Set(s2.split(/\s+/))
+    const words1 = new Set(s1.split(/\s+/));
+    const words2 = new Set(s2.split(/\s+/));
 
-    const words1Array = Array.from(words1)
-    const words2Array = Array.from(words2)
-    const intersection = new Set(words1Array.filter(w => words2.has(w)))
-    const union = new Set(words1Array.concat(words2Array))
+    const words1Array = Array.from(words1);
+    const words2Array = Array.from(words2);
+    const intersection = new Set(words1Array.filter(w => words2.has(w)));
+    const union = new Set(words1Array.concat(words2Array));
 
-    const similarity = intersection.size / union.size
+    const similarity = intersection.size / union.size;
 
     // Consider similar if > 70% word overlap
-    return similarity > 0.7
+    return similarity > 0.7;
   }
 
   /**
@@ -464,16 +464,16 @@ Provide only the essential information in bullet points:`
       err: 'error',
       resp: 'response',
       req: 'request',
-    }
+    };
 
-    let restored = text
+    let restored = text;
 
     for (const [abbr, term] of Object.entries(expansions)) {
-      const regex = new RegExp(`\\b${abbr}\\b`, 'g')
-      restored = restored.replace(regex, term)
+      const regex = new RegExp(`\\b${abbr}\\b`, 'g');
+      restored = restored.replace(regex, term);
     }
 
-    return restored
+    return restored;
   }
 
   /**
@@ -484,13 +484,13 @@ Provide only the essential information in bullet points:`
     // Only restore critical ones
     return text
       .replace(/\bto\b/g, 'in order to')
-      .replace(/\bbecause\b/g, 'due to the fact that')
+      .replace(/\bbecause\b/g, 'due to the fact that');
   }
 
   /**
    * Get algorithm identifier
    */
   getAlgorithm(): CompressionAlgorithm {
-    return CompressionAlgorithm.SEMANTIC
+    return CompressionAlgorithm.SEMANTIC;
   }
 }

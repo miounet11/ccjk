@@ -4,8 +4,9 @@
  * Tests: Auth → Sessions/Machines API → Socket.IO → A2A Evolution → CLI
  */
 
-import { createRequire } from 'module';
-import { join } from 'path';
+import { createRequire } from 'node:module';
+import { join } from 'node:path';
+
 const require = createRequire(import.meta.url);
 const ROOT = process.cwd();
 const { io } = require(join(ROOT, 'packages/ccjk-daemon/node_modules/socket.io-client'));
@@ -18,13 +19,14 @@ let userId = null;
 let machineId = null;
 let sessionId = null;
 
-const pass = (msg) => console.log(`  ✅ ${msg}`);
-const fail = (msg) => { console.log(`  ❌ ${msg}`); process.exitCode = 1; };
-const section = (t) => console.log(`\n${'─'.repeat(50)}\n🧪 ${t}`);
+const pass = msg => console.log(`  ✅ ${msg}`);
+function fail(msg) { console.log(`  ❌ ${msg}`); process.exitCode = 1; }
+const section = t => console.log(`\n${'─'.repeat(50)}\n🧪 ${t}`);
 
 async function api(path, opts = {}) {
   const headers = { 'Content-Type': 'application/json' };
-  if (token) headers['Authorization'] = `Bearer ${token}`;
+  if (token)
+    headers.Authorization = `Bearer ${token}`;
   const res = await fetch(`${BASE}${path}`, { ...opts, headers: { ...headers, ...opts.headers } });
   const body = await res.json().catch(() => ({}));
   return { status: res.status, body };
@@ -36,7 +38,8 @@ section('1. Health Check');
   const { status, body } = await api('/health');
   if (status === 200 && body.status === 'ok') {
     pass(`GET /health → 200  version=${body.version}  ts=${new Date(body.timestamp).toISOString()}`);
-  } else {
+  }
+  else {
     fail(`GET /health → ${status}`);
   }
 }
@@ -52,9 +55,11 @@ section('2. Auth — Register');
     token = body.token;
     userId = body.user?.id;
     pass(`POST /auth/register → ${status}  userId=${userId}`);
-  } else if (status === 409) {
+  }
+  else if (status === 409) {
     pass(`POST /auth/register → 409 (email already exists, proceeding to login)`);
-  } else {
+  }
+  else {
     fail(`POST /auth/register → ${status}  body=${JSON.stringify(body)}`);
   }
 }
@@ -70,7 +75,8 @@ section('3. Auth — Login');
     token = body.token;
     userId = body.user?.id;
     pass(`POST /auth/login → 200  userId=${userId}  token=${token.slice(0, 20)}...`);
-  } else {
+  }
+  else {
     fail(`POST /auth/login → ${status}  body=${JSON.stringify(body)}`);
   }
 }
@@ -87,7 +93,8 @@ section('4. Sessions API');
   const { status, body } = await api('/v1/sessions');
   if (status === 200) {
     pass(`GET /v1/sessions → 200  count=${body.sessions?.length ?? 0}`);
-  } else {
+  }
+  else {
     fail(`GET /v1/sessions → ${status}  body=${JSON.stringify(body)}`);
   }
 
@@ -103,9 +110,11 @@ section('4. Sessions API');
   if (create.status === 201 && create.body.session?.id) {
     sessionId = create.body.session.id;
     pass(`POST /v1/sessions → 201  sessionId=${sessionId}`);
-  } else if (create.status === 404 && create.body.error?.includes('Machine')) {
+  }
+  else if (create.status === 404 && create.body.error?.includes('Machine')) {
     pass(`POST /v1/sessions → 404 (machine not registered yet — expected before daemon connects)`);
-  } else {
+  }
+  else {
     fail(`POST /v1/sessions → ${create.status}  body=${JSON.stringify(create.body)}`);
   }
 }
@@ -117,7 +126,8 @@ section('5. Machines API');
   const list = await api('/v1/machines');
   if (list.status === 200) {
     pass(`GET /v1/machines → 200  count=${list.body.machines?.length ?? 0}`);
-  } else {
+  }
+  else {
     fail(`GET /v1/machines → ${list.status}  body=${JSON.stringify(list.body)}`);
   }
 
@@ -134,10 +144,12 @@ section('5. Machines API');
   if (reg.status === 201 && reg.body.machine?.id) {
     machineId = reg.body.machine.id;
     pass(`POST /v1/machines → 201  machineId=${machineId}`);
-  } else if (reg.status === 200 && reg.body.machine?.id) {
+  }
+  else if (reg.status === 200 && reg.body.machine?.id) {
     machineId = reg.body.machine.id;
     pass(`POST /v1/machines → 200 (upsert)  machineId=${machineId}`);
-  } else {
+  }
+  else {
     fail(`POST /v1/machines → ${reg.status}  body=${JSON.stringify(reg.body)}`);
   }
 }
@@ -183,7 +195,7 @@ await new Promise((resolve) => {
 // ─── 7. A2A Evolution Layer ───────────────────────────────────────────────────
 section('7. A2A Evolution Layer');
 let a2aToken = null;
-let agentId   = null;
+let agentId = null;
 {
   // Hello
   const hello = await api('/a2a/hello', {
@@ -200,9 +212,10 @@ let agentId   = null;
   });
   if (hello.status === 200 && hello.body.token) {
     a2aToken = hello.body.token;
-    agentId   = hello.body.agentId;
+    agentId = hello.body.agentId;
     pass(`POST /a2a/hello → 200  agentId=${agentId}`);
-  } else {
+  }
+  else {
     fail(`POST /a2a/hello → ${hello.status}  body=${JSON.stringify(hello.body)}`);
   }
 
@@ -236,7 +249,8 @@ let agentId   = null;
     const pubBody = await publish.json().catch(() => ({}));
     if (publish.status === 200 || publish.status === 201) {
       pass(`POST /a2a/publish → ${publish.status}  geneId=${pubBody.geneId}`);
-    } else {
+    }
+    else {
       fail(`POST /a2a/publish → ${publish.status}  body=${JSON.stringify(pubBody)}`);
     }
 
@@ -249,7 +263,8 @@ let agentId   = null;
     const fetchBody = await fetchRes.json().catch(() => ({}));
     if (fetchRes.status === 200) {
       pass(`POST /a2a/fetch → 200  genes=${fetchBody.genes?.length ?? 0}`);
-    } else {
+    }
+    else {
       fail(`POST /a2a/fetch → ${fetchRes.status}  body=${JSON.stringify(fetchBody)}`);
     }
   }
@@ -258,13 +273,15 @@ let agentId   = null;
 // ─── 8. CLI version ───────────────────────────────────────────────────────────
 section('8. CLI — npx ccjk version');
 try {
-  const fs = require('fs');
+  const fs = require('node:fs');
   const distPath = join(ROOT, 'dist/cli.mjs');
   const pkgVer = JSON.parse(fs.readFileSync(join(ROOT, 'package.json'), 'utf8')).version;
-  if (!fs.existsSync(distPath)) throw new Error('dist/cli.mjs not found');
+  if (!fs.existsSync(distPath))
+    throw new Error('dist/cli.mjs not found');
   const distSize = fs.statSync(distPath).size;
-  pass(`ccjk CLI dist exists  dist/cli.mjs=${(distSize/1024).toFixed(0)}KB  package.json version=${pkgVer}`);
-} catch (e) {
+  pass(`ccjk CLI dist exists  dist/cli.mjs=${(distSize / 1024).toFixed(0)}KB  package.json version=${pkgVer}`);
+}
+catch (e) {
   fail(`CLI check failed: ${e.message?.slice(0, 100)}`);
 }
 
@@ -274,7 +291,8 @@ if (machineId) {
   const del = await api(`/v1/machines/${machineId}`, { method: 'DELETE' });
   if (del.status === 200 || del.status === 204) {
     pass(`DELETE /v1/machines/${machineId} → ${del.status}`);
-  } else {
+  }
+  else {
     pass(`DELETE /v1/machines/${machineId} → ${del.status} (non-critical)`);
   }
 }
@@ -283,7 +301,8 @@ if (machineId) {
 console.log(`\n${'═'.repeat(50)}`);
 if (process.exitCode === 1) {
   console.log('❌ Some tests FAILED — see ❌ above');
-} else {
+}
+else {
   console.log('🎉 All tests PASSED');
 }
 console.log(`${'═'.repeat(50)}\n`);

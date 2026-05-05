@@ -16,42 +16,42 @@
  * @module services/cloud/silent-updater
  */
 
-import { appendFileSync, existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs'
-import { platform } from 'node:os'
-import process from 'node:process'
-import { fileURLToPath } from 'node:url'
-import { dirname, join } from 'pathe'
-import { CCJK_CONFIG_DIR } from '../../constants'
-import { getCloudState, updateCloudState } from './auto-bootstrap'
+import { appendFileSync, existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
+import { platform } from 'node:os';
+import process from 'node:process';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'pathe';
+import { CCJK_CONFIG_DIR } from '../../constants';
+import { getCloudState, updateCloudState } from './auto-bootstrap';
 
 // ESM compatible __dirname
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // ============================================================================
 // Constants
 // ============================================================================
 
 /** 升级日志目录 */
-export const UPGRADE_LOG_DIR = join(CCJK_CONFIG_DIR, 'cloud', 'logs')
+export const UPGRADE_LOG_DIR = join(CCJK_CONFIG_DIR, 'cloud', 'logs');
 
 /** 升级日志文件 */
-export const UPGRADE_LOG_FILE = join(UPGRADE_LOG_DIR, 'upgrades.log')
+export const UPGRADE_LOG_FILE = join(UPGRADE_LOG_DIR, 'upgrades.log');
 
 /** 升级锁文件（防止并发升级） */
-export const UPGRADE_LOCK_FILE = join(CCJK_CONFIG_DIR, 'cloud', '.upgrade.lock')
+export const UPGRADE_LOCK_FILE = join(CCJK_CONFIG_DIR, 'cloud', '.upgrade.lock');
 
 /** 升级检查间隔（毫秒）- 6 小时 */
-export const UPGRADE_CHECK_INTERVAL = 6 * 60 * 60 * 1000
+export const UPGRADE_CHECK_INTERVAL = 6 * 60 * 60 * 1000;
 
 /** 升级超时（毫秒）- 5 分钟 */
-export const UPGRADE_TIMEOUT = 5 * 60 * 1000
+export const UPGRADE_TIMEOUT = 5 * 60 * 1000;
 
 /** 最大重试次数 */
-export const MAX_RETRIES = 3
+export const MAX_RETRIES = 3;
 
 /** 重试延迟（毫秒） */
-export const RETRY_DELAY = 5000
+export const RETRY_DELAY = 5000;
 
 // ============================================================================
 // Types
@@ -60,55 +60,55 @@ export const RETRY_DELAY = 5000
 /**
  * 可升级的工具类型
  */
-export type UpgradableTool = 'ccjk' | 'claude-code' | 'ccr' | 'cometix-line'
+export type UpgradableTool = 'ccjk' | 'claude-code' | 'ccr' | 'cometix-line';
 
 /**
  * 工具版本信息
  */
 export interface ToolVersionInfo {
-  tool: UpgradableTool
-  installed: boolean
-  currentVersion: string | null
-  latestVersion: string | null
-  needsUpdate: boolean
-  installMethod: 'npm' | 'homebrew' | 'curl' | 'unknown'
+  tool: UpgradableTool;
+  installed: boolean;
+  currentVersion: string | null;
+  latestVersion: string | null;
+  needsUpdate: boolean;
+  installMethod: 'npm' | 'homebrew' | 'curl' | 'unknown';
 }
 
 /**
  * 升级结果
  */
 export interface UpgradeResult {
-  tool: UpgradableTool
-  success: boolean
-  upgraded: boolean
-  fromVersion?: string
-  toVersion?: string
-  error?: string
-  duration: number
+  tool: UpgradableTool;
+  success: boolean;
+  upgraded: boolean;
+  fromVersion?: string;
+  toVersion?: string;
+  error?: string;
+  duration: number;
 }
 
 /**
  * 批量升级结果
  */
 export interface BatchUpgradeResult {
-  success: boolean
-  results: UpgradeResult[]
-  totalDuration: number
-  upgradedCount: number
-  failedCount: number
+  success: boolean;
+  results: UpgradeResult[];
+  totalDuration: number;
+  upgradedCount: number;
+  failedCount: number;
 }
 
 /**
  * 升级日志条目
  */
 export interface UpgradeLogEntry {
-  timestamp: string
-  tool: UpgradableTool
-  fromVersion: string
-  toVersion: string
-  success: boolean
-  error?: string
-  duration: number
+  timestamp: string;
+  tool: UpgradableTool;
+  fromVersion: string;
+  toVersion: string;
+  success: boolean;
+  error?: string;
+  duration: number;
 }
 
 // ============================================================================
@@ -119,17 +119,17 @@ export interface UpgradeLogEntry {
  * 检查所有工具的版本
  */
 export async function checkAllToolVersions(): Promise<ToolVersionInfo[]> {
-  const results: ToolVersionInfo[] = []
+  const results: ToolVersionInfo[] = [];
 
   // 并行检查所有工具
   const [ccjk, claudeCode, ccr] = await Promise.all([
     checkCcjkVersion(),
     checkClaudeCodeVersion(),
     checkCcrVersion(),
-  ])
+  ]);
 
-  results.push(ccjk, claudeCode, ccr)
-  return results
+  results.push(ccjk, claudeCode, ccr);
+  return results;
 }
 
 /**
@@ -137,8 +137,8 @@ export async function checkAllToolVersions(): Promise<ToolVersionInfo[]> {
  */
 async function checkCcjkVersion(): Promise<ToolVersionInfo> {
   try {
-    const currentVersion = getCurrentCcjkVersion()
-    const latestVersion = await fetchLatestNpmVersion('ccjk')
+    const currentVersion = getCurrentCcjkVersion();
+    const latestVersion = await fetchLatestNpmVersion('ccjk');
 
     return {
       tool: 'ccjk',
@@ -147,7 +147,7 @@ async function checkCcjkVersion(): Promise<ToolVersionInfo> {
       latestVersion,
       needsUpdate: latestVersion ? isNewerVersion(latestVersion, currentVersion) : false,
       installMethod: 'npm',
-    }
+    };
   }
   catch {
     return {
@@ -157,7 +157,7 @@ async function checkCcjkVersion(): Promise<ToolVersionInfo> {
       latestVersion: null,
       needsUpdate: false,
       installMethod: 'npm',
-    }
+    };
   }
 }
 
@@ -166,10 +166,10 @@ async function checkCcjkVersion(): Promise<ToolVersionInfo> {
  */
 async function checkClaudeCodeVersion(): Promise<ToolVersionInfo> {
   try {
-    const { exec } = await import('tinyexec')
+    const { exec } = await import('tinyexec');
 
     // 检查是否安装
-    const result = await exec('claude', ['--version'], { timeout: 5000 })
+    const result = await exec('claude', ['--version'], { timeout: 5000 });
 
     if (result.exitCode !== 0) {
       return {
@@ -179,14 +179,14 @@ async function checkClaudeCodeVersion(): Promise<ToolVersionInfo> {
         latestVersion: null,
         needsUpdate: false,
         installMethod: 'unknown',
-      }
+      };
     }
 
-    const currentVersion = result.stdout.trim().replace(/^v/, '')
-    const latestVersion = await fetchLatestNpmVersion('@anthropic-ai/claude-code')
+    const currentVersion = result.stdout.trim().replace(/^v/, '');
+    const latestVersion = await fetchLatestNpmVersion('@anthropic-ai/claude-code');
 
     // 检测安装方式
-    const installMethod = await detectClaudeCodeInstallMethod()
+    const installMethod = await detectClaudeCodeInstallMethod();
 
     return {
       tool: 'claude-code',
@@ -195,7 +195,7 @@ async function checkClaudeCodeVersion(): Promise<ToolVersionInfo> {
       latestVersion,
       needsUpdate: latestVersion ? isNewerVersion(latestVersion, currentVersion) : false,
       installMethod,
-    }
+    };
   }
   catch {
     return {
@@ -205,7 +205,7 @@ async function checkClaudeCodeVersion(): Promise<ToolVersionInfo> {
       latestVersion: null,
       needsUpdate: false,
       installMethod: 'unknown',
-    }
+    };
   }
 }
 
@@ -214,9 +214,9 @@ async function checkClaudeCodeVersion(): Promise<ToolVersionInfo> {
  */
 async function checkCcrVersion(): Promise<ToolVersionInfo> {
   try {
-    const { exec } = await import('tinyexec')
+    const { exec } = await import('tinyexec');
 
-    const result = await exec('ccr', ['--version'], { timeout: 5000 })
+    const result = await exec('ccr', ['--version'], { timeout: 5000 });
 
     if (result.exitCode !== 0) {
       return {
@@ -226,11 +226,11 @@ async function checkCcrVersion(): Promise<ToolVersionInfo> {
         latestVersion: null,
         needsUpdate: false,
         installMethod: 'unknown',
-      }
+      };
     }
 
-    const currentVersion = result.stdout.trim().replace(/^v/, '')
-    const latestVersion = await fetchLatestNpmVersion('@musistudio/claude-code-router')
+    const currentVersion = result.stdout.trim().replace(/^v/, '');
+    const latestVersion = await fetchLatestNpmVersion('@musistudio/claude-code-router');
 
     return {
       tool: 'ccr',
@@ -239,7 +239,7 @@ async function checkCcrVersion(): Promise<ToolVersionInfo> {
       latestVersion,
       needsUpdate: latestVersion ? isNewerVersion(latestVersion, currentVersion) : false,
       installMethod: 'npm',
-    }
+    };
   }
   catch {
     return {
@@ -249,7 +249,7 @@ async function checkCcrVersion(): Promise<ToolVersionInfo> {
       latestVersion: null,
       needsUpdate: false,
       installMethod: 'unknown',
-    }
+    };
   }
 }
 
@@ -258,43 +258,43 @@ async function checkCcrVersion(): Promise<ToolVersionInfo> {
  */
 function getCurrentCcjkVersion(): string {
   try {
-    const packagePath = join(__dirname, '../../../package.json')
+    const packagePath = join(__dirname, '../../../package.json');
     if (existsSync(packagePath)) {
-      const pkg = JSON.parse(readFileSync(packagePath, 'utf-8'))
-      return pkg.version || 'unknown'
+      const pkg = JSON.parse(readFileSync(packagePath, 'utf-8'));
+      return pkg.version || 'unknown';
     }
   }
   catch {
     // 忽略
   }
-  return 'unknown'
+  return 'unknown';
 }
 
 /**
  * 从 npm registry 获取最新版本
  */
 async function fetchLatestNpmVersion(packageName: string): Promise<string | null> {
-  const controller = new AbortController()
-  const timeoutId = setTimeout(() => controller.abort(), 10000)
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 10000);
 
   try {
     const response = await fetch(`https://registry.npmjs.org/${packageName}/latest`, {
       signal: controller.signal,
-    })
+    });
 
     if (response.ok) {
-      const data = await response.json() as { version: string }
-      return data.version
+      const data = await response.json() as { version: string };
+      return data.version;
     }
   }
   catch {
     // 忽略
   }
   finally {
-    clearTimeout(timeoutId)
+    clearTimeout(timeoutId);
   }
 
-  return null
+  return null;
 }
 
 /**
@@ -302,27 +302,27 @@ async function fetchLatestNpmVersion(packageName: string): Promise<string | null
  */
 async function detectClaudeCodeInstallMethod(): Promise<'npm' | 'homebrew' | 'curl' | 'unknown'> {
   try {
-    const { exec } = await import('tinyexec')
+    const { exec } = await import('tinyexec');
 
     // 检查 Homebrew
     if (platform() === 'darwin') {
-      const brewResult = await exec('brew', ['list', '--cask', 'claude-code'], { timeout: 5000 })
+      const brewResult = await exec('brew', ['list', '--cask', 'claude-code'], { timeout: 5000 });
       if (brewResult.exitCode === 0) {
-        return 'homebrew'
+        return 'homebrew';
       }
     }
 
     // 检查 npm
-    const npmResult = await exec('npm', ['list', '-g', '@anthropic-ai/claude-code'], { timeout: 5000 })
+    const npmResult = await exec('npm', ['list', '-g', '@anthropic-ai/claude-code'], { timeout: 5000 });
     if (npmResult.exitCode === 0 && npmResult.stdout.includes('@anthropic-ai/claude-code')) {
-      return 'npm'
+      return 'npm';
     }
 
     // 默认假设是 curl 安装
-    return 'curl'
+    return 'curl';
   }
   catch {
-    return 'unknown'
+    return 'unknown';
   }
 }
 
@@ -331,21 +331,21 @@ async function detectClaudeCodeInstallMethod(): Promise<'npm' | 'homebrew' | 'cu
  */
 function isNewerVersion(latest: string, current: string): boolean {
   if (!latest || !current || current === 'unknown')
-    return false
+    return false;
 
-  const latestParts = latest.split('.').map(Number)
-  const currentParts = current.split('.').map(Number)
+  const latestParts = latest.split('.').map(Number);
+  const currentParts = current.split('.').map(Number);
 
   for (let i = 0; i < 3; i++) {
-    const l = latestParts[i] || 0
-    const c = currentParts[i] || 0
+    const l = latestParts[i] || 0;
+    const c = currentParts[i] || 0;
     if (l > c)
-      return true
+      return true;
     if (l < c)
-      return false
+      return false;
   }
 
-  return false
+  return false;
 }
 
 // ============================================================================
@@ -356,8 +356,8 @@ function isNewerVersion(latest: string, current: string): boolean {
  * 执行静默升级（所有需要升级的工具）
  */
 export async function performSilentUpgradeAll(): Promise<BatchUpgradeResult> {
-  const startTime = Date.now()
-  const results: UpgradeResult[] = []
+  const startTime = Date.now();
+  const results: UpgradeResult[] = [];
 
   // 检查升级锁
   if (isUpgradeLocked()) {
@@ -367,23 +367,23 @@ export async function performSilentUpgradeAll(): Promise<BatchUpgradeResult> {
       totalDuration: 0,
       upgradedCount: 0,
       failedCount: 0,
-    }
+    };
   }
 
   try {
     // 创建升级锁
-    createUpgradeLock()
+    createUpgradeLock();
 
     // 检查所有工具版本
-    const versions = await checkAllToolVersions()
+    const versions = await checkAllToolVersions();
 
     // 筛选需要升级的工具
-    const toolsToUpgrade = versions.filter(v => v.needsUpdate && v.installed)
+    const toolsToUpgrade = versions.filter(v => v.needsUpdate && v.installed);
 
     // 依次升级（避免并发问题）
     for (const tool of toolsToUpgrade) {
-      const result = await upgradeTool(tool)
-      results.push(result)
+      const result = await upgradeTool(tool);
+      results.push(result);
 
       // 记录日志
       logUpgrade({
@@ -394,15 +394,15 @@ export async function performSilentUpgradeAll(): Promise<BatchUpgradeResult> {
         success: result.success,
         error: result.error,
         duration: result.duration,
-      })
+      });
     }
 
-    const totalDuration = Date.now() - startTime
-    const upgradedCount = results.filter(r => r.upgraded).length
-    const failedCount = results.filter(r => !r.success).length
+    const totalDuration = Date.now() - startTime;
+    const upgradedCount = results.filter(r => r.upgraded).length;
+    const failedCount = results.filter(r => !r.success).length;
 
     // 更新云状态
-    const state = getCloudState()
+    const state = getCloudState();
     updateCloudState({
       lastUpgradeCheckAt: new Date().toISOString(),
       upgradeStats: {
@@ -410,7 +410,7 @@ export async function performSilentUpgradeAll(): Promise<BatchUpgradeResult> {
         upgradesApplied: state.upgradeStats.upgradesApplied + upgradedCount,
         upgradesFailed: state.upgradeStats.upgradesFailed + failedCount,
       },
-    })
+    });
 
     return {
       success: failedCount === 0,
@@ -418,11 +418,11 @@ export async function performSilentUpgradeAll(): Promise<BatchUpgradeResult> {
       totalDuration,
       upgradedCount,
       failedCount,
-    }
+    };
   }
   finally {
     // 释放升级锁
-    releaseUpgradeLock()
+    releaseUpgradeLock();
   }
 }
 
@@ -430,16 +430,16 @@ export async function performSilentUpgradeAll(): Promise<BatchUpgradeResult> {
  * 升级单个工具
  */
 async function upgradeTool(info: ToolVersionInfo): Promise<UpgradeResult> {
-  const startTime = Date.now()
+  const startTime = Date.now();
 
   try {
     switch (info.tool) {
       case 'ccjk':
-        return await upgradeCcjk(info, startTime)
+        return await upgradeCcjk(info, startTime);
       case 'claude-code':
-        return await upgradeClaudeCode(info, startTime)
+        return await upgradeClaudeCode(info, startTime);
       case 'ccr':
-        return await upgradeCcr(info, startTime)
+        return await upgradeCcr(info, startTime);
       default:
         return {
           tool: info.tool,
@@ -447,7 +447,7 @@ async function upgradeTool(info: ToolVersionInfo): Promise<UpgradeResult> {
           upgraded: false,
           error: 'Unknown tool',
           duration: Date.now() - startTime,
-        }
+        };
     }
   }
   catch (error) {
@@ -457,7 +457,7 @@ async function upgradeTool(info: ToolVersionInfo): Promise<UpgradeResult> {
       upgraded: false,
       error: error instanceof Error ? error.message : 'Unknown error',
       duration: Date.now() - startTime,
-    }
+    };
   }
 }
 
@@ -465,11 +465,11 @@ async function upgradeTool(info: ToolVersionInfo): Promise<UpgradeResult> {
  * 升级 CCJK
  */
 async function upgradeCcjk(info: ToolVersionInfo, startTime: number): Promise<UpgradeResult> {
-  const { exec } = await import('tinyexec')
+  const { exec } = await import('tinyexec');
 
   const result = await exec('npm', ['update', '-g', 'ccjk'], {
     timeout: UPGRADE_TIMEOUT,
-  })
+  });
 
   return {
     tool: 'ccjk',
@@ -479,37 +479,37 @@ async function upgradeCcjk(info: ToolVersionInfo, startTime: number): Promise<Up
     toVersion: info.latestVersion || undefined,
     error: result.exitCode !== 0 ? result.stderr : undefined,
     duration: Date.now() - startTime,
-  }
+  };
 }
 
 /**
  * 升级 Claude Code
  */
 async function upgradeClaudeCode(info: ToolVersionInfo, startTime: number): Promise<UpgradeResult> {
-  const { exec } = await import('tinyexec')
+  const { exec } = await import('tinyexec');
 
-  let result
+  let result;
 
   switch (info.installMethod) {
     case 'homebrew':
       result = await exec('brew', ['upgrade', '--cask', 'claude-code'], {
         timeout: UPGRADE_TIMEOUT,
-      })
-      break
+      });
+      break;
 
     case 'npm':
       result = await exec('npm', ['update', '-g', '@anthropic-ai/claude-code'], {
         timeout: UPGRADE_TIMEOUT,
-      })
-      break
+      });
+      break;
 
     case 'curl':
     default:
       // 使用 claude update 命令
       result = await exec('claude', ['update'], {
         timeout: UPGRADE_TIMEOUT,
-      })
-      break
+      });
+      break;
   }
 
   return {
@@ -520,18 +520,18 @@ async function upgradeClaudeCode(info: ToolVersionInfo, startTime: number): Prom
     toVersion: info.latestVersion || undefined,
     error: result.exitCode !== 0 ? result.stderr : undefined,
     duration: Date.now() - startTime,
-  }
+  };
 }
 
 /**
  * 升级 CCR
  */
 async function upgradeCcr(info: ToolVersionInfo, startTime: number): Promise<UpgradeResult> {
-  const { exec } = await import('tinyexec')
+  const { exec } = await import('tinyexec');
 
   const result = await exec('npm', ['update', '-g', '@musistudio/claude-code-router'], {
     timeout: UPGRADE_TIMEOUT,
-  })
+  });
 
   return {
     tool: 'ccr',
@@ -541,7 +541,7 @@ async function upgradeCcr(info: ToolVersionInfo, startTime: number): Promise<Upg
     toVersion: info.latestVersion || undefined,
     error: result.exitCode !== 0 ? result.stderr : undefined,
     duration: Date.now() - startTime,
-  }
+  };
 }
 
 // ============================================================================
@@ -553,24 +553,24 @@ async function upgradeCcr(info: ToolVersionInfo, startTime: number): Promise<Upg
  */
 function isUpgradeLocked(): boolean {
   if (!existsSync(UPGRADE_LOCK_FILE)) {
-    return false
+    return false;
   }
 
   try {
-    const lockData = JSON.parse(readFileSync(UPGRADE_LOCK_FILE, 'utf-8'))
-    const lockTime = new Date(lockData.timestamp).getTime()
-    const now = Date.now()
+    const lockData = JSON.parse(readFileSync(UPGRADE_LOCK_FILE, 'utf-8'));
+    const lockTime = new Date(lockData.timestamp).getTime();
+    const now = Date.now();
 
     // 锁超过 10 分钟自动释放
     if (now - lockTime > 10 * 60 * 1000) {
-      releaseUpgradeLock()
-      return false
+      releaseUpgradeLock();
+      return false;
     }
 
-    return true
+    return true;
   }
   catch {
-    return false
+    return false;
   }
 }
 
@@ -578,11 +578,11 @@ function isUpgradeLocked(): boolean {
  * 创建升级锁
  */
 function createUpgradeLock(): void {
-  ensureLogDir()
+  ensureLogDir();
   writeFileSync(UPGRADE_LOCK_FILE, JSON.stringify({
     timestamp: new Date().toISOString(),
     pid: process.pid,
-  }))
+  }));
 }
 
 /**
@@ -591,7 +591,7 @@ function createUpgradeLock(): void {
 function releaseUpgradeLock(): void {
   try {
     if (existsSync(UPGRADE_LOCK_FILE)) {
-      unlinkSync(UPGRADE_LOCK_FILE)
+      unlinkSync(UPGRADE_LOCK_FILE);
     }
   }
   catch {
@@ -608,7 +608,7 @@ function releaseUpgradeLock(): void {
  */
 function ensureLogDir(): void {
   if (!existsSync(UPGRADE_LOG_DIR)) {
-    mkdirSync(UPGRADE_LOG_DIR, { recursive: true })
+    mkdirSync(UPGRADE_LOG_DIR, { recursive: true });
   }
 }
 
@@ -616,7 +616,7 @@ function ensureLogDir(): void {
  * 记录升级日志
  */
 function logUpgrade(entry: UpgradeLogEntry): void {
-  ensureLogDir()
+  ensureLogDir();
 
   const logLine = [
     entry.timestamp,
@@ -627,9 +627,9 @@ function logUpgrade(entry: UpgradeLogEntry): void {
     entry.success ? 'SUCCESS' : 'FAILED',
     entry.error || '',
     `${entry.duration}ms`,
-  ].join(' | ')
+  ].join(' | ');
 
-  appendFileSync(UPGRADE_LOG_FILE, `${logLine}\n`)
+  appendFileSync(UPGRADE_LOG_FILE, `${logLine}\n`);
 }
 
 /**
@@ -637,15 +637,15 @@ function logUpgrade(entry: UpgradeLogEntry): void {
  */
 export function readUpgradeLog(limit = 50): UpgradeLogEntry[] {
   if (!existsSync(UPGRADE_LOG_FILE)) {
-    return []
+    return [];
   }
 
   try {
-    const content = readFileSync(UPGRADE_LOG_FILE, 'utf-8')
-    const lines = content.trim().split('\n').slice(-limit)
+    const content = readFileSync(UPGRADE_LOG_FILE, 'utf-8');
+    const lines = content.trim().split('\n').slice(-limit);
 
     return lines.map((line) => {
-      const parts = line.split(' | ')
+      const parts = line.split(' | ');
       return {
         timestamp: parts[0],
         tool: parts[1] as UpgradableTool,
@@ -654,11 +654,11 @@ export function readUpgradeLog(limit = 50): UpgradeLogEntry[] {
         success: parts[5] === 'SUCCESS',
         error: parts[6] || undefined,
         duration: Number.parseInt(parts[7]) || 0,
-      }
-    })
+      };
+    });
   }
   catch {
-    return []
+    return [];
   }
 }
 
@@ -670,20 +670,20 @@ export function readUpgradeLog(limit = 50): UpgradeLogEntry[] {
  * 检查是否需要执行升级检查
  */
 export function shouldCheckForUpgrades(): boolean {
-  const state = getCloudState()
+  const state = getCloudState();
 
   if (!state.silentUpgradeEnabled) {
-    return false
+    return false;
   }
 
   if (!state.lastUpgradeCheckAt) {
-    return true
+    return true;
   }
 
-  const lastCheck = new Date(state.lastUpgradeCheckAt).getTime()
-  const now = Date.now()
+  const lastCheck = new Date(state.lastUpgradeCheckAt).getTime();
+  const now = Date.now();
 
-  return now - lastCheck >= UPGRADE_CHECK_INTERVAL
+  return now - lastCheck >= UPGRADE_CHECK_INTERVAL;
 }
 
 /**
@@ -691,10 +691,10 @@ export function shouldCheckForUpgrades(): boolean {
  */
 export async function checkAndUpgradeIfNeeded(): Promise<BatchUpgradeResult | null> {
   if (!shouldCheckForUpgrades()) {
-    return null
+    return null;
   }
 
-  return performSilentUpgradeAll()
+  return performSilentUpgradeAll();
 }
 
 // ============================================================================
@@ -705,4 +705,4 @@ export {
   checkAndUpgradeIfNeeded as autoUpgrade,
   checkAllToolVersions as checkVersions,
   performSilentUpgradeAll as upgradeAll,
-}
+};

@@ -4,7 +4,7 @@
  * 提供 /browser 命令的 skill 定义
  */
 
-import type { CcjkSkill } from '../../skills/types'
+import type { CcjkSkill } from '../../skills/types';
 
 /**
  * Browser Skill 定义
@@ -123,18 +123,18 @@ Use these refs to interact with specific elements:
 4. Use \`--json\` for programmatic parsing
 5. Close browser when done to free resources
 `,
-}
+};
 
 /**
  * 获取 browser skill 的 markdown 模板
  */
 export function getBrowserSkillTemplate(): string {
-  return browserSkill.template
+  return browserSkill.template;
 }
 
 /**
  * 获取 browser skill 定义
  */
 export function getBrowserSkill(): CcjkSkill {
-  return browserSkill
+  return browserSkill;
 }

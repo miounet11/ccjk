@@ -7,7 +7,7 @@
 // Core Types
 // ============================================================================
 
-export type PostmortemSeverity = 'critical' | 'high' | 'medium' | 'low'
+export type PostmortemSeverity = 'critical' | 'high' | 'medium' | 'low';
 
 export type PostmortemCategory
   = | 'type-safety'
@@ -20,9 +20,9 @@ export type PostmortemCategory
     | 'api-misuse'
     | 'configuration'
     | 'dependency'
-    | 'other'
+    | 'other';
 
-export type PostmortemStatus = 'active' | 'resolved' | 'monitoring' | 'archived'
+export type PostmortemStatus = 'active' | 'resolved' | 'monitoring' | 'archived';
 
 // ============================================================================
 // Postmortem Report
@@ -30,67 +30,67 @@ export type PostmortemStatus = 'active' | 'resolved' | 'monitoring' | 'archived'
 
 export interface PostmortemReport {
   /** 唯一标识符，格式: PM-XXX */
-  id: string
+  id: string;
 
   /** 简短标题 */
-  title: string
+  title: string;
 
   /** 严重程度 */
-  severity: PostmortemSeverity
+  severity: PostmortemSeverity;
 
   /** 问题类别 */
-  category: PostmortemCategory
+  category: PostmortemCategory;
 
   /** 状态 */
-  status: PostmortemStatus
+  status: PostmortemStatus;
 
   /** 创建时间 */
-  createdAt: string
+  createdAt: string;
 
   /** 更新时间 */
-  updatedAt: string
+  updatedAt: string;
 
   /** 相关的 Git 提交 */
-  relatedCommits: CommitInfo[]
+  relatedCommits: CommitInfo[];
 
   /** 影响的版本范围 */
   affectedVersions: {
-    from: string
-    to: string
-  }
+    from: string;
+    to: string;
+  };
 
   /** 问题描述 */
-  description: string
+  description: string;
 
   /** 根本原因分析 */
-  rootCause: string[]
+  rootCause: string[];
 
   /** 修复方案 */
   solution: {
-    description: string
+    description: string;
     codeExample?: {
-      bad: string
-      good: string
-    }
-  }
+      bad: string;
+      good: string;
+    };
+  };
 
   /** 预防措施 */
-  preventionMeasures: string[]
+  preventionMeasures: string[];
 
   /** AI 开发指令 - 注入到 CLAUDE.md */
-  aiDirectives: string[]
+  aiDirectives: string[];
 
   /** 检测模式 - 用于自动检测 */
-  detectionPatterns: DetectionPattern[]
+  detectionPatterns: DetectionPattern[];
 
   /** 相关文件 */
-  relatedFiles: string[]
+  relatedFiles: string[];
 
   /** 标签 */
-  tags: string[]
+  tags: string[];
 
   /** 元数据 */
-  metadata: Record<string, unknown>
+  metadata: Record<string, unknown>;
 }
 
 // ============================================================================
@@ -98,29 +98,29 @@ export interface PostmortemReport {
 // ============================================================================
 
 export interface CommitInfo {
-  hash: string
-  shortHash: string
-  message: string
-  author: string
-  date: string
-  files: string[]
+  hash: string;
+  shortHash: string;
+  message: string;
+  author: string;
+  date: string;
+  files: string[];
 }
 
 export interface DetectionPattern {
   /** 模式类型 */
-  type: 'regex' | 'ast' | 'semantic'
+  type: 'regex' | 'ast' | 'semantic';
 
   /** 模式内容 */
-  pattern: string
+  pattern: string;
 
   /** 描述 */
-  description: string
+  description: string;
 
   /** 适用的文件类型 */
-  fileTypes: string[]
+  fileTypes: string[];
 
   /** 严重程度 */
-  severity: PostmortemSeverity
+  severity: PostmortemSeverity;
 }
 
 // ============================================================================
@@ -129,54 +129,54 @@ export interface DetectionPattern {
 
 export interface PostmortemIndex {
   /** 版本 */
-  version: string
+  version: string;
 
   /** 最后更新时间 */
-  lastUpdated: string
+  lastUpdated: string;
 
   /** 总数统计 */
   stats: {
-    total: number
-    bySeverity: Record<PostmortemSeverity, number>
-    byCategory: Record<PostmortemCategory, number>
-    byStatus: Record<PostmortemStatus, number>
-  }
+    total: number;
+    bySeverity: Record<PostmortemSeverity, number>;
+    byCategory: Record<PostmortemCategory, number>;
+    byStatus: Record<PostmortemStatus, number>;
+  };
 
   /** 所有报告的元数据 */
-  reports: PostmortemMeta[]
+  reports: PostmortemMeta[];
 }
 
 export interface PostmortemMeta {
-  id: string
-  title: string
-  severity: PostmortemSeverity
-  category: PostmortemCategory
-  status: PostmortemStatus
-  createdAt: string
-  filePath: string
+  id: string;
+  title: string;
+  severity: PostmortemSeverity;
+  category: PostmortemCategory;
+  status: PostmortemStatus;
+  createdAt: string;
+  filePath: string;
 }
 
 export interface ReleaseSummary {
   /** 版本号 */
-  version: string
+  version: string;
 
   /** 发布时间 */
-  releaseDate: string
+  releaseDate: string;
 
   /** 包含的 fix commits 数量 */
-  fixCommitCount: number
+  fixCommitCount: number;
 
   /** 新增的 Postmortem */
-  newPostmortems: string[]
+  newPostmortems: string[];
 
   /** 更新的 Postmortem */
-  updatedPostmortems: string[]
+  updatedPostmortems: string[];
 
   /** 摘要 */
-  summary: string
+  summary: string;
 
   /** 关键教训 */
-  keyLessons: string[]
+  keyLessons: string[];
 }
 
 // ============================================================================
@@ -184,36 +184,36 @@ export interface ReleaseSummary {
 // ============================================================================
 
 export interface FixCommitAnalysis {
-  commit: CommitInfo
-  bugType: PostmortemCategory
-  severity: PostmortemSeverity
-  rootCause: string
-  solution: string
-  preventionSuggestions: string[]
-  relatedPostmortems: string[]
+  commit: CommitInfo;
+  bugType: PostmortemCategory;
+  severity: PostmortemSeverity;
+  rootCause: string;
+  solution: string;
+  preventionSuggestions: string[];
+  relatedPostmortems: string[];
 }
 
 export interface CodeCheckResult {
-  file: string
-  line: number
-  column: number
-  pattern: DetectionPattern
-  postmortemId: string
-  message: string
-  suggestion: string
+  file: string;
+  line: number;
+  column: number;
+  pattern: DetectionPattern;
+  postmortemId: string;
+  message: string;
+  suggestion: string;
 }
 
 export interface PostmortemCheckReport {
-  timestamp: string
-  filesChecked: number
-  issuesFound: CodeCheckResult[]
+  timestamp: string;
+  filesChecked: number;
+  issuesFound: CodeCheckResult[];
   summary: {
-    critical: number
-    high: number
-    medium: number
-    low: number
-  }
-  passed: boolean
+    critical: number;
+    high: number;
+    medium: number;
+    low: number;
+  };
+  passed: boolean;
 }
 
 // ============================================================================
@@ -222,22 +222,22 @@ export interface PostmortemCheckReport {
 
 export interface ClaudeMdInjection {
   /** 注入的部分标识 */
-  sectionId: string
+  sectionId: string;
 
   /** 标题 */
-  title: string
+  title: string;
 
   /** 内容 */
-  content: string
+  content: string;
 
   /** 优先级 (决定显示顺序) */
-  priority: number
+  priority: number;
 
   /** 来源 Postmortem IDs */
-  sourcePostmortems: string[]
+  sourcePostmortems: string[];
 
   /** 最后更新时间 */
-  lastUpdated: string
+  lastUpdated: string;
 }
 
 // ============================================================================
@@ -246,33 +246,33 @@ export interface ClaudeMdInjection {
 
 export interface PostmortemConfig {
   /** 是否启用 */
-  enabled: boolean
+  enabled: boolean;
 
   /** Postmortem 目录 */
-  directory: string
+  directory: string;
 
   /** 自动同步到 CLAUDE.md */
-  autoSyncToClaudeMd: boolean
+  autoSyncToClaudeMd: boolean;
 
   /** 同步的最大条目数 */
-  maxSyncItems: number
+  maxSyncItems: number;
 
   /** 只同步指定严重程度以上的 */
-  minSyncSeverity: PostmortemSeverity
+  minSyncSeverity: PostmortemSeverity;
 
   /** 检测模式配置 */
   detection: {
-    enabled: boolean
-    excludePatterns: string[]
-    includePatterns: string[]
-  }
+    enabled: boolean;
+    excludePatterns: string[];
+    includePatterns: string[];
+  };
 
   /** AI 分析配置 */
   aiAnalysis: {
-    provider: 'claude' | 'openai' | 'local'
-    model?: string
-    maxTokens?: number
-  }
+    provider: 'claude' | 'openai' | 'local';
+    model?: string;
+    maxTokens?: number;
+  };
 }
 
 // ============================================================================
@@ -280,13 +280,13 @@ export interface PostmortemConfig {
 // ============================================================================
 
 export interface PostmortemEvent {
-  type: 'created' | 'updated' | 'resolved' | 'triggered'
-  postmortemId: string
-  timestamp: string
-  details: Record<string, unknown>
+  type: 'created' | 'updated' | 'resolved' | 'triggered';
+  postmortemId: string;
+  timestamp: string;
+  details: Record<string, unknown>;
 }
 
 export interface PostmortemHook {
-  event: PostmortemEvent['type']
-  handler: (event: PostmortemEvent) => Promise<void>
+  event: PostmortemEvent['type'];
+  handler: (event: PostmortemEvent) => Promise<void>;
 }

@@ -17,66 +17,66 @@ export type AgentRole
     | 'writer'
     | 'analyst'
     | 'coordinator'
-    | 'specialist'
+    | 'specialist';
 
 /**
  * Agent state
  */
 export interface AgentState {
   /** Agent ID */
-  agentId: string
+  agentId: string;
 
   /** Agent role */
-  role: AgentRole
+  role: AgentRole;
 
   /** Agent status */
-  status: 'idle' | 'active' | 'paused' | 'completed' | 'failed'
+  status: 'idle' | 'active' | 'paused' | 'completed' | 'failed';
 
   /** Current task */
-  currentTask?: string
+  currentTask?: string;
 
   /** Task history */
-  taskHistory: string[]
+  taskHistory: string[];
 
   /** Agent memory/context */
-  memory: Record<string, any>
+  memory: Record<string, any>;
 
   /** Creation timestamp */
-  createdAt: string
+  createdAt: string;
 
   /** Last updated timestamp */
-  updatedAt: string
+  updatedAt: string;
 
   /** Additional metadata */
-  metadata?: Record<string, any>
+  metadata?: Record<string, any>;
 }
 
 /**
  * Task priority levels
  */
-export type TaskPriority = 'low' | 'normal' | 'high' | 'critical'
+export type TaskPriority = 'low' | 'normal' | 'high' | 'critical';
 
 /**
  * Task status
  */
-export type TaskStatus = 'pending' | 'in_progress' | 'completed' | 'failed' | 'cancelled' | 'skipped'
+export type TaskStatus = 'pending' | 'in_progress' | 'completed' | 'failed' | 'cancelled' | 'skipped';
 
 /**
  * Notification type
  */
-export type NotificationType = 'info' | 'success' | 'warning' | 'error'
+export type NotificationType = 'info' | 'success' | 'warning' | 'error';
 
 /**
  * Notification
  */
 export interface Notification {
-  id: string
-  type: NotificationType
-  title: string
-  message: string
-  timestamp: string
-  read: boolean
-  metadata?: Record<string, any>
+  id: string;
+  type: NotificationType;
+  title: string;
+  message: string;
+  timestamp: string;
+  read: boolean;
+  metadata?: Record<string, any>;
 }
 
 /**
@@ -89,130 +89,130 @@ export type MessageType
     | 'event'
     | 'command'
     | 'query'
-    | 'error'
+    | 'error';
 
 /**
  * Message priority levels
  */
-export type MessagePriority = 'low' | 'normal' | 'high' | 'urgent'
+export type MessagePriority = 'low' | 'normal' | 'high' | 'urgent';
 
 /**
  * Message status
  */
-export type MessageStatus = 'pending' | 'processing' | 'completed' | 'failed'
+export type MessageStatus = 'pending' | 'processing' | 'completed' | 'failed';
 
 /**
  * Agent message for inter-agent communication
  */
 export interface AgentMessage<T = any> {
-  id: string
-  type: MessageType
-  from: AgentRole
-  to: AgentRole | AgentRole[] | 'all'
-  subject: string
-  payload: T
-  priority: MessagePriority
-  status: MessageStatus
-  timestamp: number
-  correlationId?: string
-  replyTo?: AgentRole
-  metadata?: Record<string, any>
+  id: string;
+  type: MessageType;
+  from: AgentRole;
+  to: AgentRole | AgentRole[] | 'all';
+  subject: string;
+  payload: T;
+  priority: MessagePriority;
+  status: MessageStatus;
+  timestamp: number;
+  correlationId?: string;
+  replyTo?: AgentRole;
+  metadata?: Record<string, any>;
   error?: {
-    code: string
-    message: string
-    stack?: string
-  }
+    code: string;
+    message: string;
+    stack?: string;
+  };
 }
 
 /**
  * Message filter function
  */
-export type MessageFilter = (message: AgentMessage) => boolean
+export type MessageFilter = (message: AgentMessage) => boolean;
 
 /**
  * Message handler function
  */
-export type MessageHandler = (message: AgentMessage) => void | Promise<void>
+export type MessageHandler = (message: AgentMessage) => void | Promise<void>;
 
 /**
  * Subscription options
  */
 export interface SubscriptionOptions {
-  type?: MessageType | MessageType[]
-  from?: AgentRole | AgentRole[]
-  priority?: MessagePriority | MessagePriority[]
-  filter?: MessageFilter
-  async?: boolean
+  type?: MessageType | MessageType[];
+  from?: AgentRole | AgentRole[];
+  priority?: MessagePriority | MessagePriority[];
+  filter?: MessageFilter;
+  async?: boolean;
 }
 
 /**
  * Message subscription
  */
 export interface Subscription {
-  id: string
-  subscriber: AgentRole
-  options: SubscriptionOptions
-  handler: MessageHandler
-  createdAt: number
-  unsubscribe: () => void
+  id: string;
+  subscriber: AgentRole;
+  options: SubscriptionOptions;
+  handler: MessageHandler;
+  createdAt: number;
+  unsubscribe: () => void;
 }
 
 /**
  * Message storage interface
  */
 export interface MessageStorage {
-  save: (message: AgentMessage) => Promise<void>
-  load: (filter?: MessageFilter) => Promise<AgentMessage[]>
-  delete: (messageId: string) => Promise<void>
-  clear: () => Promise<void>
-  getStats: () => Promise<{ count: number, size: number }>
+  save: (message: AgentMessage) => Promise<void>;
+  load: (filter?: MessageFilter) => Promise<AgentMessage[]>;
+  delete: (messageId: string) => Promise<void>;
+  clear: () => Promise<void>;
+  getStats: () => Promise<{ count: number; size: number }>;
 }
 
 /**
  * Message bus statistics
  */
 export interface MessageBusStats {
-  totalMessages: number
-  messagesByType: Record<MessageType, number>
-  messagesByStatus: Record<MessageStatus, number>
-  activeSubscriptions: number
-  historySize: number
-  deadLetterQueueSize: number
-  avgProcessingTime: number
+  totalMessages: number;
+  messagesByType: Record<MessageType, number>;
+  messagesByStatus: Record<MessageStatus, number>;
+  activeSubscriptions: number;
+  historySize: number;
+  deadLetterQueueSize: number;
+  avgProcessingTime: number;
 }
 
 /**
  * Brain configuration
  */
 export interface BrainConfig {
-  enablePersistence?: boolean
-  persistencePath?: string
-  maxHistorySize?: number
-  messageRetentionTime?: number
-  enableLogging?: boolean
-  logLevel?: 'debug' | 'info' | 'warn' | 'error'
-  enableValidation?: boolean
-  maxMessageSize?: number
-  enableDeadLetterQueue?: boolean
+  enablePersistence?: boolean;
+  persistencePath?: string;
+  maxHistorySize?: number;
+  messageRetentionTime?: number;
+  enableLogging?: boolean;
+  logLevel?: 'debug' | 'info' | 'warn' | 'error';
+  enableValidation?: boolean;
+  maxMessageSize?: number;
+  enableDeadLetterQueue?: boolean;
 
   // ============================================================================
   // Capability Router Configuration (v13.4.0)
   // ============================================================================
 
   /** 能力偏好 (1=优先简单, 5=优先复杂) */
-  capabilityPreference?: number
+  capabilityPreference?: number;
 
   /** 自动subagent阈值 (复杂度>=此值才自动用subagent) */
-  autoSubagentThreshold?: number
+  autoSubagentThreshold?: number;
 
   /** 最大并行agent数 */
-  maxParallelAgents?: number
+  maxParallelAgents?: number;
 
   /** 是否启用遥测 */
-  enableTelemetry?: boolean
+  enableTelemetry?: boolean;
 
   /** 是否显示决策理由 */
-  showDecisionReasoning?: boolean
+  showDecisionReasoning?: boolean;
 }
 
 /**
@@ -220,21 +220,21 @@ export interface BrainConfig {
  */
 export interface AgentMetrics {
   /** Agent ID */
-  agentId: string
+  agentId: string;
   /** Error rate (0-1) */
-  errorRate: number
+  errorRate: number;
   /** CPU usage percentage (0-100) */
-  cpuUsage: number
+  cpuUsage: number;
   /** Memory usage percentage (0-100) */
-  memoryUsage: number
+  memoryUsage: number;
   /** Tasks completed */
-  tasksCompleted: number
+  tasksCompleted: number;
   /** Tasks failed */
-  tasksFailed: number
+  tasksFailed: number;
   /** Average response time in ms */
-  avgResponseTime: number
+  avgResponseTime: number;
   /** Last updated timestamp */
-  lastUpdated: string
+  lastUpdated: string;
 }
 
 /**
@@ -248,60 +248,60 @@ export type RecoveryAction
     | 'rollback'
     | 'throttle'
     | 'scale_down'
-    | 'notify'
+    | 'notify';
 
 /**
  * Recovery strategy
  */
 export interface RecoveryStrategy {
   /** Strategy name */
-  name: string
+  name: string;
   /** Actions to take */
-  actions: RecoveryAction[]
+  actions: RecoveryAction[];
   /** Maximum retry attempts */
-  maxRetries: number
+  maxRetries: number;
   /** Backoff multiplier */
-  backoffMultiplier: number
+  backoffMultiplier: number;
   /** Initial delay in ms */
-  initialDelay: number
+  initialDelay: number;
   /** Maximum delay in ms */
-  maxDelay: number
+  maxDelay: number;
   /** Conditions to trigger this strategy */
   conditions: {
-    errorRate?: number
-    cpuThreshold?: number
-    memoryThreshold?: number
-  }
+    errorRate?: number;
+    cpuThreshold?: number;
+    memoryThreshold?: number;
+  };
 }
 
 export interface BrainFact {
-  key: string
-  value: string
-  confidence?: number
+  key: string;
+  value: string;
+  confidence?: number;
 }
 
 export interface BrainPattern {
-  name: string
-  description: string
-  category?: string
+  name: string;
+  description: string;
+  category?: string;
 }
 
 export interface BrainDecision {
-  decision: string
-  rationale: string
-  timestamp?: string
+  decision: string;
+  rationale: string;
+  timestamp?: string;
 }
 
 export interface BrainContext {
-  facts: BrainFact[]
-  patterns: BrainPattern[]
-  decisions: BrainDecision[]
-  metadata?: Record<string, any>
+  facts: BrainFact[];
+  patterns: BrainPattern[];
+  decisions: BrainDecision[];
+  metadata?: Record<string, any>;
 }
 
 export interface BrainSession {
-  context: BrainContext
-  metadata?: Record<string, any>
+  context: BrainContext;
+  metadata?: Record<string, any>;
 }
 
 /**
@@ -309,42 +309,42 @@ export interface BrainSession {
  */
 export interface SelfHealingConfig {
   /** Enable self-healing */
-  enabled: boolean
+  enabled: boolean;
   /** Health check interval in ms */
-  healthCheckInterval: number
+  healthCheckInterval: number;
   /** Error rate threshold to trigger recovery */
-  errorRateThreshold: number
+  errorRateThreshold: number;
   /** CPU usage threshold */
-  cpuThreshold: number
+  cpuThreshold: number;
   /** Memory usage threshold */
-  memoryThreshold: number
+  memoryThreshold: number;
   /** Recovery strategies */
-  strategies: RecoveryStrategy[]
+  strategies: RecoveryStrategy[];
   /** Enable automatic recovery */
-  autoRecover: boolean
+  autoRecover: boolean;
   /** Maximum recovery attempts */
-  maxRecoveryAttempts: number
+  maxRecoveryAttempts: number;
 }
 
 /**
  * Health status for agents
  */
-export type HealthStatus = 'healthy' | 'unhealthy' | 'degraded' | 'dead' | 'unknown'
+export type HealthStatus = 'healthy' | 'unhealthy' | 'degraded' | 'dead' | 'unknown';
 
 /**
  * Monitor configuration
  */
 export interface MonitorConfig {
   /** Heartbeat timeout in ms */
-  heartbeatTimeout: number
+  heartbeatTimeout: number;
   /** Health check interval in ms */
-  checkInterval: number
+  checkInterval: number;
   /** Maximum restart attempts */
-  maxRestartAttempts: number
+  maxRestartAttempts: number;
   /** Restart cooldown in ms */
-  restartCooldown: number
+  restartCooldown: number;
   /** Degraded threshold (0-1) */
-  degradedThreshold: number
+  degradedThreshold: number;
   /** Enable auto-restart */
-  autoRestart: boolean
+  autoRestart: boolean;
 }

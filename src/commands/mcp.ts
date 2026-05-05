@@ -10,131 +10,131 @@
  *   ccjk mcp status   - 快速状态查看
  */
 
-import type { CodeToolType, SupportedLang } from '../constants'
-import ansis from 'ansis'
-import { isCodeToolType } from '../constants'
-import { i18n } from '../i18n'
-import { readZcfConfig } from '../utils/ccjk-config'
+import type { CodeToolType, SupportedLang } from '../constants';
+import ansis from 'ansis';
+import { isCodeToolType } from '../constants';
+import { i18n } from '../i18n';
+import { readZcfConfig } from '../utils/ccjk-config';
 
 // Re-export release from utils
-export { mcpRelease } from '../utils/mcp-release'
+export { mcpRelease } from '../utils/mcp-release';
 // Re-export from individual modules for backward compatibility
-export { mcpDoctor } from './mcp-doctor'
-export { mcpInstall, mcpList, mcpSearch, mcpUninstall } from './mcp-market'
+export { mcpDoctor } from './mcp-doctor';
+export { mcpInstall, mcpList, mcpSearch, mcpUninstall } from './mcp-market';
 
-export { listProfiles, mcpProfile, showCurrentProfile, useProfile } from './mcp-profile'
+export { listProfiles, mcpProfile, showCurrentProfile, useProfile } from './mcp-profile';
 
 export interface McpCommandOptions {
-  lang?: SupportedLang
-  tool?: CodeToolType
-  verbose?: boolean
+  lang?: SupportedLang;
+  tool?: CodeToolType;
+  verbose?: boolean;
 }
 
 function resolveMcpTool(options: McpCommandOptions = {}): 'claude-code' | 'clavue' | 'codex' {
   if (options.tool === 'codex' || options.tool === 'claude-code' || options.tool === 'clavue') {
-    return options.tool
+    return options.tool;
   }
 
-  const zcfConfig = readZcfConfig()
+  const zcfConfig = readZcfConfig();
   if (zcfConfig?.codeToolType && isCodeToolType(zcfConfig.codeToolType)) {
     return zcfConfig.codeToolType === 'codex'
       ? 'codex'
       : zcfConfig.codeToolType === 'clavue'
         ? 'clavue'
-        : 'claude-code'
+        : 'claude-code';
   }
 
-  return 'claude-code'
+  return 'claude-code';
 }
 
 function getServiceTier(
   serviceId: string,
   tiers: Record<string, 'core' | 'ondemand' | 'scenario'>,
 ): 'core' | 'ondemand' | 'scenario' {
-  const directMatch = tiers[serviceId]
+  const directMatch = tiers[serviceId];
   if (directMatch) {
-    return directMatch
+    return directMatch;
   }
 
   const caseInsensitiveMatch = Object.entries(tiers).find(
     ([id]) => id.toLowerCase() === serviceId.toLowerCase(),
-  )
+  );
 
-  return caseInsensitiveMatch?.[1] || 'ondemand'
+  return caseInsensitiveMatch?.[1] || 'ondemand';
 }
 
 /**
  * MCP 快速状态查看
  */
 export async function mcpStatus(options: McpCommandOptions = {}): Promise<void> {
-  const { readMcpConfig } = await import('../utils/claude-config')
-  const { readCodexConfig } = await import('../utils/code-tools/codex')
-  const { checkMcpPerformance, formatPerformanceWarning } = await import('../utils/mcp-performance')
-  const { MCP_SERVICE_TIERS } = await import('../config/mcp-tiers')
+  const { readMcpConfig } = await import('../utils/claude-config');
+  const { readCodexConfig } = await import('../utils/code-tools/codex');
+  const { checkMcpPerformance, formatPerformanceWarning } = await import('../utils/mcp-performance');
+  const { MCP_SERVICE_TIERS } = await import('../config/mcp-tiers');
 
-  const lang = options.lang || (i18n.language as SupportedLang) || 'en'
-  const isZh = lang === 'zh-CN'
-  const targetTool = resolveMcpTool(options)
+  const lang = options.lang || (i18n.language as SupportedLang) || 'en';
+  const isZh = lang === 'zh-CN';
+  const targetTool = resolveMcpTool(options);
   const services = targetTool === 'codex'
     ? (readCodexConfig()?.mcpServices || []).map(service => service.id)
-    : Object.keys((await readMcpConfig(targetTool))?.mcpServers || {})
+    : Object.keys((await readMcpConfig(targetTool))?.mcpServers || {});
 
-  const targetToolName = targetTool === 'codex' ? 'Codex' : targetTool === 'clavue' ? 'Clavue' : 'Claude Code'
+  const targetToolName = targetTool === 'codex' ? 'Codex' : targetTool === 'clavue' ? 'Clavue' : 'Claude Code';
 
-  console.log('')
+  console.log('');
   console.log(ansis.bold.cyan(isZh
     ? `⚡ ${targetToolName} MCP 快速状态`
-    : `⚡ ${targetToolName} MCP Quick Status`))
-  console.log(ansis.dim('─'.repeat(40)))
+    : `⚡ ${targetToolName} MCP Quick Status`));
+  console.log(ansis.dim('─'.repeat(40)));
 
   // 分类统计
-  let coreCount = 0
-  let ondemandCount = 0
-  let scenarioCount = 0
+  let coreCount = 0;
+  let ondemandCount = 0;
+  let scenarioCount = 0;
 
   for (const svc of services) {
-    const tier = getServiceTier(svc, MCP_SERVICE_TIERS)
+    const tier = getServiceTier(svc, MCP_SERVICE_TIERS);
     if (tier === 'core')
-      coreCount++
+      coreCount++;
     else if (tier === 'ondemand')
-      ondemandCount++
-    else scenarioCount++
+      ondemandCount++;
+    else scenarioCount++;
   }
 
-  console.log('')
-  console.log(`${ansis.green('●')} ${isZh ? '核心服务' : 'Core'}: ${coreCount}`)
-  console.log(`${ansis.yellow('●')} ${isZh ? '按需服务' : 'On-demand'}: ${ondemandCount}`)
-  console.log(`${ansis.green('●')} ${isZh ? '场景服务' : 'Scenario'}: ${scenarioCount}`)
-  console.log(`${ansis.dim('─')} ${isZh ? '总计' : 'Total'}: ${services.length}`)
+  console.log('');
+  console.log(`${ansis.green('●')} ${isZh ? '核心服务' : 'Core'}: ${coreCount}`);
+  console.log(`${ansis.yellow('●')} ${isZh ? '按需服务' : 'On-demand'}: ${ondemandCount}`);
+  console.log(`${ansis.green('●')} ${isZh ? '场景服务' : 'Scenario'}: ${scenarioCount}`);
+  console.log(`${ansis.dim('─')} ${isZh ? '总计' : 'Total'}: ${services.length}`);
 
   // 性能检查
-  const perfResult = checkMcpPerformance(services.length)
+  const perfResult = checkMcpPerformance(services.length);
   if (perfResult) {
-    console.log('')
-    console.log(formatPerformanceWarning(perfResult, lang))
+    console.log('');
+    console.log(formatPerformanceWarning(perfResult, lang));
   }
   else {
-    console.log('')
-    console.log(ansis.green(isZh ? '✓ 性能状态良好' : '✓ Performance OK'))
+    console.log('');
+    console.log(ansis.green(isZh ? '✓ 性能状态良好' : '✓ Performance OK'));
   }
 
-  console.log('')
+  console.log('');
   console.log(ansis.dim(isZh
     ? `提示: 使用 ccjk mcp doctor${targetTool === 'codex' ? ' -T codex' : ''} 查看详细诊断`
-    : `Tip: Use ccjk mcp doctor${targetTool === 'codex' ? ' -T codex' : ''} for detailed diagnostics`))
+    : `Tip: Use ccjk mcp doctor${targetTool === 'codex' ? ' -T codex' : ''} for detailed diagnostics`));
 }
 
 /**
  * 显示 MCP 命令帮助
  */
 export function mcpHelp(options: McpCommandOptions = {}): void {
-  const lang = options.lang || (i18n.language as SupportedLang) || 'en'
-  const isZh = lang === 'zh-CN'
+  const lang = options.lang || (i18n.language as SupportedLang) || 'en';
+  const isZh = lang === 'zh-CN';
 
-  console.log('')
-  console.log(ansis.bold.cyan(isZh ? '🔧 MCP 管理命令' : '🔧 MCP Management Commands'))
-  console.log(ansis.dim('─'.repeat(50)))
-  console.log('')
+  console.log('');
+  console.log(ansis.bold.cyan(isZh ? '🔧 MCP 管理命令' : '🔧 MCP Management Commands'));
+  console.log(ansis.dim('─'.repeat(50)));
+  console.log('');
 
   const commands = [
     {
@@ -165,16 +165,16 @@ export function mcpHelp(options: McpCommandOptions = {}): void {
       cmd: 'ccjk mcp list',
       desc: isZh ? '列出已安装服务' : 'List installed services',
     },
-  ]
+  ];
 
   for (const { cmd, desc } of commands) {
-    console.log(`  ${ansis.green(cmd)}`)
-    console.log(`    ${ansis.dim(desc)}`)
-    console.log('')
+    console.log(`  ${ansis.green(cmd)}`);
+    console.log(`    ${ansis.dim(desc)}`);
+    console.log('');
   }
 
-  console.log(ansis.dim('─'.repeat(50)))
+  console.log(ansis.dim('─'.repeat(50)));
   console.log(ansis.dim(isZh
     ? '💡 推荐: 使用 minimal 预设可显著提升性能'
-    : '💡 Tip: Use minimal profile for best performance'))
+    : '💡 Tip: Use minimal profile for best performance'));
 }

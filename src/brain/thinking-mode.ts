@@ -10,26 +10,26 @@
  * @module brain/thinking-mode
  */
 
-import type { ThinkingModeConfig, ThinkingModeSettings } from '../types/thinking'
-import { SETTINGS_FILE } from '../constants'
-import { i18n } from '../i18n'
-import { readJsonConfig, writeJsonConfig } from '../utils/json-config'
+import type { ThinkingModeConfig, ThinkingModeSettings } from '../types/thinking';
+import { SETTINGS_FILE } from '../constants';
+import { i18n } from '../i18n';
+import { readJsonConfig, writeJsonConfig } from '../utils/json-config';
 
 /**
  * Default thinking mode budget tokens for Opus 4.5
  * Claude Code defaults to 20000 tokens for thinking mode
  */
-export const DEFAULT_BUDGET_TOKENS = 20000
+export const DEFAULT_BUDGET_TOKENS = 20000;
 
 /**
  * Minimum allowed budget tokens
  */
-export const MIN_BUDGET_TOKENS = 1000
+export const MIN_BUDGET_TOKENS = 1000;
 
 /**
  * Maximum allowed budget tokens
  */
-export const MAX_BUDGET_TOKENS = 200000
+export const MAX_BUDGET_TOKENS = 200000;
 
 /**
  * Models that support thinking mode (Opus 4.5+)
@@ -41,7 +41,7 @@ export const THINKING_SUPPORTED_MODELS = [
   'claude-3-7-opus-20250219', // Opus 4.5 - default enabled
   'claude-opus-4',
   'opus-4',
-] as const
+] as const;
 
 /**
  * Default thinking mode configuration
@@ -52,26 +52,26 @@ export const DEFAULT_THINKING_CONFIG: ThinkingModeSettings = {
   inheritForSubAgents: true,
   subAgentReduction: 0.5, // Sub-agents get 50% of parent budget
   alwaysUseThinking: false, // Only for complex tasks
-}
+};
 
 /**
  * Thinking mode state manager
  */
 export class ThinkingModeManager {
-  private config: ThinkingModeSettings
-  private configPath: string
+  private config: ThinkingModeSettings;
+  private configPath: string;
 
   constructor(configPath: string = SETTINGS_FILE) {
-    this.configPath = configPath
-    this.config = this.loadConfig()
+    this.configPath = configPath;
+    this.config = this.loadConfig();
   }
 
   /**
    * Load thinking mode configuration from settings.json
    */
   loadConfig(): ThinkingModeSettings {
-    const settings = readJsonConfig<any>(this.configPath)
-    const thinkingConfig = settings?.thinking || {}
+    const settings = readJsonConfig<any>(this.configPath);
+    const thinkingConfig = settings?.thinking || {};
 
     // Merge with defaults to ensure all fields exist
     return {
@@ -80,140 +80,140 @@ export class ThinkingModeManager {
       inheritForSubAgents: thinkingConfig.inheritForSubAgents ?? DEFAULT_THINKING_CONFIG.inheritForSubAgents,
       subAgentReduction: thinkingConfig.subAgentReduction ?? DEFAULT_THINKING_CONFIG.subAgentReduction,
       alwaysUseThinking: thinkingConfig.alwaysUseThinking ?? DEFAULT_THINKING_CONFIG.alwaysUseThinking,
-    }
+    };
   }
 
   /**
    * Save thinking mode configuration to settings.json
    */
   saveConfig(): void {
-    const settings = readJsonConfig<any>(this.configPath) || {}
+    const settings = readJsonConfig<any>(this.configPath) || {};
 
     // Update thinking section
-    settings.thinking = this.config
+    settings.thinking = this.config;
 
-    writeJsonConfig(this.configPath, settings)
+    writeJsonConfig(this.configPath, settings);
   }
 
   /**
    * Get current thinking mode configuration
    */
   getConfig(): ThinkingModeSettings {
-    return { ...this.config }
+    return { ...this.config };
   }
 
   /**
    * Check if thinking mode is enabled
    */
   isEnabled(): boolean {
-    return this.config.enabled
+    return this.config.enabled;
   }
 
   /**
    * Enable or disable thinking mode
    */
   setEnabled(enabled: boolean): void {
-    this.config.enabled = enabled
-    this.saveConfig()
+    this.config.enabled = enabled;
+    this.saveConfig();
   }
 
   /**
    * Get budget tokens
    */
   getBudgetTokens(): number {
-    return this.config.budgetTokens
+    return this.config.budgetTokens;
   }
 
   /**
    * Set budget tokens with validation
    */
-  setBudgetTokens(tokens: number): { success: boolean, error?: string } {
+  setBudgetTokens(tokens: number): { success: boolean; error?: string } {
     if (tokens < MIN_BUDGET_TOKENS) {
       return {
         success: false,
         error: `Budget tokens must be at least ${MIN_BUDGET_TOKENS}`,
-      }
+      };
     }
 
     if (tokens > MAX_BUDGET_TOKENS) {
       return {
         success: false,
         error: `Budget tokens cannot exceed ${MAX_BUDGET_TOKENS}`,
-      }
+      };
     }
 
-    this.config.budgetTokens = tokens
-    this.saveConfig()
+    this.config.budgetTokens = tokens;
+    this.saveConfig();
 
-    return { success: true }
+    return { success: true };
   }
 
   /**
    * Check if sub-agents should inherit thinking mode
    */
   isInheritForSubAgents(): boolean {
-    return this.config.inheritForSubAgents
+    return this.config.inheritForSubAgents;
   }
 
   /**
    * Enable or disable sub-agent inheritance
    */
   setInheritForSubAgents(inherit: boolean): void {
-    this.config.inheritForSubAgents = inherit
-    this.saveConfig()
+    this.config.inheritForSubAgents = inherit;
+    this.saveConfig();
   }
 
   /**
    * Get sub-agent budget reduction factor
    */
   getSubAgentReduction(): number {
-    return this.config.subAgentReduction
+    return this.config.subAgentReduction;
   }
 
   /**
    * Set sub-agent budget reduction factor (0.1 - 1.0)
    */
-  setSubAgentReduction(reduction: number): { success: boolean, error?: string } {
+  setSubAgentReduction(reduction: number): { success: boolean; error?: string } {
     if (reduction < 0.1 || reduction > 1.0) {
       return {
         success: false,
         error: 'Reduction factor must be between 0.1 and 1.0',
-      }
+      };
     }
 
-    this.config.subAgentReduction = reduction
-    this.saveConfig()
+    this.config.subAgentReduction = reduction;
+    this.saveConfig();
 
-    return { success: true }
+    return { success: true };
   }
 
   /**
    * Calculate budget for sub-agent based on reduction factor
    */
   calculateSubAgentBudget(): number {
-    return Math.floor(this.config.budgetTokens * this.config.subAgentReduction)
+    return Math.floor(this.config.budgetTokens * this.config.subAgentReduction);
   }
 
   /**
    * Check if always using thinking mode (even for simple tasks)
    */
   isAlwaysUseThinking(): boolean {
-    return this.config.alwaysUseThinking
+    return this.config.alwaysUseThinking;
   }
 
   /**
    * Set always use thinking mode
    */
   setAlwaysUseThinking(always: boolean): void {
-    this.config.alwaysUseThinking = always
-    this.saveConfig()
+    this.config.alwaysUseThinking = always;
+    this.saveConfig();
   }
 
   /**
    * Check if thinking mode is supported for the given model
    */
   isModelSupported(model: string): boolean {
-    return THINKING_SUPPORTED_MODELS.some(m => model.includes(m))
+    return THINKING_SUPPORTED_MODELS.some(m => model.includes(m));
   }
 
   /**
@@ -221,25 +221,25 @@ export class ThinkingModeManager {
    */
   generateCliFlags(): string[] {
     if (!this.config.enabled) {
-      return []
+      return [];
     }
 
-    const flags: string[] = []
+    const flags: string[] = [];
 
     // Add thinking budget token flag
-    flags.push(`--thinking-budget-tokens=${this.config.budgetTokens}`)
+    flags.push(`--thinking-budget-tokens=${this.config.budgetTokens}`);
 
     // Add thinking enabled flag
-    flags.push('--thinking=true')
+    flags.push('--thinking=true');
 
-    return flags
+    return flags;
   }
 
   /**
    * Get thinking mode status for display
    */
   getStatus(_enabledOnly: boolean = false): ThinkingModeStatus {
-    const isZh = i18n.language === 'zh-CN'
+    const isZh = i18n.language === 'zh-CN';
 
     return {
       enabled: this.config.enabled,
@@ -255,15 +255,15 @@ export class ThinkingModeManager {
         : isZh
           ? 'Thinking Mode 已禁用'
           : 'Thinking Mode disabled',
-    }
+    };
   }
 
   /**
    * Reset to default configuration
    */
   resetToDefaults(): void {
-    this.config = { ...DEFAULT_THINKING_CONFIG }
-    this.saveConfig()
+    this.config = { ...DEFAULT_THINKING_CONFIG };
+    this.saveConfig();
   }
 
   /**
@@ -273,8 +273,8 @@ export class ThinkingModeManager {
     this.config = {
       ...this.config,
       ...partial,
-    }
-    this.saveConfig()
+    };
+    this.saveConfig();
   }
 }
 
@@ -282,36 +282,36 @@ export class ThinkingModeManager {
  * Thinking mode status for display
  */
 export interface ThinkingModeStatus {
-  enabled: boolean
-  budgetTokens: number
-  inheritForSubAgents: boolean
-  subAgentBudget: number
-  alwaysUseThinking: boolean
-  supportedModels: readonly string[]
-  summary: string
+  enabled: boolean;
+  budgetTokens: number;
+  inheritForSubAgents: boolean;
+  subAgentBudget: number;
+  alwaysUseThinking: boolean;
+  supportedModels: readonly string[];
+  summary: string;
 }
 
 /**
  * Global thinking mode manager instance
  */
-let globalThinkingManager: ThinkingModeManager | null = null
+let globalThinkingManager: ThinkingModeManager | null = null;
 
 /**
  * Get or create the global thinking mode manager
  */
 export function getThinkingManager(configPath?: string): ThinkingModeManager {
   if (!globalThinkingManager) {
-    globalThinkingManager = new ThinkingModeManager(configPath)
+    globalThinkingManager = new ThinkingModeManager(configPath);
   }
 
-  return globalThinkingManager
+  return globalThinkingManager;
 }
 
 /**
  * Reset the global thinking mode manager (for testing)
  */
 export function resetThinkingManager(): void {
-  globalThinkingManager = null
+  globalThinkingManager = null;
 }
 
 /**
@@ -323,24 +323,24 @@ export function shouldUseThinkingMode(
   taskComplexity: 'simple' | 'medium' | 'complex',
   model?: string,
 ): boolean {
-  const manager = getThinkingManager()
+  const manager = getThinkingManager();
 
   if (!manager.isEnabled()) {
-    return false
+    return false;
   }
 
   // Check model support if specified
   if (model && !manager.isModelSupported(model)) {
-    return false
+    return false;
   }
 
   // Always use thinking if configured
   if (manager.isAlwaysUseThinking()) {
-    return true
+    return true;
   }
 
   // Use thinking for medium and complex tasks
-  return taskComplexity === 'medium' || taskComplexity === 'complex'
+  return taskComplexity === 'medium' || taskComplexity === 'complex';
 }
 
 /**
@@ -358,7 +358,7 @@ export function createThinkingSettings(
       subAgentReduction: DEFAULT_THINKING_CONFIG.subAgentReduction,
       alwaysUseThinking: DEFAULT_THINKING_CONFIG.alwaysUseThinking,
     },
-  }
+  };
 }
 
 /**
@@ -366,28 +366,28 @@ export function createThinkingSettings(
  */
 export function validateThinkingConfig(
   config: Partial<ThinkingModeSettings>,
-): { valid: boolean, errors: string[] } {
-  const errors: string[] = []
+): { valid: boolean; errors: string[] } {
+  const errors: string[] = [];
 
   if (config.budgetTokens !== undefined) {
     if (config.budgetTokens < MIN_BUDGET_TOKENS) {
-      errors.push(`Budget tokens must be at least ${MIN_BUDGET_TOKENS}`)
+      errors.push(`Budget tokens must be at least ${MIN_BUDGET_TOKENS}`);
     }
     if (config.budgetTokens > MAX_BUDGET_TOKENS) {
-      errors.push(`Budget tokens cannot exceed ${MAX_BUDGET_TOKENS}`)
+      errors.push(`Budget tokens cannot exceed ${MAX_BUDGET_TOKENS}`);
     }
   }
 
   if (config.subAgentReduction !== undefined) {
     if (config.subAgentReduction < 0.1 || config.subAgentReduction > 1.0) {
-      errors.push('Sub-agent reduction factor must be between 0.1 and 1.0')
+      errors.push('Sub-agent reduction factor must be between 0.1 and 1.0');
     }
   }
 
   return {
     valid: errors.length === 0,
     errors,
-  }
+  };
 }
 
 /**
@@ -397,11 +397,11 @@ export function migrateLegacySettings(
   settings: any,
 ): Partial<ThinkingModeSettings> | null {
   // Check for legacy settings
-  const legacyEnabled = settings?.thinkingModeEnabled ?? settings?.thinking_enabled
-  const legacyBudget = settings?.thinkingBudget ?? settings?.thinking_budget
+  const legacyEnabled = settings?.thinkingModeEnabled ?? settings?.thinking_enabled;
+  const legacyBudget = settings?.thinkingBudget ?? settings?.thinking_budget;
 
   if (legacyEnabled === undefined && legacyBudget === undefined) {
-    return null
+    return null;
   }
 
   return {
@@ -410,5 +410,5 @@ export function migrateLegacySettings(
     inheritForSubAgents: DEFAULT_THINKING_CONFIG.inheritForSubAgents,
     subAgentReduction: DEFAULT_THINKING_CONFIG.subAgentReduction,
     alwaysUseThinking: DEFAULT_THINKING_CONFIG.alwaysUseThinking,
-  }
+  };
 }

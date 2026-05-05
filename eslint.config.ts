@@ -1,17 +1,33 @@
-import antfu from '@antfu/eslint-config'
+import antfu from '@antfu/eslint-config';
 
 export default antfu({
   type: 'lib',
   formatters: true,
   pnpm: true,
+  stylistic: {
+    indent: 2,
+    quotes: 'single',
+    semi: true,
+  },
   ignores: [
     '.bmad-core/**',
+    '.cache/**',
     '.claude/**',
-    '**/**.md',
     '.cunzhi-memory/**',
-    'docs/docs/sdk/**',
-    'html/assets/**',
+    '.temp/**',
+    '**/**.md',
+    '**/*.d.ts',
+    '**/*.report.md',
+    '**/reports/**',
+    'ccjk-setup-report-*.markdown',
     'dist/**',
+    'docs/docs/sdk/**',
+    'evals/**',
+    'examples/**',
+    'html/assets/**',
+    'node_modules/**',
+    'pnpm-lock.yaml',
+    'setup-report-*.md',
     'tests/analyzers/fixtures/**',
   ],
   rules: {
@@ -20,6 +36,7 @@ export default antfu({
     'node/prefer-global/buffer': 'off',
     'ts/explicit-function-return-type': 'off',
     'no-template-curly-in-string': 'off',
+    'antfu/no-import-dist': 'off',
     'ts/no-require-imports': 'off',
     'regexp/no-unused-capturing-group': 'off',
     'regexp/no-super-linear-backtracking': 'off',
@@ -32,6 +49,7 @@ export default antfu({
     'no-prototype-builtins': 'off',
     'pnpm/yaml-no-unused-catalog-item': 'off',
     'pnpm/yaml-no-duplicate-catalog-item': 'off',
+    'pnpm/json-enforce-catalog': 'off',
     'no-case-declarations': 'off',
     'no-cond-assign': 'off',
     'style/no-mixed-operators': 'off',
@@ -62,4 +80,4 @@ export default antfu({
       caughtErrorsIgnorePattern: '^_',
     }],
   },
-})
+});

@@ -5,7 +5,7 @@
  * 支持 Subagent 驱动的两阶段审查工作流
  */
 
-import type { CcjkSkill } from '../skills/types'
+import type { CcjkSkill } from '../skills/types';
 
 /**
  * Workflow Skill 定义
@@ -226,18 +226,18 @@ ccjk workflow logs <workflow-id>
 ccjk workflow logs <task-id> --tail 100
 \`\`\`
 `,
-}
+};
 
 /**
  * 获取 workflow skill 的 markdown 模板
  */
 export function getWorkflowSkillTemplate(): string {
-  return workflowSkill.template
+  return workflowSkill.template;
 }
 
 /**
  * 获取 workflow skill 定义
  */
 export function getWorkflowSkill(): CcjkSkill {
-  return workflowSkill
+  return workflowSkill;
 }

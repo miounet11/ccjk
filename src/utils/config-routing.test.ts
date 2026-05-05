@@ -1,24 +1,24 @@
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
-import { tmpdir } from 'node:os'
-import { join } from 'node:path'
-import { beforeAll, describe, expect, it } from 'vitest'
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { beforeAll, describe, expect, it } from 'vitest';
 
-import { initI18n } from '../i18n'
-import { mergeSettingsFile } from './config'
-import { sanitizeClaudeSettings, validateClaudeSettings } from './config-validator'
-import { normalizeClaudeFamilySettings } from './claude-settings-normalizer'
+import { initI18n } from '../i18n';
+import { normalizeClaudeFamilySettings } from './claude-settings-normalizer';
+import { mergeSettingsFile } from './config';
+import { sanitizeClaudeSettings, validateClaudeSettings } from './config-validator';
 
 beforeAll(async () => {
-  await initI18n('zh-CN')
-})
+  await initI18n('zh-CN');
+});
 
 describe('mergeSettingsFile', () => {
   it('drops invalid default model during template merge', () => {
-    const tempDir = mkdtempSync(join(tmpdir(), 'ccjk-config-merge-'))
+    const tempDir = mkdtempSync(join(tmpdir(), 'ccjk-config-merge-'));
 
     try {
-      const templatePath = join(tempDir, 'template.json')
-      const targetPath = join(tempDir, 'settings.json')
+      const templatePath = join(tempDir, 'template.json');
+      const targetPath = join(tempDir, 'settings.json');
 
       writeFileSync(templatePath, JSON.stringify({
         $schema: 'https://json.schemastore.org/claude-code-settings.json',
@@ -38,7 +38,7 @@ describe('mergeSettingsFile', () => {
         permissions: {
           allow: ['Read(*)'],
         },
-      }, null, 2))
+      }, null, 2));
 
       writeFileSync(targetPath, JSON.stringify({
         env: {
@@ -49,25 +49,25 @@ describe('mergeSettingsFile', () => {
         permissions: {
           allow: ['Read(*)'],
         },
-      }, null, 2))
+      }, null, 2));
 
-      mergeSettingsFile(templatePath, targetPath)
+      mergeSettingsFile(templatePath, targetPath);
 
-      const merged = JSON.parse(readFileSync(targetPath, 'utf8'))
-      expect(merged.model).toBeUndefined()
-      expect(merged.env.ANTHROPIC_DEFAULT_HAIKU_MODEL).toBe('claude-haiku-4-5-20251001')
+      const merged = JSON.parse(readFileSync(targetPath, 'utf8'));
+      expect(merged.model).toBeUndefined();
+      expect(merged.env.ANTHROPIC_DEFAULT_HAIKU_MODEL).toBe('claude-haiku-4-5-20251001');
     }
     finally {
-      rmSync(tempDir, { recursive: true, force: true })
+      rmSync(tempDir, { recursive: true, force: true });
     }
-  })
+  });
 
   it('repairs invalid statusLine during template merge', () => {
-    const tempDir = mkdtempSync(join(tmpdir(), 'ccjk-config-merge-'))
+    const tempDir = mkdtempSync(join(tmpdir(), 'ccjk-config-merge-'));
 
     try {
-      const templatePath = join(tempDir, 'template.json')
-      const targetPath = join(tempDir, 'settings.json')
+      const templatePath = join(tempDir, 'template.json');
+      const targetPath = join(tempDir, 'settings.json');
 
       writeFileSync(templatePath, JSON.stringify({
         statusLine: {},
@@ -80,32 +80,32 @@ describe('mergeSettingsFile', () => {
         permissions: {
           allow: ['Read(*)'],
         },
-      }, null, 2))
+      }, null, 2));
 
       writeFileSync(targetPath, JSON.stringify({
         statusLine: {},
         env: {
           ANTHROPIC_API_KEY: 'sk-test',
         },
-      }, null, 2))
+      }, null, 2));
 
-      mergeSettingsFile(templatePath, targetPath)
+      mergeSettingsFile(templatePath, targetPath);
 
-      const merged = JSON.parse(readFileSync(targetPath, 'utf8'))
-      expect(merged.statusLine).toBeUndefined()
-      expect(merged.env.ANTHROPIC_API_KEY).toBe('sk-test')
+      const merged = JSON.parse(readFileSync(targetPath, 'utf8'));
+      expect(merged.statusLine).toBeUndefined();
+      expect(merged.env.ANTHROPIC_API_KEY).toBe('sk-test');
     }
     finally {
-      rmSync(tempDir, { recursive: true, force: true })
+      rmSync(tempDir, { recursive: true, force: true });
     }
-  })
+  });
 
   it('preserves valid statusLine during template merge', () => {
-    const tempDir = mkdtempSync(join(tmpdir(), 'ccjk-config-merge-'))
+    const tempDir = mkdtempSync(join(tmpdir(), 'ccjk-config-merge-'));
 
     try {
-      const templatePath = join(tempDir, 'template.json')
-      const targetPath = join(tempDir, 'settings.json')
+      const templatePath = join(tempDir, 'template.json');
+      const targetPath = join(tempDir, 'settings.json');
 
       writeFileSync(templatePath, JSON.stringify({
         env: {},
@@ -117,40 +117,40 @@ describe('mergeSettingsFile', () => {
         permissions: {
           allow: ['Read(*)'],
         },
-      }, null, 2))
+      }, null, 2));
 
       writeFileSync(targetPath, JSON.stringify({
         statusLine: {
           type: 'command',
           command: 'ccusage statusline',
         },
-      }, null, 2))
+      }, null, 2));
 
-      mergeSettingsFile(templatePath, targetPath)
+      mergeSettingsFile(templatePath, targetPath);
 
-      const merged = JSON.parse(readFileSync(targetPath, 'utf8'))
+      const merged = JSON.parse(readFileSync(targetPath, 'utf8'));
       expect(merged.statusLine).toEqual({
         type: 'command',
         command: 'ccusage statusline',
-      })
+      });
     }
     finally {
-      rmSync(tempDir, { recursive: true, force: true })
+      rmSync(tempDir, { recursive: true, force: true });
     }
-  })
-})
+  });
+});
 
 describe('config-validator', () => {
   it('treats model default as invalid runtime config', () => {
-    expect(validateClaudeSettings({ model: 'default' })).toBe(false)
-  })
+    expect(validateClaudeSettings({ model: 'default' })).toBe(false);
+  });
 
   it('removes model default during sanitization', () => {
     expect(sanitizeClaudeSettings({ model: 'default', env: { ANTHROPIC_API_KEY: 'sk-test' } })).toEqual({
       env: { ANTHROPIC_API_KEY: 'sk-test' },
-    })
-  })
-})
+    });
+  });
+});
 
 describe('normalizeClaudeFamilySettings', () => {
   it('adds the required command type when command exists', () => {
@@ -158,11 +158,11 @@ describe('normalizeClaudeFamilySettings', () => {
       statusLine: {
         command: 'ccusage statusline',
       },
-    })
+    });
 
     expect(settings.statusLine).toEqual({
       type: 'command',
       command: 'ccusage statusline',
-    })
-  })
-})
+    });
+  });
+});

@@ -8,10 +8,10 @@
  * 4. 智能降级 - 缺少依赖时自动使用替代方案
  */
 
-import { existsSync, readFileSync } from 'node:fs'
-import { homedir } from 'node:os'
-import { join } from 'node:path'
-import process from 'node:process'
+import { existsSync, readFileSync } from 'node:fs';
+import { homedir } from 'node:os';
+import { join } from 'node:path';
+import process from 'node:process';
 
 // ============================================================================
 // 类型定义
@@ -19,46 +19,46 @@ import process from 'node:process'
 
 export interface ZeroConfigContext {
   /** 项目根目录 */
-  projectRoot: string
+  projectRoot: string;
   /** 检测到的技术栈 */
-  techStack: TechStack
+  techStack: TechStack;
   /** 可用的工具 */
-  availableTools: AvailableTool[]
+  availableTools: AvailableTool[];
   /** 推荐的配置 */
-  recommendations: Recommendation[]
+  recommendations: Recommendation[];
   /** 环境信息 */
-  environment: EnvironmentInfo
+  environment: EnvironmentInfo;
 }
 
 export interface TechStack {
-  language: string[]
-  framework: string[]
-  buildTool: string[]
-  testFramework: string[]
-  packageManager: 'npm' | 'yarn' | 'pnpm' | 'bun' | null
+  language: string[];
+  framework: string[];
+  buildTool: string[];
+  testFramework: string[];
+  packageManager: 'npm' | 'yarn' | 'pnpm' | 'bun' | null;
 }
 
 export interface AvailableTool {
-  name: string
-  type: 'cli' | 'mcp' | 'skill'
-  installed: boolean
-  version?: string
-  autoInstallable: boolean
+  name: string;
+  type: 'cli' | 'mcp' | 'skill';
+  installed: boolean;
+  version?: string;
+  autoInstallable: boolean;
 }
 
 export interface Recommendation {
-  tool: string
-  reason: string
-  priority: 'high' | 'medium' | 'low'
-  installCommand?: string
+  tool: string;
+  reason: string;
+  priority: 'high' | 'medium' | 'low';
+  installCommand?: string;
 }
 
 export interface EnvironmentInfo {
-  os: NodeJS.Platform
-  nodeVersion: string
-  hasGit: boolean
-  hasDocker: boolean
-  isCI: boolean
+  os: NodeJS.Platform;
+  nodeVersion: string;
+  hasGit: boolean;
+  hasDocker: boolean;
+  isCI: boolean;
 }
 
 // ============================================================================
@@ -75,20 +75,20 @@ export async function detectTechStack(projectRoot: string): Promise<TechStack> {
     buildTool: [],
     testFramework: [],
     packageManager: null,
-  }
+  };
 
   // 检测包管理器
   if (existsSync(join(projectRoot, 'pnpm-lock.yaml'))) {
-    stack.packageManager = 'pnpm'
+    stack.packageManager = 'pnpm';
   }
   else if (existsSync(join(projectRoot, 'yarn.lock'))) {
-    stack.packageManager = 'yarn'
+    stack.packageManager = 'yarn';
   }
   else if (existsSync(join(projectRoot, 'bun.lockb'))) {
-    stack.packageManager = 'bun'
+    stack.packageManager = 'bun';
   }
   else if (existsSync(join(projectRoot, 'package-lock.json'))) {
-    stack.packageManager = 'npm'
+    stack.packageManager = 'npm';
   }
 
   // 检测语言
@@ -99,31 +99,31 @@ export async function detectTechStack(projectRoot: string): Promise<TechStack> {
     rust: ['Cargo.toml'],
     go: ['go.mod'],
     java: ['pom.xml', 'build.gradle'],
-  }
+  };
 
   for (const [lang, files] of Object.entries(langIndicators)) {
     for (const file of files) {
       if (file.includes('*')) {
         // 简单通配符支持
-        const base = file.replace('*.', '')
+        const base = file.replace('*.', '');
         if (existsSync(join(projectRoot, base))) {
-          stack.language.push(lang)
-          break
+          stack.language.push(lang);
+          break;
         }
       }
       else if (existsSync(join(projectRoot, file))) {
-        stack.language.push(lang)
-        break
+        stack.language.push(lang);
+        break;
       }
     }
   }
 
   // 检测框架（通过 package.json）
-  const pkgPath = join(projectRoot, 'package.json')
+  const pkgPath = join(projectRoot, 'package.json');
   if (existsSync(pkgPath)) {
     try {
-      const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'))
-      const deps = { ...pkg.dependencies, ...pkg.devDependencies }
+      const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'));
+      const deps = { ...pkg.dependencies, ...pkg.devDependencies };
 
       const frameworkMap: Record<string, string> = {
         'next': 'nextjs',
@@ -134,11 +134,11 @@ export async function detectTechStack(projectRoot: string): Promise<TechStack> {
         'fastify': 'fastify',
         'nestjs': 'nestjs',
         '@angular/core': 'angular',
-      }
+      };
 
       for (const [dep, framework] of Object.entries(frameworkMap)) {
         if (deps[dep]) {
-          stack.framework.push(framework)
+          stack.framework.push(framework);
         }
       }
 
@@ -150,11 +150,11 @@ export async function detectTechStack(projectRoot: string): Promise<TechStack> {
         rollup: 'rollup',
         tsup: 'tsup',
         turbo: 'turborepo',
-      }
+      };
 
       for (const [dep, tool] of Object.entries(buildTools)) {
         if (deps[dep]) {
-          stack.buildTool.push(tool)
+          stack.buildTool.push(tool);
         }
       }
 
@@ -165,11 +165,11 @@ export async function detectTechStack(projectRoot: string): Promise<TechStack> {
         'mocha': 'mocha',
         '@playwright/test': 'playwright',
         'cypress': 'cypress',
-      }
+      };
 
       for (const [dep, framework] of Object.entries(testFrameworks)) {
         if (deps[dep]) {
-          stack.testFramework.push(framework)
+          stack.testFramework.push(framework);
         }
       }
     }
@@ -178,15 +178,15 @@ export async function detectTechStack(projectRoot: string): Promise<TechStack> {
     }
   }
 
-  return stack
+  return stack;
 }
 
 /**
  * 检测可用工具
  */
 export async function detectAvailableTools(): Promise<AvailableTool[]> {
-  const tools: AvailableTool[] = []
-  const { execSync } = await import('node:child_process')
+  const tools: AvailableTool[] = [];
+  const { execSync } = await import('node:child_process');
 
   // CLI 工具检测
   const cliTools = [
@@ -194,18 +194,18 @@ export async function detectAvailableTools(): Promise<AvailableTool[]> {
     { name: 'git', autoInstallable: false },
     { name: 'docker', autoInstallable: false },
     { name: 'gh', autoInstallable: true }, // GitHub CLI
-  ]
+  ];
 
   for (const tool of cliTools) {
     try {
-      const version = execSync(`${tool.name} --version 2>/dev/null`, { encoding: 'utf-8' }).trim()
+      const version = execSync(`${tool.name} --version 2>/dev/null`, { encoding: 'utf-8' }).trim();
       tools.push({
         name: tool.name,
         type: 'cli',
         installed: true,
         version: version.split('\n')[0],
         autoInstallable: tool.autoInstallable,
-      })
+      });
     }
     catch {
       tools.push({
@@ -213,31 +213,31 @@ export async function detectAvailableTools(): Promise<AvailableTool[]> {
         type: 'cli',
         installed: false,
         autoInstallable: tool.autoInstallable,
-      })
+      });
     }
   }
 
-  return tools
+  return tools;
 }
 
 /**
  * 检测环境信息
  */
 export async function detectEnvironment(): Promise<EnvironmentInfo> {
-  const { execSync } = await import('node:child_process')
+  const { execSync } = await import('node:child_process');
 
-  let hasGit = false
-  let hasDocker = false
+  let hasGit = false;
+  let hasDocker = false;
 
   try {
-    execSync('git --version', { stdio: 'ignore' })
-    hasGit = true
+    execSync('git --version', { stdio: 'ignore' });
+    hasGit = true;
   }
   catch {}
 
   try {
-    execSync('docker --version', { stdio: 'ignore' })
-    hasDocker = true
+    execSync('docker --version', { stdio: 'ignore' });
+    hasDocker = true;
   }
   catch {}
 
@@ -247,7 +247,7 @@ export async function detectEnvironment(): Promise<EnvironmentInfo> {
     hasGit,
     hasDocker,
     isCI: !!(process.env.CI || process.env.GITHUB_ACTIONS || process.env.GITLAB_CI),
-  }
+  };
 }
 
 /**
@@ -257,17 +257,17 @@ export function generateRecommendations(
   techStack: TechStack,
   tools: AvailableTool[],
 ): Recommendation[] {
-  const recommendations: Recommendation[] = []
+  const recommendations: Recommendation[] = [];
 
   // 检查 agent-browser
-  const agentBrowser = tools.find(t => t.name === 'agent-browser')
+  const agentBrowser = tools.find(t => t.name === 'agent-browser');
   if (!agentBrowser?.installed) {
     recommendations.push({
       tool: 'agent-browser',
       reason: 'Zero-config browser automation for AI agents - replaces complex Playwright MCP',
       priority: 'high',
       installCommand: 'npm install -g agent-browser && agent-browser install',
-    })
+    });
   }
 
   // 基于技术栈推荐
@@ -278,22 +278,22 @@ export function generateRecommendations(
         reason: 'Recommended for E2E testing React/Next.js applications',
         priority: 'medium',
         installCommand: 'npm install -g agent-browser',
-      })
+      });
     }
   }
 
   // GitHub CLI 推荐
-  const ghCli = tools.find(t => t.name === 'gh')
+  const ghCli = tools.find(t => t.name === 'gh');
   if (!ghCli?.installed) {
     recommendations.push({
       tool: 'gh',
       reason: 'GitHub CLI for PR management and issue tracking',
       priority: 'low',
       installCommand: 'brew install gh || winget install GitHub.cli',
-    })
+    });
   }
 
-  return recommendations
+  return recommendations;
 }
 
 // ============================================================================
@@ -304,15 +304,15 @@ export function generateRecommendations(
  * 创建零配置上下文
  */
 export async function createZeroConfigContext(projectRoot?: string): Promise<ZeroConfigContext> {
-  const root = projectRoot || process.cwd()
+  const root = projectRoot || process.cwd();
 
   const [techStack, availableTools, environment] = await Promise.all([
     detectTechStack(root),
     detectAvailableTools(),
     detectEnvironment(),
-  ])
+  ]);
 
-  const recommendations = generateRecommendations(techStack, availableTools)
+  const recommendations = generateRecommendations(techStack, availableTools);
 
   return {
     projectRoot: root,
@@ -320,7 +320,7 @@ export async function createZeroConfigContext(projectRoot?: string): Promise<Zer
     availableTools,
     recommendations,
     environment,
-  }
+  };
 }
 
 // ============================================================================
@@ -328,17 +328,17 @@ export async function createZeroConfigContext(projectRoot?: string): Promise<Zer
 // ============================================================================
 
 export interface AutoInstallOptions {
-  tool: string
-  silent?: boolean
-  timeout?: number
+  tool: string;
+  silent?: boolean;
+  timeout?: number;
 }
 
 /**
  * 自动安装工具
  */
 export async function autoInstallTool(options: AutoInstallOptions): Promise<boolean> {
-  const { tool, silent = false, timeout = 60000 } = options
-  const { execSync } = await import('node:child_process')
+  const { tool, silent = false, timeout = 60000 } = options;
+  const { execSync } = await import('node:child_process');
 
   const installCommands: Record<string, string> = {
     'agent-browser': 'npm install -g agent-browser && agent-browser install',
@@ -347,30 +347,30 @@ export async function autoInstallTool(options: AutoInstallOptions): Promise<bool
       : process.platform === 'win32'
         ? 'winget install GitHub.cli'
         : 'sudo apt install gh',
-  }
+  };
 
-  const command = installCommands[tool]
+  const command = installCommands[tool];
   if (!command) {
     if (!silent)
-      console.error(`Unknown tool: ${tool}`)
-    return false
+      console.error(`Unknown tool: ${tool}`);
+    return false;
   }
 
   try {
     if (!silent)
-      console.log(`Installing ${tool}...`)
+      console.log(`Installing ${tool}...`);
     execSync(command, {
       stdio: silent ? 'ignore' : 'inherit',
       timeout,
-    })
+    });
     if (!silent)
-      console.log(`✅ ${tool} installed successfully`)
-    return true
+      console.log(`✅ ${tool} installed successfully`);
+    return true;
   }
   catch {
     if (!silent)
-      console.error(`❌ Failed to install ${tool}`)
-    return false
+      console.error(`❌ Failed to install ${tool}`);
+    return false;
   }
 }
 
@@ -378,34 +378,34 @@ export async function autoInstallTool(options: AutoInstallOptions): Promise<bool
 // 智能工具选择
 // ============================================================================
 
-export type BrowserToolChoice = 'agent-browser' | 'playwright-mcp' | 'none'
+export type BrowserToolChoice = 'agent-browser' | 'playwright-mcp' | 'none';
 
 /**
  * 智能选择浏览器工具
  * 优先使用 agent-browser（零配置），降级到 playwright-mcp
  */
 export async function selectBrowserTool(): Promise<BrowserToolChoice> {
-  const tools = await detectAvailableTools()
+  const tools = await detectAvailableTools();
 
   // 优先 agent-browser
-  const agentBrowser = tools.find(t => t.name === 'agent-browser')
+  const agentBrowser = tools.find(t => t.name === 'agent-browser');
   if (agentBrowser?.installed) {
-    return 'agent-browser'
+    return 'agent-browser';
   }
 
   // 检查是否有 playwright MCP 配置
-  const claudeConfigPath = join(homedir(), '.claude', 'claude_desktop_config.json')
+  const claudeConfigPath = join(homedir(), '.claude', 'claude_desktop_config.json');
   if (existsSync(claudeConfigPath)) {
     try {
-      const config = JSON.parse(readFileSync(claudeConfigPath, 'utf-8'))
+      const config = JSON.parse(readFileSync(claudeConfigPath, 'utf-8'));
       if (config.mcpServers?.playwright || config.mcpServers?.['browser-mcp']) {
-        return 'playwright-mcp'
+        return 'playwright-mcp';
       }
     }
     catch {}
   }
 
-  return 'none'
+  return 'none';
 }
 
 /**
@@ -434,7 +434,7 @@ agent-browser screenshot page.png
 \`\`\`
 
 **Tip**: Always use \`snapshot -i\` to get interactive elements with refs.
-`
+`;
 
     case 'playwright-mcp':
       return `
@@ -443,7 +443,7 @@ agent-browser screenshot page.png
 Use Playwright MCP tools for web automation.
 Consider switching to \`agent-browser\` for zero-config experience:
 \`npm install -g agent-browser && agent-browser install\`
-`
+`;
 
     case 'none':
       return `
@@ -455,7 +455,7 @@ No browser tool detected. Install agent-browser for zero-config web automation:
 npm install -g agent-browser
 agent-browser install
 \`\`\`
-`
+`;
   }
 }
 
@@ -472,6 +472,6 @@ export const ZeroConfig = {
   autoInstallTool,
   selectBrowserTool,
   getBrowserToolGuide,
-}
+};
 
-export default ZeroConfig
+export default ZeroConfig;

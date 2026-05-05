@@ -19,17 +19,17 @@
  */
 export interface PluginPackage {
   /** Plugin metadata */
-  manifest: PluginManifest
+  manifest: PluginManifest;
   /** SKILL.md content (parsed) */
-  skill?: SkillDocument
+  skill?: SkillDocument;
   /** Available scripts */
-  scripts?: ScriptDefinition[]
+  scripts?: ScriptDefinition[];
   /** Intent rules for auto-activation */
-  intents?: IntentRule[]
+  intents?: IntentRule[];
   /** Reference documents */
-  references?: ReferenceDocument[]
+  references?: ReferenceDocument[];
   /** Installation source */
-  source: PluginSource
+  source: PluginSource;
 }
 
 /**
@@ -37,45 +37,45 @@ export interface PluginPackage {
  */
 export interface PluginManifest {
   /** Unique plugin ID */
-  id: string
+  id: string;
   /** Plugin name (localized) */
-  name: LocalizedString
+  name: LocalizedString;
   /** Plugin description (localized) */
-  description: LocalizedString
+  description: LocalizedString;
   /** Semantic version */
-  version: string
+  version: string;
   /** Author information */
-  author: AuthorInfo
+  author: AuthorInfo;
   /** Plugin category */
-  category: PluginCategory
+  category: PluginCategory;
   /** Search tags */
-  tags: string[]
+  tags: string[];
   /** Required permissions */
-  permissions: Permission[]
+  permissions: Permission[];
   /** Trigger commands (legacy support) */
-  triggers?: string[]
+  triggers?: string[];
   /** MCP servers this plugin uses */
-  mcpServers?: string[]
+  mcpServers?: string[];
   /** Dependencies on other plugins */
-  dependencies?: string[]
+  dependencies?: string[];
   /** Minimum CCJK version */
-  minCcjkVersion?: string
+  minCcjkVersion?: string;
   /** Plugin format version */
-  formatVersion: '1.0' | '2.0'
+  formatVersion: '1.0' | '2.0';
   /** License */
-  license?: string
+  license?: string;
 }
 
 export interface LocalizedString {
-  'en': string
-  'zh-CN': string
-  [key: string]: string
+  'en': string;
+  'zh-CN': string;
+  [key: string]: string;
 }
 
 export interface AuthorInfo {
-  name: string
-  email?: string
-  url?: string
+  name: string;
+  email?: string;
+  url?: string;
 }
 
 export type PluginCategory
@@ -88,13 +88,13 @@ export type PluginCategory
     | 'documentation'
     | 'code-quality'
     | 'security'
-    | 'other'
+    | 'other';
 
 export type PluginSource
-  = | { type: 'cloud', url: string }
-    | { type: 'github', repo: string, ref?: string }
-    | { type: 'local', path: string }
-    | { type: 'npm', package: string }
+  = | { type: 'cloud'; url: string }
+    | { type: 'github'; repo: string; ref?: string }
+    | { type: 'local'; path: string }
+    | { type: 'npm'; package: string };
 
 // ============================================================================
 // Permission Types
@@ -114,12 +114,12 @@ export type Permission
     | 'env:write'
     | 'mcp:invoke'
     | 'clipboard:read'
-    | 'clipboard:write'
+    | 'clipboard:write';
 
 /**
  * Permission level for quick classification
  */
-export type PermissionLevel = 0 | 1 | 2 | 3
+export type PermissionLevel = 0 | 1 | 2 | 3;
 
 export const PERMISSION_LEVELS: Record<Permission, PermissionLevel> = {
   'file:read': 0,
@@ -133,7 +133,7 @@ export const PERMISSION_LEVELS: Record<Permission, PermissionLevel> = {
   'mcp:invoke': 2,
   'env:write': 2,
   'shell:execute': 3,
-}
+};
 
 // ============================================================================
 // Intent Detection Types
@@ -144,27 +144,27 @@ export const PERMISSION_LEVELS: Record<Permission, PermissionLevel> = {
  */
 export interface IntentRule {
   /** Unique intent ID */
-  id: string
+  id: string;
   /** Human-readable name */
-  name: LocalizedString
+  name: LocalizedString;
   /** Text patterns to match (regex supported) */
-  patterns: string[]
+  patterns: string[];
   /** Keywords for matching */
-  keywords: string[]
+  keywords: string[];
   /** Context signals that increase confidence */
-  contextSignals: ContextSignal[]
+  contextSignals: ContextSignal[];
   /** File patterns that indicate relevance */
-  filePatterns?: string[]
+  filePatterns?: string[];
   /** Priority (0-100, higher = more priority) */
-  priority: number
+  priority: number;
   /** Associated plugin ID */
-  pluginId: string
+  pluginId: string;
   /** Associated skill ID within plugin */
-  skillId?: string
+  skillId?: string;
   /** Minimum confidence threshold (0-1) */
-  minConfidence?: number
+  minConfidence?: number;
   /** Whether to auto-execute or just suggest */
-  autoExecute: boolean
+  autoExecute: boolean;
 }
 
 /**
@@ -183,26 +183,26 @@ export type ContextSignal
     | 'in_src_directory'
     | 'has_errors'
     | 'build_failed'
-    | 'test_failed'
+    | 'test_failed';
 
 /**
  * Intent match result
  */
 export interface IntentMatch {
   /** Matched plugin ID */
-  pluginId: string
+  pluginId: string;
   /** Matched intent rule */
-  intentId: string
+  intentId: string;
   /** Confidence score (0-1) */
-  confidence: number
+  confidence: number;
   /** Patterns that matched */
-  matchedPatterns: string[]
+  matchedPatterns: string[];
   /** Context signals that matched */
-  matchedSignals: ContextSignal[]
+  matchedSignals: ContextSignal[];
   /** Suggested action description */
-  suggestedAction: LocalizedString
+  suggestedAction: LocalizedString;
   /** Whether to auto-execute */
-  autoExecute: boolean
+  autoExecute: boolean;
 }
 
 /**
@@ -210,25 +210,25 @@ export interface IntentMatch {
  */
 export interface DetectionContext {
   /** User's input text */
-  userInput: string
+  userInput: string;
   /** Current working directory */
-  cwd: string
+  cwd: string;
   /** Recent file changes */
-  recentFiles?: string[]
+  recentFiles?: string[];
   /** Git status */
-  gitStatus?: GitStatus
+  gitStatus?: GitStatus;
   /** Project type detection */
-  projectType?: ProjectType
+  projectType?: ProjectType;
   /** Active signals */
-  activeSignals: ContextSignal[]
+  activeSignals: ContextSignal[];
 }
 
 export interface GitStatus {
-  isRepo: boolean
-  hasChanges: boolean
-  hasStaged: boolean
-  branch?: string
-  remote?: string
+  isRepo: boolean;
+  hasChanges: boolean;
+  hasStaged: boolean;
+  branch?: string;
+  remote?: string;
 }
 
 export type ProjectType
@@ -240,7 +240,7 @@ export type ProjectType
     | 'python'
     | 'rust'
     | 'go'
-    | 'unknown'
+    | 'unknown';
 
 // ============================================================================
 // Script Execution Types
@@ -251,47 +251,47 @@ export type ProjectType
  */
 export interface ScriptDefinition {
   /** Script name */
-  name: string
+  name: string;
   /** Relative path within plugin */
-  path: string
+  path: string;
   /** Script type */
-  type: ScriptType
+  type: ScriptType;
   /** Description */
-  description?: LocalizedString
+  description?: LocalizedString;
   /** Required permissions */
-  permissions: Permission[]
+  permissions: Permission[];
   /** Timeout in milliseconds */
-  timeout?: number
+  timeout?: number;
   /** Environment variables */
-  env?: Record<string, string>
+  env?: Record<string, string>;
   /** Default arguments */
-  defaultArgs?: string[]
+  defaultArgs?: string[];
   /** Whether to run in sandbox */
-  sandbox?: boolean
+  sandbox?: boolean;
   /** Entry point for node scripts */
-  entryPoint?: string
+  entryPoint?: string;
 }
 
-export type ScriptType = 'bash' | 'node' | 'python' | 'deno' | 'bun'
+export type ScriptType = 'bash' | 'node' | 'python' | 'deno' | 'bun';
 
 /**
  * Script execution options
  */
 export interface ScriptExecutionOptions {
   /** Arguments to pass */
-  args?: string[]
+  args?: string[];
   /** Environment variables */
-  env?: Record<string, string>
+  env?: Record<string, string>;
   /** Working directory */
-  cwd?: string
+  cwd?: string;
   /** Timeout override */
-  timeout?: number
+  timeout?: number;
   /** Input to stdin */
-  stdin?: string
+  stdin?: string;
   /** Capture output */
-  captureOutput?: boolean
+  captureOutput?: boolean;
   /** Run in background */
-  background?: boolean
+  background?: boolean;
 }
 
 /**
@@ -299,19 +299,19 @@ export interface ScriptExecutionOptions {
  */
 export interface ScriptResult {
   /** Whether execution succeeded */
-  success: boolean
+  success: boolean;
   /** Exit code */
-  exitCode: number
+  exitCode: number;
   /** Standard output */
-  stdout: string
+  stdout: string;
   /** Standard error */
-  stderr: string
+  stderr: string;
   /** Execution duration (ms) */
-  duration: number
+  duration: number;
   /** Generated artifacts */
-  artifacts?: string[]
+  artifacts?: string[];
   /** Structured output (if JSON) */
-  data?: unknown
+  data?: unknown;
 }
 
 // ============================================================================
@@ -323,85 +323,85 @@ export interface ScriptResult {
  */
 export interface SkillDocument {
   /** Skill title */
-  title: string
+  title: string;
   /** Skill description */
-  description: string
+  description: string;
   /** When to apply this skill */
-  applicability: SkillApplicability
+  applicability: SkillApplicability;
   /** Skill sections */
-  sections: SkillSection[]
+  sections: SkillSection[];
   /** Rules/guidelines */
-  rules?: SkillRule[]
+  rules?: SkillRule[];
   /** Examples */
-  examples?: SkillExample[]
+  examples?: SkillExample[];
   /** Raw markdown content */
-  rawContent: string
+  rawContent: string;
 }
 
 export interface SkillApplicability {
   /** Task types this skill applies to */
-  taskTypes: string[]
+  taskTypes: string[];
   /** File types this skill applies to */
-  fileTypes?: string[]
+  fileTypes?: string[];
   /** Contexts where skill is relevant */
-  contexts?: string[]
+  contexts?: string[];
 }
 
 export interface SkillSection {
   /** Section title */
-  title: string
+  title: string;
   /** Section content (markdown) */
-  content: string
+  content: string;
   /** Subsections */
-  subsections?: SkillSection[]
+  subsections?: SkillSection[];
   /** Priority level */
-  priority?: 'critical' | 'high' | 'medium' | 'low'
+  priority?: 'critical' | 'high' | 'medium' | 'low';
 }
 
 export interface SkillRule {
   /** Rule ID (e.g., 'async-001') */
-  id: string
+  id: string;
   /** Rule title */
-  title: string
+  title: string;
   /** Rule category */
-  category: string
+  category: string;
   /** Priority */
-  priority: 'critical' | 'high' | 'medium' | 'low'
+  priority: 'critical' | 'high' | 'medium' | 'low';
   /** Rule description */
-  description: string
+  description: string;
   /** Bad example */
-  badExample?: CodeExample
+  badExample?: CodeExample;
   /** Good example */
-  goodExample?: CodeExample
+  goodExample?: CodeExample;
   /** Reference file path */
-  referencePath?: string
+  referencePath?: string;
 }
 
 export interface CodeExample {
   /** Code content */
-  code: string
+  code: string;
   /** Language */
-  language: string
+  language: string;
   /** Explanation */
-  explanation?: string
+  explanation?: string;
 }
 
 export interface SkillExample {
   /** Example title */
-  title: string
+  title: string;
   /** Input/scenario */
-  input: string
+  input: string;
   /** Expected output/behavior */
-  output: string
+  output: string;
 }
 
 export interface ReferenceDocument {
   /** Document path */
-  path: string
+  path: string;
   /** Document title */
-  title: string
+  title: string;
   /** Document content */
-  content: string
+  content: string;
 }
 
 // ============================================================================
@@ -413,43 +413,43 @@ export interface ReferenceDocument {
  */
 export interface AgentDefinition {
   /** Unique agent ID */
-  id: string
+  id: string;
   /** Agent name */
-  name: LocalizedString
+  name: LocalizedString;
   /** Agent description */
-  description: LocalizedString
+  description: LocalizedString;
   /** Agent persona/role */
-  persona: string
+  persona: string;
   /** Skills this agent uses */
-  skills: AgentSkillRef[]
+  skills: AgentSkillRef[];
   /** MCP servers this agent uses */
-  mcpServers: AgentMcpRef[]
+  mcpServers: AgentMcpRef[];
   /** Agent-specific instructions */
-  instructions: string
+  instructions: string;
   /** Trigger patterns */
-  triggers?: string[]
+  triggers?: string[];
   /** Auto-activation intents */
-  intents?: IntentRule[]
+  intents?: IntentRule[];
   /** Agent capabilities */
-  capabilities: AgentCapability[]
+  capabilities: AgentCapability[];
 }
 
 export interface AgentSkillRef {
   /** Plugin ID */
-  pluginId: string
+  pluginId: string;
   /** Specific skill ID (optional) */
-  skillId?: string
+  skillId?: string;
   /** Override priority */
-  priority?: number
+  priority?: number;
 }
 
 export interface AgentMcpRef {
   /** MCP server name */
-  serverName: string
+  serverName: string;
   /** Required tools from this server */
-  tools?: string[]
+  tools?: string[];
   /** Configuration overrides */
-  config?: Record<string, unknown>
+  config?: Record<string, unknown>;
 }
 
 export type AgentCapability
@@ -463,39 +463,39 @@ export type AgentCapability
     | 'git-operations'
     | 'file-management'
     | 'web-search'
-    | 'api-integration'
+    | 'api-integration';
 
 /**
  * Agent execution context
  */
 export interface AgentContext {
   /** Agent definition */
-  agent: AgentDefinition
+  agent: AgentDefinition;
   /** Loaded skills */
-  skills: PluginPackage[]
+  skills: PluginPackage[];
   /** Available MCP tools */
-  mcpTools: McpToolInfo[]
+  mcpTools: McpToolInfo[];
   /** Current task */
-  task: string
+  task: string;
   /** Conversation history */
-  history?: ConversationMessage[]
+  history?: ConversationMessage[];
 }
 
 export interface McpToolInfo {
   /** Server name */
-  server: string
+  server: string;
   /** Tool name */
-  name: string
+  name: string;
   /** Tool description */
-  description: string
+  description: string;
   /** Input schema */
-  inputSchema: Record<string, unknown>
+  inputSchema: Record<string, unknown>;
 }
 
 export interface ConversationMessage {
-  role: 'user' | 'assistant' | 'system'
-  content: string
-  timestamp: number
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+  timestamp: number;
 }
 
 // ============================================================================
@@ -507,15 +507,15 @@ export interface ConversationMessage {
  */
 export interface InstallOptions {
   /** Force reinstall */
-  force?: boolean
+  force?: boolean;
   /** Skip dependency installation */
-  skipDependencies?: boolean
+  skipDependencies?: boolean;
   /** Specific version */
-  version?: string
+  version?: string;
   /** Installation source override */
-  source?: PluginSource
+  source?: PluginSource;
   /** Grant permissions automatically */
-  grantPermissions?: Permission[]
+  grantPermissions?: Permission[];
 }
 
 /**
@@ -523,17 +523,17 @@ export interface InstallOptions {
  */
 export interface InstallResult {
   /** Whether installation succeeded */
-  success: boolean
+  success: boolean;
   /** Installed plugin ID */
-  pluginId: string
+  pluginId: string;
   /** Installed version */
-  version?: string
+  version?: string;
   /** Installation path */
-  path?: string
+  path?: string;
   /** Installed dependencies */
-  dependencies?: string[]
+  dependencies?: string[];
   /** Error message if failed */
-  error?: string
+  error?: string;
 }
 
 /**
@@ -541,25 +541,25 @@ export interface InstallResult {
  */
 export interface SearchOptions {
   /** Search query */
-  query?: string
+  query?: string;
   /** Filter by category */
-  category?: PluginCategory
+  category?: PluginCategory;
   /** Filter by tags */
-  tags?: string[]
+  tags?: string[];
   /** Filter by capabilities */
-  capabilities?: AgentCapability[]
+  capabilities?: AgentCapability[];
   /** Include skills */
-  includeSkills?: boolean
+  includeSkills?: boolean;
   /** Include agents */
-  includeAgents?: boolean
+  includeAgents?: boolean;
   /** Sort by */
-  sortBy?: 'downloads' | 'rating' | 'updated' | 'name'
+  sortBy?: 'downloads' | 'rating' | 'updated' | 'name';
   /** Sort order */
-  order?: 'asc' | 'desc'
+  order?: 'asc' | 'desc';
   /** Page number */
-  page?: number
+  page?: number;
   /** Page size */
-  pageSize?: number
+  pageSize?: number;
 }
 
 /**
@@ -567,15 +567,15 @@ export interface SearchOptions {
  */
 export interface UpdateInfo {
   /** Plugin ID */
-  pluginId: string
+  pluginId: string;
   /** Current version */
-  currentVersion: string
+  currentVersion: string;
   /** Latest version */
-  latestVersion: string
+  latestVersion: string;
   /** Whether update is available */
-  hasUpdate: boolean
+  hasUpdate: boolean;
   /** Changelog */
-  changelog?: string
+  changelog?: string;
 }
 
 // ============================================================================
@@ -586,16 +586,16 @@ export interface UpdateInfo {
  * Plugin system events
  */
 export type PluginEvent
-  = | { type: 'plugin:installed', pluginId: string, version: string }
-    | { type: 'plugin:uninstalled', pluginId: string }
-    | { type: 'plugin:updated', pluginId: string, from: string, to: string }
-    | { type: 'plugin:activated', pluginId: string, trigger: 'command' | 'intent' }
-    | { type: 'intent:detected', match: IntentMatch }
-    | { type: 'intent:executed', match: IntentMatch, result: unknown }
-    | { type: 'script:started', pluginId: string, scriptName: string }
-    | { type: 'script:completed', pluginId: string, scriptName: string, result: ScriptResult }
-    | { type: 'agent:created', agentId: string }
-    | { type: 'agent:activated', agentId: string }
-    | { type: 'error', error: Error, context?: string }
+  = | { type: 'plugin:installed'; pluginId: string; version: string }
+    | { type: 'plugin:uninstalled'; pluginId: string }
+    | { type: 'plugin:updated'; pluginId: string; from: string; to: string }
+    | { type: 'plugin:activated'; pluginId: string; trigger: 'command' | 'intent' }
+    | { type: 'intent:detected'; match: IntentMatch }
+    | { type: 'intent:executed'; match: IntentMatch; result: unknown }
+    | { type: 'script:started'; pluginId: string; scriptName: string }
+    | { type: 'script:completed'; pluginId: string; scriptName: string; result: ScriptResult }
+    | { type: 'agent:created'; agentId: string }
+    | { type: 'agent:activated'; agentId: string }
+    | { type: 'error'; error: Error; context?: string };
 
-export type PluginEventHandler = (event: PluginEvent) => void | Promise<void>
+export type PluginEventHandler = (event: PluginEvent) => void | Promise<void>;

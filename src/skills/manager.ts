@@ -7,16 +7,16 @@ import type {
   SkillInstallResult,
   SkillRegistry,
   SkillSearchOptions,
-} from './types'
-import { existsSync, mkdirSync, readdirSync, readFileSync, unlinkSync } from 'node:fs'
-import { homedir } from 'node:os'
-import { join } from 'pathe'
-import { cloudSyncSkill } from '../cloud-sync/skill'
-import { CCJK_SKILLS_DIR } from '../constants'
-import { marketplaceSkill } from '../mcp-marketplace/skill'
-import { browserSkill } from '../utils/agent-browser/skill'
-import { writeFileAtomic } from '../utils/fs-operations'
-import { workflowSkill } from '../workflow/skill'
+} from './types';
+import { existsSync, mkdirSync, readdirSync, readFileSync, unlinkSync } from 'node:fs';
+import { homedir } from 'node:os';
+import { join } from 'pathe';
+import { cloudSyncSkill } from '../cloud-sync/skill';
+import { CCJK_SKILLS_DIR } from '../constants';
+import { marketplaceSkill } from '../mcp-marketplace/skill';
+import { browserSkill } from '../utils/agent-browser/skill';
+import { writeFileAtomic } from '../utils/fs-operations';
+import { workflowSkill } from '../workflow/skill';
 
 // ============================================================================
 // Built-in Skills (内置技能)
@@ -30,38 +30,38 @@ const BUILTIN_SKILLS: CcjkSkill[] = [
   browserSkill,
   marketplaceSkill,
   workflowSkill,
-]
+];
 
 /**
  * Get built-in skill by ID
  */
 export function getBuiltinSkill(id: string): CcjkSkill | undefined {
-  return BUILTIN_SKILLS.find(s => s.id === id)
+  return BUILTIN_SKILLS.find(s => s.id === id);
 }
 
 /**
  * Get all built-in skills
  */
 export function getBuiltinSkills(): CcjkSkill[] {
-  return [...BUILTIN_SKILLS]
+  return [...BUILTIN_SKILLS];
 }
 
 /**
  * Check if a skill is built-in
  */
 export function isBuiltinSkill(id: string): boolean {
-  return BUILTIN_SKILLS.some(s => s.id === id)
+  return BUILTIN_SKILLS.some(s => s.id === id);
 }
 
 // In-memory registry
-let registry: SkillRegistry | null = null
+let registry: SkillRegistry | null = null;
 
 /**
  * Initialize skills directory
  */
 export function ensureSkillsDir(): void {
   if (!existsSync(CCJK_SKILLS_DIR)) {
-    mkdirSync(CCJK_SKILLS_DIR, { recursive: true })
+    mkdirSync(CCJK_SKILLS_DIR, { recursive: true });
   }
 }
 
@@ -70,41 +70,41 @@ export function ensureSkillsDir(): void {
  */
 export function getRegistry(): SkillRegistry {
   if (!registry) {
-    registry = loadRegistry()
+    registry = loadRegistry();
   }
-  return registry
+  return registry;
 }
 
 /**
  * Load registry from disk
  */
 function loadRegistry(): SkillRegistry {
-  ensureSkillsDir()
+  ensureSkillsDir();
 
-  const skills = new Map<string, CcjkSkill>()
-  const categories = new Map<SkillCategory, string[]>()
+  const skills = new Map<string, CcjkSkill>();
+  const categories = new Map<SkillCategory, string[]>();
 
   // Load built-in skills first
   for (const skill of BUILTIN_SKILLS) {
-    skills.set(skill.id, skill)
-    const categorySkills = categories.get(skill.category) || []
-    categorySkills.push(skill.id)
-    categories.set(skill.category, categorySkills)
+    skills.set(skill.id, skill);
+    const categorySkills = categories.get(skill.category) || [];
+    categorySkills.push(skill.id);
+    categories.set(skill.category, categorySkills);
   }
 
   // Scan skills directory (user skills can override built-in)
-  const files = readdirSync(CCJK_SKILLS_DIR).filter(f => f.endsWith('.json'))
+  const files = readdirSync(CCJK_SKILLS_DIR).filter(f => f.endsWith('.json'));
 
   for (const file of files) {
     try {
-      const content = readFileSync(join(CCJK_SKILLS_DIR, file), 'utf-8')
-      const skill = JSON.parse(content) as CcjkSkill
-      skills.set(skill.id, skill)
+      const content = readFileSync(join(CCJK_SKILLS_DIR, file), 'utf-8');
+      const skill = JSON.parse(content) as CcjkSkill;
+      skills.set(skill.id, skill);
 
       // Update category index
-      const categorySkills = categories.get(skill.category) || []
-      categorySkills.push(skill.id)
-      categories.set(skill.category, categorySkills)
+      const categorySkills = categories.get(skill.category) || [];
+      categorySkills.push(skill.id);
+      categories.set(skill.category, categorySkills);
     }
     catch {
       // Skip invalid files
@@ -115,93 +115,93 @@ function loadRegistry(): SkillRegistry {
     skills,
     categories,
     lastUpdated: new Date(),
-  }
+  };
 }
 
 /**
  * Refresh registry from disk
  */
 export function refreshRegistry(): void {
-  registry = loadRegistry()
+  registry = loadRegistry();
 }
 
 /**
  * Get all skills
  */
 export function getAllSkills(): CcjkSkill[] {
-  return Array.from(getRegistry().skills.values())
+  return Array.from(getRegistry().skills.values());
 }
 
 /**
  * Get skill by ID
  */
 export function getSkill(id: string): CcjkSkill | undefined {
-  return getRegistry().skills.get(id)
+  return getRegistry().skills.get(id);
 }
 
 /**
  * Search skills
  */
 export function searchSkills(options: SkillSearchOptions): CcjkSkill[] {
-  let skills = getAllSkills()
+  let skills = getAllSkills();
 
   if (options.category) {
-    skills = skills.filter(s => s.category === options.category)
+    skills = skills.filter(s => s.category === options.category);
   }
 
   if (options.enabled !== undefined) {
-    skills = skills.filter(s => s.enabled === options.enabled)
+    skills = skills.filter(s => s.enabled === options.enabled);
   }
 
   if (options.tags && options.tags.length > 0) {
     skills = skills.filter(s =>
       s.tags && options.tags!.some(tag => s.tags!.includes(tag)),
-    )
+    );
   }
 
   if (options.query) {
-    const query = options.query.toLowerCase()
+    const query = options.query.toLowerCase();
     skills = skills.filter((s) => {
       // Handle both string and multilingual object for name
-      const nameEn = typeof s.name === 'string' ? s.name : (s.name?.en || '')
-      const nameZh = typeof s.name === 'string' ? s.name : (s.name?.['zh-CN'] || '')
+      const nameEn = typeof s.name === 'string' ? s.name : (s.name?.en || '');
+      const nameZh = typeof s.name === 'string' ? s.name : (s.name?.['zh-CN'] || '');
       return s.id.toLowerCase().includes(query)
         || nameEn.toLowerCase().includes(query)
         || nameZh.toLowerCase().includes(query)
-        || s.triggers.some(t => t.toLowerCase().includes(query))
-    })
+        || s.triggers.some(t => t.toLowerCase().includes(query));
+    });
   }
 
   if (options.limit) {
-    skills = skills.slice(0, options.limit)
+    skills = skills.slice(0, options.limit);
   }
 
-  return skills
+  return skills;
 }
 
 /**
  * Add a skill
  */
 export function addSkill(skill: CcjkSkill): SkillInstallResult {
-  ensureSkillsDir()
+  ensureSkillsDir();
 
   try {
-    const filePath = join(CCJK_SKILLS_DIR, `${skill.id}.json`)
-    writeFileAtomic(filePath, JSON.stringify(skill, null, 2))
-    refreshRegistry()
+    const filePath = join(CCJK_SKILLS_DIR, `${skill.id}.json`);
+    writeFileAtomic(filePath, JSON.stringify(skill, null, 2));
+    refreshRegistry();
 
     return {
       skillId: skill.id,
       success: true,
       path: filePath,
-    }
+    };
   }
   catch (error) {
     return {
       skillId: skill.id,
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
-    }
+    };
   }
 }
 
@@ -209,26 +209,26 @@ export function addSkill(skill: CcjkSkill): SkillInstallResult {
  * Remove a skill
  */
 export function removeSkill(id: string): boolean {
-  const filePath = join(CCJK_SKILLS_DIR, `${id}.json`)
+  const filePath = join(CCJK_SKILLS_DIR, `${id}.json`);
   if (existsSync(filePath)) {
-    unlinkSync(filePath)
-    refreshRegistry()
-    return true
+    unlinkSync(filePath);
+    refreshRegistry();
+    return true;
   }
-  return false
+  return false;
 }
 
 /**
  * Enable/disable a skill
  */
 export function setSkillEnabled(id: string, enabled: boolean): boolean {
-  const skill = getSkill(id)
+  const skill = getSkill(id);
   if (!skill)
-    return false
+    return false;
 
-  skill.enabled = enabled
-  addSkill(skill)
-  return true
+  skill.enabled = enabled;
+  addSkill(skill);
+  return true;
 }
 
 /**
@@ -237,20 +237,20 @@ export function setSkillEnabled(id: string, enabled: boolean): boolean {
 export function exportSkills(skillIds?: string[]): SkillExport {
   const skills = skillIds
     ? skillIds.map(id => getSkill(id)).filter(Boolean) as CcjkSkill[]
-    : getAllSkills()
+    : getAllSkills();
 
   return {
     version: '1.0.0',
     exportedAt: new Date().toISOString(),
     skills,
-  }
+  };
 }
 
 /**
  * Import skills from JSON
  */
 export function importSkills(data: SkillExport): SkillInstallResult[] {
-  return data.skills.map(skill => addSkill(skill))
+  return data.skills.map(skill => addSkill(skill));
 }
 
 /**
@@ -405,84 +405,84 @@ const BATCH_TEMPLATES: Record<string, BatchSkillTemplate> = {
       },
     ],
   },
-}
+};
 
 /**
  * Create skills from batch template
  */
 export function createBatchSkills(options: BatchSkillOptions): SkillInstallResult[] {
-  const results: SkillInstallResult[] = []
+  const results: SkillInstallResult[] = [];
 
   // Helper to safely extract string from name/description
   const extractStr = (val: string | Record<string, string> | undefined, fallback: string): string => {
     if (!val)
-      return fallback
+      return fallback;
     if (typeof val === 'string')
-      return val
-    return val.en || val['zh-CN'] || Object.values(val)[0] || fallback
-  }
+      return val;
+    return val.en || val['zh-CN'] || Object.values(val)[0] || fallback;
+  };
 
   // Language-specific skills
   if (options.lang) {
-    const template = BATCH_TEMPLATES[options.lang]
+    const template = BATCH_TEMPLATES[options.lang];
     if (template) {
       for (const skillDef of template.skills) {
-        const nameStr = extractStr(skillDef.name as any, skillDef.id)
-        const descStr = extractStr(skillDef.description as any, '')
+        const nameStr = extractStr(skillDef.name as any, skillDef.id);
+        const descStr = extractStr(skillDef.description as any, '');
         const skill: CcjkSkill = {
           ...skillDef,
           category: template.category,
           enabled: true,
           version: '1.0.0',
           template: `# ${nameStr}\n\n${descStr}\n\nThis is a placeholder template.`,
-        }
-        results.push(addSkill(skill))
+        };
+        results.push(addSkill(skill));
       }
     }
   }
 
   // SEO skills
   if (options.seo) {
-    const template = BATCH_TEMPLATES.seo
+    const template = BATCH_TEMPLATES.seo;
     for (const skillDef of template.skills) {
-      const nameStr = extractStr(skillDef.name as any, skillDef.id)
-      const descStr = extractStr(skillDef.description as any, '')
+      const nameStr = extractStr(skillDef.name as any, skillDef.id);
+      const descStr = extractStr(skillDef.description as any, '');
       const skill: CcjkSkill = {
         ...skillDef,
         category: template.category,
         enabled: true,
         version: '1.0.0',
         template: `# ${nameStr}\n\n${descStr}\n\nThis is a placeholder template.`,
-      }
-      results.push(addSkill(skill))
+      };
+      results.push(addSkill(skill));
     }
   }
 
   // DevOps skills
   if (options.devops) {
-    const template = BATCH_TEMPLATES.devops
+    const template = BATCH_TEMPLATES.devops;
     for (const skillDef of template.skills) {
-      const nameStr = extractStr(skillDef.name as any, skillDef.id)
-      const descStr = extractStr(skillDef.description as any, '')
+      const nameStr = extractStr(skillDef.name as any, skillDef.id);
+      const descStr = extractStr(skillDef.description as any, '');
       const skill: CcjkSkill = {
         ...skillDef,
         category: template.category,
         enabled: true,
         version: '1.0.0',
         template: `# ${nameStr}\n\n${descStr}\n\nThis is a placeholder template.`,
-      }
-      results.push(addSkill(skill))
+      };
+      results.push(addSkill(skill));
     }
   }
 
-  return results
+  return results;
 }
 
 /**
  * Get available batch categories
  */
 export function getBatchCategories(): string[] {
-  return Object.keys(BATCH_TEMPLATES)
+  return Object.keys(BATCH_TEMPLATES);
 }
 
 // ============================================================================
@@ -507,14 +507,14 @@ export function getBatchCategories(): string[] {
  */
 
 // Claude Code compatible locations
-const getProjectCommandsDir = (projectDir?: string) => join(projectDir || process.cwd(), '.claude', 'commands')
-const getUserCommandsDir = () => join(homedir(), '.claude', 'commands')
+const getProjectCommandsDir = (projectDir?: string) => join(projectDir || process.cwd(), '.claude', 'commands');
+const getUserCommandsDir = () => join(homedir(), '.claude', 'commands');
 
 export interface SkillWriteOptions {
   /** Project directory (for project-local commands) */
-  projectDir?: string
+  projectDir?: string;
   /** Write to user-global location instead of project-local */
-  global?: boolean
+  global?: boolean;
 }
 
 /**
@@ -524,24 +524,24 @@ function skillToMarkdown(skill: CcjkSkill): string {
   // Get description in English (primary) or Chinese
   const description = typeof skill.description === 'string'
     ? skill.description
-    : (skill.description?.en || skill.description?.['zh-CN'] || '')
+    : (skill.description?.en || skill.description?.['zh-CN'] || '');
 
   // Build YAML frontmatter
   const frontmatter = [
     '---',
     `description: ${description}`,
     '---',
-  ]
+  ];
 
   // Build body content from template
-  const body: string[] = []
+  const body: string[] = [];
 
   if (skill.template) {
-    body.push('')
-    body.push(skill.template)
+    body.push('');
+    body.push(skill.template);
   }
 
-  return `${frontmatter.join('\n') + body.join('\n')}\n`
+  return `${frontmatter.join('\n') + body.join('\n')}\n`;
 }
 
 /**
@@ -555,26 +555,26 @@ export function writeSkillToClaudeCode(
   skill: CcjkSkill,
   options?: SkillWriteOptions,
 ): string {
-  const isGlobal = options?.global || false
+  const isGlobal = options?.global || false;
   const commandsDir = isGlobal
     ? getUserCommandsDir()
-    : getProjectCommandsDir(options?.projectDir)
+    : getProjectCommandsDir(options?.projectDir);
 
   // Ensure commands directory exists
   if (!existsSync(commandsDir)) {
-    mkdirSync(commandsDir, { recursive: true })
+    mkdirSync(commandsDir, { recursive: true });
   }
 
   // Use the first trigger (without leading /) as filename
-  const trigger = skill.triggers[0]?.replace(/^\//, '') || skill.id
-  const fileName = `${trigger}.md`
-  const filePath = join(commandsDir, fileName)
+  const trigger = skill.triggers[0]?.replace(/^\//, '') || skill.id;
+  const fileName = `${trigger}.md`;
+  const filePath = join(commandsDir, fileName);
 
   // Convert to markdown and write
-  const content = skillToMarkdown(skill)
-  writeFileAtomic(filePath, content)
+  const content = skillToMarkdown(skill);
+  writeFileAtomic(filePath, content);
 
-  return filePath
+  return filePath;
 }
 
 /**
@@ -584,27 +584,27 @@ export function writeSkillsToClaudeCode(
   skills: CcjkSkill[],
   options?: SkillWriteOptions,
 ): string[] {
-  return skills.map(skill => writeSkillToClaudeCode(skill, options))
+  return skills.map(skill => writeSkillToClaudeCode(skill, options));
 }
 
 /**
  * Export all enabled skills to Claude Code format
  */
 export function exportSkillsToClaudeCode(options?: SkillWriteOptions): string[] {
-  const skills = getAllSkills().filter(s => s.enabled)
-  return writeSkillsToClaudeCode(skills, options)
+  const skills = getAllSkills().filter(s => s.enabled);
+  return writeSkillsToClaudeCode(skills, options);
 }
 
 /**
  * Get the project-local commands directory path
  */
 export function getCommandsDir(projectDir?: string): string {
-  return getProjectCommandsDir(projectDir)
+  return getProjectCommandsDir(projectDir);
 }
 
 /**
  * Get the user-global commands directory path
  */
 export function getUserGlobalCommandsDir(): string {
-  return getUserCommandsDir()
+  return getUserCommandsDir();
 }

@@ -9,11 +9,11 @@
  * Extended agent capability with orchestration-specific fields
  */
 export interface ExtendedAgentCapability {
-  id: string
-  name: string
-  expertise: string[]
-  cost: number
-  canCollaborate: string[]
+  id: string;
+  name: string;
+  expertise: string[];
+  cost: number;
+  canCollaborate: string[];
 }
 
 /**
@@ -90,13 +90,13 @@ export const AGENT_REGISTRY: ExtendedAgentCapability[] = [
     cost: 95,
     canCollaborate: ['typescript-cli-architect', 'ccjk-config-architect'],
   },
-]
+];
 
 /**
  * Get agent by ID
  */
 export function getAgentById(id: string): ExtendedAgentCapability | undefined {
-  return AGENT_REGISTRY.find(agent => agent.id === id)
+  return AGENT_REGISTRY.find(agent => agent.id === id);
 }
 
 /**
@@ -105,41 +105,41 @@ export function getAgentById(id: string): ExtendedAgentCapability | undefined {
 export function getAgentsByExpertise(expertise: string): ExtendedAgentCapability[] {
   return AGENT_REGISTRY.filter(agent =>
     agent.expertise.some(e => e.toLowerCase().includes(expertise.toLowerCase())),
-  )
+  );
 }
 
 /**
  * Get agents that can collaborate with a given agent
  */
 export function getCollaborators(agentId: string): ExtendedAgentCapability[] {
-  const agent = getAgentById(agentId)
+  const agent = getAgentById(agentId);
   if (!agent)
-    return []
+    return [];
 
   return agent.canCollaborate
     .map(id => getAgentById(id))
-    .filter((a): a is ExtendedAgentCapability => a !== undefined)
+    .filter((a): a is ExtendedAgentCapability => a !== undefined);
 }
 
 /**
  * Get agents within cost range
  */
 export function getAgentsByCost(maxCost: number): ExtendedAgentCapability[] {
-  return AGENT_REGISTRY.filter(agent => agent.cost <= maxCost)
+  return AGENT_REGISTRY.filter(agent => agent.cost <= maxCost);
 }
 
 /**
  * Sort agents by cost (ascending)
  */
 export function sortAgentsByCost(agents: ExtendedAgentCapability[]): ExtendedAgentCapability[] {
-  return [...agents].sort((a, b) => a.cost - b.cost)
+  return [...agents].sort((a, b) => a.cost - b.cost);
 }
 
 /**
  * Sort agents by expertise count (descending)
  */
 export function sortAgentsByExpertise(agents: ExtendedAgentCapability[]): ExtendedAgentCapability[] {
-  return [...agents].sort((a, b) => b.expertise.length - a.expertise.length)
+  return [...agents].sort((a, b) => b.expertise.length - a.expertise.length);
 }
 
 /**
@@ -155,5 +155,5 @@ export function getRegistryStats() {
       min: Math.min(...AGENT_REGISTRY.map(a => a.cost)),
       max: Math.max(...AGENT_REGISTRY.map(a => a.cost)),
     },
-  }
+  };
 }

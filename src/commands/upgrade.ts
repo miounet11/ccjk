@@ -3,23 +3,23 @@
  * 升级命令 - 手动触发升级
  */
 
-import inquirer from 'inquirer'
-import { checkForUpdates, performUpgrade } from '../core/auto-upgrade'
+import inquirer from 'inquirer';
+import { checkForUpdates, performUpgrade } from '../core/auto-upgrade';
 
 export async function upgrade(): Promise<void> {
-  console.log('🔍 Checking for updates...\n')
+  console.log('🔍 Checking for updates...\n');
 
-  const versionInfo = await checkForUpdates()
+  const versionInfo = await checkForUpdates();
 
   if (!versionInfo.hasUpdate) {
-    console.log('✅ You are already on the latest version!')
-    console.log(`   Current version: v${versionInfo.current}\n`)
-    return
+    console.log('✅ You are already on the latest version!');
+    console.log(`   Current version: v${versionInfo.current}\n`);
+    return;
   }
 
-  console.log('📦 Update available:')
-  console.log(`   Current: v${versionInfo.current}`)
-  console.log(`   Latest:  v${versionInfo.latest} (${versionInfo.updateType} update)\n`)
+  console.log('📦 Update available:');
+  console.log(`   Current: v${versionInfo.current}`);
+  console.log(`   Latest:  v${versionInfo.latest} (${versionInfo.updateType} update)\n`);
 
   // 询问用户是否升级
   const { confirm } = await inquirer.prompt([
@@ -29,13 +29,13 @@ export async function upgrade(): Promise<void> {
       message: 'Do you want to upgrade now?',
       default: true,
     },
-  ])
+  ]);
 
   if (!confirm) {
-    console.log('\n⏭️  Upgrade cancelled.\n')
-    return
+    console.log('\n⏭️  Upgrade cancelled.\n');
+    return;
   }
 
   // 执行升级
-  await performUpgrade()
+  await performUpgrade();
 }

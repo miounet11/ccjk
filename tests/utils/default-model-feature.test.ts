@@ -1,21 +1,21 @@
-import type { ClaudeSettings } from '../../src/types/config'
-import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
-import { tmpdir } from 'node:os'
-import { join } from 'node:path'
-import { dirname } from 'pathe'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { SETTINGS_FILE } from '../../src/constants'
-import { DEFAULT_MODEL_CHOICES } from '../../src/utils/features'
-import { getExistingCustomModelConfig, getExistingModelConfig, updateCustomModel, updateDefaultModel } from '../../src/utils/config'
-import { readJsonConfig } from '../../src/utils/json-config'
+import type { ClaudeSettings } from '../../src/types/config';
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { dirname } from 'pathe';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { SETTINGS_FILE } from '../../src/constants';
+import { getExistingCustomModelConfig, getExistingModelConfig, updateCustomModel, updateDefaultModel } from '../../src/utils/config';
+import { DEFAULT_MODEL_CHOICES } from '../../src/utils/features';
+import { readJsonConfig } from '../../src/utils/json-config';
 
-const TEMP_BASE = join(tmpdir(), 'ccjk-default-model-feature-fixed')
+const TEMP_BASE = join(tmpdir(), 'ccjk-default-model-feature-fixed');
 
 vi.mock('../../src/constants', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('../../src/constants')>()
-  const { join } = require('node:path')
-  const { tmpdir } = require('node:os')
-  const base = join(tmpdir(), 'ccjk-default-model-feature-fixed')
+  const actual = await importOriginal<typeof import('../../src/constants')>();
+  const { tmpdir } = require('node:os');
+  const { join } = require('node:path');
+  const base = join(tmpdir(), 'ccjk-default-model-feature-fixed');
   return {
     ...actual,
     CLAUDE_DIR: join(base, 'claude'),
@@ -24,8 +24,8 @@ vi.mock('../../src/constants', async (importOriginal) => {
     CLAVUE_SETTINGS_FILE: join(base, 'clavue', 'settings.json'),
     CLAVUE_CONFIG_FILE: join(base, 'clavue', '.clavue.json'),
     CLAVUE_CREDENTIALS_FILE: join(base, 'clavue', '.credentials.json'),
-  }
-})
+  };
+});
 
 const STALE_RUNTIME_SETTINGS = {
   apiKey: 'sk-stale',
@@ -35,26 +35,26 @@ const STALE_RUNTIME_SETTINGS = {
   env: {
     ANTHROPIC_API_KEY: 'sk-test',
   },
-}
+};
 
 describe('default model feature', () => {
-  let originalSettings: string | null = null
+  let originalSettings: string | null = null;
 
   beforeEach(() => {
-    rmSync(TEMP_BASE, { recursive: true, force: true })
-    originalSettings = existsSync(SETTINGS_FILE) ? readFileSync(SETTINGS_FILE, 'utf-8') : null
-    mkdirSync(dirname(SETTINGS_FILE), { recursive: true })
-  })
+    rmSync(TEMP_BASE, { recursive: true, force: true });
+    originalSettings = existsSync(SETTINGS_FILE) ? readFileSync(SETTINGS_FILE, 'utf-8') : null;
+    mkdirSync(dirname(SETTINGS_FILE), { recursive: true });
+  });
 
   afterEach(() => {
     if (originalSettings === null) {
-      rmSync(SETTINGS_FILE, { force: true })
+      rmSync(SETTINGS_FILE, { force: true });
     }
     else {
-      writeFileSync(SETTINGS_FILE, originalSettings, 'utf-8')
+      writeFileSync(SETTINGS_FILE, originalSettings, 'utf-8');
     }
-    rmSync(TEMP_BASE, { recursive: true, force: true })
-  })
+    rmSync(TEMP_BASE, { recursive: true, force: true });
+  });
 
   it('includes the full ZCF-style model choice set', () => {
     expect(DEFAULT_MODEL_CHOICES.map(choice => choice.value)).toEqual([
@@ -63,41 +63,41 @@ describe('default model feature', () => {
       'sonnet',
       'sonnet[1m]',
       'custom',
-    ])
-  })
+    ]);
+  });
 
   it('persists sonnet as the selected built-in default model', () => {
-    writeFileSync(SETTINGS_FILE, JSON.stringify(STALE_RUNTIME_SETTINGS, null, 2))
+    writeFileSync(SETTINGS_FILE, JSON.stringify(STALE_RUNTIME_SETTINGS, null, 2));
 
-    updateDefaultModel('sonnet', 'claude-code')
+    updateDefaultModel('sonnet', 'claude-code');
 
-    const settings = readJsonConfig<ClaudeSettings & Record<string, any>>(SETTINGS_FILE)
-    expect(settings?.model).toBe('sonnet')
-    expect(settings?.apiKey).toBeUndefined()
-    expect(settings?.authToken).toBeUndefined()
-    expect(settings?.defaultModel).toBeUndefined()
-    expect(settings?.preferredModel).toBeUndefined()
-    expect(getExistingModelConfig('claude-code')).toBe('sonnet')
-  })
+    const settings = readJsonConfig<ClaudeSettings & Record<string, any>>(SETTINGS_FILE);
+    expect(settings?.model).toBe('sonnet');
+    expect(settings?.apiKey).toBeUndefined();
+    expect(settings?.authToken).toBeUndefined();
+    expect(settings?.defaultModel).toBeUndefined();
+    expect(settings?.preferredModel).toBeUndefined();
+    expect(getExistingModelConfig('claude-code')).toBe('sonnet');
+  });
 
   it('persists custom primary model in settings.model', () => {
-    writeFileSync(SETTINGS_FILE, JSON.stringify(STALE_RUNTIME_SETTINGS, null, 2))
+    writeFileSync(SETTINGS_FILE, JSON.stringify(STALE_RUNTIME_SETTINGS, null, 2));
 
-    updateCustomModel('claude-opus-4.6', undefined, undefined, undefined, 'claude-code')
+    updateCustomModel('claude-opus-4.6', undefined, undefined, undefined, 'claude-code');
 
-    const settings = readJsonConfig<ClaudeSettings & Record<string, any>>(SETTINGS_FILE)
-    expect(settings?.model).toBe('claude-opus-4.6')
-    expect(settings?.apiKey).toBeUndefined()
-    expect(settings?.authToken).toBeUndefined()
-    expect(settings?.defaultModel).toBeUndefined()
-    expect(settings?.preferredModel).toBeUndefined()
-    expect(settings?.env?.ANTHROPIC_MODEL).toBeUndefined()
-    expect(getExistingModelConfig('claude-code')).toBe('custom')
+    const settings = readJsonConfig<ClaudeSettings & Record<string, any>>(SETTINGS_FILE);
+    expect(settings?.model).toBe('claude-opus-4.6');
+    expect(settings?.apiKey).toBeUndefined();
+    expect(settings?.authToken).toBeUndefined();
+    expect(settings?.defaultModel).toBeUndefined();
+    expect(settings?.preferredModel).toBeUndefined();
+    expect(settings?.env?.ANTHROPIC_MODEL).toBeUndefined();
+    expect(getExistingModelConfig('claude-code')).toBe('custom');
     expect(getExistingCustomModelConfig('claude-code')).toEqual({
       primaryModel: 'claude-opus-4.6',
       haikuModel: undefined,
       sonnetModel: undefined,
       opusModel: undefined,
-    })
-  })
-})
+    });
+  });
+});

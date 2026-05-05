@@ -1,5 +1,5 @@
-import process from 'node:process'
-import { exec } from 'tinyexec'
+import process from 'node:process';
+import { exec } from 'tinyexec';
 
 /**
  * China detection mode configuration
@@ -7,7 +7,7 @@ import { exec } from 'tinyexec'
  * - 'force': Force China mode regardless of detection
  * - 'disabled': Disable China mode regardless of detection
  */
-export type ChinaMode = 'auto' | 'force' | 'disabled'
+export type ChinaMode = 'auto' | 'force' | 'disabled';
 
 /**
  * Known China-based npm registry mirrors
@@ -19,7 +19,7 @@ const CHINA_REGISTRIES = [
   'registry.cnpmjs.org',
   'mirrors.huaweicloud.com',
   'mirrors.tencent.com',
-]
+];
 
 /**
  * China timezone identifiers
@@ -31,7 +31,7 @@ const CHINA_TIMEZONES = [
   'Asia/Urumqi',
   'Asia/Hong_Kong',
   'Asia/Macau',
-]
+];
 
 /**
  * China locale identifiers
@@ -45,24 +45,24 @@ const CHINA_LOCALES = [
   'zh-TW',
   'zh-HK',
   'zh-SG',
-]
+];
 
 /**
  * Get the current China detection mode from environment variable
  * @returns The current China mode setting
  */
 export function getChinaMode(): ChinaMode {
-  const envMode = process.env.CCJK_CHINA_MODE?.toLowerCase()
+  const envMode = process.env.CCJK_CHINA_MODE?.toLowerCase();
 
   if (envMode === 'true' || envMode === 'force' || envMode === '1') {
-    return 'force'
+    return 'force';
   }
 
   if (envMode === 'false' || envMode === 'disabled' || envMode === '0') {
-    return 'disabled'
+    return 'disabled';
   }
 
-  return 'auto'
+  return 'auto';
 }
 
 /**
@@ -71,21 +71,21 @@ export function getChinaMode(): ChinaMode {
  */
 export async function getNpmRegistry(): Promise<string | null> {
   try {
-    const result = await exec('npm', ['config', 'get', 'registry'])
+    const result = await exec('npm', ['config', 'get', 'registry']);
 
     if (result.exitCode === 0 && result.stdout) {
-      const registry = result.stdout.trim()
+      const registry = result.stdout.trim();
       // Filter out default/undefined responses
       if (registry && registry !== 'undefined' && !registry.startsWith('npm config')) {
-        return registry
+        return registry;
       }
     }
 
-    return null
+    return null;
   }
   catch {
     // Silently fail if npm is not available or command fails
-    return null
+    return null;
   }
 }
 
@@ -95,8 +95,8 @@ export async function getNpmRegistry(): Promise<string | null> {
  * @returns True if the registry is a known China mirror
  */
 function isChinaRegistry(registry: string): boolean {
-  const normalizedRegistry = registry.toLowerCase()
-  return CHINA_REGISTRIES.some(mirror => normalizedRegistry.includes(mirror))
+  const normalizedRegistry = registry.toLowerCase();
+  return CHINA_REGISTRIES.some(mirror => normalizedRegistry.includes(mirror));
 }
 
 /**
@@ -106,9 +106,9 @@ function isChinaRegistry(registry: string): boolean {
 function getSystemTimezone(): string | null {
   try {
     // Try Intl.DateTimeFormat API first (most reliable)
-    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     if (timezone) {
-      return timezone
+      return timezone;
     }
   }
   catch {
@@ -117,10 +117,10 @@ function getSystemTimezone(): string | null {
 
   // Fallback to TZ environment variable
   if (process.env.TZ) {
-    return process.env.TZ
+    return process.env.TZ;
   }
 
-  return null
+  return null;
 }
 
 /**
@@ -128,12 +128,12 @@ function getSystemTimezone(): string | null {
  * @returns True if the timezone indicates China location
  */
 function isChinaTimezone(): boolean {
-  const timezone = getSystemTimezone()
+  const timezone = getSystemTimezone();
   if (!timezone) {
-    return false
+    return false;
   }
 
-  return CHINA_TIMEZONES.some(tz => timezone.includes(tz))
+  return CHINA_TIMEZONES.some(tz => timezone.includes(tz));
 }
 
 /**
@@ -141,19 +141,19 @@ function isChinaTimezone(): boolean {
  * @returns Array of locale identifiers
  */
 function getSystemLocales(): string[] {
-  const locales: string[] = []
+  const locales: string[] = [];
 
   // Check various environment variables
-  const envVars = ['LANG', 'LANGUAGE', 'LC_ALL', 'LC_MESSAGES']
+  const envVars = ['LANG', 'LANGUAGE', 'LC_ALL', 'LC_MESSAGES'];
 
   for (const envVar of envVars) {
-    const value = process.env[envVar]
+    const value = process.env[envVar];
     if (value) {
-      locales.push(value)
+      locales.push(value);
     }
   }
 
-  return locales
+  return locales;
 }
 
 /**
@@ -161,14 +161,14 @@ function getSystemLocales(): string[] {
  * @returns True if any locale setting indicates China
  */
 function isChinaLocale(): boolean {
-  const locales = getSystemLocales()
+  const locales = getSystemLocales();
 
   return locales.some((locale) => {
-    const normalizedLocale = locale.toLowerCase()
+    const normalizedLocale = locale.toLowerCase();
     return CHINA_LOCALES.some(chinaLocale =>
       normalizedLocale.includes(chinaLocale.toLowerCase()),
-    )
-  })
+    );
+  });
 }
 
 /**
@@ -183,40 +183,40 @@ function isChinaLocale(): boolean {
  */
 export async function isChinaUser(): Promise<boolean> {
   // Check explicit mode setting first
-  const mode = getChinaMode()
+  const mode = getChinaMode();
 
   if (mode === 'force') {
-    return true
+    return true;
   }
 
   if (mode === 'disabled') {
-    return false
+    return false;
   }
 
   // Auto detection mode - check multiple indicators
   try {
     // Priority 1: Check npm registry configuration
-    const registry = await getNpmRegistry()
+    const registry = await getNpmRegistry();
     if (registry && isChinaRegistry(registry)) {
-      return true
+      return true;
     }
 
     // Priority 2: Check system timezone
     if (isChinaTimezone()) {
-      return true
+      return true;
     }
 
     // Priority 3: Check system locale
     if (isChinaLocale()) {
-      return true
+      return true;
     }
 
     // No China indicators found
-    return false
+    return false;
   }
   catch {
     // On any error, default to false (international mode)
-    return false
+    return false;
   }
 }
 
@@ -227,39 +227,39 @@ export async function isChinaUser(): Promise<boolean> {
  * @returns Promise resolving to detection details
  */
 export async function getChinaDetectionInfo(): Promise<{
-  isChina: boolean
-  mode: ChinaMode
-  registry: string | null
-  timezone: string | null
-  locales: string[]
-  indicators: string[]
+  isChina: boolean;
+  mode: ChinaMode;
+  registry: string | null;
+  timezone: string | null;
+  locales: string[];
+  indicators: string[];
 }> {
-  const mode = getChinaMode()
-  const registry = await getNpmRegistry()
-  const timezone = getSystemTimezone()
-  const locales = getSystemLocales()
-  const indicators: string[] = []
+  const mode = getChinaMode();
+  const registry = await getNpmRegistry();
+  const timezone = getSystemTimezone();
+  const locales = getSystemLocales();
+  const indicators: string[] = [];
 
   if (mode === 'force') {
-    indicators.push('CCJK_CHINA_MODE=force')
+    indicators.push('CCJK_CHINA_MODE=force');
   }
   else if (mode === 'disabled') {
-    indicators.push('CCJK_CHINA_MODE=disabled')
+    indicators.push('CCJK_CHINA_MODE=disabled');
   }
 
   if (registry && isChinaRegistry(registry)) {
-    indicators.push(`China npm registry: ${registry}`)
+    indicators.push(`China npm registry: ${registry}`);
   }
 
   if (isChinaTimezone()) {
-    indicators.push(`China timezone: ${timezone}`)
+    indicators.push(`China timezone: ${timezone}`);
   }
 
   if (isChinaLocale()) {
-    indicators.push(`China locale: ${locales.join(', ')}`)
+    indicators.push(`China locale: ${locales.join(', ')}`);
   }
 
-  const isChina = await isChinaUser()
+  const isChina = await isChinaUser();
 
   return {
     isChina,
@@ -268,5 +268,5 @@ export async function getChinaDetectionInfo(): Promise<{
     timezone,
     locales,
     indicators,
-  }
+  };
 }

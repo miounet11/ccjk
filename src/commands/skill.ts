@@ -14,27 +14,27 @@
  * @module commands/skill
  */
 
-import type { SkillCategory } from '../types/skill-md'
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
-import { homedir } from 'node:os'
-import { fileURLToPath } from 'node:url'
-import ansis from 'ansis'
-import * as Handlebars from 'handlebars'
-import inquirer from 'inquirer'
-import { dirname, join } from 'pathe'
-import { getPluginManager } from '../plugins-v2'
+import type { SkillCategory } from '../types/skill-md';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { homedir } from 'node:os';
+import { fileURLToPath } from 'node:url';
+import ansis from 'ansis';
+import * as Handlebars from 'handlebars';
+import inquirer from 'inquirer';
+import { dirname, join } from 'pathe';
+import { getPluginManager } from '../plugins-v2';
 
 // ESM compatible __dirname
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // ============================================================================
 // Command Handler
 // ============================================================================
 
 export interface SkillCommandOptions {
-  force?: boolean
-  json?: boolean
+  force?: boolean;
+  json?: boolean;
 }
 
 /**
@@ -44,43 +44,43 @@ export async function handleSkillCommand(
   args: string[],
   options: SkillCommandOptions = {},
 ): Promise<void> {
-  const subcommand = args[0]
-  const restArgs = args.slice(1)
+  const subcommand = args[0];
+  const restArgs = args.slice(1);
 
   switch (subcommand) {
     case 'install':
     case 'add':
-      await installSkill(restArgs[0], options)
-      break
+      await installSkill(restArgs[0], options);
+      break;
 
     case 'create':
     case 'new':
     case 'init':
-      await createSkill(restArgs[0], options)
-      break
+      await createSkill(restArgs[0], options);
+      break;
 
     case 'list':
     case 'ls':
-      await listSkills(options)
-      break
+      await listSkills(options);
+      break;
 
     case 'info':
     case 'show':
-      await showSkillInfo(restArgs[0], options)
-      break
+      await showSkillInfo(restArgs[0], options);
+      break;
 
     case 'remove':
     case 'rm':
     case 'uninstall':
-      await removeSkill(restArgs[0], options)
-      break
+      await removeSkill(restArgs[0], options);
+      break;
 
     case 'search':
-      await searchSkills(restArgs.join(' '), options)
-      break
+      await searchSkills(restArgs.join(' '), options);
+      break;
 
     default:
-      showSkillHelp()
+      showSkillHelp();
   }
 }
 
@@ -97,46 +97,46 @@ function getTemplatesDir(): string {
     join(__dirname, '../../templates/skills'),
     join(__dirname, '../../../templates/skills'),
     join(process.cwd(), 'templates/skills'),
-  ]
+  ];
 
   for (const p of possiblePaths) {
     if (existsSync(p)) {
-      return p
+      return p;
     }
   }
 
-  return possiblePaths[0]
+  return possiblePaths[0];
 }
 
 /**
  * Get available skill templates
  */
 function getAvailableTemplates(): string[] {
-  const templatesDir = getTemplatesDir()
+  const templatesDir = getTemplatesDir();
   if (!existsSync(templatesDir)) {
-    return ['basic']
+    return ['basic'];
   }
 
-  const { readdirSync } = require('node:fs')
-  const files = readdirSync(templatesDir) as string[]
+  const { readdirSync } = require('node:fs');
+  const files = readdirSync(templatesDir) as string[];
   return files
     .filter((f: string) => f.endsWith('.hbs'))
-    .map((f: string) => f.replace('.hbs', ''))
+    .map((f: string) => f.replace('.hbs', ''));
 }
 
 /**
  * Load and compile a Handlebars template
  */
 function loadTemplate(templateName: string): HandlebarsTemplateDelegate | null {
-  const templatesDir = getTemplatesDir()
-  const templatePath = join(templatesDir, `${templateName}.hbs`)
+  const templatesDir = getTemplatesDir();
+  const templatePath = join(templatesDir, `${templateName}.hbs`);
 
   if (!existsSync(templatePath)) {
-    return null
+    return null;
   }
 
-  const templateContent = readFileSync(templatePath, 'utf-8')
-  return Handlebars.compile(templateContent)
+  const templateContent = readFileSync(templatePath, 'utf-8');
+  return Handlebars.compile(templateContent);
 }
 
 // ============================================================================
@@ -147,10 +147,10 @@ function loadTemplate(templateName: string): HandlebarsTemplateDelegate | null {
  * Create a new skill from template
  */
 async function createSkill(name: string | undefined, _options: SkillCommandOptions): Promise<void> {
-  console.log(ansis.cyan('\n🎨 Create New Skill\n'))
+  console.log(ansis.cyan('\n🎨 Create New Skill\n'));
 
-  const availableTemplates = getAvailableTemplates()
-  const categories: SkillCategory[] = ['dev', 'git', 'review', 'testing', 'docs', 'devops', 'planning', 'debugging', 'custom']
+  const availableTemplates = getAvailableTemplates();
+  const categories: SkillCategory[] = ['dev', 'git', 'review', 'testing', 'docs', 'devops', 'planning', 'debugging', 'custom'];
 
   // Interactive prompts - collect answers step by step for better type inference
   const { name: skillName } = await inquirer.prompt<{ name: string }>({
@@ -160,25 +160,25 @@ async function createSkill(name: string | undefined, _options: SkillCommandOptio
     default: name || 'my-skill',
     validate: (input: string) => {
       if (!/^[a-z][a-z0-9-]*$/.test(input)) {
-        return 'Name must be kebab-case (lowercase letters, numbers, hyphens)'
+        return 'Name must be kebab-case (lowercase letters, numbers, hyphens)';
       }
-      return true
+      return true;
     },
-  })
+  });
 
   const { title } = await inquirer.prompt<{ title: string }>({
     type: 'input',
     name: 'title',
     message: 'Skill title:',
     default: skillName.split('-').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
-  })
+  });
 
   const { description } = await inquirer.prompt<{ description: string }>({
     type: 'input',
     name: 'description',
     message: 'Brief description:',
     default: 'A custom skill for CCJK',
-  })
+  });
 
   const { template: selectedTemplate } = await inquirer.prompt<{ template: string }>({
     type: 'list',
@@ -189,7 +189,7 @@ async function createSkill(name: string | undefined, _options: SkillCommandOptio
       value: t,
     })),
     default: 'basic',
-  })
+  });
 
   const { category } = await inquirer.prompt<{ category: SkillCategory }>({
     type: 'list',
@@ -197,21 +197,21 @@ async function createSkill(name: string | undefined, _options: SkillCommandOptio
     message: 'Category:',
     choices: categories,
     default: 'custom',
-  })
+  });
 
   const { use_when } = await inquirer.prompt<{ use_when: string }>({
     type: 'input',
     name: 'use_when',
     message: 'When should this skill activate? (natural language):',
     default: 'When user requests this functionality',
-  })
+  });
 
   const { auto_activate } = await inquirer.prompt<{ auto_activate: boolean }>({
     type: 'confirm',
     name: 'auto_activate',
     message: 'Auto-activate based on context?',
     default: true,
-  })
+  });
 
   const { context } = await inquirer.prompt<{ context: string }>({
     type: 'list',
@@ -222,7 +222,7 @@ async function createSkill(name: string | undefined, _options: SkillCommandOptio
       { name: 'fork - Isolated context', value: 'fork' },
     ],
     default: 'inherit',
-  })
+  });
 
   const { priority } = await inquirer.prompt<{ priority: number }>({
     type: 'number',
@@ -231,27 +231,27 @@ async function createSkill(name: string | undefined, _options: SkillCommandOptio
     default: 5,
     validate: (input: number | undefined) => {
       if (input === undefined)
-        return 'Please enter a number'
-      return input >= 1 && input <= 10 ? true : 'Must be between 1 and 10'
+        return 'Please enter a number';
+      return input >= 1 && input <= 10 ? true : 'Must be between 1 and 10';
     },
-  })
+  });
 
   const { hasArgs } = await inquirer.prompt<{ hasArgs: boolean }>({
     type: 'confirm',
     name: 'hasArgs',
     message: 'Does this skill accept arguments ($0, $1, etc.)?',
     default: false,
-  })
+  });
 
-  let argNames = ''
+  let argNames = '';
   if (hasArgs) {
     const result = await inquirer.prompt<{ argNames: string }>({
       type: 'input',
       name: 'argNames',
       message: 'Argument names (comma-separated):',
       default: 'file,options',
-    })
-    argNames = result.argNames
+    });
+    argNames = result.argNames;
   }
 
   const { targetDir } = await inquirer.prompt<{ targetDir: string }>({
@@ -263,7 +263,7 @@ async function createSkill(name: string | undefined, _options: SkillCommandOptio
       { name: `.claude/skills (project)`, value: join(process.cwd(), '.claude', 'skills') },
     ],
     default: join(homedir(), '.claude', 'skills'),
-  })
+  });
 
   const answers = {
     name: skillName,
@@ -278,16 +278,16 @@ async function createSkill(name: string | undefined, _options: SkillCommandOptio
     hasArgs,
     argNames,
     targetDir,
-  }
+  };
 
   // Process arguments
-  const args: Array<{ name: string, description: string, required: boolean }> | undefined = answers.hasArgs && answers.argNames
+  const args: Array<{ name: string; description: string; required: boolean }> | undefined = answers.hasArgs && answers.argNames
     ? answers.argNames.split(',').map((name: string, index: number) => ({
         name: name.trim(),
         description: `Argument ${index + 1}`,
         required: index === 0,
       }))
-    : undefined
+    : undefined;
 
   // Prepare template data
   const templateData = {
@@ -303,28 +303,28 @@ async function createSkill(name: string | undefined, _options: SkillCommandOptio
     timeout: 300,
     args,
     instructions: `Implement the ${answers.title} functionality here.\n\nAdd your specific instructions for Claude.`,
-  }
+  };
 
   // Load and render template
-  let template = loadTemplate(answers.template)
+  let template = loadTemplate(answers.template);
   if (!template) {
     // Fallback to basic template
-    template = loadTemplate('basic')
+    template = loadTemplate('basic');
     if (!template) {
-      console.log(ansis.red('Error: Could not load template'))
-      return
+      console.log(ansis.red('Error: Could not load template'));
+      return;
     }
   }
 
-  const content = template(templateData)
+  const content = template(templateData);
 
   // Ensure target directory exists
   if (!existsSync(answers.targetDir)) {
-    mkdirSync(answers.targetDir, { recursive: true })
+    mkdirSync(answers.targetDir, { recursive: true });
   }
 
   // Write skill file
-  const skillPath = join(answers.targetDir, `${answers.name}.md`)
+  const skillPath = join(answers.targetDir, `${answers.name}.md`);
 
   if (existsSync(skillPath)) {
     const { overwrite } = await inquirer.prompt<{ overwrite: boolean }>({
@@ -332,30 +332,30 @@ async function createSkill(name: string | undefined, _options: SkillCommandOptio
       name: 'overwrite',
       message: `Skill ${answers.name}.md already exists. Overwrite?`,
       default: false,
-    })
+    });
 
     if (!overwrite) {
-      console.log(ansis.yellow('\nSkill creation cancelled.'))
-      return
+      console.log(ansis.yellow('\nSkill creation cancelled.'));
+      return;
     }
   }
 
-  writeFileSync(skillPath, content, 'utf-8')
+  writeFileSync(skillPath, content, 'utf-8');
 
-  console.log(ansis.green(`\n✅ Skill created successfully!`))
-  console.log(ansis.dim(`   Path: ${skillPath}`))
-  console.log('')
-  console.log(ansis.bold('Next steps:'))
-  console.log(ansis.dim(`   1. Edit ${skillPath} to customize the skill`))
-  console.log(ansis.dim(`   2. The skill will be auto-loaded (hot-reload enabled)`))
-  console.log(ansis.dim(`   3. Use /${answers.name} to invoke the skill`))
+  console.log(ansis.green(`\n✅ Skill created successfully!`));
+  console.log(ansis.dim(`   Path: ${skillPath}`));
+  console.log('');
+  console.log(ansis.bold('Next steps:'));
+  console.log(ansis.dim(`   1. Edit ${skillPath} to customize the skill`));
+  console.log(ansis.dim(`   2. The skill will be auto-loaded (hot-reload enabled)`));
+  console.log(ansis.dim(`   3. Use /${answers.name} to invoke the skill`));
 
   if (args && args.length > 0) {
-    console.log('')
-    console.log(ansis.bold('Arguments:'))
-    args.forEach((arg: { name: string, required: boolean }, i: number) => {
-      console.log(ansis.dim(`   $${i} - ${arg.name}${arg.required ? ' (required)' : ''}`))
-    })
+    console.log('');
+    console.log(ansis.bold('Arguments:'));
+    args.forEach((arg: { name: string; required: boolean }, i: number) => {
+      console.log(ansis.dim(`   $${i} - ${arg.name}${arg.required ? ' (required)' : ''}`));
+    });
   }
 }
 
@@ -364,39 +364,39 @@ async function createSkill(name: string | undefined, _options: SkillCommandOptio
  */
 async function installSkill(source: string, options: SkillCommandOptions): Promise<void> {
   if (!source) {
-    console.log(ansis.red('Error: Please specify a skill source'))
-    console.log(ansis.dim('Example: skill install vercel-labs/agent-skills/skills/react-best-practices'))
-    return
+    console.log(ansis.red('Error: Please specify a skill source'));
+    console.log(ansis.dim('Example: skill install vercel-labs/agent-skills/skills/react-best-practices'));
+    return;
   }
 
-  console.log(ansis.cyan(`\n📦 Installing skill from: ${source}\n`))
+  console.log(ansis.cyan(`\n📦 Installing skill from: ${source}\n`));
 
-  const manager = await getPluginManager()
-  const result = await manager.install(source, { force: options.force })
+  const manager = await getPluginManager();
+  const result = await manager.install(source, { force: options.force });
 
   if (result.success) {
-    console.log(ansis.green(`✅ Successfully installed: ${result.pluginId}`))
-    console.log(ansis.dim(`   Version: ${result.version}`))
-    console.log(ansis.dim(`   Path: ${result.path}`))
+    console.log(ansis.green(`✅ Successfully installed: ${result.pluginId}`));
+    console.log(ansis.dim(`   Version: ${result.version}`));
+    console.log(ansis.dim(`   Path: ${result.path}`));
 
     // Show skill info
-    const plugin = manager.getPlugin(result.pluginId)
+    const plugin = manager.getPlugin(result.pluginId);
     if (plugin?.skill) {
-      console.log('')
-      console.log(ansis.bold('Skill Info:'))
-      console.log(ansis.dim(`   ${plugin.skill.description}`))
+      console.log('');
+      console.log(ansis.bold('Skill Info:'));
+      console.log(ansis.dim(`   ${plugin.skill.description}`));
 
       if (plugin.skill.applicability.taskTypes.length > 0) {
-        console.log('')
-        console.log(ansis.bold('When to use:'))
+        console.log('');
+        console.log(ansis.bold('When to use:'));
         for (const task of plugin.skill.applicability.taskTypes.slice(0, 3)) {
-          console.log(ansis.dim(`   • ${task}`))
+          console.log(ansis.dim(`   • ${task}`));
         }
       }
     }
   }
   else {
-    console.log(ansis.red(`❌ Installation failed: ${result.error}`))
+    console.log(ansis.red(`❌ Installation failed: ${result.error}`));
   }
 }
 
@@ -404,11 +404,11 @@ async function installSkill(source: string, options: SkillCommandOptions): Promi
  * List installed skills
  */
 async function listSkills(options: SkillCommandOptions): Promise<void> {
-  const manager = await getPluginManager()
-  const plugins = manager.listPlugins()
+  const manager = await getPluginManager();
+  const plugins = manager.listPlugins();
 
   // Filter to only skills (v2 format with SKILL.md)
-  const skills = plugins.filter(p => p.skill || p.manifest.formatVersion === '2.0')
+  const skills = plugins.filter(p => p.skill || p.manifest.formatVersion === '2.0');
 
   if (options.json) {
     console.log(JSON.stringify(skills.map(s => ({
@@ -417,46 +417,46 @@ async function listSkills(options: SkillCommandOptions): Promise<void> {
       version: s.manifest.version,
       hasSkill: !!s.skill,
       scripts: s.scripts?.length ?? 0,
-    })), null, 2))
-    return
+    })), null, 2));
+    return;
   }
 
-  console.log(ansis.cyan('\n📚 Installed Skills\n'))
+  console.log(ansis.cyan('\n📚 Installed Skills\n'));
 
   if (skills.length === 0) {
-    console.log(ansis.dim('No skills installed yet.'))
-    console.log(ansis.dim('\nInstall skills with:'))
-    console.log(ansis.dim('  skill install vercel-labs/agent-skills/skills/react-best-practices'))
-    return
+    console.log(ansis.dim('No skills installed yet.'));
+    console.log(ansis.dim('\nInstall skills with:'));
+    console.log(ansis.dim('  skill install vercel-labs/agent-skills/skills/react-best-practices'));
+    return;
   }
 
   for (const skill of skills) {
-    const name = skill.manifest.name.en || skill.manifest.id
-    const version = skill.manifest.version
-    const hasScripts = skill.scripts && skill.scripts.length > 0
+    const name = skill.manifest.name.en || skill.manifest.id;
+    const version = skill.manifest.version;
+    const hasScripts = skill.scripts && skill.scripts.length > 0;
 
-    console.log(`  ${ansis.bold(name)} ${ansis.dim(`(${skill.manifest.id})`)} ${ansis.dim(`v${version}`)}`)
+    console.log(`  ${ansis.bold(name)} ${ansis.dim(`(${skill.manifest.id})`)} ${ansis.dim(`v${version}`)}`);
 
     if (skill.skill) {
-      console.log(ansis.dim(`    ${skill.skill.description.substring(0, 60)}...`))
+      console.log(ansis.dim(`    ${skill.skill.description.substring(0, 60)}...`));
     }
 
-    const badges: string[] = []
+    const badges: string[] = [];
     if (hasScripts)
-      badges.push('📜 scripts')
+      badges.push('📜 scripts');
     if (skill.intents?.length)
-      badges.push('🎯 intents')
+      badges.push('🎯 intents');
     if (skill.skill?.rules?.length)
-      badges.push(`📋 ${skill.skill.rules.length} rules`)
+      badges.push(`📋 ${skill.skill.rules.length} rules`);
 
     if (badges.length > 0) {
-      console.log(ansis.dim(`    ${badges.join(' • ')}`))
+      console.log(ansis.dim(`    ${badges.join(' • ')}`));
     }
 
-    console.log('')
+    console.log('');
   }
 
-  console.log(ansis.dim(`Total: ${skills.length} skills`))
+  console.log(ansis.dim(`Total: ${skills.length} skills`));
 }
 
 /**
@@ -464,16 +464,16 @@ async function listSkills(options: SkillCommandOptions): Promise<void> {
  */
 async function showSkillInfo(skillId: string, options: SkillCommandOptions): Promise<void> {
   if (!skillId) {
-    console.log(ansis.red('Error: Please specify a skill ID'))
-    return
+    console.log(ansis.red('Error: Please specify a skill ID'));
+    return;
   }
 
-  const manager = await getPluginManager()
-  const plugin = manager.getPlugin(skillId)
+  const manager = await getPluginManager();
+  const plugin = manager.getPlugin(skillId);
 
   if (!plugin) {
-    console.log(ansis.red(`Skill not found: ${skillId}`))
-    return
+    console.log(ansis.red(`Skill not found: ${skillId}`));
+    return;
   }
 
   if (options.json) {
@@ -490,33 +490,33 @@ async function showSkillInfo(skillId: string, options: SkillCommandOptions): Pro
         : null,
       scripts: plugin.scripts,
       intents: plugin.intents,
-    }, null, 2))
-    return
+    }, null, 2));
+    return;
   }
 
-  console.log('')
-  console.log(ansis.bold(ansis.cyan(`📦 ${plugin.manifest.name.en}`)))
-  console.log(ansis.dim(`ID: ${plugin.manifest.id}`))
-  console.log(ansis.dim(`Version: ${plugin.manifest.version}`))
-  console.log(ansis.dim(`Category: ${plugin.manifest.category}`))
-  console.log('')
+  console.log('');
+  console.log(ansis.bold(ansis.cyan(`📦 ${plugin.manifest.name.en}`)));
+  console.log(ansis.dim(`ID: ${plugin.manifest.id}`));
+  console.log(ansis.dim(`Version: ${plugin.manifest.version}`));
+  console.log(ansis.dim(`Category: ${plugin.manifest.category}`));
+  console.log('');
 
   if (plugin.skill) {
-    console.log(ansis.bold('📖 Skill Document'))
-    console.log(ansis.dim(`Title: ${plugin.skill.title}`))
-    console.log(ansis.dim(`Description: ${plugin.skill.description}`))
-    console.log('')
+    console.log(ansis.bold('📖 Skill Document'));
+    console.log(ansis.dim(`Title: ${plugin.skill.title}`));
+    console.log(ansis.dim(`Description: ${plugin.skill.description}`));
+    console.log('');
 
     if (plugin.skill.applicability.taskTypes.length > 0) {
-      console.log(ansis.bold('🎯 When to Apply'))
+      console.log(ansis.bold('🎯 When to Apply'));
       for (const task of plugin.skill.applicability.taskTypes) {
-        console.log(ansis.dim(`  • ${task}`))
+        console.log(ansis.dim(`  • ${task}`));
       }
-      console.log('')
+      console.log('');
     }
 
     if (plugin.skill.rules && plugin.skill.rules.length > 0) {
-      console.log(ansis.bold(`📋 Rules (${plugin.skill.rules.length} total)`))
+      console.log(ansis.bold(`📋 Rules (${plugin.skill.rules.length} total)`));
 
       // Group by priority
       const byPriority = {
@@ -524,59 +524,59 @@ async function showSkillInfo(skillId: string, options: SkillCommandOptions): Pro
         high: plugin.skill.rules.filter(r => r.priority === 'high'),
         medium: plugin.skill.rules.filter(r => r.priority === 'medium'),
         low: plugin.skill.rules.filter(r => r.priority === 'low'),
-      }
+      };
 
       if (byPriority.critical.length > 0) {
-        console.log(ansis.red(`  🔴 Critical (${byPriority.critical.length})`))
+        console.log(ansis.red(`  🔴 Critical (${byPriority.critical.length})`));
         for (const rule of byPriority.critical.slice(0, 3)) {
-          console.log(ansis.dim(`     ${rule.id}: ${rule.title}`))
+          console.log(ansis.dim(`     ${rule.id}: ${rule.title}`));
         }
       }
 
       if (byPriority.high.length > 0) {
-        console.log(ansis.yellow(`  🟡 High (${byPriority.high.length})`))
+        console.log(ansis.yellow(`  🟡 High (${byPriority.high.length})`));
         for (const rule of byPriority.high.slice(0, 3)) {
-          console.log(ansis.dim(`     ${rule.id}: ${rule.title}`))
+          console.log(ansis.dim(`     ${rule.id}: ${rule.title}`));
         }
       }
 
-      console.log('')
+      console.log('');
     }
 
     if (plugin.skill.sections.length > 0) {
-      console.log(ansis.bold('📑 Sections'))
+      console.log(ansis.bold('📑 Sections'));
       for (const section of plugin.skill.sections) {
-        console.log(ansis.dim(`  • ${section.title}`))
+        console.log(ansis.dim(`  • ${section.title}`));
       }
-      console.log('')
+      console.log('');
     }
   }
 
   if (plugin.scripts && plugin.scripts.length > 0) {
-    console.log(ansis.bold('📜 Scripts'))
+    console.log(ansis.bold('📜 Scripts'));
     for (const script of plugin.scripts) {
-      console.log(ansis.dim(`  • ${script.name} (${script.type})`))
+      console.log(ansis.dim(`  • ${script.name} (${script.type})`));
     }
-    console.log('')
+    console.log('');
   }
 
   if (plugin.intents && plugin.intents.length > 0) {
-    console.log(ansis.bold('🎯 Auto-Activation Intents'))
+    console.log(ansis.bold('🎯 Auto-Activation Intents'));
     for (const intent of plugin.intents) {
-      console.log(ansis.dim(`  • ${intent.name.en}`))
-      console.log(ansis.dim(`    Patterns: ${intent.patterns.slice(0, 2).join(', ')}...`))
+      console.log(ansis.dim(`  • ${intent.name.en}`));
+      console.log(ansis.dim(`    Patterns: ${intent.patterns.slice(0, 2).join(', ')}...`));
     }
-    console.log('')
+    console.log('');
   }
 
   // Source info
-  console.log(ansis.bold('📍 Source'))
-  console.log(ansis.dim(`  Type: ${plugin.source.type}`))
+  console.log(ansis.bold('📍 Source'));
+  console.log(ansis.dim(`  Type: ${plugin.source.type}`));
   if (plugin.source.type === 'local') {
-    console.log(ansis.dim(`  Path: ${plugin.source.path}`))
+    console.log(ansis.dim(`  Path: ${plugin.source.path}`));
   }
   else if (plugin.source.type === 'github') {
-    console.log(ansis.dim(`  Repo: ${plugin.source.repo}`))
+    console.log(ansis.dim(`  Repo: ${plugin.source.repo}`));
   }
 }
 
@@ -585,27 +585,27 @@ async function showSkillInfo(skillId: string, options: SkillCommandOptions): Pro
  */
 async function removeSkill(skillId: string, _options: SkillCommandOptions): Promise<void> {
   if (!skillId) {
-    console.log(ansis.red('Error: Please specify a skill ID'))
-    return
+    console.log(ansis.red('Error: Please specify a skill ID'));
+    return;
   }
 
-  const manager = await getPluginManager()
-  const plugin = manager.getPlugin(skillId)
+  const manager = await getPluginManager();
+  const plugin = manager.getPlugin(skillId);
 
   if (!plugin) {
-    console.log(ansis.red(`Skill not found: ${skillId}`))
-    return
+    console.log(ansis.red(`Skill not found: ${skillId}`));
+    return;
   }
 
-  console.log(ansis.yellow(`\n⚠️  Removing skill: ${plugin.manifest.name.en}`))
+  console.log(ansis.yellow(`\n⚠️  Removing skill: ${plugin.manifest.name.en}`));
 
-  const success = await manager.uninstall(skillId)
+  const success = await manager.uninstall(skillId);
 
   if (success) {
-    console.log(ansis.green(`✅ Successfully removed: ${skillId}`))
+    console.log(ansis.green(`✅ Successfully removed: ${skillId}`));
   }
   else {
-    console.log(ansis.red(`❌ Failed to remove: ${skillId}`))
+    console.log(ansis.red(`❌ Failed to remove: ${skillId}`));
   }
 }
 
@@ -613,7 +613,7 @@ async function removeSkill(skillId: string, _options: SkillCommandOptions): Prom
  * Search for skills
  */
 async function searchSkills(query: string, _options: SkillCommandOptions): Promise<void> {
-  console.log(ansis.cyan(`\n🔍 Searching for skills: "${query}"\n`))
+  console.log(ansis.cyan(`\n🔍 Searching for skills: "${query}"\n`));
 
   // TODO: Implement skill search from registry
   // For now, show popular skills from GitHub
@@ -634,19 +634,19 @@ async function searchSkills(query: string, _options: SkillCommandOptions): Promi
       name: 'Vercel Deploy',
       description: 'One-click deployment with framework auto-detection',
     },
-  ]
+  ];
 
-  console.log(ansis.bold('Popular Skills:'))
-  console.log('')
+  console.log(ansis.bold('Popular Skills:'));
+  console.log('');
 
   for (const skill of popularSkills) {
-    console.log(`  ${ansis.bold(skill.name)}`)
-    console.log(ansis.dim(`    ${skill.description}`))
-    console.log(ansis.dim(`    Install: skill install ${skill.source}`))
-    console.log('')
+    console.log(`  ${ansis.bold(skill.name)}`);
+    console.log(ansis.dim(`    ${skill.description}`));
+    console.log(ansis.dim(`    Install: skill install ${skill.source}`));
+    console.log('');
   }
 
-  console.log(ansis.dim('More skills coming soon...'))
+  console.log(ansis.dim('More skills coming soon...'));
 }
 
 /**
@@ -706,11 +706,11 @@ ${ansis.bold('Argument Shorthand (v2.1.19+):')}
 
   ${ansis.dim('# Usage:')}
   ${ansis.dim('/my-skill src/app.ts "Fix bug"')}
-`)
+`);
 }
 
 // ============================================================================
 // Export
 // ============================================================================
 
-export default handleSkillCommand
+export default handleSkillCommand;

@@ -1,18 +1,18 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import {
-  generateKeyPair,
-  encryptForPublicKey,
-  decryptWithSecretKey,
-  encryptSymmetric,
-  decryptSymmetric,
-  encryptJson,
-  decryptJson,
-  encodeBase64,
   decodeBase64,
+  decryptJson,
+  decryptSymmetric,
+  decryptWithSecretKey,
+  encodeBase64,
+  encryptForPublicKey,
+  encryptJson,
+  encryptSymmetric,
+  generateKeyPair,
 } from './encryption';
 
-describe('Encryption', () => {
-  describe('Base64 encoding', () => {
+describe('encryption', () => {
+  describe('base64 encoding', () => {
     it('should encode and decode correctly', () => {
       const data = new Uint8Array([1, 2, 3, 4, 5]);
       const encoded = encodeBase64(data);
@@ -22,7 +22,7 @@ describe('Encryption', () => {
     });
   });
 
-  describe('Asymmetric encryption', () => {
+  describe('asymmetric encryption', () => {
     it('should generate valid key pair', () => {
       const keyPair = generateKeyPair();
 
@@ -55,7 +55,7 @@ describe('Encryption', () => {
     });
   });
 
-  describe('Symmetric encryption', () => {
+  describe('symmetric encryption', () => {
     it('should encrypt and decrypt with symmetric key', () => {
       const key = new Uint8Array(32);
       crypto.getRandomValues(key);
@@ -82,7 +82,7 @@ describe('Encryption', () => {
     });
   });
 
-  describe('JSON encryption', () => {
+  describe('jSON encryption', () => {
     it('should encrypt and decrypt JSON objects', () => {
       const key = new Uint8Array(32);
       crypto.getRandomValues(key);

@@ -7,18 +7,18 @@
  * @module brain/orchestrator
  */
 
-import type { AgentCapability, CloudAgent } from '../types/agent.js'
-import type { SkillMdFile } from '../types/skill-md.js'
+import type { AgentCapability, CloudAgent } from '../types/agent.js';
+import type { SkillMdFile } from '../types/skill-md.js';
 import type {
   AgentDispatcherOptions,
   ParallelAgentExecution,
   ParallelExecutionResult,
-} from './agent-dispatcher.js'
+} from './agent-dispatcher.js';
 import type {
   ForkContextConfig,
   ForkContextOptions,
   ForkContextResult,
-} from './agent-fork.js'
+} from './agent-fork.js';
 import type {
   AgentInstance,
   AgentSelectionCriteria,
@@ -31,24 +31,24 @@ import type {
   Task,
   TaskError,
   TaskOutput,
-} from './orchestrator-types.js'
-import type { AgentRole } from './types.js'
-import { EventEmitter } from 'node:events'
-import { nanoid } from 'nanoid'
-import { AgentDispatcher } from './agent-dispatcher.js'
-import { AgentForkManager } from './agent-fork.js'
-import { contextLoader } from './context-loader.js'
-import { executionTracer } from './execution-tracer.js'
-import { ResultAggregator } from './result-aggregator.js'
-import { SessionIntelligence } from './session-manager.js'
-import { TaskDecomposer } from './task-decomposer.js'
-import { taskPersistence } from './task-persistence.js'
+} from './orchestrator-types.js';
+import type { AgentRole } from './types.js';
+import { EventEmitter } from 'node:events';
+import { nanoid } from 'nanoid';
+import { AgentDispatcher } from './agent-dispatcher.js';
+import { AgentForkManager } from './agent-fork.js';
+import { contextLoader } from './context-loader.js';
+import { executionTracer } from './execution-tracer.js';
+import { ResultAggregator } from './result-aggregator.js';
+import { SessionIntelligence } from './session-manager.js';
+import { TaskDecomposer } from './task-decomposer.js';
+import { taskPersistence } from './task-persistence.js';
 
 /**
  * Convert AgentCapability array to string array of capability IDs
  */
 function fromAgentCapabilities(capabilities: AgentCapability[]): string[] {
-  return capabilities.map(cap => cap.id)
+  return capabilities.map(cap => cap.id);
 }
 
 /**
@@ -62,39 +62,39 @@ function toAgentCapabilities(capabilities: string[]): AgentCapability[] {
     specialties: [id],
     strength: 0.8,
     costFactor: 1.0,
-  }))
+  }));
 }
 
 /**
  * Orchestrator events
  */
 export interface OrchestratorEvents {
-  'plan:created': (plan: OrchestrationPlan) => void
-  'plan:started': (planId: string) => void
-  'plan:completed': (result: OrchestrationResult) => void
-  'plan:failed': (planId: string, error: Error) => void
-  'task:created': (task: Task) => void
-  'task:started': (task: Task) => void
-  'task:progress': (task: Task, progress: number) => void
-  'task:completed': (task: Task) => void
-  'task:failed': (task: Task, error: TaskError) => void
-  'task:cancelled': (task: Task) => void
-  'agent:created': (agent: AgentInstance) => void
-  'agent:assigned': (agent: AgentInstance, task: Task) => void
-  'agent:completed': (agent: AgentInstance, task: Task) => void
-  'agent:error': (agent: AgentInstance, error: Error) => void
-  'agent:terminated': (agent: AgentInstance) => void
-  'error': (error: Error) => void
+  'plan:created': (plan: OrchestrationPlan) => void;
+  'plan:started': (planId: string) => void;
+  'plan:completed': (result: OrchestrationResult) => void;
+  'plan:failed': (planId: string, error: Error) => void;
+  'task:created': (task: Task) => void;
+  'task:started': (task: Task) => void;
+  'task:progress': (task: Task, progress: number) => void;
+  'task:completed': (task: Task) => void;
+  'task:failed': (task: Task, error: TaskError) => void;
+  'task:cancelled': (task: Task) => void;
+  'agent:created': (agent: AgentInstance) => void;
+  'agent:assigned': (agent: AgentInstance, task: Task) => void;
+  'agent:completed': (agent: AgentInstance, task: Task) => void;
+  'agent:error': (agent: AgentInstance, error: Error) => void;
+  'agent:terminated': (agent: AgentInstance) => void;
+  'error': (error: Error) => void;
   // Fork context events (v3.8)
-  'fork:created': (forkId: string, skill: SkillMdFile) => void
-  'fork:started': (forkId: string) => void
-  'fork:completed': (forkId: string, result: ForkContextResult) => void
-  'fork:failed': (forkId: string, error: string) => void
-  'fork:cancelled': (forkId: string) => void
+  'fork:created': (forkId: string, skill: SkillMdFile) => void;
+  'fork:started': (forkId: string) => void;
+  'fork:completed': (forkId: string, result: ForkContextResult) => void;
+  'fork:failed': (forkId: string, error: string) => void;
+  'fork:cancelled': (forkId: string) => void;
   // Parallel execution events (v3.8)
-  'parallel:started': (executionId: string) => void
-  'parallel:completed': (executionId: string, result: ParallelExecutionResult) => void
-  'parallel:failed': (executionId: string, error: string) => void
+  'parallel:started': (executionId: string) => void;
+  'parallel:completed': (executionId: string, result: ParallelExecutionResult) => void;
+  'parallel:failed': (executionId: string, error: string) => void;
 }
 
 /**
@@ -102,16 +102,16 @@ export interface OrchestratorEvents {
  */
 export interface ExtendedOrchestratorConfig extends OrchestratorConfig {
   /** Fork context manager options */
-  forkContextOptions?: ForkContextOptions
+  forkContextOptions?: ForkContextOptions;
 
   /** Agent dispatcher options */
-  dispatcherOptions?: AgentDispatcherOptions
+  dispatcherOptions?: AgentDispatcherOptions;
 
   /** Enable fork context execution */
-  enableForkContext?: boolean
+  enableForkContext?: boolean;
 
   /** Enable agent dispatcher */
-  enableDispatcher?: boolean
+  enableDispatcher?: boolean;
 }
 
 /**
@@ -123,16 +123,16 @@ export interface ExtendedOrchestratorConfig extends OrchestratorConfig {
  * v3.8 adds support for fork context isolation and agent dispatching.
  */
 export class BrainOrchestrator extends EventEmitter {
-  private readonly config: Required<ExtendedOrchestratorConfig>
-  private readonly taskDecomposer: TaskDecomposer
-  private readonly resultAggregator: ResultAggregator
-  private readonly state: OrchestratorState
-  private readonly availableAgents: Map<AgentRole, CloudAgent>
-  private readonly forkManager: AgentForkManager
-  private readonly dispatcher: AgentDispatcher
+  private readonly config: Required<ExtendedOrchestratorConfig>;
+  private readonly taskDecomposer: TaskDecomposer;
+  private readonly resultAggregator: ResultAggregator;
+  private readonly state: OrchestratorState;
+  private readonly availableAgents: Map<AgentRole, CloudAgent>;
+  private readonly forkManager: AgentForkManager;
+  private readonly dispatcher: AgentDispatcher;
 
   constructor(config: Partial<ExtendedOrchestratorConfig> = {}) {
-    super()
+    super();
 
     this.config = {
       maxConcurrentTasks: config.maxConcurrentTasks ?? 10,
@@ -151,21 +151,21 @@ export class BrainOrchestrator extends EventEmitter {
       dispatcherOptions: config.dispatcherOptions ?? {},
       enableForkContext: config.enableForkContext ?? true,
       enableDispatcher: config.enableDispatcher ?? true,
-    }
+    };
 
     this.taskDecomposer = new TaskDecomposer({
       strategy: 'hierarchical',
       maxDepth: 5,
       maxParallelTasks: this.config.maxConcurrentTasks,
       enableOptimization: true,
-    })
+    });
 
     this.resultAggregator = new ResultAggregator({
       defaultStrategy: this.config.conflictResolutionStrategy,
       autoDetectConflicts: true,
       enableValidation: true,
       enableMerging: true,
-    })
+    });
 
     this.state = {
       activeTasks: new Map(),
@@ -176,16 +176,16 @@ export class BrainOrchestrator extends EventEmitter {
       status: 'idle',
       totalTasksProcessed: 0,
       metrics: this.createEmptyMetrics(),
-    }
+    };
 
-    this.availableAgents = new Map()
+    this.availableAgents = new Map();
 
     // Initialize fork manager (v3.8)
-    this.forkManager = new AgentForkManager(this.config.forkContextOptions)
-    this.setupForkManagerEvents()
+    this.forkManager = new AgentForkManager(this.config.forkContextOptions);
+    this.setupForkManagerEvents();
 
     // Initialize agent dispatcher (v3.8)
-    this.dispatcher = new AgentDispatcher(this.config.dispatcherOptions)
+    this.dispatcher = new AgentDispatcher(this.config.dispatcherOptions);
   }
 
   /**
@@ -195,8 +195,8 @@ export class BrainOrchestrator extends EventEmitter {
    * @param agent - Agent definition
    */
   registerAgent(role: AgentRole, agent: CloudAgent): void {
-    this.availableAgents.set(role, agent)
-    this.log(`Registered agent: ${role}`)
+    this.availableAgents.set(role, agent);
+    this.log(`Registered agent: ${role}`);
   }
 
   /**
@@ -205,8 +205,8 @@ export class BrainOrchestrator extends EventEmitter {
    * @param role - Agent role
    */
   unregisterAgent(role: AgentRole): void {
-    this.availableAgents.delete(role)
-    this.log(`Unregistered agent: ${role}`)
+    this.availableAgents.delete(role);
+    this.log(`Unregistered agent: ${role}`);
   }
 
   /**
@@ -221,19 +221,19 @@ export class BrainOrchestrator extends EventEmitter {
     strategy?: DecompositionStrategy,
   ): Promise<OrchestrationResult> {
     // Start execution trace
-    const sessionId = `orchestration-${nanoid()}`
-    executionTracer.startSession(sessionId)
+    const sessionId = `orchestration-${nanoid()}`;
+    executionTracer.startSession(sessionId);
     executionTracer.logEvent('agent-start', {
       task: task.name,
       strategy: strategy || 'auto',
-    })
+    });
 
     // Save session and task to persistence
     taskPersistence.saveSession(sessionId, {
       rootTask: task.name,
       strategy: strategy || 'auto',
-    })
-    taskPersistence.saveTask(task, sessionId)
+    });
+    taskPersistence.saveTask(task, sessionId);
 
     // Load hierarchical context with token budget (L1 depth for orchestration)
     const context = await contextLoader.load({
@@ -241,64 +241,64 @@ export class BrainOrchestrator extends EventEmitter {
       task,
       layers: ['project', 'domain', 'task'],
       tokenBudget: 4_000, // ~L1 depth, keeps orchestration context lean
-    })
+    });
 
     // Attach context to task
-    task.metadata = task.metadata || { tags: [] }
+    task.metadata = task.metadata || { tags: [] };
     if (!task.metadata.custom) {
-      task.metadata.custom = {}
+      task.metadata.custom = {};
     }
-    task.metadata.custom.context = contextLoader.formatForLLM(context)
+    task.metadata.custom.context = contextLoader.formatForLLM(context);
 
     // Update session intelligence phase
-    const intel = SessionIntelligence.getInstance()
-    intel.recordMessage('user', task.name)
+    const intel = SessionIntelligence.getInstance();
+    intel.recordMessage('user', task.name);
 
     try {
-      this.state.status = 'planning'
-      intel.updatePhase('exploring')
-      this.log(`Starting orchestration for task: ${task.name}`)
-      executionTracer.logDecision('orchestrator', `Planning task: ${task.name}`)
+      this.state.status = 'planning';
+      intel.updatePhase('exploring');
+      this.log(`Starting orchestration for task: ${task.name}`);
+      executionTracer.logDecision('orchestrator', `Planning task: ${task.name}`);
 
       // Create orchestration plan
-      const plan = await this.createPlan(task, strategy)
-      this.emit('plan:created', plan)
+      const plan = await this.createPlan(task, strategy);
+      this.emit('plan:created', plan);
 
       // Execute plan
-      this.state.status = 'executing'
-      intel.updatePhase('executing')
-      this.state.currentPlan = plan
-      this.state.startTime = new Date().toISOString()
-      this.emit('plan:started', plan.id)
+      this.state.status = 'executing';
+      intel.updatePhase('executing');
+      this.state.currentPlan = plan;
+      this.state.startTime = new Date().toISOString();
+      this.emit('plan:started', plan.id);
 
-      const result = await this.executePlan(plan)
+      const result = await this.executePlan(plan);
 
-      this.state.status = 'idle'
-      intel.updatePhase('reviewing')
-      this.emit('plan:completed', result)
+      this.state.status = 'idle';
+      intel.updatePhase('reviewing');
+      this.emit('plan:completed', result);
 
       // End execution trace
-      executionTracer.logAgentEnd('orchestrator', { success: true })
-      executionTracer.endSession(sessionId)
+      executionTracer.logAgentEnd('orchestrator', { success: true });
+      executionTracer.endSession(sessionId);
 
       // Update task status in persistence
-      taskPersistence.updateTaskStatus(task.id, 'completed', result)
+      taskPersistence.updateTaskStatus(task.id, 'completed', result);
 
-      return result
+      return result;
     }
     catch (error) {
-      this.state.status = 'error'
-      const err = error instanceof Error ? error : new Error(String(error))
-      this.emit('error', err)
+      this.state.status = 'error';
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.emit('error', err);
 
       // Log error in trace
-      executionTracer.logError(err, 'orchestrator')
-      executionTracer.endSession(sessionId)
+      executionTracer.logError(err, 'orchestrator');
+      executionTracer.endSession(sessionId);
 
       // Update task status in persistence
-      taskPersistence.updateTaskStatus(task.id, 'failed', undefined, err)
+      taskPersistence.updateTaskStatus(task.id, 'failed', undefined, err);
 
-      return this.createFailedResult(task, err)
+      return this.createFailedResult(task, err);
     }
   }
 
@@ -313,19 +313,19 @@ export class BrainOrchestrator extends EventEmitter {
     task: Task,
     strategy?: DecompositionStrategy,
   ): Promise<OrchestrationPlan> {
-    this.log(`Creating orchestration plan for: ${task.name}`)
+    this.log(`Creating orchestration plan for: ${task.name}`);
 
     // Decompose task into subtasks
-    const decomposition = await this.taskDecomposer.decompose(task, strategy)
+    const decomposition = await this.taskDecomposer.decompose(task, strategy);
 
     // Analyze required agents
-    const requiredAgents = this.analyzeRequiredAgents(decomposition.subtasks)
+    const requiredAgents = this.analyzeRequiredAgents(decomposition.subtasks);
 
     // Create task execution graph
-    const executionGraph = decomposition.executionGraph
+    const executionGraph = decomposition.executionGraph;
 
     // Calculate estimated duration
-    const estimatedDuration = decomposition.estimatedDuration
+    const estimatedDuration = decomposition.estimatedDuration;
 
     // Create orchestration plan
     const plan: OrchestrationPlan = {
@@ -343,9 +343,9 @@ export class BrainOrchestrator extends EventEmitter {
         originalTaskId: task.id,
         decompositionMetadata: decomposition.metadata,
       },
-    }
+    };
 
-    return plan
+    return plan;
   }
 
   /**
@@ -355,134 +355,134 @@ export class BrainOrchestrator extends EventEmitter {
    * @returns Orchestration result
    */
   private async executePlan(plan: OrchestrationPlan): Promise<OrchestrationResult> {
-    const startTime = Date.now()
-    const completed: string[] = []
-    const failed: string[] = []
-    const cancelled: string[] = []
-    const results: Record<string, TaskOutput> = {}
-    const errors: TaskError[] = []
-    const warnings: string[] = []
+    const startTime = Date.now();
+    const completed: string[] = [];
+    const failed: string[] = [];
+    const cancelled: string[] = [];
+    const results: Record<string, TaskOutput> = {};
+    const errors: TaskError[] = [];
+    const warnings: string[] = [];
 
-    this.log(`Executing plan: ${plan.id}`)
+    this.log(`Executing plan: ${plan.id}`);
 
     // Add tasks to queue
     for (const task of plan.tasks) {
-      this.state.taskQueue.push(task)
-      this.emit('task:created', task)
+      this.state.taskQueue.push(task);
+      this.emit('task:created', task);
     }
 
     // Execute tasks according to execution graph stages
     for (const stage of plan.executionGraph.stages) {
-      const stageTasks = plan.tasks.filter(t => stage.tasks.includes(t.id))
+      const stageTasks = plan.tasks.filter(t => stage.tasks.includes(t.id));
 
       // Execute tasks in parallel within stage
       const stagePromises = stageTasks.map(async (task) => {
-        this.emit('task:started', task)
-        task.status = 'running'
-        task.startedAt = new Date().toISOString()
+        this.emit('task:started', task);
+        task.status = 'running';
+        task.startedAt = new Date().toISOString();
 
         try {
           // Find and assign agent
-          const agent = this.selectAgentForTask(task)
+          const agent = this.selectAgentForTask(task);
           if (!agent) {
-            throw new Error(`No available agent for task: ${task.name}`)
+            throw new Error(`No available agent for task: ${task.name}`);
           }
 
-          task.assignedAgentId = agent.id
-          this.emit('agent:assigned', agent, task)
+          task.assignedAgentId = agent.id;
+          this.emit('agent:assigned', agent, task);
 
           // Simulate task execution (in real implementation, this would call the agent)
-          await this.executeTask(agent, task)
+          await this.executeTask(agent, task);
 
           // Mark task as completed
-          task.status = 'completed'
-          task.completedAt = new Date().toISOString()
-          task.actualDuration = Date.now() - new Date(task.startedAt).getTime()
-          task.progress = 100
+          task.status = 'completed';
+          task.completedAt = new Date().toISOString();
+          task.actualDuration = Date.now() - new Date(task.startedAt).getTime();
+          task.progress = 100;
 
-          completed.push(task.id)
-          this.emit('task:completed', task)
+          completed.push(task.id);
+          this.emit('task:completed', task);
 
           // Update agent metrics
-          this.updateAgentMetrics(agent, task, true)
+          this.updateAgentMetrics(agent, task, true);
 
           if (task.output) {
-            results[task.id] = task.output
+            results[task.id] = task.output;
           }
 
-          return { taskId: task.id, success: true }
+          return { taskId: task.id, success: true };
         }
         catch (error) {
-          const err = error instanceof Error ? error : new Error(String(error))
-          task.status = 'failed'
+          const err = error instanceof Error ? error : new Error(String(error));
+          task.status = 'failed';
           task.error = {
             code: 'TASK_EXECUTION_FAILED',
             message: err.message,
             stack: err.stack,
             recoverable: this.config.autoRetry && task.retryCount < task.maxRetries,
-          }
-          task.completedAt = new Date().toISOString()
+          };
+          task.completedAt = new Date().toISOString();
 
-          failed.push(task.id)
-          this.emit('task:failed', task, task.error)
+          failed.push(task.id);
+          this.emit('task:failed', task, task.error);
 
           if (task.error) {
-            errors.push(task.error)
+            errors.push(task.error);
           }
 
           // Retry if enabled and retries remaining
           if (this.config.autoRetry && task.retryCount < task.maxRetries && task.error?.recoverable) {
-            task.retryCount++
-            task.status = 'pending'
-            warnings.push(`Retrying task ${task.name} (attempt ${task.retryCount}/${task.maxRetries})`)
-            return { taskId: task.id, success: false, retry: true }
+            task.retryCount++;
+            task.status = 'pending';
+            warnings.push(`Retrying task ${task.name} (attempt ${task.retryCount}/${task.maxRetries})`);
+            return { taskId: task.id, success: false, retry: true };
           }
 
-          return { taskId: task.id, success: false }
+          return { taskId: task.id, success: false };
         }
-      })
+      });
 
       // Wait for all tasks in stage to complete
-      await Promise.all(stagePromises)
+      await Promise.all(stagePromises);
 
       // Check for critical failures
       if (this.hasCriticalFailures(stageTasks)) {
-        this.log('Critical failure detected, cancelling remaining tasks')
+        this.log('Critical failure detected, cancelling remaining tasks');
         // Cancel remaining tasks
         for (const remainingTask of plan.tasks.filter(t => t.status === 'pending')) {
-          remainingTask.status = 'cancelled'
-          cancelled.push(remainingTask.id)
-          this.emit('task:cancelled', remainingTask)
+          remainingTask.status = 'cancelled';
+          cancelled.push(remainingTask.id);
+          this.emit('task:cancelled', remainingTask);
         }
-        break
+        break;
       }
     }
 
     // Calculate duration
-    const duration = Date.now() - startTime
+    const duration = Date.now() - startTime;
 
     // Calculate metrics
-    const metrics = this.calculateMetrics(plan, completed, failed, cancelled, duration)
+    const metrics = this.calculateMetrics(plan, completed, failed, cancelled, duration);
 
     // Determine overall status
-    const status = this.determineStatus(completed, failed, cancelled, plan.tasks.length)
+    const status = this.determineStatus(completed, failed, cancelled, plan.tasks.length);
 
     // Aggregate results
     const aggregationResult = await this.resultAggregator.aggregate(
       plan.tasks.filter(t => t.output !== undefined),
-    )
+    );
 
     // Build results map - use aggregated output if available, otherwise use individual task outputs
-    const finalResults: Record<string, TaskOutput> = {}
+    const finalResults: Record<string, TaskOutput> = {};
     for (const task of plan.tasks) {
       if (task.output) {
-        finalResults[task.id] = task.output
+        finalResults[task.id] = task.output;
       }
     }
 
     // If aggregation produced a merged output, add it as a special entry
     if (aggregationResult.output) {
-      finalResults._aggregated = aggregationResult.output
+      finalResults._aggregated = aggregationResult.output;
     }
 
     return {
@@ -499,7 +499,7 @@ export class BrainOrchestrator extends EventEmitter {
       startedAt: new Date(startTime).toISOString(),
       completedAt: new Date().toISOString(),
       duration,
-    }
+    };
   }
 
   /**
@@ -509,46 +509,46 @@ export class BrainOrchestrator extends EventEmitter {
    * @returns Selected agent instance or undefined
    */
   private selectAgentForTask(task: Task): AgentInstance | undefined {
-    const candidates: AgentInstance[] = []
+    const candidates: AgentInstance[] = [];
 
     // Find agents with required capabilities
-    const agentEntries = Array.from(this.availableAgents.entries())
+    const agentEntries = Array.from(this.availableAgents.entries());
     for (const [role, agent] of agentEntries) {
       // Check if agent has required capabilities
-      const requiredCaps = fromAgentCapabilities(task.requiredCapabilities)
+      const requiredCaps = fromAgentCapabilities(task.requiredCapabilities);
       const hasCapabilities = requiredCaps.every(cap =>
         agent.definition.capabilities.includes(cap),
-      )
+      );
 
       if (!hasCapabilities)
-        continue
+        continue;
 
       // Get or create agent instance
       let instance = Array.from(this.state.activeAgents.values()).find(
         a => a.role === role && a.status === 'idle',
-      )
+      );
 
       if (!instance && this.state.activeAgents.size < this.config.maxConcurrentAgents) {
-        instance = this.createAgentInstance(role, agent)
+        instance = this.createAgentInstance(role, agent);
       }
 
       if (instance && instance.status === 'idle') {
-        candidates.push(instance)
+        candidates.push(instance);
       }
     }
 
     if (candidates.length === 0) {
-      return undefined
+      return undefined;
     }
 
     // Select best candidate based on strategy
     const criteria: AgentSelectionCriteria = {
       requiredCapabilities: task.requiredCapabilities,
       strategy: 'best-fit',
-    }
-    const selected = this.selectBestAgent(candidates, criteria)
+    };
+    const selected = this.selectBestAgent(candidates, criteria);
 
-    return selected
+    return selected;
   }
 
   /**
@@ -559,16 +559,16 @@ export class BrainOrchestrator extends EventEmitter {
    */
   private async executeTask(agent: AgentInstance, task: Task): Promise<void> {
     // Mark agent as busy
-    agent.status = 'busy'
-    agent.currentTask = task
-    agent.lastActivityAt = new Date().toISOString()
+    agent.status = 'busy';
+    agent.currentTask = task;
+    agent.lastActivityAt = new Date().toISOString();
 
     // Add to active tasks
-    this.state.activeTasks.set(task.id, task)
+    this.state.activeTasks.set(task.id, task);
 
     // Simulate task execution (in real implementation, delegate to agent)
     // For now, create a placeholder output
-    await this.sleep(100) // Simulate some work
+    await this.sleep(100); // Simulate some work
 
     task.output = {
       data: {
@@ -576,14 +576,14 @@ export class BrainOrchestrator extends EventEmitter {
         agentId: agent.id,
       },
       confidence: 0.9,
-    }
+    };
 
     // Mark agent as idle
-    agent.status = 'idle'
-    agent.currentTask = undefined
+    agent.status = 'idle';
+    agent.currentTask = undefined;
 
     // Remove from active tasks
-    this.state.activeTasks.delete(task.id)
+    this.state.activeTasks.delete(task.id);
   }
 
   /**
@@ -602,25 +602,25 @@ export class BrainOrchestrator extends EventEmitter {
         // Select agent with highest success rate
         return candidates.reduce((best, current) =>
           current.metrics.successRate > best.metrics.successRate ? current : best,
-        )
+        );
 
       case 'least-loaded':
         // Select agent with fewest tasks
         return candidates.reduce((best, current) =>
           current.taskHistory.length < best.taskHistory.length ? current : best,
-        )
+        );
 
       case 'fastest':
         // Select agent with lowest average duration
         return candidates.reduce((best, current) =>
           current.metrics.avgTaskDuration < best.metrics.avgTaskDuration ? current : best,
-        )
+        );
 
       case 'round-robin':
       case 'random':
       default:
         // Random selection
-        return candidates[Math.floor(Math.random() * candidates.length)]
+        return candidates[Math.floor(Math.random() * candidates.length)];
     }
   }
 
@@ -632,7 +632,7 @@ export class BrainOrchestrator extends EventEmitter {
    * @returns Agent instance
    */
   private createAgentInstance(role: AgentRole, agent: CloudAgent): AgentInstance {
-    const now = new Date().toISOString()
+    const now = new Date().toISOString();
 
     const instance: AgentInstance = {
       id: nanoid(),
@@ -657,12 +657,12 @@ export class BrainOrchestrator extends EventEmitter {
         taskTimeout: this.config.defaultTaskTimeout,
         verboseLogging: this.config.verboseLogging,
       },
-    }
+    };
 
-    this.state.activeAgents.set(instance.id, instance)
-    this.emit('agent:created', instance)
+    this.state.activeAgents.set(instance.id, instance);
+    this.emit('agent:created', instance);
 
-    return instance
+    return instance;
   }
 
   /**
@@ -673,29 +673,29 @@ export class BrainOrchestrator extends EventEmitter {
    * @param success - Whether task succeeded
    */
   private updateAgentMetrics(agent: AgentInstance, task: Task, success: boolean): void {
-    const metrics = agent.metrics
+    const metrics = agent.metrics;
 
-    metrics.tasksExecuted++
+    metrics.tasksExecuted++;
     if (success) {
-      metrics.tasksSucceeded++
+      metrics.tasksSucceeded++;
     }
     else {
-      metrics.tasksFailed++
+      metrics.tasksFailed++;
     }
 
-    metrics.successRate = metrics.tasksSucceeded / metrics.tasksExecuted
+    metrics.successRate = metrics.tasksSucceeded / metrics.tasksExecuted;
 
     if (task.actualDuration) {
-      metrics.totalExecutionTime += task.actualDuration
-      metrics.avgTaskDuration = metrics.totalExecutionTime / metrics.tasksExecuted
+      metrics.totalExecutionTime += task.actualDuration;
+      metrics.avgTaskDuration = metrics.totalExecutionTime / metrics.tasksExecuted;
     }
 
     if (task.output?.confidence) {
-      const totalConfidence = metrics.avgConfidence * (metrics.tasksExecuted - 1) + task.output.confidence
-      metrics.avgConfidence = totalConfidence / metrics.tasksExecuted
+      const totalConfidence = metrics.avgConfidence * (metrics.tasksExecuted - 1) + task.output.confidence;
+      metrics.avgConfidence = totalConfidence / metrics.tasksExecuted;
     }
 
-    metrics.lastUpdated = new Date().toISOString()
+    metrics.lastUpdated = new Date().toISOString();
 
     // Add to task history
     agent.taskHistory.push({
@@ -707,7 +707,7 @@ export class BrainOrchestrator extends EventEmitter {
       duration: task.actualDuration,
       success,
       error: task.error?.message,
-    })
+    });
   }
 
   /**
@@ -717,16 +717,16 @@ export class BrainOrchestrator extends EventEmitter {
    * @returns Agent requirements
    */
   private analyzeRequiredAgents(tasks: Task[]): Array<{
-    capabilities: AgentCapability[]
-    minInstances: number
-    maxInstances: number
+    capabilities: AgentCapability[];
+    minInstances: number;
+    maxInstances: number;
   }> {
-    const capabilityGroups = new Map<string, AgentCapability[]>()
+    const capabilityGroups = new Map<string, AgentCapability[]>();
 
     for (const task of tasks) {
-      const key = task.requiredCapabilities.sort().join(',')
+      const key = task.requiredCapabilities.sort().join(',');
       if (!capabilityGroups.has(key)) {
-        capabilityGroups.set(key, task.requiredCapabilities)
+        capabilityGroups.set(key, task.requiredCapabilities);
       }
     }
 
@@ -734,7 +734,7 @@ export class BrainOrchestrator extends EventEmitter {
       capabilities,
       minInstances: 1,
       maxInstances: this.config.maxConcurrentAgents,
-    }))
+    }));
   }
 
   /**
@@ -744,7 +744,7 @@ export class BrainOrchestrator extends EventEmitter {
    * @returns Whether there are critical failures
    */
   private hasCriticalFailures(tasks: Task[]): boolean {
-    return tasks.some(t => t.status === 'failed' && t.priority === 'critical')
+    return tasks.some(t => t.status === 'failed' && t.priority === 'critical');
   }
 
   /**
@@ -764,23 +764,23 @@ export class BrainOrchestrator extends EventEmitter {
     cancelled: string[],
     duration: number,
   ): OrchestrationMetrics {
-    const totalTasks = plan.tasks.length
-    const tasksCompleted = completed.length
-    const tasksFailed = failed.length
-    const tasksCancelled = cancelled.length
+    const totalTasks = plan.tasks.length;
+    const tasksCompleted = completed.length;
+    const tasksFailed = failed.length;
+    const tasksCancelled = cancelled.length;
 
-    const completedTasks = plan.tasks.filter(t => completed.includes(t.id))
+    const completedTasks = plan.tasks.filter(t => completed.includes(t.id));
     const avgTaskDuration = completedTasks.length > 0
       ? completedTasks.reduce((sum, t) => sum + (t.actualDuration ?? 0), 0) / completedTasks.length
-      : 0
+      : 0;
 
     const parallelEfficiency = plan.estimatedDuration > 0
       ? Math.min(plan.estimatedDuration / duration, 1)
-      : 0
+      : 0;
 
     const agentUtilization = this.state.activeAgents.size > 0
       ? this.state.activeTasks.size / this.state.activeAgents.size
-      : 0
+      : 0;
 
     return {
       totalTasks,
@@ -792,7 +792,7 @@ export class BrainOrchestrator extends EventEmitter {
       totalExecutionTime: duration,
       parallelEfficiency,
       agentUtilization,
-    }
+    };
   }
 
   /**
@@ -811,15 +811,15 @@ export class BrainOrchestrator extends EventEmitter {
     total: number,
   ): 'completed' | 'partial' | 'failed' | 'cancelled' {
     if (completed.length === total) {
-      return 'completed'
+      return 'completed';
     }
     if (failed.length === total) {
-      return 'failed'
+      return 'failed';
     }
     if (cancelled.length === total) {
-      return 'cancelled'
+      return 'cancelled';
     }
-    return 'partial'
+    return 'partial';
   }
 
   /**
@@ -838,7 +838,7 @@ export class BrainOrchestrator extends EventEmitter {
       totalExecutionTime: 0,
       parallelEfficiency: 0,
       agentUtilization: 0,
-    }
+    };
   }
 
   /**
@@ -868,7 +868,7 @@ export class BrainOrchestrator extends EventEmitter {
       startedAt: new Date().toISOString(),
       completedAt: new Date().toISOString(),
       duration: 0,
-    }
+    };
   }
 
   /**
@@ -877,7 +877,7 @@ export class BrainOrchestrator extends EventEmitter {
    * @returns Current state
    */
   getState(): Readonly<OrchestratorState> {
-    return { ...this.state }
+    return { ...this.state };
   }
 
   /**
@@ -885,8 +885,8 @@ export class BrainOrchestrator extends EventEmitter {
    */
   pause(): void {
     if (this.state.status === 'executing') {
-      this.state.status = 'paused'
-      this.log('Orchestration paused')
+      this.state.status = 'paused';
+      this.log('Orchestration paused');
     }
   }
 
@@ -895,8 +895,8 @@ export class BrainOrchestrator extends EventEmitter {
    */
   resume(): void {
     if (this.state.status === 'paused') {
-      this.state.status = 'executing'
-      this.log('Orchestration resumed')
+      this.state.status = 'executing';
+      this.log('Orchestration resumed');
     }
   }
 
@@ -904,27 +904,27 @@ export class BrainOrchestrator extends EventEmitter {
    * Cancel orchestration
    */
   cancel(): void {
-    this.state.status = 'idle'
-    const activeTaskValues = Array.from(this.state.activeTasks.values())
+    this.state.status = 'idle';
+    const activeTaskValues = Array.from(this.state.activeTasks.values());
     for (const task of activeTaskValues) {
-      task.status = 'cancelled'
-      this.emit('task:cancelled', task)
+      task.status = 'cancelled';
+      this.emit('task:cancelled', task);
     }
-    this.state.activeTasks.clear()
-    this.log('Orchestration cancelled')
+    this.state.activeTasks.clear();
+    this.log('Orchestration cancelled');
   }
 
   /**
    * Terminate all agents
    */
   terminateAllAgents(): void {
-    const activeAgentValues = Array.from(this.state.activeAgents.values())
+    const activeAgentValues = Array.from(this.state.activeAgents.values());
     for (const agent of activeAgentValues) {
-      agent.status = 'terminated'
-      this.emit('agent:terminated', agent)
+      agent.status = 'terminated';
+      this.emit('agent:terminated', agent);
     }
-    this.state.activeAgents.clear()
-    this.log('All agents terminated')
+    this.state.activeAgents.clear();
+    this.log('All agents terminated');
   }
 
   /**
@@ -934,7 +934,7 @@ export class BrainOrchestrator extends EventEmitter {
    */
   private log(message: string): void {
     if (this.config.verboseLogging) {
-      console.log(`[BrainOrchestrator] ${message}`)
+      console.log(`[BrainOrchestrator] ${message}`);
     }
   }
 
@@ -944,7 +944,7 @@ export class BrainOrchestrator extends EventEmitter {
    * @param ms - Duration in milliseconds
    */
   private sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms))
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
   // ========================================================================
@@ -967,26 +967,26 @@ export class BrainOrchestrator extends EventEmitter {
     executeFn: (config: ForkContextConfig) => Promise<OrchestrationResult>,
   ): Promise<ForkContextResult> {
     if (!this.config.enableForkContext) {
-      throw new Error('Fork context execution is disabled')
+      throw new Error('Fork context execution is disabled');
     }
 
-    this.log(`Executing task in fork context: ${task.name} (skill: ${skill.metadata.name})`)
+    this.log(`Executing task in fork context: ${task.name} (skill: ${skill.metadata.name})`);
 
     // Create fork context
-    const fork = this.forkManager.createFork(skill)
-    this.emit('fork:created', fork.id, skill)
+    const fork = this.forkManager.createFork(skill);
+    this.emit('fork:created', fork.id, skill);
 
     // Execute in fork
-    const result = await this.forkManager.executeFork(fork.id, task, executeFn)
+    const result = await this.forkManager.executeFork(fork.id, task, executeFn);
 
     if (result.success) {
-      this.emit('fork:completed', fork.id, result)
+      this.emit('fork:completed', fork.id, result);
     }
     else {
-      this.emit('fork:failed', fork.id, result.error || 'Unknown error')
+      this.emit('fork:failed', fork.id, result.error || 'Unknown error');
     }
 
-    return result
+    return result;
   }
 
   /**
@@ -1000,9 +1000,9 @@ export class BrainOrchestrator extends EventEmitter {
     execution: ParallelAgentExecution,
     executeFn: (config: ForkContextConfig) => Promise<OrchestrationResult>,
   ): Promise<ParallelExecutionResult> {
-    this.log(`Executing ${execution.tasks.length} parallel forks`)
+    this.log(`Executing ${execution.tasks.length} parallel forks`);
 
-    this.emit('parallel:started', execution.id)
+    this.emit('parallel:started', execution.id);
 
     try {
       const result = await this.dispatcher.dispatchParallel(execution, async (config) => {
@@ -1030,17 +1030,17 @@ export class BrainOrchestrator extends EventEmitter {
           allowedTools: config.allowedTools,
           disallowedTools: config.disallowedTools,
           timeout: config.timeout,
-        }
+        };
 
-        return executeFn(forkConfig)
-      })
+        return executeFn(forkConfig);
+      });
 
-      this.emit('parallel:completed', execution.id, result)
-      return result
+      this.emit('parallel:completed', execution.id, result);
+      return result;
     }
     catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error)
-      this.emit('parallel:failed', execution.id, errorMessage)
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.emit('parallel:failed', execution.id, errorMessage);
 
       return {
         id: execution.id,
@@ -1049,7 +1049,7 @@ export class BrainOrchestrator extends EventEmitter {
         durationMs: 0,
         successfulCount: 0,
         failedCount: execution.tasks.length,
-      }
+      };
     }
   }
 
@@ -1069,10 +1069,10 @@ export class BrainOrchestrator extends EventEmitter {
     executeFn: (config: ForkContextConfig) => Promise<OrchestrationResult>,
   ): Promise<OrchestrationResult> {
     if (!this.config.enableDispatcher) {
-      throw new Error('Agent dispatcher is disabled')
+      throw new Error('Agent dispatcher is disabled');
     }
 
-    this.log(`Dispatching task: ${task.name} to agent: ${skill.metadata.agent || 'default'}`)
+    this.log(`Dispatching task: ${task.name} to agent: ${skill.metadata.agent || 'default'}`);
 
     const dispatchResult = await this.dispatcher.dispatch(task, skill, async (config) => {
       // Convert dispatch config to fork config
@@ -1088,16 +1088,16 @@ export class BrainOrchestrator extends EventEmitter {
         allowedTools: config.allowedTools,
         disallowedTools: config.disallowedTools,
         timeout: config.timeout,
-      }
+      };
 
-      return executeFn(forkConfig)
-    })
+      return executeFn(forkConfig);
+    });
 
     if (!dispatchResult.success) {
-      throw new Error(dispatchResult.error || 'Agent dispatch failed')
+      throw new Error(dispatchResult.error || 'Agent dispatch failed');
     }
 
-    return dispatchResult.output as unknown as OrchestrationResult
+    return dispatchResult.output as unknown as OrchestrationResult;
   }
 
   /**
@@ -1106,9 +1106,9 @@ export class BrainOrchestrator extends EventEmitter {
    * @param forkId - Fork context ID
    */
   cancelFork(forkId: string): void {
-    this.forkManager.cancel(forkId)
-    this.emit('fork:cancelled', forkId)
-    this.log(`Cancelled fork: ${forkId}`)
+    this.forkManager.cancel(forkId);
+    this.emit('fork:cancelled', forkId);
+    this.log(`Cancelled fork: ${forkId}`);
   }
 
   /**
@@ -1118,7 +1118,7 @@ export class BrainOrchestrator extends EventEmitter {
    * @returns Fork state or null
    */
   getForkState(forkId: string): ReturnType<AgentForkManager['getFork']> {
-    return this.forkManager.getFork(forkId)
+    return this.forkManager.getFork(forkId);
   }
 
   /**
@@ -1127,7 +1127,7 @@ export class BrainOrchestrator extends EventEmitter {
    * @returns Array of active fork states
    */
   getActiveForks(): ReturnType<AgentForkManager['listActive']> {
-    return this.forkManager.listActive()
+    return this.forkManager.listActive();
   }
 
   /**
@@ -1136,7 +1136,7 @@ export class BrainOrchestrator extends EventEmitter {
    * @returns Fork statistics
    */
   getForkStats(): ReturnType<AgentForkManager['getStats']> {
-    return this.forkManager.getStats()
+    return this.forkManager.getStats();
   }
 
   /**
@@ -1145,7 +1145,7 @@ export class BrainOrchestrator extends EventEmitter {
    * @returns Dispatcher statistics
    */
   getDispatcherStats(): ReturnType<AgentDispatcher['getStats']> {
-    return this.dispatcher.getStats()
+    return this.dispatcher.getStats();
   }
 
   /**
@@ -1153,29 +1153,29 @@ export class BrainOrchestrator extends EventEmitter {
    */
   private setupForkManagerEvents(): void {
     this.forkManager.on('created', (fork) => {
-      this.log(`Fork context created: ${fork.id}`)
-    })
+      this.log(`Fork context created: ${fork.id}`);
+    });
 
     this.forkManager.on('started', (fork) => {
-      this.log(`Fork context started: ${fork.id}`)
-      this.emit('fork:started', fork.id)
-    })
+      this.log(`Fork context started: ${fork.id}`);
+      this.emit('fork:started', fork.id);
+    });
 
     this.forkManager.on('completed', (fork, result) => {
-      this.log(`Fork context completed: ${fork.id} (${result.durationMs}ms)`)
-    })
+      this.log(`Fork context completed: ${fork.id} (${result.durationMs}ms)`);
+    });
 
     this.forkManager.on('failed', (fork, error) => {
-      this.log(`Fork context failed: ${fork.id} - ${error}`)
-    })
+      this.log(`Fork context failed: ${fork.id} - ${error}`);
+    });
 
     this.forkManager.on('timeout', (fork) => {
-      this.log(`Fork context timed out: ${fork.id}`)
-      this.emit('fork:failed', fork.id, 'Timeout')
-    })
+      this.log(`Fork context timed out: ${fork.id}`);
+      this.emit('fork:failed', fork.id, 'Timeout');
+    });
 
     this.forkManager.on('cancelled', (fork) => {
-      this.log(`Fork context cancelled: ${fork.id}`)
-    })
+      this.log(`Fork context cancelled: ${fork.id}`);
+    });
   }
 }

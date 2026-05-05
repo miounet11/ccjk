@@ -1,5 +1,5 @@
-import type { Stats } from 'node:fs'
-import { randomBytes } from 'node:crypto'
+import type { Stats } from 'node:fs';
+import { randomBytes } from 'node:crypto';
 import {
   copyFileSync,
   existsSync,
@@ -12,23 +12,23 @@ import {
   statSync,
   unlinkSync,
   writeFileSync,
-} from 'node:fs'
+} from 'node:fs';
 import {
   mkdir,
   rename,
   unlink,
   writeFile as writeFileAsync,
-} from 'node:fs/promises'
-import { dirname, join } from 'pathe'
-import { isWindows } from './platform'
+} from 'node:fs/promises';
+import { dirname, join } from 'pathe';
+import { isWindows } from './platform';
 
 /**
  * Unified file system operations with error handling
  */
 export class FileSystemError extends Error {
   constructor(message: string, public readonly path?: string, public readonly cause?: Error) {
-    super(message)
-    this.name = 'FileSystemError'
+    super(message);
+    this.name = 'FileSystemError';
   }
 }
 
@@ -36,7 +36,7 @@ export class FileSystemError extends Error {
  * Check if a file or directory exists
  */
 export function exists(path: string): boolean {
-  return existsSync(path)
+  return existsSync(path);
 }
 
 /**
@@ -44,7 +44,7 @@ export function exists(path: string): boolean {
  */
 export function ensureDir(path: string): void {
   if (!existsSync(path)) {
-    mkdirSync(path, { recursive: true })
+    mkdirSync(path, { recursive: true });
   }
 }
 
@@ -52,8 +52,8 @@ export function ensureDir(path: string): void {
  * Ensure the parent directory of a file exists
  */
 export function ensureFileDir(filePath: string): void {
-  const dir = dirname(filePath)
-  ensureDir(dir)
+  const dir = dirname(filePath);
+  ensureDir(dir);
 }
 
 /**
@@ -61,14 +61,14 @@ export function ensureFileDir(filePath: string): void {
  */
 export function readFile(path: string, encoding: BufferEncoding = 'utf-8'): string {
   try {
-    return readFileSync(path, encoding)
+    return readFileSync(path, encoding);
   }
   catch (error) {
     throw new FileSystemError(
       `Failed to read file: ${path}`,
       path,
       error as Error,
-    )
+    );
   }
 }
 
@@ -77,15 +77,15 @@ export function readFile(path: string, encoding: BufferEncoding = 'utf-8'): stri
  */
 export function writeFile(path: string, content: string, encoding: BufferEncoding = 'utf-8'): void {
   try {
-    ensureFileDir(path)
-    writeFileSync(path, content, encoding)
+    ensureFileDir(path);
+    writeFileSync(path, content, encoding);
   }
   catch (error) {
     throw new FileSystemError(
       `Failed to write file: ${path}`,
       path,
       error as Error,
-    )
+    );
   }
 }
 
@@ -93,8 +93,8 @@ export function writeFile(path: string, content: string, encoding: BufferEncodin
  * Options for atomic file write
  */
 export interface WriteFileAtomicOptions {
-  encoding?: BufferEncoding
-  mode?: number
+  encoding?: BufferEncoding;
+  mode?: number;
 }
 
 /**
@@ -105,31 +105,31 @@ export interface WriteFileAtomicOptions {
  * @param options - Write options (encoding, mode) or just encoding string
  */
 export function writeFileAtomic(path: string, content: string, options: WriteFileAtomicOptions | BufferEncoding = 'utf-8'): void {
-  const dir = dirname(path)
-  ensureDir(dir)
+  const dir = dirname(path);
+  ensureDir(dir);
 
   // Normalize options
   const opts: WriteFileAtomicOptions = typeof options === 'string'
     ? { encoding: options }
-    : options
-  const encoding = opts.encoding ?? 'utf-8'
+    : options;
+  const encoding = opts.encoding ?? 'utf-8';
 
   // Generate a unique temp file name in the same directory
-  const tempFileName = `.tmp_${randomBytes(8).toString('hex')}_${Date.now()}`
-  const tempPath = join(dir, tempFileName)
+  const tempFileName = `.tmp_${randomBytes(8).toString('hex')}_${Date.now()}`;
+  const tempPath = join(dir, tempFileName);
 
   try {
     // Write to temp file first (with mode if specified)
-    writeFileSync(tempPath, content, { encoding, mode: opts.mode })
+    writeFileSync(tempPath, content, { encoding, mode: opts.mode });
 
     // Atomically rename temp file to target path
-    renameSync(tempPath, path)
+    renameSync(tempPath, path);
   }
   catch (error) {
     // Clean up temp file if it exists
     try {
       if (existsSync(tempPath)) {
-        unlinkSync(tempPath)
+        unlinkSync(tempPath);
       }
     }
     catch {
@@ -140,7 +140,7 @@ export function writeFileAtomic(path: string, content: string, options: WriteFil
       `Failed to write file atomically: ${path}`,
       path,
       error as Error,
-    )
+    );
   }
 }
 
@@ -152,31 +152,31 @@ export function writeFileAtomic(path: string, content: string, options: WriteFil
  * @param options - Write options (encoding, mode) or just encoding string
  */
 export async function writeFileAtomicAsync(path: string, content: string, options: WriteFileAtomicOptions | BufferEncoding = 'utf-8'): Promise<void> {
-  const dir = dirname(path)
-  await mkdir(dir, { recursive: true })
+  const dir = dirname(path);
+  await mkdir(dir, { recursive: true });
 
   // Normalize options
   const opts: WriteFileAtomicOptions = typeof options === 'string'
     ? { encoding: options }
-    : options
-  const encoding = opts.encoding ?? 'utf-8'
+    : options;
+  const encoding = opts.encoding ?? 'utf-8';
 
   // Generate a unique temp file name in the same directory
-  const tempFileName = `.tmp_${randomBytes(8).toString('hex')}_${Date.now()}`
-  const tempPath = join(dir, tempFileName)
+  const tempFileName = `.tmp_${randomBytes(8).toString('hex')}_${Date.now()}`;
+  const tempPath = join(dir, tempFileName);
 
   try {
     // Write to temp file first (with mode if specified)
-    await writeFileAsync(tempPath, content, { encoding, mode: opts.mode })
+    await writeFileAsync(tempPath, content, { encoding, mode: opts.mode });
 
     // Atomically rename temp file to target path
-    await rename(tempPath, path)
+    await rename(tempPath, path);
   }
   catch (error) {
     // Clean up temp file if it exists
     try {
       if (existsSync(tempPath)) {
-        await unlink(tempPath)
+        await unlink(tempPath);
       }
     }
     catch {
@@ -187,7 +187,7 @@ export async function writeFileAtomicAsync(path: string, content: string, option
       `Failed to write file atomically: ${path}`,
       path,
       error as Error,
-    )
+    );
   }
 }
 
@@ -196,15 +196,15 @@ export async function writeFileAtomicAsync(path: string, content: string, option
  */
 export function readJsonFile<T = any>(path: string): T {
   try {
-    const content = readFile(path, 'utf-8')
-    return JSON.parse(content) as T
+    const content = readFile(path, 'utf-8');
+    return JSON.parse(content) as T;
   }
   catch (error) {
     throw new FileSystemError(
       `Failed to read JSON file: ${path}`,
       path,
       error as Error,
-    )
+    );
   }
 }
 
@@ -213,15 +213,15 @@ export function readJsonFile<T = any>(path: string): T {
  */
 export function writeJsonFile(path: string, data: any, pretty = true): void {
   try {
-    const content = pretty ? JSON.stringify(data, null, 2) : JSON.stringify(data)
-    writeFile(path, content, 'utf-8')
+    const content = pretty ? JSON.stringify(data, null, 2) : JSON.stringify(data);
+    writeFile(path, content, 'utf-8');
   }
   catch (error) {
     throw new FileSystemError(
       `Failed to write JSON file: ${path}`,
       path,
       error as Error,
-    )
+    );
   }
 }
 
@@ -230,15 +230,15 @@ export function writeJsonFile(path: string, data: any, pretty = true): void {
  */
 export function copyFile(src: string, dest: string): void {
   try {
-    ensureFileDir(dest)
-    copyFileSync(src, dest)
+    ensureFileDir(dest);
+    copyFileSync(src, dest);
   }
   catch (error) {
     throw new FileSystemError(
       `Failed to copy file from ${src} to ${dest}`,
       src,
       error as Error,
-    )
+    );
   }
 }
 
@@ -247,14 +247,14 @@ export function copyFile(src: string, dest: string): void {
  */
 export function readDir(path: string): string[] {
   try {
-    return readdirSync(path)
+    return readdirSync(path);
   }
   catch (error) {
     throw new FileSystemError(
       `Failed to read directory: ${path}`,
       path,
       error as Error,
-    )
+    );
   }
 }
 
@@ -263,14 +263,14 @@ export function readDir(path: string): string[] {
  */
 export function getStats(path: string): Stats {
   try {
-    return statSync(path)
+    return statSync(path);
   }
   catch (error) {
     throw new FileSystemError(
       `Failed to get stats for: ${path}`,
       path,
       error as Error,
-    )
+    );
   }
 }
 
@@ -279,10 +279,10 @@ export function getStats(path: string): Stats {
  */
 export function getStatsSafe(path: string): Stats | null {
   try {
-    return statSync(path)
+    return statSync(path);
   }
   catch {
-    return null
+    return null;
   }
 }
 
@@ -291,10 +291,10 @@ export function getStatsSafe(path: string): Stats | null {
  */
 export function isDirectory(path: string): boolean {
   try {
-    return getStats(path).isDirectory()
+    return getStats(path).isDirectory();
   }
   catch {
-    return false
+    return false;
   }
 }
 
@@ -303,10 +303,10 @@ export function isDirectory(path: string): boolean {
  */
 export function isFile(path: string): boolean {
   try {
-    return getStats(path).isFile()
+    return getStats(path).isFile();
   }
   catch {
-    return false
+    return false;
   }
 }
 
@@ -316,7 +316,7 @@ export function isFile(path: string): boolean {
 export function removeFile(path: string): void {
   try {
     if (exists(path)) {
-      unlinkSync(path)
+      unlinkSync(path);
     }
   }
   catch (error) {
@@ -324,7 +324,7 @@ export function removeFile(path: string): void {
       `Failed to remove file: ${path}`,
       path,
       error as Error,
-    )
+    );
   }
 }
 
@@ -332,46 +332,46 @@ export function removeFile(path: string): void {
  * Copy directory recursively with optional filter
  */
 export interface CopyDirOptions {
-  filter?: (path: string, stats: Stats) => boolean
-  overwrite?: boolean
+  filter?: (path: string, stats: Stats) => boolean;
+  overwrite?: boolean;
 }
 
 export function copyDir(src: string, dest: string, options: CopyDirOptions = {}): void {
-  const { filter, overwrite = true } = options
+  const { filter, overwrite = true } = options;
 
   if (!exists(src)) {
-    throw new FileSystemError(`Source directory does not exist: ${src}`, src)
+    throw new FileSystemError(`Source directory does not exist: ${src}`, src);
   }
 
-  ensureDir(dest)
+  ensureDir(dest);
 
-  const entries = readDir(src)
+  const entries = readDir(src);
 
   for (const entry of entries) {
-    const srcPath = `${src}/${entry}`
-    const destPath = `${dest}/${entry}`
+    const srcPath = `${src}/${entry}`;
+    const destPath = `${dest}/${entry}`;
 
     // Use safe stats to handle broken symlinks gracefully
-    const stats = getStatsSafe(srcPath)
+    const stats = getStatsSafe(srcPath);
 
     // Skip broken symlinks or inaccessible entries
     if (!stats) {
-      continue
+      continue;
     }
 
     // Apply filter if provided
     if (filter && !filter(srcPath, stats)) {
-      continue
+      continue;
     }
 
     if (stats.isDirectory()) {
-      copyDir(srcPath, destPath, options)
+      copyDir(srcPath, destPath, options);
     }
     else {
       if (!overwrite && exists(destPath)) {
-        continue
+        continue;
       }
-      copyFile(srcPath, destPath)
+      copyFile(srcPath, destPath);
     }
   }
 }
@@ -382,28 +382,28 @@ export function copyDir(src: string, dest: string, options: CopyDirOptions = {})
 export async function isExecutable(path: string): Promise<boolean> {
   try {
     if (!exists(path)) {
-      return false
+      return false;
     }
 
-    const stats = getStats(path)
+    const stats = getStats(path);
     if (!stats.isFile()) {
-      return false
+      return false;
     }
 
     // On Unix-like systems (macOS/Linux), check execute permission
     if (!isWindows()) {
       // Check if file has execute permission (owner, group, or other)
-      const mode = stats.mode
-      const executePermission = 0o111 // Execute permission bits
-      return (mode & executePermission) !== 0
+      const mode = stats.mode;
+      const executePermission = 0o111; // Execute permission bits
+      return (mode & executePermission) !== 0;
     }
 
     // On Windows, consider .exe files and files without extension as potentially executable
-    const isWinExecutable = path.endsWith('.exe') || path.endsWith('.cmd') || path.endsWith('.bat')
-    return isWinExecutable || !path.includes('.')
+    const isWinExecutable = path.endsWith('.exe') || path.endsWith('.cmd') || path.endsWith('.bat');
+    return isWinExecutable || !path.includes('.');
   }
   catch {
-    return false
+    return false;
   }
 }
 
@@ -413,25 +413,25 @@ export async function isExecutable(path: string): Promise<boolean> {
 export async function remove(path: string): Promise<void> {
   try {
     if (!exists(path)) {
-      return
+      return;
     }
 
-    const stats = getStats(path)
+    const stats = getStats(path);
 
     if (stats.isDirectory()) {
       // Remove directory contents recursively
-      const entries = readDir(path)
+      const entries = readDir(path);
       for (const entry of entries) {
-        await remove(`${path}/${entry}`)
+        await remove(`${path}/${entry}`);
       }
 
       // Remove the empty directory
       try {
         if (rmSync) {
-          rmSync(path, { recursive: true, force: true })
+          rmSync(path, { recursive: true, force: true });
         }
         else if (rmdirSync) {
-          rmdirSync(path)
+          rmdirSync(path);
         }
       }
       catch (error) {
@@ -439,12 +439,12 @@ export async function remove(path: string): Promise<void> {
           `Failed to remove directory: ${path}`,
           path,
           error as Error,
-        )
+        );
       }
     }
     else {
       // Remove file
-      removeFile(path)
+      removeFile(path);
     }
   }
   catch (error) {
@@ -452,6 +452,6 @@ export async function remove(path: string): Promise<void> {
       `Failed to remove: ${path}`,
       path,
       error as Error,
-    )
+    );
   }
 }

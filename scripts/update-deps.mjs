@@ -4,8 +4,8 @@
  * Safely updates dependencies with breaking change detection
  */
 
-import { execSync } from 'node:child_process'
-import { readFileSync, writeFileSync } from 'node:fs'
+import { execSync } from 'node:child_process';
+import { readFileSync, writeFileSync } from 'node:fs';
 
 const BREAKING_CHANGES = {
   // Major version changes that need manual review
@@ -23,7 +23,7 @@ const BREAKING_CHANGES = {
   'ohash': { from: 1, to: 2, risk: 'low', note: 'Hash function updates' },
   'uuid': { from: 11, to: 13, risk: 'low', note: 'UUID generation changes' },
   'vitest': { from: 3, to: 4, risk: 'medium', note: 'Vitest v4 breaking changes' },
-}
+};
 
 const SAFE_UPDATES = [
   // Patch/minor updates that are safe
@@ -45,79 +45,80 @@ const SAFE_UPDATES = [
   'tsx@^4.21.0',
   'typescript@^5.9.3',
   'web-tree-sitter@^0.26.5',
-]
+];
 
 function run(cmd) {
-  console.log(`\n🔧 ${cmd}`)
+  console.log(`\n🔧 ${cmd}`);
   try {
-    execSync(cmd, { stdio: 'inherit' })
-    return true
-  } catch (error) {
-    console.error(`❌ Failed: ${cmd}`)
-    return false
+    execSync(cmd, { stdio: 'inherit' });
+    return true;
+  }
+  catch (_error) {
+    console.error(`❌ Failed: ${cmd}`);
+    return false;
   }
 }
 
 function updatePackageJson() {
-  const pkg = JSON.parse(readFileSync('package.json', 'utf-8'))
+  const pkg = JSON.parse(readFileSync('package.json', 'utf-8'));
 
   // Update safe dependencies
-  SAFE_UPDATES.forEach(dep => {
-    const [name, version] = dep.split('@')
+  SAFE_UPDATES.forEach((dep) => {
+    const [name, version] = dep.split('@');
     if (pkg.dependencies?.[name]) {
-      pkg.dependencies[name] = version
+      pkg.dependencies[name] = version;
     }
     if (pkg.devDependencies?.[name]) {
-      pkg.devDependencies[name] = version
+      pkg.devDependencies[name] = version;
     }
-  })
+  });
 
-  writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n')
-  console.log('✅ Updated package.json with safe versions')
+  writeFileSync('package.json', `${JSON.stringify(pkg, null, 2)}\n`);
+  console.log('✅ Updated package.json with safe versions');
 }
 
 function main() {
-  console.log('📦 CCJK Dependency Update Script\n')
+  console.log('📦 CCJK Dependency Update Script\n');
 
   // Show breaking changes
-  console.log('⚠️  Breaking Changes Detected:\n')
+  console.log('⚠️  Breaking Changes Detected:\n');
   Object.entries(BREAKING_CHANGES).forEach(([pkg, info]) => {
-    const emoji = info.risk === 'high' ? '🔴' : info.risk === 'medium' ? '🟡' : '🟢'
-    console.log(`${emoji} ${pkg}: v${info.from} → v${info.to} (${info.risk} risk)`)
-    console.log(`   ${info.note}\n`)
-  })
+    const emoji = info.risk === 'high' ? '🔴' : info.risk === 'medium' ? '🟡' : '🟢';
+    console.log(`${emoji} ${pkg}: v${info.from} → v${info.to} (${info.risk} risk)`);
+    console.log(`   ${info.note}\n`);
+  });
 
-  console.log('\n📋 Update Strategy:\n')
-  console.log('1. Safe updates (patch/minor) - Apply now')
-  console.log('2. Breaking changes - Manual review required\n')
+  console.log('\n📋 Update Strategy:\n');
+  console.log('1. Safe updates (patch/minor) - Apply now');
+  console.log('2. Breaking changes - Manual review required\n');
 
   // Update safe dependencies
-  console.log('\n🚀 Applying Safe Updates...\n')
-  updatePackageJson()
+  console.log('\n🚀 Applying Safe Updates...\n');
+  updatePackageJson();
 
   if (!run('pnpm install')) {
-    console.error('\n❌ Install failed')
-    process.exit(1)
+    console.error('\n❌ Install failed');
+    process.exit(1);
   }
 
   // Verify build
-  console.log('\n🔨 Verifying Build...\n')
+  console.log('\n🔨 Verifying Build...\n');
   if (!run('pnpm typecheck')) {
-    console.error('\n❌ TypeScript errors detected')
-    process.exit(1)
+    console.error('\n❌ TypeScript errors detected');
+    process.exit(1);
   }
 
   if (!run('pnpm build')) {
-    console.error('\n❌ Build failed')
-    process.exit(1)
+    console.error('\n❌ Build failed');
+    process.exit(1);
   }
 
-  console.log('\n✅ Safe updates applied successfully!\n')
-  console.log('📝 Next Steps:\n')
-  console.log('1. Review breaking changes manually')
-  console.log('2. Update major versions one at a time')
-  console.log('3. Test thoroughly after each major update')
-  console.log('4. Commit: git commit -m "chore: update safe dependencies"\n')
+  console.log('\n✅ Safe updates applied successfully!\n');
+  console.log('📝 Next Steps:\n');
+  console.log('1. Review breaking changes manually');
+  console.log('2. Update major versions one at a time');
+  console.log('3. Test thoroughly after each major update');
+  console.log('4. Commit: git commit -m "chore: update safe dependencies"\n');
 }
 
-main()
+main();

@@ -8,20 +8,20 @@
  * @since v8.3.0
  */
 
-import type { SpawnOptions } from 'node:child_process'
+import type { SpawnOptions } from 'node:child_process';
 import type {
   CommandMapping,
   CommandOptions,
   CommandResult,
   ShellEscapeOptions,
   ShellType,
-} from './types'
-import { exec, execSync, spawn } from 'node:child_process'
+} from './types';
+import { exec, execSync, spawn } from 'node:child_process';
 
-import { promisify } from 'node:util'
-import { getPlatformInfo } from './detector'
+import { promisify } from 'node:util';
+import { getPlatformInfo } from './detector';
 
-const execAsync = promisify(exec)
+const execAsync = promisify(exec);
 
 // ============================================================================
 // Command Mappings
@@ -102,9 +102,9 @@ const COMMAND_MAPPINGS: CommandMapping[] = [
     unix: 'open', // macOS; Linux uses xdg-open
     transformArgs: (args, os) => {
       if (os === 'linux') {
-        return ['xdg-open', ...args]
+        return ['xdg-open', ...args];
       }
-      return args
+      return args;
     },
   },
   {
@@ -127,7 +127,7 @@ const COMMAND_MAPPINGS: CommandMapping[] = [
     windows: 'whoami',
     unix: 'whoami',
   },
-]
+];
 
 /**
  * Get the platform-specific command for a cross-platform command name
@@ -136,14 +136,14 @@ const COMMAND_MAPPINGS: CommandMapping[] = [
  * @returns Platform-specific command or null if not found
  */
 export function getCommand(commandName: string): string | null {
-  const platform = getPlatformInfo()
-  const mapping = COMMAND_MAPPINGS.find(m => m.name === commandName)
+  const platform = getPlatformInfo();
+  const mapping = COMMAND_MAPPINGS.find(m => m.name === commandName);
 
   if (!mapping) {
-    return null
+    return null;
   }
 
-  return platform.os === 'windows' ? mapping.windows : mapping.unix
+  return platform.os === 'windows' ? mapping.windows : mapping.unix;
 }
 
 /**
@@ -152,7 +152,7 @@ export function getCommand(commandName: string): string | null {
  * @returns Array of command mappings
  */
 export function getCommandMappings(): CommandMapping[] {
-  return [...COMMAND_MAPPINGS]
+  return [...COMMAND_MAPPINGS];
 }
 
 /**
@@ -161,12 +161,12 @@ export function getCommandMappings(): CommandMapping[] {
  * @param mapping - Command mapping to register
  */
 export function registerCommandMapping(mapping: CommandMapping): void {
-  const existingIndex = COMMAND_MAPPINGS.findIndex(m => m.name === mapping.name)
+  const existingIndex = COMMAND_MAPPINGS.findIndex(m => m.name === mapping.name);
   if (existingIndex >= 0) {
-    COMMAND_MAPPINGS[existingIndex] = mapping
+    COMMAND_MAPPINGS[existingIndex] = mapping;
   }
   else {
-    COMMAND_MAPPINGS.push(mapping)
+    COMMAND_MAPPINGS.push(mapping);
   }
 }
 
@@ -186,21 +186,21 @@ export function escapeShell(
   options: ShellEscapeOptions = { shell: 'bash' },
 ): string {
   if (!value)
-    return value
+    return value;
 
-  const { shell, quote = true, doubleQuoted = false } = options
+  const { shell, quote = true, doubleQuoted = false } = options;
 
   switch (shell) {
     case 'powershell':
-      return escapePowerShell(value, quote)
+      return escapePowerShell(value, quote);
     case 'cmd':
-      return escapeCmd(value, quote)
+      return escapeCmd(value, quote);
     case 'bash':
     case 'zsh':
     case 'sh':
     case 'fish':
     default:
-      return escapeBash(value, quote, doubleQuoted)
+      return escapeBash(value, quote, doubleQuoted);
   }
 }
 
@@ -210,20 +210,20 @@ export function escapeShell(
 function escapeBash(value: string, quote: boolean, doubleQuoted: boolean): string {
   if (doubleQuoted) {
     // Inside double quotes, escape: $ ` \ " !
-    const escaped = value.replace(/[$`\\"!]/g, '\\$&')
-    return quote ? `"${escaped}"` : escaped
+    const escaped = value.replace(/[$`\\"!]/g, '\\$&');
+    return quote ? `"${escaped}"` : escaped;
   }
 
   // Use single quotes for maximum safety
   // Single quotes preserve everything except single quotes themselves
   if (quote) {
     // Replace ' with '\'' (end quote, escaped quote, start quote)
-    const escaped = value.replace(/'/g, '\'\\\'\'')
-    return `'${escaped}'`
+    const escaped = value.replace(/'/g, '\'\\\'\'');
+    return `'${escaped}'`;
   }
 
   // Without quotes, escape special characters
-  return value.replace(/([\\'"$`!*?#~<>|;&(){}[\]\s])/g, '\\$1')
+  return value.replace(/([\\'"$`!*?#~<>|;&(){}[\]\s])/g, '\\$1');
 }
 
 /**
@@ -235,13 +235,13 @@ function escapePowerShell(value: string, quote: boolean): string {
   const escaped = value
     .replace(/`/g, '``')
     .replace(/\$/g, '`$')
-    .replace(/"/g, '`"')
+    .replace(/"/g, '`"');
 
   if (quote) {
-    return `"${escaped}"`
+    return `"${escaped}"`;
   }
 
-  return escaped
+  return escaped;
 }
 
 /**
@@ -256,16 +256,16 @@ function escapeCmd(value: string, quote: boolean): string {
     .replace(/\|/g, '^|')
     .replace(/</g, '^<')
     .replace(/>/g, '^>')
-    .replace(/"/g, '""')
+    .replace(/"/g, '""');
 
   // Escape percent signs (environment variables)
-  escaped = escaped.replace(/%/g, '%%')
+  escaped = escaped.replace(/%/g, '%%');
 
   if (quote) {
-    return `"${escaped}"`
+    return `"${escaped}"`;
   }
 
-  return escaped
+  return escaped;
 }
 
 /**
@@ -276,8 +276,8 @@ function escapeCmd(value: string, quote: boolean): string {
  * @returns Escaped arguments joined with spaces
  */
 export function escapeArgs(args: string[], shell?: ShellType): string {
-  const targetShell = shell || getPlatformInfo().shell
-  return args.map(arg => escapeShell(arg, { shell: targetShell })).join(' ')
+  const targetShell = shell || getPlatformInfo().shell;
+  return args.map(arg => escapeShell(arg, { shell: targetShell })).join(' ');
 }
 
 // ============================================================================
@@ -291,15 +291,15 @@ export function escapeArgs(args: string[], shell?: ShellType): string {
  * @returns Shell-specific variable reference
  */
 export function getEnvVarRef(name: string): string {
-  const platform = getPlatformInfo()
+  const platform = getPlatformInfo();
 
   switch (platform.shell) {
     case 'cmd':
-      return `%${name}%`
+      return `%${name}%`;
     case 'powershell':
-      return `$env:${name}`
+      return `$env:${name}`;
     default:
-      return `$${name}`
+      return `$${name}`;
   }
 }
 
@@ -311,16 +311,16 @@ export function getEnvVarRef(name: string): string {
  * @returns Shell-specific assignment statement
  */
 export function buildEnvAssignment(name: string, value: string): string {
-  const platform = getPlatformInfo()
-  const escapedValue = escapeShell(value, { shell: platform.shell })
+  const platform = getPlatformInfo();
+  const escapedValue = escapeShell(value, { shell: platform.shell });
 
   switch (platform.shell) {
     case 'cmd':
-      return `set ${name}=${escapedValue}`
+      return `set ${name}=${escapedValue}`;
     case 'powershell':
-      return `$env:${name} = ${escapedValue}`
+      return `$env:${name} = ${escapedValue}`;
     default:
-      return `export ${name}=${escapedValue}`
+      return `export ${name}=${escapedValue}`;
   }
 }
 
@@ -335,11 +335,11 @@ export function buildCommandWithEnv(
   command: string,
   env: Record<string, string>,
 ): string {
-  const platform = getPlatformInfo()
-  const entries = Object.entries(env)
+  const platform = getPlatformInfo();
+  const entries = Object.entries(env);
 
   if (entries.length === 0) {
-    return command
+    return command;
   }
 
   if (platform.os === 'windows') {
@@ -347,21 +347,21 @@ export function buildCommandWithEnv(
       // PowerShell: set variables then run command
       const assignments = entries
         .map(([k, v]) => `$env:${k} = ${escapeShell(v, { shell: 'powershell' })}`)
-        .join('; ')
-      return `${assignments}; ${command}`
+        .join('; ');
+      return `${assignments}; ${command}`;
     }
     // CMD: use set and &&
     const assignments = entries
       .map(([k, v]) => `set ${k}=${v}`)
-      .join(' && ')
-    return `${assignments} && ${command}`
+      .join(' && ');
+    return `${assignments} && ${command}`;
   }
 
   // Unix: prepend env vars
   const envPrefix = entries
     .map(([k, v]) => `${k}=${escapeShell(v, { shell: platform.shell })}`)
-    .join(' ')
-  return `${envPrefix} ${command}`
+    .join(' ');
+  return `${envPrefix} ${command}`;
 }
 
 // ============================================================================
@@ -374,21 +374,21 @@ export function buildCommandWithEnv(
  * @param shell - Shell type
  * @returns Shell command and flag for executing commands
  */
-function _getShellCommand(shell: ShellType): { cmd: string, flag: string } {
+function _getShellCommand(shell: ShellType): { cmd: string; flag: string } {
   switch (shell) {
     case 'powershell':
-      return { cmd: 'powershell.exe', flag: '-Command' }
+      return { cmd: 'powershell.exe', flag: '-Command' };
     case 'cmd':
-      return { cmd: 'cmd.exe', flag: '/c' }
+      return { cmd: 'cmd.exe', flag: '/c' };
     case 'zsh':
-      return { cmd: 'zsh', flag: '-c' }
+      return { cmd: 'zsh', flag: '-c' };
     case 'fish':
-      return { cmd: 'fish', flag: '-c' }
+      return { cmd: 'fish', flag: '-c' };
     case 'sh':
-      return { cmd: 'sh', flag: '-c' }
+      return { cmd: 'sh', flag: '-c' };
     case 'bash':
     default:
-      return { cmd: 'bash', flag: '-c' }
+      return { cmd: 'bash', flag: '-c' };
   }
 }
 
@@ -403,8 +403,8 @@ export async function executeCommand(
   command: string,
   options: CommandOptions = {},
 ): Promise<CommandResult> {
-  const _platform = getPlatformInfo()
-  const startTime = Date.now()
+  const _platform = getPlatformInfo();
+  const startTime = Date.now();
 
   const {
     cwd = process.cwd(),
@@ -414,10 +414,10 @@ export async function executeCommand(
     encoding = 'utf8',
     throwOnError = false,
     maxBuffer = 10 * 1024 * 1024, // 10MB
-  } = options
+  } = options;
 
   // Merge environment variables
-  const mergedEnv = { ...process.env, ...env }
+  const mergedEnv = { ...process.env, ...env };
 
   const execOptions: any = {
     cwd,
@@ -425,15 +425,15 @@ export async function executeCommand(
     timeout,
     encoding,
     maxBuffer,
-  }
+  };
 
   // Set shell only if it's not false
   if (shell !== false) {
-    execOptions.shell = shell === true ? undefined : shell
+    execOptions.shell = shell === true ? undefined : shell;
   }
 
   try {
-    const { stdout, stderr } = await execAsync(command, execOptions)
+    const { stdout, stderr } = await execAsync(command, execOptions);
 
     return {
       exitCode: 0,
@@ -441,16 +441,16 @@ export async function executeCommand(
       stderr: stderr.toString(),
       success: true,
       durationMs: Date.now() - startTime,
-    }
+    };
   }
   catch (error: unknown) {
     const execError = error as {
-      code?: number
-      stdout?: string
-      stderr?: string
-      signal?: NodeJS.Signals
-      killed?: boolean
-    }
+      code?: number;
+      stdout?: string;
+      stderr?: string;
+      signal?: NodeJS.Signals;
+      killed?: boolean;
+    };
 
     const result: CommandResult = {
       exitCode: execError.code ?? 1,
@@ -459,15 +459,15 @@ export async function executeCommand(
       success: false,
       durationMs: Date.now() - startTime,
       signal: execError.signal,
-    }
+    };
 
     if (throwOnError) {
-      const err = new Error(`Command failed: ${command}`)
-      Object.assign(err, result)
-      throw err
+      const err = new Error(`Command failed: ${command}`);
+      Object.assign(err, result);
+      throw err;
     }
 
-    return result
+    return result;
   }
 }
 
@@ -482,7 +482,7 @@ export function executeCommandSync(
   command: string,
   options: CommandOptions = {},
 ): CommandResult {
-  const startTime = Date.now()
+  const startTime = Date.now();
 
   const {
     cwd = process.cwd(),
@@ -492,9 +492,9 @@ export function executeCommandSync(
     encoding = 'utf8',
     throwOnError = false,
     maxBuffer = 10 * 1024 * 1024,
-  } = options
+  } = options;
 
-  const mergedEnv = { ...process.env, ...env }
+  const mergedEnv = { ...process.env, ...env };
 
   const execOptions: any = {
     cwd,
@@ -503,15 +503,15 @@ export function executeCommandSync(
     encoding,
     maxBuffer,
     stdio: ['pipe', 'pipe', 'pipe'],
-  }
+  };
 
   // Set shell only if it's not false
   if (shell !== false) {
-    execOptions.shell = shell === true ? undefined : shell
+    execOptions.shell = shell === true ? undefined : shell;
   }
 
   try {
-    const stdout = execSync(command, execOptions)
+    const stdout = execSync(command, execOptions);
 
     return {
       exitCode: 0,
@@ -519,15 +519,15 @@ export function executeCommandSync(
       stderr: '',
       success: true,
       durationMs: Date.now() - startTime,
-    }
+    };
   }
   catch (error: unknown) {
     const execError = error as {
-      status?: number
-      stdout?: Buffer
-      stderr?: Buffer
-      signal?: NodeJS.Signals
-    }
+      status?: number;
+      stdout?: Buffer;
+      stderr?: Buffer;
+      signal?: NodeJS.Signals;
+    };
 
     const result: CommandResult = {
       exitCode: execError.status ?? 1,
@@ -536,15 +536,15 @@ export function executeCommandSync(
       success: false,
       durationMs: Date.now() - startTime,
       signal: execError.signal,
-    }
+    };
 
     if (throwOnError) {
-      const err = new Error(`Command failed: ${command}`)
-      Object.assign(err, result)
-      throw err
+      const err = new Error(`Command failed: ${command}`);
+      Object.assign(err, result);
+      throw err;
     }
 
-    return result
+    return result;
   }
 }
 
@@ -562,8 +562,8 @@ export function spawnCommand(
   options: CommandOptions = {},
 ): Promise<CommandResult> {
   return new Promise((resolve, reject) => {
-    const startTime = Date.now()
-    const _platform = getPlatformInfo()
+    const startTime = Date.now();
+    const _platform = getPlatformInfo();
 
     const {
       cwd = process.cwd(),
@@ -571,40 +571,40 @@ export function spawnCommand(
       timeout = 0,
       shell = false,
       throwOnError = false,
-    } = options
+    } = options;
 
-    const mergedEnv = { ...process.env, ...env }
+    const mergedEnv = { ...process.env, ...env };
 
     const spawnOptions: SpawnOptions = {
       cwd,
       env: mergedEnv,
       shell: shell === true ? true : shell || false,
       stdio: ['pipe', 'pipe', 'pipe'],
-    }
+    };
 
-    const child = spawn(command, args, spawnOptions)
+    const child = spawn(command, args, spawnOptions);
 
-    let stdout = ''
-    let stderr = ''
-    let timeoutId: NodeJS.Timeout | undefined
+    let stdout = '';
+    let stderr = '';
+    let timeoutId: NodeJS.Timeout | undefined;
 
     if (timeout > 0) {
       timeoutId = setTimeout(() => {
-        child.kill('SIGTERM')
-      }, timeout)
+        child.kill('SIGTERM');
+      }, timeout);
     }
 
     child.stdout?.on('data', (data) => {
-      stdout += data.toString()
-    })
+      stdout += data.toString();
+    });
 
     child.stderr?.on('data', (data) => {
-      stderr += data.toString()
-    })
+      stderr += data.toString();
+    });
 
     child.on('close', (code, signal) => {
       if (timeoutId) {
-        clearTimeout(timeoutId)
+        clearTimeout(timeoutId);
       }
 
       const result: CommandResult = {
@@ -614,21 +614,21 @@ export function spawnCommand(
         success: code === 0,
         durationMs: Date.now() - startTime,
         signal: signal ?? undefined,
-      }
+      };
 
       if (throwOnError && !result.success) {
-        const err = new Error(`Command failed: ${command}`)
-        Object.assign(err, result)
-        reject(err)
+        const err = new Error(`Command failed: ${command}`);
+        Object.assign(err, result);
+        reject(err);
       }
       else {
-        resolve(result)
+        resolve(result);
       }
-    })
+    });
 
     child.on('error', (error) => {
       if (timeoutId) {
-        clearTimeout(timeoutId)
+        clearTimeout(timeoutId);
       }
 
       const result: CommandResult = {
@@ -637,16 +637,16 @@ export function spawnCommand(
         stderr: error.message,
         success: false,
         durationMs: Date.now() - startTime,
-      }
+      };
 
       if (throwOnError) {
-        reject(error)
+        reject(error);
       }
       else {
-        resolve(result)
+        resolve(result);
       }
-    })
-  })
+    });
+  });
 }
 
 // ============================================================================
@@ -660,15 +660,15 @@ export function spawnCommand(
  * @returns True if command exists
  */
 export async function commandExists(command: string): Promise<boolean> {
-  const platform = getPlatformInfo()
-  const whichCmd = platform.os === 'windows' ? 'where' : 'which'
+  const platform = getPlatformInfo();
+  const whichCmd = platform.os === 'windows' ? 'where' : 'which';
 
   try {
-    const result = await executeCommand(`${whichCmd} ${escapeShell(command, { shell: platform.shell })}`)
-    return result.success
+    const result = await executeCommand(`${whichCmd} ${escapeShell(command, { shell: platform.shell })}`);
+    return result.success;
   }
   catch {
-    return false
+    return false;
   }
 }
 
@@ -679,15 +679,15 @@ export async function commandExists(command: string): Promise<boolean> {
  * @returns True if command exists
  */
 export function commandExistsSync(command: string): boolean {
-  const platform = getPlatformInfo()
-  const whichCmd = platform.os === 'windows' ? 'where' : 'which'
+  const platform = getPlatformInfo();
+  const whichCmd = platform.os === 'windows' ? 'where' : 'which';
 
   try {
-    const result = executeCommandSync(`${whichCmd} ${escapeShell(command, { shell: platform.shell })}`)
-    return result.success
+    const result = executeCommandSync(`${whichCmd} ${escapeShell(command, { shell: platform.shell })}`);
+    return result.success;
   }
   catch {
-    return false
+    return false;
   }
 }
 
@@ -698,19 +698,19 @@ export function commandExistsSync(command: string): boolean {
  * @returns Full path or null if not found
  */
 export async function getCommandPath(command: string): Promise<string | null> {
-  const platform = getPlatformInfo()
-  const whichCmd = platform.os === 'windows' ? 'where' : 'which'
+  const platform = getPlatformInfo();
+  const whichCmd = platform.os === 'windows' ? 'where' : 'which';
 
   try {
-    const result = await executeCommand(`${whichCmd} ${escapeShell(command, { shell: platform.shell })}`)
+    const result = await executeCommand(`${whichCmd} ${escapeShell(command, { shell: platform.shell })}`);
     if (result.success && result.stdout.trim()) {
       // Windows 'where' may return multiple lines, take the first
-      return result.stdout.trim().split('\n')[0].trim()
+      return result.stdout.trim().split('\n')[0].trim();
     }
-    return null
+    return null;
   }
   catch {
-    return null
+    return null;
   }
 }
 
@@ -722,25 +722,25 @@ export async function getCommandPath(command: string): Promise<string | null> {
  * @returns Platform-specific command string
  */
 export function buildCommand(commandName: string, args: string[] = []): string {
-  const platform = getPlatformInfo()
-  const mapping = COMMAND_MAPPINGS.find(m => m.name === commandName)
+  const platform = getPlatformInfo();
+  const mapping = COMMAND_MAPPINGS.find(m => m.name === commandName);
 
-  let cmd: string
-  let finalArgs = args
+  let cmd: string;
+  let finalArgs = args;
 
   if (mapping) {
-    cmd = platform.os === 'windows' ? mapping.windows : mapping.unix
+    cmd = platform.os === 'windows' ? mapping.windows : mapping.unix;
     if (mapping.transformArgs) {
-      finalArgs = mapping.transformArgs(args, platform.os)
+      finalArgs = mapping.transformArgs(args, platform.os);
     }
   }
   else {
-    cmd = commandName
+    cmd = commandName;
   }
 
   if (finalArgs.length === 0) {
-    return cmd
+    return cmd;
   }
 
-  return `${cmd} ${escapeArgs(finalArgs, platform.shell)}`
+  return `${cmd} ${escapeArgs(finalArgs, platform.shell)}`;
 }

@@ -1,4 +1,4 @@
-import type { EvalComparisonReport, EvalScenarioReport } from './types.js'
+import type { EvalComparisonReport, EvalScenarioReport } from './types.js';
 
 export function compareReports(
   baseline: EvalScenarioReport,
@@ -7,11 +7,11 @@ export function compareReports(
   if (baseline.scenarioId !== candidate.scenarioId) {
     throw new Error(
       `Scenario ID mismatch: baseline=${baseline.scenarioId}, candidate=${candidate.scenarioId}`,
-    )
+    );
   }
 
-  const deltaSuccessRate = candidate.successRate - baseline.successRate
-  const deltaDurationMs = candidate.averageDurationMs - baseline.averageDurationMs
+  const deltaSuccessRate = candidate.successRate - baseline.successRate;
+  const deltaDurationMs = candidate.averageDurationMs - baseline.averageDurationMs;
 
   return {
     scenarioId: baseline.scenarioId,
@@ -21,5 +21,5 @@ export function compareReports(
     candidateAverageDurationMs: candidate.averageDurationMs,
     deltaSuccessRate,
     deltaDurationMs,
-  }
+  };
 }

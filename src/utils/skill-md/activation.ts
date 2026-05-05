@@ -13,13 +13,13 @@ import type {
   SkillActivationContext,
   SkillActivationResult,
   SkillMdFile,
-} from '../../types/skill-md.js'
+} from '../../types/skill-md.js';
 
 /**
  * Confidence threshold for auto-activation
  * Skills with confidence below this threshold will not auto-activate
  */
-const AUTO_ACTIVATION_THRESHOLD = 0.6
+const AUTO_ACTIVATION_THRESHOLD = 0.6;
 
 /**
  * Confidence weights for different matching factors
@@ -30,7 +30,7 @@ const CONFIDENCE_WEIGHTS = {
   USE_WHEN_PARTIAL: 0.7, // Partial use_when match
   CONTEXT_STRONG: 0.8, // Strong context match
   CONTEXT_WEAK: 0.4, // Weak context match
-} as const
+} as const;
 
 /**
  * Check if any skill should be activated based on context
@@ -64,20 +64,20 @@ export function checkActivation(
       shouldActivate: false,
       confidence: 0,
       reason: 'No skills available',
-    }
+    };
   }
 
   const matches: Array<{
-    skill: SkillMdFile
-    confidence: number
-    trigger?: string
-    useWhen?: string
-    reason: string
-  }> = []
+    skill: SkillMdFile;
+    confidence: number;
+    trigger?: string;
+    useWhen?: string;
+    reason: string;
+  }> = [];
 
   for (const skill of skills) {
     // Check explicit trigger match first
-    const triggerMatch = matchTriggers(context.userMessage, skill.metadata.triggers)
+    const triggerMatch = matchTriggers(context.userMessage, skill.metadata.triggers);
 
     if (triggerMatch) {
       // Explicit trigger always activates (if skill is enabled)
@@ -86,27 +86,27 @@ export function checkActivation(
         confidence: CONFIDENCE_WEIGHTS.TRIGGER_MATCH,
         trigger: triggerMatch,
         reason: `Explicit trigger matched: ${triggerMatch}`,
-      })
-      continue
+      });
+      continue;
     }
 
     // For auto-activation, only consider skills with auto_activate: true
     if (!skill.metadata.auto_activate) {
-      continue
+      continue;
     }
 
     // Check use_when conditions
-    const useWhenMatch = matchUseWhen(context, skill.metadata.use_when)
+    const useWhenMatch = matchUseWhen(context, skill.metadata.use_when);
 
     // Check context factors
-    const contextMatch = matchContext(context, skill)
+    const contextMatch = matchContext(context, skill);
 
     // Calculate overall confidence
     const confidence = calculateConfidence(
       false, // No trigger match
       useWhenMatch,
       contextMatch,
-    )
+    );
 
     if (confidence >= AUTO_ACTIVATION_THRESHOLD) {
       matches.push({
@@ -114,7 +114,7 @@ export function checkActivation(
         confidence,
         useWhen: useWhenMatch.condition,
         reason: buildActivationReason(useWhenMatch, contextMatch),
-      })
+      });
     }
   }
 
@@ -124,17 +124,17 @@ export function checkActivation(
       shouldActivate: false,
       confidence: 0,
       reason: 'No matching skills found',
-    }
+    };
   }
 
-  const bestMatch = findBestMatch(matches)
+  const bestMatch = findBestMatch(matches);
 
   if (!bestMatch) {
     return {
       shouldActivate: false,
       confidence: 0,
       reason: 'No suitable skill found',
-    }
+    };
   }
 
   return {
@@ -144,7 +144,7 @@ export function checkActivation(
     matchedUseWhen: bestMatch.useWhen,
     confidence: bestMatch.confidence,
     reason: bestMatch.reason,
-  }
+  };
 }
 
 /**
@@ -169,26 +169,26 @@ export function matchTriggers(
   triggers: string[],
 ): string | null {
   if (!message || triggers.length === 0) {
-    return null
+    return null;
   }
 
-  const normalizedMessage = message.trim()
+  const normalizedMessage = message.trim();
 
   for (const trigger of triggers) {
-    const normalizedTrigger = trigger.trim()
+    const normalizedTrigger = trigger.trim();
 
     // Exact match
     if (normalizedMessage === normalizedTrigger) {
-      return trigger
+      return trigger;
     }
 
     // Prefix match for command-style triggers (e.g., '/commit --amend' matches '/commit')
     if (normalizedMessage.startsWith(`${normalizedTrigger} `)) {
-      return trigger
+      return trigger;
     }
   }
 
-  return null
+  return null;
 }
 
 /**
@@ -212,54 +212,54 @@ export function matchTriggers(
 export function matchUseWhen(
   context: SkillActivationContext,
   useWhen: string[],
-): { matched: boolean, condition?: string, confidence: number } {
+): { matched: boolean; condition?: string; confidence: number } {
   if (useWhen.length === 0) {
-    return { matched: false, confidence: 0 }
+    return { matched: false, confidence: 0 };
   }
 
-  const message = context.userMessage.toLowerCase()
-  let bestMatch: { condition: string, confidence: number } | null = null
+  const message = context.userMessage.toLowerCase();
+  let bestMatch: { condition: string; confidence: number } | null = null;
 
   for (const condition of useWhen) {
-    const normalizedCondition = condition.toLowerCase()
+    const normalizedCondition = condition.toLowerCase();
 
     // Extract keywords from condition (remove common words)
-    const keywords = extractKeywords(normalizedCondition)
+    const keywords = extractKeywords(normalizedCondition);
 
     if (keywords.length === 0) {
-      continue
+      continue;
     }
 
     // Count matching keywords
-    let matchCount = 0
-    let exactMatch = false
+    let matchCount = 0;
+    let exactMatch = false;
 
     for (const keyword of keywords) {
       if (message.includes(keyword)) {
-        matchCount++
+        matchCount++;
       }
     }
 
     // Check for exact phrase match
     if (message.includes(normalizedCondition)) {
-      exactMatch = true
+      exactMatch = true;
     }
 
     // Calculate confidence based on match quality
-    let confidence = 0
+    let confidence = 0;
 
     if (exactMatch) {
-      confidence = CONFIDENCE_WEIGHTS.USE_WHEN_EXACT
+      confidence = CONFIDENCE_WEIGHTS.USE_WHEN_EXACT;
     }
     else if (matchCount > 0) {
       // Partial match: scale confidence by keyword match ratio
-      const matchRatio = matchCount / keywords.length
-      confidence = CONFIDENCE_WEIGHTS.USE_WHEN_PARTIAL * matchRatio
+      const matchRatio = matchCount / keywords.length;
+      confidence = CONFIDENCE_WEIGHTS.USE_WHEN_PARTIAL * matchRatio;
     }
 
     // Update best match
     if (confidence > 0 && (!bestMatch || confidence > bestMatch.confidence)) {
-      bestMatch = { condition, confidence }
+      bestMatch = { condition, confidence };
     }
   }
 
@@ -268,10 +268,10 @@ export function matchUseWhen(
       matched: true,
       condition: bestMatch.condition,
       confidence: bestMatch.confidence,
-    }
+    };
   }
 
-  return { matched: false, confidence: 0 }
+  return { matched: false, confidence: 0 };
 }
 
 /**
@@ -301,24 +301,24 @@ export function matchUseWhen(
  */
 export function calculateConfidence(
   triggerMatch: boolean,
-  useWhenMatch: { matched: boolean, confidence: number },
-  contextMatch: { matched: boolean, confidence: number },
+  useWhenMatch: { matched: boolean; confidence: number },
+  contextMatch: { matched: boolean; confidence: number },
 ): number {
   // Explicit trigger match = 100% confidence
   if (triggerMatch) {
-    return CONFIDENCE_WEIGHTS.TRIGGER_MATCH
+    return CONFIDENCE_WEIGHTS.TRIGGER_MATCH;
   }
 
   // For auto-activation, combine use_when and context confidence
   const weights = {
     useWhen: 0.7, // Use_when conditions are more important
     context: 0.3, // Context provides supporting evidence
-  }
+  };
 
-  const useWhenScore = useWhenMatch.matched ? useWhenMatch.confidence : 0
-  const contextScore = contextMatch.matched ? contextMatch.confidence : 0
+  const useWhenScore = useWhenMatch.matched ? useWhenMatch.confidence : 0;
+  const contextScore = contextMatch.matched ? contextMatch.confidence : 0;
 
-  return (useWhenScore * weights.useWhen) + (contextScore * weights.context)
+  return (useWhenScore * weights.useWhen) + (contextScore * weights.context);
 }
 
 /**
@@ -345,69 +345,69 @@ export function calculateConfidence(
 export function matchContext(
   context: SkillActivationContext,
   skill: SkillMdFile,
-): { matched: boolean, confidence: number } {
-  let matchScore = 0
-  let totalFactors = 0
+): { matched: boolean; confidence: number } {
+  let matchScore = 0;
+  let totalFactors = 0;
 
   // Factor 1: Git repository requirement
   if (skill.metadata.category === 'git') {
-    totalFactors++
+    totalFactors++;
     if (context.isGitRepo) {
-      matchScore += CONFIDENCE_WEIGHTS.CONTEXT_STRONG
+      matchScore += CONFIDENCE_WEIGHTS.CONTEXT_STRONG;
     }
   }
 
   // Factor 2: File type matching
   if (context.currentFile) {
-    totalFactors++
-    const fileExt = getFileExtension(context.currentFile)
+    totalFactors++;
+    const fileExt = getFileExtension(context.currentFile);
 
     // Check if skill tags include file type
     if (skill.metadata.tags?.some(tag => tag.toLowerCase() === fileExt)) {
-      matchScore += CONFIDENCE_WEIGHTS.CONTEXT_STRONG
+      matchScore += CONFIDENCE_WEIGHTS.CONTEXT_STRONG;
     }
     // Check if skill category matches file type
     else if (isFileTypeRelevant(fileExt, skill.metadata.category)) {
-      matchScore += CONFIDENCE_WEIGHTS.CONTEXT_WEAK
+      matchScore += CONFIDENCE_WEIGHTS.CONTEXT_WEAK;
     }
   }
 
   // Factor 3: Project type matching
   if (context.projectType) {
-    totalFactors++
-    const projectType = context.projectType.toLowerCase()
+    totalFactors++;
+    const projectType = context.projectType.toLowerCase();
 
     // Check if skill tags include project type
     if (skill.metadata.tags?.some(tag => tag.toLowerCase() === projectType)) {
-      matchScore += CONFIDENCE_WEIGHTS.CONTEXT_STRONG
+      matchScore += CONFIDENCE_WEIGHTS.CONTEXT_STRONG;
     }
   }
 
   // Factor 4: Recent commands (workflow continuity)
   if (context.recentCommands && context.recentCommands.length > 0) {
-    totalFactors++
+    totalFactors++;
 
     // Check if any recent command matches skill triggers
     const hasRelatedCommand = context.recentCommands.some(cmd =>
       skill.metadata.triggers.some(trigger => cmd.includes(trigger)),
-    )
+    );
 
     if (hasRelatedCommand) {
-      matchScore += CONFIDENCE_WEIGHTS.CONTEXT_WEAK
+      matchScore += CONFIDENCE_WEIGHTS.CONTEXT_WEAK;
     }
   }
 
   // Calculate average confidence
   if (totalFactors === 0) {
-    return { matched: false, confidence: 0 }
+    return { matched: false, confidence: 0 };
   }
 
-  const confidence = matchScore / totalFactors
+  const confidence = matchScore / totalFactors;
 
   return {
     matched: confidence > 0,
     confidence,
-  }
+  };
 }
 
 /**
@@ -433,44 +433,44 @@ export function matchContext(
  */
 export function findBestMatch(
   results: Array<{
-    skill: SkillMdFile
-    confidence: number
-    trigger?: string
-    useWhen?: string
-    reason: string
+    skill: SkillMdFile;
+    confidence: number;
+    trigger?: string;
+    useWhen?: string;
+    reason: string;
   }>,
 ): typeof results[0] | null {
   if (results.length === 0) {
-    return null
+    return null;
   }
 
   if (results.length === 1) {
-    return results[0]
+    return results[0];
   }
 
   // Sort by confidence (descending), then by priority (descending)
   const sorted = [...results].sort((a, b) => {
     // First, compare confidence
     if (a.confidence !== b.confidence) {
-      return b.confidence - a.confidence
+      return b.confidence - a.confidence;
     }
 
     // If confidence is equal, compare priority
-    const priorityA = a.skill.metadata.priority ?? 5
-    const priorityB = b.skill.metadata.priority ?? 5
+    const priorityA = a.skill.metadata.priority ?? 5;
+    const priorityB = b.skill.metadata.priority ?? 5;
 
     if (priorityA !== priorityB) {
-      return priorityB - priorityA
+      return priorityB - priorityA;
     }
 
     // If priority is also equal, prefer skills with more specific triggers
-    const triggersA = a.skill.metadata.triggers.length
-    const triggersB = b.skill.metadata.triggers.length
+    const triggersA = a.skill.metadata.triggers.length;
+    const triggersB = b.skill.metadata.triggers.length;
 
-    return triggersB - triggersA
-  })
+    return triggersB - triggersA;
+  });
 
-  return sorted[0]
+  return sorted[0];
 }
 
 /**
@@ -565,16 +565,16 @@ function extractKeywords(condition: string): string[] {
     'very',
     'user',
     'wants',
-  ])
+  ]);
 
   // Split into words and filter
   const words = condition
     .toLowerCase()
     .replace(/[^\w\s-]/g, ' ') // Remove punctuation except hyphens
     .split(/\s+/)
-    .filter(word => word.length > 2 && !stopWords.has(word))
+    .filter(word => word.length > 2 && !stopWords.has(word));
 
-  return words
+  return words;
 }
 
 /**
@@ -586,8 +586,8 @@ function extractKeywords(condition: string): string[] {
  * @internal
  */
 function getFileExtension(filePath: string): string {
-  const match = filePath.match(/\.([^.]+)$/)
-  return match ? match[1].toLowerCase() : ''
+  const match = filePath.match(/\.([^.]+)$/);
+  return match ? match[1].toLowerCase() : '';
 }
 
 /**
@@ -605,10 +605,10 @@ function isFileTypeRelevant(fileExt: string, category: string): boolean {
     testing: ['test.ts', 'test.js', 'spec.ts', 'spec.js'],
     docs: ['md', 'mdx', 'rst', 'txt'],
     devops: ['yml', 'yaml', 'json', 'toml', 'dockerfile'],
-  }
+  };
 
-  const relevantExts = relevanceMap[category] || []
-  return relevantExts.some(ext => fileExt.includes(ext))
+  const relevantExts = relevanceMap[category] || [];
+  return relevantExts.some(ext => fileExt.includes(ext));
 }
 
 /**
@@ -626,18 +626,18 @@ function isFileTypeRelevant(fileExt: string, category: string): boolean {
  * @internal
  */
 function buildActivationReason(
-  useWhenMatch: { matched: boolean, condition?: string, confidence: number },
-  contextMatch: { matched: boolean, confidence: number },
+  useWhenMatch: { matched: boolean; condition?: string; confidence: number },
+  contextMatch: { matched: boolean; confidence: number },
 ): string {
-  const reasons: string[] = []
+  const reasons: string[] = [];
 
   if (useWhenMatch.matched && useWhenMatch.condition) {
-    reasons.push(`Condition matched: "${useWhenMatch.condition}"`)
+    reasons.push(`Condition matched: "${useWhenMatch.condition}"`);
   }
 
   if (contextMatch.matched) {
-    reasons.push('Context is relevant')
+    reasons.push('Context is relevant');
   }
 
-  return reasons.length > 0 ? reasons.join('; ') : 'Auto-activated based on context'
+  return reasons.length > 0 ? reasons.join('; ') : 'Auto-activated based on context';
 }

@@ -13,23 +13,23 @@ import type {
   TaskReview,
   WorkflowSession,
   WorkflowTask,
-} from './types'
+} from './types';
 
 /**
  * Review configuration
  */
 export interface ReviewConfig {
   /** Maximum review iterations before escalation */
-  maxIterations: number
+  maxIterations: number;
 
   /** Whether to auto-fix minor issues */
-  autoFixMinor: boolean
+  autoFixMinor: boolean;
 
   /** Severity threshold for blocking (issues at or above this level block approval) */
-  blockingThreshold: ReviewSeverity
+  blockingThreshold: ReviewSeverity;
 
   /** Enable verbose logging */
-  verbose: boolean
+  verbose: boolean;
 }
 
 /**
@@ -40,29 +40,29 @@ export const DEFAULT_REVIEW_CONFIG: ReviewConfig = {
   autoFixMinor: true,
   blockingThreshold: 'major',
   verbose: false,
-}
+};
 
 /**
  * Review context for analysis
  */
 export interface ReviewContext {
   /** The task being reviewed */
-  task: WorkflowTask
+  task: WorkflowTask;
 
   /** The workflow session */
-  session: WorkflowSession
+  session: WorkflowSession;
 
   /** Original requirements/spec */
-  spec: string
+  spec: string;
 
   /** Files modified by the task */
-  modifiedFiles: string[]
+  modifiedFiles: string[];
 
   /** File contents (path -> content) */
-  fileContents: Map<string, string>
+  fileContents: Map<string, string>;
 
   /** Previous review results (for iterations) */
-  previousReviews?: TaskReview
+  previousReviews?: TaskReview;
 }
 
 /**
@@ -70,16 +70,16 @@ export interface ReviewContext {
  */
 export interface SpecComplianceCheck {
   /** Requirement ID or description */
-  requirement: string
+  requirement: string;
 
   /** Whether the requirement is met */
-  met: boolean
+  met: boolean;
 
   /** Evidence or explanation */
-  evidence: string
+  evidence: string;
 
   /** Related file paths */
-  relatedFiles?: string[]
+  relatedFiles?: string[];
 }
 
 /**
@@ -93,35 +93,35 @@ export type QualityCategory
     | 'security' // Security best practices
     | 'testing' // Test coverage and quality
     | 'documentation' // Comments and documentation
-    | 'style' // Code style consistency
+    | 'style'; // Code style consistency
 
 /**
  * Code quality check result
  */
 export interface QualityCheck {
   /** Quality category */
-  category: QualityCategory
+  category: QualityCategory;
 
   /** Check name */
-  name: string
+  name: string;
 
   /** Whether the check passed */
-  passed: boolean
+  passed: boolean;
 
   /** Severity if failed */
-  severity?: ReviewSeverity
+  severity?: ReviewSeverity;
 
   /** Description of the issue or success */
-  description: string
+  description: string;
 
   /** File path (if applicable) */
-  filePath?: string
+  filePath?: string;
 
   /** Line number (if applicable) */
-  lineNumber?: number
+  lineNumber?: number;
 
   /** Suggested fix */
-  suggestion?: string
+  suggestion?: string;
 }
 
 /**
@@ -148,10 +148,10 @@ export interface QualityCheck {
  * ```
  */
 export class TwoStageReviewer {
-  private config: ReviewConfig
+  private config: ReviewConfig;
 
   constructor(config: Partial<ReviewConfig> = {}) {
-    this.config = { ...DEFAULT_REVIEW_CONFIG, ...config }
+    this.config = { ...DEFAULT_REVIEW_CONFIG, ...config };
   }
 
   // ==========================================================================
@@ -167,38 +167,38 @@ export class TwoStageReviewer {
       status: 'in-progress',
       iterations: (context.previousReviews?.iterations || 0) + 1,
       maxIterations: this.config.maxIterations,
-    }
+    };
 
-    this.log(`Starting review iteration ${review.iterations} for task: ${context.task.title}`)
+    this.log(`Starting review iteration ${review.iterations} for task: ${context.task.title}`);
 
     // Stage 1: Spec Compliance
-    this.log('Stage 1: Spec Compliance Review')
-    review.specCompliance = await this.reviewSpecCompliance(context)
+    this.log('Stage 1: Spec Compliance Review');
+    review.specCompliance = await this.reviewSpecCompliance(context);
 
     // If Stage 1 fails with blockers, don't proceed to Stage 2
     if (!review.specCompliance.passed && this.hasBlockingIssues(review.specCompliance.issues)) {
-      review.status = 'failed'
-      this.log('Stage 1 failed with blocking issues, skipping Stage 2')
-      return review
+      review.status = 'failed';
+      this.log('Stage 1 failed with blocking issues, skipping Stage 2');
+      return review;
     }
 
     // Stage 2: Code Quality
-    this.log('Stage 2: Code Quality Review')
-    review.codeQuality = await this.reviewCodeQuality(context)
+    this.log('Stage 2: Code Quality Review');
+    review.codeQuality = await this.reviewCodeQuality(context);
 
     // Determine overall status
-    review.status = this.determineOverallStatus(review)
-    this.log(`Review completed with status: ${review.status}`)
+    review.status = this.determineOverallStatus(review);
+    this.log(`Review completed with status: ${review.status}`);
 
-    return review
+    return review;
   }
 
   /**
    * Review only spec compliance (Stage 1)
    */
   async reviewSpecCompliance(context: ReviewContext): Promise<StageReviewResult> {
-    const issues: ReviewIssue[] = []
-    const checks = await this.performSpecComplianceChecks(context)
+    const issues: ReviewIssue[] = [];
+    const checks = await this.performSpecComplianceChecks(context);
 
     // Convert checks to issues
     for (const check of checks) {
@@ -211,11 +211,11 @@ export class TwoStageReviewer {
           description: check.evidence,
           filePath: check.relatedFiles?.[0],
           resolved: false,
-        })
+        });
       }
     }
 
-    const passed = issues.filter(i => this.isBlocking(i.severity)).length === 0
+    const passed = issues.filter(i => this.isBlocking(i.severity)).length === 0;
 
     return {
       stage: 'spec-compliance',
@@ -223,15 +223,15 @@ export class TwoStageReviewer {
       issues,
       summary: this.generateSpecComplianceSummary(checks, issues),
       reviewedAt: new Date(),
-    }
+    };
   }
 
   /**
    * Review only code quality (Stage 2)
    */
   async reviewCodeQuality(context: ReviewContext): Promise<StageReviewResult> {
-    const issues: ReviewIssue[] = []
-    const checks = await this.performCodeQualityChecks(context)
+    const issues: ReviewIssue[] = [];
+    const checks = await this.performCodeQualityChecks(context);
 
     // Convert failed checks to issues
     for (const check of checks) {
@@ -246,11 +246,11 @@ export class TwoStageReviewer {
           lineNumber: check.lineNumber,
           suggestion: check.suggestion,
           resolved: false,
-        })
+        });
       }
     }
 
-    const passed = issues.filter(i => this.isBlocking(i.severity)).length === 0
+    const passed = issues.filter(i => this.isBlocking(i.severity)).length === 0;
 
     return {
       stage: 'code-quality',
@@ -258,7 +258,7 @@ export class TwoStageReviewer {
       issues,
       summary: this.generateCodeQualitySummary(checks, issues),
       reviewedAt: new Date(),
-    }
+    };
   }
 
   // ==========================================================================
@@ -270,54 +270,54 @@ export class TwoStageReviewer {
    * This is a framework - actual checks would be implemented based on the spec
    */
   private async performSpecComplianceChecks(context: ReviewContext): Promise<SpecComplianceCheck[]> {
-    const checks: SpecComplianceCheck[] = []
+    const checks: SpecComplianceCheck[] = [];
 
     // Parse requirements from spec
-    const requirements = this.parseRequirements(context.spec)
+    const requirements = this.parseRequirements(context.spec);
 
     for (const req of requirements) {
-      const check = await this.checkRequirement(req, context)
-      checks.push(check)
+      const check = await this.checkRequirement(req, context);
+      checks.push(check);
     }
 
     // Add default checks
-    checks.push(...await this.performDefaultSpecChecks(context))
+    checks.push(...await this.performDefaultSpecChecks(context));
 
-    return checks
+    return checks;
   }
 
   /**
    * Parse requirements from spec text
    */
   private parseRequirements(spec: string): string[] {
-    const requirements: string[] = []
+    const requirements: string[] = [];
 
     // Split by common requirement patterns
-    const lines = spec.split('\n')
+    const lines = spec.split('\n');
 
     for (const line of lines) {
-      const trimmed = line.trim()
+      const trimmed = line.trim();
 
       // Match numbered requirements: "1. Do something"
       if (/^\d+\.\s+/.test(trimmed)) {
-        requirements.push(trimmed.replace(/^\d+\.\s+/, ''))
+        requirements.push(trimmed.replace(/^\d+\.\s+/, ''));
       }
       // Match bullet points: "- Do something" or "* Do something"
       else if (/^[-*]\s+/.test(trimmed)) {
-        requirements.push(trimmed.replace(/^[-*]\s+/, ''))
+        requirements.push(trimmed.replace(/^[-*]\s+/, ''));
       }
       // Match "must", "should", "shall" statements
       else if (/\b(?:must|should|shall|need to|required to)\b/i.test(trimmed)) {
-        requirements.push(trimmed)
+        requirements.push(trimmed);
       }
     }
 
     // If no structured requirements found, treat the whole spec as one requirement
     if (requirements.length === 0 && spec.trim()) {
-      requirements.push(spec.trim())
+      requirements.push(spec.trim());
     }
 
-    return requirements
+    return requirements;
   }
 
   /**
@@ -328,25 +328,25 @@ export class TwoStageReviewer {
     // AI/LLM to analyze whether the code meets the requirement
 
     // For now, we do basic keyword matching
-    const keywords = this.extractKeywords(requirement)
-    const relatedFiles: string[] = []
-    let evidence = ''
-    let met = false
+    const keywords = this.extractKeywords(requirement);
+    const relatedFiles: string[] = [];
+    let evidence = '';
+    let met = false;
 
     context.fileContents.forEach((content, filePath) => {
       const matchedKeywords = keywords.filter(kw =>
         content.toLowerCase().includes(kw.toLowerCase()),
-      )
+      );
 
       if (matchedKeywords.length > 0) {
-        relatedFiles.push(filePath)
-        evidence += `Found keywords [${matchedKeywords.join(', ')}] in ${filePath}. `
-        met = matchedKeywords.length >= keywords.length * 0.5 // At least 50% keywords found
+        relatedFiles.push(filePath);
+        evidence += `Found keywords [${matchedKeywords.join(', ')}] in ${filePath}. `;
+        met = matchedKeywords.length >= keywords.length * 0.5; // At least 50% keywords found
       }
-    })
+    });
 
     if (!met) {
-      evidence = `Could not find sufficient evidence for: "${requirement}"`
+      evidence = `Could not find sufficient evidence for: "${requirement}"`;
     }
 
     return {
@@ -354,7 +354,7 @@ export class TwoStageReviewer {
       met,
       evidence,
       relatedFiles,
-    }
+    };
   }
 
   /**
@@ -426,20 +426,20 @@ export class TwoStageReviewer {
       'those',
       'it',
       'its',
-    ])
+    ]);
 
     return requirement
       .toLowerCase()
       .replace(/[^\w\s]/g, ' ')
       .split(/\s+/)
-      .filter(word => word.length > 2 && !stopWords.has(word))
+      .filter(word => word.length > 2 && !stopWords.has(word));
   }
 
   /**
    * Perform default spec compliance checks
    */
   private async performDefaultSpecChecks(context: ReviewContext): Promise<SpecComplianceCheck[]> {
-    const checks: SpecComplianceCheck[] = []
+    const checks: SpecComplianceCheck[] = [];
 
     // Check: Files were actually modified
     if (context.modifiedFiles.length === 0) {
@@ -447,7 +447,7 @@ export class TwoStageReviewer {
         requirement: 'Task should modify at least one file',
         met: false,
         evidence: 'No files were modified by this task',
-      })
+      });
     }
     else {
       checks.push({
@@ -455,19 +455,19 @@ export class TwoStageReviewer {
         met: true,
         evidence: `Modified ${context.modifiedFiles.length} file(s)`,
         relatedFiles: context.modifiedFiles,
-      })
+      });
     }
 
     // Check: No TODO/FIXME left in code
-    let hasTodos = false
-    const todoFiles: string[] = []
+    let hasTodos = false;
+    const todoFiles: string[] = [];
 
     context.fileContents.forEach((content, filePath) => {
       if (/\b(?:TODO|FIXME|XXX|HACK)\b/i.test(content)) {
-        hasTodos = true
-        todoFiles.push(filePath)
+        hasTodos = true;
+        todoFiles.push(filePath);
       }
-    })
+    });
 
     checks.push({
       requirement: 'No unresolved TODO/FIXME comments',
@@ -476,9 +476,9 @@ export class TwoStageReviewer {
         ? `Found TODO/FIXME comments in: ${todoFiles.join(', ')}`
         : 'No TODO/FIXME comments found',
       relatedFiles: todoFiles,
-    })
+    });
 
-    return checks
+    return checks;
   }
 
   // ==========================================================================
@@ -489,34 +489,34 @@ export class TwoStageReviewer {
    * Perform code quality checks
    */
   private async performCodeQualityChecks(context: ReviewContext): Promise<QualityCheck[]> {
-    const checks: QualityCheck[] = []
+    const checks: QualityCheck[] = [];
 
     context.fileContents.forEach((content, filePath) => {
       // Skip non-code files
       if (!this.isCodeFile(filePath)) {
-        return
+        return;
       }
 
-      checks.push(...this.checkNaming(filePath, content))
-      checks.push(...this.checkStructure(filePath, content))
-      checks.push(...this.checkErrorHandling(filePath, content))
-      checks.push(...this.checkDocumentation(filePath, content))
-      checks.push(...this.checkStyle(filePath, content))
-    })
+      checks.push(...this.checkNaming(filePath, content));
+      checks.push(...this.checkStructure(filePath, content));
+      checks.push(...this.checkErrorHandling(filePath, content));
+      checks.push(...this.checkDocumentation(filePath, content));
+      checks.push(...this.checkStyle(filePath, content));
+    });
 
-    return checks
+    return checks;
   }
 
   /**
    * Check naming conventions
    */
   private checkNaming(filePath: string, content: string): QualityCheck[] {
-    const checks: QualityCheck[] = []
+    const checks: QualityCheck[] = [];
 
     // Check for single-letter variable names (except common ones like i, j, k, x, y)
-    const singleLetterVars = content.match(/\b(const|let|var)\s+([a-z])\s*=/g)
+    const singleLetterVars = content.match(/\b(const|let|var)\s+([a-z])\s*=/g);
     if (singleLetterVars) {
-      const badVars = singleLetterVars.filter(v => !/\b[ijkxyn]\s*=/.test(v))
+      const badVars = singleLetterVars.filter(v => !/\b[ijkxyn]\s*=/.test(v));
       if (badVars.length > 0) {
         checks.push({
           category: 'naming',
@@ -526,12 +526,12 @@ export class TwoStageReviewer {
           description: 'Found single-letter variable names that could be more descriptive',
           filePath,
           suggestion: 'Use descriptive names that indicate the variable\'s purpose',
-        })
+        });
       }
     }
 
     // Check for very long names (> 40 chars)
-    const longNames = content.match(/\b(const|let|var|function)\s+(\w{40,})/g)
+    const longNames = content.match(/\b(const|let|var|function)\s+(\w{40,})/g);
     if (longNames && longNames.length > 0) {
       checks.push({
         category: 'naming',
@@ -541,39 +541,39 @@ export class TwoStageReviewer {
         description: 'Found very long identifier names (>40 characters)',
         filePath,
         suggestion: 'Consider shorter, more concise names',
-      })
+      });
     }
 
-    return checks
+    return checks;
   }
 
   /**
    * Check code structure
    */
   private checkStructure(filePath: string, content: string): QualityCheck[] {
-    const checks: QualityCheck[] = []
-    const lines = content.split('\n')
+    const checks: QualityCheck[] = [];
+    const lines = content.split('\n');
 
     // Check for very long functions (> 50 lines)
-    let functionStart = -1
-    let braceCount = 0
-    let inFunction = false
+    let functionStart = -1;
+    let braceCount = 0;
+    let inFunction = false;
 
     for (let i = 0; i < lines.length; i++) {
-      const line = lines[i]
+      const line = lines[i];
 
       if (/\b(?:function|async\s+function|=>\s*\{)/.test(line) && !inFunction) {
-        functionStart = i
-        inFunction = true
-        braceCount = 0
+        functionStart = i;
+        inFunction = true;
+        braceCount = 0;
       }
 
       if (inFunction) {
-        braceCount += (line.match(/\{/g) || []).length
-        braceCount -= (line.match(/\}/g) || []).length
+        braceCount += (line.match(/\{/g) || []).length;
+        braceCount -= (line.match(/\}/g) || []).length;
 
         if (braceCount === 0 && functionStart >= 0) {
-          const functionLength = i - functionStart + 1
+          const functionLength = i - functionStart + 1;
           if (functionLength > 50) {
             checks.push({
               category: 'structure',
@@ -584,20 +584,20 @@ export class TwoStageReviewer {
               filePath,
               lineNumber: functionStart + 1,
               suggestion: 'Consider breaking this function into smaller, focused functions',
-            })
+            });
           }
-          inFunction = false
-          functionStart = -1
+          inFunction = false;
+          functionStart = -1;
         }
       }
     }
 
     // Check for deeply nested code (> 4 levels)
-    let maxIndent = 0
+    let maxIndent = 0;
     for (const line of lines) {
-      const indent = line.match(/^(\s*)/)?.[1].length || 0
-      const indentLevel = Math.floor(indent / 2) // Assuming 2-space indent
-      maxIndent = Math.max(maxIndent, indentLevel)
+      const indent = line.match(/^(\s*)/)?.[1].length || 0;
+      const indentLevel = Math.floor(indent / 2); // Assuming 2-space indent
+      maxIndent = Math.max(maxIndent, indentLevel);
     }
 
     if (maxIndent > 4) {
@@ -609,17 +609,17 @@ export class TwoStageReviewer {
         description: `Code has ${maxIndent} levels of nesting`,
         filePath,
         suggestion: 'Consider early returns or extracting nested logic into separate functions',
-      })
+      });
     }
 
-    return checks
+    return checks;
   }
 
   /**
    * Check error handling
    */
   private checkErrorHandling(filePath: string, content: string): QualityCheck[] {
-    const checks: QualityCheck[] = []
+    const checks: QualityCheck[] = [];
 
     // Check for empty catch blocks
     if (/catch\s*\([^)]*\)\s*\{\s*\}/.test(content)) {
@@ -631,7 +631,7 @@ export class TwoStageReviewer {
         description: 'Found empty catch blocks that silently swallow errors',
         filePath,
         suggestion: 'Log the error or handle it appropriately',
-      })
+      });
     }
 
     // Check for catch blocks that only log
@@ -644,12 +644,12 @@ export class TwoStageReviewer {
         description: 'Found catch blocks that only log without proper error handling',
         filePath,
         suggestion: 'Consider re-throwing, returning an error state, or proper recovery',
-      })
+      });
     }
 
     // Check for async functions without try-catch
-    const asyncFunctions = content.match(/async\s+function\s+\w+|async\s+\([^)]*\)\s*=>/g)
-    const hasTryCatch = /try\s*\{/.test(content)
+    const asyncFunctions = content.match(/async\s+function\s+\w+|async\s+\([^)]*\)\s*=>/g);
+    const hasTryCatch = /try\s*\{/.test(content);
 
     if (asyncFunctions && asyncFunctions.length > 0 && !hasTryCatch) {
       checks.push({
@@ -660,24 +660,24 @@ export class TwoStageReviewer {
         description: 'Async functions found without try-catch blocks',
         filePath,
         suggestion: 'Wrap async operations in try-catch or use .catch()',
-      })
+      });
     }
 
-    return checks
+    return checks;
   }
 
   /**
    * Check documentation
    */
   private checkDocumentation(filePath: string, content: string): QualityCheck[] {
-    const checks: QualityCheck[] = []
+    const checks: QualityCheck[] = [];
 
     // Check for exported functions without JSDoc
-    const exportedFunctions = content.match(/export\s+(async\s+)?function\s+\w+/g)
-    const jsdocComments = content.match(/\/\*\*[\s\S]*?\*\//g)
+    const exportedFunctions = content.match(/export\s+(async\s+)?function\s+\w+/g);
+    const jsdocComments = content.match(/\/\*\*[\s\S]*?\*\//g);
 
     if (exportedFunctions && exportedFunctions.length > 0) {
-      const jsdocCount = jsdocComments?.length || 0
+      const jsdocCount = jsdocComments?.length || 0;
       if (jsdocCount < exportedFunctions.length) {
         checks.push({
           category: 'documentation',
@@ -687,22 +687,22 @@ export class TwoStageReviewer {
           description: `Found ${exportedFunctions.length} exported functions but only ${jsdocCount} JSDoc comments`,
           filePath,
           suggestion: 'Add JSDoc comments to exported functions',
-        })
+        });
       }
     }
 
-    return checks
+    return checks;
   }
 
   /**
    * Check code style
    */
   private checkStyle(filePath: string, content: string): QualityCheck[] {
-    const checks: QualityCheck[] = []
-    const lines = content.split('\n')
+    const checks: QualityCheck[] = [];
+    const lines = content.split('\n');
 
     // Check for very long lines (> 120 chars)
-    const longLines = lines.filter(line => line.length > 120)
+    const longLines = lines.filter(line => line.length > 120);
     if (longLines.length > 0) {
       checks.push({
         category: 'style',
@@ -712,7 +712,7 @@ export class TwoStageReviewer {
         description: `Found ${longLines.length} lines exceeding 120 characters`,
         filePath,
         suggestion: 'Break long lines for better readability',
-      })
+      });
     }
 
     // Check for console.log statements (should be removed in production)
@@ -725,7 +725,7 @@ export class TwoStageReviewer {
         description: 'Found console.log statements',
         filePath,
         suggestion: 'Remove or replace with proper logging',
-      })
+      });
     }
 
     // Check for debugger statements
@@ -738,10 +738,10 @@ export class TwoStageReviewer {
         description: 'Found debugger statements',
         filePath,
         suggestion: 'Remove debugger statements before committing',
-      })
+      });
     }
 
-    return checks
+    return checks;
   }
 
   // ==========================================================================
@@ -775,91 +775,91 @@ export class TwoStageReviewer {
       '.fs',
       '.php',
       '.swift',
-    ]
+    ];
 
-    return codeExtensions.some(ext => filePath.endsWith(ext))
+    return codeExtensions.some(ext => filePath.endsWith(ext));
   }
 
   /**
    * Check if a severity level is blocking
    */
   private isBlocking(severity: ReviewSeverity): boolean {
-    const severityOrder: ReviewSeverity[] = ['blocker', 'major', 'minor', 'suggestion']
-    const thresholdIndex = severityOrder.indexOf(this.config.blockingThreshold)
-    const severityIndex = severityOrder.indexOf(severity)
+    const severityOrder: ReviewSeverity[] = ['blocker', 'major', 'minor', 'suggestion'];
+    const thresholdIndex = severityOrder.indexOf(this.config.blockingThreshold);
+    const severityIndex = severityOrder.indexOf(severity);
 
-    return severityIndex <= thresholdIndex
+    return severityIndex <= thresholdIndex;
   }
 
   /**
    * Check if issues contain blocking issues
    */
   private hasBlockingIssues(issues: ReviewIssue[]): boolean {
-    return issues.some(issue => this.isBlocking(issue.severity))
+    return issues.some(issue => this.isBlocking(issue.severity));
   }
 
   /**
    * Determine overall review status
    */
   private determineOverallStatus(review: TaskReview): TaskReview['status'] {
-    const specPassed = review.specCompliance?.passed ?? true
-    const qualityPassed = review.codeQuality?.passed ?? true
+    const specPassed = review.specCompliance?.passed ?? true;
+    const qualityPassed = review.codeQuality?.passed ?? true;
 
     if (specPassed && qualityPassed) {
-      return 'passed'
+      return 'passed';
     }
 
-    return 'failed'
+    return 'failed';
   }
 
   /**
    * Generate spec compliance summary
    */
   private generateSpecComplianceSummary(checks: SpecComplianceCheck[], issues: ReviewIssue[]): string {
-    const passed = checks.filter(c => c.met).length
-    const total = checks.length
-    const blockers = issues.filter(i => this.isBlocking(i.severity)).length
+    const passed = checks.filter(c => c.met).length;
+    const total = checks.length;
+    const blockers = issues.filter(i => this.isBlocking(i.severity)).length;
 
-    let summary = `Spec Compliance: ${passed}/${total} requirements met.`
+    let summary = `Spec Compliance: ${passed}/${total} requirements met.`;
 
     if (blockers > 0) {
-      summary += ` ${blockers} blocking issue(s) found.`
+      summary += ` ${blockers} blocking issue(s) found.`;
     }
 
-    return summary
+    return summary;
   }
 
   /**
    * Generate code quality summary
    */
   private generateCodeQualitySummary(checks: QualityCheck[], issues: ReviewIssue[]): string {
-    const passed = checks.filter(c => c.passed).length
-    const total = checks.length
+    const passed = checks.filter(c => c.passed).length;
+    const total = checks.length;
 
     const bySeverity = {
       blocker: issues.filter(i => i.severity === 'blocker').length,
       major: issues.filter(i => i.severity === 'major').length,
       minor: issues.filter(i => i.severity === 'minor').length,
       suggestion: issues.filter(i => i.severity === 'suggestion').length,
-    }
+    };
 
-    let summary = `Code Quality: ${passed}/${total} checks passed.`
+    let summary = `Code Quality: ${passed}/${total} checks passed.`;
 
     if (issues.length > 0) {
-      const parts: string[] = []
+      const parts: string[] = [];
       if (bySeverity.blocker > 0)
-        parts.push(`${bySeverity.blocker} blocker`)
+        parts.push(`${bySeverity.blocker} blocker`);
       if (bySeverity.major > 0)
-        parts.push(`${bySeverity.major} major`)
+        parts.push(`${bySeverity.major} major`);
       if (bySeverity.minor > 0)
-        parts.push(`${bySeverity.minor} minor`)
+        parts.push(`${bySeverity.minor} minor`);
       if (bySeverity.suggestion > 0)
-        parts.push(`${bySeverity.suggestion} suggestion`)
+        parts.push(`${bySeverity.suggestion} suggestion`);
 
-      summary += ` Issues: ${parts.join(', ')}.`
+      summary += ` Issues: ${parts.join(', ')}.`;
     }
 
-    return summary
+    return summary;
   }
 
   /**
@@ -867,7 +867,7 @@ export class TwoStageReviewer {
    */
   private log(message: string): void {
     if (this.config.verbose) {
-      console.log(`[TwoStageReviewer] ${message}`)
+      console.log(`[TwoStageReviewer] ${message}`);
     }
   }
 }
@@ -881,87 +881,87 @@ export function createTaskReview(taskId: string, maxIterations: number = 3): Tas
     status: 'pending',
     iterations: 0,
     maxIterations,
-  }
+  };
 }
 
 /**
  * Check if a review can be retried
  */
 export function canRetryReview(review: TaskReview): boolean {
-  return review.status === 'failed' && review.iterations < review.maxIterations
+  return review.status === 'failed' && review.iterations < review.maxIterations;
 }
 
 /**
  * Get all unresolved issues from a review
  */
 export function getUnresolvedIssues(review: TaskReview): ReviewIssue[] {
-  const issues: ReviewIssue[] = []
+  const issues: ReviewIssue[] = [];
 
   if (review.specCompliance) {
-    issues.push(...review.specCompliance.issues.filter(i => !i.resolved))
+    issues.push(...review.specCompliance.issues.filter(i => !i.resolved));
   }
 
   if (review.codeQuality) {
-    issues.push(...review.codeQuality.issues.filter(i => !i.resolved))
+    issues.push(...review.codeQuality.issues.filter(i => !i.resolved));
   }
 
-  return issues
+  return issues;
 }
 
 /**
  * Format review result for display
  */
 export function formatReviewResult(review: TaskReview, _locale: string = 'en'): string {
-  const lines: string[] = []
+  const lines: string[] = [];
 
   const statusEmoji = {
     'pending': '⏳',
     'in-progress': '🔄',
     'passed': '✅',
     'failed': '❌',
-  }
+  };
 
-  lines.push(`${statusEmoji[review.status]} Review Status: ${review.status.toUpperCase()}`)
-  lines.push(`Iteration: ${review.iterations}/${review.maxIterations}`)
-  lines.push('')
+  lines.push(`${statusEmoji[review.status]} Review Status: ${review.status.toUpperCase()}`);
+  lines.push(`Iteration: ${review.iterations}/${review.maxIterations}`);
+  lines.push('');
 
   if (review.specCompliance) {
-    lines.push(`## Stage 1: Spec Compliance ${review.specCompliance.passed ? '✅' : '❌'}`)
-    lines.push(review.specCompliance.summary)
+    lines.push(`## Stage 1: Spec Compliance ${review.specCompliance.passed ? '✅' : '❌'}`);
+    lines.push(review.specCompliance.summary);
 
     if (review.specCompliance.issues.length > 0) {
-      lines.push('')
-      lines.push('Issues:')
+      lines.push('');
+      lines.push('Issues:');
       for (const issue of review.specCompliance.issues) {
-        const resolved = issue.resolved ? '✓' : '✗'
-        lines.push(`  [${resolved}] [${issue.severity}] ${issue.title}`)
+        const resolved = issue.resolved ? '✓' : '✗';
+        lines.push(`  [${resolved}] [${issue.severity}] ${issue.title}`);
         if (issue.description) {
-          lines.push(`      ${issue.description}`)
+          lines.push(`      ${issue.description}`);
         }
       }
     }
-    lines.push('')
+    lines.push('');
   }
 
   if (review.codeQuality) {
-    lines.push(`## Stage 2: Code Quality ${review.codeQuality.passed ? '✅' : '❌'}`)
-    lines.push(review.codeQuality.summary)
+    lines.push(`## Stage 2: Code Quality ${review.codeQuality.passed ? '✅' : '❌'}`);
+    lines.push(review.codeQuality.summary);
 
     if (review.codeQuality.issues.length > 0) {
-      lines.push('')
-      lines.push('Issues:')
+      lines.push('');
+      lines.push('Issues:');
       for (const issue of review.codeQuality.issues) {
-        const resolved = issue.resolved ? '✓' : '✗'
+        const resolved = issue.resolved ? '✓' : '✗';
         const location = issue.filePath
           ? ` (${issue.filePath}${issue.lineNumber ? `:${issue.lineNumber}` : ''})`
-          : ''
-        lines.push(`  [${resolved}] [${issue.severity}] ${issue.title}${location}`)
+          : '';
+        lines.push(`  [${resolved}] [${issue.severity}] ${issue.title}${location}`);
         if (issue.suggestion) {
-          lines.push(`      💡 ${issue.suggestion}`)
+          lines.push(`      💡 ${issue.suggestion}`);
         }
       }
     }
   }
 
-  return lines.join('\n')
+  return lines.join('\n');
 }

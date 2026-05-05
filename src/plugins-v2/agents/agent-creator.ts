@@ -25,24 +25,24 @@ import type {
   LocalizedString,
   McpToolInfo,
   PluginPackage,
-} from '../types'
-import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
-import { join } from 'pathe'
-import { CCJK_CONFIG_DIR, CLAUDE_AGENTS_DIR } from '../../constants'
-import { writeAgentFile } from '../agent-writer'
-import { getPluginManager } from '../core/plugin-manager'
-import { getMcpServerManager } from '../mcp/mcp-integration'
+} from '../types';
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { join } from 'pathe';
+import { CCJK_CONFIG_DIR, CLAUDE_AGENTS_DIR } from '../../constants';
+import { writeAgentFile } from '../agent-writer';
+import { getPluginManager } from '../core/plugin-manager';
+import { getMcpServerManager } from '../mcp/mcp-integration';
 
 // ============================================================================
 // Constants
 // ============================================================================
 
 // Claude Code compatible location (project-local)
-const _getProjectAgentsDir = (projectDir?: string) => join(projectDir || process.cwd(), '.claude-code', 'agents')
+const _getProjectAgentsDir = (projectDir?: string) => join(projectDir || process.cwd(), '.claude-code', 'agents');
 
 // Global agents location - uses ~/.claude/agents for Claude Code compatibility
-const _GLOBAL_AGENTS_DIR = CLAUDE_AGENTS_DIR
-const AGENT_TEMPLATES_DIR = join(CCJK_CONFIG_DIR, 'agent-templates')
+const _GLOBAL_AGENTS_DIR = CLAUDE_AGENTS_DIR;
+const AGENT_TEMPLATES_DIR = join(CCJK_CONFIG_DIR, 'agent-templates');
 
 // ============================================================================
 // Agent Builder
@@ -56,14 +56,14 @@ export class AgentBuilder {
     skills: [],
     mcpServers: [],
     capabilities: [],
-  }
+  };
 
   /**
    * Set agent ID
    */
   id(id: string): this {
-    this.definition.id = id
-    return this
+    this.definition.id = id;
+    return this;
   }
 
   /**
@@ -72,8 +72,8 @@ export class AgentBuilder {
   name(name: string | LocalizedString): this {
     this.definition.name = typeof name === 'string'
       ? { 'en': name, 'zh-CN': name }
-      : name
-    return this
+      : name;
+    return this;
   }
 
   /**
@@ -82,24 +82,24 @@ export class AgentBuilder {
   description(desc: string | LocalizedString): this {
     this.definition.description = typeof desc === 'string'
       ? { 'en': desc, 'zh-CN': desc }
-      : desc
-    return this
+      : desc;
+    return this;
   }
 
   /**
    * Set agent persona/role
    */
   persona(persona: string): this {
-    this.definition.persona = persona
-    return this
+    this.definition.persona = persona;
+    return this;
   }
 
   /**
    * Set agent instructions
    */
   instructions(instructions: string): this {
-    this.definition.instructions = instructions
-    return this
+    this.definition.instructions = instructions;
+    return this;
   }
 
   /**
@@ -109,8 +109,8 @@ export class AgentBuilder {
     this.definition.skills!.push({
       pluginId,
       ...options,
-    })
-    return this
+    });
+    return this;
   }
 
   /**
@@ -118,9 +118,9 @@ export class AgentBuilder {
    */
   addSkills(pluginIds: string[]): this {
     for (const id of pluginIds) {
-      this.addSkill(id)
+      this.addSkill(id);
     }
-    return this
+    return this;
   }
 
   /**
@@ -130,8 +130,8 @@ export class AgentBuilder {
     this.definition.mcpServers!.push({
       serverName,
       ...options,
-    })
-    return this
+    });
+    return this;
   }
 
   /**
@@ -139,9 +139,9 @@ export class AgentBuilder {
    */
   addMcpServers(serverNames: string[]): this {
     for (const name of serverNames) {
-      this.addMcpServer(name)
+      this.addMcpServer(name);
     }
-    return this
+    return this;
   }
 
   /**
@@ -149,9 +149,9 @@ export class AgentBuilder {
    */
   addCapability(capability: AgentCapability): this {
     if (!this.definition.capabilities!.includes(capability)) {
-      this.definition.capabilities!.push(capability)
+      this.definition.capabilities!.push(capability);
     }
-    return this
+    return this;
   }
 
   /**
@@ -159,17 +159,17 @@ export class AgentBuilder {
    */
   addCapabilities(capabilities: AgentCapability[]): this {
     for (const cap of capabilities) {
-      this.addCapability(cap)
+      this.addCapability(cap);
     }
-    return this
+    return this;
   }
 
   /**
    * Set trigger patterns
    */
   triggers(patterns: string[]): this {
-    this.definition.triggers = patterns
-    return this
+    this.definition.triggers = patterns;
+    return this;
   }
 
   /**
@@ -178,32 +178,32 @@ export class AgentBuilder {
   build(): AgentDefinition {
     // Validate required fields
     if (!this.definition.id) {
-      throw new Error('Agent ID is required')
+      throw new Error('Agent ID is required');
     }
     if (!this.definition.name) {
-      throw new Error('Agent name is required')
+      throw new Error('Agent name is required');
     }
     if (!this.definition.description) {
-      throw new Error('Agent description is required')
+      throw new Error('Agent description is required');
     }
     if (!this.definition.persona) {
-      this.definition.persona = 'You are a helpful AI assistant.'
+      this.definition.persona = 'You are a helpful AI assistant.';
     }
     if (!this.definition.instructions) {
-      this.definition.instructions = ''
+      this.definition.instructions = '';
     }
 
-    return this.definition as AgentDefinition
+    return this.definition as AgentDefinition;
   }
 
   /**
    * Build and save the agent
    */
   async save(): Promise<AgentDefinition> {
-    const definition = this.build()
-    const manager = await getPluginManager()
-    await manager.createAgent(definition)
-    return definition
+    const definition = this.build();
+    const manager = await getPluginManager();
+    await manager.createAgent(definition);
+    return definition;
   }
 }
 
@@ -221,16 +221,16 @@ export class AgentCreator {
    * Create a new agent builder
    */
   create(): AgentBuilder {
-    return new AgentBuilder()
+    return new AgentBuilder();
   }
 
   /**
    * Create agent from template
    */
   async fromTemplate(templateId: string, overrides: Partial<AgentDefinition> = {}): Promise<AgentDefinition> {
-    const template = await this.loadTemplate(templateId)
+    const template = await this.loadTemplate(templateId);
     if (!template) {
-      throw new Error(`Template not found: ${templateId}`)
+      throw new Error(`Template not found: ${templateId}`);
     }
 
     const definition: AgentDefinition = {
@@ -244,12 +244,12 @@ export class AgentCreator {
       capabilities: [...new Set([...(template.capabilities || []), ...(overrides.capabilities || [])])],
       triggers: overrides.triggers || template.triggers,
       intents: overrides.intents || template.intents,
-    }
+    };
 
-    const manager = await getPluginManager()
-    await manager.createAgent(definition)
+    const manager = await getPluginManager();
+    await manager.createAgent(definition);
 
-    return definition
+    return definition;
   }
 
   /**
@@ -260,25 +260,25 @@ export class AgentCreator {
     name: string,
     skillIds: string[],
     options: {
-      description?: string
-      persona?: string
-      instructions?: string
+      description?: string;
+      persona?: string;
+      instructions?: string;
     } = {},
   ): Promise<AgentDefinition> {
     const builder = this.create()
       .id(id)
       .name(name)
       .description(options.description || `Agent using skills: ${skillIds.join(', ')}`)
-      .addSkills(skillIds)
+      .addSkills(skillIds);
 
     if (options.persona) {
-      builder.persona(options.persona)
+      builder.persona(options.persona);
     }
     if (options.instructions) {
-      builder.instructions(options.instructions)
+      builder.instructions(options.instructions);
     }
 
-    return builder.save()
+    return builder.save();
   }
 
   /**
@@ -289,25 +289,25 @@ export class AgentCreator {
     name: string,
     serverNames: string[],
     options: {
-      description?: string
-      persona?: string
-      instructions?: string
+      description?: string;
+      persona?: string;
+      instructions?: string;
     } = {},
   ): Promise<AgentDefinition> {
     const builder = this.create()
       .id(id)
       .name(name)
       .description(options.description || `Agent using MCP servers: ${serverNames.join(', ')}`)
-      .addMcpServers(serverNames)
+      .addMcpServers(serverNames);
 
     if (options.persona) {
-      builder.persona(options.persona)
+      builder.persona(options.persona);
     }
     if (options.instructions) {
-      builder.instructions(options.instructions)
+      builder.instructions(options.instructions);
     }
 
-    return builder.save()
+    return builder.save();
   }
 
   /**
@@ -315,18 +315,18 @@ export class AgentCreator {
    */
   private async loadTemplate(templateId: string): Promise<Partial<AgentDefinition> | null> {
     // Check built-in templates
-    const builtIn = BUILT_IN_TEMPLATES[templateId]
+    const builtIn = BUILT_IN_TEMPLATES[templateId];
     if (builtIn) {
-      return builtIn
+      return builtIn;
     }
 
     // Check user templates
-    const templatePath = join(AGENT_TEMPLATES_DIR, `${templateId}.json`)
+    const templatePath = join(AGENT_TEMPLATES_DIR, `${templateId}.json`);
     if (existsSync(templatePath)) {
-      return JSON.parse(readFileSync(templatePath, 'utf-8'))
+      return JSON.parse(readFileSync(templatePath, 'utf-8'));
     }
 
-    return null
+    return null;
   }
 
   /**
@@ -335,28 +335,28 @@ export class AgentCreator {
   async saveTemplate(templateId: string, template: Partial<AgentDefinition>): Promise<void> {
     // Ensure templates directory exists
     if (!existsSync(AGENT_TEMPLATES_DIR)) {
-      mkdirSync(AGENT_TEMPLATES_DIR, { recursive: true })
+      mkdirSync(AGENT_TEMPLATES_DIR, { recursive: true });
     }
-    const templatePath = join(AGENT_TEMPLATES_DIR, `${templateId}.json`)
-    writeFileSync(templatePath, JSON.stringify(template, null, 2))
+    const templatePath = join(AGENT_TEMPLATES_DIR, `${templateId}.json`);
+    writeFileSync(templatePath, JSON.stringify(template, null, 2));
   }
 
   /**
    * List available templates
    */
   listTemplates(): string[] {
-    const templates = Object.keys(BUILT_IN_TEMPLATES)
+    const templates = Object.keys(BUILT_IN_TEMPLATES);
 
     if (existsSync(AGENT_TEMPLATES_DIR)) {
-      const files = readdirSync(AGENT_TEMPLATES_DIR)
+      const files = readdirSync(AGENT_TEMPLATES_DIR);
       for (const file of files) {
         if (file.endsWith('.json') || file.endsWith('.md')) {
-          templates.push(file.replace(/\.(json|md)$/, ''))
+          templates.push(file.replace(/\.(json|md)$/, ''));
         }
       }
     }
 
-    return templates
+    return templates;
   }
 
   /**
@@ -370,7 +370,7 @@ export class AgentCreator {
       format: 'markdown',
       projectDir: options?.projectDir,
       global: false,
-    })
+    });
   }
 }
 
@@ -384,42 +384,42 @@ export class AgentCreator {
  * Executes agents with their skills and MCP tools
  */
 export class AgentRuntime {
-  private context: AgentContext
+  private context: AgentContext;
 
   constructor(context: AgentContext) {
-    this.context = context
+    this.context = context;
   }
 
   /**
    * Create runtime from agent ID
    */
   static async fromAgentId(agentId: string): Promise<AgentRuntime> {
-    const manager = await getPluginManager()
-    const agent = manager.getAgent(agentId)
+    const manager = await getPluginManager();
+    const agent = manager.getAgent(agentId);
 
     if (!agent) {
-      throw new Error(`Agent not found: ${agentId}`)
+      throw new Error(`Agent not found: ${agentId}`);
     }
 
     // Load skills
-    const skills: PluginPackage[] = []
+    const skills: PluginPackage[] = [];
     for (const skillRef of agent.skills) {
-      const plugin = manager.getPlugin(skillRef.pluginId)
+      const plugin = manager.getPlugin(skillRef.pluginId);
       if (plugin) {
-        skills.push(plugin)
+        skills.push(plugin);
       }
     }
 
     // Load MCP tools from configured servers
-    let mcpTools: McpToolInfo[] = []
+    let mcpTools: McpToolInfo[] = [];
     if (agent.mcpServers && agent.mcpServers.length > 0) {
       try {
-        const mcpManager = await getMcpServerManager()
-        mcpTools = await mcpManager.getToolsForAgent(agent.mcpServers)
+        const mcpManager = await getMcpServerManager();
+        mcpTools = await mcpManager.getToolsForAgent(agent.mcpServers);
       }
       catch (error) {
         // Log error but don't fail - MCP tools are optional
-        console.warn('Failed to load MCP tools:', error instanceof Error ? error.message : String(error))
+        console.warn('Failed to load MCP tools:', error instanceof Error ? error.message : String(error));
       }
     }
 
@@ -429,54 +429,54 @@ export class AgentRuntime {
       mcpTools,
       task: '',
       history: [],
-    })
+    });
   }
 
   /**
    * Get the system prompt for this agent
    */
   getSystemPrompt(): string {
-    const parts: string[] = []
+    const parts: string[] = [];
 
     // Persona
-    parts.push(this.context.agent.persona)
-    parts.push('')
+    parts.push(this.context.agent.persona);
+    parts.push('');
 
     // Instructions
     if (this.context.agent.instructions) {
-      parts.push('## Instructions')
-      parts.push(this.context.agent.instructions)
-      parts.push('')
+      parts.push('## Instructions');
+      parts.push(this.context.agent.instructions);
+      parts.push('');
     }
 
     // Skills
     if (this.context.skills.length > 0) {
-      parts.push('## Available Skills')
-      parts.push('')
+      parts.push('## Available Skills');
+      parts.push('');
 
       for (const skill of this.context.skills) {
         if (skill.skill) {
-          parts.push(`### ${skill.skill.title}`)
-          parts.push(skill.skill.description)
-          parts.push('')
+          parts.push(`### ${skill.skill.title}`);
+          parts.push(skill.skill.description);
+          parts.push('');
 
           // Add applicability
           if (skill.skill.applicability.taskTypes.length > 0) {
-            parts.push('**When to use:**')
+            parts.push('**When to use:**');
             for (const task of skill.skill.applicability.taskTypes) {
-              parts.push(`- ${task}`)
+              parts.push(`- ${task}`);
             }
-            parts.push('')
+            parts.push('');
           }
 
           // Add key rules
           if (skill.skill.rules && skill.skill.rules.length > 0) {
-            parts.push('**Key Rules:**')
-            const criticalRules = skill.skill.rules.filter(r => r.priority === 'critical' || r.priority === 'high')
+            parts.push('**Key Rules:**');
+            const criticalRules = skill.skill.rules.filter(r => r.priority === 'critical' || r.priority === 'high');
             for (const rule of criticalRules.slice(0, 5)) {
-              parts.push(`- **${rule.id}**: ${rule.title}`)
+              parts.push(`- **${rule.id}**: ${rule.title}`);
             }
-            parts.push('')
+            parts.push('');
           }
         }
       }
@@ -484,98 +484,98 @@ export class AgentRuntime {
 
     // MCP Tools
     if (this.context.mcpTools.length > 0) {
-      parts.push('## Available MCP Tools')
-      parts.push('')
+      parts.push('## Available MCP Tools');
+      parts.push('');
 
       // Group tools by server
-      const byServer = new Map<string, McpToolInfo[]>()
+      const byServer = new Map<string, McpToolInfo[]>();
       for (const tool of this.context.mcpTools) {
-        const serverTools = byServer.get(tool.server) || []
-        serverTools.push(tool)
-        byServer.set(tool.server, serverTools)
+        const serverTools = byServer.get(tool.server) || [];
+        serverTools.push(tool);
+        byServer.set(tool.server, serverTools);
       }
 
       for (const [server, serverTools] of byServer) {
-        parts.push(`### ${server}`)
-        parts.push('')
+        parts.push(`### ${server}`);
+        parts.push('');
 
         for (const tool of serverTools) {
-          parts.push(`**${tool.name}**: ${tool.description}`)
+          parts.push(`**${tool.name}**: ${tool.description}`);
 
           // Add parameter info
-          const schema = tool.inputSchema as { properties?: Record<string, { type: string, description?: string }>, required?: string[] }
+          const schema = tool.inputSchema as { properties?: Record<string, { type: string; description?: string }>; required?: string[] };
           if (schema.properties) {
-            const params = Object.entries(schema.properties)
+            const params = Object.entries(schema.properties);
             if (params.length > 0) {
-              parts.push('Parameters:')
+              parts.push('Parameters:');
               for (const [name, prop] of params) {
-                const required = schema.required?.includes(name) ? ' (required)' : ''
-                parts.push(`  - \`${name}\`: ${prop.description || prop.type}${required}`)
+                const required = schema.required?.includes(name) ? ' (required)' : '';
+                parts.push(`  - \`${name}\`: ${prop.description || prop.type}${required}`);
               }
             }
           }
-          parts.push('')
+          parts.push('');
         }
       }
     }
 
     // Capabilities
     if (this.context.agent.capabilities.length > 0) {
-      parts.push('## Capabilities')
-      parts.push('')
+      parts.push('## Capabilities');
+      parts.push('');
       for (const cap of this.context.agent.capabilities) {
-        parts.push(`- ${this.formatCapability(cap)}`)
+        parts.push(`- ${this.formatCapability(cap)}`);
       }
-      parts.push('')
+      parts.push('');
     }
 
-    return parts.join('\n')
+    return parts.join('\n');
   }
 
   /**
    * Get full skill content for context
    */
   getSkillContent(): string {
-    const parts: string[] = []
+    const parts: string[] = [];
 
     for (const skill of this.context.skills) {
       if (skill.skill) {
-        parts.push(`# ${skill.skill.title}`)
-        parts.push('')
-        parts.push(skill.skill.rawContent)
-        parts.push('')
-        parts.push('---')
-        parts.push('')
+        parts.push(`# ${skill.skill.title}`);
+        parts.push('');
+        parts.push(skill.skill.rawContent);
+        parts.push('');
+        parts.push('---');
+        parts.push('');
       }
     }
 
-    return parts.join('\n')
+    return parts.join('\n');
   }
 
   /**
    * Add message to history
    */
   addMessage(role: 'user' | 'assistant' | 'system', content: string): void {
-    this.context.history = this.context.history || []
+    this.context.history = this.context.history || [];
     this.context.history.push({
       role,
       content,
       timestamp: Date.now(),
-    })
+    });
   }
 
   /**
    * Get conversation history
    */
   getHistory(): ConversationMessage[] {
-    return this.context.history || []
+    return this.context.history || [];
   }
 
   /**
    * Set current task
    */
   setTask(task: string): void {
-    this.context.task = task
+    this.context.task = task;
   }
 
   /**
@@ -594,8 +594,8 @@ export class AgentRuntime {
       'file-management': 'File Management',
       'web-search': 'Web Search',
       'api-integration': 'API Integration',
-    }
-    return labels[cap] || cap
+    };
+    return labels[cap] || cap;
   }
 }
 
@@ -672,22 +672,22 @@ const BUILT_IN_TEMPLATES: Record<string, Partial<AgentDefinition>> = {
 - Optimize for performance
 `,
   },
-}
+};
 
 // ============================================================================
 // Singleton Instances
 // ============================================================================
 
-let creatorInstance: AgentCreator | null = null
+let creatorInstance: AgentCreator | null = null;
 
 /**
  * Get the singleton AgentCreator instance
  */
 export function getAgentCreator(): AgentCreator {
   if (!creatorInstance) {
-    creatorInstance = new AgentCreator()
+    creatorInstance = new AgentCreator();
   }
-  return creatorInstance
+  return creatorInstance;
 }
 
 // ============================================================================
@@ -698,7 +698,7 @@ export function getAgentCreator(): AgentCreator {
  * Create a new agent builder
  */
 export function createAgent(): AgentBuilder {
-  return new AgentBuilder()
+  return new AgentBuilder();
 }
 
 /**
@@ -708,13 +708,13 @@ export async function createAgentFromTemplate(
   templateId: string,
   overrides: Partial<AgentDefinition> = {},
 ): Promise<AgentDefinition> {
-  const creator = getAgentCreator()
-  return creator.fromTemplate(templateId, overrides)
+  const creator = getAgentCreator();
+  return creator.fromTemplate(templateId, overrides);
 }
 
 /**
  * Get agent runtime
  */
 export async function getAgentRuntime(agentId: string): Promise<AgentRuntime> {
-  return AgentRuntime.fromAgentId(agentId)
+  return AgentRuntime.fromAgentId(agentId);
 }

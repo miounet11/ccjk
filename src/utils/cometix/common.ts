@@ -2,8 +2,8 @@
  * Common utilities for CCometixLine operations
  */
 
-export const COMETIX_PACKAGE_NAME = '@cometix/ccline'
-export const COMETIX_COMMAND_NAME = 'ccline'
+export const COMETIX_PACKAGE_NAME = '@cometix/ccline';
+export const COMETIX_COMMAND_NAME = 'ccline';
 
 /**
  * CCometixLine specific npm commands
@@ -14,4 +14,4 @@ export const COMETIX_COMMANDS = {
   UPDATE: `npm update -g ${COMETIX_PACKAGE_NAME}`,
   PRINT_CONFIG: `${COMETIX_COMMAND_NAME} --print`,
   TUI_CONFIG: `${COMETIX_COMMAND_NAME} -c`,
-} as const
+} as const;

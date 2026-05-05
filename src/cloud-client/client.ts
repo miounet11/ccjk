@@ -5,7 +5,7 @@
  * @module cloud-client/client
  */
 
-import type { $Fetch } from 'ofetch'
+import type { $Fetch } from 'ofetch';
 import type {
   BatchTemplateRequest,
   BatchTemplateResponse,
@@ -13,9 +13,9 @@ import type {
   CloudClientConfig,
   DeviceRegistrationRequest,
   DeviceRegistrationResponse,
-  HealthCheckResponse,
   HandshakeRequest,
   HandshakeResponse,
+  HealthCheckResponse,
   ProjectAnalysisRequest,
   ProjectAnalysisResponse,
   SyncRequest,
@@ -23,23 +23,23 @@ import type {
   TemplateResponse,
   UsageReport,
   UsageReportResponse,
-} from './types'
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
-import { homedir } from 'node:os'
-import { dirname, join } from 'node:path'
-import { fileURLToPath } from 'node:url'
-import { randomUUID } from 'node:crypto'
-import consola from 'consola'
-import { ofetch } from 'ofetch'
-import { CloudClientError } from './types'
-import { CLOUD_ENDPOINTS } from '../constants'
+} from './types';
+import { randomUUID } from 'node:crypto';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { homedir } from 'node:os';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import consola from 'consola';
+import { ofetch } from 'ofetch';
+import { CLOUD_ENDPOINTS } from '../constants';
+import { CloudClientError } from './types';
 
 // Read version from package.json
-const __dirname = dirname(fileURLToPath(import.meta.url))
-let CCJK_VERSION = '9.0.0' // fallback
+const __dirname = dirname(fileURLToPath(import.meta.url));
+let CCJK_VERSION = '9.0.0'; // fallback
 try {
-  const packageJson = JSON.parse(readFileSync(join(__dirname, '../../package.json'), 'utf-8'))
-  CCJK_VERSION = packageJson.version
+  const packageJson = JSON.parse(readFileSync(join(__dirname, '../../package.json'), 'utf-8'));
+  CCJK_VERSION = packageJson.version;
 }
 catch {
   // Use fallback version
@@ -49,14 +49,14 @@ catch {
  * API version prefix for all endpoints
  * All API paths should use this prefix for consistency
  */
-const API_PREFIX = '/api/v1'
-const HEALTH_PATH = `${API_PREFIX}/health`
-const CLIENT_USAGE_STATE_DIR = join(homedir(), '.ccjk')
-const CLIENT_USAGE_STATE_FILE = join(CLIENT_USAGE_STATE_DIR, 'cloud-client-identity.json')
+const API_PREFIX = '/api/v1';
+const HEALTH_PATH = `${API_PREFIX}/health`;
+const CLIENT_USAGE_STATE_DIR = join(homedir(), '.ccjk');
+const CLIENT_USAGE_STATE_FILE = join(CLIENT_USAGE_STATE_DIR, 'cloud-client-identity.json');
 
 interface StoredClientIdentity {
-  anonymousUserId: string
-  deviceId: string
+  anonymousUserId: string;
+  deviceId: string;
 }
 
 /**
@@ -65,9 +65,9 @@ interface StoredClientIdentity {
  * Provides methods to interact with the CCJK Cloud API
  */
 export class CloudClient {
-  private fetch: $Fetch
-  private config: CloudClientConfig
-  private identity: ClientIdentity
+  private fetch: $Fetch;
+  private config: CloudClientConfig;
+  private identity: ClientIdentity;
 
   constructor(config: CloudClientConfig) {
     this.config = {
@@ -78,8 +78,8 @@ export class CloudClient {
       enableUsageAnalytics: true,
       autoHandshake: true,
       ...config,
-    }
-    this.identity = this.resolveIdentity()
+    };
+    this.identity = this.resolveIdentity();
 
     this.fetch = ofetch.create({
       baseURL: this.config.baseURL,
@@ -87,7 +87,7 @@ export class CloudClient {
       headers: this.getDefaultHeaders(),
       retry: this.config.enableRetry ? this.config.maxRetries : 0,
       retryDelay: context => this.calculateRetryDelay(context.options.retry || 0),
-    })
+    });
   }
 
   private getDefaultHeaders(): Record<string, string> {
@@ -95,22 +95,22 @@ export class CloudClient {
       'User-Agent': `CCJK/${this.identity.clientVersion}`,
       'X-CCJK-Version': this.identity.clientVersion,
       'X-Anonymous-User-Id': this.identity.anonymousUserId,
-    }
+    };
 
     if (this.config.apiKey) {
-      headers.Authorization = `Bearer ${this.config.apiKey}`
+      headers.Authorization = `Bearer ${this.config.apiKey}`;
     }
 
     if (this.identity.deviceToken) {
-      headers['X-Device-Token'] = this.identity.deviceToken
+      headers['X-Device-Token'] = this.identity.deviceToken;
     }
 
-    return headers
+    return headers;
   }
 
   private resolveIdentity(): ClientIdentity {
-    const storedIdentity = this.loadOrCreateStoredIdentity()
-    const clientVersion = this.config.version || CCJK_VERSION
+    const storedIdentity = this.loadOrCreateStoredIdentity();
+    const clientVersion = this.config.version || CCJK_VERSION;
 
     return {
       anonymousUserId: this.config.anonymousUserId || storedIdentity.anonymousUserId,
@@ -118,66 +118,67 @@ export class CloudClient {
       clientVersion,
       platform: this.config.platform || process.platform,
       deviceToken: this.config.deviceToken,
-    }
+    };
   }
 
   private loadOrCreateStoredIdentity(): StoredClientIdentity {
     try {
       if (existsSync(CLIENT_USAGE_STATE_FILE)) {
-        const stored = JSON.parse(readFileSync(CLIENT_USAGE_STATE_FILE, 'utf-8')) as Partial<StoredClientIdentity>
+        const stored = JSON.parse(readFileSync(CLIENT_USAGE_STATE_FILE, 'utf-8')) as Partial<StoredClientIdentity>;
         if (stored.anonymousUserId && stored.deviceId) {
           return {
             anonymousUserId: stored.anonymousUserId,
             deviceId: stored.deviceId,
-          }
+          };
         }
       }
     }
     catch (error) {
-      consola.debug('Failed to read stored cloud client identity:', error)
+      consola.debug('Failed to read stored cloud client identity:', error);
     }
 
     const generated: StoredClientIdentity = {
       anonymousUserId: process.env.CCJK_ANONYMOUS_USER_ID || randomUUID(),
       deviceId: process.env.CCJK_DEVICE_ID || randomUUID(),
-    }
+    };
 
     try {
-      mkdirSync(CLIENT_USAGE_STATE_DIR, { recursive: true })
-      writeFileSync(CLIENT_USAGE_STATE_FILE, JSON.stringify(generated, null, 2))
+      mkdirSync(CLIENT_USAGE_STATE_DIR, { recursive: true });
+      writeFileSync(CLIENT_USAGE_STATE_FILE, JSON.stringify(generated, null, 2));
     }
     catch (error) {
-      consola.debug('Failed to persist cloud client identity:', error)
+      consola.debug('Failed to persist cloud client identity:', error);
     }
 
-    return generated
+    return generated;
   }
 
   private buildAnalyticsPayload<
-    T extends { deviceId?: string, platform?: string, clientVersion?: string },
-  >(payload?: T): DeviceRegistrationRequest & T {
+    T extends { deviceId?: string; platform?: string; clientVersion?: string },
+  >(payload?: T,
+  ): DeviceRegistrationRequest & T {
     return {
       deviceId: payload?.deviceId || this.identity.deviceId,
       platform: payload?.platform || this.identity.platform,
       clientVersion: payload?.clientVersion || this.identity.clientVersion,
       ...payload,
-    } as DeviceRegistrationRequest & T
+    } as DeviceRegistrationRequest & T;
   }
 
   private canSendUsageAnalytics(): boolean {
-    return this.config.enableUsageAnalytics !== false
+    return this.config.enableUsageAnalytics !== false;
   }
 
   getIdentity(): ClientIdentity {
-    return { ...this.identity }
+    return { ...this.identity };
   }
 
   /**
    * Calculate retry delay with exponential backoff
    */
   private calculateRetryDelay(attempt: number): number {
-    const delays = [100, 200, 400, 800]
-    return delays[Math.min(attempt, delays.length - 1)]
+    const delays = [100, 200, 400, 800];
+    return delays[Math.min(attempt, delays.length - 1)];
   }
 
   /**
@@ -190,19 +191,19 @@ export class CloudClient {
    */
   parseResponse<T>(raw: unknown): T {
     if (raw === null || raw === undefined)
-      return raw as T
-    const r = raw as Record<string, unknown>
+      return raw as T;
+    const r = raw as Record<string, unknown>;
     if (r.success === false) {
-      const msg = (r.error as any)?.message || (r as any).message || (r as any).error || 'Unknown error'
-      throw new CloudClientError('API_ERROR', String(msg))
+      const msg = (r.error as any)?.message || (r as any).message || (r as any).error || 'Unknown error';
+      throw new CloudClientError('API_ERROR', String(msg));
     }
     if (r.success === true && 'data' in r)
-      return r.data as T
+      return r.data as T;
     if (!('success' in r) && 'data' in r)
-      return r.data as T
+      return r.data as T;
     if (typeof r.error === 'string' && !('data' in r))
-      throw new CloudClientError('API_ERROR', r.error)
-    return raw as T
+      throw new CloudClientError('API_ERROR', r.error);
+    return raw as T;
   }
 
   /**
@@ -210,35 +211,35 @@ export class CloudClient {
    */
   private handleError(error: unknown, context: string): never {
     if (error instanceof CloudClientError) {
-      throw error
+      throw error;
     }
 
     if (error instanceof Error) {
       // Extract HTTP status and response data if available
-      const errorMessage = error.message || ''
+      const errorMessage = error.message || '';
 
       // Check for timeout errors
       if (errorMessage.includes('timeout') || errorMessage.includes('timed out')) {
-        throw CloudClientError.timeout(this.config.timeout || 10000)
+        throw CloudClientError.timeout(this.config.timeout || 10000);
       }
 
       // Check for network errors
       if (errorMessage.includes('ECONNREFUSED') || errorMessage.includes('ENOTFOUND')) {
-        throw CloudClientError.network(error)
+        throw CloudClientError.network(error);
       }
 
       // Extract HTTP status code from error message
-      const statusMatch = errorMessage.match(/(\d{3})\s+/)
-      const statusCode = statusMatch ? Number.parseInt(statusMatch[1]) : undefined
+      const statusMatch = errorMessage.match(/(\d{3})\s+/);
+      const statusCode = statusMatch ? Number.parseInt(statusMatch[1]) : undefined;
 
       // Try to parse response body from error
-      let responseDetails = errorMessage
+      let responseDetails = errorMessage;
       try {
         // ofetch might include response data in the error message
         if (errorMessage.includes(':')) {
-          const parts = errorMessage.split(':')
+          const parts = errorMessage.split(':');
           if (parts.length > 1) {
-            responseDetails = parts.slice(1).join(':').trim()
+            responseDetails = parts.slice(1).join(':').trim();
           }
         }
       }
@@ -250,11 +251,11 @@ export class CloudClient {
         statusCode,
         message: responseDetails,
         originalError: error,
-      })
+      });
 
       // Throw appropriate error based on status code
       if (statusCode) {
-        throw CloudClientError.fromResponse(statusCode, responseDetails)
+        throw CloudClientError.fromResponse(statusCode, responseDetails);
       }
 
       throw new CloudClientError(
@@ -262,17 +263,17 @@ export class CloudClient {
         `Unexpected error during ${context}: ${responseDetails}`,
         undefined,
         error,
-      )
+      );
     }
 
-    consola.warn(`Cloud API error in ${context}:`, error)
+    consola.warn(`Cloud API error in ${context}:`, error);
 
     throw new CloudClientError(
       'UNKNOWN_ERROR',
       `Unexpected error during ${context}`,
       undefined,
       error,
-    )
+    );
   }
 
   /**
@@ -285,20 +286,20 @@ export class CloudClient {
    */
   async analyzeProject(request: ProjectAnalysisRequest): Promise<ProjectAnalysisResponse> {
     try {
-      consola.debug('Analyzing project:', request.projectRoot)
+      consola.debug('Analyzing project:', request.projectRoot);
 
       // Server endpoint: POST /api/v1/specs (Miaoda spec system)
       const response = await this.fetch<ProjectAnalysisResponse>(`${API_PREFIX}/specs`, {
         method: 'POST',
         body: request,
-      })
+      });
 
-      consola.debug(`Received ${response.recommendations.length} recommendations`)
+      consola.debug(`Received ${response.recommendations.length} recommendations`);
 
-      return response
+      return response;
     }
     catch (error) {
-      this.handleError(error, 'project analysis')
+      this.handleError(error, 'project analysis');
     }
   }
 
@@ -313,19 +314,19 @@ export class CloudClient {
    */
   async getTemplate(id: string, language?: string): Promise<TemplateResponse> {
     try {
-      consola.debug('Fetching template:', id)
+      consola.debug('Fetching template:', id);
 
       const response = await this.fetch<TemplateResponse>(`${API_PREFIX}/templates/${encodeURIComponent(id)}`, {
         method: 'GET',
         params: language ? { language } : undefined,
-      })
+      });
 
-      consola.debug(`Template ${id} fetched successfully`)
+      consola.debug(`Template ${id} fetched successfully`);
 
-      return response
+      return response;
     }
     catch (error) {
-      this.handleError(error, `template fetch: ${id}`)
+      this.handleError(error, `template fetch: ${id}`);
     }
   }
 
@@ -339,19 +340,19 @@ export class CloudClient {
    */
   async getBatchTemplates(request: BatchTemplateRequest): Promise<BatchTemplateResponse> {
     try {
-      consola.debug('Fetching batch templates:', request.ids.length)
+      consola.debug('Fetching batch templates:', request.ids.length);
 
       const response = await this.fetch<BatchTemplateResponse>(`${API_PREFIX}/templates/batch`, {
         method: 'POST',
         body: request,
-      })
+      });
 
-      consola.debug(`Fetched ${Object.keys(response.templates).length} templates`)
+      consola.debug(`Fetched ${Object.keys(response.templates).length} templates`);
 
-      return response
+      return response;
     }
     catch (error) {
-      this.handleError(error, 'batch template fetch')
+      this.handleError(error, 'batch template fetch');
     }
   }
 
@@ -369,38 +370,38 @@ export class CloudClient {
         success: false,
         requestId: '',
         message: 'Usage analytics disabled',
-      }
+      };
     }
 
     try {
-      consola.debug('Reporting usage:', report.metricType)
+      consola.debug('Reporting usage:', report.metricType);
 
       const payload = {
         ...report,
         deviceId: report.deviceId || this.identity.deviceId,
         platform: report.platform || this.identity.platform,
         clientVersion: report.clientVersion || report.ccjkVersion || this.identity.clientVersion,
-      }
+      };
 
       // Use short timeout for telemetry (5s)
       const response = await this.fetch<UsageReportResponse>(`${API_PREFIX}/usage/current`, {
         method: 'POST',
         body: payload,
         timeout: 5000, // 5s timeout - telemetry should be fast
-      })
+      });
 
-      consola.debug('Usage report accepted')
+      consola.debug('Usage report accepted');
 
-      return response
+      return response;
     }
     catch (error) {
       // Silent failure - don't throw on telemetry errors
-      consola.debug('Failed to report usage (non-blocking):', error)
+      consola.debug('Failed to report usage (non-blocking):', error);
       return {
         success: false,
         requestId: '',
         message: error instanceof Error ? error.message : 'Unknown error',
-      }
+      };
     }
   }
 
@@ -413,18 +414,18 @@ export class CloudClient {
    */
   async healthCheck(): Promise<HealthCheckResponse> {
     try {
-      consola.debug('Checking API health')
+      consola.debug('Checking API health');
 
       const response = await this.fetch<HealthCheckResponse>(HEALTH_PATH, {
         method: 'GET',
-      })
+      });
 
-      consola.debug(`API health: ${response.status}`)
+      consola.debug(`API health: ${response.status}`);
 
-      return response
+      return response;
     }
     catch (error) {
-      this.handleError(error, 'health check')
+      this.handleError(error, 'health check');
     }
   }
 
@@ -434,8 +435,8 @@ export class CloudClient {
    * @param config - Partial configuration to update
    */
   updateConfig(config: Partial<CloudClientConfig>): void {
-    this.config = { ...this.config, ...config }
-    this.identity = this.resolveIdentity()
+    this.config = { ...this.config, ...config };
+    this.identity = this.resolveIdentity();
 
     // Update fetch instance with new config
     if (config.baseURL || config.timeout || config.apiKey || config.version || config.deviceToken || config.anonymousUserId || config.deviceId || config.platform) {
@@ -445,7 +446,7 @@ export class CloudClient {
         headers: this.getDefaultHeaders(),
         retry: this.config.enableRetry ? this.config.maxRetries : 0,
         retryDelay: context => this.calculateRetryDelay(context.options.retry || 0),
-      })
+      });
     }
   }
 
@@ -453,7 +454,7 @@ export class CloudClient {
    * Get current configuration
    */
   getConfig(): CloudClientConfig {
-    return { ...this.config }
+    return { ...this.config };
   }
 
   async registerDevice(payload?: Partial<DeviceRegistrationRequest>): Promise<DeviceRegistrationResponse> {
@@ -461,7 +462,7 @@ export class CloudClient {
       return {
         success: false,
         message: 'Usage analytics disabled',
-      }
+      };
     }
 
     try {
@@ -469,15 +470,15 @@ export class CloudClient {
         method: 'POST',
         body: this.buildAnalyticsPayload(payload),
         timeout: 5000,
-      })
+      });
     }
     catch (error) {
-      consola.debug('Failed to register device (non-blocking):', error)
+      consola.debug('Failed to register device (non-blocking):', error);
       return {
         success: false,
         requestId: '',
         message: error instanceof Error ? error.message : 'Unknown error',
-      }
+      };
     }
   }
 
@@ -486,7 +487,7 @@ export class CloudClient {
       return {
         success: false,
         message: 'Usage analytics disabled',
-      }
+      };
     }
 
     try {
@@ -494,15 +495,15 @@ export class CloudClient {
         method: 'POST',
         body: this.buildAnalyticsPayload(payload),
         timeout: 5000,
-      })
+      });
     }
     catch (error) {
-      consola.debug('Failed to send handshake (non-blocking):', error)
+      consola.debug('Failed to send handshake (non-blocking):', error);
       return {
         success: false,
         requestId: '',
         message: error instanceof Error ? error.message : 'Unknown error',
-      }
+      };
     }
   }
 
@@ -511,7 +512,7 @@ export class CloudClient {
       return {
         success: false,
         message: 'Usage analytics disabled',
-      }
+      };
     }
 
     try {
@@ -519,15 +520,15 @@ export class CloudClient {
         method: 'POST',
         body: this.buildAnalyticsPayload(payload),
         timeout: 5000,
-      })
+      });
     }
     catch (error) {
-      consola.debug('Failed to sync client usage (non-blocking):', error)
+      consola.debug('Failed to sync client usage (non-blocking):', error);
       return {
         success: false,
         requestId: '',
         message: error instanceof Error ? error.message : 'Unknown error',
-      }
+      };
     }
   }
 }
@@ -545,5 +546,5 @@ export function createCloudClient(config?: Partial<CloudClientConfig>): CloudCli
     maxRetries: 3,
     enableTelemetry: true,
     ...config,
-  })
+  });
 }

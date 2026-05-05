@@ -10,53 +10,53 @@
  * 3. All user input will be automatically intercepted and routed
  */
 
-import type { ExecutionResult } from '../router'
-import { EventEmitter } from 'node:events'
-import { processUserInput } from '../router'
-import { SessionIntelligence } from '../session-manager.js'
+import type { ExecutionResult } from '../router';
+import { EventEmitter } from 'node:events';
+import { processUserInput } from '../router';
+import { SessionIntelligence } from '../session-manager.js';
 
 /**
  * Hook configuration
  */
 export interface BrainHookConfig {
-  enabled: boolean // Default: true
-  silent: boolean // Default: false (show what's happening)
-  fallbackToClaudeCode: boolean // Default: true
+  enabled: boolean; // Default: true
+  silent: boolean; // Default: false (show what's happening)
+  fallbackToClaudeCode: boolean; // Default: true
 }
 
 /**
  * Hook result
  */
 export interface HookResult {
-  intercepted: boolean
-  handled: boolean
-  executionResult?: ExecutionResult
-  shouldContinue: boolean // Should continue to Claude Code?
-  message?: string
+  intercepted: boolean;
+  handled: boolean;
+  executionResult?: ExecutionResult;
+  shouldContinue: boolean; // Should continue to Claude Code?
+  message?: string;
   /**
    * Additional context injected into the model via PreToolUse hook.
    * Claude Code 2.1+ passes this string to the model alongside the tool call.
    * Use this to inject task state, session context, or brain insights
    * without blocking the tool execution.
    */
-  additionalContext?: string
+  additionalContext?: string;
 }
 
 /**
  * Brain CLI Hook
  */
 export class BrainCliHook extends EventEmitter {
-  private config: Required<BrainHookConfig>
-  private initialized = false
+  private config: Required<BrainHookConfig>;
+  private initialized = false;
 
   constructor(config: Partial<BrainHookConfig> = {}) {
-    super()
+    super();
 
     this.config = {
       enabled: config.enabled !== undefined ? config.enabled : true,
       silent: config.silent !== undefined ? config.silent : false,
       fallbackToClaudeCode: config.fallbackToClaudeCode !== undefined ? config.fallbackToClaudeCode : true,
-    }
+    };
   }
 
   /**
@@ -64,27 +64,27 @@ export class BrainCliHook extends EventEmitter {
    */
   async initialize(): Promise<void> {
     if (this.initialized) {
-      return
+      return;
     }
 
     // Initialize all brain systems
-    const { getGlobalStateManager } = await import('../persistence/git-backed-state')
-    const { getGlobalMailboxManager } = await import('../messaging/persistent-mailbox')
-    const { getGlobalConvoyManager } = await import('../convoy/convoy-manager')
+    const { getGlobalStateManager } = await import('../persistence/git-backed-state');
+    const { getGlobalMailboxManager } = await import('../messaging/persistent-mailbox');
+    const { getGlobalConvoyManager } = await import('../convoy/convoy-manager');
 
-    const stateManager = getGlobalStateManager()
-    const mailboxManager = getGlobalMailboxManager()
-    const convoyManager = getGlobalConvoyManager()
+    const stateManager = getGlobalStateManager();
+    const mailboxManager = getGlobalMailboxManager();
+    const convoyManager = getGlobalConvoyManager();
 
-    await stateManager.initialize()
-    await mailboxManager.initialize()
-    await convoyManager.initialize()
+    await stateManager.initialize();
+    await mailboxManager.initialize();
+    await convoyManager.initialize();
 
-    this.initialized = true
-    this.emit('hook:initialized')
+    this.initialized = true;
+    this.emit('hook:initialized');
 
     if (!this.config.silent) {
-      console.log('🧠 Brain system initialized - automatic routing enabled')
+      console.log('🧠 Brain system initialized - automatic routing enabled');
     }
   }
 
@@ -98,28 +98,28 @@ export class BrainCliHook extends EventEmitter {
         handled: false,
         shouldContinue: true,
         message: 'Hook disabled',
-      }
+      };
     }
 
     // Ensure initialized
     if (!this.initialized) {
-      await this.initialize()
+      await this.initialize();
     }
 
     try {
       // Record message in session intelligence (captures original intent on first message)
-      SessionIntelligence.getInstance().recordMessage('user', userInput)
+      SessionIntelligence.getInstance().recordMessage('user', userInput);
 
       // Process through brain router
-      const result = await processUserInput(userInput)
+      const result = await processUserInput(userInput);
 
       // If handled by brain system
       if (result.handled && result.result) {
-        this.emit('hook:handled', { input: userInput, result: result.result })
+        this.emit('hook:handled', { input: userInput, result: result.result });
 
         // Show result to user
         if (!this.config.silent) {
-          this.displayResult(result.result)
+          this.displayResult(result.result);
         }
 
         return {
@@ -128,15 +128,15 @@ export class BrainCliHook extends EventEmitter {
           executionResult: result.result,
           shouldContinue: false, // Don't pass to Claude Code
           message: result.message,
-        }
+        };
       }
 
       // If passthrough (simple query, system command, etc.)
       if (result.passthrough) {
-        this.emit('hook:passthrough', { input: userInput, reason: result.message })
+        this.emit('hook:passthrough', { input: userInput, reason: result.message });
 
         // Inject brain context via PreToolUse additionalContext (Claude Code 2.1+)
-        const additionalContext = this.config.silent ? undefined : await this.buildAdditionalContext()
+        const additionalContext = this.config.silent ? undefined : await this.buildAdditionalContext();
 
         return {
           intercepted: true,
@@ -144,7 +144,7 @@ export class BrainCliHook extends EventEmitter {
           shouldContinue: true, // Pass to Claude Code
           message: result.message,
           additionalContext,
-        }
+        };
       }
 
       // Fallback
@@ -153,23 +153,23 @@ export class BrainCliHook extends EventEmitter {
         handled: false,
         shouldContinue: this.config.fallbackToClaudeCode,
         message: 'No interception',
-      }
+      };
     }
     catch (error) {
-      this.emit('hook:error', { error, input: userInput })
+      this.emit('hook:error', { error, input: userInput });
 
       // On error, fallback to Claude Code if enabled
       if (this.config.fallbackToClaudeCode) {
-        console.error('Brain system error, falling back to Claude Code:', error)
+        console.error('Brain system error, falling back to Claude Code:', error);
         return {
           intercepted: true,
           handled: false,
           shouldContinue: true,
           message: 'Error - falling back to Claude Code',
-        }
+        };
       }
 
-      throw error
+      throw error;
     }
   }
 
@@ -177,10 +177,10 @@ export class BrainCliHook extends EventEmitter {
    * Display execution result to user
    */
   private displayResult(result: ExecutionResult): void {
-    console.log(`\n${'='.repeat(60)}`)
-    console.log('🧠 Brain System Result')
-    console.log('='.repeat(60))
-    console.log()
+    console.log(`\n${'='.repeat(60)}`);
+    console.log('🧠 Brain System Result');
+    console.log('='.repeat(60));
+    console.log();
 
     // Route info
     const routeEmoji = {
@@ -188,77 +188,77 @@ export class BrainCliHook extends EventEmitter {
       plan: '📋',
       feature: '⚡',
       direct: '🚀',
-    }
-    console.log(`${routeEmoji[result.route]} Route: ${result.route.toUpperCase()}`)
-    console.log(`📊 Complexity: ${result.intent.complexity}`)
-    console.log(`🎯 Intent: ${result.intent.type}`)
-    console.log()
+    };
+    console.log(`${routeEmoji[result.route]} Route: ${result.route.toUpperCase()}`);
+    console.log(`📊 Complexity: ${result.intent.complexity}`);
+    console.log(`🎯 Intent: ${result.intent.type}`);
+    console.log();
 
     // Auto-created resources
     if (result.agentsCreated.length > 0) {
-      console.log('🤖 Agents Created:')
+      console.log('🤖 Agents Created:');
       for (const agent of result.agentsCreated) {
-        console.log(`   ✓ ${agent}`)
+        console.log(`   ✓ ${agent}`);
       }
-      console.log()
+      console.log();
     }
 
     if (result.skillsCreated.length > 0) {
-      console.log('🎓 Skills Created:')
+      console.log('🎓 Skills Created:');
       for (const skill of result.skillsCreated) {
-        console.log(`   ✓ ${skill}`)
+        console.log(`   ✓ ${skill}`);
       }
-      console.log()
+      console.log();
     }
 
     if (result.mcpToolsUsed.length > 0) {
-      console.log('🔧 MCP Tools Selected:')
+      console.log('🔧 MCP Tools Selected:');
       for (const tool of result.mcpToolsUsed) {
-        console.log(`   ✓ ${tool}`)
+        console.log(`   ✓ ${tool}`);
       }
-      console.log()
+      console.log();
     }
 
     if (result.insights) {
-      console.log('✨ Smart Upgrade Signals:')
-      console.log(`   Route decision: ${result.insights.routeDecision.initial} → ${result.insights.routeDecision.final}`)
+      console.log('✨ Smart Upgrade Signals:');
+      console.log(`   Route decision: ${result.insights.routeDecision.initial} → ${result.insights.routeDecision.final}`);
       if (result.insights.routeDecision.userSelectedRoute) {
-        console.log('   Mode: User-guided route disambiguation')
+        console.log('   Mode: User-guided route disambiguation');
       }
       else if (result.insights.routeDecision.elicitationAsked) {
-        console.log('   Mode: Asked for route preference (kept recommended)')
+        console.log('   Mode: Asked for route preference (kept recommended)');
       }
       else {
-        console.log('   Mode: Fully automatic route decision')
+        console.log('   Mode: Fully automatic route decision');
       }
 
       if (result.insights.mcpSelection.selected.length > 0) {
         if (result.insights.mcpSelection.truncated) {
-          console.log(`   MCP ranking: selected ${result.insights.mcpSelection.selected.length} of ${result.insights.mcpSelection.candidates.length} candidates`)
+          console.log(`   MCP ranking: selected ${result.insights.mcpSelection.selected.length} of ${result.insights.mcpSelection.candidates.length} candidates`);
         }
-        console.log(`   MCP reason: ${result.insights.mcpSelection.reason}`)
+        console.log(`   MCP reason: ${result.insights.mcpSelection.reason}`);
       }
       else {
-        console.log('   MCP reason: no external tools needed')
+        console.log('   MCP reason: no external tools needed');
       }
 
-      console.log(`   Telemetry: ${result.insights.telemetry.eventCount} events, ${result.insights.telemetry.totalDurationMs}ms`)
-      console.log()
+      console.log(`   Telemetry: ${result.insights.telemetry.eventCount} events, ${result.insights.telemetry.totalDurationMs}ms`);
+      console.log();
     }
 
     // Convoy info
     if (result.convoyId) {
-      console.log(`📦 Convoy: ${result.convoyId}`)
-      console.log()
+      console.log(`📦 Convoy: ${result.convoyId}`);
+      console.log();
     }
 
     // Message
-    console.log('💬 Message:')
-    console.log(`   ${result.message}`)
-    console.log()
+    console.log('💬 Message:');
+    console.log(`   ${result.message}`);
+    console.log();
 
-    console.log('='.repeat(60))
-    console.log()
+    console.log('='.repeat(60));
+    console.log();
   }
 
   /**
@@ -269,15 +269,15 @@ export class BrainCliHook extends EventEmitter {
   private async buildAdditionalContext(): Promise<string | undefined> {
     try {
       // Load L0 context summary (ultra-lightweight, ~100 tokens)
-      const { loadContextAtDepth } = await import('../context-loader')
-      const ctx = await loadContextAtDepth('L0')
+      const { loadContextAtDepth } = await import('../context-loader');
+      const ctx = await loadContextAtDepth('L0');
       if (ctx.totalTokens > 0) {
-        return `[Brain Context: ${ctx.layers.size} layers, ~${ctx.totalTokens} tokens, depth=${ctx.depth}]`
+        return `[Brain Context: ${ctx.layers.size} layers, ~${ctx.totalTokens} tokens, depth=${ctx.depth}]`;
       }
-      return undefined
+      return undefined;
     }
     catch {
-      return undefined // Never block on context build failure
+      return undefined; // Never block on context build failure
     }
   }
 
@@ -285,37 +285,37 @@ export class BrainCliHook extends EventEmitter {
    * Enable the hook
    */
   enable(): void {
-    this.config.enabled = true
-    this.emit('hook:enabled')
+    this.config.enabled = true;
+    this.emit('hook:enabled');
   }
 
   /**
    * Disable the hook
    */
   disable(): void {
-    this.config.enabled = false
-    this.emit('hook:disabled')
+    this.config.enabled = false;
+    this.emit('hook:disabled');
   }
 
   /**
    * Check if hook is enabled
    */
   isEnabled(): boolean {
-    return this.config.enabled
+    return this.config.enabled;
   }
 }
 
 // Global singleton instance
-let globalHook: BrainCliHook | null = null
+let globalHook: BrainCliHook | null = null;
 
 /**
  * Get global brain CLI hook instance
  */
 export function getGlobalBrainHook(config?: Partial<BrainHookConfig>): BrainCliHook {
   if (!globalHook) {
-    globalHook = new BrainCliHook(config)
+    globalHook = new BrainCliHook(config);
   }
-  return globalHook
+  return globalHook;
 }
 
 /**
@@ -330,9 +330,9 @@ export function getGlobalBrainHook(config?: Partial<BrainHookConfig>): BrainCliH
  * ```
  */
 export async function setupBrainHook(config?: Partial<BrainHookConfig>): Promise<BrainCliHook> {
-  const hook = getGlobalBrainHook(config)
-  await hook.initialize()
-  return hook
+  const hook = getGlobalBrainHook(config);
+  await hook.initialize();
+  return hook;
 }
 
 /**
@@ -352,13 +352,13 @@ export async function setupBrainHook(config?: Partial<BrainHookConfig>): Promise
  * ```
  */
 export async function processCliInput(userInput: string): Promise<HookResult> {
-  const hook = getGlobalBrainHook()
-  return await hook.processInput(userInput)
+  const hook = getGlobalBrainHook();
+  return await hook.processInput(userInput);
 }
 
 /**
  * Reset global hook (for testing)
  */
 export function resetGlobalBrainHook(): void {
-  globalHook = null
+  globalHook = null;
 }

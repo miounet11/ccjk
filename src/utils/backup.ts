@@ -1,27 +1,27 @@
-import { promises as fs } from 'node:fs'
-import { consola } from 'consola'
-import dayjs from 'dayjs'
-import { join } from 'pathe'
-import { i18n } from '../i18n'
+import { promises as fs } from 'node:fs';
+import { consola } from 'consola';
+import dayjs from 'dayjs';
+import { join } from 'pathe';
+import { i18n } from '../i18n';
 
 export interface BackupOptions {
-  name?: string
-  includePatterns?: string[]
-  excludePatterns?: string[]
-  compress?: boolean
+  name?: string;
+  includePatterns?: string[];
+  excludePatterns?: string[];
+  compress?: boolean;
 }
 
 export async function createBackup(
   operation: string,
   options: BackupOptions = {},
 ): Promise<string> {
-  const timestamp = dayjs().format('YYYYMMDD-HHmmss')
-  const backupName = options.name || operation
-  const backupDir = join(process.cwd(), '.ccjk-backups', `${backupName}-${timestamp}`)
+  const timestamp = dayjs().format('YYYYMMDD-HHmmss');
+  const backupName = options.name || operation;
+  const backupDir = join(process.cwd(), '.ccjk-backups', `${backupName}-${timestamp}`);
 
   try {
     // Create backup directory
-    await fs.mkdir(backupDir, { recursive: true })
+    await fs.mkdir(backupDir, { recursive: true });
 
     // Files to backup
     const filesToBackup = [
@@ -36,21 +36,21 @@ export async function createBackup(
       'package.json',
       'pnpm-workspace.yaml',
       '.ccjk',
-    ]
+    ];
 
     // Copy files
     for (const file of filesToBackup) {
-      const sourcePath = join(process.cwd(), file)
-      const destPath = join(backupDir, file)
+      const sourcePath = join(process.cwd(), file);
+      const destPath = join(backupDir, file);
 
       try {
-        const stats = await fs.stat(sourcePath)
+        const stats = await fs.stat(sourcePath);
         if (stats.isDirectory()) {
-          await copyDirectory(sourcePath, destPath)
+          await copyDirectory(sourcePath, destPath);
         }
         else {
-          await fs.mkdir(join(destPath, '..'), { recursive: true })
-          await fs.copyFile(sourcePath, destPath)
+          await fs.mkdir(join(destPath, '..'), { recursive: true });
+          await fs.copyFile(sourcePath, destPath);
         }
       }
       catch (_error) {
@@ -65,53 +65,53 @@ export async function createBackup(
       files: filesToBackup,
       cwd: process.cwd(),
       nodeVersion: process.version,
-    }
+    };
 
     await fs.writeFile(
       join(backupDir, 'backup-manifest.json'),
       JSON.stringify(manifest, null, 2),
       'utf-8',
-    )
+    );
 
-    consola.success(i18n.t('backup.created', { path: backupDir }))
-    return backupDir
+    consola.success(i18n.t('backup.created', { path: backupDir }));
+    return backupDir;
   }
   catch (error) {
-    consola.error(i18n.t('backup.failed'), error)
-    throw error
+    consola.error(i18n.t('backup.failed'), error);
+    throw error;
   }
 }
 
 export async function restoreBackup(backupPath: string): Promise<void> {
   try {
     // Read manifest
-    const manifestPath = join(backupPath, 'backup-manifest.json')
-    const manifestContent = await fs.readFile(manifestPath, 'utf-8')
-    const manifest = JSON.parse(manifestContent)
+    const manifestPath = join(backupPath, 'backup-manifest.json');
+    const manifestContent = await fs.readFile(manifestPath, 'utf-8');
+    const manifest = JSON.parse(manifestContent);
 
-    consola.info(i18n.t('backup.restoring', { timestamp: manifest.timestamp }))
+    consola.info(i18n.t('backup.restoring', { timestamp: manifest.timestamp }));
 
     // Restore files
     for (const file of manifest.files) {
-      const sourcePath = join(backupPath, file)
-      const destPath = join(process.cwd(), file)
+      const sourcePath = join(backupPath, file);
+      const destPath = join(process.cwd(), file);
 
       try {
-        await fs.stat(sourcePath)
+        await fs.stat(sourcePath);
         // File exists in backup
 
         try {
-          const stats = await fs.stat(sourcePath)
+          const stats = await fs.stat(sourcePath);
           if (stats.isDirectory()) {
-            await copyDirectory(sourcePath, destPath)
+            await copyDirectory(sourcePath, destPath);
           }
           else {
-            await fs.mkdir(join(destPath, '..'), { recursive: true })
-            await fs.copyFile(sourcePath, destPath)
+            await fs.mkdir(join(destPath, '..'), { recursive: true });
+            await fs.copyFile(sourcePath, destPath);
           }
         }
         catch (_error) {
-          consola.warn(i18n.t('backup.restoreFailed', { file }))
+          consola.warn(i18n.t('backup.restoreFailed', { file }));
         }
       }
       catch (_error) {
@@ -119,28 +119,28 @@ export async function restoreBackup(backupPath: string): Promise<void> {
       }
     }
 
-    consola.success(i18n.t('backup.restoreComplete'))
+    consola.success(i18n.t('backup.restoreComplete'));
   }
   catch (error) {
-    consola.error(i18n.t('backup.restoreFailed'), error)
-    throw error
+    consola.error(i18n.t('backup.restoreFailed'), error);
+    throw error;
   }
 }
 
 export async function listBackups(): Promise<string[]> {
   try {
-    const backupDir = join(process.cwd(), '.ccjk-backups')
-    await fs.mkdir(backupDir, { recursive: true })
+    const backupDir = join(process.cwd(), '.ccjk-backups');
+    await fs.mkdir(backupDir, { recursive: true });
 
-    const entries = await fs.readdir(backupDir)
-    const backups: string[] = []
+    const entries = await fs.readdir(backupDir);
+    const backups: string[] = [];
 
     for (const entry of entries) {
-      const fullPath = join(backupDir, entry)
+      const fullPath = join(backupDir, entry);
       try {
-        const stats = await fs.stat(fullPath)
+        const stats = await fs.stat(fullPath);
         if (stats.isDirectory()) {
-          backups.push(fullPath)
+          backups.push(fullPath);
         }
       }
       catch (_error) {
@@ -148,46 +148,46 @@ export async function listBackups(): Promise<string[]> {
       }
     }
 
-    return backups.sort((a, b) => b.localeCompare(a)) // Newest first
+    return backups.sort((a, b) => b.localeCompare(a)); // Newest first
   }
   catch (_error) {
-    return []
+    return [];
   }
 }
 
 export async function cleanupOldBackups(keepCount: number = 5): Promise<void> {
-  const backups = await listBackups()
+  const backups = await listBackups();
 
   if (backups.length <= keepCount) {
-    return
+    return;
   }
 
-  const toRemove = backups.slice(keepCount)
+  const toRemove = backups.slice(keepCount);
 
   for (const backup of toRemove) {
     try {
-      await fs.rm(backup, { recursive: true, force: true })
-      consola.info(i18n.t('backup.removed', { path: backup }))
+      await fs.rm(backup, { recursive: true, force: true });
+      consola.info(i18n.t('backup.removed', { path: backup }));
     }
     catch (_error) {
-      consola.warn(i18n.t('backup.removeFailed', { path: backup }))
+      consola.warn(i18n.t('backup.removeFailed', { path: backup }));
     }
   }
 }
 
 async function copyDirectory(src: string, dest: string): Promise<void> {
-  await fs.mkdir(dest, { recursive: true })
-  const entries = await fs.readdir(src, { withFileTypes: true })
+  await fs.mkdir(dest, { recursive: true });
+  const entries = await fs.readdir(src, { withFileTypes: true });
 
   for (const entry of entries) {
-    const srcPath = join(src, entry.name)
-    const destPath = join(dest, entry.name)
+    const srcPath = join(src, entry.name);
+    const destPath = join(dest, entry.name);
 
     if (entry.isDirectory()) {
-      await copyDirectory(srcPath, destPath)
+      await copyDirectory(srcPath, destPath);
     }
     else {
-      await fs.copyFile(srcPath, destPath)
+      await fs.copyFile(srcPath, destPath);
     }
   }
 }
@@ -195,33 +195,33 @@ async function copyDirectory(src: string, dest: string): Promise<void> {
 export async function validateBackup(backupPath: string): Promise<boolean> {
   try {
     // Check if manifest exists
-    const manifestPath = join(backupPath, 'backup-manifest.json')
-    await fs.access(manifestPath)
+    const manifestPath = join(backupPath, 'backup-manifest.json');
+    await fs.access(manifestPath);
 
     // Check if manifest is valid JSON
-    const manifestContent = await fs.readFile(manifestPath, 'utf-8')
-    const manifest = JSON.parse(manifestContent)
+    const manifestContent = await fs.readFile(manifestPath, 'utf-8');
+    const manifest = JSON.parse(manifestContent);
 
     // Validate required fields
     if (!manifest.timestamp || !manifest.operation || !Array.isArray(manifest.files)) {
-      return false
+      return false;
     }
 
     // Check if at least some files exist
-    let foundFiles = 0
+    let foundFiles = 0;
     for (const file of manifest.files) {
       try {
-        await fs.access(join(backupPath, file))
-        foundFiles++
+        await fs.access(join(backupPath, file));
+        foundFiles++;
       }
       catch (_error) {
         // File not found
       }
     }
 
-    return foundFiles > 0
+    return foundFiles > 0;
   }
   catch (_error) {
-    return false
+    return false;
   }
 }

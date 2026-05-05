@@ -12,89 +12,89 @@
  * Model: sonnet (balanced for iterative test generation)
  */
 
-import type { AgentCapability, AgentContext, AgentResult } from './base-agent.js'
-import { AgentState, BaseAgent } from './base-agent.js'
+import type { AgentCapability, AgentContext, AgentResult } from './base-agent.js';
+import { AgentState, BaseAgent } from './base-agent.js';
 
 interface TestSuite {
-  name: string
-  type: 'unit' | 'integration' | 'e2e' | 'performance' | 'security'
-  framework: string
-  tests: TestCase[]
+  name: string;
+  type: 'unit' | 'integration' | 'e2e' | 'performance' | 'security';
+  framework: string;
+  tests: TestCase[];
   coverage: {
-    lines: number
-    branches: number
-    functions: number
-    statements: number
-  }
+    lines: number;
+    branches: number;
+    functions: number;
+    statements: number;
+  };
   quality: {
-    score: number
-    maintainability: number
-    readability: number
-    completeness: number
-  }
+    score: number;
+    maintainability: number;
+    readability: number;
+    completeness: number;
+  };
 }
 
 interface TestCase {
-  name: string
-  description: string
-  type: 'positive' | 'negative' | 'edge-case' | 'boundary' | 'integration'
-  code: string
-  assertions: number
-  complexity: 'simple' | 'moderate' | 'complex'
-  dependencies: string[]
-  tags: string[]
+  name: string;
+  description: string;
+  type: 'positive' | 'negative' | 'edge-case' | 'boundary' | 'integration';
+  code: string;
+  assertions: number;
+  complexity: 'simple' | 'moderate' | 'complex';
+  dependencies: string[];
+  tags: string[];
 }
 
 interface CoverageAnalysis {
   overall: {
-    lines: number
-    branches: number
-    functions: number
-    statements: number
-  }
+    lines: number;
+    branches: number;
+    functions: number;
+    statements: number;
+  };
   files: {
-    path: string
+    path: string;
     coverage: {
-      lines: number
-      branches: number
-      functions: number
-      statements: number
-    }
-    uncoveredLines: number[]
-    uncoveredBranches: { line: number, branch: number }[]
-  }[]
+      lines: number;
+      branches: number;
+      functions: number;
+      statements: number;
+    };
+    uncoveredLines: number[];
+    uncoveredBranches: { line: number; branch: number }[];
+  }[];
   gaps: {
-    file: string
-    function: string
-    reason: string
-    priority: 'high' | 'medium' | 'low'
-  }[]
+    file: string;
+    function: string;
+    reason: string;
+    priority: 'high' | 'medium' | 'low';
+  }[];
   recommendations: {
-    file: string
-    suggestion: string
-    testCases: TestCase[]
-  }[]
+    file: string;
+    suggestion: string;
+    testCases: TestCase[];
+  }[];
 }
 
 interface MutationTestResult {
-  totalMutants: number
-  killed: number
-  survived: number
-  timeout: number
-  noCoverage: number
-  mutationScore: number
+  totalMutants: number;
+  killed: number;
+  survived: number;
+  timeout: number;
+  noCoverage: number;
+  mutationScore: number;
   survivors: {
-    mutant: string
-    location: { file: string, line: number }
-    operator: string
-    suggestion: string
-  }[]
+    mutant: string;
+    location: { file: string; line: number };
+    operator: string;
+    suggestion: string;
+  }[];
 }
 
 export class TestingAgent extends BaseAgent {
-  private testTemplates: Map<string, any> = new Map()
-  private coverageHistory: CoverageAnalysis[] = []
-  private testPatterns: Map<string, any> = new Map()
+  private testTemplates: Map<string, any> = new Map();
+  private coverageHistory: CoverageAnalysis[] = [];
+  private testPatterns: Map<string, any> = new Map();
 
   constructor(context: AgentContext) {
     const capabilities: AgentCapability[] = [
@@ -164,7 +164,7 @@ export class TestingAgent extends BaseAgent {
           count: 'number',
         },
       },
-    ]
+    ];
 
     super(
       {
@@ -174,94 +174,94 @@ export class TestingAgent extends BaseAgent {
         verbose: true,
       },
       context,
-    )
-    this.initializeTestPatterns()
+    );
+    this.initializeTestPatterns();
   }
 
   async initialize(): Promise<void> {
-    this.log('Initializing Testing Agent with sonnet model...')
-    this.initializeTestPatterns()
-    await this.loadTestTemplates()
-    this.log('Testing Agent ready for world-class test generation')
+    this.log('Initializing Testing Agent with sonnet model...');
+    this.initializeTestPatterns();
+    await this.loadTestTemplates();
+    this.log('Testing Agent ready for world-class test generation');
   }
 
   async process(message: string, metadata?: Record<string, unknown>): Promise<AgentResult> {
-    this.setState(AgentState.THINKING)
-    this.addMessage({ role: 'user', content: message, metadata })
+    this.setState(AgentState.THINKING);
+    this.addMessage({ role: 'user', content: message, metadata });
 
     try {
-      const capability = metadata?.capability as string
-      const parameters = metadata?.parameters as any
+      const capability = metadata?.capability as string;
+      const parameters = metadata?.parameters as any;
 
-      let result: any
+      let result: any;
       switch (capability) {
         case 'generate-tests':
-          result = await this.generateTests(parameters)
-          break
+          result = await this.generateTests(parameters);
+          break;
         case 'analyze-coverage':
-          result = await this.analyzeCoverage(parameters)
-          break
+          result = await this.analyzeCoverage(parameters);
+          break;
         case 'improve-tests':
-          result = await this.improveTests(parameters)
-          break
+          result = await this.improveTests(parameters);
+          break;
         case 'mutation-testing':
-          result = await this.performMutationTesting(parameters)
-          break
+          result = await this.performMutationTesting(parameters);
+          break;
         case 'property-testing':
-          result = await this.generatePropertyTests(parameters)
-          break
+          result = await this.generatePropertyTests(parameters);
+          break;
         case 'test-refactoring':
-          result = await this.refactorTests(parameters)
-          break
+          result = await this.refactorTests(parameters);
+          break;
         case 'test-quality':
-          result = await this.assessTestQuality(parameters)
-          break
+          result = await this.assessTestQuality(parameters);
+          break;
         case 'generate-fixtures':
-          result = await this.generateFixtures(parameters)
-          break
+          result = await this.generateFixtures(parameters);
+          break;
         default:
-          throw new Error(`Unknown capability: ${capability}`)
+          throw new Error(`Unknown capability: ${capability}`);
       }
 
-      this.setState(AgentState.COMPLETED)
+      this.setState(AgentState.COMPLETED);
       return {
         success: true,
         data: result,
         message: 'Testing analysis completed successfully',
-      }
+      };
     }
     catch (error) {
-      this.setState(AgentState.ERROR)
-      return this.handleError(error instanceof Error ? error : new Error(String(error)))
+      this.setState(AgentState.ERROR);
+      return this.handleError(error instanceof Error ? error : new Error(String(error)));
     }
   }
 
   async cleanup(): Promise<void> {
-    this.testTemplates.clear()
-    this.log('Testing Agent cleanup completed')
+    this.testTemplates.clear();
+    this.log('Testing Agent cleanup completed');
   }
 
   override async handleError(error: Error): Promise<AgentResult> {
-    this.log(`Testing Agent error: ${error.message}`, 'error')
+    this.log(`Testing Agent error: ${error.message}`, 'error');
 
     if (error.message.includes('generation')) {
-      this.log('Test generation error - attempting with simpler templates')
+      this.log('Test generation error - attempting with simpler templates');
     }
 
     return {
       success: false,
       error,
       message: `Testing Agent failed: ${error.message}`,
-    }
+    };
   }
 
   /**
    * Generate comprehensive test suite
    */
   private async generateTests(params: any): Promise<TestSuite> {
-    this.log('Generating comprehensive test suite...')
+    this.log('Generating comprehensive test suite...');
 
-    const { target, type = 'unit', framework = 'vitest', coverage = 80 } = params
+    const { target, type = 'unit', framework = 'vitest', coverage = 80 } = params;
 
     const suite: TestSuite = {
       name: `${target} Test Suite`,
@@ -280,40 +280,40 @@ export class TestingAgent extends BaseAgent {
         readability: 0,
         completeness: 0,
       },
-    }
+    };
 
     // Analyze target code
-    const analysis = await this.analyzeTargetCode(target)
+    const analysis = await this.analyzeTargetCode(target);
 
     // Generate test cases based on analysis
-    suite.tests.push(...await this.generatePositiveTests(analysis, framework))
-    suite.tests.push(...await this.generateNegativeTests(analysis, framework))
-    suite.tests.push(...await this.generateEdgeCaseTests(analysis, framework))
-    suite.tests.push(...await this.generateBoundaryTests(analysis, framework))
+    suite.tests.push(...await this.generatePositiveTests(analysis, framework));
+    suite.tests.push(...await this.generateNegativeTests(analysis, framework));
+    suite.tests.push(...await this.generateEdgeCaseTests(analysis, framework));
+    suite.tests.push(...await this.generateBoundaryTests(analysis, framework));
 
     // Calculate coverage
-    suite.coverage = await this.estimateCoverage(suite.tests, target)
+    suite.coverage = await this.estimateCoverage(suite.tests, target);
 
     // Assess quality
-    suite.quality = await this.assessSuiteQuality(suite)
+    suite.quality = await this.assessSuiteQuality(suite);
 
     // If coverage is below target, generate additional tests
     if (suite.coverage.lines < coverage) {
-      const additionalTests = await this.generateAdditionalTests(suite, target, coverage)
-      suite.tests.push(...additionalTests)
-      suite.coverage = await this.estimateCoverage(suite.tests, target)
+      const additionalTests = await this.generateAdditionalTests(suite, target, coverage);
+      suite.tests.push(...additionalTests);
+      suite.coverage = await this.estimateCoverage(suite.tests, target);
     }
 
-    return suite
+    return suite;
   }
 
   /**
    * Analyze test coverage
    */
   private async analyzeCoverage(params: any): Promise<CoverageAnalysis> {
-    this.log('Analyzing test coverage...')
+    this.log('Analyzing test coverage...');
 
-    const { target, threshold = 80 } = params
+    const { target, threshold = 80 } = params;
 
     const analysis: CoverageAnalysis = {
       overall: {
@@ -325,51 +325,51 @@ export class TestingAgent extends BaseAgent {
       files: [],
       gaps: [],
       recommendations: [],
-    }
+    };
 
     // Collect coverage data
-    analysis.overall = await this.collectCoverageData(target)
-    analysis.files = await this.collectFileCoverage(target)
+    analysis.overall = await this.collectCoverageData(target);
+    analysis.files = await this.collectFileCoverage(target);
 
     // Identify gaps
-    analysis.gaps = await this.identifyCoverageGaps(analysis.files, threshold)
+    analysis.gaps = await this.identifyCoverageGaps(analysis.files, threshold);
 
     // Generate recommendations
-    analysis.recommendations = await this.generateCoverageRecommendations(analysis.gaps)
+    analysis.recommendations = await this.generateCoverageRecommendations(analysis.gaps);
 
-    this.coverageHistory.push(analysis)
-    return analysis
+    this.coverageHistory.push(analysis);
+    return analysis;
   }
 
   /**
    * Improve existing tests
    */
   private async improveTests(params: any): Promise<any> {
-    this.log('Improving test quality...')
+    this.log('Improving test quality...');
 
-    const { tests, goals } = params
+    const { tests, goals } = params;
 
-    const improvements = []
+    const improvements = [];
 
     for (const testFile of tests) {
-      const analysis = await this.analyzeTestFile(testFile)
-      const improved = await this.improveTestFile(testFile, analysis, goals)
-      improvements.push(improved)
+      const analysis = await this.analyzeTestFile(testFile);
+      const improved = await this.improveTestFile(testFile, analysis, goals);
+      improvements.push(improved);
     }
 
     return {
       improvements,
       summary: this.summarizeImprovements(improvements),
-    }
+    };
   }
 
   /**
    * Perform mutation testing
    */
   private async performMutationTesting(params: any): Promise<MutationTestResult> {
-    this.log('Performing mutation testing...')
+    this.log('Performing mutation testing...');
 
-    const { target, mutators = ['arithmetic', 'logical', 'conditional', 'assignment'] } = params
+    const { target, mutators = ['arithmetic', 'logical', 'conditional', 'assignment'] } = params;
 
     const result: MutationTestResult = {
       totalMutants: 0,
@@ -379,49 +379,49 @@ export class TestingAgent extends BaseAgent {
       noCoverage: 0,
       mutationScore: 0,
       survivors: [],
-    }
+    };
 
     // Generate mutants
-    const mutants = await this.generateMutants(target, mutators)
-    result.totalMutants = mutants.length
+    const mutants = await this.generateMutants(target, mutators);
+    result.totalMutants = mutants.length;
 
     // Run tests against each mutant
     for (const mutant of mutants) {
-      const testResult = await this.testMutant(mutant)
+      const testResult = await this.testMutant(mutant);
 
       if (testResult.killed) {
-        result.killed++
+        result.killed++;
       }
       else if (testResult.timeout) {
-        result.timeout++
+        result.timeout++;
       }
       else if (testResult.noCoverage) {
-        result.noCoverage++
+        result.noCoverage++;
       }
       else {
-        result.survived++
+        result.survived++;
         result.survivors.push({
           mutant: mutant.code,
           location: mutant.location,
           operator: mutant.operator,
           suggestion: await this.generateMutantKillSuggestion(mutant),
-        })
+        });
       }
     }
 
     // Calculate mutation score
-    result.mutationScore = (result.killed / (result.totalMutants - result.timeout - result.noCoverage)) * 100
+    result.mutationScore = (result.killed / (result.totalMutants - result.timeout - result.noCoverage)) * 100;
 
-    return result
+    return result;
   }
 
   /**
    * Generate property-based tests
    */
   private async generatePropertyTests(params: any): Promise<TestSuite> {
-    this.log('Generating property-based tests...')
+    this.log('Generating property-based tests...');
 
-    const { target, properties } = params
+    const { target, properties } = params;
 
     const suite: TestSuite = {
       name: `${target} Property Tests`,
@@ -430,83 +430,83 @@ export class TestingAgent extends BaseAgent {
       tests: [],
       coverage: { lines: 0, branches: 0, functions: 0, statements: 0 },
       quality: { score: 0, maintainability: 0, readability: 0, completeness: 0 },
-    }
+    };
 
     // Generate property tests for each property
     for (const property of properties) {
-      const tests = await this.generatePropertyTestCases(target, property)
-      suite.tests.push(...tests)
+      const tests = await this.generatePropertyTestCases(target, property);
+      suite.tests.push(...tests);
     }
 
-    return suite
+    return suite;
   }
 
   /**
    * Refactor tests
    */
   private async refactorTests(params: any): Promise<any> {
-    this.log('Refactoring tests...')
+    this.log('Refactoring tests...');
 
-    const { tests, goals = ['reduce-duplication', 'improve-readability', 'extract-helpers'] } = params
+    const { tests, goals = ['reduce-duplication', 'improve-readability', 'extract-helpers'] } = params;
 
-    const refactorings = []
+    const refactorings = [];
 
     for (const testFile of tests) {
-      const refactored = await this.refactorTestFile(testFile, goals)
-      refactorings.push(refactored)
+      const refactored = await this.refactorTestFile(testFile, goals);
+      refactorings.push(refactored);
     }
 
     return {
       refactorings,
       summary: this.summarizeRefactorings(refactorings),
-    }
+    };
   }
 
   /**
    * Assess test quality
    */
   private async assessTestQuality(params: any): Promise<any> {
-    this.log('Assessing test quality...')
+    this.log('Assessing test quality...');
 
-    const { suite, metrics = ['coverage', 'maintainability', 'readability', 'effectiveness'] } = params
+    const { suite, metrics = ['coverage', 'maintainability', 'readability', 'effectiveness'] } = params;
 
     const assessment = {
       overall: 0,
       metrics: {} as any,
       issues: [] as any[],
       recommendations: [] as any[],
-    }
+    };
 
     // Assess each metric
     for (const metric of metrics) {
-      assessment.metrics[metric] = await this.assessMetric(suite, metric)
+      assessment.metrics[metric] = await this.assessMetric(suite, metric);
     }
 
     // Calculate overall score
-    assessment.overall = Object.values(assessment.metrics).reduce((sum: number, score: any) => sum + score, 0) / metrics.length
+    assessment.overall = Object.values(assessment.metrics).reduce((sum: number, score: any) => sum + score, 0) / metrics.length;
 
     // Identify issues
-    assessment.issues = await this.identifyTestIssues(suite)
+    assessment.issues = await this.identifyTestIssues(suite);
 
     // Generate recommendations
-    assessment.recommendations = await this.generateQualityRecommendations(assessment)
+    assessment.recommendations = await this.generateQualityRecommendations(assessment);
 
-    return assessment
+    return assessment;
   }
 
   /**
    * Generate test fixtures
    */
   private async generateFixtures(params: any): Promise<any> {
-    this.log('Generating test fixtures...')
+    this.log('Generating test fixtures...');
 
-    const { schema, count = 10 } = params
+    const { schema, count = 10 } = params;
 
     return {
       fixtures: await this.generateFixtureData(schema, count),
       mocks: await this.generateMockData(schema),
       factories: await this.generateFactories(schema),
-    }
+    };
   }
 
   // Helper methods
@@ -516,23 +516,23 @@ export class TestingAgent extends BaseAgent {
     this.testPatterns.set('arrange-act-assert', {
       description: 'AAA pattern for test structure',
       template: '// Arrange\n// Act\n// Assert',
-    })
+    });
 
     this.testPatterns.set('given-when-then', {
       description: 'BDD-style test structure',
       template: '// Given\n// When\n// Then',
-    })
+    });
   }
 
   private async loadTestTemplates(): Promise<void> {
     // Load test templates for different frameworks
     this.testTemplates.set('vitest', {
       unit: 'describe(\'{{name}}\', () => { test(\'{{test}}\', () => { }) })',
-    })
+    });
 
     this.testTemplates.set('jest', {
       unit: 'describe(\'{{name}}\', () => { it(\'{{test}}\', () => { }) })',
-    })
+    });
   }
 
   private async analyzeTargetCode(_target: string): Promise<any> {
@@ -542,27 +542,27 @@ export class TestingAgent extends BaseAgent {
       classes: [],
       complexity: 'moderate',
       dependencies: [],
-    }
+    };
   }
 
   private async generatePositiveTests(_analysis: any, _framework: string): Promise<TestCase[]> {
     // Generate positive test cases
-    return []
+    return [];
   }
 
   private async generateNegativeTests(_analysis: any, _framework: string): Promise<TestCase[]> {
     // Generate negative test cases
-    return []
+    return [];
   }
 
   private async generateEdgeCaseTests(_analysis: any, _framework: string): Promise<TestCase[]> {
     // Generate edge case tests
-    return []
+    return [];
   }
 
   private async generateBoundaryTests(_analysis: any, _framework: string): Promise<TestCase[]> {
     // Generate boundary tests
-    return []
+    return [];
   }
 
   private async estimateCoverage(_tests: TestCase[], _target: string): Promise<any> {
@@ -572,7 +572,7 @@ export class TestingAgent extends BaseAgent {
       branches: 80,
       functions: 90,
       statements: 85,
-    }
+    };
   }
 
   private async assessSuiteQuality(_suite: TestSuite): Promise<any> {
@@ -582,12 +582,12 @@ export class TestingAgent extends BaseAgent {
       maintainability: 80,
       readability: 90,
       completeness: 85,
-    }
+    };
   }
 
   private async generateAdditionalTests(_suite: TestSuite, _target: string, _coverage: number): Promise<TestCase[]> {
     // Generate additional tests to reach coverage target
-    return []
+    return [];
   }
 
   private async collectCoverageData(_target: string): Promise<any> {
@@ -597,96 +597,96 @@ export class TestingAgent extends BaseAgent {
       branches: 70,
       functions: 80,
       statements: 75,
-    }
+    };
   }
 
   private async collectFileCoverage(_target: string): Promise<any[]> {
     // Collect per-file coverage
-    return []
+    return [];
   }
 
   private async identifyCoverageGaps(_files: any[], _threshold: number): Promise<any[]> {
     // Identify coverage gaps
-    return []
+    return [];
   }
 
   private async generateCoverageRecommendations(_gaps: any[]): Promise<any[]> {
     // Generate recommendations to improve coverage
-    return []
+    return [];
   }
 
   private async analyzeTestFile(_testFile: string): Promise<any> {
     // Analyze test file
-    return {}
+    return {};
   }
 
   private async improveTestFile(_testFile: string, _analysis: any, _goals: any): Promise<any> {
     // Improve test file
-    return {}
+    return {};
   }
 
   private summarizeImprovements(_improvements: any[]): any {
     // Summarize improvements
-    return {}
+    return {};
   }
 
   private async generateMutants(_target: string, _mutators: string[]): Promise<any[]> {
     // Generate mutants
-    return []
+    return [];
   }
 
   private async testMutant(_mutant: any): Promise<any> {
     // Test mutant
-    return { killed: true, timeout: false, noCoverage: false }
+    return { killed: true, timeout: false, noCoverage: false };
   }
 
   private async generateMutantKillSuggestion(_mutant: any): Promise<string> {
     // Generate suggestion to kill mutant
-    return 'Add test case to verify this behavior'
+    return 'Add test case to verify this behavior';
   }
 
   private async generatePropertyTestCases(_target: string, _property: string): Promise<TestCase[]> {
     // Generate property test cases
-    return []
+    return [];
   }
 
   private async refactorTestFile(_testFile: string, _goals: string[]): Promise<any> {
     // Refactor test file
-    return {}
+    return {};
   }
 
   private summarizeRefactorings(_refactorings: any[]): any {
     // Summarize refactorings
-    return {}
+    return {};
   }
 
   private async assessMetric(_suite: string, _metric: string): Promise<number> {
     // Assess specific metric
-    return 85
+    return 85;
   }
 
   private async identifyTestIssues(_suite: string): Promise<any[]> {
     // Identify test issues
-    return []
+    return [];
   }
 
   private async generateQualityRecommendations(_assessment: any): Promise<any[]> {
     // Generate quality recommendations
-    return []
+    return [];
   }
 
   private async generateFixtureData(_schema: any, _count: number): Promise<any[]> {
     // Generate fixture data
-    return []
+    return [];
   }
 
   private async generateMockData(_schema: any): Promise<any> {
     // Generate mock data
-    return {}
+    return {};
   }
 
   private async generateFactories(_schema: any): Promise<any> {
     // Generate factories
-    return {}
+    return {};
   }
 }

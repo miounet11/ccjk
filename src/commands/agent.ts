@@ -14,26 +14,26 @@
  * @module commands/agent
  */
 
-import type { AgentCapability, AgentDefinition } from '../plugins-v2/types'
-import ansis from 'ansis'
+import type { AgentCapability, AgentDefinition } from '../plugins-v2/types';
+import ansis from 'ansis';
 import {
   createAgent,
   createAgentFromTemplate,
   getAgentCreator,
   getAgentRuntime,
   getPluginManager,
-} from '../plugins-v2'
+} from '../plugins-v2';
 
 // ============================================================================
 // Command Handler
 // ============================================================================
 
 export interface AgentCommandOptions {
-  template?: string
-  skills?: string[]
-  mcp?: string[]
-  persona?: string
-  json?: boolean
+  template?: string;
+  skills?: string[];
+  mcp?: string[];
+  persona?: string;
+  json?: boolean;
 }
 
 /**
@@ -43,42 +43,42 @@ export async function handleAgentCommand(
   args: string[],
   options: AgentCommandOptions = {},
 ): Promise<void> {
-  const subcommand = args[0]
-  const restArgs = args.slice(1)
+  const subcommand = args[0];
+  const restArgs = args.slice(1);
 
   switch (subcommand) {
     case 'create':
     case 'new':
-      await createNewAgent(restArgs[0], options)
-      break
+      await createNewAgent(restArgs[0], options);
+      break;
 
     case 'list':
     case 'ls':
-      await listAgents(options)
-      break
+      await listAgents(options);
+      break;
 
     case 'info':
     case 'show':
-      await showAgentInfo(restArgs[0], options)
-      break
+      await showAgentInfo(restArgs[0], options);
+      break;
 
     case 'remove':
     case 'rm':
     case 'delete':
-      await removeAgent(restArgs[0])
-      break
+      await removeAgent(restArgs[0]);
+      break;
 
     case 'run':
     case 'start':
-      await runAgent(restArgs[0], restArgs.slice(1).join(' '))
-      break
+      await runAgent(restArgs[0], restArgs.slice(1).join(' '));
+      break;
 
     case 'templates':
-      await listTemplates(options)
-      break
+      await listTemplates(options);
+      break;
 
     default:
-      showAgentHelp()
+      showAgentHelp();
   }
 }
 
@@ -91,65 +91,65 @@ export async function handleAgentCommand(
  */
 async function createNewAgent(name: string, options: AgentCommandOptions): Promise<void> {
   if (!name) {
-    console.log(ansis.red('Error: Please specify an agent name'))
-    console.log(ansis.dim('Example: agent create my-assistant'))
-    return
+    console.log(ansis.red('Error: Please specify an agent name'));
+    console.log(ansis.dim('Example: agent create my-assistant'));
+    return;
   }
 
-  console.log(ansis.cyan(`\n🤖 Creating agent: ${name}\n`))
+  console.log(ansis.cyan(`\n🤖 Creating agent: ${name}\n`));
 
   try {
-    let agent: AgentDefinition
+    let agent: AgentDefinition;
 
     if (options.template) {
       // Create from template
-      console.log(ansis.dim(`Using template: ${options.template}`))
+      console.log(ansis.dim(`Using template: ${options.template}`));
 
       agent = await createAgentFromTemplate(options.template, {
         id: name,
         name: { 'en': name, 'zh-CN': name },
-      })
+      });
     }
     else {
       // Create custom agent
       const builder = createAgent()
         .id(name)
         .name(name)
-        .description(`Custom agent: ${name}`)
+        .description(`Custom agent: ${name}`);
 
       // Add skills
       if (options.skills && options.skills.length > 0) {
-        builder.addSkills(options.skills)
-        console.log(ansis.dim(`Adding skills: ${options.skills.join(', ')}`))
+        builder.addSkills(options.skills);
+        console.log(ansis.dim(`Adding skills: ${options.skills.join(', ')}`));
       }
 
       // Add MCP servers
       if (options.mcp && options.mcp.length > 0) {
-        builder.addMcpServers(options.mcp)
-        console.log(ansis.dim(`Adding MCP servers: ${options.mcp.join(', ')}`))
+        builder.addMcpServers(options.mcp);
+        console.log(ansis.dim(`Adding MCP servers: ${options.mcp.join(', ')}`));
       }
 
       // Set persona
       if (options.persona) {
-        builder.persona(options.persona)
+        builder.persona(options.persona);
       }
 
-      agent = await builder.save()
+      agent = await builder.save();
     }
 
-    console.log(ansis.green(`\n✅ Agent created successfully!`))
-    console.log('')
-    console.log(ansis.bold('Agent Details:'))
-    console.log(ansis.dim(`  ID: ${agent.id}`))
-    console.log(ansis.dim(`  Name: ${agent.name.en}`))
-    console.log(ansis.dim(`  Skills: ${agent.skills.length}`))
-    console.log(ansis.dim(`  MCP Servers: ${agent.mcpServers.length}`))
-    console.log(ansis.dim(`  Capabilities: ${agent.capabilities.join(', ')}`))
-    console.log('')
-    console.log(ansis.dim(`Run with: agent run ${agent.id}`))
+    console.log(ansis.green(`\n✅ Agent created successfully!`));
+    console.log('');
+    console.log(ansis.bold('Agent Details:'));
+    console.log(ansis.dim(`  ID: ${agent.id}`));
+    console.log(ansis.dim(`  Name: ${agent.name.en}`));
+    console.log(ansis.dim(`  Skills: ${agent.skills.length}`));
+    console.log(ansis.dim(`  MCP Servers: ${agent.mcpServers.length}`));
+    console.log(ansis.dim(`  Capabilities: ${agent.capabilities.join(', ')}`));
+    console.log('');
+    console.log(ansis.dim(`Run with: agent run ${agent.id}`));
   }
   catch (error) {
-    console.log(ansis.red(`❌ Failed to create agent: ${error instanceof Error ? error.message : error}`))
+    console.log(ansis.red(`❌ Failed to create agent: ${error instanceof Error ? error.message : error}`));
   }
 }
 
@@ -157,46 +157,46 @@ async function createNewAgent(name: string, options: AgentCommandOptions): Promi
  * List all agents
  */
 async function listAgents(options: AgentCommandOptions): Promise<void> {
-  const manager = await getPluginManager()
-  const agents = manager.listAgents()
+  const manager = await getPluginManager();
+  const agents = manager.listAgents();
 
   if (options.json) {
-    console.log(JSON.stringify(agents, null, 2))
-    return
+    console.log(JSON.stringify(agents, null, 2));
+    return;
   }
 
-  console.log(ansis.cyan('\n🤖 Installed Agents\n'))
+  console.log(ansis.cyan('\n🤖 Installed Agents\n'));
 
   if (agents.length === 0) {
-    console.log(ansis.dim('No agents created yet.'))
-    console.log(ansis.dim('\nCreate an agent with:'))
-    console.log(ansis.dim('  agent create my-assistant --template code-assistant'))
-    console.log(ansis.dim('  agent create my-agent --skills git-helper,code-reviewer'))
-    return
+    console.log(ansis.dim('No agents created yet.'));
+    console.log(ansis.dim('\nCreate an agent with:'));
+    console.log(ansis.dim('  agent create my-assistant --template code-assistant'));
+    console.log(ansis.dim('  agent create my-agent --skills git-helper,code-reviewer'));
+    return;
   }
 
   for (const agent of agents) {
-    const name = agent.name.en || agent.id
+    const name = agent.name.en || agent.id;
 
-    console.log(`  ${ansis.bold(name)} ${ansis.dim(`(${agent.id})`)}`)
-    console.log(ansis.dim(`    ${agent.description.en}`))
+    console.log(`  ${ansis.bold(name)} ${ansis.dim(`(${agent.id})`)}`);
+    console.log(ansis.dim(`    ${agent.description.en}`));
 
-    const badges: string[] = []
+    const badges: string[] = [];
     if (agent.skills.length > 0)
-      badges.push(`📚 ${agent.skills.length} skills`)
+      badges.push(`📚 ${agent.skills.length} skills`);
     if (agent.mcpServers.length > 0)
-      badges.push(`🔧 ${agent.mcpServers.length} MCP`)
+      badges.push(`🔧 ${agent.mcpServers.length} MCP`);
     if (agent.capabilities.length > 0)
-      badges.push(`⚡ ${agent.capabilities.length} capabilities`)
+      badges.push(`⚡ ${agent.capabilities.length} capabilities`);
 
     if (badges.length > 0) {
-      console.log(ansis.dim(`    ${badges.join(' • ')}`))
+      console.log(ansis.dim(`    ${badges.join(' • ')}`));
     }
 
-    console.log('')
+    console.log('');
   }
 
-  console.log(ansis.dim(`Total: ${agents.length} agents`))
+  console.log(ansis.dim(`Total: ${agents.length} agents`));
 }
 
 /**
@@ -204,98 +204,98 @@ async function listAgents(options: AgentCommandOptions): Promise<void> {
  */
 async function showAgentInfo(agentId: string, options: AgentCommandOptions): Promise<void> {
   if (!agentId) {
-    console.log(ansis.red('Error: Please specify an agent ID'))
-    return
+    console.log(ansis.red('Error: Please specify an agent ID'));
+    return;
   }
 
-  const manager = await getPluginManager()
-  const agent = manager.getAgent(agentId)
+  const manager = await getPluginManager();
+  const agent = manager.getAgent(agentId);
 
   if (!agent) {
-    console.log(ansis.red(`Agent not found: ${agentId}`))
-    return
+    console.log(ansis.red(`Agent not found: ${agentId}`));
+    return;
   }
 
   if (options.json) {
-    console.log(JSON.stringify(agent, null, 2))
-    return
+    console.log(JSON.stringify(agent, null, 2));
+    return;
   }
 
-  console.log('')
-  console.log(ansis.bold(ansis.cyan(`🤖 ${agent.name.en}`)))
-  console.log(ansis.dim(`ID: ${agent.id}`))
-  console.log('')
+  console.log('');
+  console.log(ansis.bold(ansis.cyan(`🤖 ${agent.name.en}`)));
+  console.log(ansis.dim(`ID: ${agent.id}`));
+  console.log('');
 
-  console.log(ansis.bold('📝 Description'))
-  console.log(ansis.dim(`  ${agent.description.en}`))
-  console.log('')
+  console.log(ansis.bold('📝 Description'));
+  console.log(ansis.dim(`  ${agent.description.en}`));
+  console.log('');
 
-  console.log(ansis.bold('🎭 Persona'))
-  console.log(ansis.dim(`  ${agent.persona.substring(0, 200)}${agent.persona.length > 200 ? '...' : ''}`))
-  console.log('')
+  console.log(ansis.bold('🎭 Persona'));
+  console.log(ansis.dim(`  ${agent.persona.substring(0, 200)}${agent.persona.length > 200 ? '...' : ''}`));
+  console.log('');
 
   if (agent.instructions) {
-    console.log(ansis.bold('📋 Instructions'))
-    const lines = agent.instructions.split('\n').slice(0, 5)
+    console.log(ansis.bold('📋 Instructions'));
+    const lines = agent.instructions.split('\n').slice(0, 5);
     for (const line of lines) {
-      console.log(ansis.dim(`  ${line}`))
+      console.log(ansis.dim(`  ${line}`));
     }
     if (agent.instructions.split('\n').length > 5) {
-      console.log(ansis.dim('  ...'))
+      console.log(ansis.dim('  ...'));
     }
-    console.log('')
+    console.log('');
   }
 
   if (agent.skills.length > 0) {
-    console.log(ansis.bold('📚 Skills'))
+    console.log(ansis.bold('📚 Skills'));
     for (const skill of agent.skills) {
-      const plugin = manager.getPlugin(skill.pluginId)
-      const name = plugin?.manifest.name.en || skill.pluginId
-      console.log(ansis.dim(`  • ${name}`))
+      const plugin = manager.getPlugin(skill.pluginId);
+      const name = plugin?.manifest.name.en || skill.pluginId;
+      console.log(ansis.dim(`  • ${name}`));
     }
-    console.log('')
+    console.log('');
   }
 
   if (agent.mcpServers.length > 0) {
-    console.log(ansis.bold('🔧 MCP Servers'))
+    console.log(ansis.bold('🔧 MCP Servers'));
     for (const mcp of agent.mcpServers) {
-      console.log(ansis.dim(`  • ${mcp.serverName}`))
+      console.log(ansis.dim(`  • ${mcp.serverName}`));
       if (mcp.tools && mcp.tools.length > 0) {
-        console.log(ansis.dim(`    Tools: ${mcp.tools.join(', ')}`))
+        console.log(ansis.dim(`    Tools: ${mcp.tools.join(', ')}`));
       }
     }
-    console.log('')
+    console.log('');
   }
 
   if (agent.capabilities.length > 0) {
-    console.log(ansis.bold('⚡ Capabilities'))
+    console.log(ansis.bold('⚡ Capabilities'));
     for (const cap of agent.capabilities) {
-      console.log(ansis.dim(`  • ${formatCapability(cap)}`))
+      console.log(ansis.dim(`  • ${formatCapability(cap)}`));
     }
-    console.log('')
+    console.log('');
   }
 
   if (agent.triggers && agent.triggers.length > 0) {
-    console.log(ansis.bold('🎯 Triggers'))
+    console.log(ansis.bold('🎯 Triggers'));
     for (const trigger of agent.triggers) {
-      console.log(ansis.dim(`  • ${trigger}`))
+      console.log(ansis.dim(`  • ${trigger}`));
     }
-    console.log('')
+    console.log('');
   }
 
   // Show system prompt preview
-  console.log(ansis.bold('💬 System Prompt Preview'))
+  console.log(ansis.bold('💬 System Prompt Preview'));
   try {
-    const runtime = await getAgentRuntime(agentId)
-    const prompt = runtime.getSystemPrompt()
-    const lines = prompt.split('\n').slice(0, 10)
+    const runtime = await getAgentRuntime(agentId);
+    const prompt = runtime.getSystemPrompt();
+    const lines = prompt.split('\n').slice(0, 10);
     for (const line of lines) {
-      console.log(ansis.dim(`  ${line}`))
+      console.log(ansis.dim(`  ${line}`));
     }
-    console.log(ansis.dim('  ...'))
+    console.log(ansis.dim('  ...'));
   }
   catch {
-    console.log(ansis.dim('  (Unable to generate preview)'))
+    console.log(ansis.dim('  (Unable to generate preview)'));
   }
 }
 
@@ -304,22 +304,22 @@ async function showAgentInfo(agentId: string, options: AgentCommandOptions): Pro
  */
 async function removeAgent(agentId: string): Promise<void> {
   if (!agentId) {
-    console.log(ansis.red('Error: Please specify an agent ID'))
-    return
+    console.log(ansis.red('Error: Please specify an agent ID'));
+    return;
   }
 
-  const manager = await getPluginManager()
-  const agent = manager.getAgent(agentId)
+  const manager = await getPluginManager();
+  const agent = manager.getAgent(agentId);
 
   if (!agent) {
-    console.log(ansis.red(`Agent not found: ${agentId}`))
-    return
+    console.log(ansis.red(`Agent not found: ${agentId}`));
+    return;
   }
 
-  console.log(ansis.yellow(`\n⚠️  Removing agent: ${agent.name.en}`))
+  console.log(ansis.yellow(`\n⚠️  Removing agent: ${agent.name.en}`));
 
   // TODO: Implement agent removal in plugin manager
-  console.log(ansis.red('Agent removal not yet implemented'))
+  console.log(ansis.red('Agent removal not yet implemented'));
 }
 
 /**
@@ -327,58 +327,58 @@ async function removeAgent(agentId: string): Promise<void> {
  */
 async function runAgent(agentId: string, task: string): Promise<void> {
   if (!agentId) {
-    console.log(ansis.red('Error: Please specify an agent ID'))
-    return
+    console.log(ansis.red('Error: Please specify an agent ID'));
+    return;
   }
 
-  const manager = await getPluginManager()
-  const agent = manager.getAgent(agentId)
+  const manager = await getPluginManager();
+  const agent = manager.getAgent(agentId);
 
   if (!agent) {
-    console.log(ansis.red(`Agent not found: ${agentId}`))
-    return
+    console.log(ansis.red(`Agent not found: ${agentId}`));
+    return;
   }
 
-  console.log(ansis.cyan(`\n🤖 Starting agent: ${agent.name.en}\n`))
+  console.log(ansis.cyan(`\n🤖 Starting agent: ${agent.name.en}\n`));
 
   try {
-    const runtime = await getAgentRuntime(agentId)
+    const runtime = await getAgentRuntime(agentId);
 
     // Show system prompt
-    console.log(ansis.bold('System Prompt:'))
-    console.log(ansis.dim('─'.repeat(60)))
-    console.log(ansis.dim(runtime.getSystemPrompt()))
-    console.log(ansis.dim('─'.repeat(60)))
-    console.log('')
+    console.log(ansis.bold('System Prompt:'));
+    console.log(ansis.dim('─'.repeat(60)));
+    console.log(ansis.dim(runtime.getSystemPrompt()));
+    console.log(ansis.dim('─'.repeat(60)));
+    console.log('');
 
     if (task) {
-      runtime.setTask(task)
-      console.log(ansis.bold('Task:'))
-      console.log(ansis.dim(task))
-      console.log('')
+      runtime.setTask(task);
+      console.log(ansis.bold('Task:'));
+      console.log(ansis.dim(task));
+      console.log('');
     }
 
     // Show skill content if available
-    const skillContent = runtime.getSkillContent()
+    const skillContent = runtime.getSkillContent();
     if (skillContent) {
-      console.log(ansis.bold('Skill Knowledge:'))
-      console.log(ansis.dim('─'.repeat(60)))
-      const lines = skillContent.split('\n').slice(0, 20)
+      console.log(ansis.bold('Skill Knowledge:'));
+      console.log(ansis.dim('─'.repeat(60)));
+      const lines = skillContent.split('\n').slice(0, 20);
       for (const line of lines) {
-        console.log(ansis.dim(line))
+        console.log(ansis.dim(line));
       }
       if (skillContent.split('\n').length > 20) {
-        console.log(ansis.dim('... (truncated)'))
+        console.log(ansis.dim('... (truncated)'));
       }
-      console.log(ansis.dim('─'.repeat(60)))
+      console.log(ansis.dim('─'.repeat(60)));
     }
 
-    console.log('')
-    console.log(ansis.green('✅ Agent ready!'))
-    console.log(ansis.dim('The system prompt and skill knowledge above can be used with Claude.'))
+    console.log('');
+    console.log(ansis.green('✅ Agent ready!'));
+    console.log(ansis.dim('The system prompt and skill knowledge above can be used with Claude.'));
   }
   catch (error) {
-    console.log(ansis.red(`❌ Failed to start agent: ${error instanceof Error ? error.message : error}`))
+    console.log(ansis.red(`❌ Failed to start agent: ${error instanceof Error ? error.message : error}`));
   }
 }
 
@@ -386,17 +386,17 @@ async function runAgent(agentId: string, task: string): Promise<void> {
  * List available templates
  */
 async function listTemplates(options: AgentCommandOptions): Promise<void> {
-  const creator = getAgentCreator()
-  const templates = creator.listTemplates()
+  const creator = getAgentCreator();
+  const templates = creator.listTemplates();
 
   if (options.json) {
-    console.log(JSON.stringify(templates, null, 2))
-    return
+    console.log(JSON.stringify(templates, null, 2));
+    return;
   }
 
-  console.log(ansis.cyan('\n📋 Available Agent Templates\n'))
+  console.log(ansis.cyan('\n📋 Available Agent Templates\n'));
 
-  const templateInfo: Record<string, { name: string, description: string, capabilities: string[] }> = {
+  const templateInfo: Record<string, { name: string; description: string; capabilities: string[] }> = {
     'code-assistant': {
       name: 'Code Assistant',
       description: 'General-purpose coding assistant',
@@ -422,24 +422,24 @@ async function listTemplates(options: AgentCommandOptions): Promise<void> {
       description: 'Full stack development assistant',
       capabilities: ['code-generation', 'code-review', 'testing', 'documentation', 'deployment'],
     },
-  }
+  };
 
   for (const templateId of templates) {
-    const info = templateInfo[templateId]
+    const info = templateInfo[templateId];
     if (info) {
-      console.log(`  ${ansis.bold(info.name)} ${ansis.dim(`(${templateId})`)}`)
-      console.log(ansis.dim(`    ${info.description}`))
-      console.log(ansis.dim(`    Capabilities: ${info.capabilities.join(', ')}`))
-      console.log('')
+      console.log(`  ${ansis.bold(info.name)} ${ansis.dim(`(${templateId})`)}`);
+      console.log(ansis.dim(`    ${info.description}`));
+      console.log(ansis.dim(`    Capabilities: ${info.capabilities.join(', ')}`));
+      console.log('');
     }
     else {
-      console.log(`  ${ansis.bold(templateId)}`)
-      console.log('')
+      console.log(`  ${ansis.bold(templateId)}`);
+      console.log('');
     }
   }
 
-  console.log(ansis.dim('Create an agent from template:'))
-  console.log(ansis.dim('  agent create my-assistant --template code-assistant'))
+  console.log(ansis.dim('Create an agent from template:'));
+  console.log(ansis.dim('  agent create my-assistant --template code-assistant'));
 }
 
 /**
@@ -458,8 +458,8 @@ function formatCapability(cap: AgentCapability): string {
     'file-management': 'File Management',
     'web-search': 'Web Search',
     'api-integration': 'API Integration',
-  }
-  return labels[cap] || cap
+  };
+  return labels[cap] || cap;
 }
 
 /**
@@ -513,11 +513,11 @@ ${ansis.bold('Agent Composition:')}
   │  │(知识库) │  │ (工具)  │  │  (行为)     │ │
   │  └─────────┘  └─────────┘  └─────────────┘ │
   └─────────────────────────────────────────────┘
-`)
+`);
 }
 
 // ============================================================================
 // Export
 // ============================================================================
 
-export default handleAgentCommand
+export default handleAgentCommand;

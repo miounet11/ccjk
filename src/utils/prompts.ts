@@ -1,17 +1,17 @@
-import type { AiOutputLanguage, CodeToolType, SupportedLang } from '../constants'
-import type { ZcfTomlConfig } from '../types/toml-config'
-import type { ZcfConfig } from './ccjk-config'
-import process from 'node:process'
-import ansis from 'ansis'
-import inquirer from 'inquirer'
-import { AI_OUTPUT_LANGUAGES, getAiOutputLanguageLabel, LANG_LABELS, SUPPORTED_LANGS } from '../constants'
-import { ensureI18nInitialized, i18n } from '../i18n'
-import { readZcfConfig, updateZcfConfig } from './ccjk-config'
-import { addNumbersToChoices } from './prompt-helpers'
-import { getRuntimeVersion } from './runtime-package'
-import { promptBoolean } from './toggle-prompt'
+import type { AiOutputLanguage, CodeToolType, SupportedLang } from '../constants';
+import type { ZcfTomlConfig } from '../types/toml-config';
+import type { ZcfConfig } from './ccjk-config';
+import process from 'node:process';
+import ansis from 'ansis';
+import inquirer from 'inquirer';
+import { AI_OUTPUT_LANGUAGES, getAiOutputLanguageLabel, LANG_LABELS, SUPPORTED_LANGS } from '../constants';
+import { ensureI18nInitialized, i18n } from '../i18n';
+import { readZcfConfig, updateZcfConfig } from './ccjk-config';
+import { addNumbersToChoices } from './prompt-helpers';
+import { getRuntimeVersion } from './runtime-package';
+import { promptBoolean } from './toggle-prompt';
 
-const ccjkVersion = getRuntimeVersion()
+const ccjkVersion = getRuntimeVersion();
 
 /**
  * Prompt user to select AI output language
@@ -19,17 +19,17 @@ const ccjkVersion = getRuntimeVersion()
 export async function selectAiOutputLanguage(
   defaultLang?: AiOutputLanguage | string,
 ): Promise<AiOutputLanguage | string> {
-  ensureI18nInitialized()
+  ensureI18nInitialized();
 
-  console.log(ansis.dim(`\n  ${i18n.t('language:aiOutputLangHint')}\n`))
+  console.log(ansis.dim(`\n  ${i18n.t('language:aiOutputLangHint')}\n`));
 
   const aiLangChoices = Object.entries(AI_OUTPUT_LANGUAGES).map(([key]) => ({
     title: getAiOutputLanguageLabel(key as AiOutputLanguage),
     value: key,
-  }))
+  }));
 
   // Set default selection
-  const defaultChoice = defaultLang || 'en'
+  const defaultChoice = defaultLang || 'en';
 
   const { lang } = await inquirer.prompt<{ lang: string }>({
     type: 'list',
@@ -40,14 +40,14 @@ export async function selectAiOutputLanguage(
       value: choice.value,
     }))),
     default: defaultChoice,
-  })
+  });
 
   if (!lang) {
-    console.log(ansis.yellow(i18n.t('common:cancelled')))
-    process.exit(0)
+    console.log(ansis.yellow(i18n.t('common:cancelled')));
+    process.exit(0);
   }
 
-  const aiOutputLang = lang as AiOutputLanguage
+  const aiOutputLang = lang as AiOutputLanguage;
 
   // If custom language selected, ask for the specific language
   if (aiOutputLang === 'custom') {
@@ -56,24 +56,24 @@ export async function selectAiOutputLanguage(
       name: 'customLang',
       message: i18n.t('language:enterCustomLanguage'),
       validate: async value => !!value || i18n.t('language:languageRequired') || 'Language is required',
-    })
+    });
 
     if (!customLang) {
-      console.log(ansis.yellow(i18n.t('common:cancelled')))
-      process.exit(0)
+      console.log(ansis.yellow(i18n.t('common:cancelled')));
+      process.exit(0);
     }
 
-    return customLang
+    return customLang;
   }
 
-  return aiOutputLang
+  return aiOutputLang;
 }
 
 // Constants for language selection (must be hardcoded bilingual since i18n is not initialized yet)
 const LANGUAGE_SELECTION_MESSAGES = {
   selectLanguage: 'Select CCJK display language / 选择CCJK显示语言',
   operationCancelled: 'Operation cancelled / 操作已取消',
-} as const
+} as const;
 
 /**
  * Select CCJK display language (for first-time users or when config is not found)
@@ -81,14 +81,14 @@ const LANGUAGE_SELECTION_MESSAGES = {
  */
 export async function selectScriptLanguage(currentLang?: SupportedLang): Promise<SupportedLang> {
   // Try to read from saved config first
-  const zcfConfig = readZcfConfig()
+  const zcfConfig = readZcfConfig();
   if (zcfConfig?.preferredLang) {
-    return zcfConfig.preferredLang
+    return zcfConfig.preferredLang;
   }
 
   // If provided as parameter, use it
   if (currentLang) {
-    return currentLang
+    return currentLang;
   }
 
   // Ask user to select
@@ -100,22 +100,22 @@ export async function selectScriptLanguage(currentLang?: SupportedLang): Promise
       name: LANG_LABELS[l],
       value: l,
     }))),
-  })
+  });
 
   if (!lang) {
-    console.log(ansis.yellow(LANGUAGE_SELECTION_MESSAGES.operationCancelled))
-    process.exit(0)
+    console.log(ansis.yellow(LANGUAGE_SELECTION_MESSAGES.operationCancelled));
+    process.exit(0);
   }
 
-  const scriptLang = lang
+  const scriptLang = lang;
 
   // Save the selected language preference
   updateZcfConfig({
     version: ccjkVersion,
     preferredLang: scriptLang,
-  })
+  });
 
-  return scriptLang
+  return scriptLang;
 }
 
 /**
@@ -128,60 +128,60 @@ export async function resolveAiOutputLanguage(
   savedConfig?: ZcfConfig | null,
   skipPrompt?: boolean,
 ): Promise<AiOutputLanguage | string> {
-  ensureI18nInitialized()
+  ensureI18nInitialized();
 
   // Priority 1: Command line option
   if (commandLineOption) {
-    return commandLineOption
+    return commandLineOption;
   }
 
   // Priority 2: Check saved config
   if (savedConfig?.aiOutputLang) {
     if (skipPrompt) {
       // Non-interactive mode: return saved config directly
-      return savedConfig.aiOutputLang
+      return savedConfig.aiOutputLang;
     }
 
     // Interactive mode: ask for modification
-    const currentLanguageLabel = getAiOutputLanguageLabel(savedConfig.aiOutputLang as AiOutputLanguage) || savedConfig.aiOutputLang
-    console.log(ansis.green(`${i18n.t('language:currentConfigFound')}: ${currentLanguageLabel}`))
+    const currentLanguageLabel = getAiOutputLanguageLabel(savedConfig.aiOutputLang as AiOutputLanguage) || savedConfig.aiOutputLang;
+    console.log(ansis.green(`${i18n.t('language:currentConfigFound')}: ${currentLanguageLabel}`));
 
     const shouldModify = await promptBoolean({
       message: i18n.t('language:modifyConfigPrompt'),
       defaultValue: false,
-    })
+    });
 
     if (!shouldModify) {
-      console.log(ansis.gray(`✔ ${i18n.t('language:aiOutputLangHint')}: ${currentLanguageLabel}`))
-      return savedConfig.aiOutputLang
+      console.log(ansis.gray(`✔ ${i18n.t('language:aiOutputLangHint')}: ${currentLanguageLabel}`));
+      return savedConfig.aiOutputLang;
     }
 
     // User wants to modify, proceed to language selection
-    return await selectAiOutputLanguage(scriptLang)
+    return await selectAiOutputLanguage(scriptLang);
   }
 
   // Priority 3: No saved config
   if (skipPrompt) {
     // Non-interactive mode: fallback to script language
-    return scriptLang
+    return scriptLang;
   }
 
   // Interactive mode: ask user to select
-  return await selectAiOutputLanguage(scriptLang)
+  return await selectAiOutputLanguage(scriptLang);
 }
 
 /**
  * Prompt user to select template language
  */
 export async function selectTemplateLanguage(codeTool?: CodeToolType): Promise<SupportedLang> {
-  ensureI18nInitialized()
-  const runtimeLabel = codeTool === 'clavue' ? 'Clavue' : 'Claude Code'
+  ensureI18nInitialized();
+  const runtimeLabel = codeTool === 'clavue' ? 'Clavue' : 'Claude Code';
 
   // Create static language hint keys for i18n-ally compatibility
   const LANG_HINT_KEYS = {
     'zh-CN': i18n.t('language:configLangHint.zh-CN'),
     'en': i18n.t('language:configLangHint.en'),
-  } as const
+  } as const;
 
   const { lang } = await inquirer.prompt<{ lang: SupportedLang }>({
     type: 'list',
@@ -193,14 +193,14 @@ export async function selectTemplateLanguage(codeTool?: CodeToolType): Promise<S
         value: l,
       })),
     ),
-  })
+  });
 
   if (!lang) {
-    console.log(ansis.yellow(i18n.t('common:cancelled')))
-    process.exit(0)
+    console.log(ansis.yellow(i18n.t('common:cancelled')));
+    process.exit(0);
   }
 
-  return lang
+  return lang;
 }
 
 /**
@@ -213,71 +213,71 @@ export async function resolveTemplateLanguage(
   skipPrompt?: boolean,
   codeTool?: CodeToolType,
 ): Promise<SupportedLang> {
-  ensureI18nInitialized()
-  const runtimeLabel = codeTool === 'clavue' ? 'Clavue' : 'Claude Code'
+  ensureI18nInitialized();
+  const runtimeLabel = codeTool === 'clavue' ? 'Clavue' : 'Claude Code';
 
   // Priority 1: Command line option
   if (commandLineOption) {
-    return commandLineOption
+    return commandLineOption;
   }
 
   // Priority 2: Check saved template language config
   if (savedConfig?.templateLang) {
     if (skipPrompt) {
       // Non-interactive mode: return saved config directly
-      return savedConfig.templateLang
+      return savedConfig.templateLang;
     }
 
     // Interactive mode: ask for modification
-    const currentLanguageLabel = LANG_LABELS[savedConfig.templateLang]
-    console.log(ansis.green(`${i18n.t('language:currentTemplateLanguageFound')}: ${currentLanguageLabel}`))
+    const currentLanguageLabel = LANG_LABELS[savedConfig.templateLang];
+    console.log(ansis.green(`${i18n.t('language:currentTemplateLanguageFound')}: ${currentLanguageLabel}`));
 
     const shouldModify = await promptBoolean({
       message: i18n.t('language:modifyTemplateLanguagePrompt'),
       defaultValue: false,
-    })
+    });
 
     if (!shouldModify) {
-      console.log(ansis.gray(`✔ ${i18n.t('language:selectConfigLang', { runtime: runtimeLabel })}: ${currentLanguageLabel}`))
-      return savedConfig.templateLang
+      console.log(ansis.gray(`✔ ${i18n.t('language:selectConfigLang', { runtime: runtimeLabel })}: ${currentLanguageLabel}`));
+      return savedConfig.templateLang;
     }
 
     // User wants to modify, proceed to language selection
-    return await selectTemplateLanguage(codeTool)
+    return await selectTemplateLanguage(codeTool);
   }
 
   // Priority 3: Backward compatibility - use preferredLang if templateLang is not set
   if (savedConfig?.preferredLang && !savedConfig?.templateLang) {
     if (skipPrompt) {
       // Non-interactive mode: return fallback directly
-      return savedConfig.preferredLang
+      return savedConfig.preferredLang;
     }
 
     // Interactive mode: ask for modification
-    console.log(ansis.yellow(`${i18n.t('language:usingFallbackTemplate')}: ${LANG_LABELS[savedConfig.preferredLang]}`))
+    console.log(ansis.yellow(`${i18n.t('language:usingFallbackTemplate')}: ${LANG_LABELS[savedConfig.preferredLang]}`));
 
     const shouldModify = await promptBoolean({
       message: i18n.t('language:modifyTemplateLanguagePrompt'),
       defaultValue: false,
-    })
+    });
 
     if (!shouldModify) {
       // First time migration - save the preferred language as template language
-      return savedConfig.preferredLang
+      return savedConfig.preferredLang;
     }
 
     // User wants to modify, proceed to language selection
-    return await selectTemplateLanguage(codeTool)
+    return await selectTemplateLanguage(codeTool);
   }
 
   // Priority 4: No saved config
   if (skipPrompt) {
     // Non-interactive mode: default to English
-    return 'en'
+    return 'en';
   }
 
   // Interactive mode: ask user to select
-  return await selectTemplateLanguage(codeTool)
+  return await selectTemplateLanguage(codeTool);
 }
 
 /**
@@ -285,40 +285,40 @@ export async function resolveTemplateLanguage(
  * Priority: 1. Command line option, 2. Saved config, 3. Ask user
  */
 export async function resolveSystemPromptStyle(
-  availablePrompts: Array<{ id: string, name: string, description: string }>,
+  availablePrompts: Array<{ id: string; name: string; description: string }>,
   commandLineOption?: string,
   savedConfig?: ZcfTomlConfig | null,
   skipPrompt?: boolean,
 ): Promise<string> {
-  ensureI18nInitialized()
+  ensureI18nInitialized();
 
   // Priority 1: Command line option
   if (commandLineOption && availablePrompts.some(p => p.id === commandLineOption)) {
-    return commandLineOption
+    return commandLineOption;
   }
 
   // Priority 2: Check saved config
   if (savedConfig?.codex?.systemPromptStyle) {
-    const currentStyleId = savedConfig.codex.systemPromptStyle
-    const currentStyle = availablePrompts.find(p => p.id === currentStyleId)
+    const currentStyleId = savedConfig.codex.systemPromptStyle;
+    const currentStyle = availablePrompts.find(p => p.id === currentStyleId);
 
     if (currentStyle) {
       if (skipPrompt) {
         // Non-interactive mode: return saved config directly
-        return currentStyleId
+        return currentStyleId;
       }
 
       // Interactive mode: ask for modification
-      console.log(ansis.green(`${i18n.t('language:currentSystemPromptFound')}: ${currentStyle.name}`))
+      console.log(ansis.green(`${i18n.t('language:currentSystemPromptFound')}: ${currentStyle.name}`));
 
       const shouldModify = await promptBoolean({
         message: i18n.t('language:modifySystemPromptPrompt'),
         defaultValue: false,
-      })
+      });
 
       if (!shouldModify) {
-        console.log(ansis.gray(`✔ ${i18n.t('language:currentSystemPromptFound')}: ${currentStyle.name}`))
-        return currentStyleId
+        console.log(ansis.gray(`✔ ${i18n.t('language:currentSystemPromptFound')}: ${currentStyle.name}`));
+        return currentStyleId;
       }
     }
   }
@@ -326,7 +326,7 @@ export async function resolveSystemPromptStyle(
   // Priority 3: No saved config
   if (skipPrompt) {
     // Non-interactive mode: default to senior-architect
-    return 'senior-architect'
+    return 'senior-architect';
   }
 
   // Interactive mode: ask user to select
@@ -339,12 +339,12 @@ export async function resolveSystemPromptStyle(
       value: style.id,
     }))),
     default: 'senior-architect', // Default to senior-architect
-  }])
+  }]);
 
   if (!systemPrompt) {
-    console.log(ansis.yellow(i18n.t('common:cancelled')))
-    process.exit(0)
+    console.log(ansis.yellow(i18n.t('common:cancelled')));
+    process.exit(0);
   }
 
-  return systemPrompt
+  return systemPrompt;
 }

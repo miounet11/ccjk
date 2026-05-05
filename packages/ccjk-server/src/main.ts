@@ -91,7 +91,8 @@ async function main() {
     console.log(`   HTTP: http://0.0.0.0:${CONFIG.port}`);
     console.log(`   Socket.IO: Ready for connections`);
     console.log(`   Environment: ${CONFIG.nodeEnv}`);
-  } catch (error) {
+  }
+  catch (error) {
     console.error('❌ Failed to start server:', error);
     await disconnectDatabase();
     process.exit(1);

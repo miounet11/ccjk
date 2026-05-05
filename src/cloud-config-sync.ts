@@ -14,41 +14,41 @@
  * @module cloud-config-sync
  */
 
-import type { ApiProviderPreset } from './config/api-providers'
-import { EventEmitter } from 'node:events'
-import { CCJK_CLOUD_API_URL } from './constants'
+import type { ApiProviderPreset } from './config/api-providers';
+import { EventEmitter } from 'node:events';
+import { CCJK_CLOUD_API_URL } from './constants';
 
 /**
  * Cloud API response structure
  */
 interface CloudApiResponse<T = unknown> {
-  success: boolean
-  data?: T
+  success: boolean;
+  data?: T;
   error?: {
-    message?: string
-  }
+    message?: string;
+  };
 }
 
 /**
  * Cloud sync event types
  */
-export type CloudSyncEventType = 'sync-started' | 'sync-completed' | 'sync-failed' | 'config-updated'
+export type CloudSyncEventType = 'sync-started' | 'sync-completed' | 'sync-failed' | 'config-updated';
 
 /**
  * Cloud sync event data
  */
 export interface CloudSyncEvent {
   /** Event type */
-  type: CloudSyncEventType
+  type: CloudSyncEventType;
 
   /** Event timestamp */
-  timestamp: Date
+  timestamp: Date;
 
   /** Updated configuration data (for config-updated events) */
-  data?: any
+  data?: any;
 
   /** Error information (for sync-failed events) */
-  error?: Error
+  error?: Error;
 }
 
 /**
@@ -59,42 +59,42 @@ export interface CloudSyncOptions {
    * Sync interval in milliseconds
    * @default 300000 (5 minutes)
    */
-  syncInterval?: number
+  syncInterval?: number;
 
   /**
    * API endpoint URL
    * @default CCJK_CLOUD_API_URL
    */
-  apiEndpoint?: string
+  apiEndpoint?: string;
 
   /**
    * Request timeout in milliseconds
    * @default 5000 (5 seconds)
    */
-  timeout?: number
+  timeout?: number;
 
   /**
    * Maximum retry attempts on failure
    * @default 3
    */
-  maxRetries?: number
+  maxRetries?: number;
 
   /**
    * Initial retry delay in milliseconds
    * @default 1000 (1 second)
    */
-  retryDelay?: number
+  retryDelay?: number;
 
   /**
    * Whether to sync immediately on start
    * @default true
    */
-  syncOnStart?: boolean
+  syncOnStart?: boolean;
 
   /**
    * API key for authenticated requests (optional)
    */
-  apiKey?: string
+  apiKey?: string;
 }
 
 /**
@@ -102,25 +102,25 @@ export interface CloudSyncOptions {
  */
 export interface CloudSyncStats {
   /** Total number of sync attempts */
-  totalSyncs: number
+  totalSyncs: number;
 
   /** Number of successful syncs */
-  successfulSyncs: number
+  successfulSyncs: number;
 
   /** Number of failed syncs */
-  failedSyncs: number
+  failedSyncs: number;
 
   /** Last sync timestamp */
-  lastSyncAt: Date | null
+  lastSyncAt: Date | null;
 
   /** Last successful sync timestamp */
-  lastSuccessAt: Date | null
+  lastSuccessAt: Date | null;
 
   /** Last error */
-  lastError: Error | null
+  lastError: Error | null;
 
   /** Current sync status */
-  isRunning: boolean
+  isRunning: boolean;
 }
 
 /**
@@ -156,9 +156,9 @@ export interface CloudSyncStats {
  * ```
  */
 export class CloudConfigSync extends EventEmitter {
-  private options: Required<Omit<CloudSyncOptions, 'apiKey'>> & { apiKey?: string }
-  private syncTimer: NodeJS.Timeout | null = null
-  private isRunning = false
+  private options: Required<Omit<CloudSyncOptions, 'apiKey'>> & { apiKey?: string };
+  private syncTimer: NodeJS.Timeout | null = null;
+  private isRunning = false;
   private stats: CloudSyncStats = {
     totalSyncs: 0,
     successfulSyncs: 0,
@@ -167,9 +167,9 @@ export class CloudConfigSync extends EventEmitter {
     lastSuccessAt: null,
     lastError: null,
     isRunning: false,
-  }
+  };
 
-  private lastConfigHash: string | null = null
+  private lastConfigHash: string | null = null;
 
   /**
    * Create a new cloud configuration synchronizer
@@ -185,7 +185,7 @@ export class CloudConfigSync extends EventEmitter {
    * ```
    */
   constructor(options: CloudSyncOptions = {}) {
-    super()
+    super();
 
     // Set default options
     this.options = {
@@ -196,7 +196,7 @@ export class CloudConfigSync extends EventEmitter {
       retryDelay: options.retryDelay ?? 1000, // 1 second
       syncOnStart: options.syncOnStart ?? true,
       apiKey: options.apiKey,
-    }
+    };
   }
 
   /**
@@ -218,26 +218,26 @@ export class CloudConfigSync extends EventEmitter {
    */
   startSync(interval?: number): void {
     if (this.isRunning) {
-      throw new Error('Cloud sync is already running. Call stopSync() first.')
+      throw new Error('Cloud sync is already running. Call stopSync() first.');
     }
 
-    const syncInterval = interval ?? this.options.syncInterval
-    this.isRunning = true
-    this.stats.isRunning = true
+    const syncInterval = interval ?? this.options.syncInterval;
+    this.isRunning = true;
+    this.stats.isRunning = true;
 
     // Perform immediate sync if configured
     if (this.options.syncOnStart) {
       this.forceSync().catch((error) => {
-        this.emit('error', error)
-      })
+        this.emit('error', error);
+      });
     }
 
     // Set up periodic sync
     this.syncTimer = setInterval(() => {
       this.forceSync().catch((error) => {
-        this.emit('error', error)
-      })
-    }, syncInterval)
+        this.emit('error', error);
+      });
+    }, syncInterval);
   }
 
   /**
@@ -253,12 +253,12 @@ export class CloudConfigSync extends EventEmitter {
    */
   stopSync(): void {
     if (this.syncTimer) {
-      clearInterval(this.syncTimer)
-      this.syncTimer = null
+      clearInterval(this.syncTimer);
+      this.syncTimer = null;
     }
 
-    this.isRunning = false
-    this.stats.isRunning = false
+    this.isRunning = false;
+    this.stats.isRunning = false;
   }
 
   /**
@@ -280,60 +280,60 @@ export class CloudConfigSync extends EventEmitter {
    * ```
    */
   async forceSync(): Promise<void> {
-    this.stats.totalSyncs++
-    this.stats.lastSyncAt = new Date()
+    this.stats.totalSyncs++;
+    this.stats.lastSyncAt = new Date();
 
     const event: CloudSyncEvent = {
       type: 'sync-started',
       timestamp: new Date(),
-    }
-    this.emit('sync-started', event)
+    };
+    this.emit('sync-started', event);
 
     try {
       // Fetch configuration from cloud with retry logic
-      const config = await this.fetchWithRetry()
+      const config = await this.fetchWithRetry();
 
       // Check if configuration has changed
-      const configHash = this.hashConfig(config)
+      const configHash = this.hashConfig(config);
       if (configHash !== this.lastConfigHash) {
-        this.lastConfigHash = configHash
+        this.lastConfigHash = configHash;
 
         // Emit config update event
         const updateEvent: CloudSyncEvent = {
           type: 'config-updated',
           timestamp: new Date(),
           data: config,
-        }
-        this.emit('config-updated', updateEvent)
+        };
+        this.emit('config-updated', updateEvent);
       }
 
       // Update stats
-      this.stats.successfulSyncs++
-      this.stats.lastSuccessAt = new Date()
-      this.stats.lastError = null
+      this.stats.successfulSyncs++;
+      this.stats.lastSuccessAt = new Date();
+      this.stats.lastError = null;
 
       // Emit completion event
       const completeEvent: CloudSyncEvent = {
         type: 'sync-completed',
         timestamp: new Date(),
         data: config,
-      }
-      this.emit('sync-completed', completeEvent)
+      };
+      this.emit('sync-completed', completeEvent);
     }
     catch (error) {
       // Update stats
-      this.stats.failedSyncs++
-      this.stats.lastError = error instanceof Error ? error : new Error(String(error))
+      this.stats.failedSyncs++;
+      this.stats.lastError = error instanceof Error ? error : new Error(String(error));
 
       // Emit failure event
       const failEvent: CloudSyncEvent = {
         type: 'sync-failed',
         timestamp: new Date(),
         error: this.stats.lastError,
-      }
-      this.emit('sync-failed', failEvent)
+      };
+      this.emit('sync-failed', failEvent);
 
-      throw error
+      throw error;
     }
   }
 
@@ -354,13 +354,13 @@ export class CloudConfigSync extends EventEmitter {
    * ```
    */
   onConfigUpdate(callback: (event: CloudSyncEvent) => void): () => void {
-    const handler = (event: CloudSyncEvent): void => callback(event)
-    this.on('config-updated', handler)
+    const handler = (event: CloudSyncEvent): void => callback(event);
+    this.on('config-updated', handler);
 
     // Return unsubscribe function
     return (): void => {
-      this.off('config-updated', handler)
-    }
+      this.off('config-updated', handler);
+    };
   }
 
   /**
@@ -375,7 +375,7 @@ export class CloudConfigSync extends EventEmitter {
    * ```
    */
   getStats(): CloudSyncStats {
-    return { ...this.stats }
+    return { ...this.stats };
   }
 
   /**
@@ -384,7 +384,7 @@ export class CloudConfigSync extends EventEmitter {
    * @returns true if sync is active
    */
   isActive(): boolean {
-    return this.isRunning
+    return this.isRunning;
   }
 
   /**
@@ -396,25 +396,25 @@ export class CloudConfigSync extends EventEmitter {
    * @private
    */
   private async fetchWithRetry(): Promise<any> {
-    let lastError: Error | null = null
+    let lastError: Error | null = null;
 
     for (let attempt = 0; attempt < this.options.maxRetries; attempt++) {
       try {
-        return await this.fetchConfig()
+        return await this.fetchConfig();
       }
       catch (error) {
-        lastError = error instanceof Error ? error : new Error(String(error))
+        lastError = error instanceof Error ? error : new Error(String(error));
 
         // Don't retry on last attempt
         if (attempt < this.options.maxRetries - 1) {
           // Exponential backoff
-          const delay = this.options.retryDelay * (2 ** attempt)
-          await this.sleep(delay)
+          const delay = this.options.retryDelay * (2 ** attempt);
+          await this.sleep(delay);
         }
       }
     }
 
-    throw lastError || new Error('Failed to fetch configuration after retries')
+    throw lastError || new Error('Failed to fetch configuration after retries');
   }
 
   /**
@@ -426,33 +426,33 @@ export class CloudConfigSync extends EventEmitter {
    * @private
    */
   private async fetchConfig(): Promise<any> {
-    const url = `${this.options.apiEndpoint}/providers`
+    const url = `${this.options.apiEndpoint}/providers`;
 
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-    }
+    };
 
     if (this.options.apiKey) {
-      headers.Authorization = `Bearer ${this.options.apiKey}`
+      headers.Authorization = `Bearer ${this.options.apiKey}`;
     }
 
     const response = await fetch(url, {
       method: 'GET',
       headers,
       signal: AbortSignal.timeout(this.options.timeout),
-    })
+    });
 
     if (!response.ok) {
-      throw new Error(`Cloud API returned ${response.status}: ${response.statusText}`)
+      throw new Error(`Cloud API returned ${response.status}: ${response.statusText}`);
     }
 
-    const result = await response.json() as CloudApiResponse
+    const result = await response.json() as CloudApiResponse;
 
     if (!result.success) {
-      throw new Error(result.error?.message || 'Cloud API returned error')
+      throw new Error(result.error?.message || 'Cloud API returned error');
     }
 
-    return result.data
+    return result.data;
   }
 
   /**
@@ -466,7 +466,7 @@ export class CloudConfigSync extends EventEmitter {
   private hashConfig(config: any): string {
     // Simple hash using JSON stringification
     // In production, consider using a proper hash function
-    return JSON.stringify(config)
+    return JSON.stringify(config);
   }
 
   /**
@@ -477,7 +477,7 @@ export class CloudConfigSync extends EventEmitter {
    * @private
    */
   private sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms))
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 }
 
@@ -495,7 +495,7 @@ export class CloudConfigSync extends EventEmitter {
  * ```
  */
 export function createCloudConfigSync(options?: CloudSyncOptions): CloudConfigSync {
-  return new CloudConfigSync(options)
+  return new CloudConfigSync(options);
 }
 
 /**
@@ -517,7 +517,7 @@ export async function fetchCloudProviders(
   apiEndpoint?: string,
   timeout = 5000,
 ): Promise<ApiProviderPreset[]> {
-  const url = `${apiEndpoint || CCJK_CLOUD_API_URL}/providers`
+  const url = `${apiEndpoint || CCJK_CLOUD_API_URL}/providers`;
 
   try {
     const response = await fetch(url, {
@@ -526,21 +526,21 @@ export async function fetchCloudProviders(
         'Content-Type': 'application/json',
       },
       signal: AbortSignal.timeout(timeout),
-    })
+    });
 
     if (!response.ok) {
-      return []
+      return [];
     }
 
-    const result = await response.json() as CloudApiResponse<ApiProviderPreset[]>
+    const result = await response.json() as CloudApiResponse<ApiProviderPreset[]>;
     if (result.success && Array.isArray(result.data)) {
-      return result.data.map((p: ApiProviderPreset) => ({ ...p, isCloud: true }))
+      return result.data.map((p: ApiProviderPreset) => ({ ...p, isCloud: true }));
     }
 
-    return []
+    return [];
   }
   catch {
     // Silently fail and return empty array
-    return []
+    return [];
   }
 }

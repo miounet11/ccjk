@@ -18,26 +18,26 @@ import type {
   UpdateSkillRequest,
   UserSkill,
   UserSkillsResponse,
-} from './skills-marketplace-types'
-import { SkillsMarketplaceApiError } from './skills-marketplace-api'
-import { CLOUD_ENDPOINTS } from '../constants'
+} from './skills-marketplace-types';
+import { CLOUD_ENDPOINTS } from '../constants';
+import { SkillsMarketplaceApiError } from './skills-marketplace-api';
 
 // ============================================================================
 // Configuration
 // ============================================================================
 
-const API_BASE_URL = `${CLOUD_ENDPOINTS.MAIN.BASE_URL}${CLOUD_ENDPOINTS.MAIN.API_VERSION}`
+const API_BASE_URL = `${CLOUD_ENDPOINTS.MAIN.BASE_URL}${CLOUD_ENDPOINTS.MAIN.API_VERSION}`;
 
 /**
  * Request options for authenticated requests
  */
 export interface AuthRequestOptions {
   /** Bearer token for authentication */
-  token: string
+  token: string;
   /** AbortController signal for request cancellation */
-  signal?: AbortSignal
+  signal?: AbortSignal;
   /** Request timeout in milliseconds (default: 30000) */
-  timeout?: number
+  timeout?: number;
 }
 
 // ============================================================================
@@ -48,17 +48,17 @@ export interface AuthRequestOptions {
  * Build URL with query parameters
  */
 function buildUrl(endpoint: string, params?: Record<string, unknown>): string {
-  const url = new URL(`${API_BASE_URL}${endpoint}`)
+  const url = new URL(`${API_BASE_URL}${endpoint}`);
 
   if (params) {
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined && value !== null) {
-        url.searchParams.append(key, String(value))
+        url.searchParams.append(key, String(value));
       }
-    })
+    });
   }
 
-  return url.toString()
+  return url.toString();
 }
 
 /**
@@ -70,14 +70,14 @@ async function authenticatedRequest<T>(
   options: AuthRequestOptions,
   body?: unknown,
 ): Promise<T> {
-  const { token, signal, timeout = 30000 } = options
-  const url = buildUrl(endpoint)
+  const { token, signal, timeout = 30000 } = options;
+  const url = buildUrl(endpoint);
 
-  const controller = new AbortController()
-  const timeoutId = setTimeout(() => controller.abort(), timeout)
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
 
   // Use provided signal or our timeout controller
-  const requestSignal = signal || controller.signal
+  const requestSignal = signal || controller.signal;
 
   try {
     const response = await fetch(url, {
@@ -89,24 +89,24 @@ async function authenticatedRequest<T>(
       },
       body: body ? JSON.stringify(body) : undefined,
       signal: requestSignal,
-    })
+    });
 
-    clearTimeout(timeoutId)
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
-      let errorData: unknown
-      let errorMessage = `HTTP ${response.status}: ${response.statusText}`
-      let errorCode: string | undefined
+      let errorData: unknown;
+      let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+      let errorCode: string | undefined;
 
       try {
-        errorData = await response.json()
+        errorData = await response.json();
         if (typeof errorData === 'object' && errorData !== null) {
-          const err = errorData as Record<string, unknown>
+          const err = errorData as Record<string, unknown>;
           if (typeof err.error === 'string') {
-            errorMessage = err.error
+            errorMessage = err.error;
           }
           if (typeof err.code === 'string') {
-            errorCode = err.code
+            errorCode = err.code;
           }
         }
       }
@@ -114,17 +114,17 @@ async function authenticatedRequest<T>(
         // Ignore JSON parse errors for error response
       }
 
-      throw new SkillsMarketplaceApiError(errorMessage, response.status, errorCode, errorData)
+      throw new SkillsMarketplaceApiError(errorMessage, response.status, errorCode, errorData);
     }
 
-    const apiResponse = (await response.json()) as ApiResponse<T>
+    const apiResponse = (await response.json()) as ApiResponse<T>;
 
     if (!apiResponse.success) {
       throw new SkillsMarketplaceApiError(
         apiResponse.error || 'Request failed',
         response.status,
         apiResponse.code,
-      )
+      );
     }
 
     if (!apiResponse.data) {
@@ -132,22 +132,22 @@ async function authenticatedRequest<T>(
         'No data in response',
         response.status,
         'NO_DATA',
-      )
+      );
     }
 
-    return apiResponse.data
+    return apiResponse.data;
   }
   catch (error) {
-    clearTimeout(timeoutId)
+    clearTimeout(timeoutId);
 
     // Re-throw API errors
     if (error instanceof SkillsMarketplaceApiError) {
-      throw error
+      throw error;
     }
 
     // Handle abort errors
     if (error instanceof Error && error.name === 'AbortError') {
-      throw new SkillsMarketplaceApiError('Request was cancelled', 0, 'ABORT_ERROR')
+      throw new SkillsMarketplaceApiError('Request was cancelled', 0, 'ABORT_ERROR');
     }
 
     // Handle network errors
@@ -156,7 +156,7 @@ async function authenticatedRequest<T>(
         'Network error: Unable to connect to the API',
         0,
         'NETWORK_ERROR',
-      )
+      );
     }
 
     // Handle other errors
@@ -164,7 +164,7 @@ async function authenticatedRequest<T>(
       error instanceof Error ? error.message : 'Unknown error occurred',
       0,
       'UNKNOWN_ERROR',
-    )
+    );
   }
 }
 
@@ -195,14 +195,14 @@ export async function getUserSkills(
       'User ID is required',
       400,
       'INVALID_PARAMS',
-    )
+    );
   }
 
   return authenticatedRequest<UserSkillsResponse>(
     'GET',
     `/users/${userId}/skills`,
     options,
-  )
+  );
 }
 
 /**
@@ -234,7 +234,7 @@ export async function installSkill(
       'User ID is required',
       400,
       'INVALID_PARAMS',
-    )
+    );
   }
 
   if (!request.skillId || request.skillId.trim() === '') {
@@ -242,7 +242,7 @@ export async function installSkill(
       'Skill ID is required',
       400,
       'INVALID_PARAMS',
-    )
+    );
   }
 
   return authenticatedRequest<InstallResponse>(
@@ -250,7 +250,7 @@ export async function installSkill(
     `/users/${userId}/skills`,
     options,
     request,
-  )
+  );
 }
 
 /**
@@ -282,7 +282,7 @@ export async function uninstallSkill(
       'User ID is required',
       400,
       'INVALID_PARAMS',
-    )
+    );
   }
 
   if (!skillId || skillId.trim() === '') {
@@ -290,14 +290,14 @@ export async function uninstallSkill(
       'Skill ID is required',
       400,
       'INVALID_PARAMS',
-    )
+    );
   }
 
   return authenticatedRequest<UninstallResponse>(
     'DELETE',
     `/users/${userId}/skills/${skillId}`,
     options,
-  )
+  );
 }
 
 /**
@@ -332,7 +332,7 @@ export async function updateSkill(
       'User ID is required',
       400,
       'INVALID_PARAMS',
-    )
+    );
   }
 
   if (!skillId || skillId.trim() === '') {
@@ -340,7 +340,7 @@ export async function updateSkill(
       'Skill ID is required',
       400,
       'INVALID_PARAMS',
-    )
+    );
   }
 
   if (!request.isEnabled && !request.config) {
@@ -348,7 +348,7 @@ export async function updateSkill(
       'At least one of isEnabled or config must be provided',
       400,
       'INVALID_PARAMS',
-    )
+    );
   }
 
   return authenticatedRequest<UpdateResponse>(
@@ -356,7 +356,7 @@ export async function updateSkill(
     `/users/${userId}/skills/${skillId}`,
     options,
     request,
-  )
+  );
 }
 
 /**
@@ -388,16 +388,16 @@ export async function getRecommendations(
       'User ID is required',
       400,
       'INVALID_PARAMS',
-    )
+    );
   }
 
-  const endpoint = `/users/${userId}/recommendations`
-  const url = buildUrl(endpoint, params as Record<string, unknown>)
+  const endpoint = `/users/${userId}/recommendations`;
+  const url = buildUrl(endpoint, params as Record<string, unknown>);
 
-  const { token, signal, timeout = 30000 } = options
-  const controller = new AbortController()
-  const timeoutId = setTimeout(() => controller.abort(), timeout)
-  const requestSignal = signal || controller.signal
+  const { token, signal, timeout = 30000 } = options;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+  const requestSignal = signal || controller.signal;
 
   try {
     const response = await fetch(url, {
@@ -408,24 +408,24 @@ export async function getRecommendations(
         'Authorization': `Bearer ${token}`,
       },
       signal: requestSignal,
-    })
+    });
 
-    clearTimeout(timeoutId)
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
-      let errorData: unknown
-      let errorMessage = `HTTP ${response.status}: ${response.statusText}`
-      let errorCode: string | undefined
+      let errorData: unknown;
+      let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+      let errorCode: string | undefined;
 
       try {
-        errorData = await response.json()
+        errorData = await response.json();
         if (typeof errorData === 'object' && errorData !== null) {
-          const err = errorData as Record<string, unknown>
+          const err = errorData as Record<string, unknown>;
           if (typeof err.error === 'string') {
-            errorMessage = err.error
+            errorMessage = err.error;
           }
           if (typeof err.code === 'string') {
-            errorCode = err.code
+            errorCode = err.code;
           }
         }
       }
@@ -433,30 +433,30 @@ export async function getRecommendations(
         // Ignore JSON parse errors
       }
 
-      throw new SkillsMarketplaceApiError(errorMessage, response.status, errorCode, errorData)
+      throw new SkillsMarketplaceApiError(errorMessage, response.status, errorCode, errorData);
     }
 
-    const apiResponse = (await response.json()) as ApiResponse<RecommendationsResponse>
+    const apiResponse = (await response.json()) as ApiResponse<RecommendationsResponse>;
 
     if (!apiResponse.success || !apiResponse.data) {
       throw new SkillsMarketplaceApiError(
         apiResponse.error || 'Request failed',
         response.status,
         apiResponse.code,
-      )
+      );
     }
 
-    return apiResponse.data
+    return apiResponse.data;
   }
   catch (error) {
-    clearTimeout(timeoutId)
+    clearTimeout(timeoutId);
 
     if (error instanceof SkillsMarketplaceApiError) {
-      throw error
+      throw error;
     }
 
     if (error instanceof Error && error.name === 'AbortError') {
-      throw new SkillsMarketplaceApiError('Request was cancelled', 0, 'ABORT_ERROR')
+      throw new SkillsMarketplaceApiError('Request was cancelled', 0, 'ABORT_ERROR');
     }
 
     if (error instanceof TypeError && error.message.includes('fetch')) {
@@ -464,14 +464,14 @@ export async function getRecommendations(
         'Network error: Unable to connect to the API',
         0,
         'NETWORK_ERROR',
-      )
+      );
     }
 
     throw new SkillsMarketplaceApiError(
       error instanceof Error ? error.message : 'Unknown error occurred',
       0,
       'UNKNOWN_ERROR',
-    )
+    );
   }
 }
 
@@ -499,14 +499,14 @@ export async function getUserQuota(
       'User ID is required',
       400,
       'INVALID_PARAMS',
-    )
+    );
   }
 
   return authenticatedRequest<Quota>(
     'GET',
     `/users/${userId}/quota`,
     options,
-  )
+  );
 }
 
 // ============================================================================
@@ -528,7 +528,7 @@ export async function getUserQuota(
  * ```
  */
 export function canInstallMore(quota: Quota): boolean {
-  return quota.remaining > 0
+  return quota.remaining > 0;
 }
 
 /**
@@ -546,9 +546,9 @@ export function canInstallMore(quota: Quota): boolean {
  */
 export function getQuotaUsagePercentage(quota: Quota): number {
   if (quota.limit === 0) {
-    return 0
+    return 0;
   }
-  return Math.round((quota.used / quota.limit) * 100)
+  return Math.round((quota.used / quota.limit) * 100);
 }
 
 /**
@@ -567,7 +567,7 @@ export function getQuotaUsagePercentage(quota: Quota): number {
  * ```
  */
 export function isSkillInstalled(skills: UserSkill[], skillId: string): boolean {
-  return skills.some(skill => skill.skillId === skillId)
+  return skills.some(skill => skill.skillId === skillId);
 }
 
 /**
@@ -584,7 +584,7 @@ export function isSkillInstalled(skills: UserSkill[], skillId: string): boolean 
  * ```
  */
 export function getEnabledSkills(skills: UserSkill[]): UserSkill[] {
-  return skills.filter(skill => skill.isEnabled)
+  return skills.filter(skill => skill.isEnabled);
 }
 
 /**
@@ -601,7 +601,7 @@ export function getEnabledSkills(skills: UserSkill[]): UserSkill[] {
  * ```
  */
 export function getDisabledSkills(skills: UserSkill[]): UserSkill[] {
-  return skills.filter(skill => !skill.isEnabled)
+  return skills.filter(skill => !skill.isEnabled);
 }
 
 /**
@@ -625,8 +625,8 @@ export function sortByUsage(
   return [...skills].sort((a, b) => {
     return order === 'desc'
       ? b.usageCount - a.usageCount
-      : a.usageCount - b.usageCount
-  })
+      : a.usageCount - b.usageCount;
+  });
 }
 
 /**
@@ -648,10 +648,10 @@ export function sortByLastUsed(
   order: 'asc' | 'desc' = 'desc',
 ): UserSkill[] {
   return [...skills].sort((a, b) => {
-    const aTime = a.lastUsedAt ? new Date(a.lastUsedAt).getTime() : 0
-    const bTime = b.lastUsedAt ? new Date(b.lastUsedAt).getTime() : 0
-    return order === 'desc' ? bTime - aTime : aTime - bTime
-  })
+    const aTime = a.lastUsedAt ? new Date(a.lastUsedAt).getTime() : 0;
+    const bTime = b.lastUsedAt ? new Date(b.lastUsedAt).getTime() : 0;
+    return order === 'desc' ? bTime - aTime : aTime - bTime;
+  });
 }
 
 // ============================================================================
@@ -713,6 +713,6 @@ export const userSkillsApi = {
   getDisabledSkills,
   sortByUsage,
   sortByLastUsed,
-}
+};
 
-export default userSkillsApi
+export default userSkillsApi;

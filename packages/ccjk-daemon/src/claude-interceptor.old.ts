@@ -1,6 +1,7 @@
-import { spawn, ChildProcess } from 'child_process';
-import { createEnvelope } from '@ccjk/wire';
+import type { ChildProcess } from 'node:child_process';
 import type { DaemonManager } from './manager';
+import { spawn } from 'node:child_process';
+import { createEnvelope } from '@ccjk/wire';
 import { logger } from './logger';
 
 /**
@@ -113,7 +114,7 @@ export class ClaudeCodeInterceptor {
    */
   sendInput(text: string): void {
     if (this.process?.stdin) {
-      this.process.stdin.write(text + '\n');
+      this.process.stdin.write(`${text}\n`);
     }
   }
 
@@ -216,7 +217,8 @@ export class ClaudeCodeInterceptor {
     if (approved) {
       logger.info(`Permission approved: ${tool} ${pattern}`);
       this.sendInput('y');
-    } else {
+    }
+    else {
       logger.info(`Permission denied: ${tool} ${pattern}`);
       this.sendInput('n');
     }
@@ -272,7 +274,7 @@ export class ClaudeCodeInterceptor {
       event,
       {
         turnId: this.currentTurnId || undefined,
-      }
+      },
     );
 
     await this.manager.sendEvent(this.config.sessionId, envelope);

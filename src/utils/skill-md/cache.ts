@@ -7,7 +7,7 @@
  * @module utils/skill-md/cache
  */
 
-import type { SkillMdFile } from '../../types/skill-md.js'
+import type { SkillMdFile } from '../../types/skill-md.js';
 
 /**
  * Cached skill entry with metadata
@@ -16,16 +16,16 @@ import type { SkillMdFile } from '../../types/skill-md.js'
  */
 export interface CachedSkill {
   /** The cached skill */
-  skill: SkillMdFile
+  skill: SkillMdFile;
 
   /** When the skill was loaded into cache */
-  loadedAt: Date
+  loadedAt: Date;
 
   /** Number of times the skill has been accessed */
-  accessCount: number
+  accessCount: number;
 
   /** Last time the skill was accessed */
-  lastAccessedAt: Date
+  lastAccessedAt: Date;
 }
 
 /**
@@ -58,7 +58,7 @@ export interface CachedSkill {
  * ```
  */
 export class SkillCache {
-  private cache: Map<string, CachedSkill> = new Map()
+  private cache: Map<string, CachedSkill> = new Map();
 
   /**
    * Add or update a skill in the cache
@@ -75,12 +75,12 @@ export class SkillCache {
    * ```
    */
   set(skill: SkillMdFile): void {
-    const existing = this.cache.get(skill.metadata.name)
+    const existing = this.cache.get(skill.metadata.name);
 
     if (existing) {
       // Update existing entry, preserve access stats
-      existing.skill = skill
-      existing.loadedAt = new Date()
+      existing.skill = skill;
+      existing.loadedAt = new Date();
     }
     else {
       // Create new entry
@@ -89,7 +89,7 @@ export class SkillCache {
         loadedAt: new Date(),
         accessCount: 0,
         lastAccessedAt: new Date(),
-      })
+      });
     }
   }
 
@@ -111,15 +111,15 @@ export class SkillCache {
    * ```
    */
   get(name: string): SkillMdFile | null {
-    const cached = this.cache.get(name)
+    const cached = this.cache.get(name);
 
     if (cached) {
       // Record access
-      this.recordAccess(name)
-      return cached.skill
+      this.recordAccess(name);
+      return cached.skill;
     }
 
-    return null
+    return null;
   }
 
   /**
@@ -135,7 +135,7 @@ export class SkillCache {
    * ```
    */
   remove(name: string): boolean {
-    return this.cache.delete(name)
+    return this.cache.delete(name);
   }
 
   /**
@@ -150,7 +150,7 @@ export class SkillCache {
    * ```
    */
   clear(): void {
-    this.cache.clear()
+    this.cache.clear();
   }
 
   /**
@@ -164,7 +164,7 @@ export class SkillCache {
    * ```
    */
   size(): number {
-    return this.cache.size
+    return this.cache.size;
   }
 
   /**
@@ -182,7 +182,7 @@ export class SkillCache {
    * ```
    */
   has(name: string): boolean {
-    return this.cache.has(name)
+    return this.cache.has(name);
   }
 
   /**
@@ -200,7 +200,7 @@ export class SkillCache {
    * ```
    */
   getAll(): SkillMdFile[] {
-    return Array.from(this.cache.values()).map(cached => cached.skill)
+    return Array.from(this.cache.values()).map(cached => cached.skill);
   }
 
   /**
@@ -226,7 +226,7 @@ export class SkillCache {
     return Array.from(this.cache.values())
       .sort((a, b) => b.lastAccessedAt.getTime() - a.lastAccessedAt.getTime())
       .slice(0, limit)
-      .map(cached => cached.skill)
+      .map(cached => cached.skill);
   }
 
   /**
@@ -252,7 +252,7 @@ export class SkillCache {
     return Array.from(this.cache.values())
       .sort((a, b) => b.accessCount - a.accessCount)
       .slice(0, limit)
-      .map(cached => cached.skill)
+      .map(cached => cached.skill);
   }
 
   /**
@@ -270,11 +270,11 @@ export class SkillCache {
    * ```
    */
   recordAccess(name: string): void {
-    const cached = this.cache.get(name)
+    const cached = this.cache.get(name);
 
     if (cached) {
-      cached.accessCount++
-      cached.lastAccessedAt = new Date()
+      cached.accessCount++;
+      cached.lastAccessedAt = new Date();
     }
   }
 
@@ -298,7 +298,7 @@ export class SkillCache {
    * ```
    */
   getCacheEntry(name: string): CachedSkill | null {
-    return this.cache.get(name) || null
+    return this.cache.get(name) || null;
   }
 
   /**
@@ -317,13 +317,13 @@ export class SkillCache {
    * ```
    */
   getStats(): {
-    totalSkills: number
-    totalAccesses: number
-    averageAccesses: number
-    oldestLoadedAt: Date | null
-    newestLoadedAt: Date | null
+    totalSkills: number;
+    totalAccesses: number;
+    averageAccesses: number;
+    oldestLoadedAt: Date | null;
+    newestLoadedAt: Date | null;
   } {
-    const entries = Array.from(this.cache.values())
+    const entries = Array.from(this.cache.values());
 
     if (entries.length === 0) {
       return {
@@ -332,11 +332,11 @@ export class SkillCache {
         averageAccesses: 0,
         oldestLoadedAt: null,
         newestLoadedAt: null,
-      }
+      };
     }
 
-    const totalAccesses = entries.reduce((sum, entry) => sum + entry.accessCount, 0)
-    const loadedTimes = entries.map(entry => entry.loadedAt.getTime())
+    const totalAccesses = entries.reduce((sum, entry) => sum + entry.accessCount, 0);
+    const loadedTimes = entries.map(entry => entry.loadedAt.getTime());
 
     return {
       totalSkills: entries.length,
@@ -344,6 +344,6 @@ export class SkillCache {
       averageAccesses: totalAccesses / entries.length,
       oldestLoadedAt: new Date(Math.min(...loadedTimes)),
       newestLoadedAt: new Date(Math.max(...loadedTimes)),
-    }
+    };
   }
 }

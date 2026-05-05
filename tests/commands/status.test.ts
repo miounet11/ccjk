@@ -1,50 +1,50 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const mockScanProject = vi.fn()
-const mockRunHealthCheck = vi.fn()
-const mockResolveCodeType = vi.fn()
-const mockGetRuntimeCapabilityDescriptor = vi.fn()
-const mockDetectSmartDefaults = vi.fn()
-const mockAutoFix = vi.fn()
-const mockGetCompressionMetricsStats = vi.fn()
+const mockScanProject = vi.fn();
+const mockRunHealthCheck = vi.fn();
+const mockResolveCodeType = vi.fn();
+const mockGetRuntimeCapabilityDescriptor = vi.fn();
+const mockDetectSmartDefaults = vi.fn();
+const mockAutoFix = vi.fn();
+const mockGetCompressionMetricsStats = vi.fn();
 
-const existsSyncMock = vi.fn()
-const readFileSyncMock = vi.fn()
+const existsSyncMock = vi.fn();
+const readFileSyncMock = vi.fn();
 
 vi.mock('node:fs', () => ({
   existsSync: (...args: any[]) => existsSyncMock(...args),
   readFileSync: (...args: any[]) => readFileSyncMock(...args),
-}))
+}));
 
 vi.mock('../../src/config/project-scanner', () => ({
   scanProject: (...args: any[]) => mockScanProject(...args),
-}))
+}));
 
 vi.mock('../../src/health/index', () => ({
   runHealthCheck: (...args: any[]) => mockRunHealthCheck(...args),
-}))
+}));
 
 vi.mock('../../src/utils/code-type-resolver', () => ({
   resolveCodeType: (...args: any[]) => mockResolveCodeType(...args),
-}))
+}));
 
 vi.mock('../../src/code-tools', () => ({
   getRuntimeCapabilityDescriptor: (...args: any[]) => mockGetRuntimeCapabilityDescriptor(...args),
-}))
+}));
 
 vi.mock('../../src/context/persistence', () => ({
   getContextPersistence: vi.fn(() => ({
     getCompressionMetricsStats: (...args: any[]) => mockGetCompressionMetricsStats(...args),
   })),
-}))
+}));
 
 vi.mock('../../src/config/smart-defaults', () => ({
   detectSmartDefaults: (...args: any[]) => mockDetectSmartDefaults(...args),
-}))
+}));
 
 vi.mock('../../src/health/auto-fixer', () => ({
   autoFix: (...args: any[]) => mockAutoFix(...args),
-}))
+}));
 
 const baseProjectContext = {
   language: 'typescript',
@@ -67,7 +67,7 @@ const baseProjectContext = {
     isWSL: false,
     hasBrowser: true,
   },
-}
+};
 
 const baseHealthReport = {
   totalScore: 59,
@@ -103,7 +103,7 @@ const baseHealthReport = {
       category: 'mcp' as const,
     },
   ],
-}
+};
 
 const baseCapability = {
   ownership: 'hybrid',
@@ -127,7 +127,7 @@ const baseCapability = {
     mcpBundles: true,
     doctor: true,
   },
-}
+};
 
 const settingsJson = JSON.stringify({
   env: {
@@ -136,7 +136,7 @@ const settingsJson = JSON.stringify({
     ANTHROPIC_DEFAULT_SONNET_MODEL: 'gpt-5.3-codex',
     ANTHROPIC_DEFAULT_OPUS_MODEL: 'gpt-5.4',
   },
-})
+});
 
 const clavueJson = JSON.stringify({
   clavueActiveProviderProfileId: 'ttqq',
@@ -148,17 +148,17 @@ const clavueJson = JSON.stringify({
       baseUrl: 'https://ttqq.inping.com',
     },
   ],
-})
+});
 
 describe('status command', () => {
   beforeEach(() => {
-    vi.resetModules()
-    vi.clearAllMocks()
+    vi.resetModules();
+    vi.clearAllMocks();
 
-    mockScanProject.mockResolvedValue(baseProjectContext)
-    mockRunHealthCheck.mockResolvedValue(baseHealthReport)
-    mockResolveCodeType.mockResolvedValue('clavue')
-    mockGetRuntimeCapabilityDescriptor.mockReturnValue(baseCapability)
+    mockScanProject.mockResolvedValue(baseProjectContext);
+    mockRunHealthCheck.mockResolvedValue(baseHealthReport);
+    mockResolveCodeType.mockResolvedValue('clavue');
+    mockGetRuntimeCapabilityDescriptor.mockReturnValue(baseCapability);
     mockDetectSmartDefaults.mockResolvedValue({
       claudeCodeVersion: '2.1.96',
       nativeFeatures: {
@@ -169,50 +169,50 @@ describe('status command', () => {
       },
       mcpServices: ['context7'],
       recommendedHooks: ['warn-console-log'],
-    })
+    });
     mockGetCompressionMetricsStats.mockReturnValue({
       totalCompressions: 0,
-    })
+    });
     mockAutoFix.mockResolvedValue({
       attempted: 0,
       succeeded: 0,
       failed: 0,
       results: [],
-    })
+    });
 
     existsSyncMock.mockImplementation((filePath: string) => {
       return String(filePath).endsWith('/.clavue/settings.json')
-        || String(filePath).endsWith('/.clavue/.clavue.json')
-    })
+        || String(filePath).endsWith('/.clavue/.clavue.json');
+    });
 
     readFileSyncMock.mockImplementation((filePath: string) => {
       if (String(filePath).endsWith('/.clavue/settings.json')) {
-        return settingsJson
+        return settingsJson;
       }
       if (String(filePath).endsWith('/.clavue/.clavue.json')) {
-        return clavueJson
+        return clavueJson;
       }
-      return '{}'
-    })
-  })
+      return '{}';
+    });
+  });
 
   it('does not auto-fix by default', async () => {
-    const { statusCommand } = await import('../../src/commands/status')
-    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+    const { statusCommand } = await import('../../src/commands/status');
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
-    await statusCommand()
+    await statusCommand();
 
-    expect(mockAutoFix).not.toHaveBeenCalled()
-    expect(logSpy).toHaveBeenCalled()
+    expect(mockAutoFix).not.toHaveBeenCalled();
+    expect(logSpy).toHaveBeenCalled();
 
-    logSpy.mockRestore()
-  })
+    logSpy.mockRestore();
+  });
 
   it('passes dry-run fix options to autoFix when enabled', async () => {
-    const { statusCommand } = await import('../../src/commands/status')
-    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+    const { statusCommand } = await import('../../src/commands/status');
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
-    await statusCommand({ fix: true, dryRun: true, yes: true })
+    await statusCommand({ fix: true, dryRun: true, yes: true });
 
     expect(mockAutoFix).toHaveBeenCalledWith(
       [
@@ -225,41 +225,41 @@ describe('status command', () => {
         autoApprove: true,
         dryRun: true,
       },
-    )
+    );
 
-    logSpy.mockRestore()
-  })
+    logSpy.mockRestore();
+  });
 
   it('renders Clavue provider and model routing details', async () => {
-    const { statusCommand } = await import('../../src/commands/status')
-    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+    const { statusCommand } = await import('../../src/commands/status');
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
-    await statusCommand()
+    await statusCommand();
 
-    const output = logSpy.mock.calls.map(call => String(call[0] ?? '')).join('\n')
+    const output = logSpy.mock.calls.map(call => String(call[0] ?? '')).join('\n');
 
-    expect(output).toContain('clavue')
-    expect(output).toContain('clavue/ttqq')
-    expect(output).toContain('https://ttqq.inping.com')
-    expect(output).toContain('gpt-5.4')
-    expect(output).toContain('gpt-5.3-codex-spark')
-    expect(output).toContain('gpt-5.3-codex')
+    expect(output).toContain('clavue');
+    expect(output).toContain('clavue/ttqq');
+    expect(output).toContain('https://ttqq.inping.com');
+    expect(output).toContain('gpt-5.4');
+    expect(output).toContain('gpt-5.3-codex-spark');
+    expect(output).toContain('gpt-5.3-codex');
 
-    logSpy.mockRestore()
-  })
+    logSpy.mockRestore();
+  });
 
   it('renders a Claude Code heading for claude-code runtime', async () => {
-    mockResolveCodeType.mockResolvedValue('claude-code')
+    mockResolveCodeType.mockResolvedValue('claude-code');
 
-    const { statusCommand } = await import('../../src/commands/status')
-    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+    const { statusCommand } = await import('../../src/commands/status');
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
-    await statusCommand()
+    await statusCommand();
 
-    const output = logSpy.mock.calls.map(call => String(call[0] ?? '')).join('\n')
+    const output = logSpy.mock.calls.map(call => String(call[0] ?? '')).join('\n');
 
-    expect(output).toContain('Claude Code')
+    expect(output).toContain('Claude Code');
 
-    logSpy.mockRestore()
-  })
-})
+    logSpy.mockRestore();
+  });
+});

@@ -3,23 +3,23 @@
  * Handles the execution of individual hooks with timeout and error handling
  */
 
-import type { Hook, HookExecutionResult } from '../types/hooks'
-import type { HookContext } from './hook-context'
-import { exec } from 'node:child_process'
-import process from 'node:process'
-import { promisify } from 'node:util'
+import type { Hook, HookExecutionResult } from '../types/hooks';
+import type { HookContext } from './hook-context';
+import { exec } from 'node:child_process';
+import process from 'node:process';
+import { promisify } from 'node:util';
 
-const execAsync = promisify(exec)
+const execAsync = promisify(exec);
 
 /**
  * Default timeout for hook execution (5 seconds)
  */
-const DEFAULT_TIMEOUT = 5000
+const DEFAULT_TIMEOUT = 5000;
 
 /**
  * Maximum timeout allowed (60 seconds)
  */
-const MAX_TIMEOUT = 60000
+const MAX_TIMEOUT = 60000;
 
 /**
  * Hook executor class
@@ -33,7 +33,7 @@ export class HookExecutor {
    * @returns Promise resolving to execution result
    */
   async execute(hook: Hook, context: HookContext): Promise<HookExecutionResult> {
-    const startTime = Date.now()
+    const startTime = Date.now();
 
     // Check if hook is enabled
     if (hook.enabled === false) {
@@ -43,20 +43,20 @@ export class HookExecutor {
         executionTime: 0,
         stdout: '',
         stderr: 'Hook is disabled',
-      }
+      };
     }
 
     // Validate timeout
-    const timeout = this.validateTimeout(hook.timeout)
+    const timeout = this.validateTimeout(hook.timeout);
 
     try {
       // Prepare context as JSON string for passing to hook
-      const contextJson = JSON.stringify(context, null, 2)
+      const contextJson = JSON.stringify(context, null, 2);
 
       // Execute the hook command
-      const result = await this.executeCommand(hook.command, contextJson, timeout)
+      const result = await this.executeCommand(hook.command, contextJson, timeout);
 
-      const executionTime = Date.now() - startTime
+      const executionTime = Date.now() - startTime;
 
       return {
         success: result.exitCode === 0,
@@ -65,17 +65,17 @@ export class HookExecutor {
         stdout: result.stdout,
         stderr: result.stderr,
         exitCode: result.exitCode,
-      }
+      };
     }
     catch (error) {
-      const executionTime = Date.now() - startTime
+      const executionTime = Date.now() - startTime;
 
       return {
         success: false,
         hook,
         executionTime,
         error: error instanceof Error ? error.message : String(error),
-      }
+      };
     }
   }
 
@@ -90,33 +90,33 @@ export class HookExecutor {
     command: string,
     contextJson: string,
     timeout: number,
-  ): Promise<{ stdout: string, stderr: string, exitCode: number }> {
+  ): Promise<{ stdout: string; stderr: string; exitCode: number }> {
     try {
       // Set environment variable with context data
       const env = {
         ...process.env,
         CCJK_HOOK_CONTEXT: contextJson,
-      }
+      };
 
       // Execute command with timeout
       const { stdout, stderr } = await execAsync(command, {
         timeout,
         env,
         maxBuffer: 1024 * 1024, // 1MB buffer
-      })
+      });
 
       return {
         stdout: stdout.trim(),
         stderr: stderr.trim(),
         exitCode: 0,
-      }
+      };
     }
     catch (error: any) {
       return {
         stdout: error.stdout?.trim() || '',
         stderr: error.stderr?.trim() || error.message || 'Unknown error',
         exitCode: error.code || 1,
-      }
+      };
     }
   }
 
@@ -129,8 +129,8 @@ export class HookExecutor {
   executeAsync(hook: Hook, context: HookContext): void {
     // Execute in background without awaiting
     this.execute(hook, context).catch((error) => {
-      console.error('[HookExecutor] Async hook execution failed:', error)
-    })
+      console.error('[HookExecutor] Async hook execution failed:', error);
+    });
   }
 
   /**
@@ -140,19 +140,19 @@ export class HookExecutor {
    */
   private validateTimeout(timeout?: number): number {
     if (!timeout) {
-      return DEFAULT_TIMEOUT
+      return DEFAULT_TIMEOUT;
     }
 
     if (timeout < 0) {
-      return DEFAULT_TIMEOUT
+      return DEFAULT_TIMEOUT;
     }
 
     if (timeout > MAX_TIMEOUT) {
-      return MAX_TIMEOUT
+      return MAX_TIMEOUT;
     }
 
-    return timeout
+    return timeout;
   }
 }
 
-export const hookExecutor = new HookExecutor()
+export const hookExecutor = new HookExecutor();

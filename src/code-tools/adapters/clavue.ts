@@ -2,9 +2,9 @@
  * Clavue adapter
  */
 
-import type { IChatTool, ICodeGenTool, IFileEditTool } from '../core/interfaces'
-import type { ExecutionResult, ToolMetadata } from '../core/types'
-import { BaseCodeTool } from '../core/base-tool'
+import type { IChatTool, ICodeGenTool, IFileEditTool } from '../core/interfaces';
+import type { ExecutionResult, ToolMetadata } from '../core/types';
+import { BaseCodeTool } from '../core/base-tool';
 
 /**
  * Clavue tool adapter.
@@ -54,47 +54,47 @@ export class ClavueTool extends BaseCodeTool implements IChatTool, IFileEditTool
           doctor: true,
         },
       },
-    }
+    };
   }
 
   protected getInstallCheckCommand(): string {
-    return 'clavue --version'
+    return 'clavue --version';
   }
 
   protected getInstallCommand(): string {
-    return 'npm install -g clavue'
+    return 'npm install -g clavue';
   }
 
   protected getUninstallCommand(): string {
-    return 'npm uninstall -g clavue'
+    return 'npm uninstall -g clavue';
   }
 
   async chat(prompt: string): Promise<ExecutionResult> {
-    return this.execute('clavue', ['chat', prompt])
+    return this.execute('clavue', ['chat', prompt]);
   }
 
   async continueChat(message: string): Promise<ExecutionResult> {
-    return this.execute('clavue', ['continue', message])
+    return this.execute('clavue', ['continue', message]);
   }
 
   async endChat(): Promise<void> {
-    await this.execute('clavue', ['exit'])
+    await this.execute('clavue', ['exit']);
   }
 
   async editFile(filePath: string, instructions: string): Promise<ExecutionResult> {
-    return this.execute('clavue', ['edit', filePath, '--instructions', instructions])
+    return this.execute('clavue', ['edit', filePath, '--instructions', instructions]);
   }
 
   async editFiles(files: string[], instructions: string): Promise<ExecutionResult> {
-    const fileArgs = files.flatMap(f => ['--file', f])
-    return this.execute('clavue', ['edit', ...fileArgs, '--instructions', instructions])
+    const fileArgs = files.flatMap(f => ['--file', f]);
+    return this.execute('clavue', ['edit', ...fileArgs, '--instructions', instructions]);
   }
 
   async generateCode(prompt: string, outputPath?: string): Promise<ExecutionResult> {
-    const args = ['generate', prompt]
+    const args = ['generate', prompt];
     if (outputPath) {
-      args.push('--output', outputPath)
+      args.push('--output', outputPath);
     }
-    return this.execute('clavue', args)
+    return this.execute('clavue', args);
   }
 }

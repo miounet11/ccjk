@@ -3,25 +3,25 @@
  * 将 CCJK 快捷操作映射到 Superpowers 技能
  */
 
-import type { SupportedLang } from '../constants'
-import { existsSync, readFileSync } from 'node:fs'
-import { homedir } from 'node:os'
-import { join } from 'pathe'
+import type { SupportedLang } from '../constants';
+import { existsSync, readFileSync } from 'node:fs';
+import { homedir } from 'node:os';
+import { join } from 'pathe';
 
 export interface SuperpowerSkill {
-  id: string
-  name: string
-  description: string
-  content: string
-  supportingFiles?: string[]
+  id: string;
+  name: string;
+  description: string;
+  content: string;
+  supportingFiles?: string[];
 }
 
 export interface SuperpowerMapping {
-  actionId: number
-  actionName: string
-  primarySkill: string
-  supportingSkills?: string[]
-  autoTriggers?: string[]
+  actionId: number;
+  actionName: string;
+  primarySkill: string;
+  supportingSkills?: string[];
+  autoTriggers?: string[];
 }
 
 /**
@@ -84,52 +84,52 @@ export const SUPERPOWERS_MAPPINGS: SuperpowerMapping[] = [
     supportingSkills: [],
     autoTriggers: ['doc', 'documentation', 'readme', '文档'],
   },
-]
+];
 
 /**
  * Superpowers 技能加载器
  */
 export class SuperpowersRouter {
-  private skillsPath: string
-  private cache: Map<string, SuperpowerSkill> = new Map()
+  private skillsPath: string;
+  private cache: Map<string, SuperpowerSkill> = new Map();
 
   constructor() {
-    this.skillsPath = join(homedir(), '.claude', 'plugins', 'superpowers', 'skills')
+    this.skillsPath = join(homedir(), '.claude', 'plugins', 'superpowers', 'skills');
   }
 
   /**
    * 检查 Superpowers 是否已安装
    */
   isInstalled(): boolean {
-    return existsSync(this.skillsPath)
+    return existsSync(this.skillsPath);
   }
 
   /**
    * 根据快捷操作 ID 路由到对应的 Superpowers 技能
    */
   async routeByActionId(actionId: number): Promise<SuperpowerSkill | null> {
-    const mapping = SUPERPOWERS_MAPPINGS.find(m => m.actionId === actionId)
+    const mapping = SUPERPOWERS_MAPPINGS.find(m => m.actionId === actionId);
     if (!mapping) {
-      return null
+      return null;
     }
 
-    return this.loadSkill(mapping.primarySkill)
+    return this.loadSkill(mapping.primarySkill);
   }
 
   /**
    * 根据用户输入自动检测并路由到合适的技能
    */
   async routeByContext(userInput: string): Promise<SuperpowerSkill | null> {
-    const input = userInput.toLowerCase()
+    const input = userInput.toLowerCase();
 
     // 查找匹配的映射
     for (const mapping of SUPERPOWERS_MAPPINGS) {
       if (mapping.autoTriggers?.some(trigger => input.includes(trigger))) {
-        return this.loadSkill(mapping.primarySkill)
+        return this.loadSkill(mapping.primarySkill);
       }
     }
 
-    return null
+    return null;
   }
 
   /**
@@ -138,45 +138,45 @@ export class SuperpowersRouter {
   async loadSkill(skillName: string): Promise<SuperpowerSkill | null> {
     // 检查缓存
     if (this.cache.has(skillName)) {
-      return this.cache.get(skillName)!
+      return this.cache.get(skillName)!;
     }
 
-    const skillPath = join(this.skillsPath, skillName)
+    const skillPath = join(this.skillsPath, skillName);
     if (!existsSync(skillPath)) {
-      return null
+      return null;
     }
 
     try {
       // 读取主技能文件 (SKILL.md 或 skill.md)
-      let skillFile = join(skillPath, 'SKILL.md')
+      let skillFile = join(skillPath, 'SKILL.md');
       if (!existsSync(skillFile)) {
-        skillFile = join(skillPath, 'skill.md')
+        skillFile = join(skillPath, 'skill.md');
       }
 
       if (!existsSync(skillFile)) {
-        return null
+        return null;
       }
 
-      const content = readFileSync(skillFile, 'utf-8')
+      const content = readFileSync(skillFile, 'utf-8');
 
       // 解析 frontmatter
-      const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/)
-      let name = skillName
-      let description = ''
+      const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
+      let name = skillName;
+      let description = '';
 
       if (frontmatterMatch) {
-        const frontmatter = frontmatterMatch[1]
-        const nameMatch = frontmatter.match(/name:\s*(.+)/)
-        const descMatch = frontmatter.match(/description:\s*(.+)/)
+        const frontmatter = frontmatterMatch[1];
+        const nameMatch = frontmatter.match(/name:\s*(.+)/);
+        const descMatch = frontmatter.match(/description:\s*(.+)/);
 
         if (nameMatch)
-          name = nameMatch[1].trim()
+          name = nameMatch[1].trim();
         if (descMatch)
-          description = descMatch[1].trim()
+          description = descMatch[1].trim();
       }
 
       // 查找支持文件
-      const supportingFiles = this.findSupportingFiles(skillPath)
+      const supportingFiles = this.findSupportingFiles(skillPath);
 
       const skill: SuperpowerSkill = {
         id: skillName,
@@ -184,16 +184,16 @@ export class SuperpowersRouter {
         description,
         content,
         supportingFiles,
-      }
+      };
 
       // 缓存
-      this.cache.set(skillName, skill)
+      this.cache.set(skillName, skill);
 
-      return skill
+      return skill;
     }
     catch (error) {
-      console.error(`Failed to load skill ${skillName}:`, error)
-      return null
+      console.error(`Failed to load skill ${skillName}:`, error);
+      return null;
     }
   }
 
@@ -201,15 +201,15 @@ export class SuperpowersRouter {
    * 查找技能的支持文件
    */
   private findSupportingFiles(skillPath: string): string[] {
-    const supportingFiles: string[] = []
+    const supportingFiles: string[] = [];
 
     try {
-      const { readdirSync } = require('node:fs')
-      const files = readdirSync(skillPath)
+      const { readdirSync } = require('node:fs');
+      const files = readdirSync(skillPath);
 
       for (const file of files) {
         if (file.endsWith('.md') && !file.match(/^(SKILL|skill)\.md$/i)) {
-          supportingFiles.push(join(skillPath, file))
+          supportingFiles.push(join(skillPath, file));
         }
       }
     }
@@ -217,7 +217,7 @@ export class SuperpowersRouter {
       // Ignore errors
     }
 
-    return supportingFiles
+    return supportingFiles;
   }
 
   /**
@@ -225,18 +225,18 @@ export class SuperpowersRouter {
    */
   async listAvailableSkills(): Promise<string[]> {
     if (!this.isInstalled()) {
-      return []
+      return [];
     }
 
     try {
-      const { readdirSync } = require('node:fs')
-      const entries = readdirSync(this.skillsPath, { withFileTypes: true })
+      const { readdirSync } = require('node:fs');
+      const entries = readdirSync(this.skillsPath, { withFileTypes: true });
       return entries
         .filter((e: { isDirectory: () => boolean }) => e.isDirectory())
-        .map((e: { name: string }) => e.name)
+        .map((e: { name: string }) => e.name);
     }
     catch {
-      return []
+      return [];
     }
   }
 
@@ -248,48 +248,48 @@ export class SuperpowersRouter {
     userContext: string,
     lang: SupportedLang = 'zh-CN',
   ): Promise<string> {
-    const mapping = SUPERPOWERS_MAPPINGS.find(m => m.actionId === actionId)
+    const mapping = SUPERPOWERS_MAPPINGS.find(m => m.actionId === actionId);
     if (!mapping) {
-      return userContext
+      return userContext;
     }
 
     // 加载主技能
-    const primarySkill = await this.loadSkill(mapping.primarySkill)
+    const primarySkill = await this.loadSkill(mapping.primarySkill);
     if (!primarySkill) {
-      return userContext
+      return userContext;
     }
 
     // 加载支持技能
-    const supportingSkills: SuperpowerSkill[] = []
+    const supportingSkills: SuperpowerSkill[] = [];
     if (mapping.supportingSkills) {
       for (const skillName of mapping.supportingSkills) {
-        const skill = await this.loadSkill(skillName)
+        const skill = await this.loadSkill(skillName);
         if (skill) {
-          supportingSkills.push(skill)
+          supportingSkills.push(skill);
         }
       }
     }
 
     // 构建增强的 prompt
-    let enhancedPrompt = `# ${mapping.actionName} - Enhanced by Superpowers\n\n`
-    enhancedPrompt += `## User Context\n${userContext}\n\n`
-    enhancedPrompt += `## Primary Workflow: ${primarySkill.name}\n\n`
-    enhancedPrompt += primarySkill.content
-    enhancedPrompt += '\n\n'
+    let enhancedPrompt = `# ${mapping.actionName} - Enhanced by Superpowers\n\n`;
+    enhancedPrompt += `## User Context\n${userContext}\n\n`;
+    enhancedPrompt += `## Primary Workflow: ${primarySkill.name}\n\n`;
+    enhancedPrompt += primarySkill.content;
+    enhancedPrompt += '\n\n';
 
     if (supportingSkills.length > 0) {
-      enhancedPrompt += '## Supporting Workflows\n\n'
+      enhancedPrompt += '## Supporting Workflows\n\n';
       for (const skill of supportingSkills) {
-        enhancedPrompt += `### ${skill.name}\n\n`
-        enhancedPrompt += skill.content
-        enhancedPrompt += '\n\n'
+        enhancedPrompt += `### ${skill.name}\n\n`;
+        enhancedPrompt += skill.content;
+        enhancedPrompt += '\n\n';
       }
     }
 
-    enhancedPrompt += `## Instructions\n\n`
-    enhancedPrompt += this.getInstructions(mapping.actionId, lang)
+    enhancedPrompt += `## Instructions\n\n`;
+    enhancedPrompt += this.getInstructions(mapping.actionId, lang);
 
-    return enhancedPrompt
+    return enhancedPrompt;
   }
 
   /**
@@ -357,20 +357,20 @@ Enforce systematic debugging four phases:
 ⚠️ If 3+ fixes failed, stop and question the architecture.
 `,
       },
-    }
+    };
 
-    return instructions[actionId]?.[lang] || ''
+    return instructions[actionId]?.[lang] || '';
   }
 
   /**
    * 清除缓存
    */
   clearCache(): void {
-    this.cache.clear()
+    this.cache.clear();
   }
 }
 
 /**
  * 全局单例
  */
-export const superpowersRouter = new SuperpowersRouter()
+export const superpowersRouter = new SuperpowersRouter();

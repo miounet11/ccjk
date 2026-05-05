@@ -4,8 +4,8 @@
  * Tests for the agents command that exposes BrainOrchestrator to CLI.
  */
 
-import type { AgentsCommandOptions } from '../../src/commands/agents'
-import { describe, expect, it, vi } from 'vitest'
+import type { AgentsCommandOptions } from '../../src/commands/agents';
+import { describe, expect, it, vi } from 'vitest';
 
 // Mock dependencies
 vi.mock('../../src/brain/orchestrator', () => ({
@@ -37,7 +37,7 @@ vi.mock('../../src/brain/orchestrator', () => ({
     }),
     on: vi.fn(),
   })),
-}))
+}));
 
 vi.mock('../../src/brain/convoy/convoy-manager', () => ({
   getGlobalConvoyManager: vi.fn().mockReturnValue({
@@ -79,7 +79,7 @@ vi.mock('../../src/brain/convoy/convoy-manager', () => ({
     get: vi.fn().mockReturnValue(null),
     cancel: vi.fn().mockResolvedValue(undefined),
   }),
-}))
+}));
 
 vi.mock('ora', () => ({
   default: vi.fn().mockReturnValue({
@@ -89,49 +89,49 @@ vi.mock('ora', () => ({
     fail: vi.fn().mockReturnThis(),
     text: '',
   }),
-}))
+}));
 
 describe('agents command', () => {
   it('should export handleAgentsCommand function', async () => {
-    const { handleAgentsCommand } = await import('../../src/commands/agents')
-    expect(handleAgentsCommand).toBeDefined()
-    expect(typeof handleAgentsCommand).toBe('function')
-  })
+    const { handleAgentsCommand } = await import('../../src/commands/agents');
+    expect(handleAgentsCommand).toBeDefined();
+    expect(typeof handleAgentsCommand).toBe('function');
+  });
 
   it('should have workflow presets', async () => {
-    const agentsModule = await import('../../src/commands/agents')
-    expect(agentsModule).toBeDefined()
-  })
+    const agentsModule = await import('../../src/commands/agents');
+    expect(agentsModule).toBeDefined();
+  });
 
   it('should handle run command with task option', async () => {
-    const { handleAgentsCommand } = await import('../../src/commands/agents')
+    const { handleAgentsCommand } = await import('../../src/commands/agents');
 
     const options: AgentsCommandOptions = {
       task: 'Test task',
       workflow: 'analyze',
-    }
+    };
 
     // Should not throw
     await expect(
       handleAgentsCommand(['run'], options),
-    ).resolves.not.toThrow()
-  })
+    ).resolves.not.toThrow();
+  });
 
   it('should handle status command', async () => {
-    const { handleAgentsCommand } = await import('../../src/commands/agents')
+    const { handleAgentsCommand } = await import('../../src/commands/agents');
 
     // Should not throw
     await expect(
       handleAgentsCommand(['status'], {}),
-    ).resolves.not.toThrow()
-  })
+    ).resolves.not.toThrow();
+  });
 
   it('should handle list command', async () => {
-    const { handleAgentsCommand } = await import('../../src/commands/agents')
+    const { handleAgentsCommand } = await import('../../src/commands/agents');
 
     // Should not throw
     await expect(
       handleAgentsCommand(['list'], {}),
-    ).resolves.not.toThrow()
-  })
-})
+    ).resolves.not.toThrow();
+  });
+});

@@ -46,13 +46,16 @@ export default function Auth() {
 
         // Navigate to sessions
         router.replace('/sessions');
-      } else if (result.type === 'cancel') {
+      }
+      else if (result.type === 'cancel') {
         Alert.alert('Cancelled', 'Authentication was cancelled');
       }
-    } catch (error) {
+    }
+    catch (error) {
       console.error('GitHub login error:', error);
       Alert.alert('Error', 'Failed to authenticate with GitHub');
-    } finally {
+    }
+    finally {
       setIsLoading(false);
     }
   };
@@ -62,16 +65,18 @@ export default function Auth() {
       <Text style={styles.title}>Sign In</Text>
       <Text style={styles.subtitle}>Connect with GitHub to continue</Text>
 
-      {isLoading ? (
-        <ActivityIndicator size="large" color="#007AFF" />
-      ) : (
-        <View style={styles.buttonContainer}>
-          <Button
-            title="Sign in with GitHub"
-            onPress={handleGitHubLogin}
-          />
-        </View>
-      )}
+      {isLoading
+        ? (
+            <ActivityIndicator size="large" color="#007AFF" />
+          )
+        : (
+            <View style={styles.buttonContainer}>
+              <Button
+                title="Sign in with GitHub"
+                onPress={handleGitHubLogin}
+              />
+            </View>
+          )}
 
       <Button
         title="Back"

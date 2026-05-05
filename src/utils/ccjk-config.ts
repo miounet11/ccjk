@@ -1,4 +1,4 @@
-import type { AiOutputLanguage, CodeToolType, SupportedLang } from '../constants'
+import type { AiOutputLanguage, CodeToolType, SupportedLang } from '../constants';
 import type {
   AdaptationConfig,
   ClaudeCodeConfig,
@@ -7,58 +7,58 @@ import type {
   PartialZcfTomlConfig,
   StorageConfig,
   ZcfTomlConfig,
-} from '../types/toml-config'
-import { copyFileSync, existsSync, mkdirSync, renameSync, rmSync } from 'node:fs'
-import { dirname } from 'pathe'
-import { parse, stringify } from 'smol-toml'
-import { DEFAULT_CODE_TOOL_TYPE, isCodeToolType, LEGACY_ZCF_CONFIG_FILES, SUPPORTED_LANGS, ZCF_CONFIG_DIR, ZCF_CONFIG_FILE } from '../constants'
-import { ensureDir, exists, readFile, writeFileAtomic } from './fs-operations'
-import { readJsonConfig } from './json-config'
+} from '../types/toml-config';
+import { copyFileSync, existsSync, mkdirSync, renameSync, rmSync } from 'node:fs';
+import { dirname } from 'pathe';
+import { parse, stringify } from 'smol-toml';
+import { DEFAULT_CODE_TOOL_TYPE, isCodeToolType, LEGACY_ZCF_CONFIG_FILES, SUPPORTED_LANGS, ZCF_CONFIG_DIR, ZCF_CONFIG_FILE } from '../constants';
+import { ensureDir, exists, readFile, writeFileAtomic } from './fs-operations';
+import { readJsonConfig } from './json-config';
 
 // Legacy interfaces for backward compatibility
 export interface ZcfConfig {
-  version: string
-  preferredLang: SupportedLang
-  templateLang?: SupportedLang
-  aiOutputLang?: AiOutputLanguage | string
-  outputStyles?: string[]
-  defaultOutputStyle?: string
-  codeToolType: CodeToolType
-  lastUpdated: string
+  version: string;
+  preferredLang: SupportedLang;
+  templateLang?: SupportedLang;
+  aiOutputLang?: AiOutputLanguage | string;
+  outputStyles?: string[];
+  defaultOutputStyle?: string;
+  codeToolType: CodeToolType;
+  lastUpdated: string;
 }
 
 export interface ZcfConfigMigrationResult {
-  migrated: boolean
-  source?: string
-  target: string
-  removed: string[]
+  migrated: boolean;
+  source?: string;
+  target: string;
+  removed: string[];
 }
 
 function isSupportedLang(value: any): value is SupportedLang {
-  return SUPPORTED_LANGS.includes(value as SupportedLang)
+  return SUPPORTED_LANGS.includes(value as SupportedLang);
 }
 
 function sanitizePreferredLang(lang: any): SupportedLang {
-  return isSupportedLang(lang) ? lang : 'en'
+  return isSupportedLang(lang) ? lang : 'en';
 }
 
 function sanitizeCodeToolType(codeTool: any): CodeToolType {
-  return isCodeToolType(codeTool) ? codeTool : DEFAULT_CODE_TOOL_TYPE
+  return isCodeToolType(codeTool) ? codeTool : DEFAULT_CODE_TOOL_TYPE;
 }
 
 function normalizeTomlConfig(config: PartialZcfTomlConfig | null | undefined): ZcfTomlConfig {
-  const legacyConfig = config as (Partial<ZcfConfig> & Record<string, any>) | null | undefined
-  const rawGeneral = (config?.general || {}) as Partial<GeneralConfig>
-  const preferredLang = sanitizePreferredLang(rawGeneral.preferredLang ?? legacyConfig?.preferredLang)
-  const defaultConfig = createDefaultTomlConfig(preferredLang)
-  const codeToolType = sanitizeCodeToolType(rawGeneral.currentTool ?? legacyConfig?.codeToolType)
-  const rawClaudeCode = (config?.claudeCode || {}) as Partial<ClaudeCodeConfig>
-  const rawCodex = (config?.codex || {}) as Partial<CodexConfig>
-  const rawStorage = (config?.storage || {}) as Partial<StorageConfig>
-  const rawAdaptation = (config?.adaptation || {}) as Partial<AdaptationConfig>
-  const defaultAdaptation = defaultConfig.adaptation!
-  const hasLegacyToolType = typeof legacyConfig?.codeToolType === 'string'
-  const templateLang = rawGeneral.templateLang ?? legacyConfig?.templateLang
+  const legacyConfig = config as (Partial<ZcfConfig> & Record<string, any>) | null | undefined;
+  const rawGeneral = (config?.general || {}) as Partial<GeneralConfig>;
+  const preferredLang = sanitizePreferredLang(rawGeneral.preferredLang ?? legacyConfig?.preferredLang);
+  const defaultConfig = createDefaultTomlConfig(preferredLang);
+  const codeToolType = sanitizeCodeToolType(rawGeneral.currentTool ?? legacyConfig?.codeToolType);
+  const rawClaudeCode = (config?.claudeCode || {}) as Partial<ClaudeCodeConfig>;
+  const rawCodex = (config?.codex || {}) as Partial<CodexConfig>;
+  const rawStorage = (config?.storage || {}) as Partial<StorageConfig>;
+  const rawAdaptation = (config?.adaptation || {}) as Partial<AdaptationConfig>;
+  const defaultAdaptation = defaultConfig.adaptation!;
+  const hasLegacyToolType = typeof legacyConfig?.codeToolType === 'string';
+  const templateLang = rawGeneral.templateLang ?? legacyConfig?.templateLang;
 
   return {
     version: typeof config?.version === 'string' ? config.version : defaultConfig.version,
@@ -154,7 +154,7 @@ function normalizeTomlConfig(config: PartialZcfTomlConfig | null | undefined): Z
         ...rawAdaptation.uiProfile,
       },
     },
-  }
+  };
 }
 
 /**
@@ -165,16 +165,16 @@ function normalizeTomlConfig(config: PartialZcfTomlConfig | null | undefined): Z
 function readTomlConfig(configPath: string): ZcfTomlConfig | null {
   try {
     if (!exists(configPath)) {
-      return null
+      return null;
     }
 
-    const content = readFile(configPath)
-    const parsed = parse(content) as unknown as PartialZcfTomlConfig
-    return normalizeTomlConfig(parsed)
+    const content = readFile(configPath);
+    const parsed = parse(content) as unknown as PartialZcfTomlConfig;
+    return normalizeTomlConfig(parsed);
   }
   catch {
     // Handle parsing errors gracefully
-    return null
+    return null;
   }
 }
 
@@ -186,12 +186,12 @@ function readTomlConfig(configPath: string): ZcfTomlConfig | null {
 function writeTomlConfig(configPath: string, config: ZcfTomlConfig): void {
   try {
     // Ensure parent directory exists
-    const configDir = dirname(configPath)
-    ensureDir(configDir)
+    const configDir = dirname(configPath);
+    ensureDir(configDir);
 
     // Serialize to TOML and write to file atomically to prevent corruption
-    const tomlContent = stringify(config)
-    writeFileAtomic(configPath, tomlContent)
+    const tomlContent = stringify(config);
+    writeFileAtomic(configPath, tomlContent);
   }
   catch {
     // Silently fail if cannot write config - user's system may have permission issues
@@ -275,7 +275,7 @@ function createDefaultTomlConfig(preferredLang: SupportedLang = 'en', claudeCode
         operatorMode: 'execution-first',
       },
     },
-  }
+  };
 }
 
 /**
@@ -285,8 +285,8 @@ function createDefaultTomlConfig(preferredLang: SupportedLang = 'en', claudeCode
  */
 function migrateFromJsonConfig(jsonConfig: any): ZcfTomlConfig {
   // Extract install type from old installation config
-  const claudeCodeInstallType = jsonConfig.claudeCodeInstallation?.type || 'global'
-  const defaultConfig = createDefaultTomlConfig('en', claudeCodeInstallType)
+  const claudeCodeInstallType = jsonConfig.claudeCodeInstallation?.type || 'global';
+  const defaultConfig = createDefaultTomlConfig('en', claudeCodeInstallType);
 
   // Map JSON fields to TOML structure
   const tomlConfig: ZcfTomlConfig = {
@@ -315,9 +315,9 @@ function migrateFromJsonConfig(jsonConfig: any): ZcfTomlConfig {
       memory: {},
     },
     adaptation: defaultConfig.adaptation,
-  }
+  };
 
-  return tomlConfig
+  return tomlConfig;
 }
 
 /**
@@ -327,7 +327,7 @@ function migrateFromJsonConfig(jsonConfig: any): ZcfTomlConfig {
  * @returns Updated configuration
  */
 function buildUpdatedTomlConfig(configPath: string, updates: PartialZcfTomlConfig): ZcfTomlConfig {
-  const existingConfig = readTomlConfig(configPath) || createDefaultTomlConfig()
+  const existingConfig = readTomlConfig(configPath) || createDefaultTomlConfig();
 
   // Deep merge updates with existing configuration
   return {
@@ -399,24 +399,24 @@ function buildUpdatedTomlConfig(configPath: string, updates: PartialZcfTomlConfi
           }
         : existingConfig.adaptation?.uiProfile,
     },
-  }
+  };
 }
 
 function stringifyTomlConfig(config: ZcfTomlConfig): string {
-  return stringify(config)
+  return stringify(config);
 }
 
 function updateTomlConfig(configPath: string, updates: PartialZcfTomlConfig): ZcfTomlConfig {
-  const updatedConfig = buildUpdatedTomlConfig(configPath, updates)
-  writeTomlConfig(configPath, updatedConfig)
-  return updatedConfig
+  const updatedConfig = buildUpdatedTomlConfig(configPath, updates);
+  writeTomlConfig(configPath, updatedConfig);
+  return updatedConfig;
 }
 
 /**
  * Convert TOML config to legacy ZcfConfig format for backward compatibility
  */
 function convertTomlToLegacyConfig(tomlConfig: ZcfTomlConfig | PartialZcfTomlConfig): ZcfConfig {
-  const normalizedConfig = normalizeTomlConfig(tomlConfig)
+  const normalizedConfig = normalizeTomlConfig(tomlConfig);
 
   return {
     version: normalizedConfig.version,
@@ -427,19 +427,19 @@ function convertTomlToLegacyConfig(tomlConfig: ZcfTomlConfig | PartialZcfTomlCon
     defaultOutputStyle: normalizedConfig.claudeCode.defaultOutputStyle,
     codeToolType: normalizedConfig.general.currentTool,
     lastUpdated: normalizedConfig.lastUpdated,
-  }
+  };
 }
 
 /**
  * Convert legacy ZcfConfig to TOML format
  */
 function convertLegacyToTomlConfig(legacyConfig: ZcfConfig): ZcfTomlConfig {
-  return migrateFromJsonConfig(legacyConfig)
+  return migrateFromJsonConfig(legacyConfig);
 }
 
 function normalizeZcfConfig(config: Partial<ZcfConfig> | null): ZcfConfig | null {
   if (!config) {
-    return null
+    return null;
   }
 
   return {
@@ -451,94 +451,94 @@ function normalizeZcfConfig(config: Partial<ZcfConfig> | null): ZcfConfig | null
     defaultOutputStyle: typeof config.defaultOutputStyle === 'string' ? config.defaultOutputStyle : undefined,
     codeToolType: sanitizeCodeToolType(config.codeToolType),
     lastUpdated: typeof config.lastUpdated === 'string' ? config.lastUpdated : new Date().toISOString(),
-  }
+  };
 }
 
 export function migrateZcfConfigIfNeeded(): ZcfConfigMigrationResult {
-  const target = ZCF_CONFIG_FILE
-  const removed: string[] = []
-  const targetExists = existsSync(target)
-  const legacySources = LEGACY_ZCF_CONFIG_FILES.filter(path => existsSync(path))
+  const target = ZCF_CONFIG_FILE;
+  const removed: string[] = [];
+  const targetExists = existsSync(target);
+  const legacySources = LEGACY_ZCF_CONFIG_FILES.filter(path => existsSync(path));
 
   if (!targetExists && legacySources.length > 0) {
-    const source = legacySources[0]
+    const source = legacySources[0];
     if (!existsSync(ZCF_CONFIG_DIR)) {
-      mkdirSync(ZCF_CONFIG_DIR, { recursive: true })
+      mkdirSync(ZCF_CONFIG_DIR, { recursive: true });
     }
 
     try {
-      renameSync(source, target)
+      renameSync(source, target);
     }
     catch (error) {
       if ((error as NodeJS.ErrnoException)?.code !== 'EXDEV') {
-        throw error
+        throw error;
       }
 
       // Fallback for Windows when rename cannot cross devices
-      copyFileSync(source, target)
-      rmSync(source, { force: true })
+      copyFileSync(source, target);
+      rmSync(source, { force: true });
     }
 
     for (const leftover of legacySources.slice(1)) {
       try {
-        rmSync(leftover, { force: true })
-        removed.push(leftover)
+        rmSync(leftover, { force: true });
+        removed.push(leftover);
       }
       catch {
         // ignore cleanup failure
       }
     }
 
-    return { migrated: true, source, target, removed }
+    return { migrated: true, source, target, removed };
   }
 
   if (targetExists && legacySources.length > 0) {
     for (const source of legacySources) {
       try {
-        rmSync(source, { force: true })
-        removed.push(source)
+        rmSync(source, { force: true });
+        removed.push(source);
       }
       catch {
         // ignore cleanup failure
       }
     }
-    return { migrated: false, target, removed }
+    return { migrated: false, target, removed };
   }
 
-  return { migrated: false, target, removed }
+  return { migrated: false, target, removed };
 }
 
 export function readZcfConfig(): ZcfConfig | null {
-  migrateZcfConfigIfNeeded()
+  migrateZcfConfigIfNeeded();
 
   // First, try to read TOML config
-  const tomlConfig = readTomlConfig(ZCF_CONFIG_FILE)
+  const tomlConfig = readTomlConfig(ZCF_CONFIG_FILE);
   if (tomlConfig) {
-    return convertTomlToLegacyConfig(tomlConfig)
+    return convertTomlToLegacyConfig(tomlConfig);
   }
 
   // Fallback to legacy JSON config reading for backward compatibility
-  const raw = readJsonConfig<Partial<ZcfConfig>>(ZCF_CONFIG_FILE.replace('.toml', '.json'))
-  const normalized = normalizeZcfConfig(raw || null)
+  const raw = readJsonConfig<Partial<ZcfConfig>>(ZCF_CONFIG_FILE.replace('.toml', '.json'));
+  const normalized = normalizeZcfConfig(raw || null);
   if (normalized) {
-    return normalized
+    return normalized;
   }
 
   for (const legacyPath of LEGACY_ZCF_CONFIG_FILES) {
     if (existsSync(legacyPath)) {
-      const legacyRaw = readJsonConfig<Partial<ZcfConfig>>(legacyPath)
-      const legacyNormalized = normalizeZcfConfig(legacyRaw || null)
+      const legacyRaw = readJsonConfig<Partial<ZcfConfig>>(legacyPath);
+      const legacyNormalized = normalizeZcfConfig(legacyRaw || null);
       if (legacyNormalized) {
-        return legacyNormalized
+        return legacyNormalized;
       }
     }
   }
 
-  return null
+  return null;
 }
 
 export async function readZcfConfigAsync(): Promise<ZcfConfig | null> {
-  return readZcfConfig()
+  return readZcfConfig();
 }
 
 export function writeZcfConfig(config: ZcfConfig): void {
@@ -547,35 +547,35 @@ export function writeZcfConfig(config: ZcfConfig): void {
     const sanitizedConfig = {
       ...config,
       codeToolType: sanitizeCodeToolType(config.codeToolType),
-    }
-    const existingTomlConfig = readTomlConfig(ZCF_CONFIG_FILE)
-    const tomlConfig = convertLegacyToTomlConfig(sanitizedConfig)
+    };
+    const existingTomlConfig = readTomlConfig(ZCF_CONFIG_FILE);
+    const tomlConfig = convertLegacyToTomlConfig(sanitizedConfig);
 
     const nextSystemPromptStyle
       = (sanitizedConfig as any).systemPromptStyle
-        || existingTomlConfig?.codex?.systemPromptStyle
+        || existingTomlConfig?.codex?.systemPromptStyle;
 
     if (nextSystemPromptStyle) {
-      tomlConfig.codex.systemPromptStyle = nextSystemPromptStyle
+      tomlConfig.codex.systemPromptStyle = nextSystemPromptStyle;
     }
 
     if (existingTomlConfig?.claudeCode) {
       if (existingTomlConfig.claudeCode.profiles) {
-        tomlConfig.claudeCode.profiles = existingTomlConfig.claudeCode.profiles
+        tomlConfig.claudeCode.profiles = existingTomlConfig.claudeCode.profiles;
       }
       if (existingTomlConfig.claudeCode.currentProfile !== undefined) {
-        tomlConfig.claudeCode.currentProfile = existingTomlConfig.claudeCode.currentProfile
+        tomlConfig.claudeCode.currentProfile = existingTomlConfig.claudeCode.currentProfile;
       }
       if (existingTomlConfig.claudeCode.version) {
-        tomlConfig.claudeCode.version = existingTomlConfig.claudeCode.version
+        tomlConfig.claudeCode.version = existingTomlConfig.claudeCode.version;
       }
     }
 
     if (existingTomlConfig?.storage) {
-      tomlConfig.storage = existingTomlConfig.storage
+      tomlConfig.storage = existingTomlConfig.storage;
     }
 
-    writeTomlConfig(ZCF_CONFIG_FILE, tomlConfig)
+    writeTomlConfig(ZCF_CONFIG_FILE, tomlConfig);
   }
   catch {
     // Silently fail if cannot write config - user's system may have permission issues
@@ -584,7 +584,7 @@ export function writeZcfConfig(config: ZcfConfig): void {
 }
 
 export function updateZcfConfig(updates: Partial<ZcfConfig>): void {
-  const existingConfig = readZcfConfig()
+  const existingConfig = readZcfConfig();
   const newConfig: ZcfConfig = {
     version: updates.version || existingConfig?.version || '1.0.0',
     preferredLang: updates.preferredLang || existingConfig?.preferredLang || 'en',
@@ -594,32 +594,32 @@ export function updateZcfConfig(updates: Partial<ZcfConfig>): void {
     defaultOutputStyle: updates.defaultOutputStyle !== undefined ? updates.defaultOutputStyle : existingConfig?.defaultOutputStyle,
     codeToolType: updates.codeToolType || existingConfig?.codeToolType || DEFAULT_CODE_TOOL_TYPE,
     lastUpdated: new Date().toISOString(),
-  }
-  writeZcfConfig(newConfig)
+  };
+  writeZcfConfig(newConfig);
 }
 
 export function getZcfConfig(): ZcfConfig {
-  const config = readZcfConfig()
+  const config = readZcfConfig();
   return config || {
     version: '1.0.0',
     preferredLang: 'en',
     codeToolType: DEFAULT_CODE_TOOL_TYPE,
     lastUpdated: new Date().toISOString(),
-  }
+  };
 }
 
 export async function getZcfConfigAsync(): Promise<ZcfConfig> {
-  const config = await readZcfConfigAsync()
+  const config = await readZcfConfigAsync();
   return config || {
     version: '1.0.0',
     preferredLang: 'en',
     codeToolType: DEFAULT_CODE_TOOL_TYPE,
     lastUpdated: new Date().toISOString(),
-  }
+  };
 }
 
 export async function saveZcfConfig(config: ZcfConfig): Promise<void> {
-  writeZcfConfig(config)
+  writeZcfConfig(config);
 }
 
 /**
@@ -627,8 +627,8 @@ export async function saveZcfConfig(config: ZcfConfig): Promise<void> {
  * @returns Parsed TOML configuration or null if not found/invalid
  */
 export function readDefaultTomlConfig(): ZcfTomlConfig | null {
-  return readTomlConfig(ZCF_CONFIG_FILE)
+  return readTomlConfig(ZCF_CONFIG_FILE);
 }
 
 // Export TOML functions for direct usage (migration path)
-export { buildUpdatedTomlConfig, createDefaultTomlConfig, migrateFromJsonConfig, readTomlConfig, stringifyTomlConfig, updateTomlConfig, writeTomlConfig }
+export { buildUpdatedTomlConfig, createDefaultTomlConfig, migrateFromJsonConfig, readTomlConfig, stringifyTomlConfig, updateTomlConfig, writeTomlConfig };

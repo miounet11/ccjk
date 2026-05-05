@@ -1,6 +1,6 @@
 import type { User } from '@prisma/client';
-import jwt from 'jsonwebtoken';
 import { randomBytes, scryptSync, timingSafeEqual } from 'node:crypto';
+import jwt from 'jsonwebtoken';
 import { CONFIG } from './config';
 import { prisma } from './db';
 
@@ -79,7 +79,8 @@ export function verifyLocalAuthCredential(credential: string, password: string):
 export function verifyToken(token: string): JWTPayload {
   try {
     return jwt.verify(token, CONFIG.jwtSecret) as JWTPayload;
-  } catch (error) {
+  }
+  catch (_error) {
     throw new Error('Invalid token');
   }
 }
@@ -94,7 +95,8 @@ export async function getUserFromToken(token: string): Promise<User | null> {
       where: { id: payload.userId },
     });
     return user;
-  } catch {
+  }
+  catch {
     return null;
   }
 }
@@ -137,8 +139,8 @@ export async function getGitHubUser(accessToken: string): Promise<{
 }> {
   const response = await fetch('https://api.github.com/user', {
     headers: {
-      'Authorization': `Bearer ${accessToken}`,
-      'Accept': 'application/json',
+      Authorization: `Bearer ${accessToken}`,
+      Accept: 'application/json',
     },
   });
 
@@ -182,7 +184,8 @@ export async function findOrCreateUserFromGitHub(githubUser: {
         lastSeenAt: new Date(),
       },
     });
-  } else {
+  }
+  else {
     // Create new user
     user = await prisma.user.create({
       data: {

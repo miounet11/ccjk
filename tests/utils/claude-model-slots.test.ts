@@ -1,7 +1,7 @@
-import { describe, expect, it } from 'vitest'
-import { resolveClaudeFamilyModelSlots } from '../../src/utils/claude-model-slots'
+import { describe, expect, it } from 'vitest';
+import { resolveClaudeFamilyModelSlots } from '../../src/utils/claude-model-slots';
 
-describe('Claude-family model slot resolver', () => {
+describe('claude-family model slot resolver', () => {
   it('maps provider defaults by exact positional slots', () => {
     expect(resolveClaudeFamilyModelSlots({
       defaultModels: [
@@ -15,8 +15,8 @@ describe('Claude-family model slot resolver', () => {
       haikuModel: 'gpt-5.3-codex-spark',
       sonnetModel: 'MiniMax-M2',
       opusModel: 'Claude-Opus-4.6',
-    })
-  })
+    });
+  });
 
   it('locks every slot to an exact selected model', () => {
     expect(resolveClaudeFamilyModelSlots({
@@ -27,6 +27,6 @@ describe('Claude-family model slot resolver', () => {
       haikuModel: 'Claude-Opus-4.6',
       sonnetModel: 'Claude-Opus-4.6',
       opusModel: 'Claude-Opus-4.6',
-    })
-  })
-})
+    });
+  });
+});

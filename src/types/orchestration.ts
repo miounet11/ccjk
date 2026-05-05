@@ -6,138 +6,138 @@
 /**
  * Message role types
  */
-export type MessageRole = 'user' | 'assistant' | 'system'
+export type MessageRole = 'user' | 'assistant' | 'system';
 
 /**
  * Message content types
  */
 export interface Message {
-  id: string
-  role: MessageRole
-  content: string
-  timestamp: number
-  tokens?: number
-  metadata?: Record<string, unknown>
+  id: string;
+  role: MessageRole;
+  content: string;
+  timestamp: number;
+  tokens?: number;
+  metadata?: Record<string, unknown>;
 }
 
 /**
  * Code snippet extracted from context
  */
 export interface CodeSnippet {
-  file: string
-  lines: string
-  context: string
-  language?: string
-  importance: number
+  file: string;
+  lines: string;
+  context: string;
+  language?: string;
+  importance: number;
 }
 
 /**
  * Decision record
  */
 export interface Decision {
-  question: string
-  answer: string
-  timestamp: number
-  confidence?: number
-  rationale?: string
+  question: string;
+  answer: string;
+  timestamp: number;
+  confidence?: number;
+  rationale?: string;
 }
 
 /**
  * Key point extracted from conversation
  */
 export interface KeyPoint {
-  content: string
-  category: 'decision' | 'error' | 'solution' | 'requirement' | 'insight'
-  importance: number
-  timestamp: number
-  relatedMessages: string[]
+  content: string;
+  category: 'decision' | 'error' | 'solution' | 'requirement' | 'insight';
+  importance: number;
+  timestamp: number;
+  relatedMessages: string[];
 }
 
 /**
  * Compressed context metadata
  */
 export interface CompressionMetadata {
-  originalTokens: number
-  compressedTokens: number
-  compressionRatio: number
-  compressionTime: number
-  strategy: 'summary' | 'dedup' | 'trim' | 'hybrid'
-  timestamp: number
+  originalTokens: number;
+  compressedTokens: number;
+  compressionRatio: number;
+  compressionTime: number;
+  strategy: 'summary' | 'dedup' | 'trim' | 'hybrid';
+  timestamp: number;
 }
 
 /**
  * Compressed context result
  */
 export interface CompressedContext {
-  sessionId: string
-  summary: string
-  keyPoints: KeyPoint[]
-  codeSnippets: CodeSnippet[]
-  decisions: Decision[]
-  metadata: CompressionMetadata
-  originalMessageCount: number
-  retainedMessageCount: number
+  sessionId: string;
+  summary: string;
+  keyPoints: KeyPoint[];
+  codeSnippets: CodeSnippet[];
+  decisions: Decision[];
+  metadata: CompressionMetadata;
+  originalMessageCount: number;
+  retainedMessageCount: number;
 }
 
 /**
  * Context compression options
  */
 export interface CompressionOptions {
-  keepRecentN?: number
-  importanceThreshold?: number
-  maxTokens?: number
-  preserveCode?: boolean
-  preserveDecisions?: boolean
-  strategy?: 'aggressive' | 'balanced' | 'conservative'
+  keepRecentN?: number;
+  importanceThreshold?: number;
+  maxTokens?: number;
+  preserveCode?: boolean;
+  preserveDecisions?: boolean;
+  strategy?: 'aggressive' | 'balanced' | 'conservative';
 }
 
 /**
  * Session persistence data
  */
 export interface SessionData {
-  id: string
-  projectPath: string
-  createdAt: number
-  updatedAt: number
-  messages: Message[]
-  compressed?: CompressedContext
-  totalTokens: number
-  status: 'active' | 'compressed' | 'archived'
+  id: string;
+  projectPath: string;
+  createdAt: number;
+  updatedAt: number;
+  messages: Message[];
+  compressed?: CompressedContext;
+  totalTokens: number;
+  status: 'active' | 'compressed' | 'archived';
 }
 
 /**
  * Context restoration result
  */
 export interface RestorationResult {
-  sessionId: string
-  messages: Message[]
-  compressed?: CompressedContext
-  totalTokens: number
-  restoredAt: number
+  sessionId: string;
+  messages: Message[];
+  compressed?: CompressedContext;
+  totalTokens: number;
+  restoredAt: number;
 }
 
 /**
  * Token estimation result
  */
 export interface TokenEstimate {
-  total: number
-  byRole: Record<MessageRole, number>
-  byCategory: Record<string, number>
-  averagePerMessage: number
+  total: number;
+  byRole: Record<MessageRole, number>;
+  byCategory: Record<string, number>;
+  averagePerMessage: number;
 }
 
 /**
  * Compression performance metrics
  */
 export interface CompressionMetrics {
-  sessionId: string
-  originalTokens: number
-  compressedTokens: number
-  tokensSaved: number
-  compressionRatio: number
-  processingTime: number
-  strategy: string
-  timestamp: number
+  sessionId: string;
+  originalTokens: number;
+  compressedTokens: number;
+  tokensSaved: number;
+  compressionRatio: number;
+  processingTime: number;
+  strategy: string;
+  timestamp: number;
 }
 
 /**
@@ -174,29 +174,29 @@ export enum IntentType {
  * Confidence level for intent detection.
  * Ranges from 0.0 to 1.0, with higher values indicating greater certainty.
  */
-export type ConfidenceScore = number
+export type ConfidenceScore = number;
 
 /**
  * Detected intent with associated metadata.
  */
 export interface DetectedIntent {
   /** The primary intent type */
-  intent: IntentType
+  intent: IntentType;
 
   /** Confidence score (0.0 to 1.0) */
-  confidence: ConfidenceScore
+  confidence: ConfidenceScore;
 
   /** Alternative intents with their confidence scores */
   alternatives?: Array<{
-    intent: IntentType
-    confidence: ConfidenceScore
-  }>
+    intent: IntentType;
+    confidence: ConfidenceScore;
+  }>;
 
   /** Matched keywords or phrases that led to this detection */
-  matchedKeywords: string[]
+  matchedKeywords: string[];
 
   /** Timestamp of detection */
-  timestamp: number
+  timestamp: number;
 }
 
 /**
@@ -204,23 +204,23 @@ export interface DetectedIntent {
  */
 export interface DetectionContext {
   /** Current working directory */
-  cwd?: string
+  cwd?: string;
 
   /** Recent command history */
-  history?: string[]
+  history?: string[];
 
   /** Active files in the workspace */
-  activeFiles?: string[]
+  activeFiles?: string[];
 
   /** Git repository information */
   gitInfo?: {
-    branch?: string
-    hasChanges?: boolean
-    recentCommits?: string[]
-  }
+    branch?: string;
+    hasChanges?: boolean;
+    recentCommits?: string[];
+  };
 
   /** Previously detected intents (for context awareness) */
-  previousIntents?: DetectedIntent[]
+  previousIntents?: DetectedIntent[];
 }
 
 /**
@@ -228,31 +228,31 @@ export interface DetectionContext {
  */
 export interface OrchestrationStep {
   /** Unique step identifier */
-  id: string
+  id: string;
 
   /** Step type determining execution strategy */
-  type: 'skill' | 'agent' | 'mcp' | 'builtin'
+  type: 'skill' | 'agent' | 'mcp' | 'builtin';
 
   /** Name of the skill, agent, or MCP to invoke */
-  name: string
+  name: string;
 
   /** Specific command or action to execute */
-  action: string
+  action: string;
 
   /** Execution order (lower numbers execute first) */
-  order: number
+  order: number;
 
   /** Whether this step must complete before proceeding */
-  blocking: boolean
+  blocking: boolean;
 
   /** Input parameters for this step */
-  parameters?: Record<string, unknown>
+  parameters?: Record<string, unknown>;
 
   /** Expected output format */
-  outputFormat?: 'text' | 'json' | 'markdown' | 'code'
+  outputFormat?: 'text' | 'json' | 'markdown' | 'code';
 
   /** Estimated execution time in milliseconds */
-  estimatedDuration?: number
+  estimatedDuration?: number;
 }
 
 /**
@@ -260,30 +260,30 @@ export interface OrchestrationStep {
  */
 export interface OrchestrationPlan {
   /** Unique plan identifier */
-  id: string
+  id: string;
 
   /** The intent this plan addresses */
-  intent: DetectedIntent
+  intent: DetectedIntent;
 
   /** Sequential steps to execute */
-  steps: OrchestrationStep[]
+  steps: OrchestrationStep[];
 
   /** Total estimated execution time */
-  estimatedDuration: number
+  estimatedDuration: number;
 
   /** Required resources (skills, agents, MCPs) */
   requiredResources: {
-    skills?: string[]
-    agents?: string[]
-    mcps?: string[]
-  }
+    skills?: string[];
+    agents?: string[];
+    mcps?: string[];
+  };
 
   /** Additional metadata */
   metadata: {
-    createdAt: number
-    version: string
-    complexity: 'simple' | 'moderate' | 'complex'
-  }
+    createdAt: number;
+    version: string;
+    complexity: 'simple' | 'moderate' | 'complex';
+  };
 }
 
 /**
@@ -291,28 +291,28 @@ export interface OrchestrationPlan {
  */
 export interface OrchestrationRule {
   /** Intent type this rule applies to */
-  intent: IntentType
+  intent: IntentType;
 
   /** Minimum confidence required to apply this rule */
-  minConfidence: ConfidenceScore
+  minConfidence: ConfidenceScore;
 
   /** Primary execution strategy */
   primaryStrategy: {
-    type: 'skill' | 'agent' | 'mcp' | 'hybrid'
-    name: string
-    action: string
-  }
+    type: 'skill' | 'agent' | 'mcp' | 'hybrid';
+    name: string;
+    action: string;
+  };
 
   /** Supporting strategies (optional) */
   supportingStrategies?: Array<{
-    type: 'skill' | 'agent' | 'mcp'
-    name: string
-    action: string
-    blocking: boolean
-  }>
+    type: 'skill' | 'agent' | 'mcp';
+    name: string;
+    action: string;
+    blocking: boolean;
+  }>;
 
   /** Required MCP services */
-  requiredMCPs?: string[]
+  requiredMCPs?: string[];
 }
 
 /**
@@ -322,21 +322,21 @@ export interface OrchestrationRule {
 export interface IntentKeywords {
   /** Primary keywords with strong correlation */
   primary: {
-    en: string[]
-    zh: string[]
-  }
+    en: string[];
+    zh: string[];
+  };
 
   /** Secondary keywords with moderate correlation */
   secondary: {
-    en: string[]
-    zh: string[]
-  }
+    en: string[];
+    zh: string[];
+  };
 
   /** Negative keywords that exclude this intent */
   negative?: {
-    en: string[]
-    zh: string[]
-  }
+    en: string[];
+    zh: string[];
+  };
 }
 
 /**
@@ -344,29 +344,29 @@ export interface IntentKeywords {
  */
 export interface IntentAnalysis {
   /** Detected intent */
-  intent: DetectedIntent
+  intent: DetectedIntent;
 
   /** Analysis details */
   analysis: {
     /** Input text that was analyzed */
-    input: string
+    input: string;
 
     /** Context used for detection */
-    context: DetectionContext
+    context: DetectionContext;
 
     /** All keyword matches found */
     matches: Array<{
-      keyword: string
-      intent: IntentType
-      weight: number
-    }>
+      keyword: string;
+      intent: IntentType;
+      weight: number;
+    }>;
 
     /** Confidence calculation details */
     confidenceBreakdown: {
-      keywordScore: number
-      contextScore: number
-      historyScore: number
-      finalScore: number
-    }
-  }
+      keywordScore: number;
+      contextScore: number;
+      historyScore: number;
+      finalScore: number;
+    };
+  };
 }

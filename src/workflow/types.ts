@@ -5,7 +5,7 @@
  * Implements 5-phase development workflow with subagent orchestration
  */
 
-import type { SubagentConfig, SubagentState } from '../utils/subagent/types'
+import type { SubagentConfig, SubagentState } from '../utils/subagent/types';
 
 // ============================================================================
 // Workflow Phases
@@ -25,32 +25,32 @@ export type WorkflowPhase
     | 'planning'
     | 'implementation'
     | 'review'
-    | 'finishing'
+    | 'finishing';
 
 /**
  * Phase metadata and configuration
  */
 export interface PhaseConfig {
   /** Phase identifier */
-  phase: WorkflowPhase
+  phase: WorkflowPhase;
 
   /** Human-readable name */
-  name: Record<string, string>
+  name: Record<string, string>;
 
   /** Phase description */
-  description: Record<string, string>
+  description: Record<string, string>;
 
   /** Skills to auto-activate in this phase */
-  autoActivateSkills: string[]
+  autoActivateSkills: string[];
 
   /** Allowed transitions from this phase */
-  allowedTransitions: WorkflowPhase[]
+  allowedTransitions: WorkflowPhase[];
 
   /** Whether this phase requires user confirmation to proceed */
-  requiresConfirmation: boolean
+  requiresConfirmation: boolean;
 
   /** Maximum duration in minutes (0 = unlimited) */
-  maxDuration: number
+  maxDuration: number;
 }
 
 /**
@@ -152,7 +152,7 @@ export const PHASE_CONFIGS: Record<WorkflowPhase, PhaseConfig> = {
     requiresConfirmation: true,
     maxDuration: 15,
   },
-}
+};
 
 // ============================================================================
 // Task Types
@@ -170,73 +170,73 @@ export type TaskStatus
     | 'rejected' // Review failed, needs rework
     | 'completed' // Successfully completed
     | 'failed' // Failed with error
-    | 'cancelled' // Cancelled by user
+    | 'cancelled'; // Cancelled by user
 
 /**
  * Task priority levels
  */
-export type TaskPriority = 'critical' | 'high' | 'medium' | 'low'
+export type TaskPriority = 'critical' | 'high' | 'medium' | 'low';
 
 /**
  * A single task in the workflow
  */
 export interface WorkflowTask {
   /** Unique task identifier */
-  id: string
+  id: string;
 
   /** Parent task ID (for subtasks) */
-  parentId?: string
+  parentId?: string;
 
   /** Task title */
-  title: string
+  title: string;
 
   /** Detailed description */
-  description: string
+  description: string;
 
   /** Current status */
-  status: TaskStatus
+  status: TaskStatus;
 
   /** Priority level */
-  priority: TaskPriority
+  priority: TaskPriority;
 
   /** Estimated duration in minutes */
-  estimatedMinutes: number
+  estimatedMinutes: number;
 
   /** Actual duration in minutes */
-  actualMinutes?: number
+  actualMinutes?: number;
 
   /** Dependencies (task IDs that must complete first) */
-  dependencies: string[]
+  dependencies: string[];
 
   /** Associated skill ID */
-  skillId?: string
+  skillId?: string;
 
   /** Subagent state (when running) */
-  subagentState?: SubagentState
+  subagentState?: SubagentState;
 
   /** Review results */
-  review?: TaskReview
+  review?: TaskReview;
 
   /** Task metadata */
-  metadata: Record<string, any>
+  metadata: Record<string, any>;
 
   /** Created timestamp */
-  createdAt: Date
+  createdAt: Date;
 
   /** Started timestamp */
-  startedAt?: Date
+  startedAt?: Date;
 
   /** Completed timestamp */
-  completedAt?: Date
+  completedAt?: Date;
 
   /** Error message (if failed) */
-  error?: string
+  error?: string;
 
   /** Output/result of the task */
-  output?: string
+  output?: string;
 
   /** Files modified by this task */
-  modifiedFiles?: string[]
+  modifiedFiles?: string[];
 }
 
 // ============================================================================
@@ -246,43 +246,43 @@ export interface WorkflowTask {
 /**
  * Review stage
  */
-export type ReviewStage = 'spec-compliance' | 'code-quality'
+export type ReviewStage = 'spec-compliance' | 'code-quality';
 
 /**
  * Review severity levels
  */
-export type ReviewSeverity = 'blocker' | 'major' | 'minor' | 'suggestion'
+export type ReviewSeverity = 'blocker' | 'major' | 'minor' | 'suggestion';
 
 /**
  * Single review issue
  */
 export interface ReviewIssue {
   /** Issue ID */
-  id: string
+  id: string;
 
   /** Review stage where issue was found */
-  stage: ReviewStage
+  stage: ReviewStage;
 
   /** Severity level */
-  severity: ReviewSeverity
+  severity: ReviewSeverity;
 
   /** Issue title */
-  title: string
+  title: string;
 
   /** Detailed description */
-  description: string
+  description: string;
 
   /** File path (if applicable) */
-  filePath?: string
+  filePath?: string;
 
   /** Line number (if applicable) */
-  lineNumber?: number
+  lineNumber?: number;
 
   /** Suggested fix */
-  suggestion?: string
+  suggestion?: string;
 
   /** Whether this issue is resolved */
-  resolved: boolean
+  resolved: boolean;
 }
 
 /**
@@ -290,22 +290,22 @@ export interface ReviewIssue {
  */
 export interface StageReviewResult {
   /** Review stage */
-  stage: ReviewStage
+  stage: ReviewStage;
 
   /** Whether the review passed */
-  passed: boolean
+  passed: boolean;
 
   /** Issues found */
-  issues: ReviewIssue[]
+  issues: ReviewIssue[];
 
   /** Review summary */
-  summary: string
+  summary: string;
 
   /** Reviewer notes */
-  notes?: string
+  notes?: string;
 
   /** Review timestamp */
-  reviewedAt: Date
+  reviewedAt: Date;
 }
 
 /**
@@ -313,22 +313,22 @@ export interface StageReviewResult {
  */
 export interface TaskReview {
   /** Task ID */
-  taskId: string
+  taskId: string;
 
   /** Stage 1: Spec compliance review */
-  specCompliance?: StageReviewResult
+  specCompliance?: StageReviewResult;
 
   /** Stage 2: Code quality review */
-  codeQuality?: StageReviewResult
+  codeQuality?: StageReviewResult;
 
   /** Overall review status */
-  status: 'pending' | 'in-progress' | 'passed' | 'failed'
+  status: 'pending' | 'in-progress' | 'passed' | 'failed';
 
   /** Number of review iterations */
-  iterations: number
+  iterations: number;
 
   /** Maximum allowed iterations */
-  maxIterations: number
+  maxIterations: number;
 }
 
 // ============================================================================
@@ -343,56 +343,56 @@ export type WorkflowStatus
     | 'paused' // Paused by user
     | 'completed' // Successfully completed
     | 'failed' // Failed with error
-    | 'cancelled' // Cancelled by user
+    | 'cancelled'; // Cancelled by user
 
 /**
  * Workflow session - represents a complete development workflow
  */
 export interface WorkflowSession {
   /** Unique session identifier */
-  id: string
+  id: string;
 
   /** Session name/title */
-  name: string
+  name: string;
 
   /** Session description */
-  description: string
+  description: string;
 
   /** Current workflow phase */
-  currentPhase: WorkflowPhase
+  currentPhase: WorkflowPhase;
 
   /** Session status */
-  status: WorkflowStatus
+  status: WorkflowStatus;
 
   /** All tasks in this workflow */
-  tasks: WorkflowTask[]
+  tasks: WorkflowTask[];
 
   /** Phase history with timestamps */
-  phaseHistory: PhaseTransition[]
+  phaseHistory: PhaseTransition[];
 
   /** Git branch for this workflow */
-  branch?: string
+  branch?: string;
 
   /** Git worktree path */
-  worktreePath?: string
+  worktreePath?: string;
 
   /** Associated skill IDs */
-  skills: string[]
+  skills: string[];
 
   /** Session metadata */
-  metadata: Record<string, any>
+  metadata: Record<string, any>;
 
   /** Created timestamp */
-  createdAt: Date
+  createdAt: Date;
 
   /** Last updated timestamp */
-  updatedAt: Date
+  updatedAt: Date;
 
   /** Completed timestamp */
-  completedAt?: Date
+  completedAt?: Date;
 
   /** Error message (if failed) */
-  error?: string
+  error?: string;
 }
 
 /**
@@ -400,19 +400,19 @@ export interface WorkflowSession {
  */
 export interface PhaseTransition {
   /** From phase */
-  from: WorkflowPhase | null
+  from: WorkflowPhase | null;
 
   /** To phase */
-  to: WorkflowPhase
+  to: WorkflowPhase;
 
   /** Transition timestamp */
-  timestamp: Date
+  timestamp: Date;
 
   /** Reason for transition */
-  reason?: string
+  reason?: string;
 
   /** User who triggered transition */
-  triggeredBy?: 'user' | 'auto' | 'system'
+  triggeredBy?: 'user' | 'auto' | 'system';
 }
 
 // ============================================================================
@@ -424,25 +424,25 @@ export interface PhaseTransition {
  */
 export interface SchedulerConfig {
   /** Maximum concurrent tasks */
-  maxConcurrent: number
+  maxConcurrent: number;
 
   /** Default task timeout in minutes */
-  defaultTimeout: number
+  defaultTimeout: number;
 
   /** Whether to auto-retry failed tasks */
-  autoRetry: boolean
+  autoRetry: boolean;
 
   /** Maximum retry attempts */
-  maxRetries: number
+  maxRetries: number;
 
   /** Delay between retries in seconds */
-  retryDelay: number
+  retryDelay: number;
 
   /** Whether to use git worktrees for isolation */
-  useWorktrees: boolean
+  useWorktrees: boolean;
 
   /** Worktree base path */
-  worktreeBasePath?: string
+  worktreeBasePath?: string;
 }
 
 /**
@@ -455,29 +455,29 @@ export const DEFAULT_SCHEDULER_CONFIG: SchedulerConfig = {
   maxRetries: 2,
   retryDelay: 5,
   useWorktrees: true,
-}
+};
 
 /**
  * Task execution context
  */
 export interface TaskExecutionContext {
   /** Task being executed */
-  task: WorkflowTask
+  task: WorkflowTask;
 
   /** Workflow session */
-  session: WorkflowSession
+  session: WorkflowSession;
 
   /** Subagent configuration */
-  subagentConfig: SubagentConfig
+  subagentConfig: SubagentConfig;
 
   /** Working directory */
-  workingDir: string
+  workingDir: string;
 
   /** Environment variables */
-  env: Record<string, string>
+  env: Record<string, string>;
 
   /** Timeout in milliseconds */
-  timeout: number
+  timeout: number;
 }
 
 // ============================================================================
@@ -489,37 +489,37 @@ export interface TaskExecutionContext {
  */
 export interface WorkflowEvents {
   /** Session created */
-  'session:created': (session: WorkflowSession) => void
+  'session:created': (session: WorkflowSession) => void;
 
   /** Session status changed */
-  'session:status': (session: WorkflowSession, oldStatus: WorkflowStatus, newStatus: WorkflowStatus) => void
+  'session:status': (session: WorkflowSession, oldStatus: WorkflowStatus, newStatus: WorkflowStatus) => void;
 
   /** Phase changed */
-  'phase:changed': (session: WorkflowSession, transition: PhaseTransition) => void
+  'phase:changed': (session: WorkflowSession, transition: PhaseTransition) => void;
 
   /** Task created */
-  'task:created': (session: WorkflowSession, task: WorkflowTask) => void
+  'task:created': (session: WorkflowSession, task: WorkflowTask) => void;
 
   /** Task status changed */
-  'task:status': (session: WorkflowSession, task: WorkflowTask, oldStatus: TaskStatus, newStatus: TaskStatus) => void
+  'task:status': (session: WorkflowSession, task: WorkflowTask, oldStatus: TaskStatus, newStatus: TaskStatus) => void;
 
   /** Task completed */
-  'task:completed': (session: WorkflowSession, task: WorkflowTask) => void
+  'task:completed': (session: WorkflowSession, task: WorkflowTask) => void;
 
   /** Task failed */
-  'task:failed': (session: WorkflowSession, task: WorkflowTask, error: string) => void
+  'task:failed': (session: WorkflowSession, task: WorkflowTask, error: string) => void;
 
   /** Review started */
-  'review:started': (session: WorkflowSession, task: WorkflowTask, stage: ReviewStage) => void
+  'review:started': (session: WorkflowSession, task: WorkflowTask, stage: ReviewStage) => void;
 
   /** Review completed */
-  'review:completed': (session: WorkflowSession, task: WorkflowTask, result: StageReviewResult) => void
+  'review:completed': (session: WorkflowSession, task: WorkflowTask, result: StageReviewResult) => void;
 
   /** Workflow completed */
-  'workflow:completed': (session: WorkflowSession) => void
+  'workflow:completed': (session: WorkflowSession) => void;
 
   /** Workflow failed */
-  'workflow:failed': (session: WorkflowSession, error: string) => void
+  'workflow:failed': (session: WorkflowSession, error: string) => void;
 }
 
 // ============================================================================
@@ -531,16 +531,16 @@ export interface WorkflowEvents {
  */
 export interface WorkflowPersistenceState {
   /** Version for migration */
-  version: number
+  version: number;
 
   /** Active sessions */
-  sessions: WorkflowSession[]
+  sessions: WorkflowSession[];
 
   /** Last updated timestamp */
-  lastUpdated: Date
+  lastUpdated: Date;
 }
 
 /**
  * Current persistence version
  */
-export const WORKFLOW_PERSISTENCE_VERSION = 1
+export const WORKFLOW_PERSISTENCE_VERSION = 1;

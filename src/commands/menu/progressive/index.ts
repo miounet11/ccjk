@@ -4,4 +4,4 @@
  * Exports all progressive menu level utilities.
  */
 
-export * from './levels'
+export * from './levels';

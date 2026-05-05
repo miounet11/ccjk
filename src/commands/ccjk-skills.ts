@@ -7,24 +7,24 @@
  * @module commands/ccjk-skills
  */
 
-import type { ProjectAnalysis } from '../analyzers'
-import type { SupportedLang } from '../constants'
-import type { SkillCategory, SkillInstallResult } from '../skills/types'
-import { promises as fs } from 'node:fs'
-import { homedir } from 'node:os'
-import { dirname, join } from 'node:path'
-import { fileURLToPath } from 'node:url'
-import ansis from 'ansis'
-import consola from 'consola'
-import inquirer from 'inquirer'
-import { analyzeProject } from '../analyzers'
-import { getTemplatesClient } from '../cloud-client'
-import { i18n, resolveSupportedLanguage } from '../i18n'
-import { getSkillParser } from '../plugins-v2'
+import type { ProjectAnalysis } from '../analyzers';
+import type { SupportedLang } from '../constants';
+import type { SkillCategory, SkillInstallResult } from '../skills/types';
+import { promises as fs } from 'node:fs';
+import { homedir } from 'node:os';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import ansis from 'ansis';
+import consola from 'consola';
+import inquirer from 'inquirer';
+import { analyzeProject } from '../analyzers';
+import { getTemplatesClient } from '../cloud-client';
+import { i18n, resolveSupportedLanguage } from '../i18n';
+import { getSkillParser } from '../plugins-v2';
 
 // ESM compatible __dirname
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // ============================================================================
 // Types
@@ -32,37 +32,37 @@ const __dirname = dirname(__filename)
 
 export interface CcjkSkillsOptions {
   /** Language for UI */
-  lang?: SupportedLang
+  lang?: SupportedLang;
   /** Interactive mode (default: true) */
-  interactive?: boolean
+  interactive?: boolean;
   /** Skill category filter */
-  category?: SkillCategory
+  category?: SkillCategory;
   /** Tags to filter skills */
-  tags?: string[]
+  tags?: string[];
   /** Skills to exclude */
-  exclude?: string[]
+  exclude?: string[];
   /** Dry run mode (don't install) */
-  dryRun?: boolean
+  dryRun?: boolean;
   /** Output as JSON */
-  json?: boolean
+  json?: boolean;
   /** Force installation */
-  force?: boolean
+  force?: boolean;
   /** Target directory */
-  targetDir?: string
+  targetDir?: string;
 }
 
 interface RecommendedSkill {
-  id: string
-  name: Record<SupportedLang, string>
-  description: Record<SupportedLang, string>
-  category: SkillCategory
-  priority: number
-  source: 'cloud' | 'local'
-  tags: string[]
-  agents?: string[]
-  templatePath: string
+  id: string;
+  name: Record<SupportedLang, string>;
+  description: Record<SupportedLang, string>;
+  category: SkillCategory;
+  priority: number;
+  source: 'cloud' | 'local';
+  tags: string[];
+  agents?: string[];
+  templatePath: string;
   /** Template content from V8 API (for cloud skills) */
-  templateContent?: string
+  templateContent?: string;
 }
 
 // ============================================================================
@@ -73,13 +73,13 @@ interface RecommendedSkill {
  * Main ccjk:skills command
  */
 export async function ccjkSkills(options: CcjkSkillsOptions = {}): Promise<void> {
-  const logger = consola.withTag('ccjk:skills')
-  const startTime = Date.now()
+  const logger = consola.withTag('ccjk:skills');
+  const startTime = Date.now();
 
   try {
-    const lang = resolveSupportedLanguage(options.lang)
+    const lang = resolveSupportedLanguage(options.lang);
     if (lang !== i18n.language) {
-      await i18n.changeLanguage(lang)
+      await i18n.changeLanguage(lang);
     }
 
     // Parse options
@@ -93,49 +93,49 @@ export async function ccjkSkills(options: CcjkSkillsOptions = {}): Promise<void>
       json: options.json ?? false,
       force: options.force ?? false,
       targetDir: options.targetDir || process.cwd(),
-    }
+    };
 
     // JSON mode output
     if (opts.json) {
-      console.log(JSON.stringify({ status: 'starting', options: opts }))
+      console.log(JSON.stringify({ status: 'starting', options: opts }));
     }
 
     // Display header
     if (!opts.json) {
-      console.log('')
-      console.log(ansis.bold.cyan('━'.repeat(60)))
-      console.log(ansis.bold.cyan(`  ${i18n.t('ccjk-skills:title')}`))
-      console.log(ansis.bold.cyan('━'.repeat(60)))
-      console.log('')
+      console.log('');
+      console.log(ansis.bold.cyan('━'.repeat(60)));
+      console.log(ansis.bold.cyan(`  ${i18n.t('ccjk-skills:title')}`));
+      console.log(ansis.bold.cyan('━'.repeat(60)));
+      console.log('');
     }
 
     // Step 1: Analyze project
     if (!opts.json) {
-      console.log(ansis.bold(`  ${i18n.t('ccjk-skills:analyzing')}`))
+      console.log(ansis.bold(`  ${i18n.t('ccjk-skills:analyzing')}`));
     }
 
     const analysis = await analyzeProject(opts.targetDir, {
       analyzeTransitiveDeps: true,
       // Don't override maxFilesToScan - use default of 10000
-    })
+    });
 
     if (!opts.json) {
-      displayProjectInfo(analysis, opts.lang)
+      displayProjectInfo(analysis, opts.lang);
     }
 
     // Step 2: Get skill recommendations
     if (!opts.json) {
-      console.log('')
-      console.log(ansis.bold(`  ${i18n.t('ccjk-skills:recommending')}`))
+      console.log('');
+      console.log(ansis.bold(`  ${i18n.t('ccjk-skills:recommending')}`));
     }
 
-    const recommendedSkills = await getRecommendedSkills(analysis, opts)
+    const recommendedSkills = await getRecommendedSkills(analysis, opts);
 
     if (recommendedSkills.length === 0) {
       if (!opts.json) {
-        console.log(ansis.yellow(`  ${i18n.t('ccjk-skills:noSkillsFound')}`))
-        console.log('')
-        console.log(ansis.dim(`  ${i18n.t('ccjk-skills:tryDifferentProject')}`))
+        console.log(ansis.yellow(`  ${i18n.t('ccjk-skills:noSkillsFound')}`));
+        console.log('');
+        console.log(ansis.dim(`  ${i18n.t('ccjk-skills:tryDifferentProject')}`));
       }
       else {
         console.log(JSON.stringify({
@@ -143,17 +143,17 @@ export async function ccjkSkills(options: CcjkSkillsOptions = {}): Promise<void>
           skillsFound: 0,
           skillsInstalled: 0,
           duration: Date.now() - startTime,
-        }))
+        }));
       }
-      return
+      return;
     }
 
     // Step 3: Filter and select skills
-    const selectedSkills = await selectSkills(recommendedSkills, opts)
+    const selectedSkills = await selectSkills(recommendedSkills, opts);
 
     if (selectedSkills.length === 0) {
       if (!opts.json) {
-        console.log(ansis.yellow(`  ${i18n.t('ccjk-skills:noSkillsSelected')}`))
+        console.log(ansis.yellow(`  ${i18n.t('ccjk-skills:noSkillsSelected')}`));
       }
       else {
         console.log(JSON.stringify({
@@ -161,34 +161,34 @@ export async function ccjkSkills(options: CcjkSkillsOptions = {}): Promise<void>
           skillsFound: recommendedSkills.length,
           skillsSelected: 0,
           duration: Date.now() - startTime,
-        }))
+        }));
       }
-      return
+      return;
     }
 
     // Step 4: Install skills
     if (!opts.json) {
-      console.log('')
-      console.log(ansis.bold(`  ${i18n.t('ccjk-skills:installing')}`))
+      console.log('');
+      console.log(ansis.bold(`  ${i18n.t('ccjk-skills:installing')}`));
     }
 
-    const results = await installSkills(selectedSkills, opts)
+    const results = await installSkills(selectedSkills, opts);
 
     // Step 5: Display results
-    const successful = results.filter(r => r.success)
-    const failed = results.filter(r => !r.success)
+    const successful = results.filter(r => r.success);
+    const failed = results.filter(r => !r.success);
 
     if (!opts.json) {
-      displayInstallationResults(results, opts.lang)
+      displayInstallationResults(results, opts.lang);
 
       if (successful.length > 0) {
-        console.log('')
-        console.log(ansis.bold(ansis.green(`  ✓ ${i18n.t('ccjk-skills:installedCount', { count: successful.length })}`)))
-        console.log('')
-        console.log(ansis.bold(`  ${i18n.t('ccjk-skills:nextSteps')}:`))
-        console.log(ansis.dim(`    • ${i18n.t('ccjk-skills:useMcpCommand')}`))
-        console.log(ansis.dim(`    • ${i18n.t('ccjk-skills:useAgentsCommand')}`))
-        console.log(ansis.dim(`    • ${i18n.t('ccjk-skills:useSetupCommand')}`))
+        console.log('');
+        console.log(ansis.bold(ansis.green(`  ✓ ${i18n.t('ccjk-skills:installedCount', { count: successful.length })}`)));
+        console.log('');
+        console.log(ansis.bold(`  ${i18n.t('ccjk-skills:nextSteps')}:`));
+        console.log(ansis.dim(`    • ${i18n.t('ccjk-skills:useMcpCommand')}`));
+        console.log(ansis.dim(`    • ${i18n.t('ccjk-skills:useAgentsCommand')}`));
+        console.log(ansis.dim(`    • ${i18n.t('ccjk-skills:useSetupCommand')}`));
       }
     }
     else {
@@ -200,25 +200,25 @@ export async function ccjkSkills(options: CcjkSkillsOptions = {}): Promise<void>
         skillsFailed: failed.length,
         results,
         duration: Date.now() - startTime,
-      }))
+      }));
     }
 
-    logger.success(`Completed in ${Date.now() - startTime}ms`)
+    logger.success(`Completed in ${Date.now() - startTime}ms`);
   }
   catch (error) {
-    logger.error('Failed to install skills:', error)
+    logger.error('Failed to install skills:', error);
 
     if (options.json) {
       console.log(JSON.stringify({
         status: 'error',
         error: error instanceof Error ? error.message : String(error),
-      }))
+      }));
     }
     else {
-      console.error(ansis.red(`\n  ${i18n.t('ccjk-skills:error')}: ${error instanceof Error ? error.message : String(error)}`))
+      console.error(ansis.red(`\n  ${i18n.t('ccjk-skills:error')}: ${error instanceof Error ? error.message : String(error)}`));
     }
 
-    throw error
+    throw error;
   }
 }
 
@@ -230,20 +230,20 @@ export async function ccjkSkills(options: CcjkSkillsOptions = {}): Promise<void>
  * Display project analysis information
  */
 function displayProjectInfo(analysis: ProjectAnalysis, _lang: SupportedLang): void {
-  const pm = analysis.packageManager || 'unknown'
-  const frameworks = analysis.frameworks.map(f => f.name).join(', ')
+  const pm = analysis.packageManager || 'unknown';
+  const frameworks = analysis.frameworks.map(f => f.name).join(', ');
   const languages = analysis.languages
     .filter(l => l.confidence > 0.5)
     .map(l => l.language)
-    .join(', ')
+    .join(', ');
 
-  console.log(ansis.dim(`    ${i18n.t('ccjk-skills:detected')}: ${languages}`))
+  console.log(ansis.dim(`    ${i18n.t('ccjk-skills:detected')}: ${languages}`));
   if (frameworks) {
-    console.log(ansis.dim(`    ${i18n.t('ccjk-skills:frameworks')}: ${frameworks}`))
+    console.log(ansis.dim(`    ${i18n.t('ccjk-skills:frameworks')}: ${frameworks}`));
   }
-  console.log(ansis.dim(`    ${i18n.t('ccjk-skills:packageManager')}: ${pm}`))
+  console.log(ansis.dim(`    ${i18n.t('ccjk-skills:packageManager')}: ${pm}`));
   if (analysis.buildSystem) {
-    console.log(ansis.dim(`    ${i18n.t('ccjk-skills:buildSystem')}: ${analysis.buildSystem}`))
+    console.log(ansis.dim(`    ${i18n.t('ccjk-skills:buildSystem')}: ${analysis.buildSystem}`));
   }
 }
 
@@ -254,53 +254,53 @@ async function getRecommendedSkills(
   analysis: ProjectAnalysis,
   options: Required<CcjkSkillsOptions>,
 ): Promise<RecommendedSkill[]> {
-  const logger = consola.withTag('recommender')
-  const recommendations: RecommendedSkill[] = []
-  const isZh = options.lang === 'zh-CN'
+  const logger = consola.withTag('recommender');
+  const recommendations: RecommendedSkill[] = [];
+  const isZh = options.lang === 'zh-CN';
 
-  const languages = analysis.languages.map(l => l.language.toLowerCase())
-  const frameworks = analysis.frameworks.map(f => f.name.toLowerCase())
-  const projectType = analysis.projectType?.toLowerCase() || ''
+  const languages = analysis.languages.map(l => l.language.toLowerCase());
+  const frameworks = analysis.frameworks.map(f => f.name.toLowerCase());
+  const projectType = analysis.projectType?.toLowerCase() || '';
 
   // Load local templates first (always available)
-  const localSkills = await getLocalRecommendations(analysis, options)
-  recommendations.push(...localSkills)
+  const localSkills = await getLocalRecommendations(analysis, options);
+  recommendations.push(...localSkills);
 
   // Optionally enhance with cloud recommendations (3s timeout)
   try {
-    const templatesClient = getTemplatesClient({ language: isZh ? 'zh-CN' : 'en' })
+    const templatesClient = getTemplatesClient({ language: isZh ? 'zh-CN' : 'en' });
 
-    logger.info('Fetching cloud recommendations...')
+    logger.info('Fetching cloud recommendations...');
     const cloudSkills = await Promise.race([
       templatesClient.getSkills(),
       new Promise<never>((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000)),
-    ])
+    ]);
 
     if (cloudSkills.length > 0) {
-      logger.success(isZh ? `从云端获取 ${cloudSkills.length} 个技能` : `Fetched ${cloudSkills.length} skills from cloud`)
+      logger.success(isZh ? `从云端获取 ${cloudSkills.length} 个技能` : `Fetched ${cloudSkills.length} skills from cloud`);
 
       // Track local skill IDs to avoid duplicates
-      const localSkillIds = new Set(recommendations.map(s => s.id))
+      const localSkillIds = new Set(recommendations.map(s => s.id));
 
       // Filter by project relevance
       const relevantSkills = cloudSkills.filter((skill) => {
-        const tags = skill.tags || []
-        const _category = skill.category || ''
-        const compatibility = skill.compatibility || {}
+        const tags = skill.tags || [];
+        const _category = skill.category || '';
+        const compatibility = skill.compatibility || {};
 
         // Check if skill matches project
         return (
           tags.some(tag => languages.includes(tag) || frameworks.includes(tag) || projectType.includes(tag))
           || (compatibility.languages || []).some((lang: string) => languages.includes(lang.toLowerCase()))
           || (compatibility.frameworks || []).some((fw: string) => frameworks.includes(fw.toLowerCase()))
-        )
-      })
+        );
+      });
 
       // Add cloud skills that aren't already in local
       for (const skill of (relevantSkills.length > 0 ? relevantSkills : cloudSkills.slice(0, 10))) {
-        const skillId = skill.id || skill.name_en.toLowerCase().replace(/\s+/g, '-')
+        const skillId = skill.id || skill.name_en.toLowerCase().replace(/\s+/g, '-');
         if (localSkillIds.has(skillId)) {
-          continue
+          continue;
         }
         recommendations.push({
           id: skillId,
@@ -319,49 +319,49 @@ async function getRecommendedSkills(
           templatePath: skillId,
           // Store template content from V8 API response
           templateContent: skill.template_content || skill.content,
-        })
+        });
       }
     }
   }
   catch {
     // Cloud unavailable, local templates are sufficient
-    logger.debug('Cloud recommendations unavailable, using local templates only')
+    logger.debug('Cloud recommendations unavailable, using local templates only');
   }
 
   // Remove duplicates (local takes precedence)
-  const seen = new Set<string>()
-  const unique: RecommendedSkill[] = []
+  const seen = new Set<string>();
+  const unique: RecommendedSkill[] = [];
 
   for (const skill of recommendations) {
     if (!seen.has(skill.id)) {
-      seen.add(skill.id)
-      unique.push(skill)
+      seen.add(skill.id);
+      unique.push(skill);
     }
   }
 
   // Filter by options
-  let filtered = unique
+  let filtered = unique;
 
   if (options.category) {
-    filtered = filtered.filter(s => s.category === options.category)
+    filtered = filtered.filter(s => s.category === options.category);
   }
 
   if (options.tags.length > 0) {
     filtered = filtered.filter(s =>
       options.tags.some(tag => s.tags.includes(tag)),
-    )
+    );
   }
 
   if (options.exclude.length > 0) {
     filtered = filtered.filter(s =>
       !options.exclude.includes(s.id),
-    )
+    );
   }
 
   // Sort by priority
-  filtered.sort((a, b) => b.priority - a.priority)
+  filtered.sort((a, b) => b.priority - a.priority);
 
-  return filtered
+  return filtered;
 }
 
 /**
@@ -371,16 +371,16 @@ async function getLocalRecommendations(
   analysis: ProjectAnalysis,
   _options: Required<CcjkSkillsOptions>,
 ): Promise<RecommendedSkill[]> {
-  const skills: RecommendedSkill[] = []
+  const skills: RecommendedSkill[] = [];
   const langMap = analysis.languages.reduce((acc, l) => {
-    acc[l.language] = l.confidence
-    return acc
-  }, {} as Record<string, number>)
+    acc[l.language] = l.confidence;
+    return acc;
+  }, {} as Record<string, number>);
 
   const fwMap = analysis.frameworks.reduce((acc, f) => {
-    acc[f.name.toLowerCase()] = f.confidence
-    return acc
-  }, {} as Record<string, number>)
+    acc[f.name.toLowerCase()] = f.confidence;
+    return acc;
+  }, {} as Record<string, number>);
 
   // TypeScript
   if (langMap.typescript > 0.5) {
@@ -396,7 +396,7 @@ async function getLocalRecommendations(
       source: 'local',
       tags: ['typescript', 'types', 'patterns'],
       templatePath: 'ts-best-practices.md',
-    })
+    });
   }
 
   // React
@@ -413,7 +413,7 @@ async function getLocalRecommendations(
       source: 'local',
       tags: ['react', 'frontend', 'patterns'],
       templatePath: 'react-patterns.md',
-    })
+    });
   }
 
   // Next.js
@@ -430,7 +430,7 @@ async function getLocalRecommendations(
       source: 'local',
       tags: ['nextjs', 'performance', 'optimization'],
       templatePath: 'nextjs-optimization.md',
-    })
+    });
   }
 
   // Python
@@ -447,7 +447,7 @@ async function getLocalRecommendations(
       source: 'local',
       tags: ['python', 'pep8', 'standards'],
       templatePath: 'python-pep8.md',
-    })
+    });
   }
 
   // Testing
@@ -464,7 +464,7 @@ async function getLocalRecommendations(
       source: 'local',
       tags: ['testing', 'tdd', 'quality'],
       templatePath: 'testing-best-practices.md',
-    })
+    });
   }
 
   // Git
@@ -481,10 +481,10 @@ async function getLocalRecommendations(
       source: 'local',
       tags: ['git', 'workflow', 'vcs'],
       templatePath: 'git-workflow.md',
-    })
+    });
   }
 
-  return skills
+  return skills;
 }
 
 /**
@@ -496,19 +496,19 @@ async function selectSkills(
 ): Promise<RecommendedSkill[]> {
   if (!options.interactive) {
     // Auto mode: select all skills with priority >= 5
-    return recommendations.filter(s => s.priority >= 5)
+    return recommendations.filter(s => s.priority >= 5);
   }
 
   // Interactive mode
-  console.log('')
-  console.log(ansis.bold(ansis.cyan(`  ${i18n.t('ccjk-skills:recommendedSkills', { count: recommendations.length })}`)))
-  console.log('')
+  console.log('');
+  console.log(ansis.bold(ansis.cyan(`  ${i18n.t('ccjk-skills:recommendedSkills', { count: recommendations.length })}`)));
+  console.log('');
 
   const choices = recommendations.map(skill => ({
     name: `${getCategoryIcon(skill.category)} ${skill.name[options.lang]} ${ansis.dim(`(${skill.category})`)}`,
     value: skill,
     checked: skill.priority >= 7, // Auto-check high priority skills
-  }))
+  }));
 
   const { selected } = await inquirer.prompt<{ selected: RecommendedSkill[] }>([
     {
@@ -518,9 +518,9 @@ async function selectSkills(
       choices,
       pageSize: 10,
     },
-  ])
+  ]);
 
-  return selected
+  return selected;
 }
 
 /**
@@ -530,150 +530,150 @@ async function installSkills(
   skills: RecommendedSkill[],
   options: Required<CcjkSkillsOptions>,
 ): Promise<SkillInstallResult[]> {
-  const results: SkillInstallResult[] = []
+  const results: SkillInstallResult[] = [];
   // Write to Claude Code compatible location: ~/.claude/skills/
   // (not ~/.ccjk/skills/ which Claude Code doesn't recognize)
-  const skillsDir = join(process.env.HOME || homedir(), '.claude', 'skills')
-  const parser = getSkillParser()
+  const skillsDir = join(process.env.HOME || homedir(), '.claude', 'skills');
+  const parser = getSkillParser();
 
   // Ensure skills directory exists
   if (!await fileExists(skillsDir)) {
-    await fs.mkdir(skillsDir, { recursive: true })
+    await fs.mkdir(skillsDir, { recursive: true });
   }
 
   for (const skill of skills) {
     try {
       if (!options.json) {
-        process.stdout.write(`   ${ansis.dim('→')} ${skill.name[options.lang]}... `)
+        process.stdout.write(`   ${ansis.dim('→')} ${skill.name[options.lang]}... `);
       }
 
       if (options.dryRun) {
         if (!options.json) {
-          console.log(ansis.yellow('DRY RUN'))
+          console.log(ansis.yellow('DRY RUN'));
         }
         results.push({
           skillId: skill.id,
           success: true,
           path: join(skillsDir, skill.id, 'SKILL.md'),
-        })
-        continue
+        });
+        continue;
       }
 
       // Load template content (use cached content from V8 API if available)
-      const templateContent = await loadSkillTemplate(skill)
+      const templateContent = await loadSkillTemplate(skill);
       if (!templateContent) {
-        throw new Error(`Template not found: ${skill.templatePath}`)
+        throw new Error(`Template not found: ${skill.templatePath}`);
       }
 
       // Create skill directory
-      const skillDir = join(skillsDir, skill.id)
+      const skillDir = join(skillsDir, skill.id);
       if (!await fileExists(skillDir)) {
-        await fs.mkdir(skillDir, { recursive: true })
+        await fs.mkdir(skillDir, { recursive: true });
       }
 
       // Generate SKILL.md file
-      const skillMdPath = join(skillDir, 'SKILL.md')
-      const skillMdContent = generateSkillMdFromTemplate(skill, templateContent)
-      await fs.writeFile(skillMdPath, skillMdContent, 'utf-8')
+      const skillMdPath = join(skillDir, 'SKILL.md');
+      const skillMdContent = generateSkillMdFromTemplate(skill, templateContent);
+      await fs.writeFile(skillMdPath, skillMdContent, 'utf-8');
 
       // Validate the generated file
       try {
-        const parsed = parser.parse(skillMdPath)
+        const parsed = parser.parse(skillMdPath);
         if (!parsed.title || !parsed.description) {
-          throw new Error('Invalid SKILL.md format')
+          throw new Error('Invalid SKILL.md format');
         }
       }
       catch (error) {
-        throw new Error(`Generated SKILL.md is invalid: ${error instanceof Error ? error.message : String(error)}`)
+        throw new Error(`Generated SKILL.md is invalid: ${error instanceof Error ? error.message : String(error)}`);
       }
 
       if (!options.json) {
-        console.log(ansis.green('✓'))
+        console.log(ansis.green('✓'));
       }
 
       results.push({
         skillId: skill.id,
         success: true,
         path: skillMdPath,
-      })
+      });
     }
     catch (error) {
       if (!options.json) {
-        console.log(ansis.red('✗'))
+        console.log(ansis.red('✗'));
         if (!(error instanceof Error && error.message.includes('DRY RUN'))) {
-          console.log(ansis.red(`     ${error instanceof Error ? error.message : String(error)}`))
+          console.log(ansis.red(`     ${error instanceof Error ? error.message : String(error)}`));
         }
       }
       results.push({
         skillId: skill.id,
         success: false,
         error: error instanceof Error ? error.message : String(error),
-      })
+      });
     }
   }
 
-  return results
+  return results;
 }
 
 /**
  * Load skill template from cached content, cloud V8 API, or local files
  */
 async function loadSkillTemplate(skill: RecommendedSkill): Promise<string | null> {
-  const templatePath = skill.templatePath
+  const templatePath = skill.templatePath;
 
   try {
     // 1. Use cached template content from V8 API response (most efficient)
     if (skill.templateContent) {
-      return skill.templateContent
+      return skill.templateContent;
     }
 
     // 2. For cloud templates with skill_ prefix, the content should already be in templateContent
     // If we reach here with a skill_ ID, it means the cloud API didn't return content
-    const isSkillRecord = templatePath.startsWith('skill_')
+    const isSkillRecord = templatePath.startsWith('skill_');
     if (isSkillRecord) {
       // skill_ IDs are skill record IDs, not template IDs
       // The content should have been provided in templateContent from the list API
-      consola.warn(`Cloud skill ${templatePath} has no template content. The cloud API may not have returned the content.`)
+      consola.warn(`Cloud skill ${templatePath} has no template content. The cloud API may not have returned the content.`);
       // Don't try to fetch by skill record ID - it won't work
-      return null
+      return null;
     }
 
     // 3. For templates with tpl_ prefix, try to fetch from V8 API
-    const isTemplateId = templatePath.startsWith('tpl_')
+    const isTemplateId = templatePath.startsWith('tpl_');
     if (isTemplateId) {
       try {
-        const templatesClient = getTemplatesClient()
-        const template = await templatesClient.getTemplate(templatePath)
+        const templatesClient = getTemplatesClient();
+        const template = await templatesClient.getTemplate(templatePath);
         if (template) {
           // V8 API returns template_content or content
-          const content = template.template_content || template.content
+          const content = template.template_content || template.content;
           if (content) {
-            return content
+            return content;
           }
         }
       }
       catch (error) {
-        consola.warn(`Failed to fetch cloud template ${templatePath}:`, error)
+        consola.warn(`Failed to fetch cloud template ${templatePath}:`, error);
         // Fall through to local templates
       }
     }
 
     // 4. Try local templates in project directory
-    const localPath = join(process.cwd(), 'templates', 'skills', templatePath)
+    const localPath = join(process.cwd(), 'templates', 'skills', templatePath);
     if (await fileExists(localPath)) {
-      return await fs.readFile(localPath, 'utf-8')
+      return await fs.readFile(localPath, 'utf-8');
     }
 
     // 5. Try package templates
-    const packagePath = join(__dirname, '..', '..', 'templates', 'skills', templatePath)
+    const packagePath = join(__dirname, '..', '..', 'templates', 'skills', templatePath);
     if (await fileExists(packagePath)) {
-      return await fs.readFile(packagePath, 'utf-8')
+      return await fs.readFile(packagePath, 'utf-8');
     }
 
-    return null
+    return null;
   }
   catch {
-    return null
+    return null;
   }
 }
 
@@ -683,32 +683,32 @@ async function loadSkillTemplate(skill: RecommendedSkill): Promise<string | null
 function generateSkillMdFromTemplate(skill: RecommendedSkill, templateContent: string): string {
   // The template content is already in SKILL.md format
   // Just return it directly
-  return templateContent
+  return templateContent;
 }
 
 /**
  * Display installation results
  */
 function displayInstallationResults(results: SkillInstallResult[], _lang: SupportedLang): void {
-  console.log('')
+  console.log('');
 
-  const successful = results.filter(r => r.success)
-  const failed = results.filter(r => !r.success)
+  const successful = results.filter(r => r.success);
+  const failed = results.filter(r => !r.success);
 
   if (successful.length > 0) {
-    console.log(ansis.bold(ansis.green(`  ✓ ${i18n.t('ccjk-skills:installedCount', { count: successful.length })}`)))
+    console.log(ansis.bold(ansis.green(`  ✓ ${i18n.t('ccjk-skills:installedCount', { count: successful.length })}`)));
     for (const result of successful) {
       if (result.path) {
-        console.log(ansis.dim(`    ${result.path}`))
+        console.log(ansis.dim(`    ${result.path}`));
       }
     }
   }
 
   if (failed.length > 0) {
-    console.log('')
-    console.log(ansis.bold(ansis.red(`  ✗ ${i18n.t('ccjk-skills:failedCount', { count: failed.length })}`)))
+    console.log('');
+    console.log(ansis.bold(ansis.red(`  ✗ ${i18n.t('ccjk-skills:failedCount', { count: failed.length })}`)));
     for (const result of failed) {
-      console.log(ansis.red(`    ${result.skillId}: ${result.error}`))
+      console.log(ansis.red(`    ${result.skillId}: ${result.error}`));
     }
   }
 }
@@ -722,11 +722,11 @@ function displayInstallationResults(results: SkillInstallResult[], _lang: Suppor
  */
 async function fileExists(path: string): Promise<boolean> {
   try {
-    await fs.access(path)
-    return true
+    await fs.access(path);
+    return true;
   }
   catch {
-    return false
+    return false;
   }
 }
 
@@ -745,8 +745,8 @@ function getCategoryIcon(category: SkillCategory): string {
     planning: '📋',
     debug: '🐛',
     custom: '⚙️',
-  }
-  return icons[category] || '📦'
+  };
+  return icons[category] || '📦';
 }
 // ============================================================================
 // Export
@@ -761,6 +761,6 @@ const ccjkSkillsCommand = {
   args: {},
   options: {},
   handler: ccjkSkills,
-}
+};
 
-export default ccjkSkillsCommand
+export default ccjkSkillsCommand;

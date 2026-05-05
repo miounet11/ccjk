@@ -1,13 +1,13 @@
 import type { FastifyReply } from 'fastify';
 
-export type UnifiedErrorCode =
-  | 'INVALID_REQUEST'
-  | 'UNAUTHORIZED'
-  | 'NOT_FOUND'
-  | 'CONFLICT'
-  | 'RATE_LIMITED'
-  | 'INTERNAL_ERROR'
-  | 'SERVICE_UNAVAILABLE';
+export type UnifiedErrorCode
+  = | 'INVALID_REQUEST'
+    | 'UNAUTHORIZED'
+    | 'NOT_FOUND'
+    | 'CONFLICT'
+    | 'RATE_LIMITED'
+    | 'INTERNAL_ERROR'
+    | 'SERVICE_UNAVAILABLE';
 
 export function mapStatusToUnifiedCode(statusCode: number): UnifiedErrorCode {
   switch (statusCode) {

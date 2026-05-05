@@ -1,30 +1,30 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const mockReadJsonConfig = vi.fn()
-const mockWriteJsonConfig = vi.fn()
-const mockReadClaudeConfig = vi.fn()
+const mockReadJsonConfig = vi.fn();
+const mockWriteJsonConfig = vi.fn();
+const mockReadClaudeConfig = vi.fn();
 
 vi.mock('../../src/utils/json-config', () => ({
   backupJsonConfig: vi.fn(),
   readJsonConfig: mockReadJsonConfig,
   writeJsonConfig: mockWriteJsonConfig,
-}))
+}));
 
 vi.mock('../../src/utils/platform', () => ({
   getMcpCommand: vi.fn((command: string) => [command]),
   isWindows: vi.fn(() => false),
-}))
+}));
 
 vi.mock('../../src/utils/claude-code-config-manager', () => ({
   ClaudeCodeConfigManager: {
     readConfig: mockReadClaudeConfig,
   },
-}))
+}));
 
 describe('claude-config Clavue sync', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
-  })
+    vi.clearAllMocks();
+  });
 
   it('syncs current Claude-family profile into Clavue runtime config', async () => {
     mockReadClaudeConfig.mockReturnValue({
@@ -42,7 +42,7 @@ describe('claude-config Clavue sync', () => {
           defaultOpusModel: 'claude-opus-4-6',
         },
       },
-    })
+    });
     mockReadJsonConfig.mockImplementation((path?: string) => path?.includes('settings.json')
       ? {
           statusLine: {},
@@ -53,12 +53,12 @@ describe('claude-config Clavue sync', () => {
           defaultModel: 'stale-default',
           preferredModel: 'stale-preferred',
         }
-      : { mcpServers: {} })
+      : { mcpServers: {} });
 
-    const { syncMyclaudeProviderProfilesFromCurrentClaudeConfig } = await import('../../src/utils/claude-config')
-    const result = syncMyclaudeProviderProfilesFromCurrentClaudeConfig()
+    const { syncMyclaudeProviderProfilesFromCurrentClaudeConfig } = await import('../../src/utils/claude-config');
+    const result = syncMyclaudeProviderProfilesFromCurrentClaudeConfig();
 
-    expect(result.activeProfileId).toBe('ccjk-ttqq')
+    expect(result.activeProfileId).toBe('ccjk-ttqq');
     expect(result.activeProfile).toMatchObject({
       id: 'ttqq',
       name: 'TTQQ',
@@ -69,8 +69,8 @@ describe('claude-config Clavue sync', () => {
       defaultHaikuModel: 'claude-haiku-4-5',
       defaultSonnetModel: 'claude-sonnet-4-6',
       defaultOpusModel: 'claude-opus-4-6',
-    })
-    expect(result.profiles).toHaveLength(1)
+    });
+    expect(result.profiles).toHaveLength(1);
 
     expect(mockWriteJsonConfig).toHaveBeenCalledWith(
       expect.stringContaining('.clavue.json'),
@@ -99,7 +99,7 @@ describe('claude-config Clavue sync', () => {
           }),
         ],
       }),
-    )
+    );
     expect(mockWriteJsonConfig).toHaveBeenCalledWith(
       expect.stringContaining('.credentials.json'),
       expect.objectContaining({
@@ -110,7 +110,7 @@ describe('claude-config Clavue sync', () => {
           },
         },
       }),
-    )
+    );
     expect(mockWriteJsonConfig).toHaveBeenCalledWith(
       expect.stringContaining('settings.json'),
       expect.not.objectContaining({
@@ -120,7 +120,7 @@ describe('claude-config Clavue sync', () => {
         defaultModel: expect.anything(),
         preferredModel: expect.anything(),
       }),
-    )
+    );
     expect(mockWriteJsonConfig).toHaveBeenCalledWith(
       expect.stringContaining('settings.json'),
       expect.objectContaining({
@@ -136,15 +136,15 @@ describe('claude-config Clavue sync', () => {
         }),
         model: 'claude-sonnet-4-6',
       }),
-    )
-    const settingsWrite = mockWriteJsonConfig.mock.calls.find(([path]) => String(path).includes('settings.json'))?.[1]
-    expect(settingsWrite.statusLine).toBeUndefined()
-    expect(settingsWrite.env).not.toHaveProperty('ANTHROPIC_API_KEY')
-    expect(settingsWrite.env).not.toHaveProperty('ANTHROPIC_AUTH_TOKEN')
-  })
+    );
+    const settingsWrite = mockWriteJsonConfig.mock.calls.find(([path]) => String(path).includes('settings.json'))?.[1];
+    expect(settingsWrite.statusLine).toBeUndefined();
+    expect(settingsWrite.env).not.toHaveProperty('ANTHROPIC_API_KEY');
+    expect(settingsWrite.env).not.toHaveProperty('ANTHROPIC_AUTH_TOKEN');
+  });
 
   it('clears Clavue runtime profiles when no Claude-family config exists', async () => {
-    mockReadClaudeConfig.mockReturnValue(null)
+    mockReadClaudeConfig.mockReturnValue(null);
     mockReadJsonConfig.mockImplementation((path?: string) => path?.includes('settings.json')
       ? {
           env: {
@@ -175,20 +175,20 @@ describe('claude-config Clavue sync', () => {
           myclaudeProviderProfiles: [{ id: 'legacy', name: 'Legacy', provider: 'custom' }],
           myclaudeActiveProviderProfileId: 'legacy',
           keepMe: true,
-        })
+        });
 
-    const { syncMyclaudeProviderProfilesFromCurrentClaudeConfig } = await import('../../src/utils/claude-config')
-    const result = syncMyclaudeProviderProfilesFromCurrentClaudeConfig()
+    const { syncMyclaudeProviderProfilesFromCurrentClaudeConfig } = await import('../../src/utils/claude-config');
+    const result = syncMyclaudeProviderProfilesFromCurrentClaudeConfig();
 
     expect(result).toEqual({
       activeProfileId: '',
       activeProfile: null,
       profiles: [],
-    })
+    });
     expect(mockWriteJsonConfig).toHaveBeenCalledWith(
       expect.stringContaining('.clavue.json'),
       { mcpServers: {}, keepMe: true },
-    )
+    );
     expect(mockWriteJsonConfig).toHaveBeenCalledWith(
       expect.stringContaining('settings.json'),
       expect.not.objectContaining({
@@ -197,7 +197,7 @@ describe('claude-config Clavue sync', () => {
         defaultModel: expect.anything(),
         preferredModel: expect.anything(),
       }),
-    )
+    );
     expect(mockWriteJsonConfig).toHaveBeenCalledWith(
       expect.stringContaining('settings.json'),
       expect.objectContaining({
@@ -205,14 +205,14 @@ describe('claude-config Clavue sync', () => {
           ANTHROPIC_MODEL: '',
         }),
       }),
-    )
-  })
+    );
+  });
 
   it('preserves manual Clavue profiles when clearing CCJK-synced state', async () => {
-    mockReadClaudeConfig.mockReturnValue(null)
+    mockReadClaudeConfig.mockReturnValue(null);
     mockReadJsonConfig.mockImplementation((path?: string) => {
       if (path?.includes('settings.json')) {
-        return { env: {} }
+        return { env: {} };
       }
       if (path?.includes('.credentials.json')) {
         return {
@@ -220,7 +220,7 @@ describe('claude-config Clavue sync', () => {
             manual: { credential: 'sk-manual', authType: 'api_key' },
             ccjk: { credential: 'sk-ccjk', authType: 'api_key' },
           },
-        }
+        };
       }
       return {
         mcpServers: {},
@@ -269,11 +269,11 @@ describe('claude-config Clavue sync', () => {
           },
         ],
         clavueActiveProviderProfileId: 'ccjk',
-      }
-    })
+      };
+    });
 
-    const { syncMyclaudeProviderProfilesFromCurrentClaudeConfig } = await import('../../src/utils/claude-config')
-    syncMyclaudeProviderProfilesFromCurrentClaudeConfig()
+    const { syncMyclaudeProviderProfilesFromCurrentClaudeConfig } = await import('../../src/utils/claude-config');
+    syncMyclaudeProviderProfilesFromCurrentClaudeConfig();
 
     expect(mockWriteJsonConfig).toHaveBeenCalledWith(
       expect.stringContaining('.clavue.json'),
@@ -285,7 +285,7 @@ describe('claude-config Clavue sync', () => {
           }),
         ],
       }),
-    )
+    );
     expect(mockWriteJsonConfig).toHaveBeenCalledWith(
       expect.stringContaining('.credentials.json'),
       expect.objectContaining({
@@ -293,13 +293,13 @@ describe('claude-config Clavue sync', () => {
           manual: { credential: 'sk-manual', authType: 'api_key' },
         },
       }),
-    )
-  })
+    );
+  });
 
   it('normalizes Clavue provider mode when profiles are written directly', async () => {
-    mockReadJsonConfig.mockReturnValue({ mcpServers: {} })
+    mockReadJsonConfig.mockReturnValue({ mcpServers: {} });
 
-    const { setMyclaudeProviderProfiles } = await import('../../src/utils/claude-config')
+    const { setMyclaudeProviderProfiles } = await import('../../src/utils/claude-config');
     setMyclaudeProviderProfiles([
       {
         id: 'primary',
@@ -309,7 +309,7 @@ describe('claude-config Clavue sync', () => {
         baseUrl: 'https://router.example.com/v1',
         authType: 'api_key',
       },
-    ], 'primary')
+    ], 'primary');
 
     expect(mockWriteJsonConfig).toHaveBeenCalledWith(
       expect.stringContaining('.clavue.json'),
@@ -327,13 +327,13 @@ describe('claude-config Clavue sync', () => {
           }),
         ],
       }),
-    )
-  })
+    );
+  });
 
   it('marks mixed Clavue model routing as hybrid-compatible custom routing', async () => {
-    mockReadJsonConfig.mockReturnValue({ mcpServers: {} })
+    mockReadJsonConfig.mockReturnValue({ mcpServers: {} });
 
-    const { setMyclaudeProviderProfiles } = await import('../../src/utils/claude-config')
+    const { setMyclaudeProviderProfiles } = await import('../../src/utils/claude-config');
     setMyclaudeProviderProfiles([
       {
         id: 'hybrid',
@@ -347,7 +347,7 @@ describe('claude-config Clavue sync', () => {
         defaultSonnetModel: 'gpt-5.3-codex',
         defaultOpusModel: 'claude-opus-4-6',
       },
-    ], 'hybrid')
+    ], 'hybrid');
 
     expect(mockWriteJsonConfig).toHaveBeenCalledWith(
       expect.stringContaining('.clavue.json'),
@@ -366,13 +366,13 @@ describe('claude-config Clavue sync', () => {
           }),
         ],
       }),
-    )
-  })
+    );
+  });
 
   it('preserves a quick-selected Clavue model exactly across every routing slot', async () => {
-    mockReadJsonConfig.mockReturnValue({ mcpServers: {} })
+    mockReadJsonConfig.mockReturnValue({ mcpServers: {} });
 
-    const { setMyclaudeProviderProfiles } = await import('../../src/utils/claude-config')
+    const { setMyclaudeProviderProfiles } = await import('../../src/utils/claude-config');
     setMyclaudeProviderProfiles([
       {
         id: 'quick',
@@ -388,7 +388,7 @@ describe('claude-config Clavue sync', () => {
         defaultSonnetModel: 'GPT-5.4-EXACT',
         defaultOpusModel: 'GPT-5.4-EXACT',
       },
-    ], 'quick')
+    ], 'quick');
 
     expect(mockWriteJsonConfig).toHaveBeenCalledWith(
       expect.stringContaining('.clavue.json'),
@@ -410,13 +410,13 @@ describe('claude-config Clavue sync', () => {
           }),
         ],
       }),
-    )
-  })
+    );
+  });
 
   it('syncs a Clavue model menu selection into the active native profile exactly', async () => {
     mockReadJsonConfig.mockImplementation((path?: string) => {
       if (path?.includes('settings.json')) {
-        return { env: {} }
+        return { env: {} };
       }
       return {
         mcpServers: {},
@@ -447,11 +447,11 @@ describe('claude-config Clavue sync', () => {
             },
           },
         ],
-      }
-    })
+      };
+    });
 
-    const { syncClavueActiveProviderModelSelection } = await import('../../src/utils/claude-config')
-    expect(syncClavueActiveProviderModelSelection({ selectedModel: '  GPT-5.4-EXACT  ' })).toBe(true)
+    const { syncClavueActiveProviderModelSelection } = await import('../../src/utils/claude-config');
+    expect(syncClavueActiveProviderModelSelection({ selectedModel: '  GPT-5.4-EXACT  ' })).toBe(true);
 
     expect(mockWriteJsonConfig).toHaveBeenCalledWith(
       expect.stringContaining('.clavue.json'),
@@ -475,7 +475,7 @@ describe('claude-config Clavue sync', () => {
           }),
         ],
       }),
-    )
+    );
     expect(mockWriteJsonConfig).toHaveBeenCalledWith(
       expect.stringContaining('settings.json'),
       expect.objectContaining({
@@ -489,8 +489,66 @@ describe('claude-config Clavue sync', () => {
           ANTHROPIC_DEFAULT_OPUS_MODEL: 'GPT-5.4-EXACT',
         }),
       }),
-    )
-  })
+    );
+  });
+
+  it('syncs managed MCP permissions without authorizing user-added servers', async () => {
+    mockReadJsonConfig.mockImplementation((path?: string) => path?.includes('settings.json')
+      ? {
+          permissions: {
+            allow: [
+              'Read(*)',
+              'mcp__context7__*',
+              'mcp__user_server__*',
+              'mcp__open_websearch__*',
+            ],
+          },
+        }
+      : {
+          mcpServers: {
+            'context7': { type: 'stdio', command: 'npx', args: [] },
+            'user-server': { type: 'stdio', command: 'npx', args: [] },
+          },
+        });
+
+    const { syncMcpPermissions } = await import('../../src/utils/claude-config');
+    syncMcpPermissions('clavue');
+
+    expect(mockWriteJsonConfig).toHaveBeenCalledWith(
+      expect.stringContaining('settings.json'),
+      expect.objectContaining({
+        permissions: {
+          allow: [
+            'Read(*)',
+            'mcp__user_server__*',
+            'mcp__context7__*',
+          ],
+        },
+      }),
+    );
+  });
+
+  it('creates permissions.allow when syncing MCP permissions into fresh settings', async () => {
+    mockReadJsonConfig.mockImplementation((path?: string) => path?.includes('settings.json')
+      ? {}
+      : {
+          mcpServers: {
+            context7: { type: 'stdio', command: 'npx', args: [] },
+          },
+        });
+
+    const { syncMcpPermissions } = await import('../../src/utils/claude-config');
+    syncMcpPermissions('clavue');
+
+    expect(mockWriteJsonConfig).toHaveBeenCalledWith(
+      expect.stringContaining('settings.json'),
+      expect.objectContaining({
+        permissions: {
+          allow: ['mcp__context7__*'],
+        },
+      }),
+    );
+  });
 
   it('locks Clavue custom primary model selection across missing routing slots', async () => {
     mockReadJsonConfig.mockImplementation((path?: string) => path?.includes('settings.json')
@@ -519,10 +577,10 @@ describe('claude-config Clavue sync', () => {
               },
             },
           ],
-        })
+        });
 
-    const { syncClavueActiveProviderModelSelection } = await import('../../src/utils/claude-config')
-    expect(syncClavueActiveProviderModelSelection({ primaryModel: 'MiniMax-M2' })).toBe(true)
+    const { syncClavueActiveProviderModelSelection } = await import('../../src/utils/claude-config');
+    expect(syncClavueActiveProviderModelSelection({ primaryModel: 'MiniMax-M2' })).toBe(true);
 
     expect(mockWriteJsonConfig).toHaveBeenCalledWith(
       expect.stringContaining('.clavue.json'),
@@ -539,8 +597,8 @@ describe('claude-config Clavue sync', () => {
           }),
         ],
       }),
-    )
-  })
+    );
+  });
 
   it('does not overwrite existing Clavue-native profiles when syncing matching CCJK profiles', async () => {
     mockReadClaudeConfig.mockReturnValue({
@@ -555,13 +613,13 @@ describe('claude-config Clavue sync', () => {
           primaryModel: 'gpt-5.4',
         },
       },
-    })
+    });
     mockReadJsonConfig.mockImplementation((path?: string) => {
       if (path?.includes('settings.json')) {
-        return { env: {} }
+        return { env: {} };
       }
       if (path?.includes('.credentials.json')) {
-        return { providerProfiles: {} }
+        return { providerProfiles: {} };
       }
       return {
         mcpServers: {},
@@ -587,15 +645,15 @@ describe('claude-config Clavue sync', () => {
             createdAt: 123,
           },
         ],
-      }
-    })
+      };
+    });
 
-    const { syncMyclaudeProviderProfilesFromCurrentClaudeConfig } = await import('../../src/utils/claude-config')
-    const result = syncMyclaudeProviderProfilesFromCurrentClaudeConfig()
+    const { syncMyclaudeProviderProfilesFromCurrentClaudeConfig } = await import('../../src/utils/claude-config');
+    const result = syncMyclaudeProviderProfilesFromCurrentClaudeConfig();
 
-    expect(result.activeProfileId).toBe('ccjk-primary')
+    expect(result.activeProfileId).toBe('ccjk-primary');
 
-    const clavueWrite = mockWriteJsonConfig.mock.calls.find(([path]) => String(path).includes('.clavue.json'))?.[1]
+    const clavueWrite = mockWriteJsonConfig.mock.calls.find(([path]) => String(path).includes('.clavue.json'))?.[1];
     expect(clavueWrite).toMatchObject({
       clavueActiveProviderProfileId: 'ccjk-primary',
       clavueProviderProfiles: [
@@ -619,14 +677,14 @@ describe('claude-config Clavue sync', () => {
           },
         },
       ],
-    })
-    expect(clavueWrite.clavueProviderProfiles[0]).not.toHaveProperty('provenance')
-  })
+    });
+    expect(clavueWrite.clavueProviderProfiles[0]).not.toHaveProperty('provenance');
+  });
 
   it('preserves Clavue built-in provider ids and manual credentials on direct provider writes', async () => {
     mockReadJsonConfig.mockImplementation((path?: string) => {
       if (path?.includes('settings.json')) {
-        return { env: {} }
+        return { env: {} };
       }
       if (path?.includes('.credentials.json')) {
         return {
@@ -634,7 +692,7 @@ describe('claude-config Clavue sync', () => {
             'glm': { credential: 'sk-manual', authType: 'api_key' },
             'ccjk-old': { credential: 'sk-old', authType: 'api_key' },
           },
-        }
+        };
       }
       return {
         mcpServers: {},
@@ -684,10 +742,10 @@ describe('claude-config Clavue sync', () => {
             },
           },
         ],
-      }
-    })
+      };
+    });
 
-    const { setMyclaudeProviderProfiles } = await import('../../src/utils/claude-config')
+    const { setMyclaudeProviderProfiles } = await import('../../src/utils/claude-config');
     const activeId = setMyclaudeProviderProfiles([
       {
         id: 'glm',
@@ -700,9 +758,9 @@ describe('claude-config Clavue sync', () => {
         defaultHaikuModel: 'glm-4.5-air',
         defaultSonnetModel: 'glm-4.6',
       },
-    ], 'glm')
+    ], 'glm');
 
-    expect(activeId).toBe('ccjk-glm')
+    expect(activeId).toBe('ccjk-glm');
     expect(mockWriteJsonConfig).toHaveBeenCalledWith(
       expect.stringContaining('.clavue.json'),
       expect.objectContaining({
@@ -731,7 +789,7 @@ describe('claude-config Clavue sync', () => {
           }),
         ],
       }),
-    )
+    );
     expect(mockWriteJsonConfig).toHaveBeenCalledWith(
       expect.stringContaining('.credentials.json'),
       expect.objectContaining({
@@ -740,6 +798,6 @@ describe('claude-config Clavue sync', () => {
           'ccjk-glm': { credential: 'sk-ccjk', authType: 'api_key' },
         },
       }),
-    )
-  })
-})
+    );
+  });
+});

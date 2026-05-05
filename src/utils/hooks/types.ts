@@ -7,7 +7,7 @@
  * @module utils/hooks/types
  */
 
-import type { SupportedLang } from '../../constants.js'
+import type { SupportedLang } from '../../constants.js';
 
 /**
  * Hook type enumeration
@@ -26,7 +26,7 @@ export type HookType
     | 'task-start' // When a task starts (for notifications)
     | 'task-complete' // When a task completes (for notifications)
     | 'task-failed' // When a task fails (for notifications)
-    | 'task-progress' // When task progress is updated (for notifications)
+    | 'task-progress'; // When task progress is updated (for notifications)
 
 /**
  * Hook execution priority (1-10)
@@ -34,12 +34,12 @@ export type HookType
  * Higher priority hooks execute first.
  * Default priority is 5.
  */
-export type HookPriority = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10
+export type HookPriority = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
 
 /**
  * Hook execution status
  */
-export type HookStatus = 'pending' | 'running' | 'success' | 'failed' | 'skipped' | 'timeout'
+export type HookStatus = 'pending' | 'running' | 'success' | 'failed' | 'skipped' | 'timeout';
 
 /**
  * Hook context
@@ -48,49 +48,49 @@ export type HookStatus = 'pending' | 'running' | 'success' | 'failed' | 'skipped
  */
 export interface HookContext {
   /** Hook type being executed */
-  type: HookType
+  type: HookType;
 
   /** Tool name (for tool-related hooks) */
-  tool?: string
+  tool?: string;
 
   /** Tool arguments (for tool-related hooks) */
-  toolArgs?: Record<string, unknown>
+  toolArgs?: Record<string, unknown>;
 
   /** Skill ID (for skill-related hooks) */
-  skillId?: string
+  skillId?: string;
 
   /** Workflow ID (for workflow-related hooks) */
-  workflowId?: string
+  workflowId?: string;
 
   /** Configuration key (for config-related hooks) */
-  configKey?: string
+  configKey?: string;
 
   /** Error object (for error hooks) */
-  error?: Error
+  error?: Error;
 
   /** Task ID (for task-related hooks) */
-  taskId?: string
+  taskId?: string;
 
   /** Task description (for task-related hooks) */
-  taskDescription?: string
+  taskDescription?: string;
 
   /** Task result (for task-complete hooks) */
-  taskResult?: string
+  taskResult?: string;
 
   /** Task duration in milliseconds (for task-related hooks) */
-  taskDuration?: number
+  taskDuration?: number;
 
   /** User's preferred language */
-  lang?: SupportedLang
+  lang?: SupportedLang;
 
   /** Current working directory */
-  cwd?: string
+  cwd?: string;
 
   /** Additional metadata */
-  metadata?: Record<string, unknown>
+  metadata?: Record<string, unknown>;
 
   /** Timestamp when context was created */
-  timestamp: Date
+  timestamp: Date;
 }
 
 /**
@@ -100,25 +100,25 @@ export interface HookContext {
  */
 export interface HookResult {
   /** Whether hook executed successfully */
-  success: boolean
+  success: boolean;
 
   /** Hook execution status */
-  status: HookStatus
+  status: HookStatus;
 
   /** Hook execution duration in milliseconds */
-  durationMs: number
+  durationMs: number;
 
   /** Output data from hook (if any) */
-  output?: unknown
+  output?: unknown;
 
   /** Error message (if failed) */
-  error?: string
+  error?: string;
 
   /** Whether to continue executing remaining hooks */
-  continueChain: boolean
+  continueChain: boolean;
 
   /** Modified context (hooks can modify context for subsequent hooks) */
-  modifiedContext?: Partial<HookContext>
+  modifiedContext?: Partial<HookContext>;
 }
 
 /**
@@ -128,28 +128,28 @@ export interface HookResult {
  */
 export interface HookChainResult {
   /** Whether all hooks executed successfully */
-  success: boolean
+  success: boolean;
 
   /** Total execution duration in milliseconds */
-  totalDurationMs: number
+  totalDurationMs: number;
 
   /** Individual hook results */
   results: Array<{
-    hookId: string
-    result: HookResult
-  }>
+    hookId: string;
+    result: HookResult;
+  }>;
 
   /** Number of hooks executed */
-  executedCount: number
+  executedCount: number;
 
   /** Number of hooks skipped */
-  skippedCount: number
+  skippedCount: number;
 
   /** Number of hooks failed */
-  failedCount: number
+  failedCount: number;
 
   /** Final context after all hooks */
-  finalContext: HookContext
+  finalContext: HookContext;
 }
 
 /**
@@ -159,19 +159,19 @@ export interface HookChainResult {
  */
 export interface HookCondition {
   /** Tool name pattern (supports wildcards) */
-  tool?: string | RegExp
+  tool?: string | RegExp;
 
   /** Skill ID pattern (supports wildcards) */
-  skillId?: string | RegExp
+  skillId?: string | RegExp;
 
   /** Workflow ID pattern (supports wildcards) */
-  workflowId?: string | RegExp
+  workflowId?: string | RegExp;
 
   /** Configuration key pattern (supports wildcards) */
-  configKey?: string | RegExp
+  configKey?: string | RegExp;
 
   /** Custom condition function */
-  custom?: (context: HookContext) => boolean | Promise<boolean>
+  custom?: (context: HookContext) => boolean | Promise<boolean>;
 }
 
 /**
@@ -186,19 +186,19 @@ export interface HookAction {
    * @param context - Hook execution context
    * @returns Hook result or void (void is treated as success)
    */
-  execute: (context: HookContext) => Promise<HookResult | void> | HookResult | void
+  execute: (context: HookContext) => Promise<HookResult | void> | HookResult | void;
 
   /**
    * Timeout in milliseconds
    * @default 30000 (30 seconds)
    */
-  timeout?: number
+  timeout?: number;
 
   /**
    * Whether to continue chain on error
    * @default true
    */
-  continueOnError?: boolean
+  continueOnError?: boolean;
 }
 
 /**
@@ -208,47 +208,47 @@ export interface HookAction {
  */
 export interface Hook {
   /** Unique hook identifier */
-  id: string
+  id: string;
 
   /** Hook name */
-  name: string
+  name: string;
 
   /** Hook description */
-  description?: string
+  description?: string;
 
   /** Hook type */
-  type: HookType
+  type: HookType;
 
   /**
    * Hook priority (1-10)
    * Higher priority hooks execute first
    * @default 5
    */
-  priority?: HookPriority
+  priority?: HookPriority;
 
   /** Condition for hook execution */
-  condition?: HookCondition
+  condition?: HookCondition;
 
   /** Hook action */
-  action: HookAction
+  action: HookAction;
 
   /** Whether hook is enabled */
-  enabled: boolean
+  enabled: boolean;
 
   /** Hook source (builtin, plugin, user) */
-  source: 'builtin' | 'plugin' | 'user'
+  source: 'builtin' | 'plugin' | 'user';
 
   /** Hook version */
-  version?: string
+  version?: string;
 
   /** Hook author */
-  author?: string
+  author?: string;
 
   /** Tags for categorization */
-  tags?: string[]
+  tags?: string[];
 
   /** Hook metadata */
-  metadata?: Record<string, unknown>
+  metadata?: Record<string, unknown>;
 }
 
 /**
@@ -258,13 +258,13 @@ export interface Hook {
  */
 export interface HookRegistrationOptions {
   /** Whether to overwrite existing hook with same ID */
-  overwrite?: boolean
+  overwrite?: boolean;
 
   /** Whether to enable hook immediately */
-  enabled?: boolean
+  enabled?: boolean;
 
   /** Source identifier (e.g., plugin name) */
-  source?: string
+  source?: string;
 }
 
 /**
@@ -274,25 +274,25 @@ export interface HookRegistrationOptions {
  */
 export interface HookRegistryEntry {
   /** Hook definition */
-  hook: Hook
+  hook: Hook;
 
   /** Registration timestamp */
-  registeredAt: Date
+  registeredAt: Date;
 
   /** Source identifier (e.g., plugin name, 'builtin', 'user') */
-  source: string
+  source: string;
 
   /** Number of times hook has been executed */
-  executionCount: number
+  executionCount: number;
 
   /** Number of times hook has failed */
-  failureCount: number
+  failureCount: number;
 
   /** Last execution timestamp */
-  lastExecutedAt?: Date
+  lastExecutedAt?: Date;
 
   /** Last execution result */
-  lastResult?: HookResult
+  lastResult?: HookResult;
 }
 
 /**
@@ -302,19 +302,19 @@ export interface HookRegistryEntry {
  */
 export interface HookRegistryState {
   /** Registry version */
-  version: string
+  version: string;
 
   /** All registered hooks */
-  hooks: Map<string, HookRegistryEntry>
+  hooks: Map<string, HookRegistryEntry>;
 
   /** Hooks indexed by type */
-  hooksByType: Map<HookType, string[]>
+  hooksByType: Map<HookType, string[]>;
 
   /** Hooks indexed by tool */
-  hooksByTool: Map<string, string[]>
+  hooksByTool: Map<string, string[]>;
 
   /** Last updated timestamp */
-  lastUpdated: Date
+  lastUpdated: Date;
 }
 
 /**
@@ -327,32 +327,32 @@ export interface HookExecutionOptions {
    * Timeout in milliseconds
    * Overrides individual hook timeouts
    */
-  timeout?: number
+  timeout?: number;
 
   /**
    * Whether to stop chain on first error
    * @default false
    */
-  stopOnError?: boolean
+  stopOnError?: boolean;
 
   /**
    * Whether to execute hooks in parallel
    * @default false (sequential execution)
    */
-  parallel?: boolean
+  parallel?: boolean;
 
   /**
    * Maximum number of parallel executions
    * Only used when parallel is true
    * @default 5
    */
-  maxParallel?: number
+  maxParallel?: number;
 
   /**
    * Whether to skip disabled hooks
    * @default true
    */
-  skipDisabled?: boolean
+  skipDisabled?: boolean;
 }
 
 /**
@@ -362,31 +362,31 @@ export interface HookExecutionOptions {
  */
 export interface HookFilterOptions {
   /** Filter by hook type */
-  type?: HookType
+  type?: HookType;
 
   /** Filter by tool name */
-  tool?: string
+  tool?: string;
 
   /** Filter by skill ID */
-  skillId?: string
+  skillId?: string;
 
   /** Filter by workflow ID */
-  workflowId?: string
+  workflowId?: string;
 
   /** Filter by enabled status */
-  enabled?: boolean
+  enabled?: boolean;
 
   /** Filter by source */
-  source?: 'builtin' | 'plugin' | 'user'
+  source?: 'builtin' | 'plugin' | 'user';
 
   /** Filter by tags (AND logic) */
-  tags?: string[]
+  tags?: string[];
 
   /** Filter by priority range */
   priorityRange?: {
-    min?: HookPriority
-    max?: HookPriority
-  }
+    min?: HookPriority;
+    max?: HookPriority;
+  };
 }
 
 /**
@@ -396,40 +396,40 @@ export interface HookFilterOptions {
  */
 export interface HookStatistics {
   /** Total number of registered hooks */
-  totalHooks: number
+  totalHooks: number;
 
   /** Number of enabled hooks */
-  enabledHooks: number
+  enabledHooks: number;
 
   /** Number of disabled hooks */
-  disabledHooks: number
+  disabledHooks: number;
 
   /** Total executions across all hooks */
-  totalExecutions: number
+  totalExecutions: number;
 
   /** Total failures across all hooks */
-  totalFailures: number
+  totalFailures: number;
 
   /** Average execution time in milliseconds */
-  averageExecutionMs: number
+  averageExecutionMs: number;
 
   /** Hooks by type */
-  hooksByType: Record<HookType, number>
+  hooksByType: Record<HookType, number>;
 
   /** Hooks by source */
-  hooksBySource: Record<string, number>
+  hooksBySource: Record<string, number>;
 
   /** Most executed hooks */
   mostExecuted: Array<{
-    hookId: string
-    executionCount: number
-  }>
+    hookId: string;
+    executionCount: number;
+  }>;
 
   /** Most failed hooks */
   mostFailed: Array<{
-    hookId: string
-    failureCount: number
-  }>
+    hookId: string;
+    failureCount: number;
+  }>;
 }
 
 /**
@@ -444,8 +444,8 @@ export class HookError extends Error {
     public readonly context: HookContext,
     public readonly originalError?: Error,
   ) {
-    super(message)
-    this.name = 'HookError'
+    super(message);
+    this.name = 'HookError';
   }
 }
 
@@ -460,7 +460,7 @@ export class HookTimeoutError extends HookError {
     timeout: number,
     context: HookContext,
   ) {
-    super(`Hook '${hookId}' timed out after ${timeout}ms`, hookId, context)
-    this.name = 'HookTimeoutError'
+    super(`Hook '${hookId}' timed out after ${timeout}ms`, hookId, context);
+    this.name = 'HookTimeoutError';
   }
 }

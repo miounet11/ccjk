@@ -3,39 +3,39 @@
  * Automatically generates Claude Code compatible agents and skills based on project analysis
  */
 
-import type { GeneratedConfig, ProjectAnalysis, TemplateSelection } from './types'
-import { analyzeProject } from './analyzer/project-analyzer'
-import { generateConfigs, writeConfigs } from './generator/config-generator'
-import { selectTemplates } from './selector/template-selector'
+import type { GeneratedConfig, ProjectAnalysis, TemplateSelection } from './types';
+import { analyzeProject } from './analyzer/project-analyzer';
+import { generateConfigs, writeConfigs } from './generator/config-generator';
+import { selectTemplates } from './selector/template-selector';
 
-export { analyzeProject, ProjectAnalyzer } from './analyzer/project-analyzer'
-export { ConfigGenerator, generateConfigs, writeConfigs } from './generator/config-generator'
-export { selectTemplates, TemplateSelector } from './selector/template-selector'
-export * from './types'
+export { analyzeProject, ProjectAnalyzer } from './analyzer/project-analyzer';
+export { ConfigGenerator, generateConfigs, writeConfigs } from './generator/config-generator';
+export { selectTemplates, TemplateSelector } from './selector/template-selector';
+export * from './types';
 
 /**
  * Smart generation workflow
  * Analyzes project, selects templates, and generates configurations
  */
 export async function smartGenerate(projectRoot?: string): Promise<{
-  analysis: ProjectAnalysis
-  selection: TemplateSelection
-  config: GeneratedConfig
+  analysis: ProjectAnalysis;
+  selection: TemplateSelection;
+  config: GeneratedConfig;
 }> {
   // Step 1: Analyze project
-  const analysis = await analyzeProject(projectRoot)
+  const analysis = await analyzeProject(projectRoot);
 
   // Step 2: Select templates
-  const selection = await selectTemplates(analysis)
+  const selection = await selectTemplates(analysis);
 
   // Step 3: Generate configurations
-  const config = await generateConfigs(selection)
+  const config = await generateConfigs(selection);
 
   return {
     analysis,
     selection,
     config,
-  }
+  };
 }
 
 /**
@@ -43,14 +43,14 @@ export async function smartGenerate(projectRoot?: string): Promise<{
  * Analyzes, generates, and installs configurations
  */
 export async function smartGenerateAndInstall(projectRoot?: string): Promise<{
-  analysis: ProjectAnalysis
-  selection: TemplateSelection
-  config: GeneratedConfig
+  analysis: ProjectAnalysis;
+  selection: TemplateSelection;
+  config: GeneratedConfig;
 }> {
-  const result = await smartGenerate(projectRoot)
+  const result = await smartGenerate(projectRoot);
 
   // Step 4: Write configurations to disk
-  await writeConfigs(result.config)
+  await writeConfigs(result.config);
 
-  return result
+  return result;
 }

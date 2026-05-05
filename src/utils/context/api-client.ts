@@ -3,20 +3,20 @@
  * Wrapper for Claude API with retry logic and error handling
  */
 
-import type { RetryConfig } from '../../types/context'
-import process from 'node:process'
-import Anthropic from '@anthropic-ai/sdk'
-import { DEFAULT_MODELS } from '../../constants'
+import type { RetryConfig } from '../../types/context';
+import process from 'node:process';
+import Anthropic from '@anthropic-ai/sdk';
+import { DEFAULT_MODELS } from '../../constants';
 
 /**
  * API client configuration
  */
 export interface ApiClientConfig {
-  apiKey?: string
-  model?: string
-  maxTokens?: number
-  temperature?: number
-  retry?: RetryConfig
+  apiKey?: string;
+  model?: string;
+  maxTokens?: number;
+  temperature?: number;
+  retry?: RetryConfig;
 }
 
 /**
@@ -27,20 +27,20 @@ const DEFAULT_RETRY_CONFIG: RetryConfig = {
   initialDelay: 1000,
   maxDelay: 10000,
   backoffMultiplier: 2,
-}
+};
 
 /**
  * Anthropic API client with retry logic
  */
 export class AnthropicApiClient {
-  private client: Anthropic
-  private config: Required<ApiClientConfig>
+  private client: Anthropic;
+  private config: Required<ApiClientConfig>;
 
   constructor(config: ApiClientConfig = {}) {
     // Initialize Anthropic client
     this.client = new Anthropic({
       apiKey: config.apiKey || process.env.ANTHROPIC_API_KEY,
-    })
+    });
 
     // Set default configuration
     this.config = {
@@ -49,7 +49,7 @@ export class AnthropicApiClient {
       maxTokens: config.maxTokens || 1024,
       temperature: config.temperature || 0.3,
       retry: { ...DEFAULT_RETRY_CONFIG, ...config.retry },
-    }
+    };
   }
 
   /**
@@ -58,14 +58,14 @@ export class AnthropicApiClient {
   async sendMessage(
     prompt: string,
     options: {
-      model?: string
-      maxTokens?: number
-      temperature?: number
+      model?: string;
+      maxTokens?: number;
+      temperature?: number;
     } = {},
   ): Promise<string> {
-    const model = options.model || this.config.model
-    const maxTokens = options.maxTokens || this.config.maxTokens
-    const temperature = options.temperature || this.config.temperature
+    const model = options.model || this.config.model;
+    const maxTokens = options.maxTokens || this.config.maxTokens;
+    const temperature = options.temperature || this.config.temperature;
 
     return this.withRetry(async () => {
       const response = await this.client.messages.create({
@@ -78,16 +78,16 @@ export class AnthropicApiClient {
             content: prompt,
           },
         ],
-      })
+      });
 
       // Extract text from response
-      const content = response.content[0]
+      const content = response.content[0];
       if (content.type === 'text') {
-        return content.text
+        return content.text;
       }
 
-      throw new Error('Unexpected response type from Claude API')
-    })
+      throw new Error('Unexpected response type from Claude API');
+    });
   }
 
   /**
@@ -98,17 +98,17 @@ export class AnthropicApiClient {
     attempt = 1,
   ): Promise<T> {
     try {
-      return await fn()
+      return await fn();
     }
     catch (error) {
       // Check if we should retry
       if (attempt >= this.config.retry.maxRetries) {
-        throw error
+        throw error;
       }
 
       // Check if error is retryable
       if (!this.isRetryableError(error)) {
-        throw error
+        throw error;
       }
 
       // Calculate delay with exponential backoff
@@ -116,13 +116,13 @@ export class AnthropicApiClient {
         this.config.retry.initialDelay
         * this.config.retry.backoffMultiplier ** (attempt - 1),
         this.config.retry.maxDelay,
-      )
+      );
 
       // Wait before retry
-      await this.sleep(delay)
+      await this.sleep(delay);
 
       // Retry
-      return this.withRetry(fn, attempt + 1)
+      return this.withRetry(fn, attempt + 1);
     }
   }
 
@@ -132,27 +132,27 @@ export class AnthropicApiClient {
   private isRetryableError(error: any): boolean {
     // Retry on network errors
     if (error.code === 'ECONNRESET' || error.code === 'ETIMEDOUT') {
-      return true
+      return true;
     }
 
     // Retry on rate limit errors
     if (error.status === 429) {
-      return true
+      return true;
     }
 
     // Retry on server errors
     if (error.status >= 500 && error.status < 600) {
-      return true
+      return true;
     }
 
-    return false
+    return false;
   }
 
   /**
    * Sleep for specified milliseconds
    */
   private sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms))
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
   /**
@@ -160,25 +160,25 @@ export class AnthropicApiClient {
    */
   updateConfig(config: Partial<ApiClientConfig>): void {
     if (config.apiKey) {
-      this.client = new Anthropic({ apiKey: config.apiKey })
-      this.config.apiKey = config.apiKey
+      this.client = new Anthropic({ apiKey: config.apiKey });
+      this.config.apiKey = config.apiKey;
     }
 
     if (config.model)
-      this.config.model = config.model
+      this.config.model = config.model;
     if (config.maxTokens)
-      this.config.maxTokens = config.maxTokens
+      this.config.maxTokens = config.maxTokens;
     if (config.temperature)
-      this.config.temperature = config.temperature
+      this.config.temperature = config.temperature;
     if (config.retry)
-      this.config.retry = { ...this.config.retry, ...config.retry }
+      this.config.retry = { ...this.config.retry, ...config.retry };
   }
 
   /**
    * Get current configuration
    */
   getConfig(): Required<ApiClientConfig> {
-    return { ...this.config }
+    return { ...this.config };
   }
 }
 
@@ -186,5 +186,5 @@ export class AnthropicApiClient {
  * Create API client instance
  */
 export function createApiClient(config?: ApiClientConfig): AnthropicApiClient {
-  return new AnthropicApiClient(config)
+  return new AnthropicApiClient(config);
 }

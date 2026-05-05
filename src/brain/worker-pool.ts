@@ -3,222 +3,222 @@
  * Supports dynamic scaling, load balancing, and task distribution
  */
 
-import type { TaskOptions } from './task-queue'
-import { EventEmitter } from 'node:events'
-import { cpus } from 'node:os'
-import { Worker } from 'node:worker_threads'
-import { TaskQueue } from './task-queue'
+import type { TaskOptions } from './task-queue';
+import { EventEmitter } from 'node:events';
+import { cpus } from 'node:os';
+import { Worker } from 'node:worker_threads';
+import { TaskQueue } from './task-queue';
 
 export interface WorkerPoolOptions {
   /**
    * Minimum number of workers (default: 1)
    */
-  minWorkers?: number
+  minWorkers?: number;
 
   /**
    * Maximum number of workers (default: CPU count)
    */
-  maxWorkers?: number
+  maxWorkers?: number;
 
   /**
    * Worker idle timeout in milliseconds before termination (default: 30000)
    */
-  workerIdleTimeout?: number
+  workerIdleTimeout?: number;
 
   /**
    * Maximum tasks per worker before recycling (default: 100)
    */
-  maxTasksPerWorker?: number
+  maxTasksPerWorker?: number;
 
   /**
    * Task queue concurrency (default: maxWorkers * 2)
    */
-  taskQueueConcurrency?: number
+  taskQueueConcurrency?: number;
 
   /**
    * Enable dynamic worker scaling (default: true)
    */
-  enableDynamicScaling?: boolean
+  enableDynamicScaling?: boolean;
 
   /**
    * Worker script path (required for worker_threads)
    */
-  workerScript?: string
+  workerScript?: string;
 
   /**
    * Worker initialization data
    */
-  workerData?: unknown
+  workerData?: unknown;
 }
 
 export interface WorkerInfo {
   /**
    * Worker unique identifier
    */
-  id: string
+  id: string;
 
   /**
    * Worker thread instance
    */
-  worker: Worker
+  worker: Worker;
 
   /**
    * Worker status
    */
-  status: 'idle' | 'busy' | 'terminating'
+  status: 'idle' | 'busy' | 'terminating';
 
   /**
    * Number of tasks completed by this worker
    */
-  tasksCompleted: number
+  tasksCompleted: number;
 
   /**
    * Worker creation timestamp
    */
-  createdAt: number
+  createdAt: number;
 
   /**
    * Last task completion timestamp
    */
-  lastTaskCompletedAt: number
+  lastTaskCompletedAt: number;
 
   /**
    * Current task ID (if busy)
    */
-  currentTaskId?: string
+  currentTaskId?: string;
 
   /**
    * Idle timeout timer
    */
-  idleTimer?: NodeJS.Timeout
+  idleTimer?: NodeJS.Timeout;
 }
 
 export interface WorkerPoolStats {
   /**
    * Total workers created
    */
-  totalWorkersCreated: number
+  totalWorkersCreated: number;
 
   /**
    * Current active workers
    */
-  activeWorkers: number
+  activeWorkers: number;
 
   /**
    * Idle workers
    */
-  idleWorkers: number
+  idleWorkers: number;
 
   /**
    * Busy workers
    */
-  busyWorkers: number
+  busyWorkers: number;
 
   /**
    * Total tasks processed
    */
-  totalTasksProcessed: number
+  totalTasksProcessed: number;
 
   /**
    * Tasks currently in queue
    */
-  queuedTasks: number
+  queuedTasks: number;
 
   /**
    * Average task execution time
    */
-  averageTaskTime: number
+  averageTaskTime: number;
 
   /**
    * Pool creation timestamp
    */
-  createdAt: number
+  createdAt: number;
 }
 
 export interface WorkerTask<T = unknown> {
   /**
    * Task unique identifier
    */
-  id: string
+  id: string;
 
   /**
    * Task type/name for worker routing
    */
-  type: string
+  type: string;
 
   /**
    * Task data payload
    */
-  data: unknown
+  data: unknown;
 
   /**
    * Task options
    */
-  options: TaskOptions
+  options: TaskOptions;
 
   /**
    * Promise resolve function
    */
-  resolve: (value: T) => void
+  resolve: (value: T) => void;
 
   /**
    * Promise reject function
    */
-  reject: (error: Error) => void
+  reject: (error: Error) => void;
 }
 
 export interface WorkerMessage {
   /**
    * Message type
    */
-  type: 'task' | 'result' | 'error' | 'ready'
+  type: 'task' | 'result' | 'error' | 'ready';
 
   /**
    * Task ID
    */
-  taskId?: string
+  taskId?: string;
 
   /**
    * Task type
    */
-  taskType?: string
+  taskType?: string;
 
   /**
    * Task data
    */
-  data?: unknown
+  data?: unknown;
 
   /**
    * Result data
    */
-  result?: unknown
+  result?: unknown;
 
   /**
    * Error information
    */
   error?: {
-    message: string
-    stack?: string
-  }
+    message: string;
+    stack?: string;
+  };
 }
 
 /**
  * Worker Pool for parallel task execution
  */
 export class WorkerPool extends EventEmitter {
-  private workers = new Map<string, WorkerInfo>()
-  private taskQueue: TaskQueue
-  private options: Required<WorkerPoolOptions>
-  private stats: WorkerPoolStats
-  private workerIdCounter = 0
-  private taskIdCounter = 0
-  private pendingTasks = new Map<string, WorkerTask>()
-  private terminated = false
+  private workers = new Map<string, WorkerInfo>();
+  private taskQueue: TaskQueue;
+  private options: Required<WorkerPoolOptions>;
+  private stats: WorkerPoolStats;
+  private workerIdCounter = 0;
+  private taskIdCounter = 0;
+  private pendingTasks = new Map<string, WorkerTask>();
+  private terminated = false;
 
   constructor(options: WorkerPoolOptions = {}) {
-    super()
+    super();
 
-    const cpuCount = cpus().length
+    const cpuCount = cpus().length;
 
     this.options = {
       minWorkers: options.minWorkers ?? 1,
@@ -229,14 +229,14 @@ export class WorkerPool extends EventEmitter {
       enableDynamicScaling: options.enableDynamicScaling ?? true,
       workerScript: options.workerScript ?? '',
       workerData: options.workerData ?? {},
-    }
+    };
 
     // Validate options
     if (this.options.minWorkers < 0) {
-      throw new Error('minWorkers must be >= 0')
+      throw new Error('minWorkers must be >= 0');
     }
     if (this.options.maxWorkers < this.options.minWorkers) {
-      throw new Error('maxWorkers must be >= minWorkers')
+      throw new Error('maxWorkers must be >= minWorkers');
     }
 
     this.stats = {
@@ -248,16 +248,16 @@ export class WorkerPool extends EventEmitter {
       queuedTasks: 0,
       averageTaskTime: 0,
       createdAt: Date.now(),
-    }
+    };
 
     // Initialize task queue
     this.taskQueue = new TaskQueue({
       concurrency: this.options.taskQueueConcurrency,
       autoStart: true,
-    })
+    });
 
     // Create minimum workers
-    this.initializeWorkers()
+    this.initializeWorkers();
   }
 
   /**
@@ -269,7 +269,7 @@ export class WorkerPool extends EventEmitter {
     options: TaskOptions = {},
   ): Promise<T> {
     if (this.terminated) {
-      throw new Error('Worker pool has been terminated')
+      throw new Error('Worker pool has been terminated');
     }
 
     return new Promise<T>((resolve, reject) => {
@@ -280,10 +280,10 @@ export class WorkerPool extends EventEmitter {
         options,
         resolve,
         reject,
-      }
+      };
 
-      this.pendingTasks.set(task.id, task as WorkerTask<unknown>)
-      this.stats.queuedTasks++
+      this.pendingTasks.set(task.id, task as WorkerTask<unknown>);
+      this.stats.queuedTasks++;
 
       // Add to task queue for execution
       this.taskQueue.add(
@@ -298,11 +298,11 @@ export class WorkerPool extends EventEmitter {
         },
       ).catch((error) => {
         // Task failed after all retries
-        this.pendingTasks.delete(task.id)
-        this.stats.queuedTasks--
-        task.reject(error)
-      })
-    })
+        this.pendingTasks.delete(task.id);
+        this.stats.queuedTasks--;
+        task.reject(error);
+      });
+    });
   }
 
   /**
@@ -312,28 +312,28 @@ export class WorkerPool extends EventEmitter {
     return {
       ...this.stats,
       queuedTasks: this.taskQueue.size(),
-    }
+    };
   }
 
   /**
    * Get current worker count
    */
   getWorkerCount(): number {
-    return this.workers.size
+    return this.workers.size;
   }
 
   /**
    * Get idle worker count
    */
   getIdleWorkerCount(): number {
-    return Array.from(this.workers.values()).filter(w => w.status === 'idle').length
+    return Array.from(this.workers.values()).filter(w => w.status === 'idle').length;
   }
 
   /**
    * Get busy worker count
    */
   getBusyWorkerCount(): number {
-    return Array.from(this.workers.values()).filter(w => w.status === 'busy').length
+    return Array.from(this.workers.values()).filter(w => w.status === 'busy').length;
   }
 
   /**
@@ -341,32 +341,32 @@ export class WorkerPool extends EventEmitter {
    */
   async terminate(): Promise<void> {
     if (this.terminated) {
-      return
+      return;
     }
 
-    this.terminated = true
+    this.terminated = true;
 
     // Clear task queue
-    this.taskQueue.clear()
+    this.taskQueue.clear();
 
     // Terminate all workers
     const terminationPromises = Array.from(this.workers.values()).map(workerInfo =>
       this.terminateWorker(workerInfo.id),
-    )
+    );
 
-    await Promise.all(terminationPromises)
+    await Promise.all(terminationPromises);
 
-    this.workers.clear()
-    this.pendingTasks.clear()
+    this.workers.clear();
+    this.pendingTasks.clear();
 
-    this.emit('terminated')
+    this.emit('terminated');
   }
 
   /**
    * Wait for all tasks to complete
    */
   async drain(): Promise<void> {
-    await this.taskQueue.drain()
+    await this.taskQueue.drain();
   }
 
   /**
@@ -374,7 +374,7 @@ export class WorkerPool extends EventEmitter {
    */
   private initializeWorkers(): void {
     for (let i = 0; i < this.options.minWorkers; i++) {
-      this.createWorker()
+      this.createWorker();
     }
   }
 
@@ -383,19 +383,19 @@ export class WorkerPool extends EventEmitter {
    */
   private createWorker(): WorkerInfo | null {
     if (this.workers.size >= this.options.maxWorkers) {
-      return null
+      return null;
     }
 
-    const workerId = this.generateWorkerId()
+    const workerId = this.generateWorkerId();
 
     try {
       // Create worker based on whether workerScript is provided
-      let worker: Worker
+      let worker: Worker;
 
       if (this.options.workerScript) {
         worker = new Worker(this.options.workerScript, {
           workerData: this.options.workerData,
-        })
+        });
       }
       else {
         // Inline worker for simple function execution
@@ -428,7 +428,7 @@ export class WorkerPool extends EventEmitter {
           });
 
           parentPort.postMessage({ type: 'ready' });
-        `, { eval: true })
+        `, { eval: true });
       }
 
       const workerInfo: WorkerInfo = {
@@ -438,35 +438,35 @@ export class WorkerPool extends EventEmitter {
         tasksCompleted: 0,
         createdAt: Date.now(),
         lastTaskCompletedAt: Date.now(),
-      }
+      };
 
       // Set up worker message handler
       worker.on('message', (message: WorkerMessage) => {
-        this.handleWorkerMessage(workerId, message)
-      })
+        this.handleWorkerMessage(workerId, message);
+      });
 
       // Set up worker error handler
       worker.on('error', (error) => {
-        this.handleWorkerError(workerId, error)
-      })
+        this.handleWorkerError(workerId, error);
+      });
 
       // Set up worker exit handler
       worker.on('exit', (code) => {
-        this.handleWorkerExit(workerId, code)
-      })
+        this.handleWorkerExit(workerId, code);
+      });
 
-      this.workers.set(workerId, workerInfo)
-      this.stats.totalWorkersCreated++
-      this.stats.activeWorkers++
-      this.stats.idleWorkers++
+      this.workers.set(workerId, workerInfo);
+      this.stats.totalWorkersCreated++;
+      this.stats.activeWorkers++;
+      this.stats.idleWorkers++;
 
-      this.emit('workerCreated', workerId)
+      this.emit('workerCreated', workerId);
 
-      return workerInfo
+      return workerInfo;
     }
     catch (error) {
-      this.emit('error', new Error(`Failed to create worker: ${error instanceof Error ? error.message : String(error)}`))
-      return null
+      this.emit('error', new Error(`Failed to create worker: ${error instanceof Error ? error.message : String(error)}`));
+      return null;
     }
   }
 
@@ -475,22 +475,22 @@ export class WorkerPool extends EventEmitter {
    */
   private async executeTask<T>(task: WorkerTask<T>): Promise<T> {
     // Get or create an available worker
-    const workerInfo = this.getAvailableWorker()
+    const workerInfo = this.getAvailableWorker();
 
     if (!workerInfo) {
-      throw new Error('No available workers')
+      throw new Error('No available workers');
     }
 
     // Mark worker as busy
-    workerInfo.status = 'busy'
-    workerInfo.currentTaskId = task.id
-    this.stats.idleWorkers--
-    this.stats.busyWorkers++
+    workerInfo.status = 'busy';
+    workerInfo.currentTaskId = task.id;
+    this.stats.idleWorkers--;
+    this.stats.busyWorkers++;
 
     // Clear idle timer
     if (workerInfo.idleTimer) {
-      clearTimeout(workerInfo.idleTimer)
-      workerInfo.idleTimer = undefined
+      clearTimeout(workerInfo.idleTimer);
+      workerInfo.idleTimer = undefined;
     }
 
     // Send task to worker
@@ -499,15 +499,15 @@ export class WorkerPool extends EventEmitter {
       taskId: task.id,
       taskType: task.type,
       data: task.data,
-    }
+    };
 
-    workerInfo.worker.postMessage(message)
+    workerInfo.worker.postMessage(message);
 
     // Return promise that resolves when task completes
     return new Promise<T>((resolve, reject) => {
-      task.resolve = resolve as (value: unknown) => void
-      task.reject = reject
-    })
+      task.resolve = resolve as (value: unknown) => void;
+      task.reject = reject;
+    });
   }
 
   /**
@@ -515,45 +515,45 @@ export class WorkerPool extends EventEmitter {
    */
   private getAvailableWorker(): WorkerInfo | null {
     // Find idle worker
-    const idleWorker = Array.from(this.workers.values()).find(w => w.status === 'idle')
+    const idleWorker = Array.from(this.workers.values()).find(w => w.status === 'idle');
 
     if (idleWorker) {
-      return idleWorker
+      return idleWorker;
     }
 
     // Create new worker if dynamic scaling is enabled
     if (this.options.enableDynamicScaling && this.workers.size < this.options.maxWorkers) {
-      return this.createWorker()
+      return this.createWorker();
     }
 
-    return null
+    return null;
   }
 
   /**
    * Handle worker message
    */
   private handleWorkerMessage(workerId: string, message: WorkerMessage): void {
-    const workerInfo = this.workers.get(workerId)
+    const workerInfo = this.workers.get(workerId);
     if (!workerInfo) {
-      return
+      return;
     }
 
     switch (message.type) {
       case 'ready':
-        this.emit('workerReady', workerId)
-        break
+        this.emit('workerReady', workerId);
+        break;
 
       case 'result':
         if (message.taskId) {
-          this.handleTaskResult(workerId, message.taskId, message.result)
+          this.handleTaskResult(workerId, message.taskId, message.result);
         }
-        break
+        break;
 
       case 'error':
         if (message.taskId && message.error) {
-          this.handleTaskError(workerId, message.taskId, message.error)
+          this.handleTaskError(workerId, message.taskId, message.error);
         }
-        break
+        break;
     }
   }
 
@@ -561,124 +561,124 @@ export class WorkerPool extends EventEmitter {
    * Handle task result
    */
   private handleTaskResult(workerId: string, taskId: string, result: unknown): void {
-    const workerInfo = this.workers.get(workerId)
-    const task = this.pendingTasks.get(taskId)
+    const workerInfo = this.workers.get(workerId);
+    const task = this.pendingTasks.get(taskId);
 
     if (!workerInfo || !task) {
-      return
+      return;
     }
 
     // Update worker status
-    workerInfo.status = 'idle'
-    workerInfo.tasksCompleted++
-    workerInfo.lastTaskCompletedAt = Date.now()
-    workerInfo.currentTaskId = undefined
-    this.stats.busyWorkers--
-    this.stats.idleWorkers++
-    this.stats.totalTasksProcessed++
+    workerInfo.status = 'idle';
+    workerInfo.tasksCompleted++;
+    workerInfo.lastTaskCompletedAt = Date.now();
+    workerInfo.currentTaskId = undefined;
+    this.stats.busyWorkers--;
+    this.stats.idleWorkers++;
+    this.stats.totalTasksProcessed++;
 
     // Resolve task
-    this.pendingTasks.delete(taskId)
-    this.stats.queuedTasks--
-    task.resolve(result)
+    this.pendingTasks.delete(taskId);
+    this.stats.queuedTasks--;
+    task.resolve(result);
 
     // Check if worker should be recycled
     if (workerInfo.tasksCompleted >= this.options.maxTasksPerWorker) {
-      this.recycleWorker(workerId)
+      this.recycleWorker(workerId);
     }
     else {
       // Set idle timer for dynamic scaling
-      this.setWorkerIdleTimer(workerId)
+      this.setWorkerIdleTimer(workerId);
     }
 
-    this.emit('taskCompleted', taskId, workerId)
+    this.emit('taskCompleted', taskId, workerId);
   }
 
   /**
    * Handle task error
    */
-  private handleTaskError(workerId: string, taskId: string, error: { message: string, stack?: string }): void {
-    const workerInfo = this.workers.get(workerId)
-    const task = this.pendingTasks.get(taskId)
+  private handleTaskError(workerId: string, taskId: string, error: { message: string; stack?: string }): void {
+    const workerInfo = this.workers.get(workerId);
+    const task = this.pendingTasks.get(taskId);
 
     if (!workerInfo || !task) {
-      return
+      return;
     }
 
     // Update worker status
-    workerInfo.status = 'idle'
-    workerInfo.currentTaskId = undefined
-    this.stats.busyWorkers--
-    this.stats.idleWorkers++
+    workerInfo.status = 'idle';
+    workerInfo.currentTaskId = undefined;
+    this.stats.busyWorkers--;
+    this.stats.idleWorkers++;
 
     // Reject task
-    this.pendingTasks.delete(taskId)
-    this.stats.queuedTasks--
-    const taskError = new Error(error.message)
+    this.pendingTasks.delete(taskId);
+    this.stats.queuedTasks--;
+    const taskError = new Error(error.message);
     if (error.stack) {
-      taskError.stack = error.stack
+      taskError.stack = error.stack;
     }
-    task.reject(taskError)
+    task.reject(taskError);
 
     // Set idle timer
-    this.setWorkerIdleTimer(workerId)
+    this.setWorkerIdleTimer(workerId);
 
-    this.emit('taskFailed', taskId, workerId, error)
+    this.emit('taskFailed', taskId, workerId, error);
   }
 
   /**
    * Handle worker error
    */
   private handleWorkerError(workerId: string, error: Error): void {
-    const workerInfo = this.workers.get(workerId)
+    const workerInfo = this.workers.get(workerId);
     if (!workerInfo) {
-      return
+      return;
     }
 
     // If worker was processing a task, reject it
     if (workerInfo.currentTaskId) {
-      const task = this.pendingTasks.get(workerInfo.currentTaskId)
+      const task = this.pendingTasks.get(workerInfo.currentTaskId);
       if (task) {
-        this.pendingTasks.delete(workerInfo.currentTaskId)
-        this.stats.queuedTasks--
-        task.reject(new Error(`Worker error: ${error.message}`))
+        this.pendingTasks.delete(workerInfo.currentTaskId);
+        this.stats.queuedTasks--;
+        task.reject(new Error(`Worker error: ${error.message}`));
       }
     }
 
-    this.emit('workerError', workerId, error)
+    this.emit('workerError', workerId, error);
 
     // Terminate and replace worker
     this.terminateWorker(workerId).then(() => {
       if (!this.terminated && this.workers.size < this.options.minWorkers) {
-        this.createWorker()
+        this.createWorker();
       }
-    })
+    });
   }
 
   /**
    * Handle worker exit
    */
   private handleWorkerExit(workerId: string, code: number): void {
-    const workerInfo = this.workers.get(workerId)
+    const workerInfo = this.workers.get(workerId);
     if (!workerInfo) {
-      return
+      return;
     }
 
-    this.workers.delete(workerId)
-    this.stats.activeWorkers--
+    this.workers.delete(workerId);
+    this.stats.activeWorkers--;
 
     if (workerInfo.status === 'idle') {
-      this.stats.idleWorkers--
+      this.stats.idleWorkers--;
     }
     else if (workerInfo.status === 'busy') {
-      this.stats.busyWorkers--
+      this.stats.busyWorkers--;
     }
 
-    this.emit('workerExited', workerId, code)
+    this.emit('workerExited', workerId, code);
 
     // Replace worker if below minimum
     if (!this.terminated && this.workers.size < this.options.minWorkers) {
-      this.createWorker()
+      this.createWorker();
     }
   }
 
@@ -686,37 +686,37 @@ export class WorkerPool extends EventEmitter {
    * Set worker idle timer for dynamic scaling
    */
   private setWorkerIdleTimer(workerId: string): void {
-    const workerInfo = this.workers.get(workerId)
+    const workerInfo = this.workers.get(workerId);
     if (!workerInfo || !this.options.enableDynamicScaling) {
-      return
+      return;
     }
 
     // Clear existing timer
     if (workerInfo.idleTimer) {
-      clearTimeout(workerInfo.idleTimer)
+      clearTimeout(workerInfo.idleTimer);
     }
 
     // Don't terminate if at minimum workers
     if (this.workers.size <= this.options.minWorkers) {
-      return
+      return;
     }
 
     // Set new idle timer
     workerInfo.idleTimer = setTimeout(() => {
       if (workerInfo.status === 'idle' && this.workers.size > this.options.minWorkers) {
-        this.terminateWorker(workerId)
+        this.terminateWorker(workerId);
       }
-    }, this.options.workerIdleTimeout)
+    }, this.options.workerIdleTimeout);
   }
 
   /**
    * Recycle a worker (terminate and create new one)
    */
   private async recycleWorker(workerId: string): Promise<void> {
-    await this.terminateWorker(workerId)
+    await this.terminateWorker(workerId);
 
     if (!this.terminated && this.workers.size < this.options.minWorkers) {
-      this.createWorker()
+      this.createWorker();
     }
   }
 
@@ -724,24 +724,24 @@ export class WorkerPool extends EventEmitter {
    * Terminate a worker
    */
   private async terminateWorker(workerId: string): Promise<void> {
-    const workerInfo = this.workers.get(workerId)
+    const workerInfo = this.workers.get(workerId);
     if (!workerInfo) {
-      return
+      return;
     }
 
-    workerInfo.status = 'terminating'
+    workerInfo.status = 'terminating';
 
     // Clear idle timer
     if (workerInfo.idleTimer) {
-      clearTimeout(workerInfo.idleTimer)
-      workerInfo.idleTimer = undefined
+      clearTimeout(workerInfo.idleTimer);
+      workerInfo.idleTimer = undefined;
     }
 
     try {
-      await workerInfo.worker.terminate()
+      await workerInfo.worker.terminate();
     }
     catch (error) {
-      this.emit('error', new Error(`Failed to terminate worker ${workerId}: ${error instanceof Error ? error.message : String(error)}`))
+      this.emit('error', new Error(`Failed to terminate worker ${workerId}: ${error instanceof Error ? error.message : String(error)}`));
     }
   }
 
@@ -749,13 +749,13 @@ export class WorkerPool extends EventEmitter {
    * Generate unique worker ID
    */
   private generateWorkerId(): string {
-    return `worker_${++this.workerIdCounter}_${Date.now()}`
+    return `worker_${++this.workerIdCounter}_${Date.now()}`;
   }
 
   /**
    * Generate unique task ID
    */
   private generateTaskId(): string {
-    return `task_${++this.taskIdCounter}_${Date.now()}`
+    return `task_${++this.taskIdCounter}_${Date.now()}`;
   }
 }

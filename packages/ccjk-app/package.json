@@ -1,10 +1,10 @@
 {
   "name": "@ccjk/app",
   "version": "1.0.0",
+  "private": true,
   "description": "Mobile and web app for CCJK remote control",
   "author": "CCJK Team",
   "license": "MIT",
-  "private": true,
   "main": "expo-router/entry",
   "scripts": {
     "start": "expo start",
@@ -13,20 +13,20 @@
     "web": "expo start --web"
   },
   "dependencies": {
-    "@babel/runtime": "^7.28.6",
+    "@babel/runtime": "catalog:",
     "@ccjk/wire": "workspace:*",
-    "@react-native-async-storage/async-storage": "^2.1.0",
-    "expo": "~52.0.0",
-    "expo-router": "~4.0.0",
-    "expo-web-browser": "~14.0.0",
-    "react": "18.3.1",
-    "react-native": "0.76.5",
-    "react-native-web": "~0.19.13",
-    "socket.io-client": "^4.8.1",
-    "zustand": "^5.0.2"
+    "@react-native-async-storage/async-storage": "catalog:",
+    "expo": "catalog:",
+    "expo-router": "catalog:",
+    "expo-web-browser": "catalog:",
+    "react": "catalog:conflicts_react_18_3_1",
+    "react-native": "catalog:",
+    "react-native-web": "catalog:",
+    "socket.io-client": "catalog:conflicts_conflicts_conflicts_socket.io-client_h4_8_1_h4_8_3_h4_8_1",
+    "zustand": "catalog:"
   },
   "devDependencies": {
-    "@types/react": "~18.3.12",
-    "typescript": "~5.6.2"
+    "@types/react": "catalog:conflicts_@types/react_t18_3_12",
+    "typescript": "catalog:conflicts_conflicts_conflicts_conflicts_conflicts_conflicts_conflicts_conflicts_typescript_h5_3_3_h5_9_2_h5_h5_9_2_h5_5_9_3_h5_9_3_t5_6_2"
   }
 }

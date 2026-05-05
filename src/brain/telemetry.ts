@@ -7,77 +7,77 @@
  * 3. 生成使用统计报告
  */
 
-import { existsSync, mkdirSync } from 'node:fs'
-import { appendFile, readFile } from 'node:fs/promises'
-import { homedir } from 'node:os'
-import { join } from 'pathe'
-import type { CapabilityLevel } from './capability-router'
+import type { CapabilityLevel } from './capability-router';
+import { existsSync, mkdirSync } from 'node:fs';
+import { appendFile, readFile } from 'node:fs/promises';
+import { homedir } from 'node:os';
+import { join } from 'pathe';
 
 export interface TaskLog {
   /** 时间戳 */
-  timestamp: string
+  timestamp: string;
 
   /** 任务描述 */
-  task: string
+  task: string;
 
   /** 使用的能力层级 */
-  level: CapabilityLevel
+  level: CapabilityLevel;
 
   /** 实际执行步数 */
-  actualSteps: number
+  actualSteps: number;
 
   /** 实际耗时（秒） */
-  duration: number
+  duration: number;
 
   /** 是否成功 */
-  success: boolean
+  success: boolean;
 
   /** 效果评分 (1-10) */
-  effectScore: number
+  effectScore: number;
 
   /** 下次建议 */
-  recommendation: string
+  recommendation: string;
 
   /** 额外元数据 */
-  metadata?: Record<string, unknown>
+  metadata?: Record<string, unknown>;
 }
 
 export interface TelemetryStats {
   /** 总任务数 */
-  totalTasks: number
+  totalTasks: number;
 
   /** 按层级统计 */
   byLevel: Record<
     CapabilityLevel,
     {
-      count: number
-      successRate: number
-      avgDuration: number
-      avgEffectScore: number
+      count: number;
+      successRate: number;
+      avgDuration: number;
+      avgEffectScore: number;
     }
-  >
+  >;
 
   /** 最近30天趋势 */
   recentTrend: {
-    date: string
-    count: number
-    successRate: number
-  }[]
+    date: string;
+    count: number;
+    successRate: number;
+  }[];
 
   /** 建议 */
-  recommendations: string[]
+  recommendations: string[];
 }
 
 export class BrainTelemetry {
-  private logPath: string
+  private logPath: string;
 
   constructor(logPath?: string) {
-    const ccjkDir = join(homedir(), '.ccjk')
+    const ccjkDir = join(homedir(), '.ccjk');
     if (!existsSync(ccjkDir)) {
-      mkdirSync(ccjkDir, { recursive: true })
+      mkdirSync(ccjkDir, { recursive: true });
     }
 
-    this.logPath = logPath ?? join(ccjkDir, 'task-decision-log.jsonl')
+    this.logPath = logPath ?? join(ccjkDir, 'task-decision-log.jsonl');
   }
 
   /**
@@ -87,14 +87,14 @@ export class BrainTelemetry {
     const line = JSON.stringify({
       ...log,
       timestamp: log.timestamp || new Date().toISOString(),
-    })
+    });
 
-    await appendFile(this.logPath, `${line}\n`, 'utf-8')
+    await appendFile(this.logPath, `${line}\n`, 'utf-8');
 
     // 每10个任务自动分析一次
-    const stats = await this.getStats()
+    const stats = await this.getStats();
     if (stats.totalTasks % 10 === 0) {
-      await this.analyzeAndUpdate()
+      await this.analyzeAndUpdate();
     }
   }
 
@@ -103,20 +103,20 @@ export class BrainTelemetry {
    */
   async readLogs(): Promise<TaskLog[]> {
     if (!existsSync(this.logPath)) {
-      return []
+      return [];
     }
 
-    const content = await readFile(this.logPath, 'utf-8')
-    const lines = content.trim().split('\n').filter(Boolean)
+    const content = await readFile(this.logPath, 'utf-8');
+    const lines = content.trim().split('\n').filter(Boolean);
 
-    return lines.map(line => JSON.parse(line) as TaskLog)
+    return lines.map(line => JSON.parse(line) as TaskLog);
   }
 
   /**
    * 获取统计数据
    */
   async getStats(): Promise<TelemetryStats> {
-    const logs = await this.readLogs()
+    const logs = await this.readLogs();
 
     if (logs.length === 0) {
       return {
@@ -124,56 +124,57 @@ export class BrainTelemetry {
         byLevel: {} as any,
         recentTrend: [],
         recommendations: [],
-      }
+      };
     }
 
     // 按层级统计
-    const byLevel: Record<number, TaskLog[]> = {}
+    const byLevel: Record<number, TaskLog[]> = {};
     for (const log of logs) {
       if (!byLevel[log.level]) {
-        byLevel[log.level] = []
+        byLevel[log.level] = [];
       }
-      byLevel[log.level].push(log)
+      byLevel[log.level].push(log);
     }
 
     const levelStats: Record<
       CapabilityLevel,
       {
-        count: number
-        successRate: number
-        avgDuration: number
-        avgEffectScore: number
+        count: number;
+        successRate: number;
+        avgDuration: number;
+        avgEffectScore: number;
       }
-    > = {} as any
+    > = {} as any;
 
     for (const [level, levelLogs] of Object.entries(byLevel)) {
-      const successCount = levelLogs.filter(l => l.success).length
-      const totalDuration = levelLogs.reduce((sum, l) => sum + l.duration, 0)
-      const totalScore = levelLogs.reduce((sum, l) => sum + l.effectScore, 0)
+      const successCount = levelLogs.filter(l => l.success).length;
+      const totalDuration = levelLogs.reduce((sum, l) => sum + l.duration, 0);
+      const totalScore = levelLogs.reduce((sum, l) => sum + l.effectScore, 0);
 
       levelStats[Number(level) as CapabilityLevel] = {
         count: levelLogs.length,
         successRate: successCount / levelLogs.length,
         avgDuration: totalDuration / levelLogs.length,
         avgEffectScore: totalScore / levelLogs.length,
-      }
+      };
     }
 
     // 最近30天趋势
-    const thirtyDaysAgo = new Date()
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
     const recentLogs = logs.filter(
       log => new Date(log.timestamp) >= thirtyDaysAgo,
-    )
+    );
 
-    const dailyStats = new Map<string, { count: number; success: number }>()
+    const dailyStats = new Map<string, { count: number; success: number }>();
     for (const log of recentLogs) {
-      const date = log.timestamp.split('T')[0]
-      const stats = dailyStats.get(date) ?? { count: 0, success: 0 }
-      stats.count++
-      if (log.success) stats.success++
-      dailyStats.set(date, stats)
+      const date = log.timestamp.split('T')[0];
+      const stats = dailyStats.get(date) ?? { count: 0, success: 0 };
+      stats.count++;
+      if (log.success)
+        stats.success++;
+      dailyStats.set(date, stats);
     }
 
     const recentTrend = Array.from(dailyStats.entries())
@@ -182,17 +183,17 @@ export class BrainTelemetry {
         count: stats.count,
         successRate: stats.success / stats.count,
       }))
-      .sort((a, b) => a.date.localeCompare(b.date))
+      .sort((a, b) => a.date.localeCompare(b.date));
 
     // 生成建议
-    const recommendations = this.generateRecommendations(levelStats)
+    const recommendations = this.generateRecommendations(levelStats);
 
     return {
       totalTasks: logs.length,
       byLevel: levelStats,
       recentTrend,
       recommendations,
-    }
+    };
   }
 
   /**
@@ -202,55 +203,55 @@ export class BrainTelemetry {
     levelStats: Record<
       CapabilityLevel,
       {
-        count: number
-        successRate: number
-        avgDuration: number
-        avgEffectScore: number
+        count: number;
+        successRate: number;
+        avgDuration: number;
+        avgEffectScore: number;
       }
     >,
   ): string[] {
-    const recommendations: string[] = []
+    const recommendations: string[] = [];
 
     for (const [level, stats] of Object.entries(levelStats)) {
-      const levelNum = Number(level) as CapabilityLevel
+      const levelNum = Number(level) as CapabilityLevel;
 
       // 成功率低于80%
       if (stats.successRate < 0.8) {
         recommendations.push(
           `Level ${levelNum} 成功率偏低 (${(stats.successRate * 100).toFixed(1)}%)，考虑降级到更简单的层级`,
-        )
+        );
       }
 
       // 平均效果评分低于7
       if (stats.avgEffectScore < 7) {
         recommendations.push(
           `Level ${levelNum} 效果评分偏低 (${stats.avgEffectScore.toFixed(1)}/10)，需要优化执行策略`,
-        )
+        );
       }
 
       // 平均耗时过长
       if (levelNum <= 2 && stats.avgDuration > 30) {
         recommendations.push(
           `Level ${levelNum} 平均耗时过长 (${stats.avgDuration.toFixed(1)}s)，考虑优化或升级`,
-        )
+        );
       }
     }
 
-    return recommendations
+    return recommendations;
   }
 
   /**
    * 分析并更新方法论
    */
   private async analyzeAndUpdate(): Promise<void> {
-    const stats = await this.getStats()
+    const stats = await this.getStats();
 
     if (stats.recommendations.length > 0) {
-      console.log('\n📊 Brain Telemetry Analysis:')
+      console.log('\n📊 Brain Telemetry Analysis:');
       for (const rec of stats.recommendations) {
-        console.log(`  💡 ${rec}`)
+        console.log(`  💡 ${rec}`);
       }
-      console.log()
+      console.log();
     }
   }
 
@@ -259,21 +260,21 @@ export class BrainTelemetry {
    */
   async clear(): Promise<void> {
     if (existsSync(this.logPath)) {
-      await appendFile(this.logPath, '', 'utf-8')
+      await appendFile(this.logPath, '', 'utf-8');
     }
   }
 }
 
 // 全局单例
-let globalTelemetry: BrainTelemetry | null = null
+let globalTelemetry: BrainTelemetry | null = null;
 
 export function getTelemetry(): BrainTelemetry {
   if (!globalTelemetry) {
-    globalTelemetry = new BrainTelemetry()
+    globalTelemetry = new BrainTelemetry();
   }
-  return globalTelemetry
+  return globalTelemetry;
 }
 
 export function resetTelemetry(): void {
-  globalTelemetry = null
+  globalTelemetry = null;
 }

@@ -3,28 +3,28 @@
  * Detects frameworks like React, Next.js, Vue, Angular, NestJS, etc.
  */
 
-import type { FrameworkDetectionResult, LanguageDetection } from './types.js'
-import { promises as fsp } from 'node:fs'
-import consola from 'consola'
-import path from 'pathe'
+import type { FrameworkDetectionResult, LanguageDetection } from './types.js';
+import { promises as fsp } from 'node:fs';
+import consola from 'consola';
+import path from 'pathe';
 
 // fs-extra compatibility helpers
 async function pathExists(p: string): Promise<boolean> {
   try {
-    await fsp.access(p)
-    return true
+    await fsp.access(p);
+    return true;
   }
   catch {
-    return false
+    return false;
   }
 }
 
 async function readJson(p: string): Promise<any> {
-  const content = await fsp.readFile(p, 'utf-8')
-  return JSON.parse(content)
+  const content = await fsp.readFile(p, 'utf-8');
+  return JSON.parse(content);
 }
 
-const logger = consola.withTag('typescript-analyzer')
+const logger = consola.withTag('typescript-analyzer');
 
 // Framework detection patterns
 const FRAMEWORK_PATTERNS = {
@@ -158,7 +158,7 @@ const FRAMEWORK_PATTERNS = {
     dependencies: ['lerna'],
     indicators: ['packages/'],
   },
-}
+};
 
 /**
  * Analyze TypeScript/JavaScript project
@@ -168,41 +168,41 @@ export async function analyzeTypeScriptProject(
   files: string[],
   _languages: LanguageDetection[],
 ): Promise<FrameworkDetectionResult[]> {
-  logger.info('Analyzing TypeScript/JavaScript project')
+  logger.info('Analyzing TypeScript/JavaScript project');
 
-  const frameworks: FrameworkDetectionResult[] = []
-  const packageJsonPath = path.join(projectPath, 'package.json')
+  const frameworks: FrameworkDetectionResult[] = [];
+  const packageJsonPath = path.join(projectPath, 'package.json');
 
   // Read package.json
-  let packageJson: any = null
+  let packageJson: any = null;
   try {
     if (await pathExists(packageJsonPath)) {
-      packageJson = await readJson(packageJsonPath)
+      packageJson = await readJson(packageJsonPath);
     }
   }
   catch (error) {
-    logger.warn('Failed to read package.json:', error)
+    logger.warn('Failed to read package.json:', error);
   }
 
   // Check for each framework
   for (const [frameworkName, patterns] of Object.entries(FRAMEWORK_PATTERNS)) {
-    const evidence: string[] = []
-    let confidence = 0
+    const evidence: string[] = [];
+    let confidence = 0;
 
     // Check for framework-specific files
     for (const file of patterns.files) {
       if (files.includes(file)) {
-        evidence.push(`Found ${file}`)
-        confidence += 0.3
+        evidence.push(`Found ${file}`);
+        confidence += 0.3;
       }
     }
 
     // Check for directory indicators
     for (const indicator of patterns.indicators) {
-      const indicatorPath = path.join(projectPath, indicator)
+      const indicatorPath = path.join(projectPath, indicator);
       if (files.some(f => f.startsWith(indicator)) || await pathExists(indicatorPath)) {
-        evidence.push(`Found ${indicator} directory`)
-        confidence += 0.2
+        evidence.push(`Found ${indicator} directory`);
+        confidence += 0.2;
       }
     }
 
@@ -211,12 +211,12 @@ export async function analyzeTypeScriptProject(
       const allDeps = {
         ...packageJson.dependencies,
         ...packageJson.devDependencies,
-      }
+      };
 
       for (const dep of patterns.dependencies) {
         if (allDeps[dep]) {
-          evidence.push(`Found ${dep} in dependencies`)
-          confidence += 0.4
+          evidence.push(`Found ${dep} in dependencies`);
+          confidence += 0.4;
         }
       }
     }
@@ -224,13 +224,13 @@ export async function analyzeTypeScriptProject(
     // Add framework if detected
     if (confidence > 0) {
       // Get version if available
-      let version: string | undefined
+      let version: string | undefined;
       if (packageJson) {
         for (const dep of patterns.dependencies) {
-          const depVersion = packageJson.dependencies?.[dep] || packageJson.devDependencies?.[dep]
+          const depVersion = packageJson.dependencies?.[dep] || packageJson.devDependencies?.[dep];
           if (depVersion) {
-            version = depVersion
-            break
+            version = depVersion;
+            break;
           }
         }
       }
@@ -241,19 +241,19 @@ export async function analyzeTypeScriptProject(
         version,
         confidence: Math.min(confidence, 1),
         evidence,
-      })
+      });
     }
   }
 
   // Detect additional patterns
-  await detectAdditionalPatterns(projectPath, files, frameworks, packageJson)
+  await detectAdditionalPatterns(projectPath, files, frameworks, packageJson);
 
   // Sort by confidence
-  frameworks.sort((a, b) => b.confidence - a.confidence)
+  frameworks.sort((a, b) => b.confidence - a.confidence);
 
-  logger.debug(`Detected frameworks: ${frameworks.map(f => `${f.name} (${Math.round(f.confidence * 100)}%)`).join(', ')}`)
+  logger.debug(`Detected frameworks: ${frameworks.map(f => `${f.name} (${Math.round(f.confidence * 100)}%)`).join(', ')}`);
 
-  return frameworks
+  return frameworks;
 }
 
 /**
@@ -289,15 +289,15 @@ function getFrameworkCategory(framework: string): string {
     ],
     desktop: ['electron'],
     monorepo: ['turborepo', 'nx', 'lerna'],
-  }
+  };
 
   for (const [category, frameworks] of Object.entries(categories)) {
     if (frameworks.includes(framework)) {
-      return category
+      return category;
     }
   }
 
-  return 'other'
+  return 'other';
 }
 
 /**
@@ -311,24 +311,24 @@ async function detectAdditionalPatterns(
 ): Promise<void> {
   // Check for TypeScript
   if (files.includes('tsconfig.json')) {
-    const tsFramework = frameworks.find(f => f.name === 'typescript')
+    const tsFramework = frameworks.find(f => f.name === 'typescript');
     if (!tsFramework) {
       frameworks.push({
         name: 'typescript',
         category: 'language',
         confidence: 0.9,
         evidence: ['Found tsconfig.json'],
-      })
+      });
     }
   }
 
   // Check for testing frameworks
-  const testDependencies = ['jest', 'vitest', 'cypress', 'playwright', 'mocha', 'jasmine']
+  const testDependencies = ['jest', 'vitest', 'cypress', 'playwright', 'mocha', 'jasmine'];
   if (packageJson) {
     const allDeps = {
       ...packageJson.dependencies,
       ...packageJson.devDependencies,
-    }
+    };
 
     for (const testDep of testDependencies) {
       if (allDeps[testDep]) {
@@ -338,18 +338,18 @@ async function detectAdditionalPatterns(
           version: allDeps[testDep],
           confidence: 0.8,
           evidence: [`Found ${testDep} in dependencies`],
-        })
+        });
       }
     }
   }
 
   // Check for CSS frameworks
-  const cssFrameworks = ['tailwindcss', 'bootstrap', 'bulma', 'material-ui', 'chakra-ui']
+  const cssFrameworks = ['tailwindcss', 'bootstrap', 'bulma', 'material-ui', 'chakra-ui'];
   if (packageJson) {
     const allDeps = {
       ...packageJson.dependencies,
       ...packageJson.devDependencies,
-    }
+    };
 
     for (const cssFw of cssFrameworks) {
       if (allDeps[cssFw]) {
@@ -359,18 +359,18 @@ async function detectAdditionalPatterns(
           version: allDeps[cssFw],
           confidence: 0.8,
           evidence: [`Found ${cssFw} in dependencies`],
-        })
+        });
       }
     }
   }
 
   // Check for state management
-  const stateLibs = ['redux', 'zustand', 'recoil', 'jotai', 'valtio']
+  const stateLibs = ['redux', 'zustand', 'recoil', 'jotai', 'valtio'];
   if (packageJson) {
     const allDeps = {
       ...packageJson.dependencies,
       ...packageJson.devDependencies,
-    }
+    };
 
     for (const lib of stateLibs) {
       if (allDeps[lib]) {
@@ -380,18 +380,18 @@ async function detectAdditionalPatterns(
           version: allDeps[lib],
           confidence: 0.8,
           evidence: [`Found ${lib} in dependencies`],
-        })
+        });
       }
     }
   }
 
   // Check for linting/formatting
-  const lintingTools = ['eslint', 'prettier', 'biome', 'rome']
+  const lintingTools = ['eslint', 'prettier', 'biome', 'rome'];
   if (packageJson) {
     const allDeps = {
       ...packageJson.dependencies,
       ...packageJson.devDependencies,
-    }
+    };
 
     for (const tool of lintingTools) {
       if (allDeps[tool]) {
@@ -401,7 +401,7 @@ async function detectAdditionalPatterns(
           version: allDeps[tool],
           confidence: 0.8,
           evidence: [`Found ${tool} in dependencies`],
-        })
+        });
       }
     }
   }
@@ -412,7 +412,7 @@ async function detectAdditionalPatterns(
     'netlify.toml': 'netlify',
     'app.yaml': 'app-engine',
     'now.json': 'now',
-  }
+  };
 
   for (const [file, platform] of Object.entries(deploymentFiles)) {
     if (files.includes(file)) {
@@ -421,7 +421,7 @@ async function detectAdditionalPatterns(
         category: 'deployment',
         confidence: 0.9,
         evidence: [`Found ${file}`],
-      })
+      });
     }
   }
 }

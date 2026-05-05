@@ -8,9 +8,9 @@
  */
 export interface BaseHookContext {
   /** Timestamp when the hook was triggered */
-  timestamp: number
+  timestamp: number;
   /** Session ID for tracking related operations */
-  sessionId?: string
+  sessionId?: string;
 }
 
 /**
@@ -19,20 +19,20 @@ export interface BaseHookContext {
  */
 export interface PreRequestContext extends BaseHookContext {
   /** API provider being used (e.g., 'anthropic', '302ai', 'openai') */
-  provider: string
+  provider: string;
   /** Model being requested (e.g., 'claude-3-5-sonnet-20241022') */
-  model: string
+  model: string;
   /** Request messages (sanitized, without sensitive data) */
   messages?: Array<{
-    role: string
-    content: string
-  }>
+    role: string;
+    content: string;
+  }>;
   /** Request metadata */
   metadata?: {
-    maxTokens?: number
-    temperature?: number
-    [key: string]: any
-  }
+    maxTokens?: number;
+    temperature?: number;
+    [key: string]: any;
+  };
 }
 
 /**
@@ -41,24 +41,24 @@ export interface PreRequestContext extends BaseHookContext {
  */
 export interface PostResponseContext extends BaseHookContext {
   /** API provider that handled the request */
-  provider: string
+  provider: string;
   /** Model that generated the response */
-  model: string
+  model: string;
   /** Response content (sanitized) */
   response?: {
-    content?: string
-    stopReason?: string
-  }
+    content?: string;
+    stopReason?: string;
+  };
   /** Request latency in milliseconds */
-  latency: number
+  latency: number;
   /** Token usage information */
   tokens?: {
-    input?: number
-    output?: number
-    total?: number
-  }
+    input?: number;
+    output?: number;
+    total?: number;
+  };
   /** Whether the request was successful */
-  success: boolean
+  success: boolean;
 }
 
 /**
@@ -67,21 +67,21 @@ export interface PostResponseContext extends BaseHookContext {
  */
 export interface ProviderSwitchContext extends BaseHookContext {
   /** Provider being switched from */
-  fromProvider: string
+  fromProvider: string;
   /** Provider being switched to */
-  toProvider: string
+  toProvider: string;
   /** Reason for the switch */
-  reason: string
+  reason: string;
   /** Previous provider configuration */
   previousConfig?: {
-    model?: string
-    baseUrl?: string
-  }
+    model?: string;
+    baseUrl?: string;
+  };
   /** New provider configuration */
   newConfig?: {
-    model?: string
-    baseUrl?: string
-  }
+    model?: string;
+    baseUrl?: string;
+  };
 }
 
 /**
@@ -90,19 +90,19 @@ export interface ProviderSwitchContext extends BaseHookContext {
  */
 export interface ErrorContext extends BaseHookContext {
   /** Error message */
-  error: string
+  error: string;
   /** Error type/code */
-  errorType?: string
+  errorType?: string;
   /** Stack trace (if available) */
-  stack?: string
+  stack?: string;
   /** Provider where the error occurred */
-  provider?: string
+  provider?: string;
   /** Number of retry attempts made */
-  retryCount?: number
+  retryCount?: number;
   /** Operation that failed */
-  operation?: string
+  operation?: string;
   /** Additional error metadata */
-  metadata?: Record<string, any>
+  metadata?: Record<string, any>;
 }
 
 /**
@@ -111,13 +111,13 @@ export interface ErrorContext extends BaseHookContext {
  */
 export interface SessionStartContext extends BaseHookContext {
   /** Session ID */
-  sessionId: string
+  sessionId: string;
   /** User identifier (if available) */
-  userId?: string
+  userId?: string;
   /** Initial provider configuration */
-  provider?: string
+  provider?: string;
   /** Session metadata */
-  metadata?: Record<string, any>
+  metadata?: Record<string, any>;
 }
 
 /**
@@ -126,17 +126,17 @@ export interface SessionStartContext extends BaseHookContext {
  */
 export interface SessionEndContext extends BaseHookContext {
   /** Session ID */
-  sessionId: string
+  sessionId: string;
   /** Session duration in milliseconds */
-  duration: number
+  duration: number;
   /** Total requests made during session */
-  totalRequests?: number
+  totalRequests?: number;
   /** Total tokens used during session */
-  totalTokens?: number
+  totalTokens?: number;
   /** Session termination reason */
-  reason?: 'normal' | 'error' | 'timeout' | 'user-terminated'
+  reason?: 'normal' | 'error' | 'timeout' | 'user-terminated';
   /** Session metadata */
-  metadata?: Record<string, any>
+  metadata?: Record<string, any>;
 }
 
 /**
@@ -148,46 +148,46 @@ export type HookContext
     | ProviderSwitchContext
     | ErrorContext
     | SessionStartContext
-    | SessionEndContext
+    | SessionEndContext;
 
 /**
  * Type guard to check if context is PreRequestContext
  */
 export function isPreRequestContext(context: HookContext): context is PreRequestContext {
-  return 'messages' in context
+  return 'messages' in context;
 }
 
 /**
  * Type guard to check if context is PostResponseContext
  */
 export function isPostResponseContext(context: HookContext): context is PostResponseContext {
-  return 'latency' in context && 'tokens' in context
+  return 'latency' in context && 'tokens' in context;
 }
 
 /**
  * Type guard to check if context is ProviderSwitchContext
  */
 export function isProviderSwitchContext(context: HookContext): context is ProviderSwitchContext {
-  return 'fromProvider' in context && 'toProvider' in context
+  return 'fromProvider' in context && 'toProvider' in context;
 }
 
 /**
  * Type guard to check if context is ErrorContext
  */
 export function isErrorContext(context: HookContext): context is ErrorContext {
-  return 'error' in context && typeof (context as any).error === 'string'
+  return 'error' in context && typeof (context as any).error === 'string';
 }
 
 /**
  * Type guard to check if context is SessionStartContext
  */
 export function isSessionStartContext(context: HookContext): context is SessionStartContext {
-  return 'sessionId' in context && !('duration' in context)
+  return 'sessionId' in context && !('duration' in context);
 }
 
 /**
  * Type guard to check if context is SessionEndContext
  */
 export function isSessionEndContext(context: HookContext): context is SessionEndContext {
-  return 'sessionId' in context && 'duration' in context
+  return 'sessionId' in context && 'duration' in context;
 }

@@ -1,5 +1,8 @@
-import { io, Socket } from 'socket.io-client';
+import type { Socket } from 'socket.io-client';
+import { io } from 'socket.io-client';
 import { CONFIG } from '../config';
+
+type SocketListener = (...args: unknown[]) => void;
 
 /**
  * Socket.IO client
@@ -8,7 +11,7 @@ import { CONFIG } from '../config';
 class SocketClient {
   private socket: Socket | null = null;
   private token: string | null = null;
-  private listeners: Map<string, Set<Function>> = new Map();
+  private listeners: Map<string, Set<SocketListener>> = new Map();
 
   connect(token: string, machineId?: string) {
     if (this.socket?.connected) {
@@ -74,14 +77,16 @@ class SocketClient {
 
   // Subscribe to session
   subscribeToSession(sessionId: string) {
-    if (!this.socket) return;
+    if (!this.socket)
+      return;
     this.socket.emit('session:join', { sessionId });
     console.log(`Subscribed to session ${sessionId}`);
   }
 
   // Unsubscribe from session
   unsubscribeFromSession(sessionId: string) {
-    if (!this.socket) return;
+    if (!this.socket)
+      return;
     this.socket.emit('session:leave', { sessionId });
     console.log(`Unsubscribed from session ${sessionId}`);
   }
@@ -98,17 +103,20 @@ class SocketClient {
 
   // Send remote command
   sendCommand(sessionId: string, command: string) {
-    if (!this.socket) return;
+    if (!this.socket)
+      return;
     this.socket.emit('remote:command', { sessionId, command });
   }
 
   // Send approval response
   sendApproval(requestId: string, approved: boolean) {
-    if (!this.socket) return;
+    if (!this.socket)
+      return;
     this.socket.emit('approval:response', { requestId, approved }, (response: any) => {
       if (response?.success) {
         console.log(`Approval sent: ${requestId} = ${approved}`);
-      } else {
+      }
+      else {
         console.error(`Failed to send approval:`, response?.error);
       }
     });
@@ -116,7 +124,8 @@ class SocketClient {
 
   // Send input to Claude Code
   sendInput(sessionId: string, text: string) {
-    if (!this.socket) return;
+    if (!this.socket)
+      return;
     this.socket.emit('remote:command', {
       sessionId,
       command: {
@@ -126,7 +135,8 @@ class SocketClient {
     }, (response: any) => {
       if (response?.success) {
         console.log(`Input sent to session ${sessionId}`);
-      } else {
+      }
+      else {
         console.error(`Failed to send input:`, response?.error);
       }
     });
@@ -134,7 +144,8 @@ class SocketClient {
 
   // Send interrupt (Ctrl+C)
   sendInterrupt(sessionId: string) {
-    if (!this.socket) return;
+    if (!this.socket)
+      return;
     this.socket.emit('remote:command', {
       sessionId,
       command: {
@@ -144,21 +155,21 @@ class SocketClient {
   }
 
   // Event listeners
-  on(event: string, callback: Function) {
+  on(event: string, callback: SocketListener) {
     if (!this.listeners.has(event)) {
       this.listeners.set(event, new Set());
     }
     this.listeners.get(event)!.add(callback);
   }
 
-  off(event: string, callback: Function) {
+  off(event: string, callback: SocketListener) {
     const listeners = this.listeners.get(event);
     if (listeners) {
       listeners.delete(callback);
     }
   }
 
-  private emit(event: string, ...args: any[]) {
+  private emit(event: string, ...args: unknown[]) {
     const listeners = this.listeners.get(event);
     if (listeners) {
       listeners.forEach(callback => callback(...args));

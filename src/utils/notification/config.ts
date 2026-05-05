@@ -12,36 +12,36 @@ import type {
   NotificationChannel,
   NotificationConfig,
   QuietHoursConfig,
-} from './types'
-import fs from 'node:fs'
-import os from 'node:os'
-import path from 'node:path'
-import { parse as parseToml, stringify as stringifyToml } from 'smol-toml'
-import { writeFileAtomic } from '../fs-operations'
+} from './types';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { parse as parseToml, stringify as stringifyToml } from 'smol-toml';
+import { writeFileAtomic } from '../fs-operations';
 import {
   decryptToken,
   encryptToken,
   generateDeviceToken,
   isValidTokenFormat,
   maskToken,
-} from './token'
+} from './token';
 import {
   DEFAULT_NOTIFICATION_CONFIG,
   validateNotificationConfig,
-} from './types'
+} from './types';
 
 // ============================================================================
 // Constants
 // ============================================================================
 
 /** CCJK config directory */
-const CCJK_CONFIG_DIR = path.join(os.homedir(), '.ccjk')
+const CCJK_CONFIG_DIR = path.join(os.homedir(), '.ccjk');
 
 /** Main config file path */
-const CONFIG_FILE_PATH = path.join(CCJK_CONFIG_DIR, 'config.toml')
+const CONFIG_FILE_PATH = path.join(CCJK_CONFIG_DIR, 'config.toml');
 
 /** Notification secrets file (encrypted tokens, etc.) */
-const SECRETS_FILE_PATH = path.join(CCJK_CONFIG_DIR, '.notification-secrets')
+const SECRETS_FILE_PATH = path.join(CCJK_CONFIG_DIR, '.notification-secrets');
 
 // ============================================================================
 // Configuration Loading
@@ -56,36 +56,36 @@ export async function loadNotificationConfig(): Promise<NotificationConfig> {
   try {
     // Ensure config directory exists
     if (!fs.existsSync(CCJK_CONFIG_DIR)) {
-      fs.mkdirSync(CCJK_CONFIG_DIR, { recursive: true })
+      fs.mkdirSync(CCJK_CONFIG_DIR, { recursive: true });
     }
 
     // Check if config file exists
     if (!fs.existsSync(CONFIG_FILE_PATH)) {
-      return { ...DEFAULT_NOTIFICATION_CONFIG }
+      return { ...DEFAULT_NOTIFICATION_CONFIG };
     }
 
     // Read and parse config file
-    const configContent = fs.readFileSync(CONFIG_FILE_PATH, 'utf-8')
-    const config = parseToml(configContent) as Record<string, unknown>
+    const configContent = fs.readFileSync(CONFIG_FILE_PATH, 'utf-8');
+    const config = parseToml(configContent) as Record<string, unknown>;
 
     // Extract notification section
-    const notificationConfig = config.notification as Partial<NotificationConfig> | undefined
+    const notificationConfig = config.notification as Partial<NotificationConfig> | undefined;
 
     if (!notificationConfig) {
-      return { ...DEFAULT_NOTIFICATION_CONFIG }
+      return { ...DEFAULT_NOTIFICATION_CONFIG };
     }
 
     // Load encrypted token from secrets file
-    const deviceToken = await loadDeviceToken()
+    const deviceToken = await loadDeviceToken();
 
     // Merge with defaults
-    const quietHoursConfig = (notificationConfig.quietHours || {}) as Partial<QuietHoursConfig>
+    const quietHoursConfig = (notificationConfig.quietHours || {}) as Partial<QuietHoursConfig>;
     const defaultQuietHours: QuietHoursConfig = DEFAULT_NOTIFICATION_CONFIG.quietHours || {
       enabled: false,
       startHour: 22,
       endHour: 8,
       timezone: 'local',
-    }
+    };
     return {
       ...DEFAULT_NOTIFICATION_CONFIG,
       ...notificationConfig,
@@ -100,11 +100,11 @@ export async function loadNotificationConfig(): Promise<NotificationConfig> {
         endHour: quietHoursConfig.endHour ?? defaultQuietHours.endHour,
         timezone: quietHoursConfig.timezone ?? defaultQuietHours.timezone,
       },
-    }
+    };
   }
   catch (error) {
-    console.error('Failed to load notification config:', error)
-    return { ...DEFAULT_NOTIFICATION_CONFIG }
+    console.error('Failed to load notification config:', error);
+    return { ...DEFAULT_NOTIFICATION_CONFIG };
   }
 }
 
@@ -116,22 +116,22 @@ export async function loadNotificationConfig(): Promise<NotificationConfig> {
 async function loadDeviceToken(): Promise<string | null> {
   try {
     if (!fs.existsSync(SECRETS_FILE_PATH)) {
-      return null
+      return null;
     }
 
-    const secretsContent = fs.readFileSync(SECRETS_FILE_PATH, 'utf-8')
-    const secrets = JSON.parse(secretsContent) as { deviceToken?: string }
+    const secretsContent = fs.readFileSync(SECRETS_FILE_PATH, 'utf-8');
+    const secrets = JSON.parse(secretsContent) as { deviceToken?: string };
 
     if (!secrets.deviceToken) {
-      return null
+      return null;
     }
 
     // Decrypt the token
-    const decryptedToken = decryptToken(secrets.deviceToken)
-    return decryptedToken
+    const decryptedToken = decryptToken(secrets.deviceToken);
+    return decryptedToken;
   }
   catch {
-    return null
+    return null;
   }
 }
 
@@ -148,37 +148,37 @@ export async function saveNotificationConfig(config: Partial<NotificationConfig>
   try {
     // Ensure config directory exists
     if (!fs.existsSync(CCJK_CONFIG_DIR)) {
-      fs.mkdirSync(CCJK_CONFIG_DIR, { recursive: true })
+      fs.mkdirSync(CCJK_CONFIG_DIR, { recursive: true });
     }
 
     // Load existing config
-    let existingConfig: Record<string, unknown> = {}
+    let existingConfig: Record<string, unknown> = {};
     if (fs.existsSync(CONFIG_FILE_PATH)) {
-      const configContent = fs.readFileSync(CONFIG_FILE_PATH, 'utf-8')
-      existingConfig = parseToml(configContent) as Record<string, unknown>
+      const configContent = fs.readFileSync(CONFIG_FILE_PATH, 'utf-8');
+      existingConfig = parseToml(configContent) as Record<string, unknown>;
     }
 
     // Prepare notification config (without sensitive data)
-    const notificationConfig = { ...config }
+    const notificationConfig = { ...config };
 
     // Remove device token from main config (stored separately)
     if (notificationConfig.deviceToken) {
-      await saveDeviceToken(notificationConfig.deviceToken)
-      delete notificationConfig.deviceToken
+      await saveDeviceToken(notificationConfig.deviceToken);
+      delete notificationConfig.deviceToken;
     }
 
     // Update notification section
     existingConfig.notification = {
       ...(existingConfig.notification as object || {}),
       ...notificationConfig,
-    }
+    };
 
     // Write config file
-    const tomlContent = stringifyToml(existingConfig as any)
-    writeFileAtomic(CONFIG_FILE_PATH, tomlContent)
+    const tomlContent = stringifyToml(existingConfig as any);
+    writeFileAtomic(CONFIG_FILE_PATH, tomlContent);
   }
   catch (error) {
-    throw new Error(`Failed to save notification config: ${error}`)
+    throw new Error(`Failed to save notification config: ${error}`);
   }
 }
 
@@ -190,27 +190,27 @@ export async function saveNotificationConfig(config: Partial<NotificationConfig>
 async function saveDeviceToken(token: string): Promise<void> {
   try {
     // Encrypt the token
-    const encryptedToken = encryptToken(token)
+    const encryptedToken = encryptToken(token);
 
     // Load existing secrets
-    let secrets: Record<string, unknown> = {}
+    let secrets: Record<string, unknown> = {};
     if (fs.existsSync(SECRETS_FILE_PATH)) {
-      const secretsContent = fs.readFileSync(SECRETS_FILE_PATH, 'utf-8')
-      secrets = JSON.parse(secretsContent)
+      const secretsContent = fs.readFileSync(SECRETS_FILE_PATH, 'utf-8');
+      secrets = JSON.parse(secretsContent);
     }
 
     // Update token
-    secrets.deviceToken = encryptedToken
-    secrets.updatedAt = new Date().toISOString()
+    secrets.deviceToken = encryptedToken;
+    secrets.updatedAt = new Date().toISOString();
 
     // Write secrets file with restricted permissions (atomic write)
     writeFileAtomic(SECRETS_FILE_PATH, JSON.stringify(secrets, null, 2), {
       encoding: 'utf-8',
       mode: 0o600, // Owner read/write only
-    })
+    });
   }
   catch (error) {
-    throw new Error(`Failed to save device token: ${error}`)
+    throw new Error(`Failed to save device token: ${error}`);
   }
 }
 
@@ -226,15 +226,15 @@ async function saveDeviceToken(token: string): Promise<void> {
  * @returns Initialized configuration
  */
 export async function initializeNotificationConfig(): Promise<NotificationConfig> {
-  const existingConfig = await loadNotificationConfig()
+  const existingConfig = await loadNotificationConfig();
 
   // Generate new token if not exists or invalid
   if (!existingConfig.deviceToken || !isValidTokenFormat(existingConfig.deviceToken)) {
-    existingConfig.deviceToken = generateDeviceToken()
-    await saveNotificationConfig(existingConfig)
+    existingConfig.deviceToken = generateDeviceToken();
+    await saveNotificationConfig(existingConfig);
   }
 
-  return existingConfig
+  return existingConfig;
 }
 
 /**
@@ -246,14 +246,14 @@ export async function initializeNotificationConfig(): Promise<NotificationConfig
 export async function updateNotificationConfig(
   updates: Partial<NotificationConfig>,
 ): Promise<NotificationConfig> {
-  const currentConfig = await loadNotificationConfig()
-  const updatesQuietHours = (updates.quietHours || {}) as Partial<QuietHoursConfig>
+  const currentConfig = await loadNotificationConfig();
+  const updatesQuietHours = (updates.quietHours || {}) as Partial<QuietHoursConfig>;
   const currentQuietHours: QuietHoursConfig = currentConfig.quietHours || {
     enabled: false,
     startHour: 22,
     endHour: 8,
     timezone: 'local',
-  }
+  };
   const newConfig: NotificationConfig = {
     ...currentConfig,
     ...updates,
@@ -267,10 +267,10 @@ export async function updateNotificationConfig(
       endHour: updatesQuietHours.endHour ?? currentQuietHours.endHour,
       timezone: updatesQuietHours.timezone ?? currentQuietHours.timezone,
     },
-  }
+  };
 
-  await saveNotificationConfig(newConfig)
-  return newConfig
+  await saveNotificationConfig(newConfig);
+  return newConfig;
 }
 
 /**
@@ -280,14 +280,14 @@ export async function updateNotificationConfig(
  * @returns Reset configuration
  */
 export async function resetNotificationConfig(keepToken: boolean = true): Promise<NotificationConfig> {
-  const currentConfig = await loadNotificationConfig()
+  const currentConfig = await loadNotificationConfig();
   const newConfig = {
     ...DEFAULT_NOTIFICATION_CONFIG,
     deviceToken: keepToken ? currentConfig.deviceToken : generateDeviceToken(),
-  }
+  };
 
-  await saveNotificationConfig(newConfig)
-  return newConfig
+  await saveNotificationConfig(newConfig);
+  return newConfig;
 }
 
 // ============================================================================
@@ -304,14 +304,14 @@ export async function enableChannel(
   channel: NotificationChannel,
   config: ChannelConfigs[typeof channel],
 ): Promise<void> {
-  const currentConfig = await loadNotificationConfig()
+  const currentConfig = await loadNotificationConfig();
 
   currentConfig.channels[channel] = {
     ...config,
     enabled: true,
-  } as any
+  } as any;
 
-  await saveNotificationConfig(currentConfig)
+  await saveNotificationConfig(currentConfig);
 }
 
 /**
@@ -320,11 +320,11 @@ export async function enableChannel(
  * @param channel - Channel to disable
  */
 export async function disableChannel(channel: NotificationChannel): Promise<void> {
-  const currentConfig = await loadNotificationConfig()
+  const currentConfig = await loadNotificationConfig();
 
   if (currentConfig.channels[channel]) {
-    (currentConfig.channels[channel] as any).enabled = false
-    await saveNotificationConfig(currentConfig)
+    (currentConfig.channels[channel] as any).enabled = false;
+    await saveNotificationConfig(currentConfig);
   }
 }
 
@@ -334,23 +334,23 @@ export async function disableChannel(channel: NotificationChannel): Promise<void
  * @returns List of enabled channels
  */
 export async function getEnabledChannels(): Promise<NotificationChannel[]> {
-  const config = await loadNotificationConfig()
-  const enabledChannels: NotificationChannel[] = []
+  const config = await loadNotificationConfig();
+  const enabledChannels: NotificationChannel[] = [];
 
   if (config.channels.feishu?.enabled) {
-    enabledChannels.push('feishu')
+    enabledChannels.push('feishu');
   }
   if (config.channels.wechat?.enabled) {
-    enabledChannels.push('wechat')
+    enabledChannels.push('wechat');
   }
   if (config.channels.email?.enabled) {
-    enabledChannels.push('email')
+    enabledChannels.push('email');
   }
   if (config.channels.sms?.enabled) {
-    enabledChannels.push('sms')
+    enabledChannels.push('sms');
   }
 
-  return enabledChannels
+  return enabledChannels;
 }
 
 // ============================================================================
@@ -363,8 +363,8 @@ export async function getEnabledChannels(): Promise<NotificationChannel[]> {
  * @returns Validation result
  */
 export async function validateCurrentConfig(): Promise<ConfigValidationResult> {
-  const config = await loadNotificationConfig()
-  return validateNotificationConfig(config)
+  const config = await loadNotificationConfig();
+  return validateNotificationConfig(config);
 }
 
 // ============================================================================
@@ -377,14 +377,14 @@ export async function validateCurrentConfig(): Promise<ConfigValidationResult> {
  * @returns Configuration summary object
  */
 export async function getConfigSummary(): Promise<{
-  enabled: boolean
-  deviceToken: string
-  threshold: number
-  enabledChannels: NotificationChannel[]
-  quietHours: { enabled: boolean, hours?: string }
+  enabled: boolean;
+  deviceToken: string;
+  threshold: number;
+  enabledChannels: NotificationChannel[];
+  quietHours: { enabled: boolean; hours?: string };
 }> {
-  const config = await loadNotificationConfig()
-  const enabledChannels = await getEnabledChannels()
+  const config = await loadNotificationConfig();
+  const enabledChannels = await getEnabledChannels();
 
   return {
     enabled: config.enabled,
@@ -397,7 +397,7 @@ export async function getConfigSummary(): Promise<{
         ? `${config.quietHours.startHour}:00 - ${config.quietHours.endHour}:00`
         : undefined,
     },
-  }
+  };
 }
 
 // ============================================================================
@@ -413,7 +413,7 @@ export const THRESHOLD_OPTIONS = [
   { value: 15, label: '15 minutes' },
   { value: 30, label: '30 minutes' },
   { value: 60, label: '1 hour' },
-] as const
+] as const;
 
 /**
  * Set notification threshold
@@ -422,10 +422,10 @@ export const THRESHOLD_OPTIONS = [
  */
 export async function setThreshold(minutes: number): Promise<void> {
   if (minutes < 1) {
-    throw new Error('Threshold must be at least 1 minute')
+    throw new Error('Threshold must be at least 1 minute');
   }
 
-  await updateNotificationConfig({ threshold: minutes })
+  await updateNotificationConfig({ threshold: minutes });
 }
 
 // ============================================================================
@@ -436,14 +436,14 @@ export async function setThreshold(minutes: number): Promise<void> {
  * Enable notification system
  */
 export async function enableNotifications(): Promise<void> {
-  await updateNotificationConfig({ enabled: true })
+  await updateNotificationConfig({ enabled: true });
 }
 
 /**
  * Disable notification system
  */
 export async function disableNotifications(): Promise<void> {
-  await updateNotificationConfig({ enabled: false })
+  await updateNotificationConfig({ enabled: false });
 }
 
 /**
@@ -452,10 +452,10 @@ export async function disableNotifications(): Promise<void> {
  * @returns New enabled state
  */
 export async function toggleNotifications(): Promise<boolean> {
-  const config = await loadNotificationConfig()
-  const newState = !config.enabled
-  await updateNotificationConfig({ enabled: newState })
-  return newState
+  const config = await loadNotificationConfig();
+  const newState = !config.enabled;
+  await updateNotificationConfig({ enabled: newState });
+  return newState;
 }
 
 // ============================================================================
@@ -485,23 +485,23 @@ export async function toggleNotifications(): Promise<boolean> {
  * ```
  */
 export function convertChannelsToCloudFormat(channels: ChannelConfigs): CloudChannelConfig[] {
-  const cloudChannels: CloudChannelConfig[] = []
-  const channelTypes: NotificationChannel[] = ['feishu', 'wechat', 'email', 'sms']
+  const cloudChannels: CloudChannelConfig[] = [];
+  const channelTypes: NotificationChannel[] = ['feishu', 'wechat', 'email', 'sms'];
 
   for (const type of channelTypes) {
-    const channelConfig = channels[type]
+    const channelConfig = channels[type];
     if (channelConfig) {
       // Extract enabled flag and remaining config properties
-      const { enabled, ...config } = channelConfig
+      const { enabled, ...config } = channelConfig;
       cloudChannels.push({
         type,
         enabled,
         config: config as Record<string, unknown>,
-      })
+      });
     }
   }
 
-  return cloudChannels
+  return cloudChannels;
 }
 
 /**
@@ -527,10 +527,10 @@ export function convertChannelsToCloudFormat(channels: ChannelConfigs): CloudCha
  * ```
  */
 export function convertChannelsFromCloudFormat(cloudChannels: CloudChannelConfig[]): ChannelConfigs {
-  const channels: ChannelConfigs = {}
+  const channels: ChannelConfigs = {};
 
   for (const cloudChannel of cloudChannels) {
-    const { type, enabled, config } = cloudChannel
+    const { type, enabled, config } = cloudChannel;
 
     switch (type) {
       case 'feishu':
@@ -538,31 +538,31 @@ export function convertChannelsFromCloudFormat(cloudChannels: CloudChannelConfig
           enabled,
           webhookUrl: (config.webhookUrl as string) || '',
           ...(config.secret ? { secret: config.secret as string } : {}),
-        }
-        break
+        };
+        break;
       case 'wechat':
         channels.wechat = {
           enabled,
           corpId: (config.corpId as string) || '',
           agentId: (config.agentId as string) || '',
           secret: (config.secret as string) || '',
-        }
-        break
+        };
+        break;
       case 'email':
         channels.email = {
           enabled,
           address: (config.address as string) || '',
-        }
-        break
+        };
+        break;
       case 'sms':
         channels.sms = {
           enabled,
           phone: (config.phone as string) || '',
           ...(config.countryCode ? { countryCode: config.countryCode as string } : {}),
-        }
-        break
+        };
+        break;
     }
   }
 
-  return channels
+  return channels;
 }

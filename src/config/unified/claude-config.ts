@@ -5,15 +5,15 @@
  * This replaces and enhances functionality from config.ts
  */
 
-import type { ClaudeSettings } from '../../types/config'
-import type { ConfigWriteOptions } from './types'
+import type { ClaudeSettings } from '../../types/config';
+import type { ConfigWriteOptions } from './types';
 
-import { dirname, join } from 'pathe'
-import { CLAUDE_DIR, SETTINGS_FILE } from '../../constants'
-import { normalizeClaudeFamilySettings } from '../../utils/claude-settings-normalizer'
-import { ensureDir, exists } from '../../utils/fs-operations'
-import { readJsonConfig, writeJsonConfig } from '../../utils/json-config'
-import { deepMerge } from '../../utils/object-utils'
+import { dirname, join } from 'pathe';
+import { CLAUDE_DIR, SETTINGS_FILE } from '../../constants';
+import { normalizeClaudeFamilySettings } from '../../utils/claude-settings-normalizer';
+import { ensureDir, exists } from '../../utils/fs-operations';
+import { readJsonConfig, writeJsonConfig } from '../../utils/json-config';
+import { deepMerge } from '../../utils/object-utils';
 
 /**
  * Read Claude Code settings.json configuration
@@ -21,14 +21,14 @@ import { deepMerge } from '../../utils/object-utils'
 export function readClaudeConfig(configPath: string = SETTINGS_FILE): ClaudeSettings | null {
   try {
     if (!exists(configPath)) {
-      return null
+      return null;
     }
 
-    return readJsonConfig<ClaudeSettings>(configPath) || null
+    return readJsonConfig<ClaudeSettings>(configPath) || null;
   }
   catch (error) {
-    console.error(`Failed to read Claude config from ${configPath}:`, error)
-    return null
+    console.error(`Failed to read Claude config from ${configPath}:`, error);
+    return null;
   }
 }
 
@@ -42,19 +42,19 @@ export function writeClaudeConfig(
 ): void {
   try {
     // Ensure directory exists
-    ensureDir(dirname(configPath))
+    ensureDir(dirname(configPath));
 
     // Write with atomic operation by default
-    normalizeClaudeFamilySettings(config as Record<string, any>)
+    normalizeClaudeFamilySettings(config as Record<string, any>);
     writeJsonConfig(configPath, config, {
       atomic: options.atomic !== false,
       pretty: true,
       backup: options.backup,
-    })
+    });
   }
   catch (error) {
-    console.error(`Failed to write Claude config to ${configPath}:`, error)
-    throw new Error(`Failed to write Claude config: ${error instanceof Error ? error.message : String(error)}`)
+    console.error(`Failed to write Claude config to ${configPath}:`, error);
+    throw new Error(`Failed to write Claude config: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
 
@@ -67,63 +67,63 @@ export function updateClaudeConfig(
   options: ConfigWriteOptions = {},
   configPath: string = SETTINGS_FILE,
 ): ClaudeSettings {
-  const existingConfig = readClaudeConfig(configPath) || {}
+  const existingConfig = readClaudeConfig(configPath) || {};
 
   // Deep merge to preserve nested structures
   const mergedConfig = deepMerge(existingConfig, updates, {
     mergeArrays: options.merge === 'preserve',
     arrayMergeStrategy: 'unique',
-  })
+  });
 
-  writeClaudeConfig(mergedConfig, options, configPath)
-  return mergedConfig
+  writeClaudeConfig(mergedConfig, options, configPath);
+  return mergedConfig;
 }
 
 /**
  * Get or create Claude Code configuration
  */
 export function getClaudeConfig(configPath: string = SETTINGS_FILE): ClaudeSettings {
-  const config = readClaudeConfig(configPath)
-  return config || {}
+  const config = readClaudeConfig(configPath);
+  return config || {};
 }
 
 /**
  * Validate Claude Code configuration
  */
-export function validateClaudeConfig(config: unknown): { valid: boolean, errors: string[] } {
-  const errors: string[] = []
+export function validateClaudeConfig(config: unknown): { valid: boolean; errors: string[] } {
+  const errors: string[] = [];
 
   if (!config || typeof config !== 'object') {
-    return { valid: false, errors: ['Configuration must be an object'] }
+    return { valid: false, errors: ['Configuration must be an object'] };
   }
 
-  const cfg = config as Partial<ClaudeSettings>
+  const cfg = config as Partial<ClaudeSettings>;
 
   // Validate model if specified
   if (cfg.model !== undefined) {
     if (typeof cfg.model !== 'string' || !cfg.model.trim()) {
-      errors.push(`Invalid model: ${cfg.model}`)
+      errors.push(`Invalid model: ${cfg.model}`);
     }
   }
 
   // Validate env section if present
   if (cfg.env !== undefined) {
     if (typeof cfg.env !== 'object' || Array.isArray(cfg.env)) {
-      errors.push('env must be an object')
+      errors.push('env must be an object');
     }
   }
 
   // Validate permissions if present
   if (cfg.permissions !== undefined) {
     if (typeof cfg.permissions !== 'object') {
-      errors.push('permissions must be an object')
+      errors.push('permissions must be an object');
     }
     else {
       if (cfg.permissions.allow !== undefined && !Array.isArray(cfg.permissions.allow)) {
-        errors.push('permissions.allow must be an array')
+        errors.push('permissions.allow must be an array');
       }
       if (cfg.permissions.deny !== undefined && !Array.isArray(cfg.permissions.deny)) {
-        errors.push('permissions.deny must be an array')
+        errors.push('permissions.deny must be an array');
       }
     }
   }
@@ -131,116 +131,116 @@ export function validateClaudeConfig(config: unknown): { valid: boolean, errors:
   return {
     valid: errors.length === 0,
     errors,
-  }
+  };
 }
 
 /**
  * Get API configuration from Claude settings
  */
-export function getApiConfig(): { url?: string, key?: string, authType?: 'api_key' | 'auth_token' } | null {
-  const config = readClaudeConfig()
+export function getApiConfig(): { url?: string; key?: string; authType?: 'api_key' | 'auth_token' } | null {
+  const config = readClaudeConfig();
   if (!config || !config.env) {
-    return null
+    return null;
   }
 
-  const { ANTHROPIC_API_KEY, ANTHROPIC_AUTH_TOKEN, ANTHROPIC_BASE_URL } = config.env
+  const { ANTHROPIC_API_KEY, ANTHROPIC_AUTH_TOKEN, ANTHROPIC_BASE_URL } = config.env;
 
   if (!ANTHROPIC_BASE_URL && !ANTHROPIC_API_KEY && !ANTHROPIC_AUTH_TOKEN) {
-    return null
+    return null;
   }
 
-  let authType: 'api_key' | 'auth_token' | undefined
-  let key: string | undefined
+  let authType: 'api_key' | 'auth_token' | undefined;
+  let key: string | undefined;
 
   if (ANTHROPIC_AUTH_TOKEN) {
-    authType = 'auth_token'
-    key = ANTHROPIC_AUTH_TOKEN
+    authType = 'auth_token';
+    key = ANTHROPIC_AUTH_TOKEN;
   }
   else if (ANTHROPIC_API_KEY) {
-    authType = 'api_key'
-    key = ANTHROPIC_API_KEY
+    authType = 'api_key';
+    key = ANTHROPIC_API_KEY;
   }
 
   return {
     url: ANTHROPIC_BASE_URL,
     key,
     authType,
-  }
+  };
 }
 
 /**
  * Set API configuration in Claude settings
  */
 export function setApiConfig(apiConfig: {
-  url?: string
-  key?: string
-  authType?: 'api_key' | 'auth_token'
+  url?: string;
+  key?: string;
+  authType?: 'api_key' | 'auth_token';
 }): void {
   const updates: Partial<ClaudeSettings> = {
     env: {},
-  }
+  };
 
   if (apiConfig.authType === 'api_key' && apiConfig.key) {
-    updates.env!.ANTHROPIC_API_KEY = apiConfig.key
+    updates.env!.ANTHROPIC_API_KEY = apiConfig.key;
     // Remove auth token if switching to API key
-    updates.env!.ANTHROPIC_AUTH_TOKEN = undefined
+    updates.env!.ANTHROPIC_AUTH_TOKEN = undefined;
   }
   else if (apiConfig.authType === 'auth_token' && apiConfig.key) {
-    updates.env!.ANTHROPIC_AUTH_TOKEN = apiConfig.key
+    updates.env!.ANTHROPIC_AUTH_TOKEN = apiConfig.key;
     // Remove API key if switching to auth token
-    updates.env!.ANTHROPIC_API_KEY = undefined
+    updates.env!.ANTHROPIC_API_KEY = undefined;
   }
 
   if (apiConfig.url) {
-    updates.env!.ANTHROPIC_BASE_URL = apiConfig.url
+    updates.env!.ANTHROPIC_BASE_URL = apiConfig.url;
   }
 
-  updateClaudeConfig(updates)
+  updateClaudeConfig(updates);
 }
 
 /**
  * Clear API configuration (switch to official login)
  */
 export function clearApiConfig(): void {
-  const config = readClaudeConfig()
+  const config = readClaudeConfig();
   if (!config || !config.env) {
-    return
+    return;
   }
 
-  delete config.env.ANTHROPIC_BASE_URL
-  delete config.env.ANTHROPIC_AUTH_TOKEN
-  delete config.env.ANTHROPIC_API_KEY
+  delete config.env.ANTHROPIC_BASE_URL;
+  delete config.env.ANTHROPIC_AUTH_TOKEN;
+  delete config.env.ANTHROPIC_API_KEY;
 
-  writeClaudeConfig(config)
+  writeClaudeConfig(config);
 }
 
 /**
  * Get model configuration
  */
 export function getModelConfig(): 'opus' | 'sonnet' | 'sonnet[1m]' | 'default' | 'custom' | null {
-  const config = readClaudeConfig()
+  const config = readClaudeConfig();
   if (!config) {
-    return null
+    return null;
   }
 
   // Check if using custom family overrides via env vars
   if (config.env?.ANTHROPIC_DEFAULT_HAIKU_MODEL
     || config.env?.ANTHROPIC_DEFAULT_SONNET_MODEL
     || config.env?.ANTHROPIC_DEFAULT_OPUS_MODEL) {
-    return 'custom'
+    return 'custom';
   }
 
   // Check model field
   if (!config.model) {
-    return 'default'
+    return 'default';
   }
 
-  const validModels: Array<'opus' | 'sonnet' | 'sonnet[1m]'> = ['opus', 'sonnet', 'sonnet[1m]']
+  const validModels: Array<'opus' | 'sonnet' | 'sonnet[1m]'> = ['opus', 'sonnet', 'sonnet[1m]'];
   if (validModels.includes(config.model as any)) {
-    return config.model as 'opus' | 'sonnet' | 'sonnet[1m]'
+    return config.model as 'opus' | 'sonnet' | 'sonnet[1m]';
   }
 
-  return 'custom'
+  return 'custom';
 }
 
 /**
@@ -249,40 +249,40 @@ export function getModelConfig(): 'opus' | 'sonnet' | 'sonnet[1m]' | 'default' |
 export function setModelConfig(
   model: 'opus' | 'sonnet' | 'sonnet[1m]' | 'default' | 'custom',
   customModels?: {
-    primaryModel?: string
-    defaultHaikuModel?: string
-    defaultSonnetModel?: string
-    defaultOpusModel?: string
+    primaryModel?: string;
+    defaultHaikuModel?: string;
+    defaultSonnetModel?: string;
+    defaultOpusModel?: string;
   },
 ): void {
-  const updates: Partial<ClaudeSettings> = {}
+  const updates: Partial<ClaudeSettings> = {};
 
   if (model === 'default' || model === 'custom') {
-    updates.model = undefined
+    updates.model = undefined;
   }
   else {
-    updates.model = model
+    updates.model = model;
   }
 
-  updates.env = {}
+  updates.env = {};
 
   if (model === 'custom' && customModels) {
     if (customModels.primaryModel) {
-      updates.model = customModels.primaryModel
+      updates.model = customModels.primaryModel;
     }
     if (customModels.defaultHaikuModel) {
-      updates.env.ANTHROPIC_SMALL_FAST_MODEL = customModels.defaultHaikuModel
-      updates.env.ANTHROPIC_DEFAULT_HAIKU_MODEL = customModels.defaultHaikuModel
+      updates.env.ANTHROPIC_SMALL_FAST_MODEL = customModels.defaultHaikuModel;
+      updates.env.ANTHROPIC_DEFAULT_HAIKU_MODEL = customModels.defaultHaikuModel;
     }
     if (customModels.defaultSonnetModel) {
-      updates.env.ANTHROPIC_DEFAULT_SONNET_MODEL = customModels.defaultSonnetModel
+      updates.env.ANTHROPIC_DEFAULT_SONNET_MODEL = customModels.defaultSonnetModel;
     }
     if (customModels.defaultOpusModel) {
-      updates.env.ANTHROPIC_DEFAULT_OPUS_MODEL = customModels.defaultOpusModel
+      updates.env.ANTHROPIC_DEFAULT_OPUS_MODEL = customModels.defaultOpusModel;
     }
   }
 
-  updateClaudeConfig(updates)
+  updateClaudeConfig(updates);
 }
 
 /**
@@ -291,27 +291,27 @@ export function setModelConfig(
  */
 export function mergeClaudeSettings(
   templateSettings: ClaudeSettings,
-  options: { preserveEnv?: boolean, preservePermissions?: boolean } = {},
+  options: { preserveEnv?: boolean; preservePermissions?: boolean } = {},
   configPath: string = SETTINGS_FILE,
 ): void {
-  const existingSettings = readClaudeConfig(configPath) || {}
+  const existingSettings = readClaudeConfig(configPath) || {};
 
   // Special handling for env variables - preserve all user's env vars if requested
   if (options.preserveEnv !== false) {
     const mergedEnv = {
       ...(templateSettings.env || {}),
       ...(existingSettings.env || {}),
-    }
-    templateSettings.env = mergedEnv
+    };
+    templateSettings.env = mergedEnv;
   }
 
   // Deep merge settings
   const mergedSettings = deepMerge(templateSettings, existingSettings, {
     mergeArrays: true,
     arrayMergeStrategy: 'unique',
-  })
+  });
 
-  writeClaudeConfig(mergedSettings, {}, configPath)
+  writeClaudeConfig(mergedSettings, {}, configPath);
 }
 
 /**
@@ -319,40 +319,40 @@ export function mergeClaudeSettings(
  */
 export function backupClaudeConfig(configPath: string = SETTINGS_FILE): string | null {
   if (!exists(configPath)) {
-    return null
+    return null;
   }
 
-  const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5)
-  const backupPath = join(dirname(configPath), 'backup', `settings.backup.${timestamp}.json`)
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+  const backupPath = join(dirname(configPath), 'backup', `settings.backup.${timestamp}.json`);
 
   try {
-    const config = readClaudeConfig(configPath)
+    const config = readClaudeConfig(configPath);
     if (config) {
-      writeJsonConfig(backupPath, config, { pretty: true })
-      return backupPath
+      writeJsonConfig(backupPath, config, { pretty: true });
+      return backupPath;
     }
   }
   catch {
     // Ignore backup errors
   }
 
-  return null
+  return null;
 }
 
 /**
  * Add permission to allow list
  */
 export function addAllowedPermission(permission: string): void {
-  const config = getClaudeConfig()
+  const config = getClaudeConfig();
   if (!config.permissions) {
-    config.permissions = {}
+    config.permissions = {};
   }
   if (!config.permissions.allow) {
-    config.permissions.allow = []
+    config.permissions.allow = [];
   }
   if (!config.permissions.allow.includes(permission)) {
-    config.permissions.allow.push(permission)
-    writeClaudeConfig(config)
+    config.permissions.allow.push(permission);
+    writeClaudeConfig(config);
   }
 }
 
@@ -360,10 +360,10 @@ export function addAllowedPermission(permission: string): void {
  * Remove permission from allow list
  */
 export function removeAllowedPermission(permission: string): void {
-  const config = getClaudeConfig()
+  const config = getClaudeConfig();
   if (config.permissions?.allow) {
-    config.permissions.allow = config.permissions.allow.filter(p => p !== permission)
-    writeClaudeConfig(config)
+    config.permissions.allow = config.permissions.allow.filter(p => p !== permission);
+    writeClaudeConfig(config);
   }
 }
 
@@ -371,16 +371,16 @@ export function removeAllowedPermission(permission: string): void {
  * Add permission to deny list
  */
 export function addDeniedPermission(permission: string): void {
-  const config = getClaudeConfig()
+  const config = getClaudeConfig();
   if (!config.permissions) {
-    config.permissions = {}
+    config.permissions = {};
   }
   if (!config.permissions.deny) {
-    config.permissions.deny = []
+    config.permissions.deny = [];
   }
   if (!config.permissions.deny.includes(permission)) {
-    config.permissions.deny.push(permission)
-    writeClaudeConfig(config)
+    config.permissions.deny.push(permission);
+    writeClaudeConfig(config);
   }
 }
 
@@ -388,10 +388,10 @@ export function addDeniedPermission(permission: string): void {
  * Remove permission from deny list
  */
 export function removeDeniedPermission(permission: string): void {
-  const config = getClaudeConfig()
+  const config = getClaudeConfig();
   if (config.permissions?.deny) {
-    config.permissions.deny = config.permissions.deny.filter(p => p !== permission)
-    writeClaudeConfig(config)
+    config.permissions.deny = config.permissions.deny.filter(p => p !== permission);
+    writeClaudeConfig(config);
   }
 }
 
@@ -399,30 +399,30 @@ export function removeDeniedPermission(permission: string): void {
  * Set environment variable in Claude settings
  */
 export function setEnvVar(key: string, value: string): void {
-  const config = getClaudeConfig()
+  const config = getClaudeConfig();
   if (!config.env) {
-    config.env = {}
+    config.env = {};
   }
-  config.env[key] = value
-  writeClaudeConfig(config)
+  config.env[key] = value;
+  writeClaudeConfig(config);
 }
 
 /**
  * Get environment variable from Claude settings
  */
 export function getEnvVar(key: string): string | undefined {
-  const config = readClaudeConfig()
-  return config?.env?.[key]
+  const config = readClaudeConfig();
+  return config?.env?.[key];
 }
 
 /**
  * Remove environment variable from Claude settings
  */
 export function removeEnvVar(key: string): void {
-  const config = getClaudeConfig()
+  const config = getClaudeConfig();
   if (config?.env) {
-    delete config.env[key]
-    writeClaudeConfig(config)
+    delete config.env[key];
+    writeClaudeConfig(config);
   }
 }
 
@@ -430,5 +430,5 @@ export function removeEnvVar(key: string): void {
  * Ensure Claude config directory exists
  */
 export function ensureClaudeConfigDir(): void {
-  ensureDir(CLAUDE_DIR)
+  ensureDir(CLAUDE_DIR);
 }

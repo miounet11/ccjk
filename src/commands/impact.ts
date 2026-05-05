@@ -1,133 +1,133 @@
-import type { CompressionMetric } from '../context/persistence'
-import type { DailyStats, RequestRecord } from '../types/stats'
-import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
-import { homedir } from 'node:os'
-import ansis from 'ansis'
-import { dirname, join } from 'pathe'
-import { getContextPersistence } from '../context/persistence'
-import { getStatsStorage } from '../stats-storage'
+import type { CompressionMetric } from '../context/persistence';
+import type { DailyStats, RequestRecord } from '../types/stats';
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
+import { homedir } from 'node:os';
+import ansis from 'ansis';
+import { dirname, join } from 'pathe';
+import { getContextPersistence } from '../context/persistence';
+import { getStatsStorage } from '../stats-storage';
 
 export interface ImpactOptions {
-  json?: boolean
-  days?: number
-  output?: string
+  json?: boolean;
+  days?: number;
+  output?: string;
 }
 
 export interface ImpactDailyPoint {
-  date: string
-  requests: number
-  tokens: number
-  cost: number
-  savedTokens: number
-  savedCost: number
+  date: string;
+  requests: number;
+  tokens: number;
+  cost: number;
+  savedTokens: number;
+  savedCost: number;
 }
 
 interface ComparisonWindow {
-  startDate: string
-  endDate: string
-  avgDailyTokens: number
-  avgDailyCost: number
-  avgDailySavedTokens: number
+  startDate: string;
+  endDate: string;
+  avgDailyTokens: number;
+  avgDailyCost: number;
+  avgDailySavedTokens: number;
 }
 
 export interface ImpactReport {
-  generatedAt: string
-  rangeDays: number
-  trackingStartDate?: string
-  baselineMethod: string
+  generatedAt: string;
+  rangeDays: number;
+  trackingStartDate?: string;
+  baselineMethod: string;
   today: {
-    date: string
-    requests: number
-    tokens: number
-    cost: number
-    savedTokens: number
-    savedCost: number
-    deltaTokensVsYesterday: number
-    deltaSavedTokensVsYesterday: number
-  }
+    date: string;
+    requests: number;
+    tokens: number;
+    cost: number;
+    savedTokens: number;
+    savedCost: number;
+    deltaTokensVsYesterday: number;
+    deltaSavedTokensVsYesterday: number;
+  };
   totals: {
-    activeDays: number
-    totalRequests: number
-    totalTokens: number
-    totalCost: number
-    totalSavedTokens: number
-    totalSavedCost: number
-    averageDailyTokens: number
-    averageDailySavedTokens: number
-    averageCompressionRatio: number
-    totalCompressions: number
-    averageCompressionTimeMs: number
-  }
+    activeDays: number;
+    totalRequests: number;
+    totalTokens: number;
+    totalCost: number;
+    totalSavedTokens: number;
+    totalSavedCost: number;
+    averageDailyTokens: number;
+    averageDailySavedTokens: number;
+    averageCompressionRatio: number;
+    totalCompressions: number;
+    averageCompressionTimeMs: number;
+  };
   comparison?: {
-    baseline: ComparisonWindow
-    recent: ComparisonWindow
-    tokenDeltaPercent: number
-    costDeltaPercent: number
-    savedTokensDeltaPercent: number
-  }
+    baseline: ComparisonWindow;
+    recent: ComparisonWindow;
+    tokenDeltaPercent: number;
+    costDeltaPercent: number;
+    savedTokensDeltaPercent: number;
+  };
   topProviders: Array<{
-    provider: string
-    requests: number
-    tokens: number
-    cost: number
-  }>
+    provider: string;
+    requests: number;
+    tokens: number;
+    cost: number;
+  }>;
   topModels: Array<{
-    model: string
-    requests: number
-    tokens: number
-  }>
+    model: string;
+    requests: number;
+    tokens: number;
+  }>;
   topProjects: Array<{
-    name: string
-    contexts: number
-    tokens: number
-    updatedAt?: string
-  }>
+    name: string;
+    contexts: number;
+    tokens: number;
+    updatedAt?: string;
+  }>;
   topAlgorithms: Array<{
-    algorithm: string
-    count: number
-    savedTokens: number
-  }>
-  daily: ImpactDailyPoint[]
-  notes: string[]
+    algorithm: string;
+    count: number;
+    savedTokens: number;
+  }>;
+  daily: ImpactDailyPoint[];
+  notes: string[];
 }
 
 export async function impactCommand(options: ImpactOptions = {}): Promise<void> {
-  const report = collectImpactReport(options.days)
+  const report = collectImpactReport(options.days);
 
   if (options.json) {
-    console.log(JSON.stringify(report, null, 2))
-    return
+    console.log(JSON.stringify(report, null, 2));
+    return;
   }
 
-  renderImpactSummary(report)
+  renderImpactSummary(report);
 
-  const outputPath = options.output || getDefaultImpactReportPath()
-  writeImpactHtmlReport(report, outputPath)
-  console.log(ansis.dim(`HTML report: ${outputPath}`))
+  const outputPath = options.output || getDefaultImpactReportPath();
+  writeImpactHtmlReport(report, outputPath);
+  console.log(ansis.dim(`HTML report: ${outputPath}`));
 }
 
 export function collectImpactReport(daysInput?: number): ImpactReport {
-  const days = normalizeDays(daysInput)
-  const storage = getStatsStorage()
-  const { startDate, endDate } = getDateRange(days)
-  const records = storage.getRecordsByDateRange(startDate, endDate)
-  const allUsageDates = storage.getAvailableDates()
+  const days = normalizeDays(daysInput);
+  const storage = getStatsStorage();
+  const { startDate, endDate } = getDateRange(days);
+  const records = storage.getRecordsByDateRange(startDate, endDate);
+  const allUsageDates = storage.getAvailableDates();
 
-  const allUsageStartDate = allUsageDates[0]
-  const usageDailyMap = buildUsageDailyMap(records)
-  const windowDates = enumerateDates(startDate, endDate)
+  const allUsageStartDate = allUsageDates[0];
+  const usageDailyMap = buildUsageDailyMap(records);
+  const windowDates = enumerateDates(startDate, endDate);
 
-  let compressionMetrics: CompressionMetric[] = []
-  let topProjects: ImpactReport['topProjects'] = []
-  let compressionNotes: string[] = []
+  let compressionMetrics: CompressionMetric[] = [];
+  let topProjects: ImpactReport['topProjects'] = [];
+  let compressionNotes: string[] = [];
 
   try {
-    const persistence = getContextPersistence()
+    const persistence = getContextPersistence();
     compressionMetrics = persistence.getCompressionMetrics(undefined, {
       startTime: toStartTimestamp(startDate),
       endTime: toEndTimestamp(endDate),
       sortOrder: 'asc',
-    })
+    });
     topProjects = persistence
       .listProjects()
       .sort((a, b) => (b.total_tokens || 0) - (a.total_tokens || 0))
@@ -137,16 +137,16 @@ export function collectImpactReport(daysInput?: number): ImpactReport {
         contexts: project.context_count || 0,
         tokens: project.total_tokens || 0,
         updatedAt: project.updated_at ? new Date(project.updated_at).toISOString() : undefined,
-      }))
+      }));
   }
   catch {
-    compressionNotes.push('Context compression history is unavailable, so savings may be under-reported.')
+    compressionNotes.push('Context compression history is unavailable, so savings may be under-reported.');
   }
 
-  const compressionDailyMap = buildCompressionDailyMap(compressionMetrics)
+  const compressionDailyMap = buildCompressionDailyMap(compressionMetrics);
   const daily = windowDates.map((date) => {
-    const usage = usageDailyMap.get(date)
-    const compression = compressionDailyMap.get(date)
+    const usage = usageDailyMap.get(date);
+    const compression = compressionDailyMap.get(date);
     return {
       date,
       requests: usage?.totalRequests || 0,
@@ -154,36 +154,36 @@ export function collectImpactReport(daysInput?: number): ImpactReport {
       cost: usage?.totalCost || 0,
       savedTokens: compression?.savedTokens || 0,
       savedCost: compression?.savedCost || 0,
-    }
-  })
+    };
+  });
 
-  const activeDays = daily.filter(day => day.requests > 0 || day.savedTokens > 0).length
-  const totalRequests = daily.reduce((sum, day) => sum + day.requests, 0)
-  const totalTokens = daily.reduce((sum, day) => sum + day.tokens, 0)
-  const totalCost = daily.reduce((sum, day) => sum + day.cost, 0)
-  const totalSavedTokens = daily.reduce((sum, day) => sum + day.savedTokens, 0)
-  const totalSavedCost = daily.reduce((sum, day) => sum + day.savedCost, 0)
-  const totalOriginalTokens = compressionMetrics.reduce((sum, metric) => sum + metric.originalTokens, 0)
+  const activeDays = daily.filter(day => day.requests > 0 || day.savedTokens > 0).length;
+  const totalRequests = daily.reduce((sum, day) => sum + day.requests, 0);
+  const totalTokens = daily.reduce((sum, day) => sum + day.tokens, 0);
+  const totalCost = daily.reduce((sum, day) => sum + day.cost, 0);
+  const totalSavedTokens = daily.reduce((sum, day) => sum + day.savedTokens, 0);
+  const totalSavedCost = daily.reduce((sum, day) => sum + day.savedCost, 0);
+  const totalOriginalTokens = compressionMetrics.reduce((sum, metric) => sum + metric.originalTokens, 0);
   const averageCompressionRatio = totalOriginalTokens > 0
     ? totalSavedTokens / totalOriginalTokens
-    : 0
+    : 0;
   const averageCompressionTimeMs = compressionMetrics.length > 0
     ? compressionMetrics.reduce((sum, metric) => sum + metric.timeTakenMs, 0) / compressionMetrics.length
-    : 0
+    : 0;
 
-  const today = daily[daily.length - 1] || emptyDailyPoint(endDate)
-  const yesterday = daily[daily.length - 2] || emptyDailyPoint(endDate)
-  const comparison = buildComparison(daily)
-  const modelSummary = summarizeModels(records)
-  const providerSummary = summarizeProviders(records)
-  const algorithmSummary = summarizeAlgorithms(compressionMetrics)
+  const today = daily[daily.length - 1] || emptyDailyPoint(endDate);
+  const yesterday = daily[daily.length - 2] || emptyDailyPoint(endDate);
+  const comparison = buildComparison(daily);
+  const modelSummary = summarizeModels(records);
+  const providerSummary = summarizeProviders(records);
+  const algorithmSummary = summarizeAlgorithms(compressionMetrics);
   const notes = buildNotes({
     allUsageStartDate,
     daily,
     comparison,
     hasCompressionData: compressionMetrics.length > 0,
     compressionNotes,
-  })
+  });
 
   return {
     generatedAt: new Date().toISOString(),
@@ -217,29 +217,29 @@ export function collectImpactReport(daysInput?: number): ImpactReport {
     topAlgorithms: algorithmSummary,
     daily,
     notes,
-  }
+  };
 }
 
 function normalizeDays(daysInput?: number): number {
   if (!daysInput || Number.isNaN(daysInput)) {
-    return 14
+    return 14;
   }
-  return Math.max(7, Math.min(90, Math.floor(daysInput)))
+  return Math.max(7, Math.min(90, Math.floor(daysInput)));
 }
 
-function getDateRange(days: number): { startDate: string, endDate: string } {
-  const now = new Date()
-  const end = formatDate(now)
-  const startTime = toStartTimestamp(end) - ((days - 1) * 24 * 60 * 60 * 1000)
-  const start = formatDate(new Date(startTime))
-  return { startDate: start, endDate: end }
+function getDateRange(days: number): { startDate: string; endDate: string } {
+  const now = new Date();
+  const end = formatDate(now);
+  const startTime = toStartTimestamp(end) - ((days - 1) * 24 * 60 * 60 * 1000);
+  const start = formatDate(new Date(startTime));
+  return { startDate: start, endDate: end };
 }
 
 function buildUsageDailyMap(records: RequestRecord[]): Map<string, DailyStats> {
-  const map = new Map<string, DailyStats>()
+  const map = new Map<string, DailyStats>();
 
   for (const record of records) {
-    const date = formatDate(new Date(record.timestamp))
+    const date = formatDate(new Date(record.timestamp));
     const existing = map.get(date) || {
       date,
       totalRequests: 0,
@@ -251,106 +251,106 @@ function buildUsageDailyMap(records: RequestRecord[]): Map<string, DailyStats> {
       totalCost: 0,
       averageLatency: 0,
       providerStats: {},
-    }
+    };
 
-    existing.totalRequests++
+    existing.totalRequests++;
     if (record.success) {
-      existing.successfulRequests++
+      existing.successfulRequests++;
     }
     else {
-      existing.failedRequests++
+      existing.failedRequests++;
     }
-    existing.totalInputTokens += record.inputTokens || 0
-    existing.totalOutputTokens += record.outputTokens || 0
-    existing.totalTokens += record.totalTokens || 0
-    existing.totalCost += record.cost || 0
+    existing.totalInputTokens += record.inputTokens || 0;
+    existing.totalOutputTokens += record.outputTokens || 0;
+    existing.totalTokens += record.totalTokens || 0;
+    existing.totalCost += record.cost || 0;
 
-    map.set(date, existing)
+    map.set(date, existing);
   }
 
-  return map
+  return map;
 }
 
-function buildCompressionDailyMap(metrics: CompressionMetric[]): Map<string, { savedTokens: number, savedCost: number }> {
-  const map = new Map<string, { savedTokens: number, savedCost: number }>()
+function buildCompressionDailyMap(metrics: CompressionMetric[]): Map<string, { savedTokens: number; savedCost: number }> {
+  const map = new Map<string, { savedTokens: number; savedCost: number }>();
 
   for (const metric of metrics) {
-    const date = formatDate(new Date(metric.timestamp))
-    const existing = map.get(date) || { savedTokens: 0, savedCost: 0 }
-    const savedTokens = metric.originalTokens - metric.compressedTokens
-    existing.savedTokens += savedTokens
-    existing.savedCost += estimateCompressionCost(savedTokens)
-    map.set(date, existing)
+    const date = formatDate(new Date(metric.timestamp));
+    const existing = map.get(date) || { savedTokens: 0, savedCost: 0 };
+    const savedTokens = metric.originalTokens - metric.compressedTokens;
+    existing.savedTokens += savedTokens;
+    existing.savedCost += estimateCompressionCost(savedTokens);
+    map.set(date, existing);
   }
 
-  return map
+  return map;
 }
 
 function summarizeProviders(records: RequestRecord[]): ImpactReport['topProviders'] {
-  const map = new Map<string, { requests: number, tokens: number, cost: number }>()
+  const map = new Map<string, { requests: number; tokens: number; cost: number }>();
 
   for (const record of records) {
-    const key = record.provider || 'unknown'
-    const current = map.get(key) || { requests: 0, tokens: 0, cost: 0 }
-    current.requests++
-    current.tokens += record.totalTokens || 0
-    current.cost += record.cost || 0
-    map.set(key, current)
+    const key = record.provider || 'unknown';
+    const current = map.get(key) || { requests: 0, tokens: 0, cost: 0 };
+    current.requests++;
+    current.tokens += record.totalTokens || 0;
+    current.cost += record.cost || 0;
+    map.set(key, current);
   }
 
   return Array.from(map.entries())
     .map(([provider, value]) => ({ provider, ...value }))
     .sort((a, b) => b.tokens - a.tokens)
-    .slice(0, 5)
+    .slice(0, 5);
 }
 
 function summarizeModels(records: RequestRecord[]): ImpactReport['topModels'] {
-  const map = new Map<string, { requests: number, tokens: number }>()
+  const map = new Map<string, { requests: number; tokens: number }>();
 
   for (const record of records) {
     if (!record.model) {
-      continue
+      continue;
     }
-    const current = map.get(record.model) || { requests: 0, tokens: 0 }
-    current.requests++
-    current.tokens += record.totalTokens || 0
-    map.set(record.model, current)
+    const current = map.get(record.model) || { requests: 0, tokens: 0 };
+    current.requests++;
+    current.tokens += record.totalTokens || 0;
+    map.set(record.model, current);
   }
 
   return Array.from(map.entries())
     .map(([model, value]) => ({ model, ...value }))
     .sort((a, b) => b.tokens - a.tokens)
-    .slice(0, 5)
+    .slice(0, 5);
 }
 
 function summarizeAlgorithms(metrics: CompressionMetric[]): ImpactReport['topAlgorithms'] {
-  const map = new Map<string, { count: number, savedTokens: number }>()
+  const map = new Map<string, { count: number; savedTokens: number }>();
 
   for (const metric of metrics) {
-    const current = map.get(metric.algorithm) || { count: 0, savedTokens: 0 }
-    current.count++
-    current.savedTokens += metric.originalTokens - metric.compressedTokens
-    map.set(metric.algorithm, current)
+    const current = map.get(metric.algorithm) || { count: 0, savedTokens: 0 };
+    current.count++;
+    current.savedTokens += metric.originalTokens - metric.compressedTokens;
+    map.set(metric.algorithm, current);
   }
 
   return Array.from(map.entries())
     .map(([algorithm, value]) => ({ algorithm, ...value }))
     .sort((a, b) => b.savedTokens - a.savedTokens)
-    .slice(0, 5)
+    .slice(0, 5);
 }
 
 export function buildComparison(daily: ImpactDailyPoint[]): ImpactReport['comparison'] | undefined {
-  const activeDays = daily.filter(day => day.requests > 0 || day.savedTokens > 0)
+  const activeDays = daily.filter(day => day.requests > 0 || day.savedTokens > 0);
   if (activeDays.length < 4) {
-    return undefined
+    return undefined;
   }
 
-  const windowSize = Math.min(7, Math.floor(activeDays.length / 2))
-  const baselineDays = activeDays.slice(0, windowSize)
-  const recentDays = activeDays.slice(-windowSize)
+  const windowSize = Math.min(7, Math.floor(activeDays.length / 2));
+  const baselineDays = activeDays.slice(0, windowSize);
+  const recentDays = activeDays.slice(-windowSize);
 
-  const baseline = summarizeWindow(baselineDays)
-  const recent = summarizeWindow(recentDays)
+  const baseline = summarizeWindow(baselineDays);
+  const recent = summarizeWindow(recentDays);
 
   return {
     baseline,
@@ -358,142 +358,142 @@ export function buildComparison(daily: ImpactDailyPoint[]): ImpactReport['compar
     tokenDeltaPercent: calculatePercentDelta(baseline.avgDailyTokens, recent.avgDailyTokens),
     costDeltaPercent: calculatePercentDelta(baseline.avgDailyCost, recent.avgDailyCost),
     savedTokensDeltaPercent: calculatePercentDelta(baseline.avgDailySavedTokens, recent.avgDailySavedTokens),
-  }
+  };
 }
 
 function summarizeWindow(days: ImpactDailyPoint[]): ComparisonWindow {
-  const dayCount = Math.max(days.length, 1)
+  const dayCount = Math.max(days.length, 1);
   return {
     startDate: days[0].date,
     endDate: days[days.length - 1].date,
     avgDailyTokens: days.reduce((sum, day) => sum + day.tokens, 0) / dayCount,
     avgDailyCost: days.reduce((sum, day) => sum + day.cost, 0) / dayCount,
     avgDailySavedTokens: days.reduce((sum, day) => sum + day.savedTokens, 0) / dayCount,
-  }
+  };
 }
 
 function calculatePercentDelta(baseline: number, current: number): number {
   if (baseline === 0) {
-    return current === 0 ? 0 : 100
+    return current === 0 ? 0 : 100;
   }
-  return ((current - baseline) / baseline) * 100
+  return ((current - baseline) / baseline) * 100;
 }
 
 function buildNotes(input: {
-  allUsageStartDate?: string
-  daily: ImpactDailyPoint[]
-  comparison?: ImpactReport['comparison']
-  hasCompressionData: boolean
-  compressionNotes: string[]
+  allUsageStartDate?: string;
+  daily: ImpactDailyPoint[];
+  comparison?: ImpactReport['comparison'];
+  hasCompressionData: boolean;
+  compressionNotes: string[];
 }): string[] {
-  const notes = [...input.compressionNotes]
-  const usageDays = input.daily.filter(day => day.requests > 0).length
+  const notes = [...input.compressionNotes];
+  const usageDays = input.daily.filter(day => day.requests > 0).length;
 
   if (!input.allUsageStartDate) {
-    notes.push('No API usage history was found under ~/.ccjk/stats yet. The report is currently driven by compression history only.')
+    notes.push('No API usage history was found under ~/.ccjk/stats yet. The report is currently driven by compression history only.');
   }
 
   if (!input.hasCompressionData) {
-    notes.push('Compression savings data is not available yet, so the page can only show raw usage where records exist.')
+    notes.push('Compression savings data is not available yet, so the page can only show raw usage where records exist.');
   }
 
   if (!input.comparison) {
-    notes.push('At least four active days are needed before before/after comparison cards become meaningful.')
+    notes.push('At least four active days are needed before before/after comparison cards become meaningful.');
   }
 
   if (usageDays > 0 && input.allUsageStartDate) {
-    notes.push(`Tracking currently starts at ${input.allUsageStartDate}. Until an explicit install marker exists, the baseline uses earliest tracked data.`)
+    notes.push(`Tracking currently starts at ${input.allUsageStartDate}. Until an explicit install marker exists, the baseline uses earliest tracked data.`);
   }
 
-  return notes
+  return notes;
 }
 
 function renderImpactSummary(report: ImpactReport): void {
-  console.log('')
-  console.log(ansis.cyan.bold('CCJK Usage Impact'))
-  console.log(ansis.gray('='.repeat(72)))
-  console.log(ansis.dim(`${report.rangeDays}-day view ending ${report.today.date}`))
-  console.log('')
+  console.log('');
+  console.log(ansis.cyan.bold('CCJK Usage Impact'));
+  console.log(ansis.gray('='.repeat(72)));
+  console.log(ansis.dim(`${report.rangeDays}-day view ending ${report.today.date}`));
+  console.log('');
 
-  console.log(ansis.yellow('Today'))
-  console.log(`  Tokens:      ${ansis.white.bold(formatInteger(report.today.tokens))} ${formatSigned(report.today.deltaTokensVsYesterday, 'vs yesterday')}`)
-  console.log(`  Cost:        ${ansis.white.bold(formatCurrency(report.today.cost))}`)
-  console.log(`  Saved:       ${ansis.green.bold(formatInteger(report.today.savedTokens))} ${formatSigned(report.today.deltaSavedTokensVsYesterday, 'vs yesterday')}`)
-  console.log(`  Requests:    ${ansis.white.bold(formatInteger(report.today.requests))}`)
-  console.log('')
+  console.log(ansis.yellow('Today'));
+  console.log(`  Tokens:      ${ansis.white.bold(formatInteger(report.today.tokens))} ${formatSigned(report.today.deltaTokensVsYesterday, 'vs yesterday')}`);
+  console.log(`  Cost:        ${ansis.white.bold(formatCurrency(report.today.cost))}`);
+  console.log(`  Saved:       ${ansis.green.bold(formatInteger(report.today.savedTokens))} ${formatSigned(report.today.deltaSavedTokensVsYesterday, 'vs yesterday')}`);
+  console.log(`  Requests:    ${ansis.white.bold(formatInteger(report.today.requests))}`);
+  console.log('');
 
-  console.log(ansis.yellow('Range Summary'))
-  console.log(`  Total tokens:        ${ansis.white.bold(formatInteger(report.totals.totalTokens))}`)
-  console.log(`  Total cost:          ${ansis.white.bold(formatCurrency(report.totals.totalCost))}`)
-  console.log(`  Saved tokens:        ${ansis.green.bold(formatInteger(report.totals.totalSavedTokens))}`)
-  console.log(`  Saved cost:          ${ansis.green.bold(formatCurrency(report.totals.totalSavedCost))}`)
-  console.log(`  Compression runs:    ${ansis.white.bold(formatInteger(report.totals.totalCompressions))}`)
-  console.log(`  Avg compression:     ${ansis.white.bold(formatPercent(report.totals.averageCompressionRatio))}`)
-  console.log(`  Active days:         ${ansis.white.bold(formatInteger(report.totals.activeDays))}`)
-  console.log('')
+  console.log(ansis.yellow('Range Summary'));
+  console.log(`  Total tokens:        ${ansis.white.bold(formatInteger(report.totals.totalTokens))}`);
+  console.log(`  Total cost:          ${ansis.white.bold(formatCurrency(report.totals.totalCost))}`);
+  console.log(`  Saved tokens:        ${ansis.green.bold(formatInteger(report.totals.totalSavedTokens))}`);
+  console.log(`  Saved cost:          ${ansis.green.bold(formatCurrency(report.totals.totalSavedCost))}`);
+  console.log(`  Compression runs:    ${ansis.white.bold(formatInteger(report.totals.totalCompressions))}`);
+  console.log(`  Avg compression:     ${ansis.white.bold(formatPercent(report.totals.averageCompressionRatio))}`);
+  console.log(`  Active days:         ${ansis.white.bold(formatInteger(report.totals.activeDays))}`);
+  console.log('');
 
   if (report.comparison) {
-    console.log(ansis.yellow('Before / After'))
-    console.log(`  Baseline: ${report.comparison.baseline.startDate} -> ${report.comparison.baseline.endDate}`)
-    console.log(`  Recent:   ${report.comparison.recent.startDate} -> ${report.comparison.recent.endDate}`)
-    console.log(`  Avg daily tokens: ${ansis.white.bold(formatInteger(report.comparison.recent.avgDailyTokens))} (${formatSigned(report.comparison.tokenDeltaPercent, 'vs baseline', true)})`)
-    console.log(`  Avg daily cost:   ${ansis.white.bold(formatCurrency(report.comparison.recent.avgDailyCost))} (${formatSigned(report.comparison.costDeltaPercent, 'vs baseline', true)})`)
-    console.log(`  Avg daily saved:  ${ansis.green.bold(formatInteger(report.comparison.recent.avgDailySavedTokens))} (${formatSigned(report.comparison.savedTokensDeltaPercent, 'vs baseline', true)})`)
-    console.log('')
+    console.log(ansis.yellow('Before / After'));
+    console.log(`  Baseline: ${report.comparison.baseline.startDate} -> ${report.comparison.baseline.endDate}`);
+    console.log(`  Recent:   ${report.comparison.recent.startDate} -> ${report.comparison.recent.endDate}`);
+    console.log(`  Avg daily tokens: ${ansis.white.bold(formatInteger(report.comparison.recent.avgDailyTokens))} (${formatSigned(report.comparison.tokenDeltaPercent, 'vs baseline', true)})`);
+    console.log(`  Avg daily cost:   ${ansis.white.bold(formatCurrency(report.comparison.recent.avgDailyCost))} (${formatSigned(report.comparison.costDeltaPercent, 'vs baseline', true)})`);
+    console.log(`  Avg daily saved:  ${ansis.green.bold(formatInteger(report.comparison.recent.avgDailySavedTokens))} (${formatSigned(report.comparison.savedTokensDeltaPercent, 'vs baseline', true)})`);
+    console.log('');
   }
 
   if (report.topProviders.length > 0) {
-    console.log(ansis.yellow('Provider Summary'))
+    console.log(ansis.yellow('Provider Summary'));
     for (const provider of report.topProviders) {
-      console.log(`  ${provider.provider.padEnd(18)} ${formatInteger(provider.tokens).padStart(10)} tokens  ${formatCurrency(provider.cost).padStart(10)}`)
+      console.log(`  ${provider.provider.padEnd(18)} ${formatInteger(provider.tokens).padStart(10)} tokens  ${formatCurrency(provider.cost).padStart(10)}`);
     }
-    console.log('')
+    console.log('');
   }
 
   if (report.topModels.length > 0) {
-    console.log(ansis.yellow('Model Summary'))
+    console.log(ansis.yellow('Model Summary'));
     for (const model of report.topModels) {
-      console.log(`  ${truncate(model.model, 30).padEnd(32)} ${formatInteger(model.tokens).padStart(10)} tokens`)
+      console.log(`  ${truncate(model.model, 30).padEnd(32)} ${formatInteger(model.tokens).padStart(10)} tokens`);
     }
-    console.log('')
+    console.log('');
   }
 
   if (report.topProjects.length > 0) {
-    console.log(ansis.yellow('Code Summary'))
+    console.log(ansis.yellow('Code Summary'));
     for (const project of report.topProjects) {
-      console.log(`  ${truncate(project.name, 30).padEnd(32)} ${formatInteger(project.tokens).padStart(10)} tokens  ${formatInteger(project.contexts).padStart(6)} ctx`)
+      console.log(`  ${truncate(project.name, 30).padEnd(32)} ${formatInteger(project.tokens).padStart(10)} tokens  ${formatInteger(project.contexts).padStart(6)} ctx`);
     }
-    console.log('')
+    console.log('');
   }
 
   if (report.topAlgorithms.length > 0) {
-    console.log(ansis.yellow('Optimization Summary'))
+    console.log(ansis.yellow('Optimization Summary'));
     for (const algorithm of report.topAlgorithms) {
-      console.log(`  ${algorithm.algorithm.padEnd(18)} ${formatInteger(algorithm.savedTokens).padStart(10)} saved  ${formatInteger(algorithm.count).padStart(6)} runs`)
+      console.log(`  ${algorithm.algorithm.padEnd(18)} ${formatInteger(algorithm.savedTokens).padStart(10)} saved  ${formatInteger(algorithm.count).padStart(6)} runs`);
     }
-    console.log('')
+    console.log('');
   }
 
   if (report.notes.length > 0) {
-    console.log(ansis.yellow('Notes'))
+    console.log(ansis.yellow('Notes'));
     for (const note of report.notes) {
-      console.log(`  - ${note}`)
+      console.log(`  - ${note}`);
     }
-    console.log('')
+    console.log('');
   }
 }
 
 function writeImpactHtmlReport(report: ImpactReport, outputPath: string): void {
-  const outputDir = dirname(outputPath)
+  const outputDir = dirname(outputPath);
   if (!existsSync(outputDir)) {
-    mkdirSync(outputDir, { recursive: true })
+    mkdirSync(outputDir, { recursive: true });
   }
-  writeFileSync(outputPath, generateImpactHtml(report), 'utf-8')
+  writeFileSync(outputPath, generateImpactHtml(report), 'utf-8');
 }
 
 export function generateImpactHtml(report: ImpactReport): string {
-  const maxUsage = Math.max(...report.daily.map(day => day.tokens), 1)
-  const maxSaved = Math.max(...report.daily.map(day => day.savedTokens), 1)
+  const maxUsage = Math.max(...report.daily.map(day => day.tokens), 1);
+  const maxSaved = Math.max(...report.daily.map(day => day.savedTokens), 1);
 
   return `<!doctype html>
 <html lang="en">
@@ -735,36 +735,36 @@ export function generateImpactHtml(report: ImpactReport): string {
       </section>
     </div>
   </body>
-</html>`
+</html>`;
 }
 
 function statCard(label: string, value: string): string {
-  return `<div class="stat"><div class="label">${escapeHtml(label)}</div><div class="value">${escapeHtml(value)}</div></div>`
+  return `<div class="stat"><div class="label">${escapeHtml(label)}</div><div class="value">${escapeHtml(value)}</div></div>`;
 }
 
 function getDefaultImpactReportPath(): string {
-  return join(homedir(), '.ccjk', 'reports', 'impact-latest.html')
+  return join(homedir(), '.ccjk', 'reports', 'impact-latest.html');
 }
 
 function enumerateDates(startDate: string, endDate: string): string[] {
-  const dates: string[] = []
-  let cursor = toStartTimestamp(startDate)
-  const end = toStartTimestamp(endDate)
+  const dates: string[] = [];
+  let cursor = toStartTimestamp(startDate);
+  const end = toStartTimestamp(endDate);
 
   while (cursor <= end) {
-    dates.push(formatDate(new Date(cursor)))
-    cursor += 24 * 60 * 60 * 1000
+    dates.push(formatDate(new Date(cursor)));
+    cursor += 24 * 60 * 60 * 1000;
   }
 
-  return dates
+  return dates;
 }
 
 function toStartTimestamp(date: string): number {
-  return new Date(`${date}T00:00:00`).getTime()
+  return new Date(`${date}T00:00:00`).getTime();
 }
 
 function toEndTimestamp(date: string): number {
-  return new Date(`${date}T23:59:59.999`).getTime()
+  return new Date(`${date}T23:59:59.999`).getTime();
 }
 
 function emptyDailyPoint(date: string): ImpactDailyPoint {
@@ -775,58 +775,58 @@ function emptyDailyPoint(date: string): ImpactDailyPoint {
     cost: 0,
     savedTokens: 0,
     savedCost: 0,
-  }
+  };
 }
 
 function estimateCompressionCost(tokens: number): number {
-  return (tokens / 1000) * 0.015
+  return (tokens / 1000) * 0.015;
 }
 
 function formatDate(date: Date): string {
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
 function formatInteger(value: number): string {
-  return Math.round(value).toLocaleString()
+  return Math.round(value).toLocaleString();
 }
 
 function formatCurrency(value: number): string {
-  return `$${value.toFixed(2)}`
+  return `$${value.toFixed(2)}`;
 }
 
 function formatPercent(value: number): string {
-  return `${(value * 100).toFixed(1)}%`
+  return `${(value * 100).toFixed(1)}%`;
 }
 
 function formatSigned(value: number, label: string, isPercent = false): string {
-  const abs = isPercent ? `${Math.abs(value).toFixed(1)}%` : formatInteger(Math.abs(value))
-  const sign = value > 0 ? '+' : value < 0 ? '-' : '0'
-  const tone = value > 0 ? ansis.yellow : value < 0 ? ansis.green : ansis.gray
-  const rendered = value === 0 ? `${abs} ${label}` : `${sign}${abs} ${label}`
-  return tone(rendered)
+  const abs = isPercent ? `${Math.abs(value).toFixed(1)}%` : formatInteger(Math.abs(value));
+  const sign = value > 0 ? '+' : value < 0 ? '-' : '0';
+  const tone = value > 0 ? ansis.yellow : value < 0 ? ansis.green : ansis.gray;
+  const rendered = value === 0 ? `${abs} ${label}` : `${sign}${abs} ${label}`;
+  return tone(rendered);
 }
 
 function formatSignedPlain(value: number, label: string, isPercent = false): string {
-  const abs = isPercent ? `${Math.abs(value).toFixed(1)}%` : formatInteger(Math.abs(value))
+  const abs = isPercent ? `${Math.abs(value).toFixed(1)}%` : formatInteger(Math.abs(value));
   if (value === 0) {
-    return `${abs} ${label}`
+    return `${abs} ${label}`;
   }
-  const sign = value > 0 ? '+' : '-'
-  return `${sign}${abs} ${label}`
+  const sign = value > 0 ? '+' : '-';
+  return `${sign}${abs} ${label}`;
 }
 
 function compactNumber(value: number): string {
-  return Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 }).format(value)
+  return Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 }).format(value);
 }
 
 function truncate(value: string, maxLength: number): string {
   if (value.length <= maxLength) {
-    return value
+    return value;
   }
-  return `${value.slice(0, maxLength - 1)}…`
+  return `${value.slice(0, maxLength - 1)}…`;
 }
 
 function escapeHtml(value: string): string {
@@ -834,5 +834,5 @@ function escapeHtml(value: string): string {
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
+    .replace(/"/g, '&quot;');
 }

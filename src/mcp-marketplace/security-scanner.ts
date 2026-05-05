@@ -7,7 +7,7 @@
  * @module mcp-marketplace/security-scanner
  */
 
-import type { PackageManifest } from '../types/marketplace.js'
+import type { PackageManifest } from '../types/marketplace.js';
 
 // =============================================================================
 // Type Definitions
@@ -16,7 +16,7 @@ import type { PackageManifest } from '../types/marketplace.js'
 /**
  * Risk level classification for security issues
  */
-export type RiskLevel = 'safe' | 'low' | 'medium' | 'high' | 'critical'
+export type RiskLevel = 'safe' | 'low' | 'medium' | 'high' | 'critical';
 
 /**
  * Types of security issues that can be detected
@@ -29,28 +29,28 @@ export type SecurityIssueType
     | 'data-exfiltration'
     | 'dependency-vulnerability'
     | 'obfuscated-code'
-    | 'suspicious-pattern'
+    | 'suspicious-pattern';
 
 /**
  * Security issue detected during scanning
  */
 export interface SecurityIssue {
   /** Unique issue identifier */
-  id: string
+  id: string;
   /** Type of security issue */
-  type: SecurityIssueType
+  type: SecurityIssueType;
   /** Severity level */
-  severity: RiskLevel
+  severity: RiskLevel;
   /** Short title describing the issue */
-  title: string
+  title: string;
   /** Detailed description of the issue */
-  description: string
+  description: string;
   /** Location in code/config where issue was found */
-  location?: string
+  location?: string;
   /** Recommended action to address the issue */
-  recommendation: string
+  recommendation: string;
   /** Common Weakness Enumeration identifier */
-  cwe?: string
+  cwe?: string;
 }
 
 /**
@@ -58,13 +58,13 @@ export interface SecurityIssue {
  */
 export interface PermissionAnalysis {
   /** List of requested permissions */
-  requested: Permission[]
+  requested: Permission[];
   /** Dangerous permissions that need review */
-  dangerous: Permission[]
+  dangerous: Permission[];
   /** Overall permission risk level */
-  riskLevel: RiskLevel
+  riskLevel: RiskLevel;
   /** Summary of permission analysis */
-  summary: string
+  summary: string;
 }
 
 /**
@@ -72,13 +72,13 @@ export interface PermissionAnalysis {
  */
 export interface Permission {
   /** Permission name */
-  name: string
+  name: string;
   /** Permission description */
-  description: string
+  description: string;
   /** Risk level of this permission */
-  risk: RiskLevel
+  risk: RiskLevel;
   /** Reason why this permission is needed */
-  reason?: string
+  reason?: string;
 }
 
 /**
@@ -86,11 +86,11 @@ export interface Permission {
  */
 export interface Dependency {
   /** Package name */
-  name: string
+  name: string;
   /** Version string */
-  version: string
+  version: string;
   /** Whether this is a direct or transitive dependency */
-  direct: boolean
+  direct: boolean;
 }
 
 /**
@@ -98,21 +98,21 @@ export interface Dependency {
  */
 export interface Vulnerability {
   /** Vulnerability ID (CVE, GHSA, etc.) */
-  id: string
+  id: string;
   /** Affected package name */
-  package: string
+  package: string;
   /** Affected version range */
-  affectedVersions: string
+  affectedVersions: string;
   /** Severity level */
-  severity: RiskLevel
+  severity: RiskLevel;
   /** Vulnerability title */
-  title: string
+  title: string;
   /** Detailed description */
-  description: string
+  description: string;
   /** Fixed version (if available) */
-  fixedVersion?: string
+  fixedVersion?: string;
   /** Reference URLs */
-  references: string[]
+  references: string[];
 }
 
 /**
@@ -120,15 +120,15 @@ export interface Vulnerability {
  */
 export interface DependencyAnalysis {
   /** Total number of dependencies */
-  total: number
+  total: number;
   /** Direct dependencies count */
-  direct: number
+  direct: number;
   /** Transitive dependencies count */
-  transitive: number
+  transitive: number;
   /** List of all dependencies */
-  dependencies: Dependency[]
+  dependencies: Dependency[];
   /** Outdated dependencies */
-  outdated: Dependency[]
+  outdated: Dependency[];
 }
 
 /**
@@ -136,13 +136,13 @@ export interface DependencyAnalysis {
  */
 export interface VulnerabilityReport {
   /** Total vulnerabilities found */
-  total: number
+  total: number;
   /** Vulnerabilities by severity */
-  bySeverity: Record<RiskLevel, number>
+  bySeverity: Record<RiskLevel, number>;
   /** List of vulnerabilities */
-  vulnerabilities: Vulnerability[]
+  vulnerabilities: Vulnerability[];
   /** Scan timestamp */
-  scannedAt: Date
+  scannedAt: Date;
 }
 
 /**
@@ -150,19 +150,19 @@ export interface VulnerabilityReport {
  */
 export interface PatternMatch {
   /** Pattern identifier */
-  patternId: string
+  patternId: string;
   /** Pattern name */
-  name: string
+  name: string;
   /** Matched content (sanitized) */
-  match: string
+  match: string;
   /** File path where pattern was found */
-  filePath: string
+  filePath: string;
   /** Line number */
-  lineNumber: number
+  lineNumber: number;
   /** Risk level */
-  risk: RiskLevel
+  risk: RiskLevel;
   /** Description of why this pattern is suspicious */
-  description: string
+  description: string;
 }
 
 /**
@@ -170,25 +170,25 @@ export interface PatternMatch {
  */
 export interface TrustFactors {
   /** Package verification status */
-  verified: boolean
+  verified: boolean;
   /** Author reputation score (0-100) */
-  authorReputation: number
+  authorReputation: number;
   /** Package age in days */
-  packageAge: number
+  packageAge: number;
   /** Total downloads */
-  downloads: number
+  downloads: number;
   /** Average rating (1-5) */
-  rating: number
+  rating: number;
   /** Number of ratings */
-  ratingCount: number
+  ratingCount: number;
   /** Has source code available */
-  hasSourceCode: boolean
+  hasSourceCode: boolean;
   /** Has security policy */
-  hasSecurityPolicy: boolean
+  hasSecurityPolicy: boolean;
   /** Number of open security issues */
-  openSecurityIssues: number
+  openSecurityIssues: number;
   /** Last update age in days */
-  lastUpdateAge: number
+  lastUpdateAge: number;
 }
 
 /**
@@ -196,17 +196,17 @@ export interface TrustFactors {
  */
 export interface SecurityComparison {
   /** First version */
-  version1: string
+  version1: string;
   /** Second version */
-  version2: string
+  version2: string;
   /** New issues in version2 */
-  newIssues: SecurityIssue[]
+  newIssues: SecurityIssue[];
   /** Resolved issues in version2 */
-  resolvedIssues: SecurityIssue[]
+  resolvedIssues: SecurityIssue[];
   /** Changed risk level */
-  riskChange: 'improved' | 'unchanged' | 'degraded'
+  riskChange: 'improved' | 'unchanged' | 'degraded';
   /** Summary of changes */
-  summary: string
+  summary: string;
 }
 
 /**
@@ -214,23 +214,23 @@ export interface SecurityComparison {
  */
 export interface ScanResult {
   /** Package identifier */
-  packageId: string
+  packageId: string;
   /** Package version scanned */
-  version: string
+  version: string;
   /** Scan timestamp */
-  scannedAt: Date
+  scannedAt: Date;
   /** Overall risk assessment */
-  overallRisk: RiskLevel
+  overallRisk: RiskLevel;
   /** All security issues found */
-  issues: SecurityIssue[]
+  issues: SecurityIssue[];
   /** Permission analysis */
-  permissions: PermissionAnalysis
+  permissions: PermissionAnalysis;
   /** Dependency analysis */
-  dependencies: DependencyAnalysis
+  dependencies: DependencyAnalysis;
   /** Trust score (0-100) */
-  trustScore: number
+  trustScore: number;
   /** Installation recommendation */
-  recommendation: 'install' | 'review' | 'avoid'
+  recommendation: 'install' | 'review' | 'avoid';
 }
 
 // =============================================================================
@@ -242,15 +242,15 @@ export interface ScanResult {
  */
 export interface ScannerConfig {
   /** Enable verbose logging */
-  verbose: boolean
+  verbose: boolean;
   /** Maximum file size to scan (bytes) */
-  maxFileSize: number
+  maxFileSize: number;
   /** Timeout for network checks (ms) */
-  networkTimeout: number
+  networkTimeout: number;
   /** Skip vulnerability database check */
-  skipVulnCheck: boolean
+  skipVulnCheck: boolean;
   /** Custom pattern rules */
-  customPatterns?: SuspiciousPattern[]
+  customPatterns?: SuspiciousPattern[];
 }
 
 /**
@@ -261,7 +261,7 @@ export const DEFAULT_SCANNER_CONFIG: ScannerConfig = {
   maxFileSize: 10 * 1024 * 1024, // 10MB
   networkTimeout: 5000,
   skipVulnCheck: false,
-}
+};
 
 // =============================================================================
 // Detection Patterns
@@ -272,17 +272,17 @@ export const DEFAULT_SCANNER_CONFIG: ScannerConfig = {
  */
 export interface SuspiciousPattern {
   /** Pattern identifier */
-  id: string
+  id: string;
   /** Pattern name */
-  name: string
+  name: string;
   /** Regex pattern to match */
-  pattern: RegExp
+  pattern: RegExp;
   /** Risk level if matched */
-  risk: RiskLevel
+  risk: RiskLevel;
   /** Description of the pattern */
-  description: string
+  description: string;
   /** CWE identifier if applicable */
-  cwe?: string
+  cwe?: string;
 }
 
 /**
@@ -379,12 +379,12 @@ export const SUSPICIOUS_PATTERNS: SuspiciousPattern[] = [
     description: 'Cryptocurrency mining code detected',
     cwe: 'CWE-506',
   },
-]
+];
 
 /**
  * Dangerous permissions that require special attention
  */
-export const DANGEROUS_PERMISSIONS: Record<string, { risk: RiskLevel, description: string }> = {
+export const DANGEROUS_PERMISSIONS: Record<string, { risk: RiskLevel; description: string }> = {
   'shell:*': {
     risk: 'critical',
     description: 'Full shell access allows arbitrary command execution',
@@ -409,7 +409,7 @@ export const DANGEROUS_PERMISSIONS: Record<string, { risk: RiskLevel, descriptio
     risk: 'high',
     description: 'Ability to spawn child processes',
   },
-}
+};
 
 /**
  * Known malicious domains for network analysis
@@ -419,7 +419,7 @@ export const KNOWN_MALICIOUS_DOMAINS: string[] = [
   'malware.com',
   'phishing.com',
   // In production, this would be loaded from a threat intelligence feed
-]
+];
 
 // =============================================================================
 // Security Scanner Implementation
@@ -447,11 +447,11 @@ export const KNOWN_MALICIOUS_DOMAINS: string[] = [
  * ```
  */
 export class SecurityScanner {
-  private config: ScannerConfig
-  private issueCounter: number = 0
+  private config: ScannerConfig;
+  private issueCounter: number = 0;
 
   constructor(config: Partial<ScannerConfig> = {}) {
-    this.config = { ...DEFAULT_SCANNER_CONFIG, ...config }
+    this.config = { ...DEFAULT_SCANNER_CONFIG, ...config };
   }
 
   // ===========================================================================
@@ -466,11 +466,11 @@ export class SecurityScanner {
    * @returns Complete scan result
    */
   async scan(packageId: string, version?: string): Promise<ScanResult> {
-    this.log(`Starting security scan for ${packageId}@${version || 'latest'}`)
+    this.log(`Starting security scan for ${packageId}@${version || 'latest'}`);
 
-    const issues: SecurityIssue[] = []
-    const scannedAt = new Date()
-    const resolvedVersion = version || 'latest'
+    const issues: SecurityIssue[] = [];
+    const scannedAt = new Date();
+    const resolvedVersion = version || 'latest';
 
     // In a real implementation, we would:
     // 1. Fetch package metadata from registry
@@ -484,14 +484,14 @@ export class SecurityScanner {
       description: 'Package description',
       ccjkVersion: '>=3.5.0',
       type: 'plugin',
-    }
+    };
 
     // Analyze permissions
-    const permissions = this.analyzePermissions(manifest)
-    issues.push(...this.permissionIssues(permissions))
+    const permissions = this.analyzePermissions(manifest);
+    issues.push(...this.permissionIssues(permissions));
 
     // Check dependencies (mock for now)
-    const dependencies = this.analyzeDependencies([])
+    const dependencies = this.analyzeDependencies([]);
 
     // Calculate trust score
     const trustFactors: TrustFactors = {
@@ -505,16 +505,16 @@ export class SecurityScanner {
       hasSecurityPolicy: false,
       openSecurityIssues: issues.length,
       lastUpdateAge: 7,
-    }
-    const trustScore = this.calculateTrustScore(trustFactors)
+    };
+    const trustScore = this.calculateTrustScore(trustFactors);
 
     // Determine overall risk
-    const overallRisk = this.calculateOverallRisk(issues, permissions.riskLevel)
+    const overallRisk = this.calculateOverallRisk(issues, permissions.riskLevel);
 
     // Generate recommendation
-    const recommendation = this.generateRecommendation(overallRisk, trustScore)
+    const recommendation = this.generateRecommendation(overallRisk, trustScore);
 
-    this.log(`Scan complete. Risk: ${overallRisk}, Trust: ${trustScore}, Recommendation: ${recommendation}`)
+    this.log(`Scan complete. Risk: ${overallRisk}, Trust: ${trustScore}, Recommendation: ${recommendation}`);
 
     return {
       packageId,
@@ -526,7 +526,7 @@ export class SecurityScanner {
       dependencies,
       trustScore,
       recommendation,
-    }
+    };
   }
 
   /**
@@ -536,44 +536,44 @@ export class SecurityScanner {
    * @returns Permission analysis result
    */
   analyzePermissions(manifest: PackageManifest): PermissionAnalysis {
-    const requested: Permission[] = []
-    const dangerous: Permission[] = []
+    const requested: Permission[] = [];
+    const dangerous: Permission[] = [];
 
     // Extract permissions from manifest
-    const declaredPermissions = this.extractPermissions(manifest)
+    const declaredPermissions = this.extractPermissions(manifest);
 
     for (const perm of declaredPermissions) {
-      const permInfo = this.analyzePermission(perm)
-      requested.push(permInfo)
+      const permInfo = this.analyzePermission(perm);
+      requested.push(permInfo);
 
       if (permInfo.risk === 'high' || permInfo.risk === 'critical') {
-        dangerous.push(permInfo)
+        dangerous.push(permInfo);
       }
     }
 
     // Calculate overall risk level
-    let riskLevel: RiskLevel = 'safe'
+    let riskLevel: RiskLevel = 'safe';
     if (dangerous.some(p => p.risk === 'critical')) {
-      riskLevel = 'critical'
+      riskLevel = 'critical';
     }
     else if (dangerous.some(p => p.risk === 'high')) {
-      riskLevel = 'high'
+      riskLevel = 'high';
     }
     else if (requested.some(p => p.risk === 'medium')) {
-      riskLevel = 'medium'
+      riskLevel = 'medium';
     }
     else if (requested.some(p => p.risk === 'low')) {
-      riskLevel = 'low'
+      riskLevel = 'low';
     }
 
-    const summary = this.generatePermissionSummary(requested, dangerous, riskLevel)
+    const summary = this.generatePermissionSummary(requested, dangerous, riskLevel);
 
     return {
       requested,
       dangerous,
       riskLevel,
       summary,
-    }
+    };
   }
 
   /**
@@ -589,12 +589,12 @@ export class SecurityScanner {
         bySeverity: { safe: 0, low: 0, medium: 0, high: 0, critical: 0 },
         vulnerabilities: [],
         scannedAt: new Date(),
-      }
+      };
     }
 
-    this.log(`Checking ${dependencies.length} dependencies for vulnerabilities`)
+    this.log(`Checking ${dependencies.length} dependencies for vulnerabilities`);
 
-    const vulnerabilities: Vulnerability[] = []
+    const vulnerabilities: Vulnerability[] = [];
 
     // In a real implementation, we would query vulnerability databases:
     // - npm audit API
@@ -603,8 +603,8 @@ export class SecurityScanner {
     // - Snyk vulnerability database
 
     for (const dep of dependencies) {
-      const vulns = await this.queryVulnerabilityDatabase(dep)
-      vulnerabilities.push(...vulns)
+      const vulns = await this.queryVulnerabilityDatabase(dep);
+      vulnerabilities.push(...vulns);
     }
 
     const bySeverity: Record<RiskLevel, number> = {
@@ -613,10 +613,10 @@ export class SecurityScanner {
       medium: 0,
       high: 0,
       critical: 0,
-    }
+    };
 
     for (const vuln of vulnerabilities) {
-      bySeverity[vuln.severity]++
+      bySeverity[vuln.severity]++;
     }
 
     return {
@@ -624,7 +624,7 @@ export class SecurityScanner {
       bySeverity,
       vulnerabilities,
       scannedAt: new Date(),
-    }
+    };
   }
 
   /**
@@ -635,21 +635,21 @@ export class SecurityScanner {
    * @returns Array of pattern matches
    */
   detectSuspiciousPatterns(code: string, filePath: string = 'unknown'): PatternMatch[] {
-    const matches: PatternMatch[] = []
-    const patterns = [...SUSPICIOUS_PATTERNS, ...(this.config.customPatterns || [])]
+    const matches: PatternMatch[] = [];
+    const patterns = [...SUSPICIOUS_PATTERNS, ...(this.config.customPatterns || [])];
 
-    const lines = code.split('\n')
+    const lines = code.split('\n');
 
     for (const pattern of patterns) {
       // Reset regex state
-      pattern.pattern.lastIndex = 0
+      pattern.pattern.lastIndex = 0;
 
       for (let lineNum = 0; lineNum < lines.length; lineNum++) {
-        const line = lines[lineNum]
+        const line = lines[lineNum];
 
         // Reset for each line
-        pattern.pattern.lastIndex = 0
-        let match: RegExpExecArray | null = pattern.pattern.exec(line)
+        pattern.pattern.lastIndex = 0;
+        let match: RegExpExecArray | null = pattern.pattern.exec(line);
 
         while (match !== null) {
           matches.push({
@@ -660,19 +660,19 @@ export class SecurityScanner {
             lineNumber: lineNum + 1,
             risk: pattern.risk,
             description: pattern.description,
-          })
+          });
 
           // Prevent infinite loop for zero-width matches
           if (match.index === pattern.pattern.lastIndex) {
-            pattern.pattern.lastIndex++
+            pattern.pattern.lastIndex++;
           }
 
-          match = pattern.pattern.exec(line)
+          match = pattern.pattern.exec(line);
         }
       }
     }
 
-    return matches
+    return matches;
   }
 
   /**
@@ -682,60 +682,60 @@ export class SecurityScanner {
    * @returns Trust score (0-100)
    */
   calculateTrustScore(factors: TrustFactors): number {
-    let score = 0
+    let score = 0;
 
     // Verification status (20 points)
     if (factors.verified) {
-      score += 20
+      score += 20;
     }
 
     // Author reputation (15 points)
-    score += (factors.authorReputation / 100) * 15
+    score += (factors.authorReputation / 100) * 15;
 
     // Package age (10 points) - older packages are more trusted
-    const ageScore = Math.min(factors.packageAge / 365, 1) * 10
-    score += ageScore
+    const ageScore = Math.min(factors.packageAge / 365, 1) * 10;
+    score += ageScore;
 
     // Downloads (15 points) - logarithmic scale
-    const downloadScore = Math.min(Math.log10(factors.downloads + 1) / 6, 1) * 15
-    score += downloadScore
+    const downloadScore = Math.min(Math.log10(factors.downloads + 1) / 6, 1) * 15;
+    score += downloadScore;
 
     // Rating (15 points)
     if (factors.ratingCount >= 5) {
-      score += (factors.rating / 5) * 15
+      score += (factors.rating / 5) * 15;
     }
     else {
       // Fewer ratings = less confidence
-      score += (factors.rating / 5) * 15 * (factors.ratingCount / 5)
+      score += (factors.rating / 5) * 15 * (factors.ratingCount / 5);
     }
 
     // Source code availability (10 points)
     if (factors.hasSourceCode) {
-      score += 10
+      score += 10;
     }
 
     // Security policy (5 points)
     if (factors.hasSecurityPolicy) {
-      score += 5
+      score += 5;
     }
 
     // Open security issues penalty (up to -20 points)
-    const securityPenalty = Math.min(factors.openSecurityIssues * 5, 20)
-    score -= securityPenalty
+    const securityPenalty = Math.min(factors.openSecurityIssues * 5, 20);
+    score -= securityPenalty;
 
     // Recent updates bonus (10 points)
     if (factors.lastUpdateAge <= 30) {
-      score += 10
+      score += 10;
     }
     else if (factors.lastUpdateAge <= 90) {
-      score += 5
+      score += 5;
     }
     else if (factors.lastUpdateAge > 365) {
-      score -= 5 // Penalty for abandoned packages
+      score -= 5; // Penalty for abandoned packages
     }
 
     // Ensure score is within bounds
-    return Math.max(0, Math.min(100, Math.round(score)))
+    return Math.max(0, Math.min(100, Math.round(score)));
   }
 
   /**
@@ -758,7 +758,7 @@ export class SecurityScanner {
       resolvedIssues: [],
       riskChange: 'unchanged',
       summary: `No significant security changes between ${v1} and ${v2}`,
-    }
+    };
   }
 
   // ===========================================================================
@@ -769,25 +769,25 @@ export class SecurityScanner {
    * Extract permissions from manifest
    */
   private extractPermissions(manifest: PackageManifest): string[] {
-    const permissions: string[] = []
+    const permissions: string[] = [];
 
     // Check for shell access
     if (manifest.postInstall || manifest.preUninstall) {
-      permissions.push('shell:execute')
+      permissions.push('shell:execute');
     }
 
     // Check for file system access
     if (manifest.files || manifest.workflows || manifest.skills) {
-      permissions.push('fs:read:project')
-      permissions.push('fs:write:project')
+      permissions.push('fs:read:project');
+      permissions.push('fs:write:project');
     }
 
     // Check for MCP services (may require network)
     if (manifest.mcpServices && manifest.mcpServices.length > 0) {
-      permissions.push('network:localhost')
+      permissions.push('network:localhost');
     }
 
-    return permissions
+    return permissions;
   }
 
   /**
@@ -801,7 +801,7 @@ export class SecurityScanner {
           name: permission,
           description: info.description,
           risk: info.risk,
-        }
+        };
       }
     }
 
@@ -810,7 +810,7 @@ export class SecurityScanner {
       name: permission,
       description: `Permission: ${permission}`,
       risk: 'low',
-    }
+    };
   }
 
   /**
@@ -818,10 +818,10 @@ export class SecurityScanner {
    */
   private matchPermissionPattern(permission: string, pattern: string): boolean {
     if (pattern.endsWith(':*')) {
-      const prefix = pattern.slice(0, -1)
-      return permission.startsWith(prefix)
+      const prefix = pattern.slice(0, -1);
+      return permission.startsWith(prefix);
     }
-    return permission === pattern
+    return permission === pattern;
   }
 
   /**
@@ -833,19 +833,19 @@ export class SecurityScanner {
     riskLevel: RiskLevel,
   ): string {
     if (requested.length === 0) {
-      return 'No special permissions requested.'
+      return 'No special permissions requested.';
     }
 
-    const parts: string[] = []
-    parts.push(`${requested.length} permission(s) requested.`)
+    const parts: string[] = [];
+    parts.push(`${requested.length} permission(s) requested.`);
 
     if (dangerous.length > 0) {
-      parts.push(`${dangerous.length} dangerous permission(s) require review.`)
+      parts.push(`${dangerous.length} dangerous permission(s) require review.`);
     }
 
-    parts.push(`Overall permission risk: ${riskLevel}.`)
+    parts.push(`Overall permission risk: ${riskLevel}.`);
 
-    return parts.join(' ')
+    return parts.join(' ');
   }
 
   /**
@@ -860,15 +860,15 @@ export class SecurityScanner {
       description: perm.description,
       recommendation: 'Review if this permission is necessary. Consider restricting scope.',
       cwe: 'CWE-250',
-    }))
+    }));
   }
 
   /**
    * Analyze dependencies
    */
   private analyzeDependencies(deps: Dependency[]): DependencyAnalysis {
-    const direct = deps.filter(d => d.direct)
-    const transitive = deps.filter(d => !d.direct)
+    const direct = deps.filter(d => d.direct);
+    const transitive = deps.filter(d => !d.direct);
 
     return {
       total: deps.length,
@@ -876,7 +876,7 @@ export class SecurityScanner {
       transitive: transitive.length,
       dependencies: deps,
       outdated: [], // Would be populated by checking npm registry
-    }
+    };
   }
 
   /**
@@ -890,27 +890,27 @@ export class SecurityScanner {
     // - Snyk API
 
     // Suppress unused variable warning
-    void dep
+    void dep;
 
-    return []
+    return [];
   }
 
   /**
    * Calculate overall risk from issues and permission risk
    */
   private calculateOverallRisk(issues: SecurityIssue[], permissionRisk: RiskLevel): RiskLevel {
-    const riskOrder: RiskLevel[] = ['safe', 'low', 'medium', 'high', 'critical']
+    const riskOrder: RiskLevel[] = ['safe', 'low', 'medium', 'high', 'critical'];
 
-    let maxRisk = riskOrder.indexOf(permissionRisk)
+    let maxRisk = riskOrder.indexOf(permissionRisk);
 
     for (const issue of issues) {
-      const issueRisk = riskOrder.indexOf(issue.severity)
+      const issueRisk = riskOrder.indexOf(issue.severity);
       if (issueRisk > maxRisk) {
-        maxRisk = issueRisk
+        maxRisk = issueRisk;
       }
     }
 
-    return riskOrder[maxRisk]
+    return riskOrder[maxRisk];
   }
 
   /**
@@ -918,18 +918,18 @@ export class SecurityScanner {
    */
   private generateRecommendation(risk: RiskLevel, trustScore: number): 'install' | 'review' | 'avoid' {
     if (risk === 'critical') {
-      return 'avoid'
+      return 'avoid';
     }
 
     if (risk === 'high' || trustScore < 30) {
-      return 'avoid'
+      return 'avoid';
     }
 
     if (risk === 'medium' || trustScore < 60) {
-      return 'review'
+      return 'review';
     }
 
-    return 'install'
+    return 'install';
   }
 
   /**
@@ -938,16 +938,16 @@ export class SecurityScanner {
   private sanitizeMatch(match: string): string {
     // Truncate long matches
     if (match.length > 50) {
-      return `${match.substring(0, 47)}...`
+      return `${match.substring(0, 47)}...`;
     }
-    return match
+    return match;
   }
 
   /**
    * Generate unique issue ID
    */
   private generateIssueId(): string {
-    return `SEC-${Date.now()}-${++this.issueCounter}`
+    return `SEC-${Date.now()}-${++this.issueCounter}`;
   }
 
   /**
@@ -955,7 +955,7 @@ export class SecurityScanner {
    */
   private log(message: string): void {
     if (this.config.verbose) {
-      console.log(`[SecurityScanner] ${message}`)
+      console.log(`[SecurityScanner] ${message}`);
     }
   }
 }
@@ -968,31 +968,31 @@ export class SecurityScanner {
  * Create a security scanner with default configuration
  */
 export function createSecurityScanner(config?: Partial<ScannerConfig>): SecurityScanner {
-  return new SecurityScanner(config)
+  return new SecurityScanner(config);
 }
 
 /**
  * Quick scan a package and return risk level
  */
 export async function quickScan(packageId: string, version?: string): Promise<RiskLevel> {
-  const scanner = new SecurityScanner()
-  const result = await scanner.scan(packageId, version)
-  return result.overallRisk
+  const scanner = new SecurityScanner();
+  const result = await scanner.scan(packageId, version);
+  return result.overallRisk;
 }
 
 /**
  * Check if a risk level is acceptable for installation
  */
 export function isRiskAcceptable(risk: RiskLevel, threshold: RiskLevel = 'medium'): boolean {
-  const riskOrder: RiskLevel[] = ['safe', 'low', 'medium', 'high', 'critical']
-  return riskOrder.indexOf(risk) <= riskOrder.indexOf(threshold)
+  const riskOrder: RiskLevel[] = ['safe', 'low', 'medium', 'high', 'critical'];
+  return riskOrder.indexOf(risk) <= riskOrder.indexOf(threshold);
 }
 
 /**
  * Format scan result for display
  */
 export function formatScanResult(result: ScanResult): string {
-  const lines: string[] = []
+  const lines: string[] = [];
 
   const riskEmoji: Record<RiskLevel, string> = {
     safe: '[OK]',
@@ -1000,29 +1000,29 @@ export function formatScanResult(result: ScanResult): string {
     medium: '[MED]',
     high: '[HIGH]',
     critical: '[CRIT]',
-  }
+  };
 
-  lines.push(`Security Scan: ${result.packageId}@${result.version}`)
-  lines.push(`${riskEmoji[result.overallRisk]} Overall Risk: ${result.overallRisk.toUpperCase()}`)
-  lines.push(`Trust Score: ${result.trustScore}/100`)
-  lines.push(`Recommendation: ${result.recommendation.toUpperCase()}`)
-  lines.push('')
+  lines.push(`Security Scan: ${result.packageId}@${result.version}`);
+  lines.push(`${riskEmoji[result.overallRisk]} Overall Risk: ${result.overallRisk.toUpperCase()}`);
+  lines.push(`Trust Score: ${result.trustScore}/100`);
+  lines.push(`Recommendation: ${result.recommendation.toUpperCase()}`);
+  lines.push('');
 
   if (result.issues.length > 0) {
-    lines.push(`Issues Found: ${result.issues.length}`)
+    lines.push(`Issues Found: ${result.issues.length}`);
     for (const issue of result.issues) {
-      lines.push(`  ${riskEmoji[issue.severity]} ${issue.title}`)
+      lines.push(`  ${riskEmoji[issue.severity]} ${issue.title}`);
       if (issue.location) {
-        lines.push(`     Location: ${issue.location}`)
+        lines.push(`     Location: ${issue.location}`);
       }
-      lines.push(`     ${issue.recommendation}`)
+      lines.push(`     ${issue.recommendation}`);
     }
-    lines.push('')
+    lines.push('');
   }
 
-  lines.push(`Permissions: ${result.permissions.summary}`)
+  lines.push(`Permissions: ${result.permissions.summary}`);
 
-  return lines.join('\n')
+  return lines.join('\n');
 }
 
 /**
@@ -1035,11 +1035,11 @@ export function getRiskColor(risk: RiskLevel): string {
     medium: '[33m', // yellow
     high: '[31m', // red
     critical: '[35m', // magenta
-  }
-  return colors[risk]
+  };
+  return colors[risk];
 }
 
 /**
  * Reset terminal color
  */
-export const RESET_COLOR = '[0m'
+export const RESET_COLOR = '[0m';

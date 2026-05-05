@@ -1,60 +1,60 @@
-import { existsSync, mkdirSync, readFileSync } from 'node:fs'
-import { CONTINUE_CONFIG_FILE, CONTINUE_DIR } from '../../constants'
-import { writeFileAtomic } from '../fs-operations'
+import { existsSync, mkdirSync, readFileSync } from 'node:fs';
+import { CONTINUE_CONFIG_FILE, CONTINUE_DIR } from '../../constants';
+import { writeFileAtomic } from '../fs-operations';
 
 /**
  * Continue model configuration
  */
 export interface ContinueModel {
-  title: string
-  provider: string
-  model: string
-  apiBase?: string
-  apiKey?: string
+  title: string;
+  provider: string;
+  model: string;
+  apiBase?: string;
+  apiKey?: string;
 }
 
 /**
  * Continue MCP server configuration
  */
 export interface ContinueMcpServer {
-  command: string
-  args?: string[]
-  env?: Record<string, string>
+  command: string;
+  args?: string[];
+  env?: Record<string, string>;
 }
 
 /**
  * Continue configuration
  */
 export interface ContinueConfig {
-  models?: ContinueModel[]
-  tabAutocompleteModel?: ContinueModel
+  models?: ContinueModel[];
+  tabAutocompleteModel?: ContinueModel;
   embeddingsProvider?: {
-    provider: string
-    model?: string
-    apiBase?: string
-  }
+    provider: string;
+    model?: string;
+    apiBase?: string;
+  };
   reranker?: {
-    name: string
-    params?: Record<string, any>
-  }
+    name: string;
+    params?: Record<string, any>;
+  };
   contextProviders?: Array<{
-    name: string
-    params?: Record<string, any>
-  }>
+    name: string;
+    params?: Record<string, any>;
+  }>;
   slashCommands?: Array<{
-    name: string
-    description: string
-  }>
+    name: string;
+    description: string;
+  }>;
   customCommands?: Array<{
-    name: string
-    description: string
-    prompt: string
-  }>
+    name: string;
+    description: string;
+    prompt: string;
+  }>;
   experimental?: {
-    modelContextProtocolServers?: ContinueMcpServer[]
-    promptPath?: string
-  }
-  allowAnonymousTelemetry?: boolean
+    modelContextProtocolServers?: ContinueMcpServer[];
+    promptPath?: string;
+  };
+  allowAnonymousTelemetry?: boolean;
 }
 
 /**
@@ -90,14 +90,14 @@ const DEFAULT_CONTINUE_CONFIG: ContinueConfig = {
     { name: 'commit', description: 'Generate commit message' },
   ],
   allowAnonymousTelemetry: false,
-}
+};
 
 /**
  * Ensure Continue directory exists
  */
 export function ensureContinueDir(): void {
   if (!existsSync(CONTINUE_DIR)) {
-    mkdirSync(CONTINUE_DIR, { recursive: true })
+    mkdirSync(CONTINUE_DIR, { recursive: true });
   }
 }
 
@@ -105,7 +105,7 @@ export function ensureContinueDir(): void {
  * Check if Continue is configured
  */
 export function isContinueConfigured(): boolean {
-  return existsSync(CONTINUE_CONFIG_FILE)
+  return existsSync(CONTINUE_CONFIG_FILE);
 }
 
 /**
@@ -113,15 +113,15 @@ export function isContinueConfigured(): boolean {
  */
 export function readContinueConfig(): ContinueConfig {
   if (!existsSync(CONTINUE_CONFIG_FILE)) {
-    return DEFAULT_CONTINUE_CONFIG
+    return DEFAULT_CONTINUE_CONFIG;
   }
 
   try {
-    const content = readFileSync(CONTINUE_CONFIG_FILE, 'utf-8')
-    return JSON.parse(content)
+    const content = readFileSync(CONTINUE_CONFIG_FILE, 'utf-8');
+    return JSON.parse(content);
   }
   catch {
-    return DEFAULT_CONTINUE_CONFIG
+    return DEFAULT_CONTINUE_CONFIG;
   }
 }
 
@@ -129,45 +129,45 @@ export function readContinueConfig(): ContinueConfig {
  * Write Continue configuration
  */
 export function writeContinueConfig(config: ContinueConfig): void {
-  ensureContinueDir()
-  writeFileAtomic(CONTINUE_CONFIG_FILE, JSON.stringify(config, null, 2))
+  ensureContinueDir();
+  writeFileAtomic(CONTINUE_CONFIG_FILE, JSON.stringify(config, null, 2));
 }
 
 /**
  * Add a model to Continue
  */
 export function addContinueModel(model: ContinueModel): void {
-  const config = readContinueConfig()
+  const config = readContinueConfig();
 
   if (!config.models) {
-    config.models = []
+    config.models = [];
   }
 
   // Remove existing model with same title
-  config.models = config.models.filter(m => m.title !== model.title)
-  config.models.push(model)
+  config.models = config.models.filter(m => m.title !== model.title);
+  config.models.push(model);
 
-  writeContinueConfig(config)
+  writeContinueConfig(config);
 }
 
 /**
  * Remove a model from Continue
  */
 export function removeContinueModel(title: string): boolean {
-  const config = readContinueConfig()
+  const config = readContinueConfig();
 
   if (!config.models)
-    return false
+    return false;
 
-  const initialLength = config.models.length
-  config.models = config.models.filter(m => m.title !== title)
+  const initialLength = config.models.length;
+  config.models = config.models.filter(m => m.title !== title);
 
   if (config.models.length < initialLength) {
-    writeContinueConfig(config)
-    return true
+    writeContinueConfig(config);
+    return true;
   }
 
-  return false
+  return false;
 }
 
 /**
@@ -215,14 +215,14 @@ export function getContinueProviderPresets(): Record<string, ContinueModel> {
       provider: 'deepseek',
       model: 'deepseek-chat',
     },
-  }
+  };
 }
 
 /**
  * Configure Continue API key
  */
 export function configureContinueApi(provider: string, apiKey: string, apiBase?: string): void {
-  const config = readContinueConfig()
+  const config = readContinueConfig();
 
   // Update all models of this provider with the API key
   if (config.models) {
@@ -232,98 +232,98 @@ export function configureContinueApi(provider: string, apiKey: string, apiBase?:
           ...model,
           apiKey,
           ...(apiBase ? { apiBase } : {}),
-        }
+        };
       }
-      return model
-    })
+      return model;
+    });
   }
 
-  writeContinueConfig(config)
+  writeContinueConfig(config);
 }
 
 /**
  * Add MCP server to Continue
  */
 export function addContinueMcpServer(_name: string, server: ContinueMcpServer): void {
-  const config = readContinueConfig()
+  const config = readContinueConfig();
 
   if (!config.experimental) {
-    config.experimental = {}
+    config.experimental = {};
   }
 
   if (!config.experimental.modelContextProtocolServers) {
-    config.experimental.modelContextProtocolServers = []
+    config.experimental.modelContextProtocolServers = [];
   }
 
   // Add server (Continue MCP format)
-  config.experimental.modelContextProtocolServers.push(server)
+  config.experimental.modelContextProtocolServers.push(server);
 
-  writeContinueConfig(config)
+  writeContinueConfig(config);
 }
 
 /**
  * Add custom command to Continue
  */
 export function addContinueCustomCommand(name: string, description: string, prompt: string): void {
-  const config = readContinueConfig()
+  const config = readContinueConfig();
 
   if (!config.customCommands) {
-    config.customCommands = []
+    config.customCommands = [];
   }
 
   // Remove existing command with same name
-  config.customCommands = config.customCommands.filter(c => c.name !== name)
-  config.customCommands.push({ name, description, prompt })
+  config.customCommands = config.customCommands.filter(c => c.name !== name);
+  config.customCommands.push({ name, description, prompt });
 
-  writeContinueConfig(config)
+  writeContinueConfig(config);
 }
 
 /**
  * Enable context provider
  */
 export function enableContinueContextProvider(name: string, params?: Record<string, any>): void {
-  const config = readContinueConfig()
+  const config = readContinueConfig();
 
   if (!config.contextProviders) {
-    config.contextProviders = []
+    config.contextProviders = [];
   }
 
   // Check if already exists
   if (!config.contextProviders.find(p => p.name === name)) {
-    config.contextProviders.push({ name, params })
-    writeContinueConfig(config)
+    config.contextProviders.push({ name, params });
+    writeContinueConfig(config);
   }
 }
 
 /**
  * Sync CCJK skills to Continue custom commands
  */
-export function syncSkillsToContinue(skills: Array<{ id: string, name: string, description: string, template: string }>): void {
-  const config = readContinueConfig()
+export function syncSkillsToContinue(skills: Array<{ id: string; name: string; description: string; template: string }>): void {
+  const config = readContinueConfig();
 
   if (!config.customCommands) {
-    config.customCommands = []
+    config.customCommands = [];
   }
 
   // Add CCJK skills as custom commands
   for (const skill of skills) {
-    const existingIndex = config.customCommands.findIndex(c => c.name === skill.id)
+    const existingIndex = config.customCommands.findIndex(c => c.name === skill.id);
 
     if (existingIndex >= 0) {
       config.customCommands[existingIndex] = {
         name: skill.id,
         description: skill.description,
         prompt: skill.template,
-      }
+      };
     }
     else {
       config.customCommands.push({
         name: skill.id,
         description: skill.description,
         prompt: skill.template,
-      })
+      });
     }
   }
 
-  writeContinueConfig(config)
+  writeContinueConfig(config);
 }

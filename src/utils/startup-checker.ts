@@ -1,12 +1,12 @@
-import type { ClaudeCodeInstallation } from './version-checker'
-import ansis from 'ansis'
-import inquirer from 'inquirer'
+import type { ClaudeCodeInstallation } from './version-checker';
+import ansis from 'ansis';
+import inquirer from 'inquirer';
 import {
   checkDuplicateInstallations,
   detectAllClaudeCodeInstallations,
   getSourceDisplayName,
   handleDuplicateInstallations,
-} from './version-checker'
+} from './version-checker';
 
 /**
  * Options for startup check behavior
@@ -16,13 +16,13 @@ export interface StartupCheckOptions {
    * Skip user prompts and use default actions
    * @default false
    */
-  skipPrompt?: boolean
+  skipPrompt?: boolean;
 
   /**
    * Run in silent mode without console output
    * @default false
    */
-  silent?: boolean
+  silent?: boolean;
 }
 
 /**
@@ -32,17 +32,17 @@ export interface StartupCheckResult {
   /**
    * Whether multiple installations were detected
    */
-  hasMultipleInstallations: boolean
+  hasMultipleInstallations: boolean;
 
   /**
    * Whether the duplicate installation issue was resolved
    */
-  resolved: boolean
+  resolved: boolean;
 
   /**
    * All detected Claude Code installations
    */
-  installations: ClaudeCodeInstallation[]
+  installations: ClaudeCodeInstallation[];
 }
 
 /**
@@ -84,14 +84,14 @@ export interface StartupCheckResult {
 export async function runStartupCheck(
   options: StartupCheckOptions = {},
 ): Promise<StartupCheckResult> {
-  const { skipPrompt = false, silent = false } = options
+  const { skipPrompt = false, silent = false } = options;
 
   // Lazy import i18n to avoid circular dependencies
-  const { ensureI18nInitialized, i18n } = await import('../i18n')
-  ensureI18nInitialized()
+  const { ensureI18nInitialized, i18n } = await import('../i18n');
+  ensureI18nInitialized();
 
   // Step 1: Detect all Claude Code installations
-  const installations = await detectAllClaudeCodeInstallations()
+  const installations = await detectAllClaudeCodeInstallations();
 
   // Step 2: Early return if no conflict (0 or 1 installation)
   if (installations.length <= 1) {
@@ -99,11 +99,11 @@ export async function runStartupCheck(
       hasMultipleInstallations: false,
       resolved: true,
       installations,
-    }
+    };
   }
 
   // Step 3: Multiple installations detected - check if they're meaningful duplicates
-  const duplicateInfo = await checkDuplicateInstallations()
+  const duplicateInfo = await checkDuplicateInstallations();
 
   // If no meaningful duplicates (e.g., just different paths to same installation)
   if (!duplicateInfo.hasDuplicates) {
@@ -111,53 +111,53 @@ export async function runStartupCheck(
       hasMultipleInstallations: false,
       resolved: true,
       installations,
-    }
+    };
   }
 
   // Step 4: Display detection results (unless silent mode)
   if (!silent) {
-    displayMultipleInstallations(installations, i18n)
+    displayMultipleInstallations(installations, i18n);
   }
 
   // Step 5: Handle duplicates based on mode
   if (skipPrompt) {
     // Silent mode: auto-resolve by removing npm
-    const result = await handleDuplicateInstallations(true)
+    const result = await handleDuplicateInstallations(true);
     return {
       hasMultipleInstallations: true,
       resolved: result.resolved,
       installations,
-    }
+    };
   }
 
   // Step 6: Interactive mode - prompt user for action
-  const action = await promptUserAction(installations, i18n)
+  const action = await promptUserAction(installations, i18n);
 
   if (action === 'remove') {
     // User chose to remove npm installation
-    const result = await handleDuplicateInstallations(false)
+    const result = await handleDuplicateInstallations(false);
     return {
       hasMultipleInstallations: true,
       resolved: result.resolved,
       installations,
-    }
+    };
   }
   else if (action === 'details') {
     // User wants to see detailed information
-    displayDetailedInformation(installations, i18n)
+    displayDetailedInformation(installations, i18n);
     // After showing details, prompt again
-    return await runStartupCheck({ skipPrompt: false, silent: false })
+    return await runStartupCheck({ skipPrompt: false, silent: false });
   }
   else {
     // User chose to keep both installations
     if (!silent) {
-      console.log(ansis.gray(i18n.t('installation:duplicateWarningContinue')))
+      console.log(ansis.gray(i18n.t('installation:duplicateWarningContinue')));
     }
     return {
       hasMultipleInstallations: true,
       resolved: false,
       installations,
-    }
+    };
   }
 }
 
@@ -177,46 +177,46 @@ function displayMultipleInstallations(
   installations: ClaudeCodeInstallation[],
   i18n: { t: (key: string) => string },
 ): void {
-  console.log('')
-  console.log(ansis.yellow.bold(i18n.t('installation:duplicateInstallationsDetected')))
-  console.log(ansis.gray(i18n.t('installation:duplicateInstallationsWarning')))
-  console.log('')
+  console.log('');
+  console.log(ansis.yellow.bold(i18n.t('installation:duplicateInstallationsDetected')));
+  console.log(ansis.gray(i18n.t('installation:duplicateInstallationsWarning')));
+  console.log('');
 
   // Group installations by active status
-  const activeInstallation = installations.find(i => i.isActive)
-  const inactiveInstallations = installations.filter(i => !i.isActive)
+  const activeInstallation = installations.find(i => i.isActive);
+  const inactiveInstallations = installations.filter(i => !i.isActive);
 
   // Display active installation first
   if (activeInstallation) {
-    const sourceDisplay = getSourceDisplayName(activeInstallation.source, i18n)
-    const statusColor = activeInstallation.source === 'homebrew-cask' ? ansis.green : ansis.yellow
+    const sourceDisplay = getSourceDisplayName(activeInstallation.source, i18n);
+    const statusColor = activeInstallation.source === 'homebrew-cask' ? ansis.green : ansis.yellow;
 
-    console.log(ansis.green.bold(`✅ ${i18n.t('installation:currentActiveInstallation')}:`))
-    console.log(ansis.white(`   ${i18n.t('installation:installationSource')}: ${statusColor(sourceDisplay)}`))
-    console.log(ansis.white(`   ${i18n.t('installation:installationPath')}: ${ansis.gray(activeInstallation.path)}`))
+    console.log(ansis.green.bold(`✅ ${i18n.t('installation:currentActiveInstallation')}:`));
+    console.log(ansis.white(`   ${i18n.t('installation:installationSource')}: ${statusColor(sourceDisplay)}`));
+    console.log(ansis.white(`   ${i18n.t('installation:installationPath')}: ${ansis.gray(activeInstallation.path)}`));
     if (activeInstallation.version) {
-      console.log(ansis.white(`   ${i18n.t('installation:installationVersion')}: ${ansis.green(activeInstallation.version)}`))
+      console.log(ansis.white(`   ${i18n.t('installation:installationVersion')}: ${ansis.green(activeInstallation.version)}`));
     }
-    console.log('')
+    console.log('');
   }
 
   // Display inactive installations
   if (inactiveInstallations.length > 0) {
-    console.log(ansis.yellow.bold(`⚠️ ${i18n.t('installation:inactiveInstallations')}:`))
+    console.log(ansis.yellow.bold(`⚠️ ${i18n.t('installation:inactiveInstallations')}:`));
     for (const installation of inactiveInstallations) {
-      const sourceDisplay = getSourceDisplayName(installation.source, i18n)
-      console.log(ansis.white(`   ${i18n.t('installation:installationSource')}: ${ansis.yellow(sourceDisplay)}`))
-      console.log(ansis.white(`   ${i18n.t('installation:installationPath')}: ${ansis.gray(installation.path)}`))
+      const sourceDisplay = getSourceDisplayName(installation.source, i18n);
+      console.log(ansis.white(`   ${i18n.t('installation:installationSource')}: ${ansis.yellow(sourceDisplay)}`));
+      console.log(ansis.white(`   ${i18n.t('installation:installationPath')}: ${ansis.gray(installation.path)}`));
       if (installation.version) {
-        console.log(ansis.white(`   ${i18n.t('installation:installationVersion')}: ${ansis.green(installation.version)}`))
+        console.log(ansis.white(`   ${i18n.t('installation:installationVersion')}: ${ansis.green(installation.version)}`));
       }
-      console.log('')
+      console.log('');
     }
   }
 
   // Show recommendation
-  console.log(ansis.green(`💡 ${i18n.t('installation:recommendRemoveNpm')}`))
-  console.log('')
+  console.log(ansis.green(`💡 ${i18n.t('installation:recommendRemoveNpm')}`));
+  console.log('');
 }
 
 /**
@@ -236,42 +236,42 @@ function displayDetailedInformation(
   installations: ClaudeCodeInstallation[],
   i18n: { t: (key: string) => string },
 ): void {
-  console.log('')
-  console.log(ansis.green.bold('📋 Detailed Installation Information'))
-  console.log(ansis.gray('─'.repeat(60)))
-  console.log('')
+  console.log('');
+  console.log(ansis.green.bold('📋 Detailed Installation Information'));
+  console.log(ansis.gray('─'.repeat(60)));
+  console.log('');
 
   installations.forEach((installation, index) => {
-    const sourceDisplay = getSourceDisplayName(installation.source, i18n)
-    const statusIcon = installation.isActive ? '✅' : '⚠️'
+    const sourceDisplay = getSourceDisplayName(installation.source, i18n);
+    const statusIcon = installation.isActive ? '✅' : '⚠️';
     const statusText = installation.isActive
       ? i18n.t('installation:currentActiveInstallation')
-      : i18n.t('installation:inactiveInstallations')
+      : i18n.t('installation:inactiveInstallations');
 
-    console.log(ansis.white.bold(`${index + 1}. ${sourceDisplay}`))
-    console.log(ansis.white(`   ${statusIcon} ${statusText}`))
-    console.log(ansis.white(`   ${i18n.t('installation:installationPath')}: ${ansis.gray(installation.path)}`))
+    console.log(ansis.white.bold(`${index + 1}. ${sourceDisplay}`));
+    console.log(ansis.white(`   ${statusIcon} ${statusText}`));
+    console.log(ansis.white(`   ${i18n.t('installation:installationPath')}: ${ansis.gray(installation.path)}`));
 
     if (installation.version) {
-      console.log(ansis.white(`   ${i18n.t('installation:installationVersion')}: ${ansis.green(installation.version)}`))
+      console.log(ansis.white(`   ${i18n.t('installation:installationVersion')}: ${ansis.green(installation.version)}`));
     }
     else {
-      console.log(ansis.white(`   ${i18n.t('installation:installationVersion')}: ${ansis.red('Unknown')}`))
+      console.log(ansis.white(`   ${i18n.t('installation:installationVersion')}: ${ansis.red('Unknown')}`));
     }
 
     // Add source-specific recommendations
     if (installation.source === 'homebrew-cask') {
-      console.log(ansis.green(`   ✓ ${i18n.t('installation:recommendedMethod')}`))
+      console.log(ansis.green(`   ✓ ${i18n.t('installation:recommendedMethod')}`));
     }
     else if (installation.source === 'npm' || installation.source === 'npm-homebrew-node') {
-      console.log(ansis.yellow(`   ⚠ ${i18n.t('installation:notRecommended')}`))
+      console.log(ansis.yellow(`   ⚠ ${i18n.t('installation:notRecommended')}`));
     }
 
-    console.log('')
-  })
+    console.log('');
+  });
 
-  console.log(ansis.gray('─'.repeat(60)))
-  console.log('')
+  console.log(ansis.gray('─'.repeat(60)));
+  console.log('');
 }
 
 /**
@@ -290,28 +290,28 @@ async function promptUserAction(
   installations: ClaudeCodeInstallation[],
   i18n: { t: (key: string) => string },
 ): Promise<'remove' | 'keep' | 'details'> {
-  const hasHomebrew = installations.some(i => i.source === 'homebrew-cask')
-  const hasNpm = installations.some(i => i.source === 'npm' || i.source === 'npm-homebrew-node')
+  const hasHomebrew = installations.some(i => i.source === 'homebrew-cask');
+  const hasNpm = installations.some(i => i.source === 'npm' || i.source === 'npm-homebrew-node');
 
   // Build choices based on what's installed
-  const choices: Array<{ title: string, value: 'remove' | 'keep' | 'details' }> = []
+  const choices: Array<{ title: string; value: 'remove' | 'keep' | 'details' }> = [];
 
   if (hasNpm && hasHomebrew) {
     choices.push({
       title: `✅ ${i18n.t('common:yes')} - ${i18n.t('installation:removingDuplicateInstallation')}`,
       value: 'remove',
-    })
+    });
   }
 
   choices.push({
     title: `❌ ${i18n.t('installation:keepBothInstallations')}`,
     value: 'keep',
-  })
+  });
 
   choices.push({
     title: `📋 View detailed information`,
     value: 'details',
-  })
+  });
 
   const response = await inquirer.prompt<{ action: 'remove' | 'keep' | 'details' }>([
     {
@@ -321,7 +321,7 @@ async function promptUserAction(
       choices: choices.map(c => ({ name: c.title, value: c.value })),
       default: 0,
     },
-  ])
+  ]);
 
-  return response.action
+  return response.action;
 }

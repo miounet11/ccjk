@@ -14,132 +14,132 @@
  * @module brain/task-persistence
  */
 
-import type { Task } from './orchestrator-types'
-import { existsSync, mkdirSync } from 'node:fs'
-import Database from 'better-sqlite3'
-import { dirname, join } from 'pathe'
+import type { Task } from './orchestrator-types';
+import { existsSync, mkdirSync } from 'node:fs';
+import Database from 'better-sqlite3';
+import { dirname, join } from 'pathe';
 
 /**
  * Persisted task
  */
 export interface PersistedTask {
-  id: string
-  sessionId: string
-  name: string
-  description?: string
-  status: 'pending' | 'running' | 'completed' | 'failed'
-  priority: number
-  dependencies: string[] // Task IDs this task depends on
-  input: string // JSON
-  output?: string // JSON
-  error?: string
-  createdAt: number
-  startedAt?: number
-  completedAt?: number
-  metadata: string // JSON
+  id: string;
+  sessionId: string;
+  name: string;
+  description?: string;
+  status: 'pending' | 'running' | 'completed' | 'failed';
+  priority: number;
+  dependencies: string[]; // Task IDs this task depends on
+  input: string; // JSON
+  output?: string; // JSON
+  error?: string;
+  createdAt: number;
+  startedAt?: number;
+  completedAt?: number;
+  metadata: string; // JSON
 }
 
 /**
  * Task dependency relationship
  */
 export interface TaskDependency {
-  taskId: string
-  dependsOnId: string
-  dependencyType: 'sequential' | 'data' | 'conditional' | 'parallel'
-  required: boolean
-  createdAt: number
+  taskId: string;
+  dependsOnId: string;
+  dependencyType: 'sequential' | 'data' | 'conditional' | 'parallel';
+  required: boolean;
+  createdAt: number;
 }
 
 /**
  * Task metrics
  */
 export interface TaskMetrics {
-  taskId: string
-  sessionId: string
-  executionTime: number // milliseconds
-  retryCount: number
-  success: boolean
-  errorType?: string
-  timestamp: number
+  taskId: string;
+  sessionId: string;
+  executionTime: number; // milliseconds
+  retryCount: number;
+  success: boolean;
+  errorType?: string;
+  timestamp: number;
 }
 
 /**
  * Decision log entry
  */
 export interface DecisionLog {
-  id: string
-  sessionId: string
-  taskId?: string
-  decision: string
-  reasoning: string
-  context: string // JSON
-  outcome?: string
-  timestamp: number
+  id: string;
+  sessionId: string;
+  taskId?: string;
+  decision: string;
+  reasoning: string;
+  context: string; // JSON
+  outcome?: string;
+  timestamp: number;
 }
 
 /**
  * Task execution graph node
  */
 export interface TaskGraphNode {
-  id: string
-  name: string
-  status: string
-  level: number // Topological level
-  dependencies: string[]
-  dependents: string[]
+  id: string;
+  name: string;
+  status: string;
+  level: number; // Topological level
+  dependencies: string[];
+  dependents: string[];
 }
 
 /**
  * Task context for restoration
  */
 export interface TaskContext {
-  sessionId: string
-  tasks: PersistedTask[]
-  metadata: Record<string, any>
+  sessionId: string;
+  tasks: PersistedTask[];
+  metadata: Record<string, any>;
 }
 
 /**
  * Recovery state for interrupted tasks
  */
 export interface RecoveryState {
-  sessionId: string
-  pendingTasks: PersistedTask[]
-  runningTasks: PersistedTask[]
-  completedTasks: PersistedTask[]
-  failedTasks: PersistedTask[]
-  dependencyGraph: TaskGraphNode[]
-  nextExecutable: PersistedTask[]
+  sessionId: string;
+  pendingTasks: PersistedTask[];
+  runningTasks: PersistedTask[];
+  completedTasks: PersistedTask[];
+  failedTasks: PersistedTask[];
+  dependencyGraph: TaskGraphNode[];
+  nextExecutable: PersistedTask[];
 }
 
 /**
  * Task Persistence Manager
  */
 export class TaskPersistence {
-  private db: Database.Database
-  private dbPath: string
-  private getSessionStmt?: Database.Statement
+  private db: Database.Database;
+  private dbPath: string;
+  private getSessionStmt?: Database.Statement;
 
   private parseSessionMetadata(value: unknown): Record<string, any> {
     if (typeof value !== 'string' || value.length === 0) {
-      return {}
+      return {};
     }
 
     try {
-      const parsed = JSON.parse(value)
-      return parsed && typeof parsed === 'object' ? parsed : {}
+      const parsed = JSON.parse(value);
+      return parsed && typeof parsed === 'object' ? parsed : {};
     }
     catch {
-      return {}
+      return {};
     }
   }
 
-  private rowToSession(row: any): { id: string, createdAt: number, updatedAt: number, metadata: Record<string, any> } {
+  private rowToSession(row: any): { id: string; createdAt: number; updatedAt: number; metadata: Record<string, any> } {
     return {
       id: row.id,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
       metadata: this.parseSessionMetadata(row.metadata),
-    }
+    };
   }
 
   constructor(dbPath?: string) {
@@ -148,19 +148,19 @@ export class TaskPersistence {
       process.env.HOME || process.env.USERPROFILE || '.',
       '.ccjk',
       'brain.db',
-    )
+    );
 
     // Ensure directory exists
-    const dir = dirname(this.dbPath)
+    const dir = dirname(this.dbPath);
     if (!existsSync(dir)) {
-      mkdirSync(dir, { recursive: true })
+      mkdirSync(dir, { recursive: true });
     }
 
     // Open database
-    this.db = new Database(this.dbPath)
+    this.db = new Database(this.dbPath);
 
     // Initialize schema
-    this.initSchema()
+    this.initSchema();
   }
 
   /**
@@ -243,7 +243,7 @@ export class TaskPersistence {
       CREATE INDEX IF NOT EXISTS idx_decision_session ON decision_log(session_id);
       CREATE INDEX IF NOT EXISTS idx_decision_task ON decision_log(task_id);
       CREATE INDEX IF NOT EXISTS idx_decision_timestamp ON decision_log(timestamp);
-    `)
+    `);
   }
 
   /**
@@ -256,7 +256,7 @@ export class TaskPersistence {
         dependencies, input, output, error,
         created_at, started_at, completed_at, metadata
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `)
+    `);
 
     stmt.run(
       task.id,
@@ -273,7 +273,7 @@ export class TaskPersistence {
       null,
       null,
       JSON.stringify(task.metadata || {}),
-    )
+    );
   }
 
   /**
@@ -285,37 +285,37 @@ export class TaskPersistence {
     output?: any,
     error?: Error,
   ): void {
-    const now = Date.now()
-    const updates: string[] = ['status = ?']
-    const params: any[] = [status]
+    const now = Date.now();
+    const updates: string[] = ['status = ?'];
+    const params: any[] = [status];
 
     if (status === 'running') {
-      updates.push('started_at = ?')
-      params.push(now)
+      updates.push('started_at = ?');
+      params.push(now);
     }
 
     if (status === 'completed' || status === 'failed') {
-      updates.push('completed_at = ?')
-      params.push(now)
+      updates.push('completed_at = ?');
+      params.push(now);
     }
 
     if (output) {
-      updates.push('output = ?')
-      params.push(JSON.stringify(output))
+      updates.push('output = ?');
+      params.push(JSON.stringify(output));
     }
 
     if (error) {
-      updates.push('error = ?')
-      params.push(JSON.stringify({ message: error.message, stack: error.stack }))
+      updates.push('error = ?');
+      params.push(JSON.stringify({ message: error.message, stack: error.stack }));
     }
 
-    params.push(taskId)
+    params.push(taskId);
 
     const stmt = this.db.prepare(`
       UPDATE tasks SET ${updates.join(', ')} WHERE id = ?
-    `)
+    `);
 
-    stmt.run(...params)
+    stmt.run(...params);
   }
 
   /**
@@ -324,13 +324,13 @@ export class TaskPersistence {
   getTask(taskId: string): PersistedTask | undefined {
     const stmt = this.db.prepare(`
       SELECT * FROM tasks WHERE id = ?
-    `)
+    `);
 
-    const row = stmt.get(taskId) as any
+    const row = stmt.get(taskId) as any;
     if (!row)
-      return undefined
+      return undefined;
 
-    return this.rowToTask(row)
+    return this.rowToTask(row);
   }
 
   /**
@@ -339,51 +339,51 @@ export class TaskPersistence {
   getSessionTasks(sessionId: string): PersistedTask[] {
     const stmt = this.db.prepare(`
       SELECT * FROM tasks WHERE session_id = ? ORDER BY created_at ASC
-    `)
+    `);
 
-    const rows = stmt.all(sessionId) as any[]
-    return rows.map(row => this.rowToTask(row))
+    const rows = stmt.all(sessionId) as any[];
+    return rows.map(row => this.rowToTask(row));
   }
 
   /**
    * Get task dependencies
    */
   getDependencies(taskId: string): PersistedTask[] {
-    const task = this.getTask(taskId)
+    const task = this.getTask(taskId);
     if (!task || task.dependencies.length === 0) {
-      return []
+      return [];
     }
 
-    const placeholders = task.dependencies.map(() => '?').join(',')
+    const placeholders = task.dependencies.map(() => '?').join(',');
     const stmt = this.db.prepare(`
       SELECT * FROM tasks WHERE id IN (${placeholders})
-    `)
+    `);
 
-    const rows = stmt.all(...task.dependencies) as any[]
-    return rows.map(row => this.rowToTask(row))
+    const rows = stmt.all(...task.dependencies) as any[];
+    return rows.map(row => this.rowToTask(row));
   }
 
   /**
    * Restore context for a session
    */
   restoreContext(sessionId: string): TaskContext | null {
-    const tasks = this.getSessionTasks(sessionId)
+    const tasks = this.getSessionTasks(sessionId);
     if (tasks.length === 0) {
-      return null
+      return null;
     }
 
     const sessionStmt = this.db.prepare(`
       SELECT * FROM sessions WHERE id = ?
-    `)
+    `);
 
-    const sessionRow = sessionStmt.get(sessionId) as any
-    const metadata = sessionRow ? this.parseSessionMetadata(sessionRow.metadata) : {}
+    const sessionRow = sessionStmt.get(sessionId) as any;
+    const metadata = sessionRow ? this.parseSessionMetadata(sessionRow.metadata) : {};
 
     return {
       sessionId,
       tasks,
       metadata,
-    }
+    };
   }
 
   /**
@@ -393,66 +393,66 @@ export class TaskPersistence {
     const stmt = this.db.prepare(`
       INSERT OR REPLACE INTO sessions (id, created_at, updated_at, metadata)
       VALUES (?, ?, ?, ?)
-    `)
+    `);
 
-    const now = Date.now()
-    stmt.run(sessionId, now, now, JSON.stringify(metadata))
+    const now = Date.now();
+    stmt.run(sessionId, now, now, JSON.stringify(metadata));
   }
 
   /**
    * Get session by ID
    */
-  getSession(sessionId: string): { id: string, createdAt: number, updatedAt: number, metadata: Record<string, any> } | undefined {
+  getSession(sessionId: string): { id: string; createdAt: number; updatedAt: number; metadata: Record<string, any> } | undefined {
     this.getSessionStmt ||= this.db.prepare(`
       SELECT * FROM sessions WHERE id = ?
-    `)
+    `);
 
-    const row = this.getSessionStmt.get(sessionId) as any
+    const row = this.getSessionStmt.get(sessionId) as any;
     if (!row) {
-      return undefined
+      return undefined;
     }
 
-    return this.rowToSession(row)
+    return this.rowToSession(row);
   }
 
   /**
    * List recent sessions
    */
-  listSessions(limit: number = 10): Array<{ id: string, createdAt: number, metadata: Record<string, any> }> {
+  listSessions(limit: number = 10): Array<{ id: string; createdAt: number; metadata: Record<string, any> }> {
     const stmt = this.db.prepare(`
       SELECT * FROM sessions ORDER BY created_at DESC LIMIT ?
-    `)
+    `);
 
-    const rows = stmt.all(limit) as any[]
-    return rows.map(row => {
-      const session = this.rowToSession(row)
+    const rows = stmt.all(limit) as any[];
+    return rows.map((row) => {
+      const session = this.rowToSession(row);
       return {
         id: session.id,
         createdAt: session.createdAt,
         metadata: session.metadata,
-      }
-    })
+      };
+    });
   }
 
   /**
    * Clean up old sessions
    */
   cleanup(keepDays: number = 7): number {
-    const cutoff = Date.now() - (keepDays * 24 * 60 * 60 * 1000)
+    const cutoff = Date.now() - (keepDays * 24 * 60 * 60 * 1000);
 
     // Delete old tasks
     const deleteTasksStmt = this.db.prepare(`
       DELETE FROM tasks WHERE created_at < ?
-    `)
-    const tasksResult = deleteTasksStmt.run(cutoff)
+    `);
+    const tasksResult = deleteTasksStmt.run(cutoff);
 
     // Delete old sessions
     const deleteSessionsStmt = this.db.prepare(`
       DELETE FROM sessions WHERE created_at < ?
-    `)
-    const sessionsResult = deleteSessionsStmt.run(cutoff)
+    `);
+    const sessionsResult = deleteSessionsStmt.run(cutoff);
 
-    return tasksResult.changes + sessionsResult.changes
+    return tasksResult.changes + sessionsResult.changes;
   }
 
   /**
@@ -467,9 +467,9 @@ export class TaskPersistence {
     const stmt = this.db.prepare(`
       INSERT OR REPLACE INTO task_dependencies (task_id, depends_on_id, dependency_type, required, created_at)
       VALUES (?, ?, ?, ?, ?)
-    `)
+    `);
 
-    stmt.run(taskId, dependsOnId, type, required ? 1 : 0, Date.now())
+    stmt.run(taskId, dependsOnId, type, required ? 1 : 0, Date.now());
   }
 
   /**
@@ -478,9 +478,9 @@ export class TaskPersistence {
   removeDependency(taskId: string, dependsOnId: string): void {
     const stmt = this.db.prepare(`
       DELETE FROM task_dependencies WHERE task_id = ? AND depends_on_id = ?
-    `)
+    `);
 
-    stmt.run(taskId, dependsOnId)
+    stmt.run(taskId, dependsOnId);
   }
 
   /**
@@ -489,16 +489,16 @@ export class TaskPersistence {
   getTaskDependencies(taskId: string): TaskDependency[] {
     const stmt = this.db.prepare(`
       SELECT * FROM task_dependencies WHERE task_id = ?
-    `)
+    `);
 
-    const rows = stmt.all(taskId) as any[]
+    const rows = stmt.all(taskId) as any[];
     return rows.map(row => ({
       taskId: row.task_id,
       dependsOnId: row.depends_on_id,
       dependencyType: row.dependency_type,
       required: row.required === 1,
       createdAt: row.created_at,
-    }))
+    }));
   }
 
   /**
@@ -509,22 +509,22 @@ export class TaskPersistence {
       SELECT t.* FROM tasks t
       INNER JOIN task_dependencies td ON t.id = td.task_id
       WHERE td.depends_on_id = ?
-    `)
+    `);
 
-    const rows = stmt.all(taskId) as any[]
-    return rows.map(row => this.rowToTask(row))
+    const rows = stmt.all(taskId) as any[];
+    return rows.map(row => this.rowToTask(row));
   }
 
   /**
    * Build dependency graph for session
    */
   buildDependencyGraph(sessionId: string): TaskGraphNode[] {
-    const tasks = this.getSessionTasks(sessionId)
-    const nodes: TaskGraphNode[] = []
+    const tasks = this.getSessionTasks(sessionId);
+    const nodes: TaskGraphNode[] = [];
 
     for (const task of tasks) {
-      const dependencies = this.getTaskDependencies(task.id)
-      const dependents = this.getDependentTasks(task.id)
+      const dependencies = this.getTaskDependencies(task.id);
+      const dependents = this.getDependentTasks(task.id);
 
       nodes.push({
         id: task.id,
@@ -533,98 +533,98 @@ export class TaskPersistence {
         level: this.calculateTopologicalLevel(task.id, sessionId),
         dependencies: dependencies.map(d => d.dependsOnId),
         dependents: dependents.map(d => d.id),
-      })
+      });
     }
 
-    return nodes.sort((a, b) => a.level - b.level)
+    return nodes.sort((a, b) => a.level - b.level);
   }
 
   /**
    * Calculate topological level for a task
    */
   private calculateTopologicalLevel(taskId: string, _sessionId: string): number {
-    const visited = new Set<string>()
-    const calculating = new Set<string>()
+    const visited = new Set<string>();
+    const calculating = new Set<string>();
 
     const calculate = (id: string): number => {
       if (visited.has(id)) {
-        return 0
+        return 0;
       }
 
       if (calculating.has(id)) {
         // Circular dependency detected
-        return 0
+        return 0;
       }
 
-      calculating.add(id)
+      calculating.add(id);
 
-      const deps = this.getTaskDependencies(id)
+      const deps = this.getTaskDependencies(id);
       if (deps.length === 0) {
-        visited.add(id)
-        calculating.delete(id)
-        return 0
+        visited.add(id);
+        calculating.delete(id);
+        return 0;
       }
 
-      let maxLevel = -1
+      let maxLevel = -1;
       for (const dep of deps) {
-        const depLevel = calculate(dep.dependsOnId)
-        maxLevel = Math.max(maxLevel, depLevel)
+        const depLevel = calculate(dep.dependsOnId);
+        maxLevel = Math.max(maxLevel, depLevel);
       }
 
-      visited.add(id)
-      calculating.delete(id)
-      return maxLevel + 1
-    }
+      visited.add(id);
+      calculating.delete(id);
+      return maxLevel + 1;
+    };
 
-    return calculate(taskId)
+    return calculate(taskId);
   }
 
   /**
    * Get tasks in topological order
    */
   getTopologicalOrder(sessionId: string): PersistedTask[] {
-    const graph = this.buildDependencyGraph(sessionId)
-    const tasks = this.getSessionTasks(sessionId)
-    const taskMap = new Map(tasks.map(t => [t.id, t]))
+    const graph = this.buildDependencyGraph(sessionId);
+    const tasks = this.getSessionTasks(sessionId);
+    const taskMap = new Map(tasks.map(t => [t.id, t]));
 
     return graph
       .sort((a, b) => a.level - b.level)
       .map(node => taskMap.get(node.id)!)
-      .filter(Boolean)
+      .filter(Boolean);
   }
 
   /**
    * Get next executable tasks (no pending dependencies)
    */
   getNextExecutableTasks(sessionId: string): PersistedTask[] {
-    const tasks = this.getSessionTasks(sessionId)
-    const executable: PersistedTask[] = []
+    const tasks = this.getSessionTasks(sessionId);
+    const executable: PersistedTask[] = [];
 
     for (const task of tasks) {
       if (task.status !== 'pending') {
-        continue
+        continue;
       }
 
-      const deps = this.getTaskDependencies(task.id)
+      const deps = this.getTaskDependencies(task.id);
       const allCompleted = deps.every((dep) => {
-        const depTask = this.getTask(dep.dependsOnId)
-        return depTask && depTask.status === 'completed'
-      })
+        const depTask = this.getTask(dep.dependsOnId);
+        return depTask && depTask.status === 'completed';
+      });
 
       if (allCompleted) {
-        executable.push(task)
+        executable.push(task);
       }
     }
 
-    return executable
+    return executable;
   }
 
   /**
    * Recover execution state for interrupted session
    */
   recoverExecutionState(sessionId: string): RecoveryState {
-    const tasks = this.getSessionTasks(sessionId)
-    const graph = this.buildDependencyGraph(sessionId)
+    const tasks = this.getSessionTasks(sessionId);
+    const graph = this.buildDependencyGraph(sessionId);
 
     return {
       sessionId,
@@ -634,7 +634,7 @@ export class TaskPersistence {
       failedTasks: tasks.filter(t => t.status === 'failed'),
       dependencyGraph: graph,
       nextExecutable: this.getNextExecutableTasks(sessionId),
-    }
+    };
   }
 
   /**
@@ -644,7 +644,7 @@ export class TaskPersistence {
     const stmt = this.db.prepare(`
       INSERT INTO task_metrics (task_id, session_id, execution_time, retry_count, success, error_type, timestamp)
       VALUES (?, ?, ?, ?, ?, ?, ?)
-    `)
+    `);
 
     stmt.run(
       metrics.taskId,
@@ -654,7 +654,7 @@ export class TaskPersistence {
       metrics.success ? 1 : 0,
       metrics.errorType || null,
       Date.now(),
-    )
+    );
   }
 
   /**
@@ -663,9 +663,9 @@ export class TaskPersistence {
   getTaskMetrics(taskId: string): TaskMetrics[] {
     const stmt = this.db.prepare(`
       SELECT * FROM task_metrics WHERE task_id = ? ORDER BY timestamp DESC
-    `)
+    `);
 
-    const rows = stmt.all(taskId) as any[]
+    const rows = stmt.all(taskId) as any[];
     return rows.map(row => ({
       taskId: row.task_id,
       sessionId: row.session_id,
@@ -674,19 +674,19 @@ export class TaskPersistence {
       success: row.success === 1,
       errorType: row.error_type,
       timestamp: row.timestamp,
-    }))
+    }));
   }
 
   /**
    * Get aggregated metrics for session
    */
   getSessionMetrics(sessionId: string): {
-    totalTasks: number
-    completedTasks: number
-    failedTasks: number
-    avgExecutionTime: number
-    successRate: number
-    totalRetries: number
+    totalTasks: number;
+    completedTasks: number;
+    failedTasks: number;
+    avgExecutionTime: number;
+    successRate: number;
+    totalRetries: number;
   } {
     const stmt = this.db.prepare(`
       SELECT
@@ -697,9 +697,9 @@ export class TaskPersistence {
         SUM(retry_count) as total_retries
       FROM task_metrics
       WHERE session_id = ?
-    `)
+    `);
 
-    const row = stmt.get(sessionId) as any
+    const row = stmt.get(sessionId) as any;
     if (!row || row.total === 0) {
       return {
         totalTasks: 0,
@@ -708,7 +708,7 @@ export class TaskPersistence {
         avgExecutionTime: 0,
         successRate: 0,
         totalRetries: 0,
-      }
+      };
     }
 
     return {
@@ -718,7 +718,7 @@ export class TaskPersistence {
       avgExecutionTime: Math.round(row.avg_time || 0),
       successRate: row.total > 0 ? row.completed / row.total : 0,
       totalRetries: row.total_retries || 0,
-    }
+    };
   }
 
   /**
@@ -728,7 +728,7 @@ export class TaskPersistence {
     const stmt = this.db.prepare(`
       INSERT INTO decision_log (id, session_id, task_id, decision, reasoning, context, outcome, timestamp)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `)
+    `);
 
     stmt.run(
       log.id,
@@ -739,7 +739,7 @@ export class TaskPersistence {
       log.context,
       log.outcome || null,
       Date.now(),
-    )
+    );
   }
 
   /**
@@ -748,9 +748,9 @@ export class TaskPersistence {
   updateDecisionOutcome(decisionId: string, outcome: string): void {
     const stmt = this.db.prepare(`
       UPDATE decision_log SET outcome = ? WHERE id = ?
-    `)
+    `);
 
-    stmt.run(outcome, decisionId)
+    stmt.run(outcome, decisionId);
   }
 
   /**
@@ -759,9 +759,9 @@ export class TaskPersistence {
   getDecisionLog(sessionId: string): DecisionLog[] {
     const stmt = this.db.prepare(`
       SELECT * FROM decision_log WHERE session_id = ? ORDER BY timestamp ASC
-    `)
+    `);
 
-    const rows = stmt.all(sessionId) as any[]
+    const rows = stmt.all(sessionId) as any[];
     return rows.map(row => ({
       id: row.id,
       sessionId: row.session_id,
@@ -771,7 +771,7 @@ export class TaskPersistence {
       context: row.context,
       outcome: row.outcome,
       timestamp: row.timestamp,
-    }))
+    }));
   }
 
   /**
@@ -780,9 +780,9 @@ export class TaskPersistence {
   getTaskDecisionLog(taskId: string): DecisionLog[] {
     const stmt = this.db.prepare(`
       SELECT * FROM decision_log WHERE task_id = ? ORDER BY timestamp ASC
-    `)
+    `);
 
-    const rows = stmt.all(taskId) as any[]
+    const rows = stmt.all(taskId) as any[];
     return rows.map(row => ({
       id: row.id,
       sessionId: row.session_id,
@@ -792,58 +792,58 @@ export class TaskPersistence {
       context: row.context,
       outcome: row.outcome,
       timestamp: row.timestamp,
-    }))
+    }));
   }
 
   /**
    * Detect circular dependencies
    */
   detectCircularDependency(taskId: string, dependsOnId: string): boolean {
-    const visited = new Set<string>()
-    const stack = new Set<string>()
+    const visited = new Set<string>();
+    const stack = new Set<string>();
 
     const hasCycle = (currentId: string): boolean => {
       if (stack.has(currentId)) {
-        return true
+        return true;
       }
 
       if (visited.has(currentId)) {
-        return false
+        return false;
       }
 
-      visited.add(currentId)
-      stack.add(currentId)
+      visited.add(currentId);
+      stack.add(currentId);
 
-      const deps = this.getTaskDependencies(currentId)
+      const deps = this.getTaskDependencies(currentId);
       for (const dep of deps) {
         if (hasCycle(dep.dependsOnId)) {
-          return true
+          return true;
         }
       }
 
-      stack.delete(currentId)
-      return false
-    }
+      stack.delete(currentId);
+      return false;
+    };
 
     // Check if adding this dependency would create a cycle
     // Temporarily add the dependency and check
-    const tempDeps = this.getTaskDependencies(taskId)
+    const tempDeps = this.getTaskDependencies(taskId);
     tempDeps.push({
       taskId,
       dependsOnId,
       dependencyType: 'sequential',
       required: true,
       createdAt: Date.now(),
-    })
+    });
 
-    return hasCycle(taskId)
+    return hasCycle(taskId);
   }
 
   /**
    * Close database
    */
   close(): void {
-    this.db.close()
+    this.db.close();
   }
 
   /**
@@ -865,11 +865,11 @@ export class TaskPersistence {
       startedAt: row.started_at,
       completedAt: row.completed_at,
       metadata: row.metadata,
-    }
+    };
   }
 }
 
 /**
  * Global task persistence instance
  */
-export const taskPersistence = new TaskPersistence()
+export const taskPersistence = new TaskPersistence();

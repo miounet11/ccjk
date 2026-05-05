@@ -16,13 +16,13 @@
  */
 export interface ApiResponse<T> {
   /** Whether the request was successful */
-  success: boolean
+  success: boolean;
   /** Response data (present on success) */
-  data?: T
+  data?: T;
   /** Error message (present on failure) */
-  error?: string
+  error?: string;
   /** Error code (present on failure) */
-  code?: string
+  code?: string;
 }
 
 /**
@@ -30,15 +30,15 @@ export interface ApiResponse<T> {
  */
 export interface Pagination {
   /** Current page number (1-indexed) */
-  page: number
+  page: number;
   /** Number of items per page */
-  limit: number
+  limit: number;
   /** Total number of items */
-  total: number
+  total: number;
   /** Total number of pages */
-  totalPages: number
+  totalPages: number;
   /** Whether there are more pages */
-  hasNext: boolean
+  hasNext: boolean;
 }
 
 /**
@@ -46,13 +46,13 @@ export interface Pagination {
  */
 export interface Quota {
   /** Number of skills currently installed */
-  used: number
+  used: number;
   /** Maximum number of skills allowed */
-  limit: number
+  limit: number;
   /** Remaining skill slots */
-  remaining: number
+  remaining: number;
   /** User's subscription tier */
-  tier: 'free' | 'pro' | 'enterprise'
+  tier: 'free' | 'pro' | 'enterprise';
 }
 
 // ============================================
@@ -70,7 +70,7 @@ export type SkillCategory
     | 'automation'
     | 'integration'
     | 'utility'
-    | 'other'
+    | 'other';
 
 /**
  * Skill provider enumeration
@@ -79,7 +79,7 @@ export type SkillProvider
   = | 'official'
     | 'community'
     | 'verified'
-    | 'third-party'
+    | 'third-party';
 
 /**
  * Skill status enumeration
@@ -88,7 +88,7 @@ export type SkillStatus
   = | 'active'
     | 'deprecated'
     | 'beta'
-    | 'archived'
+    | 'archived';
 
 /**
  * Supported AI agents
@@ -99,22 +99,22 @@ export type SupportedAgent
     | 'aider'
     | 'continue'
     | 'cline'
-    | 'cursor'
+    | 'cursor';
 
 /**
  * Skill metadata
  */
 export interface SkillMetadata {
   /** Minimum required version */
-  minVersion?: string
+  minVersion?: string;
   /** Maximum supported version */
-  maxVersion?: string
+  maxVersion?: string;
   /** Required dependencies */
-  dependencies?: string[]
+  dependencies?: string[];
   /** Skill configuration schema */
-  configSchema?: Record<string, unknown>
+  configSchema?: Record<string, unknown>;
   /** Additional custom metadata */
-  [key: string]: unknown
+  [key: string]: unknown;
 }
 
 /**
@@ -122,63 +122,63 @@ export interface SkillMetadata {
  */
 export interface Skill {
   /** Unique skill identifier */
-  skillId: string
+  skillId: string;
   /** Skill name (English) */
-  name: string
+  name: string;
   /** URL-friendly slug */
-  slug: string
+  slug: string;
   /** Skill name (Chinese) */
-  nameZh: string
+  nameZh: string;
   /** Description (English) */
-  descriptionEn: string
+  descriptionEn: string;
   /** Description (Chinese) */
-  descriptionZh: string
+  descriptionZh: string;
   /** Source repository name */
-  repo: string
+  repo: string;
   /** Source repository URL */
-  repoUrl: string
+  repoUrl: string;
   /** GitHub stars count */
-  stars: number
+  stars: number;
   /** Total cloud install count */
-  installCount: number
+  installCount: number;
   /** Local install count (from CLI) */
-  localInstallCount: number
+  localInstallCount: number;
   /** Skill category */
-  category: SkillCategory
+  category: SkillCategory;
   /** Skill tags for filtering */
-  tags: string[]
+  tags: string[];
   /** Skill provider type */
-  provider: SkillProvider
+  provider: SkillProvider;
   /** Whether this is an official Anthropic skill */
-  isOfficial: boolean
+  isOfficial: boolean;
   /** Whether this skill is verified */
-  isVerified: boolean
+  isVerified: boolean;
   /** Whether this skill is currently trending */
-  isTrending: boolean
+  isTrending: boolean;
   /** Trending rank (null if not trending) */
-  trendingRank: number | null
+  trendingRank: number | null;
   /** Trigger command (e.g., "/commit") */
-  trigger: string
+  trigger: string;
   /** Alternative trigger aliases */
-  aliases: string[]
+  aliases: string[];
   /** CLI installation command */
-  installCommand: string
+  installCommand: string;
   /** List of supported AI agents */
-  supportedAgents: SupportedAgent[]
+  supportedAgents: SupportedAgent[];
   /** Average rating (1-5) */
-  ratingAvg: number
+  ratingAvg: number;
   /** Total number of ratings */
-  ratingCount: number
+  ratingCount: number;
   /** Number of times searched */
-  searchCount: number
+  searchCount: number;
   /** Current skill status */
-  status: SkillStatus
+  status: SkillStatus;
   /** Additional metadata */
-  metadata: SkillMetadata
+  metadata: SkillMetadata;
   /** Creation timestamp (ISO 8601) */
-  createdAt: string
+  createdAt: string;
   /** Last update timestamp (ISO 8601) */
-  updatedAt: string
+  updatedAt: string;
 }
 
 /**
@@ -186,19 +186,19 @@ export interface Skill {
  */
 export interface UserSkill {
   /** Skill identifier */
-  skillId: string
+  skillId: string;
   /** Skill name */
-  name: string
+  name: string;
   /** Installation timestamp (ISO 8601) */
-  installedAt: string
+  installedAt: string;
   /** Last usage timestamp (ISO 8601, null if never used) */
-  lastUsedAt: string | null
+  lastUsedAt: string | null;
   /** Total usage count */
-  usageCount: number
+  usageCount: number;
   /** Whether the skill is enabled */
-  isEnabled: boolean
+  isEnabled: boolean;
   /** User's custom configuration */
-  config: Record<string, unknown>
+  config: Record<string, unknown>;
 }
 
 // ============================================
@@ -210,23 +210,23 @@ export interface UserSkill {
  */
 export interface Rating {
   /** Unique rating identifier */
-  id: string
+  id: string;
   /** User ID who created the rating */
-  userId: string
+  userId: string;
   /** Display name of the user */
-  userName: string
+  userName: string;
   /** Skill being rated */
-  skillId: string
+  skillId: string;
   /** Rating value (1-5) */
-  rating: number
+  rating: number;
   /** Optional review text */
-  review: string | null
+  review: string | null;
   /** Number of users who found this helpful */
-  helpful: number
+  helpful: number;
   /** Creation timestamp (ISO 8601) */
-  createdAt: string
+  createdAt: string;
   /** Last update timestamp (ISO 8601) */
-  updatedAt: string
+  updatedAt: string;
 }
 
 /**
@@ -234,17 +234,17 @@ export interface Rating {
  */
 export interface RatingSummary {
   /** Average rating */
-  average: number
+  average: number;
   /** Total number of ratings */
-  count: number
+  count: number;
   /** Distribution by star count */
   distribution: {
-    1: number
-    2: number
-    3: number
-    4: number
-    5: number
-  }
+    1: number;
+    2: number;
+    3: number;
+    4: number;
+    5: number;
+  };
 }
 
 // ============================================
@@ -256,19 +256,19 @@ export interface RatingSummary {
  */
 export interface MarketplaceParams {
   /** Page number (1-indexed, default: 1) */
-  page?: number
+  page?: number;
   /** Items per page (default: 20, max: 100) */
-  limit?: number
+  limit?: number;
   /** Filter by category */
-  category?: SkillCategory
+  category?: SkillCategory;
   /** Filter by provider */
-  provider?: SkillProvider
+  provider?: SkillProvider;
   /** Sort order */
-  sort?: 'popular' | 'newest' | 'rating' | 'trending' | 'name'
+  sort?: 'popular' | 'newest' | 'rating' | 'trending' | 'name';
   /** Filter official skills only */
-  isOfficial?: boolean
+  isOfficial?: boolean;
   /** Filter trending skills only */
-  isTrending?: boolean
+  isTrending?: boolean;
 }
 
 /**
@@ -276,15 +276,15 @@ export interface MarketplaceParams {
  */
 export interface SearchParams {
   /** Search query string */
-  q: string
+  q: string;
   /** Filter by category */
-  category?: SkillCategory
+  category?: SkillCategory;
   /** Filter by provider */
-  provider?: SkillProvider
+  provider?: SkillProvider;
   /** Maximum results (default: 20) */
-  limit?: number
+  limit?: number;
   /** Offset for pagination (default: 0) */
-  offset?: number
+  offset?: number;
 }
 
 /**
@@ -292,9 +292,9 @@ export interface SearchParams {
  */
 export interface SuggestionsParams {
   /** Partial search query */
-  q: string
+  q: string;
   /** Maximum suggestions (default: 10) */
-  limit?: number
+  limit?: number;
 }
 
 /**
@@ -302,7 +302,7 @@ export interface SuggestionsParams {
  */
 export interface TrendingParams {
   /** Maximum results (default: 10) */
-  limit?: number
+  limit?: number;
 }
 
 /**
@@ -310,11 +310,11 @@ export interface TrendingParams {
  */
 export interface RecommendationsParams {
   /** User ID for personalization */
-  userId?: string
+  userId?: string;
   /** Maximum recommendations (default: 10) */
-  limit?: number
+  limit?: number;
   /** Exclude already installed skills */
-  excludeInstalled?: boolean
+  excludeInstalled?: boolean;
 }
 
 /**
@@ -322,11 +322,11 @@ export interface RecommendationsParams {
  */
 export interface RatingsParams {
   /** Page number (1-indexed, default: 1) */
-  page?: number
+  page?: number;
   /** Items per page (default: 20) */
-  limit?: number
+  limit?: number;
   /** Sort order */
-  sort?: 'newest' | 'oldest' | 'highest' | 'lowest' | 'helpful'
+  sort?: 'newest' | 'oldest' | 'highest' | 'lowest' | 'helpful';
 }
 
 // ============================================
@@ -338,9 +338,9 @@ export interface RatingsParams {
  */
 export interface InstallSkillRequest {
   /** Skill ID to install */
-  skillId: string
+  skillId: string;
   /** User's subscription tier (for quota validation) */
-  userTier?: 'free' | 'pro' | 'enterprise'
+  userTier?: 'free' | 'pro' | 'enterprise';
 }
 
 /**
@@ -348,9 +348,9 @@ export interface InstallSkillRequest {
  */
 export interface UpdateSkillRequest {
   /** Enable or disable the skill */
-  isEnabled?: boolean
+  isEnabled?: boolean;
   /** Custom configuration */
-  config?: Record<string, unknown>
+  config?: Record<string, unknown>;
 }
 
 /**
@@ -358,11 +358,11 @@ export interface UpdateSkillRequest {
  */
 export interface CreateRatingRequest {
   /** User ID creating the rating */
-  userId: string
+  userId: string;
   /** Rating value (1-5) */
-  rating: number
+  rating: number;
   /** Optional review text */
-  review?: string
+  review?: string;
 }
 
 // ============================================
@@ -374,11 +374,11 @@ export interface CreateRatingRequest {
  */
 export interface MarketplaceFilters {
   /** Available categories */
-  categories: SkillCategory[]
+  categories: SkillCategory[];
   /** Available providers */
-  providers: SkillProvider[]
+  providers: SkillProvider[];
   /** Available sort options */
-  sortOptions: string[]
+  sortOptions: string[];
 }
 
 /**
@@ -386,11 +386,11 @@ export interface MarketplaceFilters {
  */
 export interface MarketplaceResponse {
   /** List of skills */
-  skills: Skill[]
+  skills: Skill[];
   /** Pagination information */
-  pagination: Pagination
+  pagination: Pagination;
   /** Available filter options */
-  filters: MarketplaceFilters
+  filters: MarketplaceFilters;
 }
 
 /**
@@ -398,11 +398,11 @@ export interface MarketplaceResponse {
  */
 export interface SearchResponse {
   /** Search results */
-  results: Skill[]
+  results: Skill[];
   /** Total matching results */
-  total: number
+  total: number;
   /** Original search query */
-  query: string
+  query: string;
 }
 
 /**
@@ -410,11 +410,11 @@ export interface SearchResponse {
  */
 export interface Suggestion {
   /** Suggested text */
-  text: string
+  text: string;
   /** Suggestion type */
-  type: 'skill' | 'category' | 'tag'
+  type: 'skill' | 'category' | 'tag';
   /** Related skill ID (if type is 'skill') */
-  skillId?: string
+  skillId?: string;
 }
 
 /**
@@ -422,7 +422,7 @@ export interface Suggestion {
  */
 export interface SuggestionsResponse {
   /** List of suggestions */
-  suggestions: Suggestion[]
+  suggestions: Suggestion[];
 }
 
 /**
@@ -430,7 +430,7 @@ export interface SuggestionsResponse {
  */
 export interface TrendingResponse {
   /** List of trending skills */
-  trending: Skill[]
+  trending: Skill[];
 }
 
 /**
@@ -438,9 +438,9 @@ export interface TrendingResponse {
  */
 export interface RecommendationBasis {
   /** Basis type */
-  type: 'similar_users' | 'installed_skills' | 'popular' | 'category'
+  type: 'similar_users' | 'installed_skills' | 'popular' | 'category';
   /** Related skill IDs or categories */
-  related: string[]
+  related: string[];
 }
 
 /**
@@ -448,11 +448,11 @@ export interface RecommendationBasis {
  */
 export interface RecommendationsResponse {
   /** List of recommended skills */
-  recommendations: Skill[]
+  recommendations: Skill[];
   /** Total available recommendations */
-  total: number
+  total: number;
   /** Basis for recommendations */
-  basedOn: RecommendationBasis[]
+  basedOn: RecommendationBasis[];
 }
 
 /**
@@ -460,11 +460,11 @@ export interface RecommendationsResponse {
  */
 export interface UserSkillsResponse {
   /** List of user's installed skills */
-  skills: UserSkill[]
+  skills: UserSkill[];
   /** Total installed skills count */
-  total: number
+  total: number;
   /** User's quota information */
-  quota: Quota
+  quota: Quota;
 }
 
 /**
@@ -472,11 +472,11 @@ export interface UserSkillsResponse {
  */
 export interface InstallResponse {
   /** Installed skill ID */
-  skillId: string
+  skillId: string;
   /** Installation timestamp (ISO 8601) */
-  installedAt: string
+  installedAt: string;
   /** Updated quota information */
-  quota: Quota
+  quota: Quota;
 }
 
 /**
@@ -484,11 +484,11 @@ export interface InstallResponse {
  */
 export interface UninstallResponse {
   /** Uninstalled skill ID */
-  skillId: string
+  skillId: string;
   /** Uninstallation timestamp (ISO 8601) */
-  uninstalledAt: string
+  uninstalledAt: string;
   /** Updated quota information */
-  quota: Quota
+  quota: Quota;
 }
 
 /**
@@ -496,13 +496,13 @@ export interface UninstallResponse {
  */
 export interface UpdateResponse {
   /** Updated skill ID */
-  skillId: string
+  skillId: string;
   /** New enabled status */
-  isEnabled: boolean
+  isEnabled: boolean;
   /** Updated configuration */
-  config: Record<string, unknown>
+  config: Record<string, unknown>;
   /** Update timestamp (ISO 8601) */
-  updatedAt: string
+  updatedAt: string;
 }
 
 /**
@@ -510,11 +510,11 @@ export interface UpdateResponse {
  */
 export interface RatingsResponse {
   /** List of ratings */
-  ratings: Rating[]
+  ratings: Rating[];
   /** Rating summary statistics */
-  summary: RatingSummary
+  summary: RatingSummary;
   /** Pagination information */
-  pagination: Pagination
+  pagination: Pagination;
 }
 
 /**
@@ -522,17 +522,17 @@ export interface RatingsResponse {
  */
 export interface CreateRatingResponse {
   /** Created rating ID */
-  id: string
+  id: string;
   /** Skill ID */
-  skillId: string
+  skillId: string;
   /** User ID */
-  userId: string
+  userId: string;
   /** Rating value */
-  rating: number
+  rating: number;
   /** Review text */
-  review: string | null
+  review: string | null;
   /** Helpful count (starts at 0) */
-  helpful: number
+  helpful: number;
   /** Creation timestamp (ISO 8601) */
-  createdAt: string
+  createdAt: string;
 }

@@ -1,17 +1,17 @@
 {
   "name": "@ccjk/evolution",
+  "type": "module",
   "version": "1.0.0",
   "description": "CCJK Evolution Layer - AI Agent Knowledge Sharing",
-  "type": "module",
-  "main": "dist/index.cjs",
-  "module": "dist/index.mjs",
-  "types": "dist/index.d.ts",
   "exports": {
     ".": {
       "import": "./dist/index.mjs",
       "require": "./dist/index.cjs"
     }
   },
+  "main": "dist/index.cjs",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
   "scripts": {
     "dev": "tsx src/index.ts",
     "build": "unbuild",
@@ -19,13 +19,13 @@
   },
   "dependencies": {
     "@ccjk/wire": "workspace:*",
-    "crypto": "^1.0.1"
+    "crypto": "catalog:"
   },
   "devDependencies": {
     "@types/node": "catalog:",
     "tsx": "catalog:",
     "typescript": "catalog:",
-    "unbuild": "^3.3.1",
+    "unbuild": "catalog:conflicts_conflicts_conflicts_unbuild_h3_3_1_h3_6_1_h3_3_1",
     "vitest": "catalog:"
   }
 }

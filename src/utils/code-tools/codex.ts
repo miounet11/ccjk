@@ -1,88 +1,88 @@
-import type { AiOutputLanguage, SupportedLang } from '../../constants'
-import type { CodexUninstallItem, CodexUninstallResult } from './codex-uninstaller'
-import { readdirSync } from 'node:fs'
-import process from 'node:process'
-import { fileURLToPath } from 'node:url'
-import ansis from 'ansis'
-import dayjs from 'dayjs'
-import inquirer from 'inquirer'
-import ora from 'ora'
-import { dirname, join } from 'pathe'
-import semver from 'semver'
-import { parse as parseToml } from 'smol-toml'
-import { x } from 'tinyexec'
+import type { AiOutputLanguage, SupportedLang } from '../../constants';
+import type { CodexUninstallItem, CodexUninstallResult } from './codex-uninstaller';
+import { readdirSync } from 'node:fs';
+import process from 'node:process';
+import { fileURLToPath } from 'node:url';
+import ansis from 'ansis';
+import dayjs from 'dayjs';
+import inquirer from 'inquirer';
+import ora from 'ora';
+import { dirname, join } from 'pathe';
+import semver from 'semver';
+import { parse as parseToml } from 'smol-toml';
+import { x } from 'tinyexec';
 // Removed MCP config imports; MCP configuration moved to codex-configure.ts
-import { AI_OUTPUT_LANGUAGES, CODEX_AGENTS_FILE, CODEX_AUTH_FILE, CODEX_CONFIG_FILE, CODEX_DIR, CODEX_PROMPTS_DIR, SUPPORTED_LANGS, ZCF_CONFIG_FILE } from '../../constants'
-import { ensureI18nInitialized, format, i18n } from '../../i18n'
-import { readDefaultTomlConfig, readZcfConfig, updateTomlConfig, updateZcfConfig } from '../ccjk-config'
-import { applyAiLanguageDirective } from '../config'
-import { copyDir, copyFile, ensureDir, exists, readFile, writeFile, writeFileAtomic } from '../fs-operations'
-import { readJsonConfig, writeJsonConfig } from '../json-config'
-import { normalizeTomlPath, wrapCommandWithSudo } from '../platform'
+import { AI_OUTPUT_LANGUAGES, CODEX_AGENTS_FILE, CODEX_AUTH_FILE, CODEX_CONFIG_FILE, CODEX_DIR, CODEX_PROMPTS_DIR, SUPPORTED_LANGS, ZCF_CONFIG_FILE } from '../../constants';
+import { ensureI18nInitialized, format, i18n } from '../../i18n';
+import { readDefaultTomlConfig, readZcfConfig, updateTomlConfig, updateZcfConfig } from '../ccjk-config';
+import { applyAiLanguageDirective } from '../config';
+import { copyDir, copyFile, ensureDir, exists, readFile, writeFile, writeFileAtomic } from '../fs-operations';
+import { readJsonConfig, writeJsonConfig } from '../json-config';
+import { normalizeTomlPath, wrapCommandWithSudo } from '../platform';
 // Removed MCP selection and platform command imports from this module
-import { addNumbersToChoices } from '../prompt-helpers'
-import { resolveAiOutputLanguage } from '../prompts'
-import { promptBoolean } from '../toggle-prompt'
-import { detectConfigManagementMode } from './codex-config-detector'
-import { configureCodexMcp } from './codex-configure'
-import { applyCodexPlatformCommand } from './codex-platform'
+import { addNumbersToChoices } from '../prompt-helpers';
+import { resolveAiOutputLanguage } from '../prompts';
+import { promptBoolean } from '../toggle-prompt';
+import { detectConfigManagementMode } from './codex-config-detector';
+import { configureCodexMcp } from './codex-configure';
+import { applyCodexPlatformCommand } from './codex-platform';
 
 // Cache to avoid repeated backups in skip-prompt mode
-let cachedSkipPromptBackup: string | null = null
+let cachedSkipPromptBackup: string | null = null;
 
 // Public export for easy reuse and testing
-export { applyCodexPlatformCommand, CODEX_DIR }
+export { applyCodexPlatformCommand, CODEX_DIR };
 
 export interface CodexProvider {
-  id: string
-  name: string
-  baseUrl: string
-  wireApi: string
-  tempEnvKey: string
-  requiresOpenaiAuth: boolean
-  model?: string // Default model for this provider
+  id: string;
+  name: string;
+  baseUrl: string;
+  wireApi: string;
+  tempEnvKey: string;
+  requiresOpenaiAuth: boolean;
+  model?: string; // Default model for this provider
 }
 
 export interface CodexMcpService {
-  id: string
-  command: string
-  args: string[]
-  env?: Record<string, string>
-  startup_timeout_sec?: number
+  id: string;
+  command: string;
+  args: string[];
+  env?: Record<string, string>;
+  startup_timeout_sec?: number;
   // Preserve all extra configuration fields not directly managed by CCJK
-  extraFields?: Record<string, any>
+  extraFields?: Record<string, any>;
 }
 
 export interface CodexConfigData {
-  model: string | null // Default model to use (gpt-5, gpt-5-codex, etc.)
-  modelProvider: string | null // API provider for model_provider field
-  providers: CodexProvider[]
-  mcpServices: CodexMcpService[]
-  managed: boolean
-  features?: Record<string, boolean>
-  otherConfig?: string[] // Lines that are not managed by CCJK
-  modelProviderCommented?: boolean // Whether model_provider line should be commented out
+  model: string | null; // Default model to use (gpt-5, gpt-5-codex, etc.)
+  modelProvider: string | null; // API provider for model_provider field
+  providers: CodexProvider[];
+  mcpServices: CodexMcpService[];
+  managed: boolean;
+  features?: Record<string, boolean>;
+  otherConfig?: string[]; // Lines that are not managed by CCJK
+  modelProviderCommented?: boolean; // Whether model_provider line should be commented out
 }
 
 export interface CodexVersionInfo {
-  installed: boolean
-  currentVersion: string | null
-  latestVersion: string | null
-  needsUpdate: boolean
+  installed: boolean;
+  currentVersion: string | null;
+  latestVersion: string | null;
+  needsUpdate: boolean;
 }
 
 function getRootDir(): string {
-  const currentFilePath = fileURLToPath(import.meta.url)
-  let dir = dirname(currentFilePath)
+  const currentFilePath = fileURLToPath(import.meta.url);
+  let dir = dirname(currentFilePath);
 
   while (dir !== dirname(dir)) {
     if (exists(join(dir, 'templates'))) {
-      return dir
+      return dir;
     }
-    dir = dirname(dir)
+    dir = dirname(dir);
   }
 
-  return dirname(currentFilePath)
+  return dirname(currentFilePath);
 }
 
 /**
@@ -93,9 +93,9 @@ async function detectCodexInstallMethod(): Promise<'npm' | 'homebrew' | 'unknown
   try {
     // Check if installed via Homebrew (macOS/Linux)
     // Codex is distributed as a Homebrew cask, so we need to use --cask flag
-    const brewResult = await x('brew', ['list', '--cask', 'codex'], { throwOnError: false })
+    const brewResult = await x('brew', ['list', '--cask', 'codex'], { throwOnError: false });
     if (brewResult.exitCode === 0) {
-      return 'homebrew'
+      return 'homebrew';
     }
   }
   catch {
@@ -104,16 +104,16 @@ async function detectCodexInstallMethod(): Promise<'npm' | 'homebrew' | 'unknown
 
   try {
     // Check if installed via npm
-    const npmResult = await x('npm', ['list', '-g', '@openai/codex'], { throwOnError: false })
+    const npmResult = await x('npm', ['list', '-g', '@openai/codex'], { throwOnError: false });
     if (npmResult.exitCode === 0 && npmResult.stdout.includes('@openai/codex')) {
-      return 'npm'
+      return 'npm';
     }
   }
   catch {
     // npm not available or codex not installed via npm
   }
 
-  return 'unknown'
+  return 'unknown';
 }
 
 /**
@@ -122,59 +122,59 @@ async function detectCodexInstallMethod(): Promise<'npm' | 'homebrew' | 'unknown
  */
 async function executeCodexInstallation(isUpdate: boolean, skipMethodSelection: boolean = false): Promise<void> {
   if (isUpdate) {
-    console.log(ansis.green(i18n.t('codex:updatingCli')))
+    console.log(ansis.green(i18n.t('codex:updatingCli')));
 
     // Detect installation method for updates
-    const installMethod = await detectCodexInstallMethod()
+    const installMethod = await detectCodexInstallMethod();
 
     if (installMethod === 'homebrew') {
       // Update via Homebrew
       // Codex is distributed as a Homebrew cask, so we need to use --cask flag
-      console.log(ansis.gray(i18n.t('codex:detectedHomebrew')))
-      const result = await x('brew', ['upgrade', '--cask', 'codex'])
+      console.log(ansis.gray(i18n.t('codex:detectedHomebrew')));
+      const result = await x('brew', ['upgrade', '--cask', 'codex']);
       if (result.exitCode !== 0) {
-        throw new Error(`Failed to update codex via Homebrew: exit code ${result.exitCode}`)
+        throw new Error(`Failed to update codex via Homebrew: exit code ${result.exitCode}`);
       }
     }
     else if (installMethod === 'npm') {
       // Update via npm
-      console.log(ansis.gray(i18n.t('codex:detectedNpm')))
-      const { command, args, usedSudo } = wrapCommandWithSudo('npm', ['install', '-g', '@openai/codex@latest'])
+      console.log(ansis.gray(i18n.t('codex:detectedNpm')));
+      const { command, args, usedSudo } = wrapCommandWithSudo('npm', ['install', '-g', '@openai/codex@latest']);
       if (usedSudo)
-        console.log(ansis.yellow(i18n.t('codex:usingSudo')))
+        console.log(ansis.yellow(i18n.t('codex:usingSudo')));
 
-      const result = await x(command, args)
+      const result = await x(command, args);
       if (result.exitCode !== 0) {
-        throw new Error(`Failed to update codex CLI: exit code ${result.exitCode}`)
+        throw new Error(`Failed to update codex CLI: exit code ${result.exitCode}`);
       }
     }
     else {
       // Unknown installation method - fall back to npm
-      console.log(ansis.yellow(i18n.t('codex:unknownInstallMethod')))
-      console.log(ansis.gray(i18n.t('codex:fallingBackToNpm')))
-      const { command, args, usedSudo } = wrapCommandWithSudo('npm', ['install', '-g', '@openai/codex@latest'])
+      console.log(ansis.yellow(i18n.t('codex:unknownInstallMethod')));
+      console.log(ansis.gray(i18n.t('codex:fallingBackToNpm')));
+      const { command, args, usedSudo } = wrapCommandWithSudo('npm', ['install', '-g', '@openai/codex@latest']);
       if (usedSudo)
-        console.log(ansis.yellow(i18n.t('codex:usingSudo')))
+        console.log(ansis.yellow(i18n.t('codex:usingSudo')));
 
-      const result = await x(command, args)
+      const result = await x(command, args);
       if (result.exitCode !== 0) {
-        throw new Error(`Failed to update codex CLI: exit code ${result.exitCode}`)
+        throw new Error(`Failed to update codex CLI: exit code ${result.exitCode}`);
       }
     }
 
-    console.log(ansis.green(i18n.t('codex:updateSuccess')))
+    console.log(ansis.green(i18n.t('codex:updateSuccess')));
   }
   else {
     // Use the new installCodex function for installation
-    const { installCodex } = await import('../installer')
-    await installCodex(skipMethodSelection)
+    const { installCodex } = await import('../installer');
+    await installCodex(skipMethodSelection);
   }
 }
 
 /**
  * Get standardized uninstall options for custom uninstall mode
  */
-function getUninstallOptions(): Array<{ name: string, value: CodexUninstallItem }> {
+function getUninstallOptions(): Array<{ name: string; value: CodexUninstallItem }> {
   return [
     { name: i18n.t('codex:uninstallItemConfig'), value: 'config' },
     { name: i18n.t('codex:uninstallItemAuth'), value: 'auth' },
@@ -184,43 +184,43 @@ function getUninstallOptions(): Array<{ name: string, value: CodexUninstallItem 
     { name: i18n.t('codex:uninstallItemWorkflow'), value: 'workflow' },
     { name: i18n.t('codex:uninstallItemCliPackage'), value: 'cli-package' },
     { name: i18n.t('codex:uninstallItemBackups'), value: 'backups' },
-  ]
+  ];
 }
 
 /**
  * Handle cancellation message display
  */
 function handleUninstallCancellation(): void {
-  console.log(ansis.yellow(i18n.t('codex:uninstallCancelled')))
+  console.log(ansis.yellow(i18n.t('codex:uninstallCancelled')));
 }
 
 export function createBackupDirectory(timestamp: string): string {
-  const backupBaseDir = join(CODEX_DIR, 'backup')
-  const backupDir = join(backupBaseDir, `backup_${timestamp}`)
-  ensureDir(backupDir)
-  return backupDir
+  const backupBaseDir = join(CODEX_DIR, 'backup');
+  const backupDir = join(backupBaseDir, `backup_${timestamp}`);
+  ensureDir(backupDir);
+  return backupDir;
 }
 
 export function backupCodexFiles(): string | null {
   if (!exists(CODEX_DIR))
-    return null
+    return null;
 
   // Skip-prompt模式：只在首次调用时创建备份，其余复用
   if (process.env.CCJK_CODEX_SKIP_PROMPT_SINGLE_BACKUP === 'true' && cachedSkipPromptBackup)
-    return cachedSkipPromptBackup
+    return cachedSkipPromptBackup;
 
-  const timestamp = dayjs().format('YYYY-MM-DD_HH-mm-ss')
-  const backupDir = createBackupDirectory(timestamp)
+  const timestamp = dayjs().format('YYYY-MM-DD_HH-mm-ss');
+  const backupDir = createBackupDirectory(timestamp);
 
   const filter = (path: string): boolean => {
-    return !path.includes('/backup')
-  }
+    return !path.includes('/backup');
+  };
 
-  copyDir(CODEX_DIR, backupDir, { filter })
+  copyDir(CODEX_DIR, backupDir, { filter });
   if (process.env.CCJK_CODEX_SKIP_PROMPT_SINGLE_BACKUP === 'true')
-    cachedSkipPromptBackup = backupDir
+    cachedSkipPromptBackup = backupDir;
 
-  return backupDir
+  return backupDir;
 }
 
 /**
@@ -231,73 +231,73 @@ export function backupCodexFiles(): string | null {
  * while following DRY principles (Don't Repeat Yourself)
  */
 export function backupCodexComplete(): string | null {
-  return backupCodexFiles()
+  return backupCodexFiles();
 }
 
 export function backupCodexConfig(): string | null {
   if (!exists(CODEX_CONFIG_FILE))
-    return null
+    return null;
 
   try {
-    const timestamp = dayjs().format('YYYY-MM-DD_HH-mm-ss')
-    const backupDir = createBackupDirectory(timestamp)
-    const backupPath = join(backupDir, 'config.toml')
-    copyFile(CODEX_CONFIG_FILE, backupPath)
-    return backupPath
+    const timestamp = dayjs().format('YYYY-MM-DD_HH-mm-ss');
+    const backupDir = createBackupDirectory(timestamp);
+    const backupPath = join(backupDir, 'config.toml');
+    copyFile(CODEX_CONFIG_FILE, backupPath);
+    return backupPath;
   }
   catch {
-    return null
+    return null;
   }
 }
 
 export function backupCodexAgents(): string | null {
   if (process.env.CCJK_CODEX_SKIP_PROMPT_SINGLE_BACKUP === 'true' && cachedSkipPromptBackup)
-    return cachedSkipPromptBackup
+    return cachedSkipPromptBackup;
   if (!exists(CODEX_AGENTS_FILE))
-    return null
+    return null;
 
   try {
-    const timestamp = dayjs().format('YYYY-MM-DD_HH-mm-ss')
-    const backupDir = createBackupDirectory(timestamp)
-    const backupPath = join(backupDir, 'AGENTS.md')
-    copyFile(CODEX_AGENTS_FILE, backupPath)
-    return backupPath
+    const timestamp = dayjs().format('YYYY-MM-DD_HH-mm-ss');
+    const backupDir = createBackupDirectory(timestamp);
+    const backupPath = join(backupDir, 'AGENTS.md');
+    copyFile(CODEX_AGENTS_FILE, backupPath);
+    return backupPath;
   }
   catch {
-    return null
+    return null;
   }
 }
 
 export function backupCodexPrompts(): string | null {
   if (process.env.CCJK_CODEX_SKIP_PROMPT_SINGLE_BACKUP === 'true' && cachedSkipPromptBackup)
-    return cachedSkipPromptBackup
+    return cachedSkipPromptBackup;
   if (!exists(CODEX_PROMPTS_DIR))
-    return null
+    return null;
 
   try {
-    const timestamp = dayjs().format('YYYY-MM-DD_HH-mm-ss')
-    const backupDir = createBackupDirectory(timestamp)
-    const backupPath = join(backupDir, 'prompts')
-    copyDir(CODEX_PROMPTS_DIR, backupPath)
-    return backupPath
+    const timestamp = dayjs().format('YYYY-MM-DD_HH-mm-ss');
+    const backupDir = createBackupDirectory(timestamp);
+    const backupPath = join(backupDir, 'prompts');
+    copyDir(CODEX_PROMPTS_DIR, backupPath);
+    return backupPath;
   }
   catch {
-    return null
+    return null;
   }
 }
 
 export function getBackupMessage(path: string | null): string {
   if (!path)
-    return ''
+    return '';
 
   // Provide fallback message when i18n is not initialized
   // This prevents migration failures when called before initI18n()
   // (e.g., programmatic calls to getCurrentCodexProvider/listCodexProviders)
   if (!i18n.isInitialized) {
-    return `Backup created: ${path}`
+    return `Backup created: ${path}`;
   }
 
-  return i18n.t('codex:backupSuccess', { path })
+  return i18n.t('codex:backupSuccess', { path });
 }
 
 /**
@@ -306,19 +306,19 @@ export function getBackupMessage(path: string | null): string {
  */
 export function needsEnvKeyMigration(): boolean {
   if (!exists(CODEX_CONFIG_FILE))
-    return false
+    return false;
 
   try {
-    const content = readFile(CODEX_CONFIG_FILE)
+    const content = readFile(CODEX_CONFIG_FILE);
     // Check if any provider section has old env_key field (not temp_env_key)
-    const hasOldEnvKey = /^\s*env_key\s*=/m.test(content)
+    const hasOldEnvKey = /^\s*env_key\s*=/m.test(content);
 
     // Migration needed if has any old env_key (regardless of temp_env_key presence)
     // This ensures all providers are migrated even if some already use temp_env_key
-    return hasOldEnvKey
+    return hasOldEnvKey;
   }
   catch {
-    return false
+    return false;
   }
 }
 
@@ -334,46 +334,46 @@ export function needsEnvKeyMigration(): boolean {
  */
 export function migrateEnvKeyToTempEnvKey(): boolean {
   if (!exists(CODEX_CONFIG_FILE))
-    return false
+    return false;
 
   try {
-    const content = readFile(CODEX_CONFIG_FILE)
+    const content = readFile(CODEX_CONFIG_FILE);
 
     // Check if migration is needed
     if (!needsEnvKeyMigration())
-      return false
+      return false;
 
     // Create backup before migration
-    const backupPath = backupCodexConfig()
+    const backupPath = backupCodexConfig();
     if (backupPath) {
-      console.log(ansis.gray(getBackupMessage(backupPath)))
+      console.log(ansis.gray(getBackupMessage(backupPath)));
     }
 
     // Perform smart migration that handles mixed state
     // Split content into provider sections and process each separately
-    const migratedContent = migrateEnvKeyInContent(content)
+    const migratedContent = migrateEnvKeyInContent(content);
 
     // Write migrated content atomically to prevent corruption
-    writeFileAtomic(CODEX_CONFIG_FILE, migratedContent)
+    writeFileAtomic(CODEX_CONFIG_FILE, migratedContent);
 
     // Update CCJK config to mark migration as complete
     updateTomlConfig(ZCF_CONFIG_FILE, {
       codex: {
         envKeyMigrated: true,
       },
-    } as any)
+    } as any);
 
     // Provide fallback message when i18n is not initialized
     // This prevents migration failures when called before initI18n()
     const message = i18n.isInitialized
       ? i18n.t('codex:envKeyMigrationComplete')
-      : '✔ env_key to temp_env_key migration completed'
-    console.log(ansis.green(message))
-    return true
+      : '✔ env_key to temp_env_key migration completed';
+    console.log(ansis.green(message));
+    return true;
   }
   catch (error) {
-    console.error(ansis.yellow(`env_key migration warning: ${(error as Error).message}`))
-    return false
+    console.error(ansis.yellow(`env_key migration warning: ${(error as Error).message}`));
+    return false;
   }
 }
 
@@ -385,168 +385,168 @@ export function migrateEnvKeyToTempEnvKey(): boolean {
  * @returns The migrated content
  */
 export function migrateEnvKeyInContent(content: string): string {
-  const lines = content.split('\n')
-  const result: string[] = []
+  const lines = content.split('\n');
+  const result: string[] = [];
 
   // Track if current section already has temp_env_key
-  let currentSectionHasTempEnvKey = false
-  let currentSection = ''
+  let currentSectionHasTempEnvKey = false;
+  let currentSection = '';
 
   // First pass: identify sections and their temp_env_key presence
-  const sectionHasTempEnvKey = new Map<string, boolean>()
-  let tempSection = ''
+  const sectionHasTempEnvKey = new Map<string, boolean>();
+  let tempSection = '';
 
   for (const line of lines) {
     // Check if this is a section header
-    const sectionMatch = line.match(/^\s*\[([^\]]+)\]/)
+    const sectionMatch = line.match(/^\s*\[([^\]]+)\]/);
     if (sectionMatch) {
-      tempSection = sectionMatch[1]
+      tempSection = sectionMatch[1];
     }
 
     // Check if this section has temp_env_key
     if (tempSection && /^\s*temp_env_key\s*=/.test(line)) {
-      sectionHasTempEnvKey.set(tempSection, true)
+      sectionHasTempEnvKey.set(tempSection, true);
     }
   }
 
   // Second pass: process lines
   for (const line of lines) {
     // Check if this is a section header
-    const sectionMatch = line.match(/^\s*\[([^\]]+)\]/)
+    const sectionMatch = line.match(/^\s*\[([^\]]+)\]/);
     if (sectionMatch) {
-      currentSection = sectionMatch[1]
-      currentSectionHasTempEnvKey = sectionHasTempEnvKey.get(currentSection) || false
+      currentSection = sectionMatch[1];
+      currentSectionHasTempEnvKey = sectionHasTempEnvKey.get(currentSection) || false;
     }
 
     // Check if this line has env_key
-    const envKeyMatch = line.match(/^(\s*)env_key(\s*=.*)$/)
+    const envKeyMatch = line.match(/^(\s*)env_key(\s*=.*)$/);
     if (envKeyMatch) {
       if (currentSectionHasTempEnvKey) {
         // Section already has temp_env_key, remove the env_key line entirely
         // Skip adding this line to result
-        continue
+        continue;
       }
       else {
         // Section doesn't have temp_env_key, convert env_key to temp_env_key
-        result.push(`${envKeyMatch[1]}temp_env_key${envKeyMatch[2]}`)
-        continue
+        result.push(`${envKeyMatch[1]}temp_env_key${envKeyMatch[2]}`);
+        continue;
       }
     }
 
-    result.push(line)
+    result.push(line);
   }
 
-  return result.join('\n')
+  return result.join('\n');
 }
 
 export function isCodexGoalsFeatureEnabled(content: string): boolean {
   try {
-    const parsed = parseToml(content) as any
-    return parsed.features?.goals === true
+    const parsed = parseToml(content) as any;
+    return parsed.features?.goals === true;
   }
   catch {
-    return false
+    return false;
   }
 }
 
 function escapeRegExp(input: string): string {
-  return input.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  return input.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 function setCodexFeatureFlagInContent(content: string, key: string, enabled: boolean): string {
-  const normalized = content.trimEnd()
-  const lines = normalized ? normalized.split('\n') : []
-  const featuresHeaderIndex = lines.findIndex(line => line.trim() === '[features]')
+  const normalized = content.trimEnd();
+  const lines = normalized ? normalized.split('\n') : [];
+  const featuresHeaderIndex = lines.findIndex(line => line.trim() === '[features]');
 
   if (featuresHeaderIndex === -1) {
-    const prefix = normalized ? `${normalized}\n\n` : ''
-    return `${prefix}[features]\n${key} = ${enabled}\n`
+    const prefix = normalized ? `${normalized}\n\n` : '';
+    return `${prefix}[features]\n${key} = ${enabled}\n`;
   }
 
-  let insertIndex = lines.length
-  let featureIndex = -1
-  const keyPattern = new RegExp(`^${escapeRegExp(key)}\\s*=`)
+  let insertIndex = lines.length;
+  let featureIndex = -1;
+  const keyPattern = new RegExp(`^${escapeRegExp(key)}\\s*=`);
 
   for (let index = featuresHeaderIndex + 1; index < lines.length; index += 1) {
-    const trimmed = lines[index].trim()
+    const trimmed = lines[index].trim();
     if (/^\[[^\]]+\]\s*$/.test(trimmed)) {
-      insertIndex = index
-      break
+      insertIndex = index;
+      break;
     }
     if (keyPattern.test(trimmed)) {
-      featureIndex = index
-      break
+      featureIndex = index;
+      break;
     }
   }
 
   if (featureIndex !== -1) {
-    const replacePattern = new RegExp(`^(\\s*)${escapeRegExp(key)}\\s*=.*$`)
-    lines[featureIndex] = lines[featureIndex].replace(replacePattern, `$1${key} = ${enabled}`)
+    const replacePattern = new RegExp(`^(\\s*)${escapeRegExp(key)}\\s*=.*$`);
+    lines[featureIndex] = lines[featureIndex].replace(replacePattern, `$1${key} = ${enabled}`);
   }
   else {
-    lines.splice(insertIndex, 0, `${key} = ${enabled}`)
+    lines.splice(insertIndex, 0, `${key} = ${enabled}`);
   }
 
-  return `${lines.join('\n')}\n`
+  return `${lines.join('\n')}\n`;
 }
 
 function normalizeCodexFeatureFlags(input: unknown): Record<string, boolean> | undefined {
   if (!input || typeof input !== 'object' || Array.isArray(input)) {
-    return undefined
+    return undefined;
   }
 
-  const flags: Record<string, boolean> = {}
+  const flags: Record<string, boolean> = {};
   for (const [key, value] of Object.entries(input)) {
     if (/^\w+$/.test(key) && typeof value === 'boolean') {
-      flags[key] = value
+      flags[key] = value;
     }
   }
 
-  return Object.keys(flags).length > 0 ? flags : undefined
+  return Object.keys(flags).length > 0 ? flags : undefined;
 }
 
 function applyCodexFeatureFlagsToContent(
   content: string,
   features: Record<string, boolean>,
 ): string {
-  let nextContent = content
+  let nextContent = content;
   for (const [key, enabled] of Object.entries(features).sort(([a], [b]) => a.localeCompare(b))) {
-    nextContent = setCodexFeatureFlagInContent(nextContent, key, enabled)
+    nextContent = setCodexFeatureFlagInContent(nextContent, key, enabled);
   }
-  return nextContent
+  return nextContent;
 }
 
 export function setCodexGoalsFeatureInContent(content: string, enabled = true): string {
-  return setCodexFeatureFlagInContent(content, 'goals', enabled)
+  return setCodexFeatureFlagInContent(content, 'goals', enabled);
 }
 
 export function readCodexGoalsFeatureEnabled(): boolean {
   if (!exists(CODEX_CONFIG_FILE)) {
-    return false
+    return false;
   }
 
   try {
-    return isCodexGoalsFeatureEnabled(readFile(CODEX_CONFIG_FILE))
+    return isCodexGoalsFeatureEnabled(readFile(CODEX_CONFIG_FILE));
   }
   catch {
-    return false
+    return false;
   }
 }
 
 export function buildCodexGoalsFeatureConfigContent(existingContent = ''): string {
-  return setCodexGoalsFeatureInContent(existingContent, true)
+  return setCodexGoalsFeatureInContent(existingContent, true);
 }
 
 export function ensureCodexGoalsFeature(): boolean {
-  const currentContent = exists(CODEX_CONFIG_FILE) ? readFile(CODEX_CONFIG_FILE) : ''
-  const nextContent = buildCodexGoalsFeatureConfigContent(currentContent)
+  const currentContent = exists(CODEX_CONFIG_FILE) ? readFile(CODEX_CONFIG_FILE) : '';
+  const nextContent = buildCodexGoalsFeatureConfigContent(currentContent);
   if (nextContent === currentContent) {
-    return false
+    return false;
   }
 
-  ensureDir(CODEX_DIR)
-  writeFileAtomic(CODEX_CONFIG_FILE, nextContent)
-  return true
+  ensureDir(CODEX_DIR);
+  writeFileAtomic(CODEX_CONFIG_FILE, nextContent);
+  return true;
 }
 
 /**
@@ -555,24 +555,24 @@ export function ensureCodexGoalsFeature(): boolean {
  */
 export function ensureEnvKeyMigration(): void {
   // Check CCJK config to see if migration has already been done
-  const tomlConfig = readDefaultTomlConfig()
+  const tomlConfig = readDefaultTomlConfig();
 
   // Skip if already migrated
   if (tomlConfig?.codex?.envKeyMigrated)
-    return
+    return;
 
   // Perform migration if needed
   if (needsEnvKeyMigration()) {
-    migrateEnvKeyToTempEnvKey()
+    migrateEnvKeyToTempEnvKey();
   }
 }
 
 function sanitizeProviderName(input: string): string {
-  const cleaned = input.trim()
+  const cleaned = input.trim();
   if (!cleaned)
-    return ''
+    return '';
   // Replace dots with hyphens, then remove any characters that are not word chars, dots, or hyphens
-  return cleaned.toLowerCase().replace(/\./g, '-').replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '')
+  return cleaned.toLowerCase().replace(/\./g, '-').replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '');
 }
 
 export function parseCodexConfig(content: string): CodexConfigData {
@@ -587,25 +587,25 @@ export function parseCodexConfig(content: string): CodexConfigData {
       features: undefined,
       otherConfig: [],
       modelProviderCommented: undefined,
-    }
+    };
   }
 
   try {
     // Normalize problematic Windows backslashes in SYSTEMROOT to prevent TOML parse failures
     // e.g. env = {SYSTEMROOT = "C:\\Windows"} or "C:\Windows" => use forward slashes
     const normalizedContent = content.replace(/(SYSTEMROOT\s*=\s*")[^"\n]+("?)/g, (match) => {
-      return match.replace(/\\\\/g, '/').replace(/\\/g, '/').replace('C:/Windows"?', 'C:/Windows"')
-    })
+      return match.replace(/\\\\/g, '/').replace(/\\/g, '/').replace('C:/Windows"?', 'C:/Windows"');
+    });
 
     // Parse TOML using smol-toml
-    const tomlData = parseToml(normalizedContent) as any
-    const features = normalizeCodexFeatureFlags(tomlData.features)
+    const tomlData = parseToml(normalizedContent) as any;
+    const features = normalizeCodexFeatureFlags(tomlData.features);
 
     // Extract providers from [model_providers.*] sections
-    const providers: CodexProvider[] = []
+    const providers: CodexProvider[] = [];
     if (tomlData.model_providers) {
       for (const [id, providerData] of Object.entries(tomlData.model_providers)) {
-        const provider = providerData as any
+        const provider = providerData as any;
         providers.push({
           id,
           name: provider.name || id,
@@ -614,24 +614,24 @@ export function parseCodexConfig(content: string): CodexConfigData {
           tempEnvKey: provider.temp_env_key || 'OPENAI_API_KEY',
           requiresOpenaiAuth: provider.requires_openai_auth !== false,
           model: provider.model || undefined, // Parse model field from provider
-        })
+        });
       }
     }
 
     // Extract MCP services from [mcp_servers.*] sections
-    const mcpServices: CodexMcpService[] = []
+    const mcpServices: CodexMcpService[] = [];
     if (tomlData.mcp_servers) {
       // Define known fields that CCJK directly manages
-      const KNOWN_MCP_FIELDS = new Set(['command', 'args', 'env', 'startup_timeout_sec'])
+      const KNOWN_MCP_FIELDS = new Set(['command', 'args', 'env', 'startup_timeout_sec']);
 
       for (const [id, mcpData] of Object.entries(tomlData.mcp_servers)) {
-        const mcp = mcpData as any
+        const mcp = mcpData as any;
 
         // Collect extra fields not directly managed by CCJK
-        const extraFields: Record<string, any> = {}
+        const extraFields: Record<string, any> = {};
         for (const [key, value] of Object.entries(mcp)) {
           if (!KNOWN_MCP_FIELDS.has(key)) {
-            extraFields[key] = value
+            extraFields[key] = value;
           }
         }
 
@@ -643,109 +643,109 @@ export function parseCodexConfig(content: string): CodexConfigData {
           startup_timeout_sec: mcp.startup_timeout_sec,
           // Only add extraFields if there are any extra fields
           extraFields: Object.keys(extraFields).length > 0 ? extraFields : undefined,
-        })
+        });
       }
     }
 
     // Extract model (default model) and model_provider (API provider)
     // We need to detect these from text because TOML parser might incorrectly assign
     // global keys to sections if they appear after section headers
-    const model: string | null = tomlData.model || null
-    let modelProvider: string | null = null
-    let modelProviderCommented: boolean | undefined
+    const model: string | null = tomlData.model || null;
+    let modelProvider: string | null = null;
+    let modelProviderCommented: boolean | undefined;
 
     // First check for commented model_provider in raw text
-    const commentedMatch = content.match(/^(\s*)#\s*model_provider\s*=\s*"([^"]+)"/m)
+    const commentedMatch = content.match(/^(\s*)#\s*model_provider\s*=\s*"([^"]+)"/m);
     if (commentedMatch) {
-      modelProvider = commentedMatch[2]
-      modelProviderCommented = true
+      modelProvider = commentedMatch[2];
+      modelProviderCommented = true;
     }
     else {
       // Check for global model_provider (not inside sections) using text parsing
       // as TOML parser may incorrectly assign it to a section
-      const lines = content.split('\n')
-      let inSection = false
+      const lines = content.split('\n');
+      let inSection = false;
 
       for (const line of lines) {
-        const trimmedLine = line.trim()
+        const trimmedLine = line.trim();
 
         if (!trimmedLine)
-          continue
+          continue;
 
         // Check if we're entering a section
         if (trimmedLine.startsWith('[')) {
-          inSection = true
-          continue
+          inSection = true;
+          continue;
         }
 
         // Skip comments (but reset inSection flag for CCJK comments)
         if (trimmedLine.startsWith('#')) {
           if (trimmedLine.includes('--- model provider added by CCJK ---')) {
-            inSection = false // CCJK comments mark global config area
+            inSection = false; // CCJK comments mark global config area
           }
-          continue
+          continue;
         }
 
         // If we find model_provider outside a section, it's global
         if (!inSection && trimmedLine.startsWith('model_provider')) {
-          const match = trimmedLine.match(/model_provider\s*=\s*"([^"]+)"/)
+          const match = trimmedLine.match(/model_provider\s*=\s*"([^"]+)"/);
           if (match) {
-            modelProvider = match[1]
-            modelProviderCommented = false
-            break
+            modelProvider = match[1];
+            modelProviderCommented = false;
+            break;
           }
         }
       }
 
       // Fallback to parsed TOML data if not found in text parsing
       if (!modelProvider) {
-        modelProvider = tomlData.model_provider || null
-        modelProviderCommented = false
+        modelProvider = tomlData.model_provider || null;
+        modelProviderCommented = false;
       }
     }
 
     // Preserve other configuration (line-scan, skip CCJK-managed sections/fields)
-    const otherConfig: string[] = []
-    const lines = content.split('\n')
-    let skipCurrentSection = false
+    const otherConfig: string[] = [];
+    const lines = content.split('\n');
+    let skipCurrentSection = false;
 
     for (const line of lines) {
-      const trimmed = line.trim()
+      const trimmed = line.trim();
       if (!trimmed)
-        continue
+        continue;
 
       // Skip CCJK managed comments/headers
       if (/^#\s*---\s*model provider added by CCJK\s*---\s*$/i.test(trimmed))
-        continue
+        continue;
       if (/^#\s*---\s*MCP servers added by CCJK\s*---\s*$/i.test(trimmed))
-        continue
+        continue;
       if (/Managed by CCJK/i.test(trimmed))
-        continue
+        continue;
 
       // Section header detection
-      const sec = trimmed.match(/^\[([^\]]+)\]/)
+      const sec = trimmed.match(/^\[([^\]]+)\]/);
       if (sec) {
-        const name = sec[1]
-        skipCurrentSection = name.startsWith('model_providers.') || name.startsWith('mcp_servers.')
+        const name = sec[1];
+        skipCurrentSection = name.startsWith('model_providers.') || name.startsWith('mcp_servers.');
         // Do not push the section header if it's CCJK-managed; allow non-managed sections to pass
         if (skipCurrentSection)
-          continue
-        otherConfig.push(line)
-        continue
+          continue;
+        otherConfig.push(line);
+        continue;
       }
 
       // Global managed fields
       if (/^#?\s*model_provider\s*=/.test(trimmed))
-        continue
+        continue;
       if (/^model\s*=/.test(trimmed))
-        continue
+        continue;
 
       if (!skipCurrentSection) {
-        otherConfig.push(line)
+        otherConfig.push(line);
       }
     }
 
-    const managed = providers.length > 0 || mcpServices.length > 0 || modelProvider !== null || model !== null
+    const managed = providers.length > 0 || mcpServices.length > 0 || modelProvider !== null || model !== null;
 
     return {
       model,
@@ -756,13 +756,13 @@ export function parseCodexConfig(content: string): CodexConfigData {
       features,
       otherConfig,
       modelProviderCommented,
-    }
+    };
   }
   catch (error) {
     // Graceful fallback to basic parsing if TOML parsing fails
     // Only show warning in development/debug mode to avoid user confusion
     if (process.env.NODE_ENV === 'development' || process.env.DEBUG) {
-      console.warn('TOML parsing failed, falling back to basic parsing:', error)
+      console.warn('TOML parsing failed, falling back to basic parsing:', error);
     }
 
     // Clean previously managed sections to avoid duplication on subsequent renders
@@ -777,12 +777,12 @@ export function parseCodexConfig(content: string): CodexConfigData {
       .replace(/^\s*(?:#\s*)?model_provider\s*=.*$/gim, '')
       .replace(/^\s*model\s*=.*$/gim, '')
       // Collapse excessive blank lines
-      .replace(/\n{3,}/g, '\n\n')
+      .replace(/\n{3,}/g, '\n\n');
 
     const otherConfig = cleaned
       .split('\n')
       .map(l => l.replace(/\s+$/g, ''))
-      .filter(l => l.trim().length > 0)
+      .filter(l => l.trim().length > 0);
 
     return {
       model: null,
@@ -793,7 +793,7 @@ export function parseCodexConfig(content: string): CodexConfigData {
       features: undefined,
       otherConfig,
       modelProviderCommented: undefined,
-    }
+    };
   }
 }
 
@@ -805,42 +805,42 @@ export function parseCodexConfig(content: string): CodexConfigData {
 function formatInlineTableValue(value: any): string {
   // Handle null/undefined - return empty string (caller should skip)
   if (value === null || value === undefined) {
-    return ''
+    return '';
   }
 
   // Handle string type
   if (typeof value === 'string') {
-    const normalized = normalizeTomlPath(value)
+    const normalized = normalizeTomlPath(value);
     // Use single quotes for inline table string values to avoid escaping issues
-    return `'${normalized}'`
+    return `'${normalized}'`;
   }
 
   // Handle number and boolean types
   if (typeof value === 'number' || typeof value === 'boolean') {
-    return String(value)
+    return String(value);
   }
 
   // Handle array type
   if (Array.isArray(value)) {
     const items = value.map((item) => {
       if (typeof item === 'string') {
-        const normalized = normalizeTomlPath(item)
-        return `'${normalized}'`
+        const normalized = normalizeTomlPath(item);
+        return `'${normalized}'`;
       }
       if (typeof item === 'object' && item !== null && !Array.isArray(item)) {
-        return formatInlineTable(item)
+        return formatInlineTable(item);
       }
-      return String(item)
-    }).join(', ')
-    return `[${items}]`
+      return String(item);
+    }).join(', ');
+    return `[${items}]`;
   }
 
   // Handle nested object type (inline table) - recursive call
   if (typeof value === 'object') {
-    return formatInlineTable(value)
+    return formatInlineTable(value);
   }
 
-  return String(value)
+  return String(value);
 }
 
 /**
@@ -852,8 +852,8 @@ function formatInlineTable(obj: Record<string, any>): string {
   const entries = Object.entries(obj)
     .filter(([_, v]) => v !== null && v !== undefined)
     .map(([k, v]) => `${k} = ${formatInlineTableValue(v)}`)
-    .join(', ')
-  return `{${entries}}`
+    .join(', ');
+  return `{${entries}}`;
 }
 
 /**
@@ -865,21 +865,21 @@ function formatInlineTable(obj: Record<string, any>): string {
 function formatTomlField(key: string, value: any): string {
   // Skip null/undefined values
   if (value === null || value === undefined) {
-    return ''
+    return '';
   }
 
   // Handle string type
   if (typeof value === 'string') {
     // Use normalizeTomlPath to handle path normalization (backslashes to forward slashes)
-    const normalized = normalizeTomlPath(value)
+    const normalized = normalizeTomlPath(value);
     // Escape quotes for TOML string format
-    const escaped = normalized.replace(/"/g, '\\"')
-    return `${key} = "${escaped}"`
+    const escaped = normalized.replace(/"/g, '\\"');
+    return `${key} = "${escaped}"`;
   }
 
   // Handle number and boolean types
   if (typeof value === 'number' || typeof value === 'boolean') {
-    return `${key} = ${value}`
+    return `${key} = ${value}`;
   }
 
   // Handle array type
@@ -887,93 +887,93 @@ function formatTomlField(key: string, value: any): string {
     const items = value.map((item) => {
       if (typeof item === 'string') {
         // Use normalizeTomlPath for array string items
-        const normalized = normalizeTomlPath(item)
-        const escaped = normalized.replace(/"/g, '\\"')
-        return `"${escaped}"`
+        const normalized = normalizeTomlPath(item);
+        const escaped = normalized.replace(/"/g, '\\"');
+        return `"${escaped}"`;
       }
       if (typeof item === 'object' && item !== null && !Array.isArray(item)) {
-        return formatInlineTable(item)
+        return formatInlineTable(item);
       }
-      return String(item)
-    }).join(', ')
-    return `${key} = [${items}]`
+      return String(item);
+    }).join(', ');
+    return `${key} = [${items}]`;
   }
 
   // Handle object type (inline table)
   if (typeof value === 'object') {
-    return `${key} = ${formatInlineTable(value)}`
+    return `${key} = ${formatInlineTable(value)}`;
   }
 
   // Unknown type, skip
-  return ''
+  return '';
 }
 
 export function readCodexConfig(): CodexConfigData | null {
   if (!exists(CODEX_CONFIG_FILE))
-    return null
+    return null;
 
   // Ensure env_key migration is performed before reading config
-  ensureEnvKeyMigration()
+  ensureEnvKeyMigration();
 
   try {
-    const content = readFile(CODEX_CONFIG_FILE)
-    return parseCodexConfig(content)
+    const content = readFile(CODEX_CONFIG_FILE);
+    return parseCodexConfig(content);
   }
   catch {
-    return null
+    return null;
   }
 }
 
 export function renderCodexConfig(data: CodexConfigData): string {
-  const lines: string[] = []
+  const lines: string[] = [];
 
   // CRITICAL: Add CCJK global configuration FIRST to ensure it's truly global
   // This prevents TOML parser from incorrectly assigning global keys to sections
   if (data.model || data.modelProvider || data.providers.length > 0 || data.modelProviderCommented) {
-    lines.push('# --- model provider added by CCJK ---')
+    lines.push('# --- model provider added by CCJK ---');
 
     // Add model field if present
     if (data.model) {
-      lines.push(`model = "${data.model}"`)
+      lines.push(`model = "${data.model}"`);
     }
 
     if (data.modelProvider) {
-      const commentPrefix = data.modelProviderCommented ? '# ' : ''
-      lines.push(`${commentPrefix}model_provider = "${data.modelProvider}"`)
+      const commentPrefix = data.modelProviderCommented ? '# ' : '';
+      lines.push(`${commentPrefix}model_provider = "${data.modelProvider}"`);
     }
 
     // Add blank line after global config
-    lines.push('')
+    lines.push('');
   }
 
   // Add preserved non-CCJK configuration after global config
   if (data.otherConfig && data.otherConfig.length > 0) {
     const preserved = data.otherConfig.filter((raw) => {
-      const l = String(raw).trim()
+      const l = String(raw).trim();
       if (!l)
-        return false
+        return false;
       // Guard: never re-insert any CCJK-managed headers/sections/fields
       if (/^#\s*---\s*model provider added by CCJK\s*---\s*$/i.test(l))
-        return false
+        return false;
       if (/^#\s*---\s*MCP servers added by CCJK\s*---\s*$/i.test(l))
-        return false
+        return false;
       if (/^\[\s*mcp_servers\./i.test(l))
-        return false
+        return false;
       if (/^\[\s*model_providers\./i.test(l))
-        return false
+        return false;
       if (/^#?\s*model_provider\s*=/.test(l))
-        return false
+        return false;
       // Only filter out global model field (not inside sections)
       // This regex checks if it's a top-level model field (not inside a section)
       if (/^\s*model\s*=/.test(l) && !l.includes('['))
-        return false
-      return true
-    })
+        return false;
+      return true;
+    });
     if (preserved.length > 0) {
-      lines.push(...preserved)
+      lines.push(...preserved);
       // Add blank line only if we have sections to add
       if (data.providers.length > 0 || data.mcpServices.length > 0) {
-        lines.push('')
+        lines.push('');
       }
     }
   }
@@ -981,36 +981,36 @@ export function renderCodexConfig(data: CodexConfigData): string {
   // Add model providers sections
   if (data.providers.length > 0) {
     for (const provider of data.providers) {
-      lines.push('')
-      lines.push(`[model_providers.${provider.id}]`)
-      lines.push(`name = "${provider.name}"`)
-      lines.push(`base_url = "${provider.baseUrl}"`)
-      lines.push(`wire_api = "${provider.wireApi}"`)
-      lines.push(`temp_env_key = "${provider.tempEnvKey}"`)
-      lines.push(`requires_openai_auth = ${provider.requiresOpenaiAuth}`)
+      lines.push('');
+      lines.push(`[model_providers.${provider.id}]`);
+      lines.push(`name = "${provider.name}"`);
+      lines.push(`base_url = "${provider.baseUrl}"`);
+      lines.push(`wire_api = "${provider.wireApi}"`);
+      lines.push(`temp_env_key = "${provider.tempEnvKey}"`);
+      lines.push(`requires_openai_auth = ${provider.requiresOpenaiAuth}`);
       // Add model field if present
       if (provider.model) {
-        lines.push(`model = "${provider.model}"`)
+        lines.push(`model = "${provider.model}"`);
       }
     }
   }
 
   // Add MCP servers sections
   if (data.mcpServices.length > 0) {
-    lines.push('')
-    lines.push('# --- MCP servers added by CCJK ---')
+    lines.push('');
+    lines.push('# --- MCP servers added by CCJK ---');
     for (const service of data.mcpServices) {
-      lines.push(`[mcp_servers.${service.id}]`)
+      lines.push(`[mcp_servers.${service.id}]`);
       // Normalize Windows paths: convert backslashes to forward slashes
       // Same approach as getSystemRoot() for consistency
-      const normalizedCommand = normalizeTomlPath(service.command)
-      lines.push(`command = "${normalizedCommand}"`)
+      const normalizedCommand = normalizeTomlPath(service.command);
+      lines.push(`command = "${normalizedCommand}"`);
 
       // Format args array
       const argsString = service.args.length > 0
         ? service.args.map(arg => `"${arg}"`).join(', ')
-        : ''
-      lines.push(`args = [${argsString}]`)
+        : '';
+      lines.push(`args = [${argsString}]`);
 
       // Add environment variables if present
       if (service.env && Object.keys(service.env).length > 0) {
@@ -1018,75 +1018,75 @@ export function renderCodexConfig(data: CodexConfigData): string {
         // TOML single-quoted strings are literal and don't require backslash escaping
         const envEntries = Object.entries(service.env)
           .map(([key, value]) => `${key} = '${value}'`)
-          .join(', ')
-        lines.push(`env = {${envEntries}}`)
+          .join(', ');
+        lines.push(`env = {${envEntries}}`);
       }
 
       // Add startup timeout if present
       if (service.startup_timeout_sec) {
-        lines.push(`startup_timeout_sec = ${service.startup_timeout_sec}`)
+        lines.push(`startup_timeout_sec = ${service.startup_timeout_sec}`);
       }
 
       // Add extra fields if present
       if (service.extraFields) {
         for (const [key, value] of Object.entries(service.extraFields)) {
-          const formatted = formatTomlField(key, value)
+          const formatted = formatTomlField(key, value);
           if (formatted) {
-            lines.push(formatted)
+            lines.push(formatted);
           }
         }
       }
 
-      lines.push('')
+      lines.push('');
     }
     // Remove trailing blank line added by loop
     if (lines[lines.length - 1] === '') {
-      lines.pop()
+      lines.pop();
     }
   }
 
   // Ensure file ends with a newline but not multiple blank lines
-  let result = lines.join('\n')
+  let result = lines.join('\n');
   if (result && !result.endsWith('\n')) {
-    result += '\n'
+    result += '\n';
   }
 
   if (data.features && Object.keys(data.features).length > 0) {
-    result = applyCodexFeatureFlagsToContent(result, data.features)
+    result = applyCodexFeatureFlagsToContent(result, data.features);
   }
 
-  return result
+  return result;
 }
 
 export function writeCodexConfig(data: CodexConfigData): void {
   // Ensure env_key migration is performed before any config modification
-  ensureEnvKeyMigration()
+  ensureEnvKeyMigration();
 
-  ensureDir(CODEX_DIR)
+  ensureDir(CODEX_DIR);
   // Use atomic write to prevent config corruption
-  writeFileAtomic(CODEX_CONFIG_FILE, renderCodexConfig(data))
+  writeFileAtomic(CODEX_CONFIG_FILE, renderCodexConfig(data));
 }
 
 export function writeAuthFile(
   newEntries: Record<string, string>,
   authMode?: 'apikey' | 'chatgpt' | 'chatgptAuthTokens',
 ): void {
-  ensureDir(CODEX_DIR)
-  const existing = readJsonConfig<Record<string, string>>(CODEX_AUTH_FILE, { defaultValue: {} }) || {}
-  const merged = { ...existing, ...newEntries }
+  ensureDir(CODEX_DIR);
+  const existing = readJsonConfig<Record<string, string>>(CODEX_AUTH_FILE, { defaultValue: {} }) || {};
+  const merged = { ...existing, ...newEntries };
   if (authMode) {
     // Codex CLI valid auth_mode values: 'apikey', 'chatgpt', 'chatgptAuthTokens'
-    ;(merged as any).auth_mode = authMode
+    ;(merged as any).auth_mode = authMode;
   }
-  writeJsonConfig(CODEX_AUTH_FILE, merged, { pretty: true })
+  writeJsonConfig(CODEX_AUTH_FILE, merged, { pretty: true });
 }
 
 export async function isCodexInstalled(): Promise<boolean> {
   // Check npm installation
   try {
-    const npmResult = await x('npm', ['list', '-g', '--depth=0'])
+    const npmResult = await x('npm', ['list', '-g', '--depth=0']);
     if (npmResult.exitCode === 0 && npmResult.stdout.includes('@openai/codex@')) {
-      return true
+      return true;
     }
   }
   catch {
@@ -1095,26 +1095,26 @@ export async function isCodexInstalled(): Promise<boolean> {
 
   // Check Homebrew installation
   try {
-    const brewResult = await x('brew', ['list', '--cask', 'codex'], { throwOnError: false })
+    const brewResult = await x('brew', ['list', '--cask', 'codex'], { throwOnError: false });
     if (brewResult.exitCode === 0) {
-      return true
+      return true;
     }
   }
   catch {
     // Homebrew check failed
   }
 
-  return false
+  return false;
 }
 
 export async function getCodexVersion(): Promise<string | null> {
   // Try npm first
   try {
-    const npmResult = await x('npm', ['list', '-g', '--depth=0'])
+    const npmResult = await x('npm', ['list', '-g', '--depth=0']);
     if (npmResult.exitCode === 0) {
-      const match = npmResult.stdout.match(/@openai\/codex@(\S+)/)
+      const match = npmResult.stdout.match(/@openai\/codex@(\S+)/);
       if (match) {
-        return match[1]
+        return match[1];
       }
     }
   }
@@ -1124,15 +1124,15 @@ export async function getCodexVersion(): Promise<string | null> {
 
   // Try Homebrew
   try {
-    const brewResult = await x('brew', ['info', '--cask', 'codex', '--json=v2'], { throwOnError: false })
+    const brewResult = await x('brew', ['info', '--cask', 'codex', '--json=v2'], { throwOnError: false });
     if (brewResult.exitCode === 0) {
-      const info = JSON.parse(brewResult.stdout)
+      const info = JSON.parse(brewResult.stdout);
       // Homebrew cask info v2 format: { "casks": [...] }
       if (info.casks && Array.isArray(info.casks) && info.casks.length > 0) {
-        const cask = info.casks[0]
+        const cask = info.casks[0];
         // In v2 format, 'installed' is a string (version) or null if not installed
         if (cask.installed && typeof cask.installed === 'string') {
-          return cask.installed
+          return cask.installed;
         }
       }
     }
@@ -1141,33 +1141,33 @@ export async function getCodexVersion(): Promise<string | null> {
     // Homebrew check failed
   }
 
-  return null
+  return null;
 }
 
 export async function checkCodexUpdate(): Promise<CodexVersionInfo> {
   try {
-    const currentVersion = await getCodexVersion()
+    const currentVersion = await getCodexVersion();
     if (!currentVersion) {
       return {
         installed: false,
         currentVersion: null,
         latestVersion: null,
         needsUpdate: false,
-      }
+      };
     }
 
-    const result = await x('npm', ['view', '@openai/codex', '--json'])
+    const result = await x('npm', ['view', '@openai/codex', '--json']);
     if (result.exitCode !== 0) {
       return {
         installed: true,
         currentVersion,
         latestVersion: null,
         needsUpdate: false,
-      }
+      };
     }
 
-    const packageInfo = JSON.parse(result.stdout)
-    const latestVersion = packageInfo['dist-tags']?.latest
+    const packageInfo = JSON.parse(result.stdout);
+    const latestVersion = packageInfo['dist-tags']?.latest;
 
     if (!latestVersion) {
       return {
@@ -1175,17 +1175,17 @@ export async function checkCodexUpdate(): Promise<CodexVersionInfo> {
         currentVersion,
         latestVersion: null,
         needsUpdate: false,
-      }
+      };
     }
 
-    const needsUpdate = semver.gt(latestVersion, currentVersion)
+    const needsUpdate = semver.gt(latestVersion, currentVersion);
 
     return {
       installed: true,
       currentVersion,
       latestVersion,
       needsUpdate,
-    }
+    };
   }
   catch {
     return {
@@ -1193,38 +1193,38 @@ export async function checkCodexUpdate(): Promise<CodexVersionInfo> {
       currentVersion: null,
       latestVersion: null,
       needsUpdate: false,
-    }
+    };
   }
 }
 
 export async function installCodexCli(skipMethodSelection: boolean = false): Promise<void> {
-  ensureI18nInitialized()
+  ensureI18nInitialized();
 
   // Check if already installed
   if (await isCodexInstalled()) {
     // Check for updates if already installed
-    const { needsUpdate } = await checkCodexUpdate()
+    const { needsUpdate } = await checkCodexUpdate();
     if (needsUpdate) {
       // Update available - install new version
-      await executeCodexInstallation(true, skipMethodSelection)
-      return
+      await executeCodexInstallation(true, skipMethodSelection);
+      return;
     }
     else {
       // No updates, skip installation
-      console.log(ansis.yellow(i18n.t('codex:alreadyInstalled')))
-      return
+      console.log(ansis.yellow(i18n.t('codex:alreadyInstalled')));
+      return;
     }
   }
 
   // Not installed - install new
-  await executeCodexInstallation(false, skipMethodSelection)
+  await executeCodexInstallation(false, skipMethodSelection);
 }
 
 export async function runCodexWorkflowImport(): Promise<void> {
-  ensureI18nInitialized()
-  await runCodexSystemPromptSelection()
-  await runCodexWorkflowSelection()
-  console.log(ansis.green(i18n.t('codex:workflowInstall')))
+  ensureI18nInitialized();
+  await runCodexSystemPromptSelection();
+  await runCodexWorkflowSelection();
+  console.log(ansis.green(i18n.t('codex:workflowInstall')));
 }
 
 /**
@@ -1232,66 +1232,66 @@ export async function runCodexWorkflowImport(): Promise<void> {
  * Reuses Claude Code's language selection functionality
  */
 export interface CodexWorkflowLanguageOptions {
-  aiOutputLang?: AiOutputLanguage | string
-  skipPrompt?: boolean
+  aiOutputLang?: AiOutputLanguage | string;
+  skipPrompt?: boolean;
 }
 
 export async function runCodexWorkflowImportWithLanguageSelection(
   options?: CodexFullInitOptions,
 ): Promise<AiOutputLanguage | string> {
-  ensureI18nInitialized()
+  ensureI18nInitialized();
 
   // Step 1: Select AI output language (uses global config memory)
-  const zcfConfig = readZcfConfig()
-  const { aiOutputLang: commandLineOption, skipPrompt = false } = options ?? {}
+  const zcfConfig = readZcfConfig();
+  const { aiOutputLang: commandLineOption, skipPrompt = false } = options ?? {};
 
   const aiOutputLang = await resolveAiOutputLanguage(
     i18n.language as SupportedLang,
     commandLineOption,
     zcfConfig,
     skipPrompt,
-  )
+  );
 
   // Step 2: Save AI output language to global config
-  updateZcfConfig({ aiOutputLang })
-  applyAiLanguageDirective(aiOutputLang)
+  updateZcfConfig({ aiOutputLang });
+  applyAiLanguageDirective(aiOutputLang);
 
   // Step 3: Continue with original workflow (system prompt + workflow selection)
-  await runCodexSystemPromptSelection(skipPrompt)
-  ensureCodexAgentsLanguageDirective(aiOutputLang)
-  await runCodexWorkflowSelection(options)
-  console.log(ansis.green(i18n.t('codex:workflowInstall')))
+  await runCodexSystemPromptSelection(skipPrompt);
+  ensureCodexAgentsLanguageDirective(aiOutputLang);
+  await runCodexWorkflowSelection(options);
+  console.log(ansis.green(i18n.t('codex:workflowInstall')));
 
-  return aiOutputLang
+  return aiOutputLang;
 }
 
 export async function runCodexSystemPromptSelection(skipPrompt = false): Promise<void> {
-  ensureI18nInitialized()
-  const rootDir = getRootDir()
+  ensureI18nInitialized();
+  const rootDir = getRootDir();
 
   // Read both legacy and new config formats
-  const zcfConfig = readZcfConfig()
-  const { readDefaultTomlConfig } = await import('../ccjk-config')
-  const tomlConfig = readDefaultTomlConfig()
+  const zcfConfig = readZcfConfig();
+  const { readDefaultTomlConfig } = await import('../ccjk-config');
+  const tomlConfig = readDefaultTomlConfig();
 
   // Use intelligent template language selection
-  const { resolveTemplateLanguage } = await import('../prompts')
+  const { resolveTemplateLanguage } = await import('../prompts');
   const preferredLang = await resolveTemplateLanguage(
     undefined, // No command line option for this function
     zcfConfig,
     skipPrompt, // Pass skipPrompt flag
-  )
+  );
 
-  updateZcfConfig({ templateLang: preferredLang })
+  updateZcfConfig({ templateLang: preferredLang });
 
   // Use shared output-styles from common directory
-  let systemPromptSrc = join(rootDir, 'templates', 'common', 'output-styles', preferredLang)
+  let systemPromptSrc = join(rootDir, 'templates', 'common', 'output-styles', preferredLang);
 
   if (!exists(systemPromptSrc))
-    systemPromptSrc = join(rootDir, 'templates', 'common', 'output-styles', 'zh-CN')
+    systemPromptSrc = join(rootDir, 'templates', 'common', 'output-styles', 'zh-CN');
 
   if (!exists(systemPromptSrc))
-    return
+    return;
 
   // Available system prompt styles (same as Claude Code output styles)
   const availablePrompts = [
@@ -1310,119 +1310,119 @@ export async function runCodexSystemPromptSelection(skipPrompt = false): Promise
       name: i18n.t('configuration:outputStyles.pair-programmer.name'),
       description: i18n.t('configuration:outputStyles.pair-programmer.description'),
     },
-  ].filter(style => exists(join(systemPromptSrc, `${style.id}.md`)))
+  ].filter(style => exists(join(systemPromptSrc, `${style.id}.md`)));
 
   if (availablePrompts.length === 0)
-    return
+    return;
 
   // Use the new intelligent detection function
-  const { resolveSystemPromptStyle } = await import('../prompts')
+  const { resolveSystemPromptStyle } = await import('../prompts');
   const systemPrompt = await resolveSystemPromptStyle(
     availablePrompts,
     undefined, // No command line option for this function
     tomlConfig,
     skipPrompt, // Pass skipPrompt flag
-  )
+  );
 
   if (!systemPrompt)
-    return
+    return;
 
   // Read selected system prompt file
-  const promptFile = join(systemPromptSrc, `${systemPrompt}.md`)
-  const content = readFile(promptFile)
+  const promptFile = join(systemPromptSrc, `${systemPrompt}.md`);
+  const content = readFile(promptFile);
 
   // Ensure CODEX directory exists
-  ensureDir(CODEX_DIR)
+  ensureDir(CODEX_DIR);
 
   // Create backup before modifying AGENTS.md
-  const backupPath = backupCodexAgents()
+  const backupPath = backupCodexAgents();
   if (backupPath) {
-    console.log(ansis.gray(getBackupMessage(backupPath)))
+    console.log(ansis.gray(getBackupMessage(backupPath)));
   }
 
   // Write to AGENTS.md atomically to prevent corruption
-  writeFileAtomic(CODEX_AGENTS_FILE, content)
+  writeFileAtomic(CODEX_AGENTS_FILE, content);
 
   // Update CCJK configuration to save the selected system prompt style
   try {
-    const { updateTomlConfig } = await import('../ccjk-config')
-    const { ZCF_CONFIG_FILE } = await import('../../constants')
+    const { updateTomlConfig } = await import('../ccjk-config');
+    const { ZCF_CONFIG_FILE } = await import('../../constants');
 
     updateTomlConfig(ZCF_CONFIG_FILE, {
       codex: {
         systemPromptStyle: systemPrompt,
       },
-    } as any) // Use any to bypass type checking temporarily
+    } as any); // Use any to bypass type checking temporarily
   }
   catch (error) {
     // Silently handle config update failure - the main functionality (writing AGENTS.md) has succeeded
-    console.error('Failed to update CCJK config:', error)
+    console.error('Failed to update CCJK config:', error);
   }
 }
 
 export async function runCodexWorkflowSelection(options?: CodexFullInitOptions): Promise<void> {
-  ensureI18nInitialized()
+  ensureI18nInitialized();
 
-  const { skipPrompt = false, workflows: presetWorkflows = [] } = options ?? {}
-  const rootDir = getRootDir()
+  const { skipPrompt = false, workflows: presetWorkflows = [] } = options ?? {};
+  const rootDir = getRootDir();
 
-  const zcfConfig = readZcfConfig()
+  const zcfConfig = readZcfConfig();
   // Use templateLang with fallback to preferredLang for backward compatibility
-  const templateLang = zcfConfig?.templateLang || zcfConfig?.preferredLang || 'en'
-  let preferredLang = templateLang === 'en' ? 'en' : 'zh-CN'
+  const templateLang = zcfConfig?.templateLang || zcfConfig?.preferredLang || 'en';
+  let preferredLang = templateLang === 'en' ? 'en' : 'zh-CN';
 
   // Workflows are now in templates/common/workflow/{category}/{lang}
-  const workflowSrc = join(rootDir, 'templates', 'common', 'workflow')
+  const workflowSrc = join(rootDir, 'templates', 'common', 'workflow');
   if (!exists(workflowSrc))
-    return
+    return;
 
   // Get available workflow files (recursively)
-  let allWorkflows = getCodexWorkflowOptionDefinitions(workflowSrc, preferredLang)
+  let allWorkflows = getCodexWorkflowOptionDefinitions(workflowSrc, preferredLang);
 
   // If no workflows found for preferred language, fallback to zh-CN
   if (allWorkflows.length === 0 && preferredLang === 'en') {
-    preferredLang = 'zh-CN'
-    allWorkflows = getCodexWorkflowOptionDefinitions(workflowSrc, preferredLang)
+    preferredLang = 'zh-CN';
+    allWorkflows = getCodexWorkflowOptionDefinitions(workflowSrc, preferredLang);
   }
 
   if (allWorkflows.length === 0)
-    return
+    return;
 
   // Handle skipPrompt mode
   if (skipPrompt) {
     // Ensure prompts directory exists
-    ensureDir(CODEX_PROMPTS_DIR)
+    ensureDir(CODEX_PROMPTS_DIR);
 
     // Create backup before modifying prompts directory
-    const backupPath = backupCodexPrompts()
+    const backupPath = backupCodexPrompts();
     if (backupPath) {
-      console.log(ansis.gray(getBackupMessage(backupPath)))
+      console.log(ansis.gray(getBackupMessage(backupPath)));
     }
 
-    let workflowsToInstall: string[]
+    let workflowsToInstall: string[];
 
     // If specific workflows are provided, install only those
     if (presetWorkflows.length > 0) {
       const selectedWorkflows = allWorkflows.filter(workflow =>
         presetWorkflows.includes(workflow.id) || presetWorkflows.includes(workflow.name),
-      )
+      );
       // Expand grouped selections (e.g., Git) to concrete files
-      workflowsToInstall = expandSelectedWorkflowPaths(selectedWorkflows.map(w => w.path), workflowSrc, preferredLang)
+      workflowsToInstall = expandSelectedWorkflowPaths(selectedWorkflows.map(w => w.path), workflowSrc, preferredLang);
     }
     else {
       // If no specific workflows provided, install all available workflows
-      workflowsToInstall = expandSelectedWorkflowPaths(allWorkflows.map(w => w.path), workflowSrc, preferredLang)
+      workflowsToInstall = expandSelectedWorkflowPaths(allWorkflows.map(w => w.path), workflowSrc, preferredLang);
     }
 
     // Copy selected workflow files to prompts directory (flattened)
     for (const workflowPath of workflowsToInstall) {
-      const content = readFile(workflowPath)
-      const filename = workflowPath.split('/').pop() || 'workflow.md'
-      const targetPath = join(CODEX_PROMPTS_DIR, filename)
-      writeFile(targetPath, content)
+      const content = readFile(workflowPath);
+      const filename = workflowPath.split('/').pop() || 'workflow.md';
+      const targetPath = join(CODEX_PROMPTS_DIR, filename);
+      writeFile(targetPath, content);
     }
 
-    return
+    return;
   }
 
   // Prompt user to select workflows (multi-select, default all selected)
@@ -1435,38 +1435,38 @@ export async function runCodexWorkflowSelection(options?: CodexFullInitOptions):
       value: workflow.path,
       checked: true, // Default all selected
     }))),
-  }])
+  }]);
 
   if (!workflows || workflows.length === 0)
-    return
+    return;
 
   // Ensure prompts directory exists
-  ensureDir(CODEX_PROMPTS_DIR)
+  ensureDir(CODEX_PROMPTS_DIR);
 
   // Create backup before modifying prompts directory
-  const backupPath = backupCodexPrompts()
+  const backupPath = backupCodexPrompts();
   if (backupPath) {
-    console.log(ansis.gray(getBackupMessage(backupPath)))
+    console.log(ansis.gray(getBackupMessage(backupPath)));
   }
 
   // Expand grouped selections (e.g., Git) to concrete files
-  const finalWorkflowPaths = expandSelectedWorkflowPaths(workflows, workflowSrc, preferredLang)
+  const finalWorkflowPaths = expandSelectedWorkflowPaths(workflows, workflowSrc, preferredLang);
 
   // Copy selected workflow files to prompts directory (flattened)
   for (const workflowPath of finalWorkflowPaths) {
-    const content = readFile(workflowPath)
-    const filename = workflowPath.split('/').pop() || 'workflow.md'
-    const targetPath = join(CODEX_PROMPTS_DIR, filename)
-    writeFile(targetPath, content)
+    const content = readFile(workflowPath);
+    const filename = workflowPath.split('/').pop() || 'workflow.md';
+    const targetPath = join(CODEX_PROMPTS_DIR, filename);
+    writeFile(targetPath, content);
   }
 }
 
 // Sentinel values for grouped workflow options
-const ESSENTIAL_GROUP_SENTINEL = '::essentialGroup'
-const GIT_GROUP_SENTINEL = '::gitGroup'
+const ESSENTIAL_GROUP_SENTINEL = '::essentialGroup';
+const GIT_GROUP_SENTINEL = '::gitGroup';
 
 function getCodexWorkflowOptionDefinitions(workflowSrc: string, preferredLang: string): CodexWorkflowOption[] {
-  const options: CodexWorkflowOption[] = []
+  const options: CodexWorkflowOption[] = [];
 
   const pushIfExists = (
     id: CodexWorkflowOptionId,
@@ -1476,7 +1476,7 @@ function getCodexWorkflowOptionDefinitions(workflowSrc: string, preferredLang: s
     existsCheck: () => boolean = () => exists(path),
   ): void => {
     if (!existsCheck()) {
-      return
+      return;
     }
 
     options.push({
@@ -1484,15 +1484,15 @@ function getCodexWorkflowOptionDefinitions(workflowSrc: string, preferredLang: s
       name: i18n.t(nameKey),
       description: i18n.t(descriptionKey),
       path,
-    })
-  }
+    });
+  };
 
   pushIfExists(
     'sixStepsWorkflow',
     'workflow:workflowOption.sixStepsWorkflow',
     'workflow:workflowDescription.sixStepsWorkflow',
     join(workflowSrc, 'sixStep', preferredLang, 'workflow.md'),
-  )
+  );
 
   pushIfExists(
     'essentialTools',
@@ -1500,7 +1500,7 @@ function getCodexWorkflowOptionDefinitions(workflowSrc: string, preferredLang: s
     'workflow:workflowDescription.essentialTools',
     ESSENTIAL_GROUP_SENTINEL,
     () => getEssentialPromptFiles(workflowSrc, preferredLang).length > 0,
-  )
+  );
 
   pushIfExists(
     'gitWorkflow',
@@ -1508,44 +1508,44 @@ function getCodexWorkflowOptionDefinitions(workflowSrc: string, preferredLang: s
     'workflow:workflowDescription.gitWorkflow',
     GIT_GROUP_SENTINEL,
     () => getGitPromptFiles(workflowSrc, preferredLang).length > 0,
-  )
+  );
 
   pushIfExists(
     'interviewWorkflow',
     'workflow:workflowOption.interviewWorkflow',
     'workflow:workflowDescription.interviewWorkflow',
     join(workflowSrc, 'interview', preferredLang, 'interview.md'),
-  )
+  );
 
   pushIfExists(
     'specFirstTDD',
     'workflow:workflowOption.specFirstTDD',
     'workflow:workflowDescription.specFirstTDD',
     join(workflowSrc, 'specFirstTDD', preferredLang, 'spec-first-tdd.md'),
-  )
+  );
 
   pushIfExists(
     'continuousDelivery',
     'workflow:workflowOption.continuousDelivery',
     'workflow:workflowDescription.continuousDelivery',
     join(workflowSrc, 'continuousDelivery', preferredLang, 'continuous-delivery.md'),
-  )
+  );
 
   pushIfExists(
     'refactoringMaster',
     'workflow:workflowOption.refactoringMaster',
     'workflow:workflowDescription.refactoringMaster',
     join(workflowSrc, 'refactoringMaster', preferredLang, 'refactoring-master.md'),
-  )
+  );
 
   pushIfExists(
     'linearMethod',
     'workflow:workflowOption.linearMethod',
     'workflow:workflowDescription.linearMethod',
     join(workflowSrc, 'linearMethod', preferredLang, 'linear-method.md'),
-  )
+  );
 
-  return options
+  return options;
 }
 
 export function getCodexWorkflowOptionIds(): CodexWorkflowOptionId[] {
@@ -1558,76 +1558,76 @@ export function getCodexWorkflowOptionIds(): CodexWorkflowOptionId[] {
     'continuousDelivery',
     'refactoringMaster',
     'linearMethod',
-  ]
+  ];
 }
 
 // Expand grouped selections to actual file paths
 function expandSelectedWorkflowPaths(paths: string[], workflowSrc: string, preferredLang: string): string[] {
-  const expanded: string[] = []
+  const expanded: string[] = [];
   for (const p of paths) {
     if (p === ESSENTIAL_GROUP_SENTINEL) {
-      expanded.push(...getEssentialPromptFiles(workflowSrc, preferredLang))
+      expanded.push(...getEssentialPromptFiles(workflowSrc, preferredLang));
     }
     else if (p === GIT_GROUP_SENTINEL) {
-      expanded.push(...getGitPromptFiles(workflowSrc, preferredLang))
+      expanded.push(...getGitPromptFiles(workflowSrc, preferredLang));
     }
     else {
-      expanded.push(p)
+      expanded.push(p);
     }
   }
-  return expanded
+  return expanded;
 }
 
 function getEssentialPromptFiles(workflowSrc: string, preferredLang: string): string[] {
-  const essentialDir = join(workflowSrc, 'essential', preferredLang)
+  const essentialDir = join(workflowSrc, 'essential', preferredLang);
   const files = [
     'feat.md',
     'goal.md',
     'init-project.md',
-  ]
+  ];
 
-  const resolved: string[] = []
+  const resolved: string[] = [];
   for (const f of files) {
-    const full = join(essentialDir, f)
+    const full = join(essentialDir, f);
     if (exists(full))
-      resolved.push(full)
+      resolved.push(full);
   }
 
-  return resolved
+  return resolved;
 }
 
 // Resolve actual Git prompt files from templates
 function getGitPromptFiles(workflowSrc: string, preferredLang: string): string[] {
-  const gitPromptsDir = join(workflowSrc, 'git', preferredLang)
+  const gitPromptsDir = join(workflowSrc, 'git', preferredLang);
   const files = [
     'git-commit.md',
     'git-rollback.md',
     'git-cleanBranches.md',
     'git-worktree.md',
-  ]
+  ];
 
-  const resolved: string[] = []
+  const resolved: string[] = [];
   for (const f of files) {
-    const full = join(gitPromptsDir, f)
+    const full = join(gitPromptsDir, f);
     if (exists(full))
-      resolved.push(full)
+      resolved.push(full);
   }
 
-  return resolved
+  return resolved;
 }
 
 function resolveCodexWorkflowNames(workflowIds: string[], preferredLang: SupportedLang): string[] {
-  const workflowSrc = join(getRootDir(), 'templates', 'common', 'workflow')
-  const options = getCodexWorkflowOptionDefinitions(workflowSrc, preferredLang)
-  const optionMap = new Map(options.map(option => [option.id, option.name]))
+  const workflowSrc = join(getRootDir(), 'templates', 'common', 'workflow');
+  const options = getCodexWorkflowOptionDefinitions(workflowSrc, preferredLang);
+  const optionMap = new Map(options.map(option => [option.id, option.name]));
 
   return workflowIds
     .map(workflowId => optionMap.get(workflowId as CodexWorkflowOptionId))
-    .filter((workflowName): workflowName is string => Boolean(workflowName))
+    .filter((workflowName): workflowName is string => Boolean(workflowName));
 }
 
-function toProvidersList(providers: CodexProvider[]): Array<{ name: string, value: string }> {
-  return providers.map(provider => ({ name: provider.name || provider.id, value: provider.id }))
+function toProvidersList(providers: CodexProvider[]): Array<{ name: string; value: string }> {
+  return providers.map(provider => ({ name: provider.name || provider.id, value: provider.id }));
 }
 
 /**
@@ -1638,53 +1638,53 @@ function toProvidersList(providers: CodexProvider[]): Array<{ name: string, valu
  * @returns Array of formatted choices for inquirer
  */
 
-function createApiConfigChoices(providers: CodexProvider[], currentProvider?: string | null, isCommented?: boolean): Array<{ name: string, value: string }> {
-  const choices: Array<{ name: string, value: string }> = []
+function createApiConfigChoices(providers: CodexProvider[], currentProvider?: string | null, isCommented?: boolean): Array<{ name: string; value: string }> {
+  const choices: Array<{ name: string; value: string }> = [];
 
   // Add official login option first
-  const isOfficialMode = !currentProvider || isCommented
+  const isOfficialMode = !currentProvider || isCommented;
   choices.push({
     name: isOfficialMode
       ? `${ansis.green('● ')}${i18n.t('codex:useOfficialLogin')} ${ansis.yellow('(当前)')}`
       : `  ${i18n.t('codex:useOfficialLogin')}`,
     value: 'official',
-  })
+  });
 
   // Add provider options
   providers.forEach((provider) => {
-    const isCurrent = currentProvider === provider.id && !isCommented
+    const isCurrent = currentProvider === provider.id && !isCommented;
     choices.push({
       name: isCurrent
         ? `${ansis.green('● ')}${provider.name} - ${ansis.gray(provider.id)} ${ansis.yellow('(当前)')}`
         : `  ${provider.name} - ${ansis.gray(provider.id)}`,
       value: provider.id,
-    })
-  })
+    });
+  });
 
-  return choices
+  return choices;
 }
 
 /**
  * Apply custom API configuration directly (for skipPrompt mode)
  */
 async function applyCustomApiConfig(customApiConfig: NonNullable<CodexFullInitOptions['customApiConfig']>): Promise<void> {
-  const { type, token, baseUrl, model } = customApiConfig
+  const { type, token, baseUrl, model } = customApiConfig;
 
   // Always backup existing config before modification
-  const backupPath = backupCodexComplete()
+  const backupPath = backupCodexComplete();
   if (backupPath) {
-    console.log(ansis.gray(getBackupMessage(backupPath)))
+    console.log(ansis.gray(getBackupMessage(backupPath)));
   }
 
-  const existingConfig = readCodexConfig()
-  const existingAuth = readJsonConfig<Record<string, string>>(CODEX_AUTH_FILE, { defaultValue: {} }) || {}
-  const providers: CodexProvider[] = []
-  const authEntries: Record<string, string> = { ...existingAuth }
+  const existingConfig = readCodexConfig();
+  const existingAuth = readJsonConfig<Record<string, string>>(CODEX_AUTH_FILE, { defaultValue: {} }) || {};
+  const providers: CodexProvider[] = [];
+  const authEntries: Record<string, string> = { ...existingAuth };
 
   // Create provider based on configuration
-  const providerId = type === 'auth_token' ? 'official-auth-token' : 'custom-api-key'
-  const providerName = type === 'auth_token' ? 'Official Auth Token' : 'Custom API Key'
-  const existingProvider = existingConfig?.providers.find(p => p.id === providerId)
+  const providerId = type === 'auth_token' ? 'official-auth-token' : 'custom-api-key';
+  const providerName = type === 'auth_token' ? 'Official Auth Token' : 'Custom API Key';
+  const existingProvider = existingConfig?.providers.find(p => p.id === providerId);
 
   providers.push({
     id: providerId,
@@ -1694,18 +1694,18 @@ async function applyCustomApiConfig(customApiConfig: NonNullable<CodexFullInitOp
     tempEnvKey: existingProvider?.tempEnvKey || `${providerId.toUpperCase()}_API_KEY`,
     requiresOpenaiAuth: existingProvider?.requiresOpenaiAuth ?? false,
     model: model || existingProvider?.model,
-  })
+  });
 
   // Preserve other providers (without duplicating current one)
   if (existingConfig?.providers) {
-    providers.push(...existingConfig.providers.filter(p => p.id !== providerId))
+    providers.push(...existingConfig.providers.filter(p => p.id !== providerId));
   }
 
   // Store auth entry if token provided
   if (token) {
-    authEntries[providerId] = token
+    authEntries[providerId] = token;
     // Also write OPENAI_API_KEY for compatibility with Codex CLI expectations
-    authEntries.OPENAI_API_KEY = token
+    authEntries.OPENAI_API_KEY = token;
   }
 
   // Write configuration files
@@ -1718,59 +1718,59 @@ async function applyCustomApiConfig(customApiConfig: NonNullable<CodexFullInitOp
     managed: true,
     features: existingConfig?.features,
     otherConfig: existingConfig?.otherConfig || [],
-  }
+  };
 
   // Write TOML format for config file using managed renderer
-  writeCodexConfig(configData)
+  writeCodexConfig(configData);
   // Auth file remains JSON format — set auth_mode to 'apikey' for custom providers
-  writeJsonConfig(CODEX_AUTH_FILE, { ...authEntries, auth_mode: 'apikey' })
+  writeJsonConfig(CODEX_AUTH_FILE, { ...authEntries, auth_mode: 'apikey' });
 
-  updateZcfConfig({ codeToolType: 'codex' })
+  updateZcfConfig({ codeToolType: 'codex' });
 
-  console.log(ansis.green(`✔ ${i18n.t('codex:apiConfigured')}`))
+  console.log(ansis.green(`✔ ${i18n.t('codex:apiConfigured')}`));
 }
 
 export async function configureCodexApi(options?: CodexFullInitOptions): Promise<void> {
-  ensureI18nInitialized()
+  ensureI18nInitialized();
 
-  const { skipPrompt = false, apiMode, customApiConfig } = options ?? {}
-  const existingConfig = readCodexConfig()
-  const existingAuth = readJsonConfig<Record<string, string | null>>(CODEX_AUTH_FILE, { defaultValue: {} }) || {}
+  const { skipPrompt = false, apiMode, customApiConfig } = options ?? {};
+  const existingConfig = readCodexConfig();
+  const existingAuth = readJsonConfig<Record<string, string | null>>(CODEX_AUTH_FILE, { defaultValue: {} }) || {};
 
   // Handle skipPrompt mode
   if (skipPrompt) {
     if (apiMode === 'skip') {
       // Skip API configuration entirely
-      return
+      return;
     }
 
     if (apiMode === 'custom' && customApiConfig) {
       // Use custom API configuration directly
-      await applyCustomApiConfig(customApiConfig)
-      return
+      await applyCustomApiConfig(customApiConfig);
+      return;
     }
 
     if (apiMode === 'official') {
       // Use official API mode
-      const success = await switchToOfficialLogin()
+      const success = await switchToOfficialLogin();
       if (success) {
-        updateZcfConfig({ codeToolType: 'codex' })
+        updateZcfConfig({ codeToolType: 'codex' });
       }
-      return
+      return;
     }
   }
 
   // Check if there are existing providers for switch option
-  const hasProviders = existingConfig?.providers && existingConfig.providers.length > 0
+  const hasProviders = existingConfig?.providers && existingConfig.providers.length > 0;
 
   const modeChoices = [
     { name: i18n.t('codex:apiModeOfficial'), value: 'official' },
     { name: i18n.t('codex:apiModeCustom'), value: 'custom' },
-  ]
+  ];
 
   // Add switch option if providers exist
   if (hasProviders) {
-    modeChoices.push({ name: i18n.t('codex:configSwitchMode'), value: 'switch' })
+    modeChoices.push({ name: i18n.t('codex:configSwitchMode'), value: 'switch' });
   }
 
   const { mode } = await inquirer.prompt<{ mode: 'official' | 'custom' | 'switch' }>([{
@@ -1779,128 +1779,128 @@ export async function configureCodexApi(options?: CodexFullInitOptions): Promise
     message: i18n.t('codex:apiModePrompt'),
     choices: addNumbersToChoices(modeChoices),
     default: 'custom',
-  }])
+  }]);
 
   if (!mode) {
-    console.log(ansis.yellow(i18n.t('common:cancelled')))
-    return
+    console.log(ansis.yellow(i18n.t('common:cancelled')));
+    return;
   }
 
   if (mode === 'official') {
     // Use new official login logic - preserve providers but comment model_provider
-    const success = await switchToOfficialLogin()
+    const success = await switchToOfficialLogin();
     if (success) {
-      updateZcfConfig({ codeToolType: 'codex' })
+      updateZcfConfig({ codeToolType: 'codex' });
     }
-    return
+    return;
   }
 
   if (mode === 'switch') {
     // Switch API config mode - includes official login and providers
     if (!hasProviders) {
-      console.log(ansis.yellow(i18n.t('codex:noProvidersAvailable')))
-      return
+      console.log(ansis.yellow(i18n.t('codex:noProvidersAvailable')));
+      return;
     }
 
-    const currentProvider = existingConfig?.modelProvider
-    const isCommented = existingConfig?.modelProviderCommented
-    const choices = createApiConfigChoices(existingConfig!.providers, currentProvider, isCommented)
+    const currentProvider = existingConfig?.modelProvider;
+    const isCommented = existingConfig?.modelProviderCommented;
+    const choices = createApiConfigChoices(existingConfig!.providers, currentProvider, isCommented);
 
     const { selectedConfig } = await inquirer.prompt<{ selectedConfig: string }>([{
       type: 'list',
       name: 'selectedConfig',
       message: i18n.t('codex:apiConfigSwitchPrompt'),
       choices: addNumbersToChoices(choices),
-    }])
+    }]);
 
     if (!selectedConfig) {
-      console.log(ansis.yellow(i18n.t('common:cancelled')))
-      return
+      console.log(ansis.yellow(i18n.t('common:cancelled')));
+      return;
     }
 
-    let success = false
+    let success = false;
     if (selectedConfig === 'official') {
-      success = await switchToOfficialLogin()
+      success = await switchToOfficialLogin();
     }
     else {
-      success = await switchToProvider(selectedConfig)
+      success = await switchToProvider(selectedConfig);
     }
 
     if (success) {
-      updateZcfConfig({ codeToolType: 'codex' })
+      updateZcfConfig({ codeToolType: 'codex' });
     }
-    return
+    return;
   }
 
   // Custom API configuration mode - check if we should use incremental management
-  const managementMode = detectConfigManagementMode()
+  const managementMode = detectConfigManagementMode();
 
   if (managementMode.mode === 'management' && managementMode.hasProviders) {
     // Use incremental management for existing configurations
-    const { default: { configureIncrementalManagement } } = await import('./codex-config-switch')
-    await configureIncrementalManagement()
-    return
+    const { default: { configureIncrementalManagement } } = await import('./codex-config-switch');
+    await configureIncrementalManagement();
+    return;
   }
 
   // Always backup existing config before modification
-  const backupPath = backupCodexComplete()
+  const backupPath = backupCodexComplete();
   if (backupPath) {
-    console.log(ansis.gray(getBackupMessage(backupPath)))
+    console.log(ansis.gray(getBackupMessage(backupPath)));
   }
 
-  const providers: CodexProvider[] = []
-  const authEntries: Record<string, string> = {}
-  const existingMap = new Map(existingConfig?.providers.map(provider => [provider.id, provider]))
-  const currentSessionProviders = new Map<string, CodexProvider>()
+  const providers: CodexProvider[] = [];
+  const authEntries: Record<string, string> = {};
+  const existingMap = new Map(existingConfig?.providers.map(provider => [provider.id, provider]));
+  const currentSessionProviders = new Map<string, CodexProvider>();
 
-  let addMore = true
-  const existingValues = existingMap.size ? Array.from(existingMap.values()) : []
-  const firstExisting = existingValues.length === 1 ? existingValues[0] : undefined
+  let addMore = true;
+  const existingValues = existingMap.size ? Array.from(existingMap.values()) : [];
+  const firstExisting = existingValues.length === 1 ? existingValues[0] : undefined;
 
   while (addMore) {
     // Step 1: Select API provider (custom or preset)
-    const { getApiProviders } = await import('../../config/api-providers')
-    const apiProviders = getApiProviders('codex')
+    const { getApiProviders } = await import('../../config/api-providers');
+    const apiProviders = getApiProviders('codex');
 
     const providerChoices = [
       { name: i18n.t('api:customProvider'), value: 'custom' },
       ...apiProviders.map((p: any) => ({ name: p.name, value: p.id })),
-    ]
+    ];
 
     const { selectedProvider } = await inquirer.prompt<{ selectedProvider: string }>([{
       type: 'list',
       name: 'selectedProvider',
       message: i18n.t('api:selectApiProvider'),
       choices: addNumbersToChoices(providerChoices),
-    }])
+    }]);
 
-    let prefilledBaseUrl: string | undefined
-    let prefilledWireApi: 'responses' | 'chat' | undefined
-    let prefilledModel: string | undefined
+    let prefilledBaseUrl: string | undefined;
+    let prefilledWireApi: 'responses' | 'chat' | undefined;
+    let prefilledModel: string | undefined;
 
     if (selectedProvider !== 'custom') {
-      const provider = apiProviders.find((p: any) => p.id === selectedProvider)
+      const provider = apiProviders.find((p: any) => p.id === selectedProvider);
       if (provider?.codex) {
-        prefilledBaseUrl = provider.codex.baseUrl
-        prefilledWireApi = provider.codex.wireApi
-        prefilledModel = provider.codex.defaultModel
-        console.log(ansis.gray(i18n.t('api:providerSelected', { name: provider.name })))
+        prefilledBaseUrl = provider.codex.baseUrl;
+        prefilledWireApi = provider.codex.wireApi;
+        prefilledModel = provider.codex.defaultModel;
+        console.log(ansis.gray(i18n.t('api:providerSelected', { name: provider.name })));
       }
     }
 
-    const answers = await inquirer.prompt<{ providerName: string, baseUrl: string, wireApi: string, apiKey: string }>([
+    const answers = await inquirer.prompt<{ providerName: string; baseUrl: string; wireApi: string; apiKey: string }>([
       {
         type: 'input',
         name: 'providerName',
         message: i18n.t('codex:providerNamePrompt'),
         default: selectedProvider !== 'custom' ? apiProviders.find((p: any) => p.id === selectedProvider)?.name : firstExisting?.name,
         validate: (input: string) => {
-          const sanitized = sanitizeProviderName(input)
+          const sanitized = sanitizeProviderName(input);
           if (!sanitized)
-            return i18n.t('codex:providerNameRequired')
+            return i18n.t('codex:providerNameRequired');
           if (sanitized !== input.trim())
-            return i18n.t('codex:providerNameInvalid')
-          return true
+            return i18n.t('codex:providerNameInvalid');
+          return true;
         },
       },
       {
@@ -1930,32 +1930,32 @@ export async function configureCodexApi(options?: CodexFullInitOptions): Promise
           : i18n.t('codex:providerApiKeyPrompt'),
         validate: (input: string) => !!input || i18n.t('codex:providerApiKeyRequired'),
       },
-    ])
+    ]);
 
     // For custom provider, prompt for model configuration
-    let customModel: string | undefined
+    let customModel: string | undefined;
     if (selectedProvider === 'custom') {
       const { model } = await inquirer.prompt<{ model: string }>([{
         type: 'input',
         name: 'model',
         message: `${i18n.t('configuration:enterCustomModel')}${i18n.t('common:emptyToSkip')}`,
         default: 'gpt-5-codex',
-      }])
+      }]);
       if (model.trim()) {
-        customModel = model.trim()
+        customModel = model.trim();
       }
     }
 
-    const providerId = sanitizeProviderName(answers.providerName)
-    const tempEnvKey = `${providerId.toUpperCase().replace(/-/g, '_')}_API_KEY`
+    const providerId = sanitizeProviderName(answers.providerName);
+    const tempEnvKey = `${providerId.toUpperCase().replace(/-/g, '_')}_API_KEY`;
 
     // Check for duplicate names
-    const existingProvider = existingMap.get(providerId)
-    const sessionProvider = currentSessionProviders.get(providerId)
+    const existingProvider = existingMap.get(providerId);
+    const sessionProvider = currentSessionProviders.get(providerId);
 
     if (existingProvider || sessionProvider) {
-      const sourceType = existingProvider ? 'existing' : 'session'
-      const sourceProvider = existingProvider || sessionProvider
+      const sourceType = existingProvider ? 'existing' : 'session';
+      const sourceProvider = existingProvider || sessionProvider;
 
       const shouldOverwrite = await promptBoolean({
         message: i18n.t('codex:providerDuplicatePrompt', {
@@ -1963,19 +1963,19 @@ export async function configureCodexApi(options?: CodexFullInitOptions): Promise
           source: sourceType === 'existing' ? i18n.t('codex:existingConfig') : i18n.t('codex:currentSession'),
         }),
         defaultValue: false,
-      })
+      });
 
       if (!shouldOverwrite) {
-        console.log(ansis.yellow(i18n.t('codex:providerDuplicateSkipped')))
-        continue
+        console.log(ansis.yellow(i18n.t('codex:providerDuplicateSkipped')));
+        continue;
       }
 
       // Remove from session providers if overwriting session provider
       if (sessionProvider) {
-        currentSessionProviders.delete(providerId)
-        const sessionIndex = providers.findIndex(p => p.id === providerId)
+        currentSessionProviders.delete(providerId);
+        const sessionIndex = providers.findIndex(p => p.id === providerId);
         if (sessionIndex !== -1) {
-          providers.splice(sessionIndex, 1)
+          providers.splice(sessionIndex, 1);
         }
       }
     }
@@ -1988,23 +1988,23 @@ export async function configureCodexApi(options?: CodexFullInitOptions): Promise
       tempEnvKey,
       requiresOpenaiAuth: false, // Custom/third-party providers use their own API key, not OpenAI OAuth
       model: customModel || prefilledModel || 'gpt-5-codex', // Use custom model, provider's default model, or fallback
-    }
+    };
 
-    providers.push(newProvider)
-    currentSessionProviders.set(providerId, newProvider)
-    authEntries[tempEnvKey] = answers.apiKey
+    providers.push(newProvider);
+    currentSessionProviders.set(providerId, newProvider);
+    authEntries[tempEnvKey] = answers.apiKey;
 
     const addAnother = await promptBoolean({
       message: i18n.t('codex:addProviderPrompt'),
       defaultValue: false,
-    })
+    });
 
-    addMore = addAnother
+    addMore = addAnother;
   }
 
   if (providers.length === 0) {
-    console.log(ansis.yellow(i18n.t('codex:noProvidersConfigured')))
-    return
+    console.log(ansis.yellow(i18n.t('codex:noProvidersConfigured')));
+    return;
   }
 
   const { defaultProvider } = await inquirer.prompt<{ defaultProvider: string }>([{
@@ -2013,14 +2013,14 @@ export async function configureCodexApi(options?: CodexFullInitOptions): Promise
     message: i18n.t('codex:selectDefaultProviderPrompt'),
     choices: addNumbersToChoices(toProvidersList(providers)),
     default: existingConfig?.modelProvider || providers[0].id,
-  }])
+  }]);
 
-  const selectedProvider = providers.find(provider => provider.id === defaultProvider)
+  const selectedProvider = providers.find(provider => provider.id === defaultProvider);
   if (selectedProvider) {
-    const tempEnvKey = selectedProvider.tempEnvKey
-    const defaultApiKey = authEntries[tempEnvKey] ?? existingAuth[tempEnvKey] ?? null
+    const tempEnvKey = selectedProvider.tempEnvKey;
+    const defaultApiKey = authEntries[tempEnvKey] ?? existingAuth[tempEnvKey] ?? null;
     if (defaultApiKey)
-      authEntries.OPENAI_API_KEY = defaultApiKey
+      authEntries.OPENAI_API_KEY = defaultApiKey;
   }
 
   writeCodexConfig({
@@ -2031,45 +2031,45 @@ export async function configureCodexApi(options?: CodexFullInitOptions): Promise
     managed: true,
     features: existingConfig?.features,
     otherConfig: existingConfig?.otherConfig || [],
-  })
+  });
 
-  writeAuthFile(authEntries, 'apikey')
-  updateZcfConfig({ codeToolType: 'codex' })
-  console.log(ansis.green(i18n.t('codex:apiConfigured')))
+  writeAuthFile(authEntries, 'apikey');
+  updateZcfConfig({ codeToolType: 'codex' });
+  console.log(ansis.green(i18n.t('codex:apiConfigured')));
 }
 
-export { configureCodexMcp }
+export { configureCodexMcp };
 
 export interface CodexFullInitOptions extends CodexWorkflowLanguageOptions {
   // Workflow selection options
-  workflows?: string[] // Specific workflows to install, empty means all
+  workflows?: string[]; // Specific workflows to install, empty means all
   // MCP service options
-  mcpServices?: string[] | false // Specific MCP services to install, false means skip
+  mcpServices?: string[] | false; // Specific MCP services to install, false means skip
   // API configuration options
-  apiMode?: 'official' | 'custom' | 'skip' // API mode selection
+  apiMode?: 'official' | 'custom' | 'skip'; // API mode selection
   customApiConfig?: {
-    type: 'auth_token' | 'api_key'
-    token?: string
-    baseUrl?: string
-    model?: string // Model parameter for Codex
-  }
+    type: 'auth_token' | 'api_key';
+    token?: string;
+    baseUrl?: string;
+    model?: string; // Model parameter for Codex
+  };
 }
 
-export type CodexPresetId = 'minimal' | 'dev' | 'full'
-type CodexEfficiencyAction = 'quick-optimize' | 'preset-bundles' | 'workflow-prompts' | 'model' | 'docs-mcp' | 'prompt-memory' | 'back'
-type CodexWorkflowOptionId = 'sixStepsWorkflow' | 'essentialTools' | 'gitWorkflow' | 'interviewWorkflow' | 'specFirstTDD' | 'continuousDelivery' | 'refactoringMaster' | 'linearMethod'
+export type CodexPresetId = 'minimal' | 'dev' | 'full';
+type CodexEfficiencyAction = 'quick-optimize' | 'preset-bundles' | 'workflow-prompts' | 'model' | 'docs-mcp' | 'prompt-memory' | 'back';
+type CodexWorkflowOptionId = 'sixStepsWorkflow' | 'essentialTools' | 'gitWorkflow' | 'interviewWorkflow' | 'specFirstTDD' | 'continuousDelivery' | 'refactoringMaster' | 'linearMethod';
 
 export interface CodexPresetDefinition {
-  id: CodexPresetId
-  workflows: string[]
-  mcpServices: string[]
+  id: CodexPresetId;
+  workflows: string[];
+  mcpServices: string[];
 }
 
 interface CodexWorkflowOption {
-  id: CodexWorkflowOptionId
-  name: string
-  description: string
-  path: string
+  id: CodexWorkflowOptionId;
+  name: string;
+  description: string;
+  path: string;
 }
 
 const CODEX_PRESET_DEFINITIONS: Record<CodexPresetId, CodexPresetDefinition> = {
@@ -2088,61 +2088,61 @@ const CODEX_PRESET_DEFINITIONS: Record<CodexPresetId, CodexPresetDefinition> = {
     workflows: ['sixStepsWorkflow', 'essentialTools', 'gitWorkflow', 'specFirstTDD', 'refactoringMaster', 'linearMethod', 'interviewWorkflow'],
     mcpServices: ['context7', 'open-websearch', 'mcp-deepwiki', 'serena'],
   },
-}
+};
 
 export function getCodexPresetDefinitions(): CodexPresetDefinition[] {
-  return Object.values(CODEX_PRESET_DEFINITIONS)
+  return Object.values(CODEX_PRESET_DEFINITIONS);
 }
 
 export function getCodexEfficiencyActionIds(): CodexEfficiencyAction[] {
-  return ['quick-optimize', 'preset-bundles', 'workflow-prompts', 'model', 'docs-mcp', 'prompt-memory', 'back']
+  return ['quick-optimize', 'preset-bundles', 'workflow-prompts', 'model', 'docs-mcp', 'prompt-memory', 'back'];
 }
 
 export async function runCodexFullInit(
   options?: CodexFullInitOptions,
 ): Promise<AiOutputLanguage | string> {
-  ensureI18nInitialized()
+  ensureI18nInitialized();
 
-  await installCodexCli(options?.skipPrompt || false)
-  const aiOutputLang = await runCodexWorkflowImportWithLanguageSelection(options)
-  await configureCodexApi(options)
-  await configureCodexMcp(options)
+  await installCodexCli(options?.skipPrompt || false);
+  const aiOutputLang = await runCodexWorkflowImportWithLanguageSelection(options);
+  await configureCodexApi(options);
+  await configureCodexMcp(options);
 
-  return aiOutputLang
+  return aiOutputLang;
 }
 
 function resolveCodexPresetTemplateLang(): SupportedLang {
-  const savedConfig = readZcfConfig()
-  const savedTemplateLang = savedConfig?.templateLang
+  const savedConfig = readZcfConfig();
+  const savedTemplateLang = savedConfig?.templateLang;
   if (savedTemplateLang && SUPPORTED_LANGS.includes(savedTemplateLang)) {
-    return savedTemplateLang
+    return savedTemplateLang;
   }
 
-  const preferredLang = savedConfig?.preferredLang
+  const preferredLang = savedConfig?.preferredLang;
   if (preferredLang && SUPPORTED_LANGS.includes(preferredLang)) {
-    return preferredLang
+    return preferredLang;
   }
 
-  return i18n.language === 'zh-CN' ? 'zh-CN' : 'en'
+  return i18n.language === 'zh-CN' ? 'zh-CN' : 'en';
 }
 
 export async function applyCodexPreset(presetId: CodexPresetId): Promise<void> {
-  ensureI18nInitialized()
+  ensureI18nInitialized();
 
-  const preset = CODEX_PRESET_DEFINITIONS[presetId]
+  const preset = CODEX_PRESET_DEFINITIONS[presetId];
   if (!preset) {
-    throw new Error(`Unknown Codex preset: ${presetId}`)
+    throw new Error(`Unknown Codex preset: ${presetId}`);
   }
 
-  const savedConfig = readZcfConfig()
-  const templateLang = resolveCodexPresetTemplateLang()
-  const preferredLang = savedConfig?.preferredLang || templateLang
-  const aiOutputLang = savedConfig?.aiOutputLang || templateLang
-  const workflowIds = preset.workflows
-  const workflowNames = resolveCodexWorkflowNames(workflowIds, templateLang)
-  const previousSingleBackupMode = process.env.CCJK_CODEX_SKIP_PROMPT_SINGLE_BACKUP
+  const savedConfig = readZcfConfig();
+  const templateLang = resolveCodexPresetTemplateLang();
+  const preferredLang = savedConfig?.preferredLang || templateLang;
+  const aiOutputLang = savedConfig?.aiOutputLang || templateLang;
+  const workflowIds = preset.workflows;
+  const workflowNames = resolveCodexWorkflowNames(workflowIds, templateLang);
+  const previousSingleBackupMode = process.env.CCJK_CODEX_SKIP_PROMPT_SINGLE_BACKUP;
 
-  process.env.CCJK_CODEX_SKIP_PROMPT_SINGLE_BACKUP = 'true'
+  process.env.CCJK_CODEX_SKIP_PROMPT_SINGLE_BACKUP = 'true';
 
   try {
     updateTomlConfig(ZCF_CONFIG_FILE, {
@@ -2152,81 +2152,81 @@ export async function applyCodexPreset(presetId: CodexPresetId): Promise<void> {
         templateLang,
         aiOutputLang,
       },
-    })
+    });
 
     await runCodexWorkflowImportWithLanguageSelection({
       skipPrompt: true,
       aiOutputLang,
       workflows: workflowIds,
-    })
+    });
 
     await configureCodexMcp({
       skipPrompt: true,
       workflows: workflowIds,
       mcpServices: preset.mcpServices,
-    })
+    });
   }
   finally {
-    cachedSkipPromptBackup = null
+    cachedSkipPromptBackup = null;
     if (previousSingleBackupMode === undefined) {
-      delete process.env.CCJK_CODEX_SKIP_PROMPT_SINGLE_BACKUP
+      delete process.env.CCJK_CODEX_SKIP_PROMPT_SINGLE_BACKUP;
     }
     else {
-      process.env.CCJK_CODEX_SKIP_PROMPT_SINGLE_BACKUP = previousSingleBackupMode
+      process.env.CCJK_CODEX_SKIP_PROMPT_SINGLE_BACKUP = previousSingleBackupMode;
     }
   }
 
-  console.log(ansis.green(i18n.t('codex:presetApplied', { preset: i18n.t(`codex:presets.${preset.id}.name`) })))
+  console.log(ansis.green(i18n.t('codex:presetApplied', { preset: i18n.t(`codex:presets.${preset.id}.name`) })));
   console.log(ansis.gray(i18n.t('codex:presetSummary', {
     workflows: workflowNames.join(', '),
     services: preset.mcpServices.join(', '),
-  })))
+  })));
 }
 
 function formatCodexModelSummary(model: string | null | undefined): string {
   if (!model)
-    return i18n.t('codex:efficiency.notConfigured')
+    return i18n.t('codex:efficiency.notConfigured');
 
   const labels: Record<string, string> = {
     'gpt-5-codex': 'GPT-5-Codex',
     'codex-mini-latest': 'codex-mini-latest',
     'gpt-5': 'GPT-5',
-  }
+  };
 
-  return labels[model] || model
+  return labels[model] || model;
 }
 
 function formatCodexStyleSummary(style: string | null | undefined): string {
   if (!style)
-    return i18n.t('codex:efficiency.notConfigured')
+    return i18n.t('codex:efficiency.notConfigured');
 
   const styleLabels: Record<string, string> = {
     'senior-architect': i18n.t('codex:efficiency.styleLabels.seniorArchitect'),
     'speed-coder': i18n.t('codex:efficiency.styleLabels.speedCoder'),
     'pair-programmer': i18n.t('codex:efficiency.styleLabels.pairProgrammer'),
-  }
+  };
 
-  return styleLabels[style] || style
+  return styleLabels[style] || style;
 }
 
 function getInstalledCodexPromptCount(): number {
   if (!exists(CODEX_PROMPTS_DIR)) {
-    return 0
+    return 0;
   }
 
   return readdirSync(CODEX_PROMPTS_DIR, { withFileTypes: true })
     .filter(entry => entry.isFile() && entry.name.endsWith('.md'))
-    .length
+    .length;
 }
 
-function buildCodexEfficiencyChoices(): Array<{ name: string, value: CodexEfficiencyAction }> {
-  const codexConfig = readCodexConfig()
-  const zcfConfig = readDefaultTomlConfig()
-  const modelSummary = formatCodexModelSummary(codexConfig?.model)
-  const mcpSummary = codexConfig?.mcpServices?.length ?? 0
-  const workflowSummary = getInstalledCodexPromptCount()
-  const promptSummary = formatCodexStyleSummary(zcfConfig?.codex?.systemPromptStyle)
-  const languageSummary = zcfConfig?.general?.aiOutputLang || zcfConfig?.general?.preferredLang || i18n.t('codex:efficiency.notConfigured')
+function buildCodexEfficiencyChoices(): Array<{ name: string; value: CodexEfficiencyAction }> {
+  const codexConfig = readCodexConfig();
+  const zcfConfig = readDefaultTomlConfig();
+  const modelSummary = formatCodexModelSummary(codexConfig?.model);
+  const mcpSummary = codexConfig?.mcpServices?.length ?? 0;
+  const workflowSummary = getInstalledCodexPromptCount();
+  const promptSummary = formatCodexStyleSummary(zcfConfig?.codex?.systemPromptStyle);
+  const languageSummary = zcfConfig?.general?.aiOutputLang || zcfConfig?.general?.preferredLang || i18n.t('codex:efficiency.notConfigured');
 
   return addNumbersToChoices([
     {
@@ -2257,7 +2257,7 @@ function buildCodexEfficiencyChoices(): Array<{ name: string, value: CodexEffici
       name: i18n.t('codex:efficiency.actions.back.name'),
       value: 'back',
     },
-  ])
+  ]);
 }
 
 async function promptCodexPresetBundle(): Promise<CodexPresetId | null> {
@@ -2270,15 +2270,15 @@ async function promptCodexPresetBundle(): Promise<CodexPresetId | null> {
       value: item.id,
     }))),
     default: 'dev',
-  }])
+  }]);
 
-  return preset || null
+  return preset || null;
 }
 
 function ensureCodexRecommendedModel(defaultModel: string = 'gpt-5-codex'): string | null {
-  const existingConfig = readCodexConfig()
+  const existingConfig = readCodexConfig();
   if (existingConfig?.model) {
-    return null
+    return null;
   }
 
   writeCodexConfig({
@@ -2290,28 +2290,28 @@ function ensureCodexRecommendedModel(defaultModel: string = 'gpt-5-codex'): stri
     features: existingConfig?.features,
     otherConfig: existingConfig?.otherConfig || [],
     modelProviderCommented: existingConfig?.modelProviderCommented,
-  })
+  });
 
-  return defaultModel
+  return defaultModel;
 }
 
 async function runCodexQuickOptimize(): Promise<void> {
-  await applyCodexPreset('dev')
+  await applyCodexPreset('dev');
 
-  const appliedModel = ensureCodexRecommendedModel()
+  const appliedModel = ensureCodexRecommendedModel();
   if (appliedModel) {
-    console.log(ansis.green(i18n.t('codex:efficiency.quickOptimizeModelApplied', { model: appliedModel })))
+    console.log(ansis.green(i18n.t('codex:efficiency.quickOptimizeModelApplied', { model: appliedModel })));
   }
   else {
-    const currentModel = readCodexConfig()?.model
+    const currentModel = readCodexConfig()?.model;
     if (currentModel) {
-      console.log(ansis.gray(i18n.t('codex:efficiency.quickOptimizeModelKept', { model: formatCodexModelSummary(currentModel) })))
+      console.log(ansis.gray(i18n.t('codex:efficiency.quickOptimizeModelKept', { model: formatCodexModelSummary(currentModel) })));
     }
   }
 }
 
 export async function configureCodexPresetFeature(): Promise<void> {
-  ensureI18nInitialized()
+  ensureI18nInitialized();
 
   while (true) {
     const { action } = await inquirer.prompt<{ action: CodexEfficiencyAction }>([{
@@ -2320,120 +2320,120 @@ export async function configureCodexPresetFeature(): Promise<void> {
       message: i18n.t('codex:efficiency.prompt'),
       choices: buildCodexEfficiencyChoices(),
       default: 'quick-optimize',
-    }])
+    }]);
 
     if (!action || action === 'back') {
-      return
+      return;
     }
 
     if (action === 'quick-optimize') {
-      await runCodexQuickOptimize()
-      continue
+      await runCodexQuickOptimize();
+      continue;
     }
 
     if (action === 'preset-bundles') {
-      const preset = await promptCodexPresetBundle()
+      const preset = await promptCodexPresetBundle();
       if (preset) {
-        await applyCodexPreset(preset)
+        await applyCodexPreset(preset);
       }
-      continue
+      continue;
     }
 
     if (action === 'workflow-prompts') {
-      await runCodexWorkflowSelection()
-      continue
+      await runCodexWorkflowSelection();
+      continue;
     }
 
     if (action === 'model') {
-      const { configureCodexDefaultModelFeature } = await import('../features')
-      await configureCodexDefaultModelFeature()
-      continue
+      const { configureCodexDefaultModelFeature } = await import('../features');
+      await configureCodexDefaultModelFeature();
+      continue;
     }
 
     if (action === 'docs-mcp') {
-      await configureCodexMcp()
-      continue
+      await configureCodexMcp();
+      continue;
     }
 
     if (action === 'prompt-memory') {
-      const { configureCodexAiMemoryFeature } = await import('../features')
-      await configureCodexAiMemoryFeature()
+      const { configureCodexAiMemoryFeature } = await import('../features');
+      await configureCodexAiMemoryFeature();
     }
   }
 }
 
 function ensureCodexAgentsLanguageDirective(aiOutputLang: AiOutputLanguage | string): void {
   if (!exists(CODEX_AGENTS_FILE))
-    return
+    return;
 
-  const content = readFile(CODEX_AGENTS_FILE)
-  const targetLabel = resolveCodexLanguageLabel(aiOutputLang)
-  const directiveRegex = /\*\*Most Important:\s*Always respond in ([^*]+)\*\*/i
-  const existingMatch = directiveRegex.exec(content)
+  const content = readFile(CODEX_AGENTS_FILE);
+  const targetLabel = resolveCodexLanguageLabel(aiOutputLang);
+  const directiveRegex = /\*\*Most Important:\s*Always respond in ([^*]+)\*\*/i;
+  const existingMatch = directiveRegex.exec(content);
 
   if (existingMatch && normalizeLanguageLabel(existingMatch[1]) === normalizeLanguageLabel(targetLabel))
-    return
+    return;
 
-  let updatedContent = content.replace(/\*\*Most Important:\s*Always respond in [^*]+\*\*\s*/gi, '').trimEnd()
+  let updatedContent = content.replace(/\*\*Most Important:\s*Always respond in [^*]+\*\*\s*/gi, '').trimEnd();
 
   if (updatedContent.length > 0 && !updatedContent.endsWith('\n'))
-    updatedContent += '\n'
+    updatedContent += '\n';
 
-  updatedContent += `\n**Most Important:Always respond in ${targetLabel}**\n`
+  updatedContent += `\n**Most Important:Always respond in ${targetLabel}**\n`;
 
-  const backupPath = backupCodexAgents()
+  const backupPath = backupCodexAgents();
   if (backupPath)
-    console.log(ansis.gray(getBackupMessage(backupPath)))
+    console.log(ansis.gray(getBackupMessage(backupPath)));
 
-  writeFileAtomic(CODEX_AGENTS_FILE, updatedContent)
-  console.log(ansis.gray(`  ${i18n.t('configuration:addedLanguageDirective')}: ${targetLabel}`))
+  writeFileAtomic(CODEX_AGENTS_FILE, updatedContent);
+  console.log(ansis.gray(`  ${i18n.t('configuration:addedLanguageDirective')}: ${targetLabel}`));
 }
 
 function resolveCodexLanguageLabel(aiOutputLang: AiOutputLanguage | string): string {
-  const directive = AI_OUTPUT_LANGUAGES[aiOutputLang as AiOutputLanguage]?.directive
+  const directive = AI_OUTPUT_LANGUAGES[aiOutputLang as AiOutputLanguage]?.directive;
   if (directive) {
-    const match = directive.match(/Always respond in\s+(.+)/i)
+    const match = directive.match(/Always respond in\s+(.+)/i);
     if (match)
-      return match[1].trim()
+      return match[1].trim();
   }
 
   if (typeof aiOutputLang === 'string')
-    return aiOutputLang
+    return aiOutputLang;
 
-  return 'English'
+  return 'English';
 }
 
 function normalizeLanguageLabel(label: string): string {
-  return label.trim().toLowerCase()
+  return label.trim().toLowerCase();
 }
 
 export async function runCodexUpdate(force = false, skipPrompt = false): Promise<boolean> {
-  ensureI18nInitialized()
-  console.log(ansis.bold.cyan(`\n🔍 ${i18n.t('updater:checkingTools')}\n`))
-  const spinner = ora(i18n.t('updater:checkingVersion')).start()
+  ensureI18nInitialized();
+  console.log(ansis.bold.cyan(`\n🔍 ${i18n.t('updater:checkingTools')}\n`));
+  const spinner = ora(i18n.t('updater:checkingVersion')).start();
 
   try {
-    const { installed, currentVersion, latestVersion, needsUpdate } = await checkCodexUpdate()
-    spinner.stop()
+    const { installed, currentVersion, latestVersion, needsUpdate } = await checkCodexUpdate();
+    spinner.stop();
 
     if (!installed) {
-      console.log(ansis.yellow(i18n.t('codex:notInstalled')))
-      return false
+      console.log(ansis.yellow(i18n.t('codex:notInstalled')));
+      return false;
     }
 
     if (!needsUpdate && !force) {
-      console.log(ansis.green(format(i18n.t('codex:upToDate'), { version: currentVersion || '' })))
-      return true
+      console.log(ansis.green(format(i18n.t('codex:upToDate'), { version: currentVersion || '' })));
+      return true;
     }
 
     if (!latestVersion) {
-      console.log(ansis.yellow(i18n.t('codex:cannotCheckVersion')))
-      return false
+      console.log(ansis.yellow(i18n.t('codex:cannotCheckVersion')));
+      return false;
     }
 
     // Show version info
-    console.log(ansis.green(format(i18n.t('codex:currentVersion'), { version: currentVersion || '' })))
-    console.log(ansis.green(format(i18n.t('codex:latestVersion'), { version: latestVersion })))
+    console.log(ansis.green(format(i18n.t('codex:currentVersion'), { version: currentVersion || '' })));
+    console.log(ansis.green(format(i18n.t('codex:latestVersion'), { version: latestVersion })));
 
     // Handle confirmation based on skipPrompt mode
     if (!skipPrompt) {
@@ -2441,51 +2441,51 @@ export async function runCodexUpdate(force = false, skipPrompt = false): Promise
       const confirm = await promptBoolean({
         message: i18n.t('codex:confirmUpdate'),
         defaultValue: true,
-      })
+      });
 
       if (!confirm) {
-        console.log(ansis.gray(i18n.t('codex:updateSkipped')))
-        return true
+        console.log(ansis.gray(i18n.t('codex:updateSkipped')));
+        return true;
       }
     }
     else {
       // Skip-prompt mode: Auto-update with notification
-      console.log(ansis.green(i18n.t('codex:autoUpdating')))
+      console.log(ansis.green(i18n.t('codex:autoUpdating')));
     }
 
     // Perform update
-    const updateSpinner = ora(i18n.t('codex:updating')).start()
+    const updateSpinner = ora(i18n.t('codex:updating')).start();
 
     try {
-      await executeCodexInstallation(true)
-      updateSpinner.succeed(i18n.t('codex:updateSuccess'))
-      return true
+      await executeCodexInstallation(true);
+      updateSpinner.succeed(i18n.t('codex:updateSuccess'));
+      return true;
     }
     catch (error) {
-      updateSpinner.fail(i18n.t('codex:updateFailed'))
-      console.error(ansis.red(error instanceof Error ? error.message : String(error)))
-      return false
+      updateSpinner.fail(i18n.t('codex:updateFailed'));
+      console.error(ansis.red(error instanceof Error ? error.message : String(error)));
+      return false;
     }
   }
   catch (error) {
-    spinner.fail(i18n.t('codex:checkFailed'))
-    console.error(ansis.red(error instanceof Error ? error.message : String(error)))
-    return false
+    spinner.fail(i18n.t('codex:checkFailed'));
+    console.error(ansis.red(error instanceof Error ? error.message : String(error)));
+    return false;
   }
 }
 
 export async function runCodexUninstall(): Promise<void> {
-  ensureI18nInitialized()
+  ensureI18nInitialized();
 
   // Import CodexUninstaller dynamically to avoid circular dependency
-  const { CodexUninstaller } = await import('./codex-uninstaller')
-  const zcfConfig = readZcfConfig()
-  const preferredLang = zcfConfig?.preferredLang
+  const { CodexUninstaller } = await import('./codex-uninstaller');
+  const zcfConfig = readZcfConfig();
+  const preferredLang = zcfConfig?.preferredLang;
   const uninstallLang: SupportedLang
     = preferredLang && SUPPORTED_LANGS.includes(preferredLang as SupportedLang)
       ? preferredLang as SupportedLang
-      : 'en'
-  const uninstaller = new CodexUninstaller(uninstallLang)
+      : 'en';
+  const uninstaller = new CodexUninstaller(uninstallLang);
 
   // Step 1: Mode selection
   const { mode } = await inquirer.prompt<{ mode: 'complete' | 'custom' | null }>([{
@@ -2497,11 +2497,11 @@ export async function runCodexUninstall(): Promise<void> {
       { name: i18n.t('codex:uninstallModeCustom'), value: 'custom' },
     ]),
     default: 'complete',
-  }])
+  }]);
 
   if (!mode) {
-    handleUninstallCancellation()
-    return
+    handleUninstallCancellation();
+    return;
   }
 
   try {
@@ -2510,15 +2510,15 @@ export async function runCodexUninstall(): Promise<void> {
       const confirm = await promptBoolean({
         message: i18n.t('codex:uninstallPrompt'),
         defaultValue: false,
-      })
+      });
 
       if (!confirm) {
-        handleUninstallCancellation()
-        return
+        handleUninstallCancellation();
+        return;
       }
 
-      const result = await uninstaller.completeUninstall()
-      displayUninstallResults([result])
+      const result = await uninstaller.completeUninstall();
+      displayUninstallResults([result]);
     }
     else if (mode === 'custom') {
       // Step 2b: Custom uninstall
@@ -2527,22 +2527,22 @@ export async function runCodexUninstall(): Promise<void> {
         name: 'items',
         message: i18n.t('codex:customUninstallPrompt'),
         choices: addNumbersToChoices(getUninstallOptions()),
-      }])
+      }]);
 
       if (!items || items.length === 0) {
-        handleUninstallCancellation()
-        return
+        handleUninstallCancellation();
+        return;
       }
 
-      const results = await uninstaller.customUninstall(items)
-      displayUninstallResults(results)
+      const results = await uninstaller.customUninstall(items);
+      displayUninstallResults(results);
     }
 
-    console.log(ansis.green(i18n.t('codex:uninstallSuccess')))
+    console.log(ansis.green(i18n.t('codex:uninstallSuccess')));
   }
   catch (error: any) {
-    console.error(ansis.red(i18n.t('codex:errorDuringUninstall', { error: error.message })))
-    throw error
+    console.error(ansis.red(i18n.t('codex:errorDuringUninstall', { error: error.message })));
+    throw error;
   }
 }
 
@@ -2553,22 +2553,22 @@ function displayUninstallResults(results: CodexUninstallResult[]): void {
   for (const result of results) {
     // Display removed items
     for (const item of result.removed) {
-      console.log(ansis.green(`✔ ${i18n.t('codex:removedItem', { item })}`))
+      console.log(ansis.green(`✔ ${i18n.t('codex:removedItem', { item })}`));
     }
 
     // Display removed configurations
     for (const config of result.removedConfigs) {
-      console.log(ansis.green(`✔ ${i18n.t('codex:removedConfig', { config })}`))
+      console.log(ansis.green(`✔ ${i18n.t('codex:removedConfig', { config })}`));
     }
 
     // Display warnings
     for (const warning of result.warnings) {
-      console.log(ansis.yellow(`⚠️ ${warning}`))
+      console.log(ansis.yellow(`⚠️ ${warning}`));
     }
 
     // Display errors
     for (const error of result.errors) {
-      console.log(ansis.red(`❌ ${error}`))
+      console.log(ansis.red(`❌ ${error}`));
     }
   }
 }
@@ -2578,8 +2578,8 @@ function displayUninstallResults(results: CodexUninstallResult[]): void {
  * @returns Current provider ID or null if not set
  */
 export async function getCurrentCodexProvider(): Promise<string | null> {
-  const config = readCodexConfig()
-  return config?.modelProvider || null
+  const config = readCodexConfig();
+  return config?.modelProvider || null;
 }
 
 /**
@@ -2587,8 +2587,8 @@ export async function getCurrentCodexProvider(): Promise<string | null> {
  * @returns Array of available providers
  */
 export async function listCodexProviders(): Promise<CodexProvider[]> {
-  const config = readCodexConfig()
-  return config?.providers || []
+  const config = readCodexConfig();
+  return config?.providers || [];
 }
 
 /**
@@ -2597,41 +2597,41 @@ export async function listCodexProviders(): Promise<CodexProvider[]> {
  * @returns True if switch was successful, false otherwise
  */
 export async function switchCodexProvider(providerId: string): Promise<boolean> {
-  ensureI18nInitialized()
+  ensureI18nInitialized();
 
-  const existingConfig = readCodexConfig()
+  const existingConfig = readCodexConfig();
   if (!existingConfig) {
-    console.log(ansis.red(i18n.t('codex:configNotFound')))
-    return false
+    console.log(ansis.red(i18n.t('codex:configNotFound')));
+    return false;
   }
 
   // Check if provider exists
-  const providerExists = existingConfig.providers.some(provider => provider.id === providerId)
+  const providerExists = existingConfig.providers.some(provider => provider.id === providerId);
   if (!providerExists) {
-    console.log(ansis.red(i18n.t('codex:providerNotFound', { provider: providerId })))
-    return false
+    console.log(ansis.red(i18n.t('codex:providerNotFound', { provider: providerId })));
+    return false;
   }
 
   // Create backup before modification
-  const backupPath = backupCodexComplete()
+  const backupPath = backupCodexComplete();
   if (backupPath) {
-    console.log(ansis.gray(getBackupMessage(backupPath)))
+    console.log(ansis.gray(getBackupMessage(backupPath)));
   }
 
   // Update model provider
   const updatedConfig: CodexConfigData = {
     ...existingConfig,
     modelProvider: providerId,
-  }
+  };
 
   try {
-    writeCodexConfig(updatedConfig)
-    console.log(ansis.green(i18n.t('codex:providerSwitchSuccess', { provider: providerId })))
-    return true
+    writeCodexConfig(updatedConfig);
+    console.log(ansis.green(i18n.t('codex:providerSwitchSuccess', { provider: providerId })));
+    return true;
   }
   catch (error) {
-    console.error(ansis.red(i18n.t('codex:errorSwitchingProvider', { error: (error as Error).message })))
-    return false
+    console.error(ansis.red(i18n.t('codex:errorSwitchingProvider', { error: (error as Error).message })));
+    return false;
   }
 }
 
@@ -2640,35 +2640,35 @@ export async function switchCodexProvider(providerId: string): Promise<boolean> 
  * @returns True if switch was successful, false otherwise
  */
 export async function switchToOfficialLogin(): Promise<boolean> {
-  ensureI18nInitialized()
+  ensureI18nInitialized();
 
-  const existingConfig = readCodexConfig()
+  const existingConfig = readCodexConfig();
   if (!existingConfig) {
-    console.log(ansis.red(i18n.t('codex:configNotFound')))
-    return false
+    console.log(ansis.red(i18n.t('codex:configNotFound')));
+    return false;
   }
 
   // Create backup before modification
-  const backupPath = backupCodexComplete()
+  const backupPath = backupCodexComplete();
   if (backupPath) {
-    console.log(ansis.gray(getBackupMessage(backupPath)))
+    console.log(ansis.gray(getBackupMessage(backupPath)));
   }
 
   try {
-    let preservedModelProvider = existingConfig.modelProvider
+    let preservedModelProvider = existingConfig.modelProvider;
     if (!preservedModelProvider) {
       try {
-        const rawContent = readFile(CODEX_CONFIG_FILE)
-        const parsedToml = parseToml(rawContent) as Record<string, any>
+        const rawContent = readFile(CODEX_CONFIG_FILE);
+        const parsedToml = parseToml(rawContent) as Record<string, any>;
         if (typeof parsedToml.model_provider === 'string' && parsedToml.model_provider.trim().length > 0)
-          preservedModelProvider = parsedToml.model_provider.trim()
+          preservedModelProvider = parsedToml.model_provider.trim();
       }
       catch {
         // Ignore read/parse failures; fall back to parsed config value
       }
     }
 
-    const shouldCommentModelProvider = typeof preservedModelProvider === 'string' && preservedModelProvider.length > 0
+    const shouldCommentModelProvider = typeof preservedModelProvider === 'string' && preservedModelProvider.length > 0;
 
     // Comment out model_provider but keep providers configuration
     const updatedConfig: CodexConfigData = {
@@ -2677,22 +2677,22 @@ export async function switchToOfficialLogin(): Promise<boolean> {
       modelProviderCommented: shouldCommentModelProvider
         ? true
         : existingConfig.modelProviderCommented,
-    }
+    };
 
-    writeCodexConfig(updatedConfig)
+    writeCodexConfig(updatedConfig);
 
     // Set OPENAI_API_KEY to null for official mode, switch auth_mode back to chatgpt
-    const auth = readJsonConfig<Record<string, string | null>>(CODEX_AUTH_FILE, { defaultValue: {} }) || {}
+    const auth = readJsonConfig<Record<string, string | null>>(CODEX_AUTH_FILE, { defaultValue: {} }) || {};
     auth.OPENAI_API_KEY = null
-    ;(auth as any).auth_mode = 'chatgpt'
-    writeJsonConfig(CODEX_AUTH_FILE, auth, { pretty: true })
+    ;(auth as any).auth_mode = 'chatgpt';
+    writeJsonConfig(CODEX_AUTH_FILE, auth, { pretty: true });
 
-    console.log(ansis.green(i18n.t('codex:officialConfigured')))
-    return true
+    console.log(ansis.green(i18n.t('codex:officialConfigured')));
+    return true;
   }
   catch (error) {
-    console.error(ansis.red(i18n.t('codex:errorSwitchingToOfficialLogin', { error: (error as Error).message })))
-    return false
+    console.error(ansis.red(i18n.t('codex:errorSwitchingToOfficialLogin', { error: (error as Error).message })));
+    return false;
   }
 }
 
@@ -2702,42 +2702,42 @@ export async function switchToOfficialLogin(): Promise<boolean> {
  * @returns True if switch was successful, false otherwise
  */
 export async function switchToProvider(providerId: string): Promise<boolean> {
-  ensureI18nInitialized()
+  ensureI18nInitialized();
 
-  const existingConfig = readCodexConfig()
+  const existingConfig = readCodexConfig();
   if (!existingConfig) {
-    console.log(ansis.red(i18n.t('codex:configNotFound')))
-    return false
+    console.log(ansis.red(i18n.t('codex:configNotFound')));
+    return false;
   }
 
   // Check if provider exists
-  const provider = existingConfig.providers.find(p => p.id === providerId)
+  const provider = existingConfig.providers.find(p => p.id === providerId);
   if (!provider) {
-    console.log(ansis.red(i18n.t('codex:providerNotFound', { provider: providerId })))
-    return false
+    console.log(ansis.red(i18n.t('codex:providerNotFound', { provider: providerId })));
+    return false;
   }
 
   // Create backup before modification
-  const backupPath = backupCodexComplete()
+  const backupPath = backupCodexComplete();
   if (backupPath) {
-    console.log(ansis.gray(getBackupMessage(backupPath)))
+    console.log(ansis.gray(getBackupMessage(backupPath)));
   }
 
   try {
     // Determine the model to use
-    let targetModel = existingConfig.model
+    let targetModel = existingConfig.model;
 
     if (provider.model) {
       // Provider has a specific model, use it
-      targetModel = provider.model
+      targetModel = provider.model;
     }
     else {
       // Provider doesn't have a model, check current model
-      const currentModel = existingConfig.model
-      const stableCodexModels = new Set(['gpt-5', 'gpt-5-codex', 'codex-mini-latest'])
+      const currentModel = existingConfig.model;
+      const stableCodexModels = new Set(['gpt-5', 'gpt-5-codex', 'codex-mini-latest']);
       if (!currentModel || !stableCodexModels.has(currentModel)) {
         // Fall back to the recommended stable Codex model when the current value is unknown.
-        targetModel = 'gpt-5-codex'
+        targetModel = 'gpt-5-codex';
       }
       // Otherwise keep the current stable model.
     }
@@ -2748,23 +2748,23 @@ export async function switchToProvider(providerId: string): Promise<boolean> {
       model: targetModel,
       modelProvider: providerId,
       modelProviderCommented: false, // Ensure it's not commented
-    }
+    };
 
-    writeCodexConfig(updatedConfig)
+    writeCodexConfig(updatedConfig);
 
     // Set OPENAI_API_KEY to the provider's API key value, switch auth_mode to apikey
-    const auth = readJsonConfig<Record<string, string | null>>(CODEX_AUTH_FILE, { defaultValue: {} }) || {}
-    const envValue = auth[provider.tempEnvKey] || null
+    const auth = readJsonConfig<Record<string, string | null>>(CODEX_AUTH_FILE, { defaultValue: {} }) || {};
+    const envValue = auth[provider.tempEnvKey] || null;
     auth.OPENAI_API_KEY = envValue
-    ;(auth as any).auth_mode = 'apikey'
-    writeJsonConfig(CODEX_AUTH_FILE, auth, { pretty: true })
+    ;(auth as any).auth_mode = 'apikey';
+    writeJsonConfig(CODEX_AUTH_FILE, auth, { pretty: true });
 
-    console.log(ansis.green(i18n.t('codex:providerSwitchSuccess', { provider: providerId })))
-    return true
+    console.log(ansis.green(i18n.t('codex:providerSwitchSuccess', { provider: providerId })));
+    return true;
   }
   catch (error) {
-    console.error(ansis.red(i18n.t('codex:errorSwitchingProvider', { error: (error as Error).message })))
-    return false
+    console.error(ansis.red(i18n.t('codex:errorSwitchingProvider', { error: (error as Error).message })));
+    return false;
   }
 }
 
@@ -2772,14 +2772,14 @@ export async function switchToProvider(providerId: string): Promise<boolean> {
  * Configure the default model for Codex
  */
 export async function configureCodexDefaultModelFeature(): Promise<void> {
-  const { configureCodexDefaultModelFeature: configureEnhancedCodexDefaultModelFeature } = await import('../features')
-  await configureEnhancedCodexDefaultModelFeature()
+  const { configureCodexDefaultModelFeature: configureEnhancedCodexDefaultModelFeature } = await import('../features');
+  await configureEnhancedCodexDefaultModelFeature();
 }
 
 /**
  * Configure AI Memory feature for Codex
  */
 export async function configureCodexAiMemoryFeature(): Promise<void> {
-  const { configureCodexAiMemoryFeature: configureEnhancedCodexAiMemoryFeature } = await import('../features')
-  await configureEnhancedCodexAiMemoryFeature()
+  const { configureCodexAiMemoryFeature: configureEnhancedCodexAiMemoryFeature } = await import('../features');
+  await configureEnhancedCodexAiMemoryFeature();
 }

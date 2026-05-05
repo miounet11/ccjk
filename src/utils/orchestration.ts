@@ -1,38 +1,38 @@
-import type { SupportedLang } from '../constants'
-import { join } from 'pathe'
-import { CCJK_CONFIG_DIR } from '../constants'
-import { writeJsonConfig } from './json-config'
+import type { SupportedLang } from '../constants';
+import { join } from 'pathe';
+import { CCJK_CONFIG_DIR } from '../constants';
+import { writeJsonConfig } from './json-config';
 
-export const ORCHESTRATION_LEVELS = ['off', 'minimal', 'standard', 'max'] as const
-export type OrchestrationLevel = (typeof ORCHESTRATION_LEVELS)[number]
+export const ORCHESTRATION_LEVELS = ['off', 'minimal', 'standard', 'max'] as const;
+export type OrchestrationLevel = (typeof ORCHESTRATION_LEVELS)[number];
 
 export interface OrchestrationPolicy {
-  version: string
-  enabled: boolean
-  level: OrchestrationLevel
-  language: SupportedLang
+  version: string;
+  enabled: boolean;
+  level: OrchestrationLevel;
+  language: SupportedLang;
   defaults: {
-    planForNonTrivial: boolean
-    useSubagentsForResearch: boolean
-    verifyBeforeDone: boolean
-    rootCauseFirst: boolean
-    lessonsLoop: boolean
-  }
-  generatedAt: string
-  source: 'init' | 'simplified-init' | 'silent-init'
+    planForNonTrivial: boolean;
+    useSubagentsForResearch: boolean;
+    verifyBeforeDone: boolean;
+    rootCauseFirst: boolean;
+    lessonsLoop: boolean;
+  };
+  generatedAt: string;
+  source: 'init' | 'simplified-init' | 'silent-init';
 }
 
 export function parseOrchestrationLevel(value?: string): OrchestrationLevel {
   if (!value) {
-    return 'max'
+    return 'max';
   }
 
-  const normalized = value.trim().toLowerCase()
+  const normalized = value.trim().toLowerCase();
   if (ORCHESTRATION_LEVELS.includes(normalized as OrchestrationLevel)) {
-    return normalized as OrchestrationLevel
+    return normalized as OrchestrationLevel;
   }
 
-  throw new Error(`Invalid orchestration level: ${value}. Valid values: ${ORCHESTRATION_LEVELS.join(', ')}`)
+  throw new Error(`Invalid orchestration level: ${value}. Valid values: ${ORCHESTRATION_LEVELS.join(', ')}`);
 }
 
 function buildDefaults(level: OrchestrationLevel): OrchestrationPolicy['defaults'] {
@@ -43,7 +43,7 @@ function buildDefaults(level: OrchestrationLevel): OrchestrationPolicy['defaults
       verifyBeforeDone: false,
       rootCauseFirst: true,
       lessonsLoop: false,
-    }
+    };
   }
 
   if (level === 'minimal') {
@@ -53,7 +53,7 @@ function buildDefaults(level: OrchestrationLevel): OrchestrationPolicy['defaults
       verifyBeforeDone: true,
       rootCauseFirst: true,
       lessonsLoop: false,
-    }
+    };
   }
 
   if (level === 'max') {
@@ -63,7 +63,7 @@ function buildDefaults(level: OrchestrationLevel): OrchestrationPolicy['defaults
       verifyBeforeDone: true,
       rootCauseFirst: true,
       lessonsLoop: true,
-    }
+    };
   }
 
   return {
@@ -72,35 +72,35 @@ function buildDefaults(level: OrchestrationLevel): OrchestrationPolicy['defaults
     verifyBeforeDone: true,
     rootCauseFirst: true,
     lessonsLoop: true,
-  }
+  };
 }
 
 export function resolveOrchestrationLevelFromRuntime(runtime?: {
-  isCI?: boolean
-  isContainer?: boolean
-  isSSH?: boolean
+  isCI?: boolean;
+  isContainer?: boolean;
+  isSSH?: boolean;
 }): OrchestrationLevel {
   if (!runtime) {
-    return 'max'
+    return 'max';
   }
 
   if (runtime.isCI || runtime.isContainer) {
-    return 'minimal'
+    return 'minimal';
   }
 
   if (runtime.isSSH) {
-    return 'minimal'
+    return 'minimal';
   }
 
-  return 'max'
+  return 'max';
 }
 
 export function writeOrchestrationPolicy(params: {
-  level: OrchestrationLevel
-  language: SupportedLang
-  source: OrchestrationPolicy['source']
+  level: OrchestrationLevel;
+  language: SupportedLang;
+  source: OrchestrationPolicy['source'];
 }): string {
-  const filePath = join(CCJK_CONFIG_DIR, 'orchestration.json')
+  const filePath = join(CCJK_CONFIG_DIR, 'orchestration.json');
   const policy: OrchestrationPolicy = {
     version: '1.0.0',
     enabled: params.level !== 'off',
@@ -109,8 +109,8 @@ export function writeOrchestrationPolicy(params: {
     defaults: buildDefaults(params.level),
     generatedAt: new Date().toISOString(),
     source: params.source,
-  }
+  };
 
-  writeJsonConfig(filePath, policy, { atomic: true })
-  return filePath
+  writeJsonConfig(filePath, policy, { atomic: true });
+  return filePath;
 }

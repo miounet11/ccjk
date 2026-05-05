@@ -38,19 +38,19 @@
  * This module will be removed in v9.0.0.
  */
 
-import type { FSWatcher } from 'chokidar'
-import type { SkillMdFile } from '../../types/skill-md.js'
-import { EventEmitter } from 'node:events'
-import { basename } from 'node:path'
-import { watch } from 'chokidar'
-import { SkillCache } from './cache.js'
-import { SkillDiscovery } from './discovery.js'
-import { parseSkillMdFile } from './parser.js'
+import type { FSWatcher } from 'chokidar';
+import type { SkillMdFile } from '../../types/skill-md.js';
+import { EventEmitter } from 'node:events';
+import { basename } from 'node:path';
+import { watch } from 'chokidar';
+import { SkillCache } from './cache.js';
+import { SkillDiscovery } from './discovery.js';
+import { parseSkillMdFile } from './parser.js';
 
 /**
  * Hot reload event types
  */
-export type HotReloadEventType = 'added' | 'changed' | 'removed'
+export type HotReloadEventType = 'added' | 'changed' | 'removed';
 
 /**
  * Hot reload event data
@@ -59,16 +59,16 @@ export type HotReloadEventType = 'added' | 'changed' | 'removed'
  */
 export interface HotReloadEvent {
   /** Event type (added, changed, or removed) */
-  type: HotReloadEventType
+  type: HotReloadEventType;
 
   /** The skill that was affected */
-  skill: SkillMdFile
+  skill: SkillMdFile;
 
   /** File path that triggered the event */
-  filePath: string
+  filePath: string;
 
   /** Event timestamp */
-  timestamp: Date
+  timestamp: Date;
 }
 
 /**
@@ -80,32 +80,32 @@ export interface HotReloadOptions {
    * Prevents excessive reloads when files change rapidly
    * @default 300
    */
-  debounceMs?: number
+  debounceMs?: number;
 
   /**
    * Whether to ignore initial scan events
    * If true, only watches for changes after initial load
    * @default true
    */
-  ignoreInitial?: boolean
+  ignoreInitial?: boolean;
 
   /**
    * Whether to watch for file additions
    * @default true
    */
-  watchAdded?: boolean
+  watchAdded?: boolean;
 
   /**
    * Whether to watch for file changes
    * @default true
    */
-  watchChanged?: boolean
+  watchChanged?: boolean;
 
   /**
    * Whether to watch for file removals
    * @default true
    */
-  watchRemoved?: boolean
+  watchRemoved?: boolean;
 }
 
 /**
@@ -140,11 +140,11 @@ export interface HotReloadOptions {
  * This class will be removed in v9.0.0.
  */
 export class SkillHotReloader extends EventEmitter {
-  private watcher: FSWatcher | null = null
-  private skillCache: SkillCache
-  public discovery: SkillDiscovery
-  private debounceTimers: Map<string, NodeJS.Timeout> = new Map()
-  private options: Required<HotReloadOptions>
+  private watcher: FSWatcher | null = null;
+  private skillCache: SkillCache;
+  public discovery: SkillDiscovery;
+  private debounceTimers: Map<string, NodeJS.Timeout> = new Map();
+  private options: Required<HotReloadOptions>;
 
   /**
    * Create a new skill hot reloader
@@ -160,10 +160,10 @@ export class SkillHotReloader extends EventEmitter {
    * ```
    */
   constructor(options: HotReloadOptions = {}) {
-    super()
+    super();
 
-    this.skillCache = new SkillCache()
-    this.discovery = new SkillDiscovery()
+    this.skillCache = new SkillCache();
+    this.discovery = new SkillDiscovery();
 
     // Set default options
     this.options = {
@@ -172,7 +172,7 @@ export class SkillHotReloader extends EventEmitter {
       watchAdded: options.watchAdded ?? true,
       watchChanged: options.watchChanged ?? true,
       watchRemoved: options.watchRemoved ?? true,
-    }
+    };
   }
 
   /**
@@ -197,11 +197,11 @@ export class SkillHotReloader extends EventEmitter {
    */
   watch(skillsDirs?: string[]): void {
     if (this.watcher) {
-      throw new Error('Hot reloader is already watching. Call stop() first.')
+      throw new Error('Hot reloader is already watching. Call stop() first.');
     }
 
     // Use provided directories or default ones
-    const dirs = skillsDirs || this.discovery.getDefaultDirs()
+    const dirs = skillsDirs || this.discovery.getDefaultDirs();
 
     // Initialize chokidar watcher - watch directories, not glob patterns
     this.watcher = watch(dirs, {
@@ -212,51 +212,51 @@ export class SkillHotReloader extends EventEmitter {
         stabilityThreshold: 100,
         pollInterval: 50,
       },
-    })
+    });
 
     // Set up event handlers
     if (this.options.watchAdded) {
       this.watcher.on('add', (filePath: string) => {
         // Only handle SKILL.md files
         if (basename(filePath) === 'SKILL.md') {
-          this.handleFileChange('added', filePath)
+          this.handleFileChange('added', filePath);
         }
-      })
+      });
     }
 
     if (this.options.watchChanged) {
       this.watcher.on('change', (filePath: string) => {
         // Only handle SKILL.md files
         if (basename(filePath) === 'SKILL.md') {
-          this.handleFileChange('changed', filePath)
+          this.handleFileChange('changed', filePath);
         }
-      })
+      });
     }
 
     if (this.options.watchRemoved) {
       this.watcher.on('unlink', (filePath: string) => {
         // Only handle SKILL.md files
         if (basename(filePath) === 'SKILL.md') {
-          this.handleFileRemove(filePath)
+          this.handleFileRemove(filePath);
         }
-      })
+      });
     }
 
     // Handle watcher errors
     this.watcher.on('error', (error: unknown) => {
-      this.emit('error', error instanceof Error ? error : new Error(String(error)), 'watcher')
-    })
+      this.emit('error', error instanceof Error ? error : new Error(String(error)), 'watcher');
+    });
 
     // Emit ready event when watcher is ready
     this.watcher.on('ready', () => {
-      this.emit('ready')
-    })
+      this.emit('ready');
+    });
 
     // Load existing skills into cache if not ignoring initial
     if (!this.options.ignoreInitial) {
       this.reloadAll().catch((error) => {
-        this.emit('error', error, 'initial-load')
-      })
+        this.emit('error', error, 'initial-load');
+      });
     }
   }
 
@@ -274,15 +274,15 @@ export class SkillHotReloader extends EventEmitter {
    */
   async stop(): Promise<void> {
     if (this.watcher) {
-      await this.watcher.close()
-      this.watcher = null
+      await this.watcher.close();
+      this.watcher = null;
     }
 
     // Clear all debounce timers
     for (const timer of this.debounceTimers.values()) {
-      clearTimeout(timer)
+      clearTimeout(timer);
     }
-    this.debounceTimers.clear()
+    this.debounceTimers.clear();
   }
 
   /**
@@ -300,7 +300,7 @@ export class SkillHotReloader extends EventEmitter {
    * ```
    */
   getSkill(name: string): SkillMdFile | null {
-    return this.skillCache.get(name)
+    return this.skillCache.get(name);
   }
 
   /**
@@ -315,7 +315,7 @@ export class SkillHotReloader extends EventEmitter {
    * ```
    */
   getAllSkills(): SkillMdFile[] {
-    return this.skillCache.getAll()
+    return this.skillCache.getAll();
   }
 
   /**
@@ -332,7 +332,7 @@ export class SkillHotReloader extends EventEmitter {
    * ```
    */
   isCached(name: string): boolean {
-    return this.skillCache.has(name)
+    return this.skillCache.has(name);
   }
 
   /**
@@ -356,9 +356,9 @@ export class SkillHotReloader extends EventEmitter {
    * ```
    */
   async reloadSkill(filePath: string): Promise<SkillMdFile> {
-    const skill = await parseSkillMdFile(filePath)
-    this.skillCache.set(skill)
-    return skill
+    const skill = await parseSkillMdFile(filePath);
+    this.skillCache.set(skill);
+    return skill;
   }
 
   /**
@@ -374,10 +374,10 @@ export class SkillHotReloader extends EventEmitter {
    * ```
    */
   async reloadAll(): Promise<void> {
-    const skills = await this.discovery.scanDefaultDirs()
+    const skills = await this.discovery.scanDefaultDirs();
 
     for (const skill of skills) {
-      this.skillCache.set(skill)
+      this.skillCache.set(skill);
     }
   }
 
@@ -394,13 +394,13 @@ export class SkillHotReloader extends EventEmitter {
    * ```
    */
   getCacheStats(): {
-    totalSkills: number
-    totalAccesses: number
-    averageAccesses: number
-    oldestLoadedAt: Date | null
-    newestLoadedAt: Date | null
+    totalSkills: number;
+    totalAccesses: number;
+    averageAccesses: number;
+    oldestLoadedAt: Date | null;
+    newestLoadedAt: Date | null;
   } {
-    return this.skillCache.getStats()
+    return this.skillCache.getStats();
   }
 
   /**
@@ -418,7 +418,7 @@ export class SkillHotReloader extends EventEmitter {
    * ```
    */
   getRecentlyUsed(limit?: number): SkillMdFile[] {
-    return this.skillCache.getRecentlyUsed(limit)
+    return this.skillCache.getRecentlyUsed(limit);
   }
 
   /**
@@ -436,7 +436,7 @@ export class SkillHotReloader extends EventEmitter {
    * ```
    */
   getMostUsed(limit?: number): SkillMdFile[] {
-    return this.skillCache.getMostUsed(limit)
+    return this.skillCache.getMostUsed(limit);
   }
 
   /**
@@ -452,14 +452,14 @@ export class SkillHotReloader extends EventEmitter {
    */
   private handleFileChange(type: 'added' | 'changed', filePath: string): void {
     // Clear existing debounce timer for this file
-    const existingTimer = this.debounceTimers.get(filePath)
+    const existingTimer = this.debounceTimers.get(filePath);
     if (existingTimer) {
-      clearTimeout(existingTimer)
+      clearTimeout(existingTimer);
     }
 
     // Set new debounce timer
     const timer = setTimeout(() => {
-      this.debounceTimers.delete(filePath)
+      this.debounceTimers.delete(filePath);
 
       // Reload the skill
       this.reloadSkill(filePath)
@@ -469,22 +469,22 @@ export class SkillHotReloader extends EventEmitter {
             skill,
             filePath,
             timestamp: new Date(),
-          }
+          };
 
           // Emit appropriate event
           if (type === 'added') {
-            this.emit('skill-added', event)
+            this.emit('skill-added', event);
           }
           else {
-            this.emit('skill-changed', event)
+            this.emit('skill-changed', event);
           }
         })
         .catch((error) => {
-          this.emit('error', error, filePath)
-        })
-    }, this.options.debounceMs)
+          this.emit('error', error, filePath);
+        });
+    }, this.options.debounceMs);
 
-    this.debounceTimers.set(filePath, timer)
+    this.debounceTimers.set(filePath, timer);
   }
 
   /**
@@ -498,12 +498,12 @@ export class SkillHotReloader extends EventEmitter {
    */
   private handleFileRemove(filePath: string): void {
     // Try to get the skill before removing it
-    const allSkills = this.skillCache.getAll()
-    const removedSkill = allSkills.find(skill => skill.filePath === filePath)
+    const allSkills = this.skillCache.getAll();
+    const removedSkill = allSkills.find(skill => skill.filePath === filePath);
 
     if (removedSkill) {
       // Remove from cache
-      this.skillCache.remove(removedSkill.metadata.name)
+      this.skillCache.remove(removedSkill.metadata.name);
 
       // Emit removal event
       const event: HotReloadEvent = {
@@ -511,9 +511,9 @@ export class SkillHotReloader extends EventEmitter {
         skill: removedSkill,
         filePath,
         timestamp: new Date(),
-      }
+      };
 
-      this.emit('skill-removed', event)
+      this.emit('skill-removed', event);
     }
   }
 }

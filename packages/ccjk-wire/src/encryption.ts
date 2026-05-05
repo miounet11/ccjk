@@ -1,4 +1,4 @@
-import { randomBytes } from 'crypto';
+import { randomBytes } from 'node:crypto';
 import nacl from 'tweetnacl';
 
 /**
@@ -41,12 +41,12 @@ export function encryptForPublicKey(data: Uint8Array, publicKey: Uint8Array): Ui
     data,
     nonce,
     publicKey,
-    ephemeralKeyPair.secretKey
+    ephemeralKeyPair.secretKey,
   );
 
   // Combine: ephemeral public key + nonce + encrypted data
   const result = new Uint8Array(
-    ephemeralKeyPair.publicKey.length + nonce.length + encrypted.length
+    ephemeralKeyPair.publicKey.length + nonce.length + encrypted.length,
   );
   result.set(ephemeralKeyPair.publicKey, 0);
   result.set(nonce, ephemeralKeyPair.publicKey.length);
@@ -58,7 +58,7 @@ export function encryptForPublicKey(data: Uint8Array, publicKey: Uint8Array): Ui
 // Decrypt data with secret key
 export function decryptWithSecretKey(
   encryptedData: Uint8Array,
-  secretKey: Uint8Array
+  secretKey: Uint8Array,
 ): Uint8Array | null {
   const ephemeralPublicKeyLength = nacl.box.publicKeyLength;
   const nonceLength = nacl.box.nonceLength;
@@ -70,7 +70,7 @@ export function decryptWithSecretKey(
   const ephemeralPublicKey = encryptedData.slice(0, ephemeralPublicKeyLength);
   const nonce = encryptedData.slice(
     ephemeralPublicKeyLength,
-    ephemeralPublicKeyLength + nonceLength
+    ephemeralPublicKeyLength + nonceLength,
   );
   const ciphertext = encryptedData.slice(ephemeralPublicKeyLength + nonceLength);
 
@@ -93,7 +93,7 @@ export function encryptSymmetric(data: Uint8Array, key: Uint8Array): Uint8Array 
 // Symmetric decryption
 export function decryptSymmetric(
   encryptedData: Uint8Array,
-  key: Uint8Array
+  key: Uint8Array,
 ): Uint8Array | null {
   const nonceLength = nacl.secretbox.nonceLength;
 
@@ -112,7 +112,7 @@ export function encryptJson<T>(
   data: T,
   key: Uint8Array,
   variant: 'symmetric' | 'asymmetric' = 'symmetric',
-  publicKey?: Uint8Array
+  publicKey?: Uint8Array,
 ): string {
   const json = JSON.stringify(data);
   const bytes = new TextEncoder().encode(json);
@@ -120,7 +120,8 @@ export function encryptJson<T>(
   let encrypted: Uint8Array;
   if (variant === 'asymmetric' && publicKey) {
     encrypted = encryptForPublicKey(bytes, publicKey);
-  } else {
+  }
+  else {
     encrypted = encryptSymmetric(bytes, key);
   }
 
@@ -131,14 +132,15 @@ export function encryptJson<T>(
 export function decryptJson<T>(
   encryptedData: string,
   key: Uint8Array,
-  variant: 'symmetric' | 'asymmetric' = 'symmetric'
+  variant: 'symmetric' | 'asymmetric' = 'symmetric',
 ): T | null {
   const encrypted = decodeBase64(encryptedData);
 
   let decrypted: Uint8Array | null;
   if (variant === 'asymmetric') {
     decrypted = decryptWithSecretKey(encrypted, key);
-  } else {
+  }
+  else {
     decrypted = decryptSymmetric(encrypted, key);
   }
 

@@ -5,16 +5,16 @@
 /**
  * Command category for organization
  */
-export type CommandCategory = 'core' | 'config' | 'tools' | 'advanced' | 'deprecated'
+export type CommandCategory = 'core' | 'config' | 'tools' | 'advanced' | 'deprecated';
 
 /**
  * Command execution options
  */
 export interface CommandExecuteOptions {
   /** Raw command line arguments */
-  args?: string[]
+  args?: string[];
   /** Environment variables */
-  env?: Record<string, string>
+  env?: Record<string, string>;
 }
 
 /**
@@ -22,20 +22,20 @@ export interface CommandExecuteOptions {
  */
 export interface CommandRegistrationOptions {
   /** Whether to show in help */
-  showInHelp?: boolean
+  showInHelp?: boolean;
   /** Whether command requires confirmation */
-  requireConfirmation?: boolean
+  requireConfirmation?: boolean;
 }
 
 /**
  * Command result
  */
-export type CommandResult = void | Promise<void>
+export type CommandResult = void | Promise<void>;
 
 /**
  * Lazy command import result
  */
 export interface LazyCommandModule {
-  default?: () => CommandResult
-  handler?: () => CommandResult
+  default?: () => CommandResult;
+  handler?: () => CommandResult;
 }

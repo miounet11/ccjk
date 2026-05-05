@@ -1,5 +1,5 @@
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useState } from 'react';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 interface ToolCallMessageProps {
   callId: string;
@@ -12,7 +12,7 @@ interface ToolCallMessageProps {
 }
 
 export function ToolCallMessage({
-  callId,
+  callId: _callId,
   name,
   description,
   args,

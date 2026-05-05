@@ -3,88 +3,88 @@
  * 自动检测用户是否违反了 Superpowers 定义的最佳实践
  */
 
-import type { SupportedLang } from '../constants'
-import { exec } from 'node:child_process'
-import { promisify } from 'node:util'
+import type { SupportedLang } from '../constants';
+import { exec } from 'node:child_process';
+import { promisify } from 'node:util';
 
-const execAsync = promisify(exec)
+const execAsync = promisify(exec);
 
-export type ViolationSeverity = 'ERROR' | 'WARNING' | 'INFO'
+export type ViolationSeverity = 'ERROR' | 'WARNING' | 'INFO';
 
 export interface Violation {
-  type: string
-  message: string
-  severity: ViolationSeverity
-  suggestion?: string
-  actionId?: number // 建议的快捷操作
+  type: string;
+  message: string;
+  severity: ViolationSeverity;
+  suggestion?: string;
+  actionId?: number; // 建议的快捷操作
 }
 
 export interface ConversationContext {
-  messages: Array<{ role: string, content: string }>
-  recentFiles: string[]
-  gitStatus?: GitStatus
-  failedAttempts?: number
+  messages: Array<{ role: string; content: string }>;
+  recentFiles: string[];
+  gitStatus?: GitStatus;
+  failedAttempts?: number;
 }
 
 export interface GitStatus {
-  modified: string[]
-  added: string[]
-  deleted: string[]
-  untracked: string[]
+  modified: string[];
+  added: string[];
+  deleted: string[];
+  untracked: string[];
 }
 
 /**
  * 最佳实践执行器
  */
 export class PracticeEnforcer {
-  private lang: SupportedLang
-  private violationHistory: Map<string, number> = new Map()
+  private lang: SupportedLang;
+  private violationHistory: Map<string, number> = new Map();
 
   constructor(lang: SupportedLang = 'zh-CN') {
-    this.lang = lang
+    this.lang = lang;
   }
 
   /**
    * 检查所有可能的违规
    */
   async checkAll(context: ConversationContext): Promise<Violation[]> {
-    const violations: Violation[] = []
+    const violations: Violation[] = [];
 
     // TDD 违规检测
-    const tddViolations = await this.checkTDDViolations(context)
-    violations.push(...tddViolations)
+    const tddViolations = await this.checkTDDViolations(context);
+    violations.push(...tddViolations);
 
     // Debug 违规检测
-    const debugViolations = await this.checkDebugViolations(context)
-    violations.push(...debugViolations)
+    const debugViolations = await this.checkDebugViolations(context);
+    violations.push(...debugViolations);
 
     // Commit 违规检测
-    const commitViolations = await this.checkCommitViolations(context)
-    violations.push(...commitViolations)
+    const commitViolations = await this.checkCommitViolations(context);
+    violations.push(...commitViolations);
 
     // Code Review 违规检测
-    const reviewViolations = await this.checkReviewViolations(context)
-    violations.push(...reviewViolations)
+    const reviewViolations = await this.checkReviewViolations(context);
+    violations.push(...reviewViolations);
 
-    return violations
+    return violations;
   }
 
   /**
    * TDD 违规检测
    */
   async checkTDDViolations(context: ConversationContext): Promise<Violation[]> {
-    const violations: Violation[] = []
+    const violations: Violation[] = [];
 
     // 检测：新代码但没有测试
     const hasNewCode = context.recentFiles.some(f =>
       !f.includes('.test.')
       && !f.includes('.spec.')
       && (f.endsWith('.ts') || f.endsWith('.js') || f.endsWith('.tsx') || f.endsWith('.jsx')),
-    )
+    );
 
     const hasNewTests = context.recentFiles.some(f =>
       f.includes('.test.') || f.includes('.spec.'),
-    )
+    );
 
     if (hasNewCode && !hasNewTests) {
       violations.push({
@@ -93,12 +93,12 @@ export class PracticeEnforcer {
         severity: 'ERROR',
         suggestion: this.t('violations.tdd.noTestsSuggestion'),
         actionId: 3,
-      })
+      });
     }
 
     // 检测：先写实现再写测试
-    const conversation = context.messages.map(m => m.content).join('\n').toLowerCase()
-    const hasImplementationFirst = this.detectImplementationFirst(conversation)
+    const conversation = context.messages.map(m => m.content).join('\n').toLowerCase();
+    const hasImplementationFirst = this.detectImplementationFirst(conversation);
 
     if (hasImplementationFirst) {
       violations.push({
@@ -107,11 +107,11 @@ export class PracticeEnforcer {
         severity: 'ERROR',
         suggestion: this.t('violations.tdd.implementationFirstSuggestion'),
         actionId: 3,
-      })
+      });
     }
 
     // 检测：测试立即通过（没有看到失败）
-    const hasTestPassedImmediately = this.detectTestPassedImmediately(conversation)
+    const hasTestPassedImmediately = this.detectTestPassedImmediately(conversation);
 
     if (hasTestPassedImmediately) {
       violations.push({
@@ -120,22 +120,22 @@ export class PracticeEnforcer {
         severity: 'WARNING',
         suggestion: this.t('violations.tdd.noRedPhaseSuggestion'),
         actionId: 3,
-      })
+      });
     }
 
-    return violations
+    return violations;
   }
 
   /**
    * Debug 违规检测
    */
   async checkDebugViolations(context: ConversationContext): Promise<Violation[]> {
-    const violations: Violation[] = []
-    const conversation = context.messages.map(m => m.content).join('\n').toLowerCase()
+    const violations: Violation[] = [];
+    const conversation = context.messages.map(m => m.content).join('\n').toLowerCase();
 
     // 检测：直接提出修复而没有根因分析
-    const hasFixProposal = this.detectFixProposal(conversation)
-    const hasRootCauseAnalysis = this.detectRootCauseAnalysis(conversation)
+    const hasFixProposal = this.detectFixProposal(conversation);
+    const hasRootCauseAnalysis = this.detectRootCauseAnalysis(conversation);
 
     if (hasFixProposal && !hasRootCauseAnalysis) {
       violations.push({
@@ -144,11 +144,11 @@ export class PracticeEnforcer {
         severity: 'ERROR',
         suggestion: this.t('violations.debug.noRootCauseSuggestion'),
         actionId: 5,
-      })
+      });
     }
 
     // 检测：多次修复失败
-    const failedAttempts = context.failedAttempts || 0
+    const failedAttempts = context.failedAttempts || 0;
 
     if (failedAttempts >= 2) {
       violations.push({
@@ -157,7 +157,7 @@ export class PracticeEnforcer {
         severity: 'WARNING',
         suggestion: this.t('violations.debug.multipleFailuresSuggestion'),
         actionId: 5,
-      })
+      });
     }
 
     if (failedAttempts >= 3) {
@@ -166,30 +166,30 @@ export class PracticeEnforcer {
         message: this.t('violations.debug.architectureIssue'),
         severity: 'ERROR',
         suggestion: this.t('violations.debug.architectureIssueSuggestion'),
-      })
+      });
     }
 
-    return violations
+    return violations;
   }
 
   /**
    * Commit 违规检测
    */
   async checkCommitViolations(context: ConversationContext): Promise<Violation[]> {
-    const violations: Violation[] = []
+    const violations: Violation[] = [];
 
     if (!context.gitStatus) {
-      return violations
+      return violations;
     }
 
     const totalChanges = context.gitStatus.modified.length
       + context.gitStatus.added.length
-      + context.gitStatus.deleted.length
+      + context.gitStatus.deleted.length;
 
     // 检测：大量变更但没有测试
     if (totalChanges > 5) {
       const hasTestChanges = [...context.gitStatus.modified, ...context.gitStatus.added]
-        .some(f => f.includes('.test.') || f.includes('.spec.'))
+        .some(f => f.includes('.test.') || f.includes('.spec.'));
 
       if (!hasTestChanges) {
         violations.push({
@@ -198,7 +198,7 @@ export class PracticeEnforcer {
           severity: 'WARNING',
           suggestion: this.t('violations.commit.noTestsSuggestion'),
           actionId: 3,
-        })
+        });
       }
     }
 
@@ -210,31 +210,31 @@ export class PracticeEnforcer {
         severity: 'INFO',
         suggestion: this.t('violations.commit.largeChangesSuggestion'),
         actionId: 2,
-      })
+      });
     }
 
-    return violations
+    return violations;
   }
 
   /**
    * Code Review 违规检测
    */
   async checkReviewViolations(context: ConversationContext): Promise<Violation[]> {
-    const violations: Violation[] = []
-    const conversation = context.messages.map(m => m.content).join('\n').toLowerCase()
+    const violations: Violation[] = [];
+    const conversation = context.messages.map(m => m.content).join('\n').toLowerCase();
 
     // 检测：准备合并但没有 review
     const hasMergeIntent = conversation.includes('merge')
       || conversation.includes('合并')
       || conversation.includes('pr')
-      || conversation.includes('pull request')
+      || conversation.includes('pull request');
 
     const hasReview = conversation.includes('review')
-      || conversation.includes('审查')
+      || conversation.includes('审查');
 
     if (hasMergeIntent && !hasReview && context.gitStatus) {
       const totalChanges = context.gitStatus.modified.length
-        + context.gitStatus.added.length
+        + context.gitStatus.added.length;
 
       if (totalChanges > 5) {
         violations.push({
@@ -243,11 +243,11 @@ export class PracticeEnforcer {
           severity: 'WARNING',
           suggestion: this.t('violations.review.beforeMergeSuggestion'),
           actionId: 2,
-        })
+        });
       }
     }
 
-    return violations
+    return violations;
   }
 
   /**
@@ -263,35 +263,35 @@ export class PracticeEnforcer {
       '实现了',
       '完成了',
       '写好了',
-    ]
+    ];
 
     // 关键词：测试
     const testKeywords = [
       'test',
       'spec',
       '测试',
-    ]
+    ];
 
     // 查找第一次提到实现和测试的位置
-    let firstImplementation = Number.POSITIVE_INFINITY
-    let firstTest = Number.POSITIVE_INFINITY
+    let firstImplementation = Number.POSITIVE_INFINITY;
+    let firstTest = Number.POSITIVE_INFINITY;
 
     for (const keyword of implementationKeywords) {
-      const index = conversation.indexOf(keyword)
+      const index = conversation.indexOf(keyword);
       if (index !== -1 && index < firstImplementation) {
-        firstImplementation = index
+        firstImplementation = index;
       }
     }
 
     for (const keyword of testKeywords) {
-      const index = conversation.indexOf(keyword)
+      const index = conversation.indexOf(keyword);
       if (index !== -1 && index < firstTest) {
-        firstTest = index
+        firstTest = index;
       }
     }
 
     // 如果先提到实现，再提到测试，则违规
-    return firstImplementation < firstTest
+    return firstImplementation < firstTest;
   }
 
   /**
@@ -299,14 +299,14 @@ export class PracticeEnforcer {
    */
   private detectTestPassedImmediately(conversation: string): boolean {
     // 查找测试通过的模式，但没有先失败
-    const passPattern = /(test.*pass|pass.*test|✓|✅|all.*pass|测试.*通过|通过.*测试)/i
-    const failPattern = /(test.*fail|fail.*test|✗|❌|测试.*失败|失败.*测试)/i
+    const passPattern = /(test.*pass|pass.*test|✓|✅|all.*pass|测试.*通过|通过.*测试)/i;
+    const failPattern = /(test.*fail|fail.*test|✗|❌|测试.*失败|失败.*测试)/i;
 
-    const hasPass = passPattern.test(conversation)
-    const hasFail = failPattern.test(conversation)
+    const hasPass = passPattern.test(conversation);
+    const hasFail = failPattern.test(conversation);
 
     // 如果有通过但没有失败，可能违规
-    return hasPass && !hasFail
+    return hasPass && !hasFail;
   }
 
   /**
@@ -323,9 +323,9 @@ export class PracticeEnforcer {
       '解决',
       '改成',
       '修改',
-    ]
+    ];
 
-    return fixKeywords.some(keyword => conversation.includes(keyword))
+    return fixKeywords.some(keyword => conversation.includes(keyword));
   }
 
   /**
@@ -346,9 +346,9 @@ export class PracticeEnforcer {
       '为什么',
       '调查',
       '分析',
-    ]
+    ];
 
-    return analysisKeywords.some(keyword => conversation.includes(keyword))
+    return analysisKeywords.some(keyword => conversation.includes(keyword));
   }
 
   /**
@@ -356,34 +356,34 @@ export class PracticeEnforcer {
    */
   async getGitStatus(): Promise<GitStatus | null> {
     try {
-      const { stdout } = await execAsync('git status --porcelain')
-      const lines = stdout.trim().split('\n').filter(Boolean)
+      const { stdout } = await execAsync('git status --porcelain');
+      const lines = stdout.trim().split('\n').filter(Boolean);
 
       const status: GitStatus = {
         modified: [],
         added: [],
         deleted: [],
         untracked: [],
-      }
+      };
 
       for (const line of lines) {
-        const statusCode = line.substring(0, 2)
-        const file = line.substring(3)
+        const statusCode = line.substring(0, 2);
+        const file = line.substring(3);
 
         if (statusCode.includes('M'))
-          status.modified.push(file)
+          status.modified.push(file);
         if (statusCode.includes('A'))
-          status.added.push(file)
+          status.added.push(file);
         if (statusCode.includes('D'))
-          status.deleted.push(file)
+          status.deleted.push(file);
         if (statusCode.includes('?'))
-          status.untracked.push(file)
+          status.untracked.push(file);
       }
 
-      return status
+      return status;
     }
     catch {
-      return null
+      return null;
     }
   }
 
@@ -391,22 +391,22 @@ export class PracticeEnforcer {
    * 记录违规历史
    */
   recordViolation(type: string): void {
-    const count = this.violationHistory.get(type) || 0
-    this.violationHistory.set(type, count + 1)
+    const count = this.violationHistory.get(type) || 0;
+    this.violationHistory.set(type, count + 1);
   }
 
   /**
    * 获取违规次数
    */
   getViolationCount(type: string): number {
-    return this.violationHistory.get(type) || 0
+    return this.violationHistory.get(type) || 0;
   }
 
   /**
    * 清除违规历史
    */
   clearHistory(): void {
-    this.violationHistory.clear()
+    this.violationHistory.clear();
   }
 
   /**
@@ -455,8 +455,8 @@ export class PracticeEnforcer {
         'violations.review.beforeMerge': '⚠️ Preparing to merge without code review',
         'violations.review.beforeMergeSuggestion': 'Suggestion: Enter 2 for code review, avoid issues in main branch',
       },
-    }
+    };
 
-    return messages[this.lang]?.[key] || key
+    return messages[this.lang]?.[key] || key;
   }
 }

@@ -2,65 +2,65 @@
  * CLI Command Definitions
  * Extracted from cli-lazy.ts — the COMMANDS registry array.
  */
-import type { CliOptions } from './cli-lazy'
-import type { SupportedLang } from './constants'
-import type { HookCategory, HookType } from './hooks/types'
-import type { SkillCategory } from './skills/types'
+import type { CliOptions } from './cli-lazy';
+import type { SupportedLang } from './constants';
+import type { HookCategory, HookType } from './hooks/types';
+import type { SkillCategory } from './skills/types';
 
-type CommandTier = 'core' | 'extended' | 'deprecated'
+type CommandTier = 'core' | 'extended' | 'deprecated';
 
 interface CommandDefinition {
-  name: string
-  description: string
-  aliases?: string[]
-  tier: CommandTier
+  name: string;
+  description: string;
+  aliases?: string[];
+  tier: CommandTier;
   options?: Array<{
-    flags: string
-    description: string
-  }>
+    flags: string;
+    description: string;
+  }>;
   // 懒加载的命令执行器
-  loader: () => Promise<(options: CliOptions, ...args: unknown[]) => Promise<void>>
+  loader: () => Promise<(options: CliOptions, ...args: unknown[]) => Promise<void>>;
   // 废弃命令的迁移提示
-  deprecationMessage?: string
+  deprecationMessage?: string;
 }
 
 function parseOptionalNumber(value: unknown, flag: string): number | undefined {
   if (value === undefined) {
-    return undefined
+    return undefined;
   }
 
-  const parsed = Number(value)
+  const parsed = Number(value);
   if (!Number.isFinite(parsed)) {
-    throw new TypeError(`${flag} must be a valid number`)
+    throw new TypeError(`${flag} must be a valid number`);
   }
 
-  return parsed
+  return parsed;
 }
 
 function parseOptionalPositiveNumber(value: unknown, flag: string): number | undefined {
-  const parsed = parseOptionalNumber(value, flag)
+  const parsed = parseOptionalNumber(value, flag);
   if (parsed === undefined) {
-    return undefined
+    return undefined;
   }
 
   if (parsed <= 0) {
-    throw new TypeError(`${flag} must be greater than 0`)
+    throw new TypeError(`${flag} must be greater than 0`);
   }
 
-  return parsed
+  return parsed;
 }
 
 function parseOptionalPositiveInteger(value: unknown, flag: string): number | undefined {
-  const parsed = parseOptionalPositiveNumber(value, flag)
+  const parsed = parseOptionalPositiveNumber(value, flag);
   if (parsed === undefined) {
-    return undefined
+    return undefined;
   }
 
   if (!Number.isInteger(parsed)) {
-    throw new TypeError(`${flag} must be an integer`)
+    throw new TypeError(`${flag} must be an integer`);
   }
 
-  return parsed
+  return parsed;
 }
 
 export const COMMANDS: CommandDefinition[] = [
@@ -74,10 +74,10 @@ export const COMMANDS: CommandDefinition[] = [
       { flags: '--code-type, -T <type>', description: 'Code tool type' },
     ],
     loader: async () => {
-      const { showMainMenu } = await import('./commands/menu/index')
+      const { showMainMenu } = await import('./commands/menu/index');
       return async (options) => {
-        await showMainMenu({ codeType: options.codeType as string })
-      }
+        await showMainMenu({ codeType: options.codeType as string });
+      };
     },
   },
   {
@@ -101,10 +101,10 @@ export const COMMANDS: CommandDefinition[] = [
       { flags: '--yes, -y', description: 'Skip confirmation prompts (auto-confirm)' },
     ],
     loader: async () => {
-      const { init } = await import('./commands/init')
+      const { init } = await import('./commands/init');
       return async (options) => {
-        await init(options)
-      }
+        await init(options);
+      };
     },
   },
   {
@@ -119,10 +119,10 @@ export const COMMANDS: CommandDefinition[] = [
       { flags: '--lang, -l <lang>', description: 'Display language' },
     ],
     loader: async () => {
-      const { quickSetup } = await import('./commands/quick-setup')
+      const { quickSetup } = await import('./commands/quick-setup');
       return async (options) => {
-        await quickSetup(options)
-      }
+        await quickSetup(options);
+      };
     },
   },
   {
@@ -135,14 +135,14 @@ export const COMMANDS: CommandDefinition[] = [
       { flags: '--config-lang, -c <lang>', description: 'Configuration language' },
     ],
     loader: async () => {
-      const { update } = await import('./commands/update')
+      const { update } = await import('./commands/update');
       return async (options: CliOptions) => {
         await update({
           codeType: options.codeType as 'codex' | 'claude-code' | 'clavue' | 'aider' | 'continue' | 'cline' | 'cursor' | undefined,
           configLang: options.configLang,
           aiOutputLang: options.aiOutputLang,
-        })
-      }
+        });
+      };
     },
   },
   {
@@ -151,10 +151,10 @@ export const COMMANDS: CommandDefinition[] = [
     tier: 'core',
     options: [],
     loader: async () => {
-      const { upgrade } = await import('./commands/upgrade')
+      const { upgrade } = await import('./commands/upgrade');
       return async () => {
-        await upgrade()
-      }
+        await upgrade();
+      };
     },
   },
   {
@@ -168,15 +168,15 @@ export const COMMANDS: CommandDefinition[] = [
       { flags: '--json', description: 'Output in JSON format' },
     ],
     loader: async () => {
-      const { doctor } = await import('./commands/doctor')
+      const { doctor } = await import('./commands/doctor');
       return async (options: CliOptions) => {
         await doctor({
           checkProviders: options.checkProviders as boolean | undefined,
           codeType: options.codeType as 'codex' | 'claude-code' | 'clavue' | 'aider' | 'continue' | 'cline' | 'cursor' | undefined,
           fixSettings: options.fixSettings as boolean | undefined,
           json: options.json as boolean | undefined,
-        })
-      }
+        });
+      };
     },
   },
   {
@@ -185,10 +185,10 @@ export const COMMANDS: CommandDefinition[] = [
     aliases: ['h', '?'],
     tier: 'core',
     loader: async () => {
-      const { help } = await import('./commands/help')
+      const { help } = await import('./commands/help');
       return async (_options, topic: unknown) => {
-        await help(topic as string | undefined)
-      }
+        await help(topic as string | undefined);
+      };
     },
   },
 
@@ -207,99 +207,99 @@ export const COMMANDS: CommandDefinition[] = [
     ],
     loader: async () => {
       return async (options, action: unknown, args: unknown) => {
-        const actionStr = action as string
-        const argsArr = args as string[]
+        const actionStr = action as string;
+        const argsArr = args as string[];
 
         // 统一从 mcp.ts 导入
         if (actionStr === 'status' || !actionStr) {
-          const { mcpStatus } = await import('./commands/mcp')
-          await mcpStatus(options)
+          const { mcpStatus } = await import('./commands/mcp');
+          await mcpStatus(options);
         }
         else if (actionStr === 'doctor') {
-          const { mcpDoctor } = await import('./commands/mcp')
-          await mcpDoctor(options)
+          const { mcpDoctor } = await import('./commands/mcp');
+          await mcpDoctor(options);
         }
         else if (actionStr === 'profile') {
-          const { listProfiles, showCurrentProfile, useProfile } = await import('./commands/mcp')
+          const { listProfiles, showCurrentProfile, useProfile } = await import('./commands/mcp');
           if (!argsArr[0] || argsArr[0] === 'list' || argsArr[0] === 'ls') {
-            await listProfiles(options)
+            await listProfiles(options);
           }
           else if (argsArr[0] === 'current' || argsArr[0] === 'status') {
-            await showCurrentProfile(options)
+            await showCurrentProfile(options);
           }
           else if (argsArr[0] === 'use' || argsArr[0] === 'switch') {
-            await useProfile(argsArr[1] || '', options)
+            await useProfile(argsArr[1] || '', options);
           }
           else {
-            await useProfile(argsArr[0], options)
+            await useProfile(argsArr[0], options);
           }
         }
         else if (actionStr === 'release') {
-          const { mcpRelease } = await import('./commands/mcp')
-          await mcpRelease(options)
+          const { mcpRelease } = await import('./commands/mcp');
+          await mcpRelease(options);
         }
         else if (actionStr === 'help') {
-          const { mcpHelp } = await import('./commands/mcp')
-          mcpHelp(options)
+          const { mcpHelp } = await import('./commands/mcp');
+          mcpHelp(options);
         }
         else if (actionStr === 'list') {
           // Use CLI version if --json or --installed flags present
           if (options.json || options.installed) {
-            const { mcpListCli } = await import('./commands/mcp-cli')
+            const { mcpListCli } = await import('./commands/mcp-cli');
             await mcpListCli({
               json: options.json as boolean,
               installed: options.installed as boolean,
               tool: options.tool as any,
               lang: options.lang as any,
-            })
+            });
           }
           else {
-            const { mcpList } = await import('./commands/mcp')
-            await mcpList(options)
+            const { mcpList } = await import('./commands/mcp');
+            await mcpList(options);
           }
         }
         else if (actionStr === 'search') {
-          const { mcpSearch } = await import('./commands/mcp')
-          await mcpSearch(argsArr[0] || '', options)
+          const { mcpSearch } = await import('./commands/mcp');
+          await mcpSearch(argsArr[0] || '', options);
         }
         else if (actionStr === 'install') {
           // Support batch install: ccjk mcp install service1 service2 service3
           if (argsArr.length > 1 || options.yes) {
-            const { mcpInstallCli } = await import('./commands/mcp-cli')
+            const { mcpInstallCli } = await import('./commands/mcp-cli');
             await mcpInstallCli({
               services: argsArr,
               yes: options.yes as boolean,
               tool: options.tool as any,
               lang: options.lang as any,
-            })
+            });
           }
           else {
-            const { mcpInstall } = await import('./commands/mcp')
-            await mcpInstall(argsArr[0] || '', options)
+            const { mcpInstall } = await import('./commands/mcp');
+            await mcpInstall(argsArr[0] || '', options);
           }
         }
         else if (actionStr === 'uninstall') {
           // Support batch uninstall
           if (argsArr.length > 1 || options.yes) {
-            const { mcpUninstallCli } = await import('./commands/mcp-cli')
+            const { mcpUninstallCli } = await import('./commands/mcp-cli');
             await mcpUninstallCli({
               services: argsArr,
               yes: options.yes as boolean,
               tool: options.tool as any,
               lang: options.lang as any,
-            })
+            });
           }
           else {
-            const { mcpUninstall } = await import('./commands/mcp')
-            await mcpUninstall(argsArr[0] || '', options)
+            const { mcpUninstall } = await import('./commands/mcp');
+            await mcpUninstall(argsArr[0] || '', options);
           }
         }
         else {
           // 默认显示帮助
-          const { mcpHelp } = await import('./commands/mcp')
-          mcpHelp(options)
+          const { mcpHelp } = await import('./commands/mcp');
+          mcpHelp(options);
         }
-      }
+      };
     },
   },
   {
@@ -316,17 +316,17 @@ export const COMMANDS: CommandDefinition[] = [
       { flags: '-p, --project <path>', description: 'Project-specific memory path' },
     ],
     loader: async () => {
-      const { memoryCommand } = await import('./commands/memory')
+      const { memoryCommand } = await import('./commands/memory');
       return async (options) => {
         await memoryCommand(options as {
-          status?: boolean
-          doctor?: boolean
-          view?: boolean
-          edit?: boolean
-          sync?: boolean
-          project?: string
-        })
-      }
+          status?: boolean;
+          doctor?: boolean;
+          view?: boolean;
+          edit?: boolean;
+          sync?: boolean;
+          project?: string;
+        });
+      };
     },
   },
   {
@@ -342,17 +342,17 @@ export const COMMANDS: CommandDefinition[] = [
     ],
     loader: async () => {
       return async (options, action: unknown, args: unknown) => {
-        const actionStr = action as string
-        const argsArr = args as string[]
+        const actionStr = action as string;
+        const argsArr = args as string[];
 
-        const { handleAgentsCommand } = await import('./commands/agents')
+        const { handleAgentsCommand } = await import('./commands/agents');
         await handleAgentsCommand([actionStr, ...argsArr], {
           task: options.task as string | undefined,
           workflow: options.workflow as string | undefined,
           verbose: options.verbose as boolean | undefined,
           json: options.json as boolean | undefined,
-        })
-      }
+        });
+      };
     },
   },
   {
@@ -365,39 +365,39 @@ export const COMMANDS: CommandDefinition[] = [
     ],
     loader: async () => {
       return async (options, action: unknown, args: unknown) => {
-        const actionStr = action as string
-        const argsArr = args as string[]
+        const actionStr = action as string;
+        const argsArr = args as string[];
 
         if (actionStr === 'install') {
-          const { installAgentBrowser } = await import('./utils/agent-browser/installer')
-          await installAgentBrowser()
+          const { installAgentBrowser } = await import('./utils/agent-browser/installer');
+          await installAgentBrowser();
         }
         else if (actionStr === 'uninstall') {
-          const { uninstallAgentBrowser } = await import('./utils/agent-browser/installer')
-          await uninstallAgentBrowser()
+          const { uninstallAgentBrowser } = await import('./utils/agent-browser/installer');
+          await uninstallAgentBrowser();
         }
         else if (actionStr === 'status') {
-          const { agentBrowserStatus } = await import('./tools/agent-browser/commands')
-          await agentBrowserStatus(options)
+          const { agentBrowserStatus } = await import('./tools/agent-browser/commands');
+          await agentBrowserStatus(options);
         }
         else if (actionStr === 'start') {
-          const { startBrowserSession } = await import('./tools/agent-browser/commands')
-          await startBrowserSession(argsArr[0], options)
+          const { startBrowserSession } = await import('./tools/agent-browser/commands');
+          await startBrowserSession(argsArr[0], options);
         }
         else if (actionStr === 'stop') {
-          const { stopBrowserSession } = await import('./tools/agent-browser/commands')
-          await stopBrowserSession(options)
+          const { stopBrowserSession } = await import('./tools/agent-browser/commands');
+          await stopBrowserSession(options);
         }
         else if (actionStr === 'config') {
-          const { configureBrowser } = await import('./tools/agent-browser/commands')
-          await configureBrowser(options)
+          const { configureBrowser } = await import('./tools/agent-browser/commands');
+          await configureBrowser(options);
         }
         else {
           // 默认显示帮助
-          const { agentBrowserHelp } = await import('./tools/agent-browser/commands')
-          agentBrowserHelp(options)
+          const { agentBrowserHelp } = await import('./tools/agent-browser/commands');
+          agentBrowserHelp(options);
         }
-      }
+      };
     },
   },
   {
@@ -412,13 +412,13 @@ export const COMMANDS: CommandDefinition[] = [
       { flags: '--list', description: 'List sessions' },
     ],
     loader: async () => {
-      const { interview, quickInterview, deepInterview, listInterviewSessions, resumeInterview } = await import('./commands/interview')
+      const { interview, quickInterview, deepInterview, listInterviewSessions, resumeInterview } = await import('./commands/interview');
       return async (options: CliOptions, specFile: unknown) => {
         if (options.list) {
-          await listInterviewSessions()
+          await listInterviewSessions();
         }
         else if (options.resume) {
-          await resumeInterview()
+          await resumeInterview();
         }
         else if (options.depth === 'quick') {
           await quickInterview(specFile as string, {
@@ -426,7 +426,7 @@ export const COMMANDS: CommandDefinition[] = [
             depth: 'quick',
             resume: !!options.resume,
             lang: options.lang,
-          })
+          });
         }
         else if (options.depth === 'deep') {
           await deepInterview(specFile as string, {
@@ -434,7 +434,7 @@ export const COMMANDS: CommandDefinition[] = [
             depth: 'deep',
             resume: !!options.resume,
             lang: options.lang,
-          })
+          });
         }
         else {
           await interview({
@@ -443,9 +443,9 @@ export const COMMANDS: CommandDefinition[] = [
             template: options.template as string | undefined,
             resume: !!options.resume,
             lang: options.lang,
-          })
+          });
         }
-      }
+      };
     },
   },
   {
@@ -458,14 +458,14 @@ export const COMMANDS: CommandDefinition[] = [
       { flags: '--message, -m <msg>', description: 'Custom message' },
     ],
     loader: async () => {
-      const { commit } = await import('./commands/commit')
+      const { commit } = await import('./commands/commit');
       return async (options: CliOptions) => {
         await commit({
           auto: options.auto as boolean | undefined,
           dryRun: options.dryRun as boolean | undefined,
           message: options.message as string | undefined,
-        })
-      }
+        });
+      };
     },
   },
   {
@@ -482,10 +482,10 @@ export const COMMANDS: CommandDefinition[] = [
       { flags: '-p, --project <path>', description: 'Project-specific memory path' },
     ],
     loader: async () => {
-      const { memoryCommand } = await import('./commands/memory')
+      const { memoryCommand } = await import('./commands/memory');
       return async (options: CliOptions) => {
-        await memoryCommand(options as any)
-      }
+        await memoryCommand(options as any);
+      };
     },
   },
   {
@@ -499,9 +499,9 @@ export const COMMANDS: CommandDefinition[] = [
     ],
     loader: async () => {
       return async (_options: CliOptions, projectPath: unknown) => {
-        const { smartGenerateAndInstall } = await import('./generation/index')
-        await smartGenerateAndInstall(projectPath as string | undefined)
-      }
+        const { smartGenerateAndInstall } = await import('./generation/index');
+        await smartGenerateAndInstall(projectPath as string | undefined);
+      };
     },
   },
   {
@@ -515,47 +515,47 @@ export const COMMANDS: CommandDefinition[] = [
     ],
     loader: async () => {
       return async (options: CliOptions, action: unknown, args: unknown) => {
-        const actionStr = action as string
-        const argsArr = args as string[]
+        const actionStr = action as string;
+        const argsArr = args as string[];
         const configOptions = {
           global: !!options.global,
           json: options.format === 'json',
           codeType: options.codeType as 'codex' | 'claude-code' | 'clavue' | 'aider' | 'continue' | 'cline' | 'cursor' | undefined,
-        }
+        };
 
         if (!actionStr || actionStr === 'list') {
-          const { listConfig } = await import('./commands/config')
-          await listConfig(configOptions)
+          const { listConfig } = await import('./commands/config');
+          await listConfig(configOptions);
         }
         else if (actionStr === 'get') {
-          const { getConfig } = await import('./commands/config')
-          await getConfig(argsArr[0] || '', configOptions)
+          const { getConfig } = await import('./commands/config');
+          await getConfig(argsArr[0] || '', configOptions);
         }
         else if (actionStr === 'set') {
-          const { setConfig } = await import('./commands/config')
-          await setConfig(argsArr[0] || '', argsArr[1] || '', configOptions)
+          const { setConfig } = await import('./commands/config');
+          await setConfig(argsArr[0] || '', argsArr[1] || '', configOptions);
         }
         else if (actionStr === 'unset') {
-          const { unsetConfig } = await import('./commands/config')
-          await unsetConfig(argsArr[0] || '', configOptions)
+          const { unsetConfig } = await import('./commands/config');
+          await unsetConfig(argsArr[0] || '', configOptions);
         }
         else if (actionStr === 'reset') {
-          const { resetConfig } = await import('./commands/config')
-          await resetConfig(configOptions)
+          const { resetConfig } = await import('./commands/config');
+          await resetConfig(configOptions);
         }
         else if (actionStr === 'edit') {
-          const { editConfig } = await import('./commands/config')
-          await editConfig(configOptions)
+          const { editConfig } = await import('./commands/config');
+          await editConfig(configOptions);
         }
         else if (actionStr === 'validate') {
-          const { validateConfig } = await import('./commands/config')
-          await validateConfig(configOptions)
+          const { validateConfig } = await import('./commands/config');
+          await validateConfig(configOptions);
         }
         else {
-          console.error(`Unknown config action: ${actionStr}`)
-          console.log('Available actions: list, get, set, unset, reset, edit, validate')
+          console.error(`Unknown config action: ${actionStr}`);
+          console.log('Available actions: list, get, set, unset, reset, edit, validate');
         }
-      }
+      };
     },
   },
   {
@@ -569,14 +569,14 @@ export const COMMANDS: CommandDefinition[] = [
     ],
     loader: async () => {
       return async (options, action: unknown) => {
-        const actionStr = action as string
-        const { providersCommand } = await import('./commands/providers')
+        const actionStr = action as string;
+        const { providersCommand } = await import('./commands/providers');
         await providersCommand(actionStr || 'list', {
           lang: options.lang,
           codeType: options.codeType as 'codex' | 'claude-code' | 'clavue' | 'aider' | 'continue' | 'cline' | 'cursor' | undefined,
           verbose: options.verbose as boolean | undefined,
-        })
-      }
+        });
+      };
     },
   },
   {
@@ -600,9 +600,9 @@ export const COMMANDS: CommandDefinition[] = [
     ],
     loader: async () => {
       return async (options, action: unknown, args: unknown) => {
-        const actionStr = action as string
-        const argsArr = args as string[]
-        const { researchCommand } = await import('./commands/research')
+        const actionStr = action as string;
+        const argsArr = args as string[];
+        const { researchCommand } = await import('./commands/research');
         await researchCommand(actionStr || 'help', argsArr, {
           name: options.name as string | undefined,
           cmd: options.cmd as string | undefined,
@@ -617,8 +617,8 @@ export const COMMANDS: CommandDefinition[] = [
           maxRounds: parseOptionalPositiveInteger(options.maxRounds, '--max-rounds'),
           maxNoImproveRounds: parseOptionalPositiveInteger(options.maxNoImproveRounds, '--max-no-improve-rounds'),
           targetMetric: parseOptionalNumber(options.targetMetric, '--target-metric'),
-        })
-      }
+        });
+      };
     },
   },
   // ==================== New v8.0.0 Commands ====================
@@ -645,10 +645,10 @@ export const COMMANDS: CommandDefinition[] = [
     description: 'Configure Claude Code Router',
     tier: 'extended',
     loader: async () => {
-      const { ccr } = await import('./commands/ccr')
+      const { ccr } = await import('./commands/ccr');
       return async () => {
-        await ccr()
-      }
+        await ccr();
+      };
     },
   },
   {
@@ -665,7 +665,7 @@ export const COMMANDS: CommandDefinition[] = [
       { flags: '--skip-ccr', description: 'Do not install CCR while applying core features' },
     ],
     loader: async () => {
-      const { zeroConfig } = await import('./commands/zero-config')
+      const { zeroConfig } = await import('./commands/zero-config');
       return async (options, preset: unknown) => {
         await zeroConfig({
           preset: (preset as string) || (options.preset as string),
@@ -674,8 +674,8 @@ export const COMMANDS: CommandDefinition[] = [
           dryRun: options.dryRun as boolean | undefined,
           codeTool: options.codeType as string | undefined,
           installCcr: options.skipCcr ? false : undefined,
-        })
-      }
+        });
+      };
     },
   },
   {
@@ -686,12 +686,12 @@ export const COMMANDS: CommandDefinition[] = [
       { flags: '--json', description: 'Output in JSON format' },
     ],
     loader: async () => {
-      const { snapshotCommand } = await import('./commands/snapshot')
+      const { snapshotCommand } = await import('./commands/snapshot');
       return async (options, action: unknown, id: unknown) => {
         await snapshotCommand(action as string | undefined, id as string | undefined, {
           json: options.json as boolean | undefined,
-        })
-      }
+        });
+      };
     },
   },
   {
@@ -702,12 +702,12 @@ export const COMMANDS: CommandDefinition[] = [
       { flags: '--json', description: 'Output in JSON format' },
     ],
     loader: async () => {
-      const { rollbackCommand } = await import('./commands/rollback')
+      const { rollbackCommand } = await import('./commands/rollback');
       return async (options, id: unknown) => {
         await rollbackCommand(id as string | undefined, {
           json: options.json as boolean | undefined,
-        })
-      }
+        });
+      };
     },
   },
   {
@@ -719,33 +719,33 @@ export const COMMANDS: CommandDefinition[] = [
     ],
     loader: async () => {
       return async (options, action: unknown, args: unknown) => {
-        const actionStr = action as string
-        const argsArr = args as string[]
+        const actionStr = action as string;
+        const argsArr = args as string[];
 
         if (actionStr === 'stats') {
-          const { contextOptStats } = await import('./commands/context-opt')
-          await contextOptStats()
+          const { contextOptStats } = await import('./commands/context-opt');
+          await contextOptStats();
         }
         else if (actionStr === 'search') {
-          const { contextOptSearch } = await import('./commands/context-opt')
-          await contextOptSearch(argsArr[0] || '', { topK: options.topK as string | undefined })
+          const { contextOptSearch } = await import('./commands/context-opt');
+          await contextOptSearch(argsArr[0] || '', { topK: options.topK as string | undefined });
         }
         else if (actionStr === 'decay') {
-          const { contextOptDecay } = await import('./commands/context-opt')
-          await contextOptDecay()
+          const { contextOptDecay } = await import('./commands/context-opt');
+          await contextOptDecay();
         }
         else if (actionStr === 'config') {
-          const { contextOptConfig } = await import('./commands/context-opt')
-          await contextOptConfig()
+          const { contextOptConfig } = await import('./commands/context-opt');
+          await contextOptConfig();
         }
         else {
-          console.log('\n🧠 Context Optimization Commands:')
-          console.log('  ccjk context-opt stats   - Show memory tree statistics')
-          console.log('  ccjk context-opt search  - Search memory tree')
-          console.log('  ccjk context-opt decay   - Run confidence decay')
-          console.log('  ccjk context-opt config  - Show configuration\n')
+          console.log('\n🧠 Context Optimization Commands:');
+          console.log('  ccjk context-opt stats   - Show memory tree statistics');
+          console.log('  ccjk context-opt search  - Search memory tree');
+          console.log('  ccjk context-opt decay   - Run confidence decay');
+          console.log('  ccjk context-opt config  - Show configuration\n');
         }
-      }
+      };
     },
   },
   {
@@ -765,7 +765,7 @@ export const COMMANDS: CommandDefinition[] = [
     ],
     loader: async () => {
       return async (options: CliOptions) => {
-        const { vimCommand } = await import('./commands/vim')
+        const { vimCommand } = await import('./commands/vim');
         await vimCommand({
           lang: options.lang as 'en' | 'zh-CN' | undefined,
           enable: options.enable as boolean | undefined,
@@ -776,8 +776,8 @@ export const COMMANDS: CommandDefinition[] = [
           uninstall: options.uninstall as boolean | undefined,
           keys: options.keys as boolean | undefined,
           test: options.test as string | undefined,
-        })
-      }
+        });
+      };
     },
   },
   {
@@ -791,42 +791,42 @@ export const COMMANDS: CommandDefinition[] = [
     ],
     loader: async () => {
       return async (options, action: unknown, args: unknown) => {
-        const actionStr = action as string
-        const argsArr = args as string[]
+        const actionStr = action as string;
+        const argsArr = args as string[];
 
         if (!actionStr || actionStr === 'list') {
-          const { listPermissions } = await import('./commands/permissions')
-          await listPermissions(options)
+          const { listPermissions } = await import('./commands/permissions');
+          await listPermissions(options);
         }
         else if (actionStr === 'check') {
-          const { checkPermission } = await import('./commands/permissions')
-          await checkPermission(argsArr[0] || '', options)
+          const { checkPermission } = await import('./commands/permissions');
+          await checkPermission(argsArr[0] || '', options);
         }
         else if (actionStr === 'grant') {
-          const { grantPermission } = await import('./commands/permissions')
-          await grantPermission(argsArr[0] || '', options)
+          const { grantPermission } = await import('./commands/permissions');
+          await grantPermission(argsArr[0] || '', options);
         }
         else if (actionStr === 'revoke') {
-          const { revokePermission } = await import('./commands/permissions')
-          await revokePermission(argsArr[0] || '', options)
+          const { revokePermission } = await import('./commands/permissions');
+          await revokePermission(argsArr[0] || '', options);
         }
         else if (actionStr === 'reset') {
-          const { resetPermissions } = await import('./commands/permissions')
-          await resetPermissions(options)
+          const { resetPermissions } = await import('./commands/permissions');
+          await resetPermissions(options);
         }
         else if (actionStr === 'export') {
-          const { exportPermissions } = await import('./commands/permissions')
-          await exportPermissions(argsArr[0], options)
+          const { exportPermissions } = await import('./commands/permissions');
+          await exportPermissions(argsArr[0], options);
         }
         else if (actionStr === 'import') {
-          const { importPermissions } = await import('./commands/permissions')
-          await importPermissions(argsArr[0] || '', options)
+          const { importPermissions } = await import('./commands/permissions');
+          await importPermissions(argsArr[0] || '', options);
         }
         else {
-          const { permissionsHelp } = await import('./commands/permissions')
-          permissionsHelp(options)
+          const { permissionsHelp } = await import('./commands/permissions');
+          permissionsHelp(options);
         }
-      }
+      };
     },
   },
   {
@@ -843,51 +843,51 @@ export const COMMANDS: CommandDefinition[] = [
     loader: async () => {
       return async (options, action: unknown, args: unknown) => {
         // Initialize i18n before running any skills command
-        const { initI18n } = await import('./i18n/index.js')
-        await initI18n(options.lang || 'zh-CN')
+        const { initI18n } = await import('./i18n/index.js');
+        await initI18n(options.lang || 'zh-CN');
 
-        const actionStr = action as string
-        const argsArr = args as string[]
+        const actionStr = action as string;
+        const argsArr = args as string[];
 
         if (!actionStr) {
           // Interactive menu
-          const { skillsMenu } = await import('./commands/skills')
-          await skillsMenu(options)
+          const { skillsMenu } = await import('./commands/skills');
+          await skillsMenu(options);
         }
         else if (actionStr === 'list' || actionStr === 'ls') {
-          const { listSkills } = await import('./commands/skills')
-          await listSkills(options)
+          const { listSkills } = await import('./commands/skills');
+          await listSkills(options);
         }
         else if (actionStr === 'run') {
-          const { runSkill } = await import('./commands/skills')
-          await runSkill(argsArr[0] || '', options)
+          const { runSkill } = await import('./commands/skills');
+          await runSkill(argsArr[0] || '', options);
         }
         else if (actionStr === 'info') {
-          const { showSkillInfo } = await import('./commands/skills')
-          await showSkillInfo(argsArr[0] || '', options)
+          const { showSkillInfo } = await import('./commands/skills');
+          await showSkillInfo(argsArr[0] || '', options);
         }
         else if (actionStr === 'create') {
-          const { createSkill } = await import('./commands/skills')
-          await createSkill(argsArr[0] || '', options)
+          const { createSkill } = await import('./commands/skills');
+          await createSkill(argsArr[0] || '', options);
         }
         else if (actionStr === 'enable') {
-          const { enableSkill } = await import('./commands/skills')
-          await enableSkill(argsArr[0] || '', options)
+          const { enableSkill } = await import('./commands/skills');
+          await enableSkill(argsArr[0] || '', options);
         }
         else if (actionStr === 'disable') {
-          const { disableSkill } = await import('./commands/skills')
-          await disableSkill(argsArr[0] || '', options)
+          const { disableSkill } = await import('./commands/skills');
+          await disableSkill(argsArr[0] || '', options);
         }
         else if (actionStr === 'delete' || actionStr === 'remove' || actionStr === 'rm') {
-          const { deleteSkill } = await import('./commands/skills')
-          await deleteSkill(argsArr[0] || '', options)
+          const { deleteSkill } = await import('./commands/skills');
+          await deleteSkill(argsArr[0] || '', options);
         }
         else {
           // Try to run as skill name
-          const { runSkill } = await import('./commands/skills')
-          await runSkill(actionStr, options)
+          const { runSkill } = await import('./commands/skills');
+          await runSkill(actionStr, options);
         }
-      }
+      };
     },
   },
   // ==================== Plugins-v2 Commands ====================
@@ -900,15 +900,15 @@ export const COMMANDS: CommandDefinition[] = [
       { flags: '--json', description: 'Output as JSON' },
     ],
     loader: async () => {
-      const { handleSkillCommand } = await import('./commands/skill')
+      const { handleSkillCommand } = await import('./commands/skill');
       return async (options, action: unknown, args: unknown) => {
-        const actionStr = action as string
-        const argsArr = args as string[]
+        const actionStr = action as string;
+        const argsArr = args as string[];
         await handleSkillCommand([actionStr, ...argsArr], {
           force: options.force as boolean,
           json: options.json as boolean,
-        })
-      }
+        });
+      };
     },
   },
   {
@@ -924,18 +924,18 @@ export const COMMANDS: CommandDefinition[] = [
       { flags: '--json', description: 'Output as JSON' },
     ],
     loader: async () => {
-      const { handleAgentCommand } = await import('./commands/agent')
+      const { handleAgentCommand } = await import('./commands/agent');
       return async (options, action: unknown, args: unknown) => {
-        const actionStr = action as string
-        const argsArr = args as string[]
+        const actionStr = action as string;
+        const argsArr = args as string[];
         await handleAgentCommand([actionStr, ...argsArr], {
           template: options.template as string,
           skills: options.skills ? (options.skills as string).split(',') : undefined,
           mcp: options.mcp ? (options.mcp as string).split(',') : undefined,
           persona: options.persona as string,
           json: options.json as boolean,
-        })
-      }
+        });
+      };
     },
   },
   {
@@ -943,10 +943,10 @@ export const COMMANDS: CommandDefinition[] = [
     description: 'Claude Code usage analysis',
     tier: 'extended',
     loader: async () => {
-      const { executeCcusage } = await import('./commands/ccu')
+      const { executeCcusage } = await import('./commands/ccu');
       return async (_options, args: unknown) => {
-        await executeCcusage(args as string[])
-      }
+        await executeCcusage(args as string[]);
+      };
     },
   },
   {
@@ -960,14 +960,14 @@ export const COMMANDS: CommandDefinition[] = [
       { flags: '--output <file>', description: 'Custom HTML output path' },
     ],
     loader: async () => {
-      const { impactCommand } = await import('./commands/impact')
+      const { impactCommand } = await import('./commands/impact');
       return async (options: CliOptions) => {
         await impactCommand({
           json: options.json as boolean,
           days: options.days ? Number(options.days) : undefined,
           output: options.output as string | undefined,
-        })
-      }
+        });
+      };
     },
   },
   {
@@ -983,27 +983,27 @@ export const COMMANDS: CommandDefinition[] = [
     ],
     loader: async () => {
       return async (options, action: unknown) => {
-        const actionStr = action as string
+        const actionStr = action as string;
 
         if (actionStr === 'dates') {
-          const { listStatsDates } = await import('./commands/stats')
-          await listStatsDates()
+          const { listStatsDates } = await import('./commands/stats');
+          await listStatsDates();
         }
         else if (actionStr === 'storage') {
-          const { storageStats } = await import('./commands/stats')
-          await storageStats()
+          const { storageStats } = await import('./commands/stats');
+          await storageStats();
         }
         else if (actionStr === 'cleanup') {
-          const { cleanupStats } = await import('./commands/stats')
-          const days = options.days ? Number.parseInt(options.days as string, 10) : 90
-          await cleanupStats(days)
+          const { cleanupStats } = await import('./commands/stats');
+          const days = options.days ? Number.parseInt(options.days as string, 10) : 90;
+          await cleanupStats(days);
         }
         else {
           // Default: show stats
-          const { stats } = await import('./commands/stats')
-          await stats(options)
+          const { stats } = await import('./commands/stats');
+          await stats(options);
         }
-      }
+      };
     },
   },
   {
@@ -1015,10 +1015,10 @@ export const COMMANDS: CommandDefinition[] = [
       { flags: '--code-type, -T <type>', description: 'Code tool type' },
     ],
     loader: async () => {
-      const { uninstall } = await import('./commands/uninstall')
+      const { uninstall } = await import('./commands/uninstall');
       return async (options) => {
-        await uninstall(options)
-      }
+        await uninstall(options);
+      };
     },
   },
   {
@@ -1031,10 +1031,10 @@ export const COMMANDS: CommandDefinition[] = [
       { flags: '--skip-prompt, -s', description: 'Skip prompts' },
     ],
     loader: async () => {
-      const { checkUpdates } = await import('./commands/check-updates')
+      const { checkUpdates } = await import('./commands/check-updates');
       return async (options) => {
-        await checkUpdates(options)
-      }
+        await checkUpdates(options);
+      };
     },
   },
   {
@@ -1047,14 +1047,14 @@ export const COMMANDS: CommandDefinition[] = [
       { flags: '--list, -l', description: 'List configurations' },
     ],
     loader: async () => {
-      const { configSwitchCommand } = await import('./commands/config-switch')
+      const { configSwitchCommand } = await import('./commands/config-switch');
       return async (options: CliOptions, target: unknown) => {
         await configSwitchCommand({
           target: target as string,
           codeType: options.codeType as 'codex' | 'claude-code' | 'clavue' | 'aider' | 'continue' | 'cline' | 'cursor' | undefined,
           list: options.list as boolean,
-        })
-      }
+        });
+      };
     },
   },
   {
@@ -1063,10 +1063,10 @@ export const COMMANDS: CommandDefinition[] = [
     aliases: ['wf'],
     tier: 'extended',
     loader: async () => {
-      const { listWorkflowsQuick } = await import('./commands/workflows')
+      const { listWorkflowsQuick } = await import('./commands/workflows');
       return async () => {
-        await listWorkflowsQuick()
-      }
+        await listWorkflowsQuick();
+      };
     },
   },
   {
@@ -1075,10 +1075,10 @@ export const COMMANDS: CommandDefinition[] = [
     aliases: ['notify'],
     tier: 'extended',
     loader: async () => {
-      const { notificationCommand } = await import('./commands/notification')
+      const { notificationCommand } = await import('./commands/notification');
       return async (_options, action: unknown) => {
-        await notificationCommand(action as string)
-      }
+        await notificationCommand(action as string);
+      };
     },
   },
   {
@@ -1089,15 +1089,15 @@ export const COMMANDS: CommandDefinition[] = [
       { flags: '--name, -n <name>', description: 'Session name' },
     ],
     loader: async () => {
-      const { handleSessionCommand } = await import('./commands/session')
+      const { handleSessionCommand } = await import('./commands/session');
       return async (_options, action: unknown, id: unknown) => {
-        const args: string[] = []
+        const args: string[] = [];
         if (action)
-          args.push(action as string)
+          args.push(action as string);
         if (id)
-          args.push(id as string)
-        await handleSessionCommand(args)
-      }
+          args.push(id as string);
+        await handleSessionCommand(args);
+      };
     },
   },
   {
@@ -1120,13 +1120,13 @@ export const COMMANDS: CommandDefinition[] = [
       { flags: '--recover', description: 'Attempt database recovery' },
     ],
     loader: async () => {
-      const { contextCommand } = await import('./commands/context')
+      const { contextCommand } = await import('./commands/context');
       return async (options, action: unknown) => {
         await contextCommand({
           ...(options as any),
           action: action as any,
-        })
-      }
+        });
+      };
     },
   },
   {
@@ -1145,12 +1145,12 @@ export const COMMANDS: CommandDefinition[] = [
     ],
     loader: async () => {
       return async (options, action: unknown, args: unknown) => {
-        const actionStr = (action as string) || 'wizard'
-        const argsArr = (args as string[]) || []
+        const actionStr = (action as string) || 'wizard';
+        const argsArr = (args as string[]) || [];
 
         // Use CLI version for configure with flags
         if (actionStr === 'configure' || (actionStr === 'setup' && (options.provider || options.yes))) {
-          const { apiConfigure } = await import('./commands/api-cli')
+          const { apiConfigure } = await import('./commands/api-cli');
           await apiConfigure({
             provider: options.provider as string,
             key: options.key as string,
@@ -1159,21 +1159,21 @@ export const COMMANDS: CommandDefinition[] = [
             fastModel: options.fastModel as string,
             yes: options.yes as boolean,
             lang: options.lang as any,
-          })
+          });
         }
         else if (actionStr === 'list' && options.json) {
-          const { apiList } = await import('./commands/api-cli')
+          const { apiList } = await import('./commands/api-cli');
           await apiList({
             json: options.json as boolean,
             lang: options.lang as any,
-          })
+          });
         }
         else {
           // Fallback to existing interactive command
-          const { apiCommand } = await import('./commands/api')
-          await apiCommand(actionStr, argsArr, options)
+          const { apiCommand } = await import('./commands/api');
+          await apiCommand(actionStr, argsArr, options);
         }
-      }
+      };
     },
   },
   {
@@ -1181,16 +1181,16 @@ export const COMMANDS: CommandDefinition[] = [
     description: 'Team collaboration',
     tier: 'extended',
     loader: async () => {
-      const { teamInit, teamShare, teamSync } = await import('./commands/team')
+      const { teamInit, teamShare, teamSync } = await import('./commands/team');
       return async (_options, action: unknown) => {
-        const actionStr = action as string
+        const actionStr = action as string;
         if (actionStr === 'init')
-          await teamInit()
+          await teamInit();
         else if (actionStr === 'share')
-          await teamShare()
+          await teamShare();
         else if (actionStr === 'sync')
-          await teamSync()
-      }
+          await teamSync();
+      };
     },
   },
 
@@ -1207,10 +1207,10 @@ export const COMMANDS: CommandDefinition[] = [
       { flags: '--mode <mode>', description: 'Set teammate mode (auto/in-process/tmux)' },
     ],
     loader: async () => {
-      const { agentTeamsCommand } = await import('./commands/agent-teams')
+      const { agentTeamsCommand } = await import('./commands/agent-teams');
       return async (options: any) => {
-        await agentTeamsCommand(options)
-      }
+        await agentTeamsCommand(options);
+      };
     },
   },
   {
@@ -1223,10 +1223,10 @@ export const COMMANDS: CommandDefinition[] = [
       { flags: '--verbose, -v', description: 'Verbose output' },
     ],
     loader: async () => {
-      const { thinking } = await import('./commands/thinking')
+      const { thinking } = await import('./commands/thinking');
       return async (options, action: unknown, args: unknown) => {
-        await thinking(action as string | undefined, args as string[], options)
-      }
+        await thinking(action as string | undefined, args as string[], options);
+      };
     },
   },
 
@@ -1248,183 +1248,183 @@ export const COMMANDS: CommandDefinition[] = [
     ],
     loader: async () => {
       return async (options, action: unknown, args: unknown) => {
-        const actionStr = action as string
-        const argsArr = (args as string[]) || []
-        const { getPostmortemManager } = await import('./postmortem')
-        const manager = getPostmortemManager(process.cwd())
+        const actionStr = action as string;
+        const argsArr = (args as string[]) || [];
+        const { getPostmortemManager } = await import('./postmortem');
+        const manager = getPostmortemManager(process.cwd());
 
         if (actionStr === 'init') {
-          const ora = (await import('ora')).default
-          const ansis = (await import('ansis')).default
-          const spinner = ora('Analyzing historical fix commits...').start()
+          const ora = (await import('ora')).default;
+          const ansis = (await import('ansis')).default;
+          const spinner = ora('Analyzing historical fix commits...').start();
           try {
-            const result = await manager.init()
-            spinner.succeed(ansis.green('Postmortem system initialized'))
-            console.log(`\n   ${ansis.yellow('Reports generated:')} ${result.created}`)
-            console.log(`   ${ansis.yellow('Directory:')} ${result.directory}\n`)
+            const result = await manager.init();
+            spinner.succeed(ansis.green('Postmortem system initialized'));
+            console.log(`\n   ${ansis.yellow('Reports generated:')} ${result.created}`);
+            console.log(`   ${ansis.yellow('Directory:')} ${result.directory}\n`);
           }
           catch (error) {
-            spinner.fail(ansis.red('Initialization failed'))
-            console.error(error)
+            spinner.fail(ansis.red('Initialization failed'));
+            console.error(error);
           }
         }
         else if (actionStr === 'generate' || actionStr === 'gen') {
-          const ora = (await import('ora')).default
-          const ansis = (await import('ansis')).default
-          const spinner = ora('Analyzing commits...').start()
+          const ora = (await import('ora')).default;
+          const ansis = (await import('ansis')).default;
+          const spinner = ora('Analyzing commits...').start();
           try {
             if (options.version) {
               const summary = await manager.generateReleaseSummary({
                 version: options.version as string,
                 since: options.since as string,
                 until: options.until as string,
-              })
-              spinner.succeed(ansis.green('Release summary generated'))
-              console.log(`\n   ${ansis.yellow('Version:')} ${summary.version}`)
-              console.log(`   ${ansis.yellow('Fix commits:')} ${summary.fixCommitCount}`)
-              console.log(`   ${ansis.yellow('New postmortems:')} ${summary.newPostmortems.length}\n`)
+              });
+              spinner.succeed(ansis.green('Release summary generated'));
+              console.log(`\n   ${ansis.yellow('Version:')} ${summary.version}`);
+              console.log(`   ${ansis.yellow('Fix commits:')} ${summary.fixCommitCount}`);
+              console.log(`   ${ansis.yellow('New postmortems:')} ${summary.newPostmortems.length}\n`);
             }
             else {
-              const result = await manager.init()
-              spinner.succeed(ansis.green('Postmortem generation complete'))
-              console.log(`\n   ${ansis.yellow('Reports:')} ${result.created}\n`)
+              const result = await manager.init();
+              spinner.succeed(ansis.green('Postmortem generation complete'));
+              console.log(`\n   ${ansis.yellow('Reports:')} ${result.created}\n`);
             }
           }
           catch (error) {
-            spinner.fail(ansis.red('Generation failed'))
-            console.error(error)
+            spinner.fail(ansis.red('Generation failed'));
+            console.error(error);
           }
         }
         else if (actionStr === 'list' || actionStr === 'ls') {
-          const ansis = (await import('ansis')).default
-          let reports = manager.listReports()
+          const ansis = (await import('ansis')).default;
+          let reports = manager.listReports();
           if (options.severity)
-            reports = reports.filter(r => r.severity === options.severity)
+            reports = reports.filter(r => r.severity === options.severity);
           if (options.category)
-            reports = reports.filter(r => r.category === options.category)
+            reports = reports.filter(r => r.category === options.category);
           if (options.status)
-            reports = reports.filter(r => r.status === options.status)
+            reports = reports.filter(r => r.status === options.status);
 
           if (reports.length === 0) {
-            console.log(ansis.yellow('\nNo postmortem reports found'))
-            console.log(ansis.gray('Run "ccjk postmortem init" to initialize\n'))
-            return
+            console.log(ansis.yellow('\nNo postmortem reports found'));
+            console.log(ansis.gray('Run "ccjk postmortem init" to initialize\n'));
+            return;
           }
 
-          const severityEmoji: Record<string, string> = { critical: '🔴', high: '🟠', medium: '🟡', low: '🟢' }
-          console.log(ansis.cyan.bold('\n📋 Postmortem Reports'))
-          console.log(ansis.gray('─'.repeat(50)))
+          const severityEmoji: Record<string, string> = { critical: '🔴', high: '🟠', medium: '🟡', low: '🟢' };
+          console.log(ansis.cyan.bold('\n📋 Postmortem Reports'));
+          console.log(ansis.gray('─'.repeat(50)));
           for (const r of reports) {
-            console.log(`\n${severityEmoji[r.severity] || '⚪'} ${ansis.bold(r.id)}: ${r.title}`)
-            console.log(`   ${ansis.gray('Category:')} ${r.category}  ${ansis.gray('Status:')} ${r.status}`)
+            console.log(`\n${severityEmoji[r.severity] || '⚪'} ${ansis.bold(r.id)}: ${r.title}`);
+            console.log(`   ${ansis.gray('Category:')} ${r.category}  ${ansis.gray('Status:')} ${r.status}`);
           }
-          console.log(ansis.gray(`\n─ Total: ${reports.length} reports ─\n`))
+          console.log(ansis.gray(`\n─ Total: ${reports.length} reports ─\n`));
         }
         else if (actionStr === 'show') {
-          const ansis = (await import('ansis')).default
-          const id = argsArr[0]
+          const ansis = (await import('ansis')).default;
+          const id = argsArr[0];
           if (!id) {
-            console.log(ansis.red('Please specify a postmortem ID'))
-            return
+            console.log(ansis.red('Please specify a postmortem ID'));
+            return;
           }
-          const report = manager.getReport(id)
+          const report = manager.getReport(id);
           if (!report) {
-            console.log(ansis.red(`Postmortem not found: ${id}`))
-            return
+            console.log(ansis.red(`Postmortem not found: ${id}`));
+            return;
           }
-          console.log(ansis.cyan.bold(`\n═══ ${report.id}: ${report.title} ═══\n`))
-          console.log(`${ansis.yellow('Severity:')} ${report.severity.toUpperCase()}`)
-          console.log(`${ansis.yellow('Category:')} ${report.category}`)
-          console.log(`${ansis.yellow('Status:')} ${report.status}`)
-          console.log(`\n${ansis.cyan('Description:')}\n${report.description}`)
-          console.log(`\n${ansis.cyan('Root Cause:')}\n${report.rootCause.map(c => `  • ${c}`).join('\n')}`)
-          console.log(`\n${ansis.cyan('Prevention:')}\n${report.preventionMeasures.map(m => `  • ${m}`).join('\n')}`)
-          console.log(`\n${ansis.cyan('AI Directives:')}\n${report.aiDirectives.map(d => `  • ${d}`).join('\n')}\n`)
+          console.log(ansis.cyan.bold(`\n═══ ${report.id}: ${report.title} ═══\n`));
+          console.log(`${ansis.yellow('Severity:')} ${report.severity.toUpperCase()}`);
+          console.log(`${ansis.yellow('Category:')} ${report.category}`);
+          console.log(`${ansis.yellow('Status:')} ${report.status}`);
+          console.log(`\n${ansis.cyan('Description:')}\n${report.description}`);
+          console.log(`\n${ansis.cyan('Root Cause:')}\n${report.rootCause.map(c => `  • ${c}`).join('\n')}`);
+          console.log(`\n${ansis.cyan('Prevention:')}\n${report.preventionMeasures.map(m => `  • ${m}`).join('\n')}`);
+          console.log(`\n${ansis.cyan('AI Directives:')}\n${report.aiDirectives.map(d => `  • ${d}`).join('\n')}\n`);
         }
         else if (actionStr === 'check') {
-          const ora = (await import('ora')).default
-          const ansis = (await import('ansis')).default
-          const spinner = ora('Checking code...').start()
+          const ora = (await import('ora')).default;
+          const ansis = (await import('ansis')).default;
+          const spinner = ora('Checking code...').start();
           try {
             const result = await manager.checkCode({
               staged: options.staged as boolean,
               files: argsArr.length > 0 ? argsArr : undefined,
-            })
-            spinner.stop()
-            console.log(ansis.cyan.bold('\n🔍 Postmortem Code Check'))
-            console.log(ansis.gray('─'.repeat(40)))
-            console.log(`   Files checked: ${result.filesChecked}`)
-            console.log(`   Issues found: ${result.issuesFound.length}`)
-            console.log(`\n   🔴 Critical: ${result.summary.critical}`)
-            console.log(`   🟠 High: ${result.summary.high}`)
-            console.log(`   🟡 Medium: ${result.summary.medium}`)
-            console.log(`   🟢 Low: ${result.summary.low}`)
+            });
+            spinner.stop();
+            console.log(ansis.cyan.bold('\n🔍 Postmortem Code Check'));
+            console.log(ansis.gray('─'.repeat(40)));
+            console.log(`   Files checked: ${result.filesChecked}`);
+            console.log(`   Issues found: ${result.issuesFound.length}`);
+            console.log(`\n   🔴 Critical: ${result.summary.critical}`);
+            console.log(`   🟠 High: ${result.summary.high}`);
+            console.log(`   🟡 Medium: ${result.summary.medium}`);
+            console.log(`   🟢 Low: ${result.summary.low}`);
 
             if (result.issuesFound.length > 0) {
-              console.log(ansis.yellow('\n⚠️ Issues:'))
+              console.log(ansis.yellow('\n⚠️ Issues:'));
               for (const issue of result.issuesFound.slice(0, 10)) {
-                console.log(`\n   ${issue.file}:${issue.line}`)
-                console.log(`   ${issue.message}`)
+                console.log(`\n   ${issue.file}:${issue.line}`);
+                console.log(`   ${issue.message}`);
               }
             }
 
-            console.log(result.passed ? ansis.green('\n✅ Check passed\n') : ansis.red('\n❌ Check failed\n'))
+            console.log(result.passed ? ansis.green('\n✅ Check passed\n') : ansis.red('\n❌ Check failed\n'));
             if (!result.passed && options.ci)
-              process.exit(1)
+              process.exit(1);
           }
           catch (error) {
-            spinner.fail(ansis.red('Check failed'))
-            console.error(error)
+            spinner.fail(ansis.red('Check failed'));
+            console.error(error);
           }
         }
         else if (actionStr === 'sync') {
-          const ora = (await import('ora')).default
-          const ansis = (await import('ansis')).default
-          const spinner = ora('Syncing to CLAUDE.md...').start()
+          const ora = (await import('ora')).default;
+          const ansis = (await import('ansis')).default;
+          const spinner = ora('Syncing to CLAUDE.md...').start();
           try {
-            const result = await manager.syncToClaudeMd()
-            spinner.succeed(ansis.green('Sync complete'))
-            console.log(`\n   ${ansis.yellow('Synced:')} ${result.synced} items`)
-            console.log(`   ${ansis.yellow('File:')} ${result.claudeMdPath}\n`)
+            const result = await manager.syncToClaudeMd();
+            spinner.succeed(ansis.green('Sync complete'));
+            console.log(`\n   ${ansis.yellow('Synced:')} ${result.synced} items`);
+            console.log(`   ${ansis.yellow('File:')} ${result.claudeMdPath}\n`);
           }
           catch (error) {
-            spinner.fail(ansis.red('Sync failed'))
-            console.error(error)
+            spinner.fail(ansis.red('Sync failed'));
+            console.error(error);
           }
         }
         else if (actionStr === 'stats') {
-          const ansis = (await import('ansis')).default
-          const index = manager.loadIndex()
+          const ansis = (await import('ansis')).default;
+          const index = manager.loadIndex();
           if (!index) {
-            console.log(ansis.yellow('\nNo statistics available'))
-            console.log(ansis.gray('Run "ccjk postmortem init" to initialize\n'))
-            return
+            console.log(ansis.yellow('\nNo statistics available'));
+            console.log(ansis.gray('Run "ccjk postmortem init" to initialize\n'));
+            return;
           }
-          console.log(ansis.cyan.bold('\n📊 Postmortem Statistics'))
-          console.log(ansis.gray('─'.repeat(40)))
-          console.log(`\n${ansis.yellow('Total:')} ${index.stats.total} reports`)
-          console.log(`\n${ansis.yellow('By Severity:')}`)
-          console.log(`   🔴 Critical: ${index.stats.bySeverity.critical}`)
-          console.log(`   🟠 High: ${index.stats.bySeverity.high}`)
-          console.log(`   🟡 Medium: ${index.stats.bySeverity.medium}`)
-          console.log(`   🟢 Low: ${index.stats.bySeverity.low}`)
-          console.log(`\n${ansis.yellow('By Status:')}`)
-          console.log(`   ⚡ Active: ${index.stats.byStatus.active}`)
-          console.log(`   ✅ Resolved: ${index.stats.byStatus.resolved}`)
-          console.log(`   👀 Monitoring: ${index.stats.byStatus.monitoring}`)
-          console.log(`   📦 Archived: ${index.stats.byStatus.archived}\n`)
+          console.log(ansis.cyan.bold('\n📊 Postmortem Statistics'));
+          console.log(ansis.gray('─'.repeat(40)));
+          console.log(`\n${ansis.yellow('Total:')} ${index.stats.total} reports`);
+          console.log(`\n${ansis.yellow('By Severity:')}`);
+          console.log(`   🔴 Critical: ${index.stats.bySeverity.critical}`);
+          console.log(`   🟠 High: ${index.stats.bySeverity.high}`);
+          console.log(`   🟡 Medium: ${index.stats.bySeverity.medium}`);
+          console.log(`   🟢 Low: ${index.stats.bySeverity.low}`);
+          console.log(`\n${ansis.yellow('By Status:')}`);
+          console.log(`   ⚡ Active: ${index.stats.byStatus.active}`);
+          console.log(`   ✅ Resolved: ${index.stats.byStatus.resolved}`);
+          console.log(`   👀 Monitoring: ${index.stats.byStatus.monitoring}`);
+          console.log(`   📦 Archived: ${index.stats.byStatus.archived}\n`);
         }
         else {
-          console.log('\n🔬 Postmortem Commands:')
-          console.log('  ccjk postmortem init          - Initialize system')
-          console.log('  ccjk postmortem generate      - Generate from commits')
-          console.log('  ccjk postmortem list          - List all reports')
-          console.log('  ccjk postmortem show <id>     - Show report details')
-          console.log('  ccjk postmortem check         - Check code for issues')
-          console.log('  ccjk postmortem sync          - Sync to CLAUDE.md')
-          console.log('  ccjk postmortem stats         - Show statistics\n')
+          console.log('\n🔬 Postmortem Commands:');
+          console.log('  ccjk postmortem init          - Initialize system');
+          console.log('  ccjk postmortem generate      - Generate from commits');
+          console.log('  ccjk postmortem list          - List all reports');
+          console.log('  ccjk postmortem show <id>     - Show report details');
+          console.log('  ccjk postmortem check         - Check code for issues');
+          console.log('  ccjk postmortem sync          - Sync to CLAUDE.md');
+          console.log('  ccjk postmortem stats         - Show statistics\n');
         }
-      }
+      };
     },
   },
 
@@ -1438,21 +1438,21 @@ export const COMMANDS: CommandDefinition[] = [
       { flags: '--no-wrap', description: 'Disable wrapping (pass through)' },
     ],
     loader: async () => {
-      const { claudeWrapper } = await import('./commands/claude-wrapper')
+      const { claudeWrapper } = await import('./commands/claude-wrapper');
       return async (options) => {
         // Extract all arguments after 'claude' from process.argv
-        const argv = process.argv
-        const claudeIndex = argv.findIndex(arg => arg === 'claude')
+        const argv = process.argv;
+        const claudeIndex = argv.findIndex(arg => arg === 'claude');
 
         // Get all args after 'claude', filtering out our wrapper options
-        const rawArgs = claudeIndex >= 0 ? argv.slice(claudeIndex + 1) : []
-        const args = rawArgs.filter(arg => arg !== '--debug' && arg !== '--no-wrap')
+        const rawArgs = claudeIndex >= 0 ? argv.slice(claudeIndex + 1) : [];
+        const args = rawArgs.filter(arg => arg !== '--debug' && arg !== '--no-wrap');
 
         await claudeWrapper(args, {
           debug: options.debug as boolean,
           noWrap: options.noWrap as boolean,
-        })
-      }
+        });
+      };
     },
   },
 
@@ -1471,9 +1471,9 @@ export const COMMANDS: CommandDefinition[] = [
     ],
     loader: async () => {
       return async (options, action: unknown) => {
-        const { monitor } = await import('./commands/monitor')
-        await monitor((action as 'start' | 'stop' | 'report' | 'export' | 'help') || undefined, options)
-      }
+        const { monitor } = await import('./commands/monitor');
+        await monitor((action as 'start' | 'stop' | 'report' | 'export' | 'help') || undefined, options);
+      };
     },
   },
 
@@ -1487,22 +1487,22 @@ export const COMMANDS: CommandDefinition[] = [
       { flags: '--code-type, -T <type>', description: 'Code tool type' },
     ],
     loader: async () => {
-      const { configCommand } = await import('./commands/config')
+      const { configCommand } = await import('./commands/config');
       return async (options, action: unknown, key: unknown, value: unknown) => {
-        const args: string[] = []
+        const args: string[] = [];
         if (action !== undefined)
-          args.push(action as string)
+          args.push(action as string);
         if (key !== undefined)
-          args.push(key as string)
+          args.push(key as string);
         if (value !== undefined)
-          args.push(value as string)
+          args.push(value as string);
         await configCommand(args[0] || 'list', args.slice(1), {
           lang: options.lang,
           codeType: options.codeType as 'codex' | 'claude-code' | 'clavue' | 'aider' | 'continue' | 'cline' | 'cursor' | undefined,
           global: options.global as boolean | undefined,
           json: options.json as boolean | undefined,
-        })
-      }
+        });
+      };
     },
   },
 
@@ -1533,11 +1533,11 @@ export const COMMANDS: CommandDefinition[] = [
     ],
     loader: async () => {
       return async (options: CliOptions) => {
-        const { ccjkMcp, formatResultAsJson, formatResultForConsole } = await import('./commands/ccjk-mcp')
+        const { ccjkMcp, formatResultAsJson, formatResultForConsole } = await import('./commands/ccjk-mcp');
 
         // Parse services list
-        const services = options.services ? (options.services as string).split(',').map(s => s.trim()) : undefined
-        const exclude = options.exclude ? (options.exclude as string).split(',').map(s => s.trim()) : undefined
+        const services = options.services ? (options.services as string).split(',').map(s => s.trim()) : undefined;
+        const exclude = options.exclude ? (options.exclude as string).split(',').map(s => s.trim()) : undefined;
 
         const result = await ccjkMcp({
           interactive: !options.json && !options.dryRun,
@@ -1550,15 +1550,15 @@ export const COMMANDS: CommandDefinition[] = [
           json: options.json as boolean,
           lang: options.lang as SupportedLang,
           force: options.force as boolean,
-        })
+        });
 
         if (options.json) {
-          console.log(formatResultAsJson(result))
+          console.log(formatResultAsJson(result));
         }
         else {
-          console.log(formatResultForConsole(result))
+          console.log(formatResultForConsole(result));
         }
-      }
+      };
     },
   },
   {
@@ -1577,7 +1577,7 @@ export const COMMANDS: CommandDefinition[] = [
     ],
     loader: async () => {
       return async (options: CliOptions) => {
-        const { ccjkSkills } = await import('./commands/ccjk-skills')
+        const { ccjkSkills } = await import('./commands/ccjk-skills');
         await ccjkSkills({
           category: options.category as SkillCategory | undefined,
           tags: options.tags ? (options.tags as string).split(',') : undefined,
@@ -1586,8 +1586,8 @@ export const COMMANDS: CommandDefinition[] = [
           force: options.force as boolean,
           json: options.json as boolean,
           lang: options.lang as SupportedLang,
-        })
-      }
+        });
+      };
     },
   },
   {
@@ -1605,7 +1605,7 @@ export const COMMANDS: CommandDefinition[] = [
     ],
     loader: async () => {
       return async (options: CliOptions) => {
-        const { ccjkAgents } = await import('./commands/ccjk-agents')
+        const { ccjkAgents } = await import('./commands/ccjk-agents');
         await ccjkAgents({
           create: options.create as string,
           list: options.list as boolean,
@@ -1613,8 +1613,8 @@ export const COMMANDS: CommandDefinition[] = [
           template: options.template as string,
           json: options.json as boolean,
           lang: options.lang as SupportedLang,
-        })
-      }
+        });
+      };
     },
   },
   {
@@ -1627,9 +1627,9 @@ export const COMMANDS: CommandDefinition[] = [
     ],
     loader: async () => {
       return async (_options: CliOptions) => {
-        const { persistenceManager } = await import('./commands/persistence-manager')
-        await persistenceManager()
-      }
+        const { persistenceManager } = await import('./commands/persistence-manager');
+        await persistenceManager();
+      };
     },
   },
   {
@@ -1648,7 +1648,7 @@ export const COMMANDS: CommandDefinition[] = [
     ],
     loader: async () => {
       return async (options: CliOptions) => {
-        const { ccjkHooks } = await import('./commands/ccjk-hooks')
+        const { ccjkHooks } = await import('./commands/ccjk-hooks');
         await ccjkHooks({
           type: options.type as HookType | 'all' | undefined,
           category: options.category as HookCategory | 'all' | undefined,
@@ -1657,8 +1657,8 @@ export const COMMANDS: CommandDefinition[] = [
           dryRun: options.dryRun as boolean,
           json: options.json as boolean,
           verbose: options.verbose as boolean,
-        })
-      }
+        });
+      };
     },
   },
   {
@@ -1679,7 +1679,7 @@ export const COMMANDS: CommandDefinition[] = [
     ],
     loader: async () => {
       return async (options: CliOptions) => {
-        const { ccjkSkills } = await import('./commands/ccjk-skills')
+        const { ccjkSkills } = await import('./commands/ccjk-skills');
         await ccjkSkills({
           interactive: options.interactive !== false,
           category: options.category as SkillCategory,
@@ -1690,8 +1690,8 @@ export const COMMANDS: CommandDefinition[] = [
           force: options.force as boolean,
           targetDir: options.targetDir as string,
           lang: options.lang as SupportedLang,
-        })
-      }
+        });
+      };
     },
   },
 
@@ -1716,7 +1716,7 @@ export const COMMANDS: CommandDefinition[] = [
     ],
     loader: async () => {
       return async (options: CliOptions) => {
-        const { ccjkAll } = await import('./commands/ccjk-all')
+        const { ccjkAll } = await import('./commands/ccjk-all');
         await ccjkAll({
           strategy: options.strategy as 'cloud-smart' | 'cloud-conservative' | 'local-fallback',
           useCloud: options.useCloud as boolean,
@@ -1729,8 +1729,8 @@ export const COMMANDS: CommandDefinition[] = [
           dryRun: options.dryRun as boolean,
           json: options.json as boolean,
           lang: options.lang as SupportedLang,
-        })
-      }
+        });
+      };
     },
   },
   {
@@ -1751,7 +1751,7 @@ export const COMMANDS: CommandDefinition[] = [
     ],
     loader: async () => {
       return async (options: CliOptions) => {
-        const { ccjkSetup } = await import('./commands/ccjk-setup')
+        const { ccjkSetup } = await import('./commands/ccjk-setup');
         const exitCode = await ccjkSetup({
           profile: options.profile as 'minimal' | 'recommended' | 'full' | 'custom',
           resources: options.resources ? (options.resources as string).split(',') as ('skills' | 'mcp' | 'agents' | 'hooks')[] : undefined,
@@ -1762,11 +1762,11 @@ export const COMMANDS: CommandDefinition[] = [
           dryRun: options.dryRun as boolean,
           json: options.json as boolean,
           lang: options.lang as 'en' | 'zh-CN',
-        })
+        });
         if (exitCode !== 0) {
-          process.exit(exitCode)
+          process.exit(exitCode);
         }
-      }
+      };
     },
   },
 
@@ -1782,15 +1782,15 @@ export const COMMANDS: CommandDefinition[] = [
       { flags: '--cleanup', description: 'Clean up old sessions' },
     ],
     loader: async () => {
-      const { sessionsCommand } = await import('./commands/sessions')
+      const { sessionsCommand } = await import('./commands/sessions');
       return async (options: CliOptions) => {
         await sessionsCommand({
           list: options.list as boolean,
           show: options.show as string,
           restore: options.restore as string,
           cleanup: options.cleanup as boolean,
-        })
-      }
+        });
+      };
     },
   },
 
@@ -1811,7 +1811,7 @@ export const COMMANDS: CommandDefinition[] = [
       { flags: '--compare', description: 'Compare baseline and candidate' },
     ],
     loader: async () => {
-      const { evalCommand } = await import('./commands/eval')
+      const { evalCommand } = await import('./commands/eval');
       return async (options: CliOptions) => {
         await evalCommand({
           scenario: options.scenario as string,
@@ -1823,8 +1823,8 @@ export const COMMANDS: CommandDefinition[] = [
           baseline: options.baseline as string,
           candidate: options.candidate as string,
           compare: options.compare as boolean,
-        })
-      }
+        });
+      };
     },
   },
   {
@@ -1838,15 +1838,15 @@ export const COMMANDS: CommandDefinition[] = [
       { flags: '--clear', description: 'Clear context cache' },
     ],
     loader: async () => {
-      const { contextCommand } = await import('./commands/context')
+      const { contextCommand } = await import('./commands/context');
       return async (options: CliOptions) => {
         await contextCommand({
           show: options.show as boolean,
           layers: options.layers as string,
           task: options.task as string,
           clear: options.clear as boolean,
-        })
-      }
+        });
+      };
     },
   },
   {
@@ -1858,13 +1858,13 @@ export const COMMANDS: CommandDefinition[] = [
       { flags: '--role <role>', description: 'Show files for specific role' },
     ],
     loader: async () => {
-      const { paradigmCommand } = await import('./commands/paradigm')
+      const { paradigmCommand } = await import('./commands/paradigm');
       return async (options: CliOptions) => {
         await paradigmCommand({
           verbose: options.verbose as boolean,
           role: options.role as string,
-        })
-      }
+        });
+      };
     },
   },
   {
@@ -1878,15 +1878,15 @@ export const COMMANDS: CommandDefinition[] = [
       { flags: '--cleanup', description: 'Clean up old traces' },
     ],
     loader: async () => {
-      const { traceCommand } = await import('./commands/trace')
+      const { traceCommand } = await import('./commands/trace');
       return async (options: CliOptions) => {
         await traceCommand({
           list: options.list as boolean,
           last: options.last as boolean,
           sessionId: options.sessionId as string,
           cleanup: options.cleanup as boolean,
-        })
-      }
+        });
+      };
     },
   },
   {
@@ -1902,7 +1902,7 @@ export const COMMANDS: CommandDefinition[] = [
       { flags: '--dry-run', description: 'Preview fix commands without executing' },
     ],
     loader: async () => {
-      const { statusCommand } = await import('./commands/status')
+      const { statusCommand } = await import('./commands/status');
       return async (options: CliOptions) => {
         await statusCommand({
           json: options.json as boolean,
@@ -1910,8 +1910,8 @@ export const COMMANDS: CommandDefinition[] = [
           fix: options.fix as boolean,
           yes: options.yes as boolean,
           dryRun: options.dryRun as boolean,
-        })
-      }
+        });
+      };
     },
   },
   {
@@ -1924,13 +1924,13 @@ export const COMMANDS: CommandDefinition[] = [
       { flags: '--compact', description: 'Compact output' },
     ],
     loader: async () => {
-      const { dashboardCommand } = await import('./commands/dashboard')
+      const { dashboardCommand } = await import('./commands/dashboard');
       return async (options: CliOptions) => {
         await dashboardCommand({
           json: options.json as boolean,
           compact: options.compact as boolean,
-        })
-      }
+        });
+      };
     },
   },
   {
@@ -1951,9 +1951,9 @@ export const COMMANDS: CommandDefinition[] = [
       { flags: '--binding-code <code>', description: 'Binding code for setup' },
     ],
     loader: async () => {
-      const { doctorRemote, enableRemote, disableRemote, remoteStatus, setupRemote, showQRCode } = await import('./commands/remote')
+      const { doctorRemote, enableRemote, disableRemote, remoteStatus, setupRemote, showQRCode } = await import('./commands/remote');
       return async (options: CliOptions, ...args: unknown[]) => {
-        const action = args[0] as string | undefined
+        const action = args[0] as string | undefined;
         switch (action) {
           case 'setup':
             await setupRemote({
@@ -1962,29 +1962,29 @@ export const COMMANDS: CommandDefinition[] = [
               serverUrl: options.serverUrl as string | undefined,
               authToken: options.authToken as string | undefined,
               bindingCode: options.bindingCode as string | undefined,
-            })
-            break
+            });
+            break;
           case 'doctor':
             await doctorRemote({
               json: options.json as boolean,
-            })
-            break
+            });
+            break;
           case 'enable':
-            await enableRemote()
-            break
+            await enableRemote();
+            break;
           case 'disable':
-            await disableRemote()
-            break
+            await disableRemote();
+            break;
           case 'status':
-            await remoteStatus()
-            break
+            await remoteStatus();
+            break;
           case 'qr':
-            await showQRCode()
-            break
+            await showQRCode();
+            break;
           default:
-            await remoteStatus()
+            await remoteStatus();
         }
-      }
+      };
     },
   },
   {
@@ -1998,12 +1998,12 @@ export const COMMANDS: CommandDefinition[] = [
       { flags: 'stats', description: 'Show statistics' },
     ],
     loader: async () => {
-      const { handleEvolutionCommand } = await import('./commands/evolution')
+      const { handleEvolutionCommand } = await import('./commands/evolution');
       return async (options: CliOptions, ...args: unknown[]) => {
-        const action = args[0] as string | undefined
-        const restArgs = args.slice(1)
-        await handleEvolutionCommand(action, restArgs, options)
-      }
+        const action = args[0] as string | undefined;
+        const restArgs = args.slice(1);
+        await handleEvolutionCommand(action, restArgs, options);
+      };
     },
   },
   {
@@ -2016,23 +2016,23 @@ export const COMMANDS: CommandDefinition[] = [
       { flags: 'status', description: 'Daemon status' },
     ],
     loader: async () => {
-      const { startDaemon, stopDaemon, remoteStatus } = await import('./commands/remote')
+      const { startDaemon, stopDaemon, remoteStatus } = await import('./commands/remote');
       return async (options: CliOptions, ...args: unknown[]) => {
-        const action = args[0] as string | undefined
+        const action = args[0] as string | undefined;
         switch (action) {
           case 'start':
-            await startDaemon()
-            break
+            await startDaemon();
+            break;
           case 'stop':
-            await stopDaemon()
-            break
+            await stopDaemon();
+            break;
           case 'status':
-            await remoteStatus()
-            break
+            await remoteStatus();
+            break;
           default:
-            await remoteStatus()
+            await remoteStatus();
         }
-      }
+      };
     },
   },
   {
@@ -2044,13 +2044,13 @@ export const COMMANDS: CommandDefinition[] = [
       { flags: '--silent', description: 'Silent mode' },
     ],
     loader: async () => {
-      const { morningCommand } = await import('./commands/quick-actions')
+      const { morningCommand } = await import('./commands/quick-actions');
       return async (options: CliOptions) => {
         await morningCommand({
           json: options.json as boolean,
           silent: options.silent as boolean,
-        })
-      }
+        });
+      };
     },
   },
   {
@@ -2062,13 +2062,13 @@ export const COMMANDS: CommandDefinition[] = [
       { flags: '--silent', description: 'Silent mode' },
     ],
     loader: async () => {
-      const { reviewCommand } = await import('./commands/quick-actions')
+      const { reviewCommand } = await import('./commands/quick-actions');
       return async (options: CliOptions) => {
         await reviewCommand({
           json: options.json as boolean,
           silent: options.silent as boolean,
-        })
-      }
+        });
+      };
     },
   },
   {
@@ -2080,13 +2080,13 @@ export const COMMANDS: CommandDefinition[] = [
       { flags: '--silent', description: 'Silent mode' },
     ],
     loader: async () => {
-      const { cleanupCommand } = await import('./commands/quick-actions')
+      const { cleanupCommand } = await import('./commands/quick-actions');
       return async (options: CliOptions) => {
         await cleanupCommand({
           json: options.json as boolean,
           silent: options.silent as boolean,
-        })
-      }
+        });
+      };
     },
   },
   {
@@ -2098,13 +2098,13 @@ export const COMMANDS: CommandDefinition[] = [
       { flags: '--yes, -y', description: 'Skip confirmation' },
     ],
     loader: async () => {
-      const { boost } = await import('./commands/boost')
+      const { boost } = await import('./commands/boost');
       return async (options: CliOptions) => {
         await boost({
           dryRun: options.dryRun as boolean,
           yes: options.yes as boolean,
-        })
-      }
+        });
+      };
     },
   },
   {
@@ -2117,13 +2117,13 @@ export const COMMANDS: CommandDefinition[] = [
       { flags: '--json, -j', description: 'Output as JSON' },
     ],
     loader: async () => {
-      const { brainStatusCommand } = await import('./commands/brain-status')
+      const { brainStatusCommand } = await import('./commands/brain-status');
       return async (options: CliOptions) => {
         await brainStatusCommand({
           detailed: options.detailed as boolean,
           json: options.json as boolean,
-        })
-      }
+        });
+      };
     },
   },
   {
@@ -2141,7 +2141,7 @@ export const COMMANDS: CommandDefinition[] = [
       { flags: '--reset', description: 'Reset to default configuration' },
     ],
     loader: async () => {
-      const { brainConfigCommand } = await import('./commands/brain-config')
+      const { brainConfigCommand } = await import('./commands/brain-config');
       return async (options: CliOptions) => {
         await brainConfigCommand({
           preference: options.preference ? parseFloat(options.preference as string) : undefined,
@@ -2151,8 +2151,8 @@ export const COMMANDS: CommandDefinition[] = [
           reasoning: options.reasoning as string,
           show: options.show as boolean,
           reset: options.reset as boolean,
-        })
-      }
+        });
+      };
     },
   },
 
@@ -2169,7 +2169,7 @@ export const COMMANDS: CommandDefinition[] = [
       { flags: '--lang, -l <lang>', description: 'Display language (zh-CN, en)' },
     ],
     loader: async () => {
-      const { addCommand } = await import('./commands/add')
+      const { addCommand } = await import('./commands/add');
       return async (options, source: unknown) => {
         await addCommand(source as string, {
           type: options.type as 'skill' | 'mcp' | 'agent' | 'hook' | undefined,
@@ -2177,8 +2177,8 @@ export const COMMANDS: CommandDefinition[] = [
           dryRun: options.dryRun as boolean,
           json: options.json as boolean,
           lang: options.lang as 'zh-CN' | 'en',
-        })
-      }
+        });
+      };
     },
   },
-]
+];

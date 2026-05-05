@@ -4,36 +4,36 @@
  * Usage: ccjk status [--json] [--compact]
  */
 
-import type { ProjectContext } from '../config/project-scanner'
-import type { SmartDefaults } from '../config/smart-defaults'
-import type { RuntimeCapabilityDescriptor } from '../code-tools'
-import type { HealthReport } from '../health/types'
-import { existsSync, readFileSync } from 'node:fs'
-import process from 'node:process'
-import ansis from 'ansis'
-import { getRuntimeCapabilityDescriptor } from '../code-tools'
-import { scanProject } from '../config/project-scanner'
-import { CLAVUE_CONFIG_FILE, CLAVUE_SETTINGS_FILE, SETTINGS_FILE } from '../constants'
-import { MetricsDisplay } from '../context/metrics-display'
-import { getContextPersistence } from '../context/persistence'
-import { runHealthCheck } from '../health/index'
-import { resolveCodeType } from '../utils/code-type-resolver'
+import type { RuntimeCapabilityDescriptor } from '../code-tools';
+import type { ProjectContext } from '../config/project-scanner';
+import type { SmartDefaults } from '../config/smart-defaults';
+import type { HealthReport } from '../health/types';
+import { existsSync, readFileSync } from 'node:fs';
+import process from 'node:process';
+import ansis from 'ansis';
+import { getRuntimeCapabilityDescriptor } from '../code-tools';
+import { scanProject } from '../config/project-scanner';
+import { CLAVUE_CONFIG_FILE, CLAVUE_SETTINGS_FILE, SETTINGS_FILE } from '../constants';
+import { MetricsDisplay } from '../context/metrics-display';
+import { getContextPersistence } from '../context/persistence';
+import { runHealthCheck } from '../health/index';
+import { resolveCodeType } from '../utils/code-type-resolver';
 
 // ============================================================================
 // Types
 // ============================================================================
 
 export interface StatusOptions {
-  json?: boolean
-  compact?: boolean
-  fix?: boolean
-  yes?: boolean
-  dryRun?: boolean
+  json?: boolean;
+  compact?: boolean;
+  fix?: boolean;
+  yes?: boolean;
+  dryRun?: boolean;
 }
 
 interface InstalledSettings {
-  mcpServers: Record<string, any>
-  hooks: Record<string, any>
+  mcpServers: Record<string, any>;
+  hooks: Record<string, any>;
 }
 
 // ============================================================================
@@ -47,44 +47,44 @@ const GRADE_COLORS: Record<string, (s: string) => string> = {
   C: (s: string) => ansis.yellow.bold(s),
   D: (s: string) => ansis.red(s),
   F: (s: string) => ansis.red.bold(s),
-}
+};
 
 const STATUS_ICONS: Record<string, string> = {
   pass: ansis.green('\u2713'),
   warn: ansis.yellow('\u26A0'),
   fail: ansis.red('\u2717'),
-}
+};
 
-const INSTALLED = ansis.green('\u2713')
-const MISSING = ansis.gray('\u2212')
+const INSTALLED = ansis.green('\u2713');
+const MISSING = ansis.gray('\u2212');
 
 function label(text: string): string {
-  return ansis.gray(text)
+  return ansis.gray(text);
 }
 
 function val(text: string): string {
-  return ansis.white(text)
+  return ansis.white(text);
 }
 
 function heading(text: string): string {
-  return ansis.cyan.bold(text)
+  return ansis.cyan.bold(text);
 }
 
 function divider(): string {
-  return ansis.gray('\u2500'.repeat(44))
+  return ansis.gray('\u2500'.repeat(44));
 }
 
 function renderScoreBar(score: number): string {
-  const filled = Math.round(score / 5)
-  const empty = 20 - filled
-  let bar = ''
+  const filled = Math.round(score / 5);
+  const empty = 20 - filled;
+  let bar = '';
   if (score >= 80)
-    bar = ansis.green('\u2588'.repeat(filled))
+    bar = ansis.green('\u2588'.repeat(filled));
   else if (score >= 50)
-    bar = ansis.yellow('\u2588'.repeat(filled))
-  else bar = ansis.red('\u2588'.repeat(filled))
-  bar += ansis.gray('\u2591'.repeat(empty))
-  return bar
+    bar = ansis.yellow('\u2588'.repeat(filled));
+  else bar = ansis.red('\u2588'.repeat(filled));
+  bar += ansis.gray('\u2591'.repeat(empty));
+  return bar;
 }
 
 // ============================================================================
@@ -92,22 +92,22 @@ function renderScoreBar(score: number): string {
 // ============================================================================
 
 function getRuntimeSettingsPath(codeTool?: string): string {
-  return codeTool === 'clavue' ? CLAVUE_SETTINGS_FILE : SETTINGS_FILE
+  return codeTool === 'clavue' ? CLAVUE_SETTINGS_FILE : SETTINGS_FILE;
 }
 
 function loadInstalledSettings(codeTool?: string): InstalledSettings {
-  const settingsPath = getRuntimeSettingsPath(codeTool)
+  const settingsPath = getRuntimeSettingsPath(codeTool);
   try {
     if (!existsSync(settingsPath))
-      return { mcpServers: {}, hooks: {} }
-    const data = JSON.parse(readFileSync(settingsPath, 'utf-8'))
+      return { mcpServers: {}, hooks: {} };
+    const data = JSON.parse(readFileSync(settingsPath, 'utf-8'));
     return {
       mcpServers: data.mcpServers || {},
       hooks: data.hooks || {},
-    }
+    };
   }
   catch {
-    return { mcpServers: {}, hooks: {} }
+    return { mcpServers: {}, hooks: {} };
   }
 }
 
@@ -117,11 +117,11 @@ function loadInstalledSettings(codeTool?: string): InstalledSettings {
 
 async function loadSmartDefaults(): Promise<SmartDefaults | null> {
   try {
-    const { detectSmartDefaults } = await import('../config/smart-defaults')
-    return await detectSmartDefaults()
+    const { detectSmartDefaults } = await import('../config/smart-defaults');
+    return await detectSmartDefaults();
   }
   catch {
-    return null
+    return null;
   }
 }
 
@@ -130,8 +130,8 @@ async function loadSmartDefaults(): Promise<SmartDefaults | null> {
 // ============================================================================
 
 function renderProjectSection(ctx: ProjectContext): string[] {
-  const lines: string[] = []
-  lines.push(heading('Project'))
+  const lines: string[] = [];
+  lines.push(heading('Project'));
 
   const fields: [string, string][] = [
     ['Language', ctx.language],
@@ -141,59 +141,59 @@ function renderProjectSection(ctx: ProjectContext): string[] {
     ['Linter', ctx.linter],
     ['Formatter', ctx.formatter],
     ['Database', ctx.database === 'none' ? 'none' : ctx.database],
-  ]
+  ];
 
   for (const [k, v] of fields) {
-    const display = v === 'none' || v === 'unknown' ? ansis.gray(v) : val(v)
-    lines.push(`  ${label(`${k}:`.padEnd(14))} ${display}`)
+    const display = v === 'none' || v === 'unknown' ? ansis.gray(v) : val(v);
+    lines.push(`  ${label(`${k}:`.padEnd(14))} ${display}`);
   }
 
   // Extra flags
-  const flags: string[] = []
+  const flags: string[] = [];
   if (ctx.isMonorepo)
-    flags.push('monorepo')
+    flags.push('monorepo');
   if (ctx.hasDocker)
-    flags.push('docker')
+    flags.push('docker');
   if (ctx.hasCI)
-    flags.push('CI')
+    flags.push('CI');
   if (ctx.hasGitHooks)
-    flags.push('git-hooks')
+    flags.push('git-hooks');
   if (ctx.usesConventionalCommits)
-    flags.push('conventional-commits')
+    flags.push('conventional-commits');
   if (flags.length > 0) {
-    lines.push(`  ${label('Flags:'.padEnd(14))} ${val(flags.join(', '))}`)
+    lines.push(`  ${label('Flags:'.padEnd(14))} ${val(flags.join(', '))}`);
   }
 
-  return lines
+  return lines;
 }
 
 function renderRuntimeSection(ctx: ProjectContext, capability?: RuntimeCapabilityDescriptor): string[] {
-  const lines: string[] = []
-  lines.push(heading('Runtime'))
+  const lines: string[] = [];
+  lines.push(heading('Runtime'));
 
-  const rt = ctx.runtime
-  lines.push(`  ${label('Platform:'.padEnd(14))} ${val(process.platform)} ${ansis.gray(`(${process.arch})`)}`)
+  const rt = ctx.runtime;
+  lines.push(`  ${label('Platform:'.padEnd(14))} ${val(process.platform)} ${ansis.gray(`(${process.arch})`)}`);
 
-  const envFlags: string[] = []
+  const envFlags: string[] = [];
   if (rt.isContainer)
-    envFlags.push('container')
+    envFlags.push('container');
   if (rt.isHeadless)
-    envFlags.push('headless')
+    envFlags.push('headless');
   if (rt.isSSH)
-    envFlags.push('SSH')
+    envFlags.push('SSH');
   if (rt.isCI)
-    envFlags.push('CI')
+    envFlags.push('CI');
   if (rt.isWSL)
-    envFlags.push('WSL')
+    envFlags.push('WSL');
 
   if (envFlags.length > 0) {
-    lines.push(`  ${label('Environment:'.padEnd(14))} ${val(envFlags.join(', '))}`)
+    lines.push(`  ${label('Environment:'.padEnd(14))} ${val(envFlags.join(', '))}`);
   }
   else {
-    lines.push(`  ${label('Environment:'.padEnd(14))} ${ansis.gray('standard')}`)
+    lines.push(`  ${label('Environment:'.padEnd(14))} ${ansis.gray('standard')}`);
   }
 
-  lines.push(`  ${label('Browser:'.padEnd(14))} ${rt.hasBrowser ? ansis.green('available') : ansis.gray('unavailable')}`)
+  lines.push(`  ${label('Browser:'.padEnd(14))} ${rt.hasBrowser ? ansis.green('available') : ansis.gray('unavailable')}`);
 
   if (capability) {
     const nativeFeatures = [
@@ -207,7 +207,7 @@ function renderRuntimeSection(ctx: ProjectContext, capability?: RuntimeCapabilit
       capability.native.ideIntegration && 'ide',
       capability.native.worktree && 'worktree',
       capability.native.statusline && 'statusline',
-    ].filter(Boolean) as string[]
+    ].filter(Boolean) as string[];
 
     const managedByCcjk = [
       capability.managedByCcjk.providerProfiles && 'profiles',
@@ -216,147 +216,147 @@ function renderRuntimeSection(ctx: ProjectContext, capability?: RuntimeCapabilit
       capability.managedByCcjk.permissionRepair && 'permission-repair',
       capability.managedByCcjk.mcpBundles && 'mcp-bundles',
       capability.managedByCcjk.doctor && 'doctor',
-    ].filter(Boolean) as string[]
+    ].filter(Boolean) as string[];
 
-    lines.push(`  ${label('Ownership:'.padEnd(14))} ${val(capability.ownership)}`)
-    lines.push(`  ${label('Native:'.padEnd(14))} ${nativeFeatures.length > 0 ? val(nativeFeatures.join(', ')) : ansis.gray('none')}`)
-    lines.push(`  ${label('CCJK:'.padEnd(14))} ${managedByCcjk.length > 0 ? val(managedByCcjk.join(', ')) : ansis.gray('none')}`)
+    lines.push(`  ${label('Ownership:'.padEnd(14))} ${val(capability.ownership)}`);
+    lines.push(`  ${label('Native:'.padEnd(14))} ${nativeFeatures.length > 0 ? val(nativeFeatures.join(', ')) : ansis.gray('none')}`);
+    lines.push(`  ${label('CCJK:'.padEnd(14))} ${managedByCcjk.length > 0 ? val(managedByCcjk.join(', ')) : ansis.gray('none')}`);
   }
 
-  return lines
+  return lines;
 }
 
 function renderMcpSection(recommended: string[], installed: Record<string, any>): string[] {
-  const lines: string[] = []
-  lines.push(heading('MCP Services'))
+  const lines: string[] = [];
+  lines.push(heading('MCP Services'));
 
-  const installedNames = Object.keys(installed)
+  const installedNames = Object.keys(installed);
 
   if (recommended.length === 0 && installedNames.length === 0) {
-    lines.push(`  ${ansis.gray('No MCP services detected')}`)
-    return lines
+    lines.push(`  ${ansis.gray('No MCP services detected')}`);
+    return lines;
   }
 
   // Show recommended services with install status
-  const shown = new Set<string>()
+  const shown = new Set<string>();
   for (const svc of recommended) {
     const isInstalled = installedNames.some(name =>
       name.toLowerCase().includes(svc.toLowerCase())
       || svc.toLowerCase().includes(name.toLowerCase()),
-    )
-    const icon = isInstalled ? INSTALLED : MISSING
-    lines.push(`  ${icon} ${isInstalled ? val(svc) : ansis.gray(svc)}`)
-    shown.add(svc.toLowerCase())
+    );
+    const icon = isInstalled ? INSTALLED : MISSING;
+    lines.push(`  ${icon} ${isInstalled ? val(svc) : ansis.gray(svc)}`);
+    shown.add(svc.toLowerCase());
   }
 
   // Show extra installed services not in recommended list
   for (const name of installedNames) {
     if (!shown.has(name.toLowerCase()) && !recommended.some(r => r.toLowerCase() === name.toLowerCase())) {
-      lines.push(`  ${INSTALLED} ${val(name)} ${ansis.gray('(extra)')}`)
+      lines.push(`  ${INSTALLED} ${val(name)} ${ansis.gray('(extra)')}`);
     }
   }
 
-  return lines
+  return lines;
 }
 
 function renderHooksSection(recommended: string[], installed: Record<string, any>): string[] {
-  const lines: string[] = []
-  lines.push(heading('Hooks'))
+  const lines: string[] = [];
+  lines.push(heading('Hooks'));
 
-  const installedEvents = Object.keys(installed)
-  const hasAnyHooks = installedEvents.length > 0
+  const installedEvents = Object.keys(installed);
+  const hasAnyHooks = installedEvents.length > 0;
 
   if (recommended.length === 0 && !hasAnyHooks) {
-    lines.push(`  ${ansis.gray('No hooks detected')}`)
-    return lines
+    lines.push(`  ${ansis.gray('No hooks detected')}`);
+    return lines;
   }
 
   for (const hookId of recommended) {
     // Check if any installed hook event contains hooks
-    const isInstalled = hasAnyHooks
-    const icon = isInstalled ? INSTALLED : MISSING
-    lines.push(`  ${icon} ${isInstalled ? val(hookId) : ansis.gray(hookId)}`)
+    const isInstalled = hasAnyHooks;
+    const icon = isInstalled ? INSTALLED : MISSING;
+    lines.push(`  ${icon} ${isInstalled ? val(hookId) : ansis.gray(hookId)}`);
   }
 
   if (hasAnyHooks) {
     const totalHookCount = installedEvents.reduce((sum, event) => {
-      const eventHooks = installed[event]
-      return sum + (Array.isArray(eventHooks) ? eventHooks.length : 0)
-    }, 0)
+      const eventHooks = installed[event];
+      return sum + (Array.isArray(eventHooks) ? eventHooks.length : 0);
+    }, 0);
     if (totalHookCount > 0) {
-      lines.push(`  ${ansis.gray(`${totalHookCount} hook(s) across ${installedEvents.length} event(s)`)}`)
+      lines.push(`  ${ansis.gray(`${totalHookCount} hook(s) across ${installedEvents.length} event(s)`)}`);
     }
   }
 
-  return lines
+  return lines;
 }
 
 function getRuntimeSectionTitle(codeTool?: string): string {
   switch (codeTool) {
     case 'clavue':
-      return 'clavue'
+      return 'clavue';
     case 'codex':
-      return 'Codex'
+      return 'Codex';
     case 'claude-code':
-      return 'Claude Code'
+      return 'Claude Code';
     default:
-      return 'Claude Runtime'
+      return 'Claude Runtime';
   }
 }
 
 function renderClaudeCodeSection(defaults: SmartDefaults | null, codeTool?: string): string[] {
-  const lines: string[] = []
-  lines.push(heading(getRuntimeSectionTitle(codeTool)))
+  const lines: string[] = [];
+  lines.push(heading(getRuntimeSectionTitle(codeTool)));
 
-  const version = defaults?.claudeCodeVersion
-  lines.push(`  ${label('Version:'.padEnd(14))} ${version ? val(version) : ansis.gray('not detected')}`)
+  const version = defaults?.claudeCodeVersion;
+  lines.push(`  ${label('Version:'.padEnd(14))} ${version ? val(version) : ansis.gray('not detected')}`);
 
   if (defaults?.nativeFeatures) {
-    const nf = defaults.nativeFeatures
-    const features: string[] = []
+    const nf = defaults.nativeFeatures;
+    const features: string[] = [];
     if (nf.hooks)
-      features.push('hooks')
+      features.push('hooks');
     if (nf.memory)
-      features.push('memory')
+      features.push('memory');
     if (nf.subagents)
-      features.push('subagents')
+      features.push('subagents');
     if (nf.toolSearch)
-      features.push('tool-search')
+      features.push('tool-search');
     if (features.length > 0) {
-      lines.push(`  ${label('Features:'.padEnd(14))} ${val(features.join(', '))}`)
+      lines.push(`  ${label('Features:'.padEnd(14))} ${val(features.join(', '))}`);
     }
   }
 
   // Model routing info
   try {
-    const settingsPath = getRuntimeSettingsPath(codeTool)
-    const clavuePath = CLAVUE_CONFIG_FILE
+    const settingsPath = getRuntimeSettingsPath(codeTool);
+    const clavuePath = CLAVUE_CONFIG_FILE;
     if (existsSync(settingsPath)) {
-      const data = JSON.parse(readFileSync(settingsPath, 'utf-8'))
-      const env = data.env || {}
-      const haiku = env.ANTHROPIC_DEFAULT_HAIKU_MODEL
-      const sonnet = env.ANTHROPIC_DEFAULT_SONNET_MODEL
-      const opus = env.ANTHROPIC_DEFAULT_OPUS_MODEL
-      const primary = data.model || env.ANTHROPIC_MODEL
-      const hasAdaptive = Boolean(haiku || sonnet || opus)
+      const data = JSON.parse(readFileSync(settingsPath, 'utf-8'));
+      const env = data.env || {};
+      const haiku = env.ANTHROPIC_DEFAULT_HAIKU_MODEL;
+      const sonnet = env.ANTHROPIC_DEFAULT_SONNET_MODEL;
+      const opus = env.ANTHROPIC_DEFAULT_OPUS_MODEL;
+      const primary = data.model || env.ANTHROPIC_MODEL;
+      const hasAdaptive = Boolean(haiku || sonnet || opus);
 
       if (codeTool === 'clavue' && existsSync(clavuePath)) {
         try {
-          const clavueData = JSON.parse(readFileSync(clavuePath, 'utf-8'))
-          const activeId = clavueData.clavueActiveProviderProfileId || clavueData.myclaudeActiveProviderProfileId
+          const clavueData = JSON.parse(readFileSync(clavuePath, 'utf-8'));
+          const activeId = clavueData.clavueActiveProviderProfileId || clavueData.myclaudeActiveProviderProfileId;
           const profiles = Array.isArray(clavueData.clavueProviderProfiles)
             ? clavueData.clavueProviderProfiles
             : Array.isArray(clavueData.myclaudeProviderProfiles)
               ? clavueData.myclaudeProviderProfiles
-              : []
+              : [];
           const activeProfile = Array.isArray(profiles)
             ? profiles.find((profile: any) => String(profile?.id) === String(activeId))
-            : null
+            : null;
           if (activeId) {
-            lines.push(`  ${label('Provider:'.padEnd(14))} ${val(`clavue/${activeId}`)}`)
+            lines.push(`  ${label('Provider:'.padEnd(14))} ${val(`clavue/${activeId}`)}`);
           }
           if (activeProfile?.baseUrl) {
-            lines.push(`  ${label('API Base:'.padEnd(14))} ${val(activeProfile.baseUrl)}`)
+            lines.push(`  ${label('API Base:'.padEnd(14))} ${val(activeProfile.baseUrl)}`);
           }
         }
         catch {
@@ -366,23 +366,23 @@ function renderClaudeCodeSection(defaults: SmartDefaults | null, codeTool?: stri
 
       if (codeTool !== 'clavue' && data.model && hasAdaptive) {
         // Broken state: settings.model overrides adaptive routing
-        lines.push(`  ${label('Model:'.padEnd(14))} ${ansis.red(data.model)} ${ansis.red('(overrides adaptive routing!)')}`)
-        lines.push(`  ${label(''.padEnd(14))} ${ansis.yellow('Run: ccjk boost --fix-model')}`)
+        lines.push(`  ${label('Model:'.padEnd(14))} ${ansis.red(data.model)} ${ansis.red('(overrides adaptive routing!)')}`);
+        lines.push(`  ${label(''.padEnd(14))} ${ansis.yellow('Run: ccjk boost --fix-model')}`);
       }
       else if (hasAdaptive) {
         // Healthy adaptive routing
-        lines.push(`  ${label('Routing:'.padEnd(14))} ${ansis.green('adaptive')}`)
+        lines.push(`  ${label('Routing:'.padEnd(14))} ${ansis.green('adaptive')}`);
         if (primary)
-          lines.push(`  ${label('  Primary:'.padEnd(14))} ${val(primary)}`)
+          lines.push(`  ${label('  Primary:'.padEnd(14))} ${val(primary)}`);
         if (haiku)
-          lines.push(`  ${label('  Quick:'.padEnd(14))} ${val(haiku)}`)
+          lines.push(`  ${label('  Quick:'.padEnd(14))} ${val(haiku)}`);
         if (sonnet)
-          lines.push(`  ${label('  Standard:'.padEnd(14))} ${val(sonnet)}`)
+          lines.push(`  ${label('  Standard:'.padEnd(14))} ${val(sonnet)}`);
         if (opus)
-          lines.push(`  ${label('  Complex:'.padEnd(14))} ${val(opus)}`)
+          lines.push(`  ${label('  Complex:'.padEnd(14))} ${val(opus)}`);
       }
       else if (primary) {
-        lines.push(`  ${label('Model:'.padEnd(14))} ${val(primary)}`)
+        lines.push(`  ${label('Model:'.padEnd(14))} ${val(primary)}`);
       }
     }
   }
@@ -390,75 +390,75 @@ function renderClaudeCodeSection(defaults: SmartDefaults | null, codeTool?: stri
     // skip model info on error
   }
 
-  return lines
+  return lines;
 }
 
 function renderCompressionMetricsSection(projectHash?: string): string[] {
-  const lines: string[] = []
-  lines.push(heading('Compression Metrics'))
+  const lines: string[] = [];
+  lines.push(heading('Compression Metrics'));
 
   try {
-    const persistence = getContextPersistence()
-    const stats = persistence.getCompressionMetricsStats(projectHash)
+    const persistence = getContextPersistence();
+    const stats = persistence.getCompressionMetricsStats(projectHash);
 
     if (stats.totalCompressions === 0) {
-      lines.push(`  ${ansis.gray('No compression data available')}`)
-      return lines
+      lines.push(`  ${ansis.gray('No compression data available')}`);
+      return lines;
     }
 
     // Overall stats
-    lines.push(`  ${label('Total Saved:'.padEnd(14))} ${ansis.green(MetricsDisplay.formatTokenCount(stats.totalTokensSaved))} tokens`)
-    lines.push(`  ${label('Avg Reduction:'.padEnd(14))} ${ansis.yellow(MetricsDisplay.formatRatio(stats.averageCompressionRatio))}`)
-    lines.push(`  ${label('Cost Savings:'.padEnd(14))} ${ansis.green.bold(MetricsDisplay.formatCost(stats.estimatedCostSavings))}`)
+    lines.push(`  ${label('Total Saved:'.padEnd(14))} ${ansis.green(MetricsDisplay.formatTokenCount(stats.totalTokensSaved))} tokens`);
+    lines.push(`  ${label('Avg Reduction:'.padEnd(14))} ${ansis.yellow(MetricsDisplay.formatRatio(stats.averageCompressionRatio))}`);
+    lines.push(`  ${label('Cost Savings:'.padEnd(14))} ${ansis.green.bold(MetricsDisplay.formatCost(stats.estimatedCostSavings))}`);
 
     // Session stats if available
     if (stats.sessionStats && stats.sessionStats.compressions > 0) {
-      lines.push(`  ${label('Session (24h):'.padEnd(14))} ${ansis.white(stats.sessionStats.compressions)} compressions, ${ansis.green(MetricsDisplay.formatCost(stats.sessionStats.costSavings))} saved`)
+      lines.push(`  ${label('Session (24h):'.padEnd(14))} ${ansis.white(stats.sessionStats.compressions)} compressions, ${ansis.green(MetricsDisplay.formatCost(stats.sessionStats.costSavings))} saved`);
     }
 
-    return lines
+    return lines;
   }
   catch {
-    lines.push(`  ${ansis.gray('Metrics unavailable')}`)
-    return lines
+    lines.push(`  ${ansis.gray('Metrics unavailable')}`);
+    return lines;
   }
 }
 
 function renderHealthSection(report: HealthReport, compact: boolean): string[] {
-  const lines: string[] = []
-  lines.push(heading('Brain Dashboard'))
+  const lines: string[] = [];
+  lines.push(heading('Brain Dashboard'));
 
-  const gradeColor = GRADE_COLORS[report.grade] || ((s: string) => s)
-  const scoreBar = renderScoreBar(report.totalScore)
-  lines.push(`  ${label('Score:'.padEnd(14))} ${scoreBar} ${gradeColor(report.grade)} ${ansis.gray(`(${report.totalScore}/100)`)}`)
+  const gradeColor = GRADE_COLORS[report.grade] || ((s: string) => s);
+  const scoreBar = renderScoreBar(report.totalScore);
+  lines.push(`  ${label('Score:'.padEnd(14))} ${scoreBar} ${gradeColor(report.grade)} ${ansis.gray(`(${report.totalScore}/100)`)}`);
 
   if (!compact) {
-    lines.push('')
+    lines.push('');
     for (const r of report.results) {
-      const icon = STATUS_ICONS[r.status]
-      const scoreText = ansis.gray(`${r.score}/${r.weight}`)
-      lines.push(`  ${icon} ${r.name.padEnd(18)} ${scoreText.padEnd(10)} ${ansis.gray(r.message)}`)
+      const icon = STATUS_ICONS[r.status];
+      const scoreText = ansis.gray(`${r.score}/${r.weight}`);
+      lines.push(`  ${icon} ${r.name.padEnd(18)} ${scoreText.padEnd(10)} ${ansis.gray(r.message)}`);
       if (r.details?.length) {
         for (const detail of r.details) {
-          lines.push(`     ${ansis.gray(detail)}`)
+          lines.push(`     ${ansis.gray(detail)}`);
         }
       }
     }
   }
 
   if (report.recommendations.length > 0) {
-    lines.push('')
-    lines.push(ansis.yellow.bold('  Recommendations:'))
+    lines.push('');
+    lines.push(ansis.yellow.bold('  Recommendations:'));
     for (const rec of report.recommendations.slice(0, 3)) {
-      const priority = rec.priority === 'high' ? ansis.red('!') : rec.priority === 'medium' ? ansis.yellow('•') : ansis.gray('·')
-      lines.push(`  ${priority} ${rec.title}`)
+      const priority = rec.priority === 'high' ? ansis.red('!') : rec.priority === 'medium' ? ansis.yellow('•') : ansis.gray('·');
+      lines.push(`  ${priority} ${rec.title}`);
       if (rec.command) {
-        lines.push(`    ${ansis.gray('→')} ${ansis.cyan(rec.command)}  ${ansis.yellow('[fix]')}`)
+        lines.push(`    ${ansis.gray('→')} ${ansis.cyan(rec.command)}  ${ansis.yellow('[fix]')}`);
       }
     }
   }
 
-  return lines
+  return lines;
 }
 
 // ============================================================================
@@ -466,48 +466,48 @@ function renderHealthSection(report: HealthReport, compact: boolean): string[] {
 // ============================================================================
 
 function suggestNextAction(health: HealthReport, _ctx: ProjectContext): string[] {
-  const lines: string[] = []
-  lines.push(heading('Next Step'))
+  const lines: string[] = [];
+  lines.push(heading('Next Step'));
 
-  const score = health.totalScore
-  const hasFailures = health.results.some(r => r.status === 'fail')
-  const hasWarnings = health.results.some(r => r.status === 'warn')
+  const score = health.totalScore;
+  const hasFailures = health.results.some(r => r.status === 'fail');
+  const hasWarnings = health.results.some(r => r.status === 'warn');
 
   // Priority 1: Critical failures
   if (hasFailures) {
-    const firstFail = health.results.find(r => r.status === 'fail')!
-    lines.push(`  ${ansis.red('→')} Fix ${ansis.bold(firstFail.name)}: ${firstFail.message}`)
+    const firstFail = health.results.find(r => r.status === 'fail')!;
+    lines.push(`  ${ansis.red('→')} Fix ${ansis.bold(firstFail.name)}: ${firstFail.message}`);
     if (firstFail.command) {
-      lines.push(`    ${ansis.cyan(firstFail.command)}`)
+      lines.push(`    ${ansis.cyan(firstFail.command)}`);
     }
     else {
-      lines.push(`    ${ansis.cyan('ccjk boost')} to auto-fix`)
+      lines.push(`    ${ansis.cyan('ccjk boost')} to auto-fix`);
     }
-    return lines
+    return lines;
   }
 
   // Priority 2: Low score — boost it
   if (score < 60) {
-    lines.push(`  ${ansis.yellow('→')} Score is ${score}/100. Run ${ansis.cyan('ccjk boost')} to optimize.`)
-    return lines
+    lines.push(`  ${ansis.yellow('→')} Score is ${score}/100. Run ${ansis.cyan('ccjk boost')} to optimize.`);
+    return lines;
   }
 
   // Priority 3: Warnings exist
   if (hasWarnings) {
-    const warnCount = health.results.filter(r => r.status === 'warn').length
-    lines.push(`  ${ansis.yellow('→')} ${warnCount} warning${warnCount > 1 ? 's' : ''} remaining. Run ${ansis.cyan('ccjk boost --dry-run')} to preview fixes.`)
-    return lines
+    const warnCount = health.results.filter(r => r.status === 'warn').length;
+    lines.push(`  ${ansis.yellow('→')} ${warnCount} warning${warnCount > 1 ? 's' : ''} remaining. Run ${ansis.cyan('ccjk boost --dry-run')} to preview fixes.`);
+    return lines;
   }
 
   // Priority 4: All good — suggest productive actions
   if (score >= 80) {
-    lines.push(`  ${ansis.green('→')} Setup looks great. Start coding or run ${ansis.cyan('ccjk brain status')} to check session.`)
+    lines.push(`  ${ansis.green('→')} Setup looks great. Start coding or run ${ansis.cyan('ccjk brain status')} to check session.`);
   }
   else {
-    lines.push(`  ${ansis.green('→')} Almost there. Run ${ansis.cyan('ccjk boost')} to push past ${score}.`)
+    lines.push(`  ${ansis.green('→')} Almost there. Run ${ansis.cyan('ccjk boost')} to push past ${score}.`);
   }
 
-  return lines
+  return lines;
 }
 
 // ============================================================================
@@ -516,7 +516,7 @@ function suggestNextAction(health: HealthReport, _ctx: ProjectContext): string[]
 
 export async function statusCommand(options: StatusOptions = {}): Promise<void> {
   try {
-    const codeTool = await resolveCodeType()
+    const codeTool = await resolveCodeType();
 
     // Gather all data
     const [ctx, defaults, installed, health] = await Promise.all([
@@ -524,9 +524,9 @@ export async function statusCommand(options: StatusOptions = {}): Promise<void> 
       loadSmartDefaults(),
       Promise.resolve(loadInstalledSettings(codeTool)),
       runHealthCheck(),
-    ])
+    ]);
 
-    const capability = getRuntimeCapabilityDescriptor(codeTool)
+    const capability = getRuntimeCapabilityDescriptor(codeTool);
 
     // JSON output
     if (options.json) {
@@ -537,64 +537,64 @@ export async function statusCommand(options: StatusOptions = {}): Promise<void> 
         health,
         codeTool,
         capability,
-      }, null, 2))
-      return
+      }, null, 2));
+      return;
     }
 
     // Text output
-    const sections: string[][] = []
+    const sections: string[][] = [];
 
-    sections.push(renderProjectSection(ctx))
-    sections.push(renderRuntimeSection(ctx, capability))
+    sections.push(renderProjectSection(ctx));
+    sections.push(renderRuntimeSection(ctx, capability));
 
     if (defaults) {
-      sections.push(renderMcpSection(defaults.mcpServices, installed.mcpServers))
-      sections.push(renderHooksSection(defaults.recommendedHooks, installed.hooks))
-      sections.push(renderClaudeCodeSection(defaults, codeTool))
+      sections.push(renderMcpSection(defaults.mcpServices, installed.mcpServers));
+      sections.push(renderHooksSection(defaults.recommendedHooks, installed.hooks));
+      sections.push(renderClaudeCodeSection(defaults, codeTool));
     }
     else {
-      sections.push(renderMcpSection([], installed.mcpServers))
-      sections.push(renderHooksSection([], installed.hooks))
-      sections.push(renderClaudeCodeSection(null, codeTool))
+      sections.push(renderMcpSection([], installed.mcpServers));
+      sections.push(renderHooksSection([], installed.hooks));
+      sections.push(renderClaudeCodeSection(null, codeTool));
     }
 
-    sections.push(renderHealthSection(health, options.compact || false))
+    sections.push(renderHealthSection(health, options.compact || false));
 
     // Add compression metrics section
     try {
-      sections.push(renderCompressionMetricsSection())
+      sections.push(renderCompressionMetricsSection());
     }
     catch {
       // Silently skip if metrics unavailable
     }
 
     // Next action suggestion — always last
-    sections.push(suggestNextAction(health, ctx))
+    sections.push(suggestNextAction(health, ctx));
 
     // Print all sections
-    console.log()
+    console.log();
     for (let i = 0; i < sections.length; i++) {
-      console.log(sections[i].join('\n'))
+      console.log(sections[i].join('\n'));
       if (i < sections.length - 1) {
-        console.log()
-        console.log(divider())
-        console.log()
+        console.log();
+        console.log(divider());
+        console.log();
       }
     }
-    console.log()
+    console.log();
 
     // Offer opt-in fixes for fixable items
-    const fixable = health.results.filter(r => r.status !== 'pass' && r.command)
+    const fixable = health.results.filter(r => r.status !== 'pass' && r.command);
     if (fixable.length > 0 && !options.json && options.fix) {
-      const { autoFix } = await import('../health/auto-fixer')
+      const { autoFix } = await import('../health/auto-fixer');
       await autoFix(fixable, {
         autoApprove: options.yes,
         dryRun: options.dryRun,
-      })
+      });
     }
   }
   catch (error) {
-    console.error(ansis.red('Error running status command:'), error)
-    process.exit(1)
+    console.error(ansis.red('Error running status command:'), error);
+    process.exit(1);
   }
 }

@@ -4,29 +4,29 @@
  * Measures search performance and compares with traditional SQL queries
  */
 
-import { existsSync, rmSync } from 'node:fs'
-import { join } from 'pathe'
-import { CompressionAlgorithm, CompressionStrategy } from '../src/context/types'
-import type { CompressedContext } from '../src/context/types'
-import { ContextPersistence } from '../src/context/persistence'
+import type { CompressedContext } from '../src/context/types';
+import { existsSync, rmSync } from 'node:fs';
+import { join } from 'pathe';
+import { ContextPersistence } from '../src/context/persistence';
+import { CompressionAlgorithm, CompressionStrategy } from '../src/context/types';
 
 interface BenchmarkResult {
-  operation: string
-  iterations: number
-  totalTime: number
-  avgTime: number
-  minTime: number
-  maxTime: number
-  resultsCount: number
+  operation: string;
+  iterations: number;
+  totalTime: number;
+  avgTime: number;
+  minTime: number;
+  maxTime: number;
+  resultsCount: number;
 }
 
 /**
  * Generate sample contexts for benchmarking
  */
 function generateSampleContexts(count: number): Array<{
-  context: CompressedContext
-  projectHash: string
-  content: string
+  context: CompressedContext;
+  projectHash: string;
+  content: string;
 }> {
   const topics = [
     'authentication JWT tokens security OAuth2',
@@ -39,17 +39,17 @@ function generateSampleContexts(count: number): Array<{
     'GraphQL queries mutations subscriptions',
     'WebSocket real-time communication',
     'Redis caching session storage',
-  ]
+  ];
 
   const contexts: Array<{
-    context: CompressedContext
-    projectHash: string
-    content: string
-  }> = []
+    context: CompressedContext;
+    projectHash: string;
+    content: string;
+  }> = [];
 
   for (let i = 0; i < count; i++) {
-    const topic = topics[i % topics.length]
-    const projectNum = (i % 5) + 1
+    const topic = topics[i % topics.length];
+    const projectNum = (i % 5) + 1;
 
     contexts.push({
       context: {
@@ -64,10 +64,10 @@ function generateSampleContexts(count: number): Array<{
       },
       projectHash: `project-${projectNum}`,
       content: `Full content about ${topic}. This is context number ${i} with detailed information about the topic. It includes implementation details, best practices, and code examples.`,
-    })
+    });
   }
 
-  return contexts
+  return contexts;
 }
 
 /**
@@ -78,30 +78,30 @@ function benchmark(
   operation: () => any,
   iterations: number,
 ): BenchmarkResult {
-  const times: number[] = []
-  let resultsCount = 0
+  const times: number[] = [];
+  let resultsCount = 0;
 
   // Warm-up
   for (let i = 0; i < 3; i++) {
-    operation()
+    operation();
   }
 
   // Actual benchmark
   for (let i = 0; i < iterations; i++) {
-    const start = performance.now()
-    const result = operation()
-    const end = performance.now()
-    times.push(end - start)
+    const start = performance.now();
+    const result = operation();
+    const end = performance.now();
+    times.push(end - start);
 
     if (i === 0 && Array.isArray(result)) {
-      resultsCount = result.length
+      resultsCount = result.length;
     }
   }
 
-  const totalTime = times.reduce((a, b) => a + b, 0)
-  const avgTime = totalTime / iterations
-  const minTime = Math.min(...times)
-  const maxTime = Math.max(...times)
+  const totalTime = times.reduce((a, b) => a + b, 0);
+  const avgTime = totalTime / iterations;
+  const minTime = Math.min(...times);
+  const maxTime = Math.max(...times);
 
   return {
     operation: name,
@@ -111,7 +111,7 @@ function benchmark(
     minTime,
     maxTime,
     resultsCount,
-  }
+  };
 }
 
 /**
@@ -127,63 +127,63 @@ ${result.operation}:
   Max Time: ${result.maxTime.toFixed(2)}ms
   Results: ${result.resultsCount} items
   Throughput: ${(1000 / result.avgTime).toFixed(2)} ops/sec
-  `
+  `;
 }
 
 /**
  * Main benchmark runner
  */
 async function main() {
-  console.log('=== FTS5 Search Performance Benchmark ===')
-  console.log()
+  console.log('=== FTS5 Search Performance Benchmark ===');
+  console.log();
 
-  const testDbPath = join(process.cwd(), '.benchmark-fts5.db')
+  const testDbPath = join(process.cwd(), '.benchmark-fts5.db');
 
   // Clean up existing database
   if (existsSync(testDbPath)) {
-    rmSync(testDbPath, { force: true })
+    rmSync(testDbPath, { force: true });
   }
 
-  const persistence = new ContextPersistence(testDbPath)
+  const persistence = new ContextPersistence(testDbPath);
 
   // Generate and insert test data
-  console.log('Generating test data...')
-  const contextCounts = [100, 1000, 5000]
+  console.log('Generating test data...');
+  const contextCounts = [100, 1000, 5000];
 
   for (const count of contextCounts) {
-    console.log(`\n--- Dataset: ${count} contexts ---`)
+    console.log(`\n--- Dataset: ${count} contexts ---`);
 
     // Clear database
-    persistence.close()
+    persistence.close();
     if (existsSync(testDbPath)) {
-      rmSync(testDbPath, { force: true })
+      rmSync(testDbPath, { force: true });
     }
     if (existsSync(`${testDbPath}-wal`)) {
-      rmSync(`${testDbPath}-wal`, { force: true })
+      rmSync(`${testDbPath}-wal`, { force: true });
     }
     if (existsSync(`${testDbPath}-shm`)) {
-      rmSync(`${testDbPath}-shm`, { force: true })
+      rmSync(`${testDbPath}-shm`, { force: true });
     }
 
-    const newPersistence = new ContextPersistence(testDbPath)
+    const newPersistence = new ContextPersistence(testDbPath);
 
-    const contexts = generateSampleContexts(count)
-    console.log(`Inserting ${count} contexts...`)
-    const insertStart = Date.now()
+    const contexts = generateSampleContexts(count);
+    console.log(`Inserting ${count} contexts...`);
+    const insertStart = Date.now();
     for (const { context, projectHash, content } of contexts) {
-      newPersistence.saveContext(context, projectHash, content)
+      newPersistence.saveContext(context, projectHash, content);
     }
-    const insertTime = Date.now() - insertStart
-    console.log(`Insert completed in ${insertTime}ms (${(count / insertTime * 1000).toFixed(0)} contexts/sec)\n`)
+    const insertTime = Date.now() - insertStart;
+    console.log(`Insert completed in ${insertTime}ms (${(count / insertTime * 1000).toFixed(0)} contexts/sec)\n`);
 
     // Simulate access patterns for hot/warm/cold
     for (let i = 0; i < Math.min(10, count); i++) {
       for (let j = 0; j < 5; j++) {
-        newPersistence.getContext(`ctx-${i}`)
+        newPersistence.getContext(`ctx-${i}`);
       }
     }
 
-    const results: BenchmarkResult[] = []
+    const results: BenchmarkResult[] = [];
 
     // Benchmark 1: Single keyword search
     results.push(
@@ -192,7 +192,7 @@ async function main() {
         () => newPersistence.searchContexts('authentication'),
         100,
       ),
-    )
+    );
 
     // Benchmark 2: Multi-keyword search
     results.push(
@@ -201,7 +201,7 @@ async function main() {
         () => newPersistence.searchContexts('database migration'),
         100,
       ),
-    )
+    );
 
     // Benchmark 3: Phrase search
     results.push(
@@ -210,7 +210,7 @@ async function main() {
         () => newPersistence.searchContexts('"React component"'),
         100,
       ),
-    )
+    );
 
     // Benchmark 4: Boolean AND
     results.push(
@@ -219,7 +219,7 @@ async function main() {
         () => newPersistence.searchContexts('performance AND optimization'),
         100,
       ),
-    )
+    );
 
     // Benchmark 5: Boolean OR
     results.push(
@@ -228,7 +228,7 @@ async function main() {
         () => newPersistence.searchContexts('JWT OR OAuth2'),
         100,
       ),
-    )
+    );
 
     // Benchmark 6: Complex query
     results.push(
@@ -237,7 +237,7 @@ async function main() {
         () => newPersistence.searchContexts('(authentication OR security) AND JWT'),
         100,
       ),
-    )
+    );
 
     // Benchmark 7: Search with project filter
     results.push(
@@ -246,7 +246,7 @@ async function main() {
         () => newPersistence.searchContexts('API', { projectHash: 'project-1' }),
         100,
       ),
-    )
+    );
 
     // Benchmark 8: Search with limit
     results.push(
@@ -255,7 +255,7 @@ async function main() {
         () => newPersistence.searchContexts('context', { limit: 10 }),
         100,
       ),
-    )
+    );
 
     // Benchmark 9: Hot contexts query
     results.push(
@@ -264,7 +264,7 @@ async function main() {
         () => newPersistence.getHotContexts('project-1', 10),
         100,
       ),
-    )
+    );
 
     // Benchmark 10: Warm contexts query
     results.push(
@@ -273,7 +273,7 @@ async function main() {
         () => newPersistence.getWarmContexts('project-1', 10),
         100,
       ),
-    )
+    );
 
     // Benchmark 11: Cold contexts query
     results.push(
@@ -282,7 +282,7 @@ async function main() {
         () => newPersistence.getColdContexts('project-1', 10),
         100,
       ),
-    )
+    );
 
     // Benchmark 12: Traditional query (for comparison)
     results.push(
@@ -291,73 +291,73 @@ async function main() {
         () => newPersistence.getProjectContexts('project-1', { limit: 10 }),
         100,
       ),
-    )
+    );
 
     // Display results
-    console.log('\nBenchmark Results:')
-    console.log('=' .repeat(60))
+    console.log('\nBenchmark Results:');
+    console.log('='.repeat(60));
     for (const result of results) {
-      console.log(formatResult(result))
+      console.log(formatResult(result));
     }
 
     // Calculate statistics
-    const searchResults = results.slice(0, 8)
-    const avgSearchTime = searchResults.reduce((sum, r) => sum + r.avgTime, 0) / searchResults.length
-    const hotWarmColdResults = results.slice(8, 11)
-    const avgHotWarmColdTime = hotWarmColdResults.reduce((sum, r) => sum + r.avgTime, 0) / hotWarmColdResults.length
+    const searchResults = results.slice(0, 8);
+    const avgSearchTime = searchResults.reduce((sum, r) => sum + r.avgTime, 0) / searchResults.length;
+    const hotWarmColdResults = results.slice(8, 11);
+    const avgHotWarmColdTime = hotWarmColdResults.reduce((sum, r) => sum + r.avgTime, 0) / hotWarmColdResults.length;
 
-    console.log('\nSummary Statistics:')
-    console.log('=' .repeat(60))
-    console.log(`Average FTS5 search time: ${avgSearchTime.toFixed(2)}ms`)
-    console.log(`Average hot/warm/cold query time: ${avgHotWarmColdTime.toFixed(2)}ms`)
-    console.log(`Traditional query time: ${results[11].avgTime.toFixed(2)}ms`)
-    console.log(`FTS5 vs Traditional: ${(results[11].avgTime / avgSearchTime).toFixed(2)}x`)
+    console.log('\nSummary Statistics:');
+    console.log('='.repeat(60));
+    console.log(`Average FTS5 search time: ${avgSearchTime.toFixed(2)}ms`);
+    console.log(`Average hot/warm/cold query time: ${avgHotWarmColdTime.toFixed(2)}ms`);
+    console.log(`Traditional query time: ${results[11].avgTime.toFixed(2)}ms`);
+    console.log(`FTS5 vs Traditional: ${(results[11].avgTime / avgSearchTime).toFixed(2)}x`);
 
     // Performance assessment
-    console.log('\nPerformance Assessment:')
-    console.log('=' .repeat(60))
+    console.log('\nPerformance Assessment:');
+    console.log('='.repeat(60));
     if (avgSearchTime < 10) {
-      console.log('✓ Excellent: FTS5 search < 10ms')
+      console.log('✓ Excellent: FTS5 search < 10ms');
     }
     else if (avgSearchTime < 50) {
-      console.log('✓ Good: FTS5 search < 50ms')
+      console.log('✓ Good: FTS5 search < 50ms');
     }
     else if (avgSearchTime < 100) {
-      console.log('⚠ Acceptable: FTS5 search < 100ms')
+      console.log('⚠ Acceptable: FTS5 search < 100ms');
     }
     else {
-      console.log('✗ Slow: FTS5 search > 100ms - consider optimization')
+      console.log('✗ Slow: FTS5 search > 100ms - consider optimization');
     }
 
     if (avgHotWarmColdTime < 5) {
-      console.log('✓ Excellent: Hot/warm/cold queries < 5ms')
+      console.log('✓ Excellent: Hot/warm/cold queries < 5ms');
     }
     else if (avgHotWarmColdTime < 20) {
-      console.log('✓ Good: Hot/warm/cold queries < 20ms')
+      console.log('✓ Good: Hot/warm/cold queries < 20ms');
     }
     else {
-      console.log('⚠ Slow: Hot/warm/cold queries > 20ms - check indexes')
+      console.log('⚠ Slow: Hot/warm/cold queries > 20ms - check indexes');
     }
 
-    newPersistence.close()
+    newPersistence.close();
   }
 
   // Clean up
   if (existsSync(testDbPath)) {
-    rmSync(testDbPath, { force: true })
+    rmSync(testDbPath, { force: true });
   }
   if (existsSync(`${testDbPath}-wal`)) {
-    rmSync(`${testDbPath}-wal`, { force: true })
+    rmSync(`${testDbPath}-wal`, { force: true });
   }
   if (existsSync(`${testDbPath}-shm`)) {
-    rmSync(`${testDbPath}-shm`, { force: true })
+    rmSync(`${testDbPath}-shm`, { force: true });
   }
 
-  console.log('\n=== Benchmark Complete ===')
+  console.log('\n=== Benchmark Complete ===');
 }
 
 // Run benchmark
 main().catch((error) => {
-  console.error('Benchmark failed:', error)
-  process.exit(1)
-})
+  console.error('Benchmark failed:', error);
+  process.exit(1);
+});

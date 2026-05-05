@@ -15,9 +15,9 @@ import type {
   SkillValidationError,
   SkillValidationResult,
   SkillValidationWarning,
-} from '../../types/skill-md.js'
-import { readFile, stat } from 'node:fs/promises'
-import matter from 'gray-matter'
+} from '../../types/skill-md.js';
+import { readFile, stat } from 'node:fs/promises';
+import matter from 'gray-matter';
 
 /**
  * Valid skill categories for validation
@@ -32,13 +32,13 @@ const VALID_CATEGORIES: SkillCategory[] = [
   'planning',
   'debugging',
   'custom',
-]
+];
 
 /**
  * Valid priority range (1-10)
  */
-const MIN_PRIORITY = 1
-const MAX_PRIORITY = 10
+const MIN_PRIORITY = 1;
+const MAX_PRIORITY = 10;
 
 /**
  * Parse SKILL.md content with YAML frontmatter
@@ -71,21 +71,21 @@ const MAX_PRIORITY = 10
 export function parseSkillMd(content: string, filePath = 'unknown'): SkillMdFile {
   try {
     // Parse frontmatter using gray-matter
-    const parsed = matter(content)
+    const parsed = matter(content);
 
     // Extract metadata
-    const metadata = extractMetadata(parsed.data, filePath)
+    const metadata = extractMetadata(parsed.data, filePath);
 
     // Return parsed structure
     return {
       metadata,
       content: parsed.content.trim(),
       filePath,
-    }
+    };
   }
   catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error)
-    throw new Error(`Failed to parse SKILL.md at ${filePath}: ${errorMessage}`)
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    throw new Error(`Failed to parse SKILL.md at ${filePath}: ${errorMessage}`);
   }
 }
 
@@ -109,26 +109,26 @@ export function parseSkillMd(content: string, filePath = 'unknown'): SkillMdFile
 export async function parseSkillMdFile(filePath: string): Promise<SkillMdFile> {
   try {
     // Read file content
-    const content = await readFile(filePath, 'utf-8')
+    const content = await readFile(filePath, 'utf-8');
 
     // Parse content
-    const skill = parseSkillMd(content, filePath)
+    const skill = parseSkillMd(content, filePath);
 
     // Get file stats for modification time
     try {
-      const stats = await stat(filePath)
-      skill.modifiedAt = stats.mtime
+      const stats = await stat(filePath);
+      skill.modifiedAt = stats.mtime;
     }
     catch {
       // If stat fails, continue without modification time
       // This is non-critical information
     }
 
-    return skill
+    return skill;
   }
   catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error)
-    throw new Error(`Failed to read SKILL.md file at ${filePath}: ${errorMessage}`)
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    throw new Error(`Failed to read SKILL.md file at ${filePath}: ${errorMessage}`);
   }
 }
 
@@ -148,27 +148,27 @@ export async function parseSkillMdFile(filePath: string): Promise<SkillMdFile> {
 function extractMetadata(data: any, filePath: string): SkillMdMetadata {
   // Validate required fields
   if (!data.name || typeof data.name !== 'string') {
-    throw new Error(`Missing or invalid 'name' field in ${filePath}`)
+    throw new Error(`Missing or invalid 'name' field in ${filePath}`);
   }
 
   if (!data.description || typeof data.description !== 'string') {
-    throw new Error(`Missing or invalid 'description' field in ${filePath}`)
+    throw new Error(`Missing or invalid 'description' field in ${filePath}`);
   }
 
   if (!data.version || typeof data.version !== 'string') {
-    throw new Error(`Missing or invalid 'version' field in ${filePath}`)
+    throw new Error(`Missing or invalid 'version' field in ${filePath}`);
   }
 
   if (!data.category || typeof data.category !== 'string') {
-    throw new Error(`Missing or invalid 'category' field in ${filePath}`)
+    throw new Error(`Missing or invalid 'category' field in ${filePath}`);
   }
 
   if (!Array.isArray(data.triggers) || data.triggers.length === 0) {
-    throw new Error(`Missing or invalid 'triggers' field in ${filePath}`)
+    throw new Error(`Missing or invalid 'triggers' field in ${filePath}`);
   }
 
   if (!Array.isArray(data.use_when) || data.use_when.length === 0) {
-    throw new Error(`Missing or invalid 'use_when' field in ${filePath}`)
+    throw new Error(`Missing or invalid 'use_when' field in ${filePath}`);
   }
 
   // Build metadata object
@@ -179,75 +179,75 @@ function extractMetadata(data: any, filePath: string): SkillMdMetadata {
     category: data.category as SkillCategory,
     triggers: data.triggers,
     use_when: data.use_when,
-  }
+  };
 
   // Add optional fields
   if (data.author && typeof data.author === 'string') {
-    metadata.author = data.author
+    metadata.author = data.author;
   }
 
   if (typeof data.auto_activate === 'boolean') {
-    metadata.auto_activate = data.auto_activate
+    metadata.auto_activate = data.auto_activate;
   }
 
   if (typeof data.priority === 'number') {
-    metadata.priority = data.priority as SkillPriority
+    metadata.priority = data.priority as SkillPriority;
   }
 
   if (Array.isArray(data.agents)) {
-    metadata.agents = data.agents
+    metadata.agents = data.agents;
   }
 
   if (data.difficulty && typeof data.difficulty === 'string') {
-    metadata.difficulty = data.difficulty as any
+    metadata.difficulty = data.difficulty as any;
   }
 
   if (Array.isArray(data.related_skills)) {
-    metadata.related_skills = data.related_skills
+    metadata.related_skills = data.related_skills;
   }
 
   if (data.ccjk_version && typeof data.ccjk_version === 'string') {
-    metadata.ccjk_version = data.ccjk_version
+    metadata.ccjk_version = data.ccjk_version;
   }
 
   if (Array.isArray(data.tags)) {
-    metadata.tags = data.tags
+    metadata.tags = data.tags;
   }
 
   // Add new extended fields (v3.5.0+)
   if (Array.isArray(data.allowed_tools)) {
-    metadata.allowed_tools = data.allowed_tools
+    metadata.allowed_tools = data.allowed_tools;
   }
 
   if (data.context && typeof data.context === 'string') {
-    metadata.context = data.context as 'fork' | 'inherit'
+    metadata.context = data.context as 'fork' | 'inherit';
   }
 
   if (data.agent && typeof data.agent === 'string') {
-    metadata.agent = data.agent
+    metadata.agent = data.agent;
   }
 
   if (typeof data.user_invocable === 'boolean') {
-    metadata.user_invocable = data.user_invocable
+    metadata.user_invocable = data.user_invocable;
   }
 
   if (Array.isArray(data.hooks)) {
-    metadata.hooks = data.hooks
+    metadata.hooks = data.hooks;
   }
 
   if (Array.isArray(data.permissions)) {
-    metadata.permissions = data.permissions
+    metadata.permissions = data.permissions;
   }
 
   if (typeof data.timeout === 'number') {
-    metadata.timeout = data.timeout
+    metadata.timeout = data.timeout;
   }
 
   if (Array.isArray(data.outputs)) {
-    metadata.outputs = data.outputs
+    metadata.outputs = data.outputs;
   }
 
-  return metadata
+  return metadata;
 }
 
 /**
@@ -262,15 +262,15 @@ function extractMetadata(data: any, filePath: string): SkillMdMetadata {
  * @internal
  */
 function validateAllowedTools(tools: string[]): SkillValidationError[] {
-  const errors: SkillValidationError[] = []
+  const errors: SkillValidationError[] = [];
 
   if (!Array.isArray(tools)) {
     errors.push({
       field: 'metadata.allowed_tools',
       message: 'allowed_tools must be an array',
       code: 'INVALID_ALLOWED_TOOLS_TYPE',
-    })
-    return errors
+    });
+    return errors;
   }
 
   for (const tool of tools) {
@@ -279,11 +279,11 @@ function validateAllowedTools(tools: string[]): SkillValidationError[] {
         field: 'metadata.allowed_tools',
         message: `Invalid tool pattern: '${tool}'. Must be a non-empty string`,
         code: 'INVALID_TOOL_PATTERN',
-      })
+      });
     }
   }
 
-  return errors
+  return errors;
 }
 
 /**
@@ -298,15 +298,15 @@ function validateAllowedTools(tools: string[]): SkillValidationError[] {
  * @internal
  */
 function validateHooks(hooks: any[]): SkillValidationError[] {
-  const errors: SkillValidationError[] = []
+  const errors: SkillValidationError[] = [];
 
   if (!Array.isArray(hooks)) {
     errors.push({
       field: 'metadata.hooks',
       message: 'hooks must be an array',
       code: 'INVALID_HOOKS_TYPE',
-    })
-    return errors
+    });
+    return errors;
   }
 
   const validHookTypes = [
@@ -317,10 +317,10 @@ function validateHooks(hooks: any[]): SkillValidationError[] {
     'PermissionRequest',
     'SkillActivate',
     'SkillComplete',
-  ]
+  ];
 
   for (let i = 0; i < hooks.length; i++) {
-    const hook = hooks[i]
+    const hook = hooks[i];
 
     // Validate hook type
     if (!hook.type || typeof hook.type !== 'string') {
@@ -328,8 +328,8 @@ function validateHooks(hooks: any[]): SkillValidationError[] {
         field: `metadata.hooks[${i}]`,
         message: 'Hook must have a valid type field',
         code: 'MISSING_HOOK_TYPE',
-      })
-      continue
+      });
+      continue;
     }
 
     if (!validHookTypes.includes(hook.type)) {
@@ -337,7 +337,7 @@ function validateHooks(hooks: any[]): SkillValidationError[] {
         field: `metadata.hooks[${i}].type`,
         message: `Invalid hook type '${hook.type}'. Must be one of: ${validHookTypes.join(', ')}`,
         code: 'INVALID_HOOK_TYPE',
-      })
+      });
     }
 
     // Validate that either command or script is provided
@@ -346,7 +346,7 @@ function validateHooks(hooks: any[]): SkillValidationError[] {
         field: `metadata.hooks[${i}]`,
         message: 'Hook must have either command or script field',
         code: 'MISSING_HOOK_ACTION',
-      })
+      });
     }
 
     // Validate timeout if present
@@ -356,7 +356,7 @@ function validateHooks(hooks: any[]): SkillValidationError[] {
           field: `metadata.hooks[${i}].timeout`,
           message: `Hook timeout must be a positive number, got ${hook.timeout}`,
           code: 'INVALID_HOOK_TIMEOUT',
-        })
+        });
       }
     }
 
@@ -366,11 +366,11 @@ function validateHooks(hooks: any[]): SkillValidationError[] {
         field: `metadata.hooks[${i}].matcher`,
         message: 'Hook matcher must be a string',
         code: 'INVALID_HOOK_MATCHER',
-      })
+      });
     }
   }
 
-  return errors
+  return errors;
 }
 
 /**
@@ -385,18 +385,18 @@ function validateHooks(hooks: any[]): SkillValidationError[] {
  * @internal
  */
 function validatePermissions(permissions: string[]): SkillValidationError[] {
-  const errors: SkillValidationError[] = []
+  const errors: SkillValidationError[] = [];
 
   if (!Array.isArray(permissions)) {
     errors.push({
       field: 'metadata.permissions',
       message: 'permissions must be an array',
       code: 'INVALID_PERMISSIONS_TYPE',
-    })
-    return errors
+    });
+    return errors;
   }
 
-  const permissionPattern = /^[a-z]+:[a-z]+$/
+  const permissionPattern = /^[a-z]+:[a-z]+$/;
 
   for (const permission of permissions) {
     if (typeof permission !== 'string' || !permissionPattern.test(permission)) {
@@ -404,11 +404,11 @@ function validatePermissions(permissions: string[]): SkillValidationError[] {
         field: 'metadata.permissions',
         message: `Invalid permission format: '${permission}'. Expected format: 'resource:action' (e.g., 'file:read')`,
         code: 'INVALID_PERMISSION_FORMAT',
-      })
+      });
     }
   }
 
-  return errors
+  return errors;
 }
 
 /**
@@ -444,10 +444,10 @@ function validatePermissions(permissions: string[]): SkillValidationError[] {
  * ```
  */
 export function validateSkillMd(skill: SkillMdFile): SkillValidationResult {
-  const errors: SkillValidationError[] = []
-  const warnings: SkillValidationWarning[] = []
+  const errors: SkillValidationError[] = [];
+  const warnings: SkillValidationWarning[] = [];
 
-  const { metadata } = skill
+  const { metadata } = skill;
 
   // Validate name format (kebab-case recommended)
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(metadata.name)) {
@@ -455,7 +455,7 @@ export function validateSkillMd(skill: SkillMdFile): SkillValidationResult {
       field: 'metadata.name',
       message: `Skill name '${metadata.name}' should be in kebab-case format (e.g., 'git-commit')`,
       code: 'INVALID_NAME_FORMAT',
-    })
+    });
   }
 
   // Validate category
@@ -464,7 +464,7 @@ export function validateSkillMd(skill: SkillMdFile): SkillValidationResult {
       field: 'metadata.category',
       message: `Invalid category '${metadata.category}'. Must be one of: ${VALID_CATEGORIES.join(', ')}`,
       code: 'INVALID_CATEGORY',
-    })
+    });
   }
 
   // Validate triggers format
@@ -474,7 +474,7 @@ export function validateSkillMd(skill: SkillMdFile): SkillValidationResult {
         field: 'metadata.triggers',
         message: `Trigger '${trigger}' must start with '/' (e.g., '/commit')`,
         code: 'INVALID_TRIGGER_FORMAT',
-      })
+      });
     }
 
     if (trigger.includes(' ')) {
@@ -482,7 +482,7 @@ export function validateSkillMd(skill: SkillMdFile): SkillValidationResult {
         field: 'metadata.triggers',
         message: `Trigger '${trigger}' cannot contain spaces`,
         code: 'INVALID_TRIGGER_SPACES',
-      })
+      });
     }
   }
 
@@ -492,7 +492,7 @@ export function validateSkillMd(skill: SkillMdFile): SkillValidationResult {
       field: 'metadata.use_when',
       message: 'At least one use_when condition is required',
       code: 'MISSING_USE_WHEN',
-    })
+    });
   }
 
   // Validate priority range
@@ -502,7 +502,7 @@ export function validateSkillMd(skill: SkillMdFile): SkillValidationResult {
         field: 'metadata.priority',
         message: `Priority must be between ${MIN_PRIORITY} and ${MAX_PRIORITY}, got ${metadata.priority}`,
         code: 'INVALID_PRIORITY_RANGE',
-      })
+      });
     }
   }
 
@@ -512,7 +512,7 @@ export function validateSkillMd(skill: SkillMdFile): SkillValidationResult {
       field: 'metadata.version',
       message: `Version '${metadata.version}' should follow semantic versioning (e.g., '1.0.0')`,
       code: 'INVALID_VERSION_FORMAT',
-    })
+    });
   }
 
   // Validate difficulty if present
@@ -521,7 +521,7 @@ export function validateSkillMd(skill: SkillMdFile): SkillValidationResult {
       field: 'metadata.difficulty',
       message: `Invalid difficulty '${metadata.difficulty}'. Must be 'beginner', 'intermediate', or 'advanced'`,
       code: 'INVALID_DIFFICULTY',
-    })
+    });
   }
 
   // Validate content is not empty
@@ -530,7 +530,7 @@ export function validateSkillMd(skill: SkillMdFile): SkillValidationResult {
       field: 'content',
       message: 'Skill content is empty. Consider adding documentation.',
       code: 'EMPTY_CONTENT',
-    })
+    });
   }
 
   // Validate ccjk_version format if present
@@ -539,25 +539,25 @@ export function validateSkillMd(skill: SkillMdFile): SkillValidationResult {
       field: 'metadata.ccjk_version',
       message: `CCJK version '${metadata.ccjk_version}' should follow semantic versioning`,
       code: 'INVALID_CCJK_VERSION',
-    })
+    });
   }
 
   // Check for duplicate triggers
-  const triggerSet = new Set(metadata.triggers)
+  const triggerSet = new Set(metadata.triggers);
   if (triggerSet.size !== metadata.triggers.length) {
     warnings.push({
       field: 'metadata.triggers',
       message: 'Duplicate triggers detected',
       code: 'DUPLICATE_TRIGGERS',
-    })
+    });
   }
 
   // Validate extended fields (v3.5.0+)
 
   // Validate allowed_tools if present
   if (metadata.allowed_tools) {
-    const toolErrors = validateAllowedTools(metadata.allowed_tools)
-    errors.push(...toolErrors)
+    const toolErrors = validateAllowedTools(metadata.allowed_tools);
+    errors.push(...toolErrors);
   }
 
   // Validate context if present
@@ -566,19 +566,19 @@ export function validateSkillMd(skill: SkillMdFile): SkillValidationResult {
       field: 'metadata.context',
       message: `Invalid context '${metadata.context}'. Must be 'fork' or 'inherit'`,
       code: 'INVALID_CONTEXT',
-    })
+    });
   }
 
   // Validate hooks if present
   if (metadata.hooks) {
-    const hookErrors = validateHooks(metadata.hooks)
-    errors.push(...hookErrors)
+    const hookErrors = validateHooks(metadata.hooks);
+    errors.push(...hookErrors);
   }
 
   // Validate permissions if present
   if (metadata.permissions) {
-    const permissionErrors = validatePermissions(metadata.permissions)
-    errors.push(...permissionErrors)
+    const permissionErrors = validatePermissions(metadata.permissions);
+    errors.push(...permissionErrors);
   }
 
   // Validate timeout if present
@@ -588,14 +588,14 @@ export function validateSkillMd(skill: SkillMdFile): SkillValidationResult {
         field: 'metadata.timeout',
         message: `Timeout must be a positive number, got ${metadata.timeout}`,
         code: 'INVALID_TIMEOUT',
-      })
+      });
     }
     else if (metadata.timeout > 3600) {
       warnings.push({
         field: 'metadata.timeout',
         message: `Timeout of ${metadata.timeout} seconds is very long (>1 hour). Consider reducing it.`,
         code: 'EXCESSIVE_TIMEOUT',
-      })
+      });
     }
   }
 
@@ -606,18 +606,18 @@ export function validateSkillMd(skill: SkillMdFile): SkillValidationResult {
         field: 'metadata.outputs',
         message: 'outputs must be an array',
         code: 'INVALID_OUTPUTS_TYPE',
-      })
+      });
     }
     else {
       for (let i = 0; i < metadata.outputs.length; i++) {
-        const output = metadata.outputs[i]
+        const output = metadata.outputs[i];
 
         if (!output.name || typeof output.name !== 'string') {
           errors.push({
             field: `metadata.outputs[${i}]`,
             message: 'Output must have a valid name field',
             code: 'MISSING_OUTPUT_NAME',
-          })
+          });
         }
 
         if (!output.type || !['file', 'variable', 'artifact'].includes(output.type)) {
@@ -625,7 +625,7 @@ export function validateSkillMd(skill: SkillMdFile): SkillValidationResult {
             field: `metadata.outputs[${i}].type`,
             message: `Invalid output type '${output.type}'. Must be 'file', 'variable', or 'artifact'`,
             code: 'INVALID_OUTPUT_TYPE',
-          })
+          });
         }
 
         if (output.type === 'file' && !output.path) {
@@ -633,7 +633,7 @@ export function validateSkillMd(skill: SkillMdFile): SkillValidationResult {
             field: `metadata.outputs[${i}].path`,
             message: `Output '${output.name}' is of type 'file' but has no path specified`,
             code: 'MISSING_OUTPUT_PATH',
-          })
+          });
         }
       }
     }
@@ -643,7 +643,7 @@ export function validateSkillMd(skill: SkillMdFile): SkillValidationResult {
     valid: errors.length === 0,
     errors,
     warnings,
-  }
+  };
 }
 
 /**
@@ -665,11 +665,11 @@ export function validateSkillMd(skill: SkillMdFile): SkillValidationResult {
  */
 export function extractSkillMetadata(content: string): SkillMdMetadata {
   try {
-    const parsed = matter(content)
-    return extractMetadata(parsed.data, 'content')
+    const parsed = matter(content);
+    return extractMetadata(parsed.data, 'content');
   }
   catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error)
-    throw new Error(`Failed to extract metadata: ${errorMessage}`)
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    throw new Error(`Failed to extract metadata: ${errorMessage}`);
   }
 }

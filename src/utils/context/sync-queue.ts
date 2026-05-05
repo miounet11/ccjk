@@ -3,19 +3,19 @@
  * Prepares infrastructure for future cloud synchronization
  */
 
-import type { SyncQueueItem, SyncStatus } from './storage-types'
-import { existsSync } from 'node:fs'
-import { mkdir, readdir, readFile, unlink, writeFile } from 'node:fs/promises'
-import { join } from 'pathe'
+import type { SyncQueueItem, SyncStatus } from './storage-types';
+import { existsSync } from 'node:fs';
+import { mkdir, readdir, readFile, unlink, writeFile } from 'node:fs/promises';
+import { join } from 'pathe';
 
 /**
  * Sync queue manager class
  */
 export class SyncQueueManager {
-  private queueDir: string
+  private queueDir: string;
 
   constructor(queueDir: string) {
-    this.queueDir = queueDir
+    this.queueDir = queueDir;
   }
 
   /**
@@ -23,7 +23,7 @@ export class SyncQueueManager {
    */
   async initialize(): Promise<void> {
     if (!existsSync(this.queueDir)) {
-      await mkdir(this.queueDir, { recursive: true })
+      await mkdir(this.queueDir, { recursive: true });
     }
   }
 
@@ -36,7 +36,7 @@ export class SyncQueueManager {
   async enqueue(
     item: Omit<SyncQueueItem, 'id' | 'createdAt' | 'status' | 'retries'>,
   ): Promise<SyncQueueItem> {
-    await this.initialize()
+    await this.initialize();
 
     const queueItem: SyncQueueItem = {
       ...item,
@@ -44,12 +44,12 @@ export class SyncQueueManager {
       createdAt: new Date().toISOString(),
       status: 'pending',
       retries: 0,
-    }
+    };
 
-    const filePath = this.getQueueItemPath(queueItem.id)
-    await writeFile(filePath, JSON.stringify(queueItem, null, 2), 'utf-8')
+    const filePath = this.getQueueItemPath(queueItem.id);
+    await writeFile(filePath, JSON.stringify(queueItem, null, 2), 'utf-8');
 
-    return queueItem
+    return queueItem;
   }
 
   /**
@@ -58,16 +58,16 @@ export class SyncQueueManager {
    * @returns Next pending item or null if queue is empty
    */
   async dequeue(): Promise<SyncQueueItem | null> {
-    const items = await this.listItems({ status: 'pending' })
+    const items = await this.listItems({ status: 'pending' });
 
     if (items.length === 0) {
-      return null
+      return null;
     }
 
     // Sort by creation time (oldest first)
-    items.sort((a, b) => a.createdAt.localeCompare(b.createdAt))
+    items.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
 
-    return items[0]
+    return items[0];
   }
 
   /**
@@ -77,20 +77,20 @@ export class SyncQueueManager {
    * @returns Queue item or null if not found
    */
   async getItem(id: string): Promise<SyncQueueItem | null> {
-    await this.initialize()
+    await this.initialize();
 
     try {
-      const filePath = this.getQueueItemPath(id)
+      const filePath = this.getQueueItemPath(id);
 
       if (!existsSync(filePath)) {
-        return null
+        return null;
       }
 
-      const content = await readFile(filePath, 'utf-8')
-      return JSON.parse(content) as SyncQueueItem
+      const content = await readFile(filePath, 'utf-8');
+      return JSON.parse(content) as SyncQueueItem;
     }
     catch {
-      return null
+      return null;
     }
   }
 
@@ -104,23 +104,23 @@ export class SyncQueueManager {
     id: string,
     updates: Partial<Omit<SyncQueueItem, 'id'>>,
   ): Promise<SyncQueueItem | null> {
-    await this.initialize()
+    await this.initialize();
 
-    const item = await this.getItem(id)
+    const item = await this.getItem(id);
 
     if (!item) {
-      return null
+      return null;
     }
 
     const updatedItem: SyncQueueItem = {
       ...item,
       ...updates,
-    }
+    };
 
-    const filePath = this.getQueueItemPath(id)
-    await writeFile(filePath, JSON.stringify(updatedItem, null, 2), 'utf-8')
+    const filePath = this.getQueueItemPath(id);
+    await writeFile(filePath, JSON.stringify(updatedItem, null, 2), 'utf-8');
 
-    return updatedItem
+    return updatedItem;
   }
 
   /**
@@ -129,7 +129,7 @@ export class SyncQueueManager {
    * @param id - Queue item ID
    */
   async markSyncing(id: string): Promise<SyncQueueItem | null> {
-    return this.updateItem(id, { status: 'syncing' })
+    return this.updateItem(id, { status: 'syncing' });
   }
 
   /**
@@ -138,7 +138,7 @@ export class SyncQueueManager {
    * @param id - Queue item ID
    */
   async markSynced(id: string): Promise<SyncQueueItem | null> {
-    return this.updateItem(id, { status: 'synced' })
+    return this.updateItem(id, { status: 'synced' });
   }
 
   /**
@@ -153,20 +153,20 @@ export class SyncQueueManager {
     error: string,
     retryDelay = 60000,
   ): Promise<SyncQueueItem | null> {
-    const item = await this.getItem(id)
+    const item = await this.getItem(id);
 
     if (!item) {
-      return null
+      return null;
     }
 
-    const nextRetry = new Date(Date.now() + retryDelay).toISOString()
+    const nextRetry = new Date(Date.now() + retryDelay).toISOString();
 
     return this.updateItem(id, {
       status: 'failed',
       lastError: error,
       retries: item.retries + 1,
       nextRetry,
-    })
+    });
   }
 
   /**
@@ -176,17 +176,17 @@ export class SyncQueueManager {
    */
   async removeItem(id: string): Promise<boolean> {
     try {
-      const filePath = this.getQueueItemPath(id)
+      const filePath = this.getQueueItemPath(id);
 
       if (!existsSync(filePath)) {
-        return false
+        return false;
       }
 
-      await unlink(filePath)
-      return true
+      await unlink(filePath);
+      return true;
     }
     catch {
-      return false
+      return false;
     }
   }
 
@@ -200,53 +200,53 @@ export class SyncQueueManager {
    * @returns Array of queue items
    */
   async listItems(options?: {
-    status?: SyncStatus
-    sessionId?: string
-    type?: SyncQueueItem['type']
+    status?: SyncStatus;
+    sessionId?: string;
+    type?: SyncQueueItem['type'];
   }): Promise<SyncQueueItem[]> {
     try {
       if (!existsSync(this.queueDir)) {
-        return []
+        return [];
       }
 
-      const files = await readdir(this.queueDir)
-      const items: SyncQueueItem[] = []
+      const files = await readdir(this.queueDir);
+      const items: SyncQueueItem[] = [];
 
       for (const file of files) {
         if (!file.endsWith('.json')) {
-          continue
+          continue;
         }
 
         try {
-          const filePath = join(this.queueDir, file)
-          const content = await readFile(filePath, 'utf-8')
-          const item = JSON.parse(content) as SyncQueueItem
+          const filePath = join(this.queueDir, file);
+          const content = await readFile(filePath, 'utf-8');
+          const item = JSON.parse(content) as SyncQueueItem;
 
           // Apply filters
           if (options?.status && item.status !== options.status) {
-            continue
+            continue;
           }
 
           if (options?.sessionId && item.sessionId !== options.sessionId) {
-            continue
+            continue;
           }
 
           if (options?.type && item.type !== options.type) {
-            continue
+            continue;
           }
 
-          items.push(item)
+          items.push(item);
         }
         catch {
           // Skip invalid files
-          continue
+          continue;
         }
       }
 
-      return items
+      return items;
     }
     catch {
-      return []
+      return [];
     }
   }
 
@@ -255,12 +255,12 @@ export class SyncQueueManager {
    * Returns failed items where nextRetry time has passed
    */
   async getRetryableItems(): Promise<SyncQueueItem[]> {
-    const failedItems = await this.listItems({ status: 'failed' })
-    const now = new Date().toISOString()
+    const failedItems = await this.listItems({ status: 'failed' });
+    const now = new Date().toISOString();
 
     return failedItems.filter(item =>
       item.nextRetry && item.nextRetry <= now,
-    )
+    );
   }
 
   /**
@@ -270,35 +270,35 @@ export class SyncQueueManager {
    * @returns Number of items removed
    */
   async cleanupSynced(maxAge: number): Promise<number> {
-    const syncedItems = await this.listItems({ status: 'synced' })
-    const cutoffTime = new Date(Date.now() - maxAge).toISOString()
-    let removed = 0
+    const syncedItems = await this.listItems({ status: 'synced' });
+    const cutoffTime = new Date(Date.now() - maxAge).toISOString();
+    let removed = 0;
 
     for (const item of syncedItems) {
       if (item.createdAt < cutoffTime) {
-        const success = await this.removeItem(item.id)
+        const success = await this.removeItem(item.id);
         if (success) {
-          removed++
+          removed++;
         }
       }
     }
 
-    return removed
+    return removed;
   }
 
   /**
    * Get queue statistics
    */
   async getStats(): Promise<{
-    total: number
-    pending: number
-    syncing: number
-    synced: number
-    failed: number
-    retryable: number
+    total: number;
+    pending: number;
+    syncing: number;
+    synced: number;
+    failed: number;
+    retryable: number;
   }> {
-    const allItems = await this.listItems()
-    const retryableItems = await this.getRetryableItems()
+    const allItems = await this.listItems();
+    const retryableItems = await this.getRetryableItems();
 
     return {
       total: allItems.length,
@@ -307,7 +307,7 @@ export class SyncQueueManager {
       synced: allItems.filter(i => i.status === 'synced').length,
       failed: allItems.filter(i => i.status === 'failed').length,
       retryable: retryableItems.length,
-    }
+    };
   }
 
   /**
@@ -315,33 +315,33 @@ export class SyncQueueManager {
    * WARNING: This removes all items regardless of status
    */
   async clearQueue(): Promise<number> {
-    const items = await this.listItems()
-    let removed = 0
+    const items = await this.listItems();
+    let removed = 0;
 
     for (const item of items) {
-      const success = await this.removeItem(item.id)
+      const success = await this.removeItem(item.id);
       if (success) {
-        removed++
+        removed++;
       }
     }
 
-    return removed
+    return removed;
   }
 
   /**
    * Generate unique queue item ID
    */
   private generateQueueId(): string {
-    const timestamp = Date.now()
-    const random = Math.random().toString(36).substring(2, 10)
-    return `${timestamp}-${random}`
+    const timestamp = Date.now();
+    const random = Math.random().toString(36).substring(2, 10);
+    return `${timestamp}-${random}`;
   }
 
   /**
    * Get file path for queue item
    */
   private getQueueItemPath(id: string): string {
-    return join(this.queueDir, `${id}.json`)
+    return join(this.queueDir, `${id}.json`);
   }
 }
 
@@ -352,5 +352,5 @@ export class SyncQueueManager {
  * @returns Sync queue manager instance
  */
 export function createSyncQueueManager(queueDir: string): SyncQueueManager {
-  return new SyncQueueManager(queueDir)
+  return new SyncQueueManager(queueDir);
 }

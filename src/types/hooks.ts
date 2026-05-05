@@ -28,17 +28,17 @@ export enum HookType {
  */
 export interface Hook {
   /** Hook type - determines when this hook is triggered */
-  type: HookType
+  type: HookType;
   /** Command to execute (shell command or Node.js script path) */
-  command: string
+  command: string;
   /** Timeout in milliseconds (default: 5000ms) */
-  timeout?: number
+  timeout?: number;
   /** Whether to execute asynchronously without blocking main flow (default: false) */
-  async?: boolean
+  async?: boolean;
   /** Optional description for documentation */
-  description?: string
+  description?: string;
   /** Whether the hook is enabled (default: true) */
-  enabled?: boolean
+  enabled?: boolean;
 }
 
 /**
@@ -46,19 +46,19 @@ export interface Hook {
  */
 export interface HookExecutionResult {
   /** Whether the hook executed successfully */
-  success: boolean
+  success: boolean;
   /** Hook that was executed */
-  hook: Hook
+  hook: Hook;
   /** Execution time in milliseconds */
-  executionTime: number
+  executionTime: number;
   /** Standard output from the hook */
-  stdout?: string
+  stdout?: string;
   /** Standard error from the hook */
-  stderr?: string
+  stderr?: string;
   /** Exit code from the hook process */
-  exitCode?: number
+  exitCode?: number;
   /** Error message if execution failed */
-  error?: string
+  error?: string;
 }
 
 /**
@@ -66,12 +66,12 @@ export interface HookExecutionResult {
  */
 export interface HooksConfig {
   /** Hooks organized by type */
-  [HookType.PreRequest]?: Hook[]
-  [HookType.PostResponse]?: Hook[]
-  [HookType.ProviderSwitch]?: Hook[]
-  [HookType.Error]?: Hook[]
-  [HookType.SessionStart]?: Hook[]
-  [HookType.SessionEnd]?: Hook[]
+  [HookType.PreRequest]?: Hook[];
+  [HookType.PostResponse]?: Hook[];
+  [HookType.ProviderSwitch]?: Hook[];
+  [HookType.Error]?: Hook[];
+  [HookType.SessionStart]?: Hook[];
+  [HookType.SessionEnd]?: Hook[];
 }
 
 /**
@@ -79,11 +79,11 @@ export interface HooksConfig {
  */
 export interface HookManagerOptions {
   /** Path to hooks configuration file */
-  configPath?: string
+  configPath?: string;
   /** Whether to enable hooks globally (default: true) */
-  enabled?: boolean
+  enabled?: boolean;
   /** Default timeout for all hooks in milliseconds */
-  defaultTimeout?: number
+  defaultTimeout?: number;
 }
 
 /**
@@ -91,7 +91,7 @@ export interface HookManagerOptions {
  */
 export interface HookCommandOptions {
   /** Language for CLI output */
-  lang?: 'en' | 'zh-CN'
+  lang?: 'en' | 'zh-CN';
   /** Show detailed information */
-  verbose?: boolean
+  verbose?: boolean;
 }

@@ -11,10 +11,10 @@ import type {
   ValidationError,
   ValidationResult,
   ValidationWarning,
-} from './types'
-import consola from 'consola'
+} from './types';
+import consola from 'consola';
 
-const logger = consola.withTag('generation-validator')
+const logger = consola.withTag('generation-validator');
 
 /**
  * Validate generation result
@@ -23,44 +23,44 @@ export function validateGenerationResult(
   result: GenerationResult,
   level: 'strict' | 'normal' | 'relaxed' = 'normal',
 ): ValidationResult {
-  logger.info(`Validating generation result (level: ${level})...`)
+  logger.info(`Validating generation result (level: ${level})...`);
 
-  const errors: ValidationError[] = []
-  const warnings: ValidationWarning[] = []
+  const errors: ValidationError[] = [];
+  const warnings: ValidationWarning[] = [];
 
   // Validate agents
   for (const agent of result.agents) {
-    const agentValidation = validateAgent(agent, level)
-    errors.push(...agentValidation.errors)
-    warnings.push(...agentValidation.warnings)
+    const agentValidation = validateAgent(agent, level);
+    errors.push(...agentValidation.errors);
+    warnings.push(...agentValidation.warnings);
   }
 
   // Validate skills
   for (const skill of result.skills) {
-    const skillValidation = validateSkill(skill, level)
-    errors.push(...skillValidation.errors)
-    warnings.push(...skillValidation.warnings)
+    const skillValidation = validateSkill(skill, level);
+    errors.push(...skillValidation.errors);
+    warnings.push(...skillValidation.warnings);
   }
 
   // Check for duplicates
-  const duplicateErrors = checkDuplicates(result)
-  errors.push(...duplicateErrors)
+  const duplicateErrors = checkDuplicates(result);
+  errors.push(...duplicateErrors);
 
   // Check for conflicts
-  const conflictWarnings = checkConflicts(result)
-  warnings.push(...conflictWarnings)
+  const conflictWarnings = checkConflicts(result);
+  warnings.push(...conflictWarnings);
 
   // Calculate score
-  const score = calculateValidationScore(errors, warnings, result)
+  const score = calculateValidationScore(errors, warnings, result);
 
-  const valid = errors.length === 0
+  const valid = errors.length === 0;
 
-  logger.info(`Validation complete: ${valid ? 'PASSED' : 'FAILED'} (score: ${score})`)
+  logger.info(`Validation complete: ${valid ? 'PASSED' : 'FAILED'} (score: ${score})`);
   if (errors.length > 0) {
-    logger.warn(`Errors: ${errors.length}`)
+    logger.warn(`Errors: ${errors.length}`);
   }
   if (warnings.length > 0) {
-    logger.info(`Warnings: ${warnings.length}`)
+    logger.info(`Warnings: ${warnings.length}`);
   }
 
   return {
@@ -68,7 +68,7 @@ export function validateGenerationResult(
     errors,
     warnings,
     score,
-  }
+  };
 }
 
 /**
@@ -77,9 +77,9 @@ export function validateGenerationResult(
 export function validateAgent(
   agent: GeneratedAgent,
   level: 'strict' | 'normal' | 'relaxed' = 'normal',
-): { errors: ValidationError[], warnings: ValidationWarning[] } {
-  const errors: ValidationError[] = []
-  const warnings: ValidationWarning[] = []
+): { errors: ValidationError[]; warnings: ValidationWarning[] } {
+  const errors: ValidationError[] = [];
+  const warnings: ValidationWarning[] = [];
 
   // Required fields
   if (!agent.id) {
@@ -88,7 +88,7 @@ export function validateAgent(
       message: 'Agent is missing required field: id',
       item: agent.name || 'unknown',
       fix: 'Add a unique id to the agent',
-    })
+    });
   }
 
   if (!agent.name) {
@@ -97,7 +97,7 @@ export function validateAgent(
       message: 'Agent is missing required field: name',
       item: agent.id || 'unknown',
       fix: 'Add a name to the agent',
-    })
+    });
   }
 
   if (!agent.description) {
@@ -106,7 +106,7 @@ export function validateAgent(
       message: 'Agent is missing required field: description',
       item: agent.id || 'unknown',
       fix: 'Add a description to the agent',
-    })
+    });
   }
 
   // ID format validation
@@ -116,7 +116,7 @@ export function validateAgent(
       message: 'Agent id must be lowercase alphanumeric with hyphens',
       item: agent.id,
       fix: 'Use only lowercase letters, numbers, and hyphens in id',
-    })
+    });
   }
 
   // Model validation
@@ -126,7 +126,7 @@ export function validateAgent(
       message: `Invalid model: ${agent.model}`,
       item: agent.id,
       fix: 'Use one of: opus, sonnet, haiku',
-    })
+    });
   }
 
   // Strict level checks
@@ -137,7 +137,7 @@ export function validateAgent(
         message: 'Agent should have at least one competency',
         item: agent.id,
         fix: 'Add competencies to define agent capabilities',
-      })
+      });
     }
 
     if (!agent.workflow || agent.workflow.length === 0) {
@@ -146,7 +146,7 @@ export function validateAgent(
         message: 'Agent should have a defined workflow',
         item: agent.id,
         fix: 'Add workflow steps to define agent behavior',
-      })
+      });
     }
 
     if (!agent.bestPractices || agent.bestPractices.length === 0) {
@@ -155,7 +155,7 @@ export function validateAgent(
         message: 'Agent should have best practices defined',
         item: agent.id,
         fix: 'Add best practices for agent guidance',
-      })
+      });
     }
   }
 
@@ -167,7 +167,7 @@ export function validateAgent(
         message: 'Agent description is too short',
         item: agent.id,
         suggestion: 'Provide a more detailed description (at least 20 characters)',
-      })
+      });
     }
 
     if (!agent.specialization) {
@@ -176,7 +176,7 @@ export function validateAgent(
         message: 'Agent is missing specialization',
         item: agent.id,
         suggestion: 'Add a specialization to clarify agent focus',
-      })
+      });
     }
 
     if (!agent.tags || agent.tags.length === 0) {
@@ -185,11 +185,11 @@ export function validateAgent(
         message: 'Agent has no tags',
         item: agent.id,
         suggestion: 'Add tags for better discoverability',
-      })
+      });
     }
   }
 
-  return { errors, warnings }
+  return { errors, warnings };
 }
 
 /**
@@ -198,9 +198,9 @@ export function validateAgent(
 export function validateSkill(
   skill: GeneratedSkill,
   level: 'strict' | 'normal' | 'relaxed' = 'normal',
-): { errors: ValidationError[], warnings: ValidationWarning[] } {
-  const errors: ValidationError[] = []
-  const warnings: ValidationWarning[] = []
+): { errors: ValidationError[]; warnings: ValidationWarning[] } {
+  const errors: ValidationError[] = [];
+  const warnings: ValidationWarning[] = [];
 
   // Required fields
   if (!skill.id) {
@@ -209,7 +209,7 @@ export function validateSkill(
       message: 'Skill is missing required field: id',
       item: skill.name?.en || 'unknown',
       fix: 'Add a unique id to the skill',
-    })
+    });
   }
 
   if (!skill.name || (!skill.name.en && !skill.name['zh-CN'])) {
@@ -218,7 +218,7 @@ export function validateSkill(
       message: 'Skill is missing required field: name',
       item: skill.id || 'unknown',
       fix: 'Add a name to the skill',
-    })
+    });
   }
 
   if (!skill.description || (!skill.description.en && !skill.description['zh-CN'])) {
@@ -227,7 +227,7 @@ export function validateSkill(
       message: 'Skill is missing required field: description',
       item: skill.id || 'unknown',
       fix: 'Add a description to the skill',
-    })
+    });
   }
 
   // ID format validation
@@ -237,7 +237,7 @@ export function validateSkill(
       message: 'Skill id must be lowercase alphanumeric with hyphens',
       item: skill.id,
       fix: 'Use only lowercase letters, numbers, and hyphens in id',
-    })
+    });
   }
 
   // Triggers validation
@@ -247,7 +247,7 @@ export function validateSkill(
       message: 'Skill must have at least one trigger',
       item: skill.id,
       fix: 'Add at least one trigger (command, pattern, or event)',
-    })
+    });
   }
   else {
     for (const trigger of skill.triggers) {
@@ -257,7 +257,7 @@ export function validateSkill(
           message: 'Trigger must have type and value',
           item: skill.id,
           fix: 'Ensure all triggers have type and value',
-        })
+        });
       }
 
       if (trigger.type === 'command' && !trigger.value.startsWith('/')) {
@@ -266,7 +266,7 @@ export function validateSkill(
           message: 'Command triggers should start with /',
           item: skill.id,
           suggestion: `Change "${trigger.value}" to "/${trigger.value}"`,
-        })
+        });
       }
     }
   }
@@ -278,7 +278,7 @@ export function validateSkill(
       message: 'Skill must have at least one action',
       item: skill.id,
       fix: 'Add at least one action (bash, tool, prompt, or workflow)',
-    })
+    });
   }
   else {
     for (const action of skill.actions) {
@@ -288,7 +288,7 @@ export function validateSkill(
           message: 'Action must have type and content',
           item: skill.id,
           fix: 'Ensure all actions have type and content',
-        })
+        });
       }
     }
   }
@@ -301,7 +301,7 @@ export function validateSkill(
         message: 'Skill should have a category',
         item: skill.id,
         fix: 'Add a category to the skill',
-      })
+      });
     }
   }
 
@@ -313,7 +313,7 @@ export function validateSkill(
         message: 'Skill has no tags',
         item: skill.id,
         suggestion: 'Add tags for better discoverability',
-      })
+      });
     }
 
     if (skill.priority === undefined || skill.priority < 1 || skill.priority > 10) {
@@ -322,21 +322,21 @@ export function validateSkill(
         message: 'Skill priority should be between 1 and 10',
         item: skill.id,
         suggestion: 'Set priority to a value between 1 and 10',
-      })
+      });
     }
   }
 
-  return { errors, warnings }
+  return { errors, warnings };
 }
 
 /**
  * Check for duplicate agents and skills
  */
 function checkDuplicates(result: GenerationResult): ValidationError[] {
-  const errors: ValidationError[] = []
+  const errors: ValidationError[] = [];
 
   // Check agent duplicates
-  const agentIds = new Set<string>()
+  const agentIds = new Set<string>();
   for (const agent of result.agents) {
     if (agentIds.has(agent.id)) {
       errors.push({
@@ -344,13 +344,13 @@ function checkDuplicates(result: GenerationResult): ValidationError[] {
         message: `Duplicate agent id: ${agent.id}`,
         item: agent.id,
         fix: 'Ensure all agent ids are unique',
-      })
+      });
     }
-    agentIds.add(agent.id)
+    agentIds.add(agent.id);
   }
 
   // Check skill duplicates
-  const skillIds = new Set<string>()
+  const skillIds = new Set<string>();
   for (const skill of result.skills) {
     if (skillIds.has(skill.id)) {
       errors.push({
@@ -358,22 +358,22 @@ function checkDuplicates(result: GenerationResult): ValidationError[] {
         message: `Duplicate skill id: ${skill.id}`,
         item: skill.id,
         fix: 'Ensure all skill ids are unique',
-      })
+      });
     }
-    skillIds.add(skill.id)
+    skillIds.add(skill.id);
   }
 
-  return errors
+  return errors;
 }
 
 /**
  * Check for conflicts between agents and skills
  */
 function checkConflicts(result: GenerationResult): ValidationWarning[] {
-  const warnings: ValidationWarning[] = []
+  const warnings: ValidationWarning[] = [];
 
   // Check for command conflicts in skills
-  const commands = new Map<string, string>()
+  const commands = new Map<string, string>();
   for (const skill of result.skills) {
     for (const trigger of skill.triggers || []) {
       if (trigger.type === 'command') {
@@ -383,20 +383,20 @@ function checkConflicts(result: GenerationResult): ValidationWarning[] {
             message: `Command "${trigger.value}" is used by multiple skills`,
             item: skill.id,
             suggestion: `Consider renaming command in ${skill.id} or ${commands.get(trigger.value)}`,
-          })
+          });
         }
-        commands.set(trigger.value, skill.id)
+        commands.set(trigger.value, skill.id);
       }
     }
   }
 
   // Check for overlapping agent categories
-  const categories = new Map<string, string[]>()
+  const categories = new Map<string, string[]>();
   for (const agent of result.agents) {
     if (!categories.has(agent.category)) {
-      categories.set(agent.category, [])
+      categories.set(agent.category, []);
     }
-    categories.get(agent.category)!.push(agent.id)
+    categories.get(agent.category)!.push(agent.id);
   }
 
   for (const [category, agents] of categories) {
@@ -405,11 +405,11 @@ function checkConflicts(result: GenerationResult): ValidationWarning[] {
         code: 'CATEGORY_OVERLAP',
         message: `Multiple agents (${agents.length}) in category "${category}"`,
         suggestion: 'Consider consolidating or differentiating agents',
-      })
+      });
     }
   }
 
-  return warnings
+  return warnings;
 }
 
 /**
@@ -420,19 +420,19 @@ function calculateValidationScore(
   warnings: ValidationWarning[],
   result: GenerationResult,
 ): number {
-  const totalItems = result.agents.length + result.skills.length
+  const totalItems = result.agents.length + result.skills.length;
   if (totalItems === 0)
-    return 0
+    return 0;
 
   // Start with 100
-  let score = 100
+  let score = 100;
 
   // Deduct for errors (10 points each)
-  score -= errors.length * 10
+  score -= errors.length * 10;
 
   // Deduct for warnings (2 points each)
-  score -= warnings.length * 2
+  score -= warnings.length * 2;
 
   // Ensure score is between 0 and 100
-  return Math.max(0, Math.min(100, score))
+  return Math.max(0, Math.min(100, score));
 }

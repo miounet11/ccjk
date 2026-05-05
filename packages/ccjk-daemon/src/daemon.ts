@@ -1,8 +1,8 @@
-import { acquireDaemonLock, releaseDaemonLock } from './lock';
-import { createControlServer } from './control-server';
-import { DaemonManager } from './manager';
 import type { DaemonConfig, DaemonState } from './types';
 import chalk from 'chalk';
+import { createControlServer } from './control-server';
+import { acquireDaemonLock, releaseDaemonLock } from './lock';
+import { DaemonManager } from './manager';
 
 /**
  * Main daemon entry point
@@ -33,7 +33,8 @@ export async function startDaemon(config: DaemonConfig): Promise<void> {
       releaseDaemonLock();
       console.log(chalk.green('✅ Shutdown complete'));
       process.exit(0);
-    } catch (error) {
+    }
+    catch (error) {
       console.error(chalk.red('❌ Error during shutdown:'), error);
       process.exit(1);
     }
@@ -62,7 +63,8 @@ export async function startDaemon(config: DaemonConfig): Promise<void> {
 
     console.log(chalk.green('\n✅ CCJK Daemon is running'));
     console.log(chalk.gray('   Press Ctrl+C to stop\n'));
-  } catch (error) {
+  }
+  catch (error) {
     console.error(chalk.red('❌ Failed to start daemon:'), error);
     releaseDaemonLock();
     process.exit(1);
@@ -80,11 +82,13 @@ export async function stopDaemon(): Promise<void> {
 
     if (response.ok) {
       console.log(chalk.green('✅ Daemon stop signal sent'));
-    } else {
+    }
+    else {
       console.error(chalk.red('❌ Failed to stop daemon'));
       process.exit(1);
     }
-  } catch (error) {
+  }
+  catch (_error) {
     console.error(chalk.red('❌ Daemon is not running or not responding'));
     process.exit(1);
   }
@@ -108,11 +112,13 @@ export async function getDaemonStatus(): Promise<void> {
         const uptime = Math.floor((Date.now() - status.startedAt) / 1000);
         console.log(chalk.gray(`   Uptime: ${uptime}s`));
       }
-    } else {
+    }
+    else {
       console.error(chalk.red('❌ Failed to get daemon status'));
       process.exit(1);
     }
-  } catch (error) {
+  }
+  catch (_error) {
     console.error(chalk.red('❌ Daemon is not running'));
     process.exit(1);
   }

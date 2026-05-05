@@ -13,11 +13,11 @@
  * @module plugins-v2/mcp/mcp-integration
  */
 
-import type { ClaudeConfiguration, McpServerConfig } from '../../types'
-import type { AgentMcpRef, McpToolInfo } from '../types'
-import { existsSync, readFileSync } from 'node:fs'
-import { homedir } from 'node:os'
-import { join } from 'pathe'
+import type { ClaudeConfiguration, McpServerConfig } from '../../types';
+import type { AgentMcpRef, McpToolInfo } from '../types';
+import { existsSync, readFileSync } from 'node:fs';
+import { homedir } from 'node:os';
+import { join } from 'pathe';
 
 // ============================================================================
 // Constants
@@ -26,12 +26,12 @@ import { join } from 'pathe'
 /**
  * Default path to Claude desktop configuration file
  */
-const CLAUDE_CONFIG_PATH = join(homedir(), '.claude.json')
+const CLAUDE_CONFIG_PATH = join(homedir(), '.claude.json');
 
 /**
  * Cache TTL for tool information (ms)
  */
-const TOOL_CACHE_TTL = 5 * 60 * 1000 // 5 minutes
+const TOOL_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
 // ============================================================================
 // Types
@@ -40,24 +40,24 @@ const TOOL_CACHE_TTL = 5 * 60 * 1000 // 5 minutes
 /**
  * MCP server connection status
  */
-export type McpServerStatus = 'connected' | 'disconnected' | 'error' | 'unknown'
+export type McpServerStatus = 'connected' | 'disconnected' | 'error' | 'unknown';
 
 /**
  * MCP server information with status
  */
 export interface McpServerInfo {
   /** Server name */
-  name: string
+  name: string;
   /** Server configuration */
-  config: McpServerConfig
+  config: McpServerConfig;
   /** Connection status */
-  status: McpServerStatus
+  status: McpServerStatus;
   /** Available tools (if discovered) */
-  tools?: McpToolInfo[]
+  tools?: McpToolInfo[];
   /** Last error message */
-  error?: string
+  error?: string;
   /** Last update timestamp */
-  lastUpdated?: number
+  lastUpdated?: number;
 }
 
 /**
@@ -65,11 +65,11 @@ export interface McpServerInfo {
  */
 export interface McpToolCallRequest {
   /** Server name */
-  server: string
+  server: string;
   /** Tool name */
-  tool: string
+  tool: string;
   /** Tool arguments */
-  arguments: Record<string, unknown>
+  arguments: Record<string, unknown>;
 }
 
 /**
@@ -77,13 +77,13 @@ export interface McpToolCallRequest {
  */
 export interface McpToolCallResponse {
   /** Whether the call succeeded */
-  success: boolean
+  success: boolean;
   /** Result data */
-  result?: unknown
+  result?: unknown;
   /** Error message if failed */
-  error?: string
+  error?: string;
   /** Execution duration (ms) */
-  duration?: number
+  duration?: number;
 }
 
 // ============================================================================
@@ -98,13 +98,13 @@ export interface McpToolCallResponse {
  * for agent composition.
  */
 export class McpServerManager {
-  private servers: Map<string, McpServerInfo> = new Map()
-  private toolCache: Map<string, { tools: McpToolInfo[], timestamp: number }> = new Map()
-  private configPath: string
-  private initialized = false
+  private servers: Map<string, McpServerInfo> = new Map();
+  private toolCache: Map<string, { tools: McpToolInfo[]; timestamp: number }> = new Map();
+  private configPath: string;
+  private initialized = false;
 
   constructor(configPath: string = CLAUDE_CONFIG_PATH) {
-    this.configPath = configPath
+    this.configPath = configPath;
   }
 
   // ==========================================================================
@@ -116,20 +116,20 @@ export class McpServerManager {
    */
   async initialize(): Promise<void> {
     if (this.initialized) {
-      return
+      return;
     }
 
-    await this.loadConfiguration()
-    this.initialized = true
+    await this.loadConfiguration();
+    this.initialized = true;
   }
 
   /**
    * Load MCP configuration from file
    */
   private async loadConfiguration(): Promise<void> {
-    const config = this.readConfigFile()
+    const config = this.readConfigFile();
     if (!config?.mcpServers) {
-      return
+      return;
     }
 
     // Register all configured servers
@@ -138,7 +138,7 @@ export class McpServerManager {
         name,
         config: serverConfig,
         status: 'unknown',
-      })
+      });
     }
   }
 
@@ -147,16 +147,16 @@ export class McpServerManager {
    */
   private readConfigFile(): ClaudeConfiguration | null {
     if (!existsSync(this.configPath)) {
-      return null
+      return null;
     }
 
     try {
-      const content = readFileSync(this.configPath, 'utf-8')
-      return JSON.parse(content) as ClaudeConfiguration
+      const content = readFileSync(this.configPath, 'utf-8');
+      return JSON.parse(content) as ClaudeConfiguration;
     }
     catch (error) {
-      console.error(`Failed to read MCP config from ${this.configPath}:`, error)
-      return null
+      console.error(`Failed to read MCP config from ${this.configPath}:`, error);
+      return null;
     }
   }
 
@@ -164,10 +164,10 @@ export class McpServerManager {
    * Reload configuration (useful after config changes)
    */
   async reload(): Promise<void> {
-    this.servers.clear()
-    this.toolCache.clear()
-    this.initialized = false
-    await this.initialize()
+    this.servers.clear();
+    this.toolCache.clear();
+    this.initialized = false;
+    await this.initialize();
   }
 
   // ==========================================================================
@@ -178,28 +178,28 @@ export class McpServerManager {
    * Get all configured MCP servers
    */
   getServers(): McpServerInfo[] {
-    return Array.from(this.servers.values())
+    return Array.from(this.servers.values());
   }
 
   /**
    * Get a specific server by name
    */
   getServer(name: string): McpServerInfo | undefined {
-    return this.servers.get(name)
+    return this.servers.get(name);
   }
 
   /**
    * Get server names
    */
   getServerNames(): string[] {
-    return Array.from(this.servers.keys())
+    return Array.from(this.servers.keys());
   }
 
   /**
    * Check if a server is configured
    */
   hasServer(name: string): boolean {
-    return this.servers.has(name)
+    return this.servers.has(name);
   }
 
   // ==========================================================================
@@ -213,45 +213,45 @@ export class McpServerManager {
    * Results are cached to avoid repeated queries.
    */
   async getServerTools(serverName: string): Promise<McpToolInfo[]> {
-    const server = this.servers.get(serverName)
+    const server = this.servers.get(serverName);
     if (!server) {
-      return []
+      return [];
     }
 
     // Check cache
-    const cached = this.toolCache.get(serverName)
+    const cached = this.toolCache.get(serverName);
     if (cached && Date.now() - cached.timestamp < TOOL_CACHE_TTL) {
-      return cached.tools
+      return cached.tools;
     }
 
     // Discover tools
-    const tools = await this.discoverTools(server)
+    const tools = await this.discoverTools(server);
 
     // Update cache
     this.toolCache.set(serverName, {
       tools,
       timestamp: Date.now(),
-    })
+    });
 
     // Update server info
-    server.tools = tools
-    server.lastUpdated = Date.now()
+    server.tools = tools;
+    server.lastUpdated = Date.now();
 
-    return tools
+    return tools;
   }
 
   /**
    * Get all available tools from all configured servers
    */
   async getAllTools(): Promise<McpToolInfo[]> {
-    const allTools: McpToolInfo[] = []
+    const allTools: McpToolInfo[] = [];
 
     for (const serverName of this.servers.keys()) {
-      const tools = await this.getServerTools(serverName)
-      allTools.push(...tools)
+      const tools = await this.getServerTools(serverName);
+      allTools.push(...tools);
     }
 
-    return allTools
+    return allTools;
   }
 
   /**
@@ -260,22 +260,22 @@ export class McpServerManager {
    * @param mcpRefs - Array of MCP server references from agent definition
    */
   async getToolsForAgent(mcpRefs: AgentMcpRef[]): Promise<McpToolInfo[]> {
-    const tools: McpToolInfo[] = []
+    const tools: McpToolInfo[] = [];
 
     for (const ref of mcpRefs) {
-      const serverTools = await this.getServerTools(ref.serverName)
+      const serverTools = await this.getServerTools(ref.serverName);
 
       // Filter tools if specific tools are requested
       if (ref.tools && ref.tools.length > 0) {
-        const filteredTools = serverTools.filter(t => ref.tools!.includes(t.name))
-        tools.push(...filteredTools)
+        const filteredTools = serverTools.filter(t => ref.tools!.includes(t.name));
+        tools.push(...filteredTools);
       }
       else {
-        tools.push(...serverTools)
+        tools.push(...serverTools);
       }
     }
 
-    return tools
+    return tools;
   }
 
   /**
@@ -286,41 +286,41 @@ export class McpServerManager {
    * actually connect to the MCP server and query its capabilities.
    */
   private async discoverTools(server: McpServerInfo): Promise<McpToolInfo[]> {
-    const tools: McpToolInfo[] = []
+    const tools: McpToolInfo[] = [];
 
     try {
       // For stdio-based servers, we can try to query tools
       if (server.config.type === 'stdio' && server.config.command) {
-        const discoveredTools = await this.queryStdioServerTools(server)
+        const discoveredTools = await this.queryStdioServerTools(server);
         if (discoveredTools.length > 0) {
-          server.status = 'connected'
-          return discoveredTools
+          server.status = 'connected';
+          return discoveredTools;
         }
       }
 
       // For SSE-based servers, we would need HTTP connection
       if (server.config.type === 'sse' && server.config.url) {
-        const discoveredTools = await this.querySseServerTools(server)
+        const discoveredTools = await this.querySseServerTools(server);
         if (discoveredTools.length > 0) {
-          server.status = 'connected'
-          return discoveredTools
+          server.status = 'connected';
+          return discoveredTools;
         }
       }
 
       // Fallback: Return tools based on known server patterns
-      const knownTools = this.getKnownServerTools(server.name, server.config)
+      const knownTools = this.getKnownServerTools(server.name, server.config);
       if (knownTools.length > 0) {
-        server.status = 'unknown' // We don't know actual status
-        return knownTools
+        server.status = 'unknown'; // We don't know actual status
+        return knownTools;
       }
 
-      server.status = 'unknown'
-      return tools
+      server.status = 'unknown';
+      return tools;
     }
     catch (error) {
-      server.status = 'error'
-      server.error = error instanceof Error ? error.message : String(error)
-      return tools
+      server.status = 'error';
+      server.error = error instanceof Error ? error.message : String(error);
+      return tools;
     }
   }
 
@@ -338,7 +338,7 @@ export class McpServerManager {
     // 4. Parse the response
 
     // For now, return empty and rely on known server patterns
-    return []
+    return [];
   }
 
   /**
@@ -353,7 +353,7 @@ export class McpServerManager {
     // 3. Parse the response
 
     // For now, return empty and rely on known server patterns
-    return []
+    return [];
   }
 
   /**
@@ -363,12 +363,12 @@ export class McpServerManager {
    * without needing to actually connect to them.
    */
   private getKnownServerTools(serverName: string, config: McpServerConfig): McpToolInfo[] {
-    const tools: McpToolInfo[] = []
+    const tools: McpToolInfo[] = [];
 
     // Detect server type from command or name
-    const command = config.command || ''
-    const args = config.args?.join(' ') || ''
-    const identifier = `${serverName} ${command} ${args}`.toLowerCase()
+    const command = config.command || '';
+    const args = config.args?.join(' ') || '';
+    const identifier = `${serverName} ${command} ${args}`.toLowerCase();
 
     // Filesystem MCP server
     if (identifier.includes('filesystem') || identifier.includes('fs')) {
@@ -410,7 +410,7 @@ export class McpServerManager {
             required: ['path'],
           },
         },
-      )
+      );
     }
 
     // Exa search MCP server
@@ -441,7 +441,7 @@ export class McpServerManager {
             required: ['url'],
           },
         },
-      )
+      );
     }
 
     // GitHub MCP server
@@ -488,7 +488,7 @@ export class McpServerManager {
             required: ['owner', 'repo', 'title'],
           },
         },
-      )
+      );
     }
 
     // Playwright MCP server
@@ -528,7 +528,7 @@ export class McpServerManager {
             required: ['element', 'ref'],
           },
         },
-      )
+      );
     }
 
     // Context7 MCP server
@@ -559,7 +559,7 @@ export class McpServerManager {
             required: ['libraryId', 'query'],
           },
         },
-      )
+      );
     }
 
     // Fetch/HTTP MCP server
@@ -578,7 +578,7 @@ export class McpServerManager {
           },
           required: ['url'],
         },
-      })
+      });
     }
 
     // Memory/Knowledge MCP server
@@ -609,10 +609,10 @@ export class McpServerManager {
             required: ['key'],
           },
         },
-      )
+      );
     }
 
-    return tools
+    return tools;
   }
 
   // ==========================================================================
@@ -631,15 +631,15 @@ export class McpServerManager {
    * For now, agents should use Claude Code's native MCP integration.
    */
   async callTool(request: McpToolCallRequest): Promise<McpToolCallResponse> {
-    const server = this.servers.get(request.server)
+    const server = this.servers.get(request.server);
     if (!server) {
       return {
         success: false,
         error: `Server not found: ${request.server}`,
-      }
+      };
     }
 
-    const startTime = Date.now()
+    const startTime = Date.now();
 
     try {
       // Placeholder: In a real implementation, we would execute the tool
@@ -649,14 +649,14 @@ export class McpServerManager {
         success: false,
         error: 'Direct tool execution not yet implemented. Use Claude Code\'s native MCP integration.',
         duration: Date.now() - startTime,
-      }
+      };
     }
     catch (error) {
       return {
         success: false,
         error: error instanceof Error ? error.message : String(error),
         duration: Date.now() - startTime,
-      }
+      };
     }
   }
 
@@ -669,64 +669,64 @@ export class McpServerManager {
    */
   formatToolsForPrompt(tools: McpToolInfo[]): string {
     if (tools.length === 0) {
-      return ''
+      return '';
     }
 
-    const lines: string[] = ['## Available MCP Tools', '']
+    const lines: string[] = ['## Available MCP Tools', ''];
 
     // Group by server
-    const byServer = new Map<string, McpToolInfo[]>()
+    const byServer = new Map<string, McpToolInfo[]>();
     for (const tool of tools) {
-      const serverTools = byServer.get(tool.server) || []
-      serverTools.push(tool)
-      byServer.set(tool.server, serverTools)
+      const serverTools = byServer.get(tool.server) || [];
+      serverTools.push(tool);
+      byServer.set(tool.server, serverTools);
     }
 
     for (const [server, serverTools] of byServer) {
-      lines.push(`### ${server}`)
-      lines.push('')
+      lines.push(`### ${server}`);
+      lines.push('');
 
       for (const tool of serverTools) {
-        lines.push(`**${tool.name}**: ${tool.description}`)
+        lines.push(`**${tool.name}**: ${tool.description}`);
 
         // Add parameter info
-        const schema = tool.inputSchema as { properties?: Record<string, { type: string, description?: string }>, required?: string[] }
+        const schema = tool.inputSchema as { properties?: Record<string, { type: string; description?: string }>; required?: string[] };
         if (schema.properties) {
-          const params = Object.entries(schema.properties)
+          const params = Object.entries(schema.properties);
           if (params.length > 0) {
-            lines.push('Parameters:')
+            lines.push('Parameters:');
             for (const [name, prop] of params) {
-              const required = schema.required?.includes(name) ? ' (required)' : ''
-              lines.push(`  - \`${name}\`: ${prop.description || prop.type}${required}`)
+              const required = schema.required?.includes(name) ? ' (required)' : '';
+              lines.push(`  - \`${name}\`: ${prop.description || prop.type}${required}`);
             }
           }
         }
-        lines.push('')
+        lines.push('');
       }
     }
 
-    return lines.join('\n')
+    return lines.join('\n');
   }
 
   /**
    * Check if the manager is initialized
    */
   isInitialized(): boolean {
-    return this.initialized
+    return this.initialized;
   }
 
   /**
    * Get configuration file path
    */
   getConfigPath(): string {
-    return this.configPath
+    return this.configPath;
   }
 
   /**
    * Clear tool cache
    */
   clearCache(): void {
-    this.toolCache.clear()
+    this.toolCache.clear();
   }
 }
 
@@ -734,24 +734,24 @@ export class McpServerManager {
 // Singleton Instance
 // ============================================================================
 
-let managerInstance: McpServerManager | null = null
+let managerInstance: McpServerManager | null = null;
 
 /**
  * Get the singleton McpServerManager instance
  */
 export async function getMcpServerManager(): Promise<McpServerManager> {
   if (!managerInstance) {
-    managerInstance = new McpServerManager()
-    await managerInstance.initialize()
+    managerInstance = new McpServerManager();
+    await managerInstance.initialize();
   }
-  return managerInstance
+  return managerInstance;
 }
 
 /**
  * Reset the manager instance (for testing)
  */
 export function resetMcpServerManager(): void {
-  managerInstance = null
+  managerInstance = null;
 }
 
 // ============================================================================
@@ -762,30 +762,30 @@ export function resetMcpServerManager(): void {
  * Get all available MCP tools
  */
 export async function getAllMcpTools(): Promise<McpToolInfo[]> {
-  const manager = await getMcpServerManager()
-  return manager.getAllTools()
+  const manager = await getMcpServerManager();
+  return manager.getAllTools();
 }
 
 /**
  * Get MCP tools for an agent
  */
 export async function getMcpToolsForAgent(mcpRefs: AgentMcpRef[]): Promise<McpToolInfo[]> {
-  const manager = await getMcpServerManager()
-  return manager.getToolsForAgent(mcpRefs)
+  const manager = await getMcpServerManager();
+  return manager.getToolsForAgent(mcpRefs);
 }
 
 /**
  * Get configured MCP server names
  */
 export async function getMcpServerNames(): Promise<string[]> {
-  const manager = await getMcpServerManager()
-  return manager.getServerNames()
+  const manager = await getMcpServerManager();
+  return manager.getServerNames();
 }
 
 /**
  * Check if an MCP server is configured
  */
 export async function hasMcpServer(name: string): Promise<boolean> {
-  const manager = await getMcpServerManager()
-  return manager.hasServer(name)
+  const manager = await getMcpServerManager();
+  return manager.hasServer(name);
 }

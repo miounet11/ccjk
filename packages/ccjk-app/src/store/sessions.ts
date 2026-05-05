@@ -31,11 +31,6 @@ interface Message {
   createdAt: string;
 }
 
-interface DecryptedEvent {
-  t: string;
-  [key: string]: any;
-}
-
 interface SessionsState {
   sessions: Session[];
   currentSession: Session | null;
@@ -67,7 +62,8 @@ export const useSessionsStore = create<SessionsState>((set, get) => ({
       set({ isLoading: true });
       const { sessions } = await apiClient.getSessions();
       set({ sessions, isLoading: false });
-    } catch (error) {
+    }
+    catch (error) {
       console.error('Failed to fetch sessions:', error);
       set({ isLoading: false });
     }
@@ -81,7 +77,8 @@ export const useSessionsStore = create<SessionsState>((set, get) => ({
 
       // Join session room
       socketClient.joinSession(id);
-    } catch (error) {
+    }
+    catch (error) {
       console.error('Failed to fetch session:', error);
       set({ isLoading: false });
     }
@@ -91,13 +88,14 @@ export const useSessionsStore = create<SessionsState>((set, get) => ({
     try {
       const { messages } = await apiClient.getSessionMessages(sessionId);
       set({ messages });
-    } catch (error) {
+    }
+    catch (error) {
       console.error('Failed to fetch messages:', error);
     }
   },
 
   addMessage: (message: Message) => {
-    set((state) => ({
+    set(state => ({
       messages: [...state.messages, message],
     }));
   },

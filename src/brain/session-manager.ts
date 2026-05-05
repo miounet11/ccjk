@@ -9,40 +9,40 @@
  * - Fork point tracking for session relationships
  */
 
-import type { CodeToolType } from '../constants'
-import { execSync } from 'node:child_process'
-import { existsSync } from 'node:fs'
-import * as fs from 'node:fs/promises'
-import { mkdir, readdir, readFile, unlink, writeFile } from 'node:fs/promises'
-import { homedir } from 'node:os'
-import * as path from 'node:path'
-import { join } from 'pathe'
+import type { CodeToolType } from '../constants';
+import { execSync } from 'node:child_process';
+import { existsSync } from 'node:fs';
+import * as fs from 'node:fs/promises';
+import { mkdir, readdir, readFile, unlink, writeFile } from 'node:fs/promises';
+import { homedir } from 'node:os';
+import * as path from 'node:path';
+import { join } from 'pathe';
 
 // ============================================================================
 // Types and Interfaces
 // ============================================================================
 
 export interface SessionHistoryEntry {
-  timestamp: Date
-  role: 'user' | 'assistant' | 'system'
-  content: string
-  tokens?: number
+  timestamp: Date;
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+  tokens?: number;
 }
 
 export interface GitInfo {
-  branch?: string
-  commitHash?: string
-  forkPoint?: string // Commit hash where this session was forked from another
-  remoteUrl?: string
-  isDetached?: boolean
-  rootPath?: string // Git repository root path
+  branch?: string;
+  commitHash?: string;
+  forkPoint?: string; // Commit hash where this session was forked from another
+  remoteUrl?: string;
+  isDetached?: boolean;
+  rootPath?: string; // Git repository root path
 }
 
 export interface SessionMetadata {
-  tags?: string[]
-  color?: string // For visual identification in UI
-  pinned?: boolean
-  archived?: boolean
+  tags?: string[];
+  color?: string; // For visual identification in UI
+  pinned?: boolean;
+  archived?: boolean;
 }
 
 /**
@@ -50,7 +50,7 @@ export interface SessionMetadata {
  * Based on sikao's SessionContext insight: knowing the phase avoids
  * misrouting and enables semantic-aware compression.
  */
-export type TaskPhase = 'exploring' | 'executing' | 'generating' | 'reviewing' | 'idle'
+export type TaskPhase = 'exploring' | 'executing' | 'generating' | 'reviewing' | 'idle';
 
 /**
  * Session intelligence state — the "never forget" layer.
@@ -58,55 +58,55 @@ export type TaskPhase = 'exploring' | 'executing' | 'generating' | 'reviewing' |
  */
 export interface SessionIntelligenceState {
   /** The user's original intent — NEVER discarded, even after compaction */
-  userOriginalIntent?: string
+  userOriginalIntent?: string;
   /** Current task phase for routing decisions */
-  taskPhase: TaskPhase
+  taskPhase: TaskPhase;
   /** Files touched in this session */
-  filesTouched: string[]
+  filesTouched: string[];
   /** Key decisions made (file paths, approach choices, etc.) */
-  keyDecisions: string[]
+  keyDecisions: string[];
   /** Total tool call count across the session */
-  toolCallCount: number
+  toolCallCount: number;
   /** Message index up to which history has been compressed */
-  compressionWatermark: number
+  compressionWatermark: number;
 }
 
 export interface Session {
-  id: string
-  name?: string
-  provider?: string
-  apiKey?: string
-  apiUrl?: string
-  model?: string
-  codeType?: CodeToolType
-  createdAt: Date
-  lastUsedAt: Date
-  history: SessionHistoryEntry[]
-  gitInfo?: GitInfo
-  metadata?: SessionMetadata
-  forkedFrom?: string // Parent session ID if forked
-  forks?: string[] // IDs of sessions forked from this one
+  id: string;
+  name?: string;
+  provider?: string;
+  apiKey?: string;
+  apiUrl?: string;
+  model?: string;
+  codeType?: CodeToolType;
+  createdAt: Date;
+  lastUsedAt: Date;
+  history: SessionHistoryEntry[];
+  gitInfo?: GitInfo;
+  metadata?: SessionMetadata;
+  forkedFrom?: string; // Parent session ID if forked
+  forks?: string[]; // IDs of sessions forked from this one
   /** Intelligence state — survives compaction */
-  intelligence?: SessionIntelligenceState
+  intelligence?: SessionIntelligenceState;
 }
 
 export interface SessionListOptions {
-  sortBy?: 'name' | 'createdAt' | 'lastUsedAt'
-  order?: 'asc' | 'desc'
-  limit?: number
-  branch?: string // Filter by Git branch
-  includeArchived?: boolean
+  sortBy?: 'name' | 'createdAt' | 'lastUsedAt';
+  order?: 'asc' | 'desc';
+  limit?: number;
+  branch?: string; // Filter by Git branch
+  includeArchived?: boolean;
 }
 
 export interface SessionManagerOptions {
-  sessionsDir?: string
-  autoCleanupDays?: number
+  sessionsDir?: string;
+  autoCleanupDays?: number;
 }
 
 export interface SessionForkOptions {
-  name?: string
-  branch?: string // New branch name if creating a new branch
-  copyHistory?: boolean
+  name?: string;
+  branch?: string; // New branch name if creating a new branch
+  copyHistory?: boolean;
 }
 
 // ============================================================================
@@ -114,12 +114,12 @@ export interface SessionForkOptions {
 // ============================================================================
 
 export class SessionManager {
-  readonly sessionsDir: string
-  private autoCleanupDays: number
+  readonly sessionsDir: string;
+  private autoCleanupDays: number;
 
   constructor(options: SessionManagerOptions = {}) {
-    this.sessionsDir = options.sessionsDir || join(homedir(), '.claude', 'sessions')
-    this.autoCleanupDays = options.autoCleanupDays || 30
+    this.sessionsDir = options.sessionsDir || join(homedir(), '.claude', 'sessions');
+    this.autoCleanupDays = options.autoCleanupDays || 30;
   }
 
   /**
@@ -127,7 +127,7 @@ export class SessionManager {
    */
   private async ensureSessionsDir(): Promise<void> {
     if (!existsSync(this.sessionsDir)) {
-      await mkdir(this.sessionsDir, { recursive: true })
+      await mkdir(this.sessionsDir, { recursive: true });
     }
   }
 
@@ -135,14 +135,14 @@ export class SessionManager {
    * Generate unique session ID
    */
   private generateSessionId(): string {
-    return `session-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
+    return `session-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
   }
 
   /**
    * Get session file path
    */
   private getSessionPath(sessionId: string): string {
-    return join(this.sessionsDir, `${sessionId}.json`)
+    return join(this.sessionsDir, `${sessionId}.json`);
   }
 
   /**
@@ -153,19 +153,19 @@ export class SessionManager {
       const branch = execSync('git rev-parse --abbrev-ref HEAD', {
         encoding: 'utf-8',
         stdio: ['pipe', 'pipe', 'ignore'],
-      }).trim()
+      }).trim();
 
       const commitHash = execSync('git rev-parse HEAD', {
         encoding: 'utf-8',
         stdio: ['pipe', 'pipe', 'ignore'],
-      }).trim()
+      }).trim();
 
-      let remoteUrl: string | undefined
+      let remoteUrl: string | undefined;
       try {
         remoteUrl = execSync('git config --get remote.origin.url', {
           encoding: 'utf-8',
           stdio: ['pipe', 'pipe', 'ignore'],
-        }).trim() || undefined
+        }).trim() || undefined;
       }
       catch {
         // No remote configured
@@ -176,10 +176,10 @@ export class SessionManager {
         commitHash,
         remoteUrl,
         isDetached: branch === 'HEAD',
-      }
+      };
     }
     catch {
-      return undefined
+      return undefined;
     }
   }
 
@@ -191,16 +191,16 @@ export class SessionManager {
     provider?: string,
     apiKey?: string,
     options?: {
-      apiUrl?: string
-      model?: string
-      codeType?: CodeToolType
-      metadata?: SessionMetadata
-      gitInfo?: GitInfo
+      apiUrl?: string;
+      model?: string;
+      codeType?: CodeToolType;
+      metadata?: SessionMetadata;
+      gitInfo?: GitInfo;
     },
   ): Promise<Session> {
-    await this.ensureSessionsDir()
+    await this.ensureSessionsDir();
 
-    const gitInfo = options?.gitInfo || this.getGitInfo()
+    const gitInfo = options?.gitInfo || this.getGitInfo();
 
     const session: Session = {
       id: this.generateSessionId(),
@@ -216,10 +216,10 @@ export class SessionManager {
       gitInfo,
       metadata: options?.metadata,
       forks: [],
-    }
+    };
 
-    await this.saveSession(session)
-    return session
+    await this.saveSession(session);
+    return session;
   }
 
   /**
@@ -230,14 +230,14 @@ export class SessionManager {
     parentId: string,
     options: SessionForkOptions = {},
   ): Promise<Session | null> {
-    const parent = await this.loadSession(parentId)
+    const parent = await this.loadSession(parentId);
     if (!parent) {
-      return null
+      return null;
     }
 
-    await this.ensureSessionsDir()
+    await this.ensureSessionsDir();
 
-    const gitInfo = this.getGitInfo()
+    const gitInfo = this.getGitInfo();
 
     const forkedSession: Session = {
       id: this.generateSessionId(),
@@ -259,34 +259,34 @@ export class SessionManager {
       },
       forkedFrom: parent.id,
       forks: [],
-    }
+    };
 
     // Track fork point in Git info
     if (parent.gitInfo?.commitHash) {
       forkedSession.gitInfo = {
         ...forkedSession.gitInfo,
         forkPoint: parent.gitInfo.commitHash,
-      }
+      };
     }
 
     // Update parent's fork list
     if (!parent.forks) {
-      parent.forks = []
+      parent.forks = [];
     }
-    parent.forks.push(forkedSession.id)
-    await this.saveSession(parent)
+    parent.forks.push(forkedSession.id);
+    await this.saveSession(parent);
 
-    await this.saveSession(forkedSession)
-    return forkedSession
+    await this.saveSession(forkedSession);
+    return forkedSession;
   }
 
   /**
    * Save session to storage
    */
   async saveSession(session: Session): Promise<void> {
-    await this.ensureSessionsDir()
+    await this.ensureSessionsDir();
 
-    const sessionPath = this.getSessionPath(session.id)
+    const sessionPath = this.getSessionPath(session.id);
     const sessionData = {
       ...session,
       createdAt: session.createdAt.toISOString(),
@@ -295,35 +295,35 @@ export class SessionManager {
         ...entry,
         timestamp: entry.timestamp.toISOString(),
       })),
-    }
+    };
 
-    await writeFile(sessionPath, JSON.stringify(sessionData, null, 2), 'utf-8')
+    await writeFile(sessionPath, JSON.stringify(sessionData, null, 2), 'utf-8');
   }
 
   /**
    * Load session by ID or name
    */
   async loadSession(nameOrId: string): Promise<Session | null> {
-    await this.ensureSessionsDir()
+    await this.ensureSessionsDir();
 
     // Try to load by ID first
-    let sessionPath = this.getSessionPath(nameOrId)
+    let sessionPath = this.getSessionPath(nameOrId);
 
     if (!existsSync(sessionPath)) {
       // Try to find by name
-      const sessions = await this.listSessions()
-      const found = sessions.find(s => s.name === nameOrId)
+      const sessions = await this.listSessions();
+      const found = sessions.find(s => s.name === nameOrId);
 
       if (!found) {
-        return null
+        return null;
       }
 
-      sessionPath = this.getSessionPath(found.id)
+      sessionPath = this.getSessionPath(found.id);
     }
 
     try {
-      const content = await readFile(sessionPath, 'utf-8')
-      const data = JSON.parse(content)
+      const content = await readFile(sessionPath, 'utf-8');
+      const data = JSON.parse(content);
 
       return {
         ...data,
@@ -333,11 +333,11 @@ export class SessionManager {
           ...entry,
           timestamp: new Date(entry.timestamp),
         })),
-      }
+      };
     }
     catch (error) {
-      console.error(`Failed to load session ${nameOrId}:`, error)
-      return null
+      console.error(`Failed to load session ${nameOrId}:`, error);
+      return null;
     }
   }
 
@@ -345,18 +345,18 @@ export class SessionManager {
    * List all sessions with optional filtering
    */
   async listSessions(options: SessionListOptions = {}): Promise<Session[]> {
-    await this.ensureSessionsDir()
+    await this.ensureSessionsDir();
 
     try {
-      const files = await readdir(this.sessionsDir)
-      const sessionFiles = files.filter(f => f.endsWith('.json'))
+      const files = await readdir(this.sessionsDir);
+      const sessionFiles = files.filter(f => f.endsWith('.json'));
 
-      const sessions: Session[] = []
+      const sessions: Session[] = [];
       for (const file of sessionFiles) {
-        const sessionPath = join(this.sessionsDir, file)
+        const sessionPath = join(this.sessionsDir, file);
         try {
-          const content = await readFile(sessionPath, 'utf-8')
-          const data = JSON.parse(content)
+          const content = await readFile(sessionPath, 'utf-8');
+          const data = JSON.parse(content);
 
           const session: Session = {
             ...data,
@@ -366,62 +366,62 @@ export class SessionManager {
               ...entry,
               timestamp: new Date(entry.timestamp),
             })),
-          }
+          };
 
           // Filter by archived status
           if (!options.includeArchived && session.metadata?.archived) {
-            continue
+            continue;
           }
 
           // Filter by Git branch
           if (options.branch && session.gitInfo?.branch !== options.branch) {
-            continue
+            continue;
           }
 
-          sessions.push(session)
+          sessions.push(session);
         }
         catch (error) {
-          console.error(`Failed to load session file ${file}:`, error)
+          console.error(`Failed to load session file ${file}:`, error);
         }
       }
 
       // Sort sessions
-      const sortBy = options.sortBy || 'lastUsedAt'
-      const order = options.order || 'desc'
+      const sortBy = options.sortBy || 'lastUsedAt';
+      const order = options.order || 'desc';
 
       sessions.sort((a, b) => {
-        let comparison = 0
+        let comparison = 0;
 
         if (sortBy === 'name') {
-          comparison = (a.name || a.id).localeCompare(b.name || b.id)
+          comparison = (a.name || a.id).localeCompare(b.name || b.id);
         }
         else if (sortBy === 'createdAt') {
-          comparison = a.createdAt.getTime() - b.createdAt.getTime()
+          comparison = a.createdAt.getTime() - b.createdAt.getTime();
         }
         else if (sortBy === 'lastUsedAt') {
           // Pinned sessions always come first
           if (a.metadata?.pinned && !b.metadata?.pinned) {
-            return -1
+            return -1;
           }
           if (!a.metadata?.pinned && b.metadata?.pinned) {
-            return 1
+            return 1;
           }
-          comparison = a.lastUsedAt.getTime() - b.lastUsedAt.getTime()
+          comparison = a.lastUsedAt.getTime() - b.lastUsedAt.getTime();
         }
 
-        return order === 'asc' ? comparison : -comparison
-      })
+        return order === 'asc' ? comparison : -comparison;
+      });
 
       // Apply limit
       if (options.limit && options.limit > 0) {
-        return sessions.slice(0, options.limit)
+        return sessions.slice(0, options.limit);
       }
 
-      return sessions
+      return sessions;
     }
     catch (error) {
-      console.error('Failed to list sessions:', error)
-      return []
+      console.error('Failed to list sessions:', error);
+      return [];
     }
   }
 
@@ -429,70 +429,70 @@ export class SessionManager {
    * List sessions grouped by Git branch
    */
   async listSessionsByBranch(): Promise<Map<string, Session[]>> {
-    const sessions = await this.listSessions()
-    const branchMap = new Map<string, Session[]>()
+    const sessions = await this.listSessions();
+    const branchMap = new Map<string, Session[]>();
 
     for (const session of sessions) {
-      const branch = session.gitInfo?.branch || 'no-branch'
+      const branch = session.gitInfo?.branch || 'no-branch';
 
       if (!branchMap.has(branch)) {
-        branchMap.set(branch, [])
+        branchMap.set(branch, []);
       }
 
-      branchMap.get(branch)!.push(session)
+      branchMap.get(branch)!.push(session);
     }
 
-    return branchMap
+    return branchMap;
   }
 
   /**
    * List forked sessions grouped by parent
    */
   async listForkedSessions(): Promise<Map<string, Session[]>> {
-    const sessions = await this.listSessions({ includeArchived: true })
-    const forkMap = new Map<string, Session[]>()
+    const sessions = await this.listSessions({ includeArchived: true });
+    const forkMap = new Map<string, Session[]>();
 
     for (const session of sessions) {
       if (session.forkedFrom) {
         if (!forkMap.has(session.forkedFrom)) {
-          forkMap.set(session.forkedFrom, [])
+          forkMap.set(session.forkedFrom, []);
         }
 
-        forkMap.get(session.forkedFrom)!.push(session)
+        forkMap.get(session.forkedFrom)!.push(session);
       }
     }
 
-    return forkMap
+    return forkMap;
   }
 
   /**
    * Delete session by ID or name
    */
   async deleteSession(nameOrId: string): Promise<boolean> {
-    const session = await this.loadSession(nameOrId)
+    const session = await this.loadSession(nameOrId);
 
     if (!session) {
-      return false
+      return false;
     }
 
     // Remove from parent's fork list
     if (session.forkedFrom) {
-      const parent = await this.loadSession(session.forkedFrom)
+      const parent = await this.loadSession(session.forkedFrom);
       if (parent?.forks) {
-        parent.forks = parent.forks.filter(id => id !== session.id)
-        await this.saveSession(parent)
+        parent.forks = parent.forks.filter(id => id !== session.id);
+        await this.saveSession(parent);
       }
     }
 
-    const sessionPath = this.getSessionPath(session.id)
+    const sessionPath = this.getSessionPath(session.id);
 
     try {
-      await unlink(sessionPath)
-      return true
+      await unlink(sessionPath);
+      return true;
     }
     catch (error) {
-      console.error(`Failed to delete session ${nameOrId}:`, error)
-      return false
+      console.error(`Failed to delete session ${nameOrId}:`, error);
+      return false;
     }
   }
 
@@ -500,53 +500,53 @@ export class SessionManager {
    * Rename session
    */
   async renameSession(oldName: string, newName: string): Promise<boolean> {
-    const session = await this.loadSession(oldName)
+    const session = await this.loadSession(oldName);
 
     if (!session) {
-      return false
+      return false;
     }
 
-    session.name = newName
-    session.lastUsedAt = new Date()
+    session.name = newName;
+    session.lastUsedAt = new Date();
 
-    await this.saveSession(session)
-    return true
+    await this.saveSession(session);
+    return true;
   }
 
   /**
    * Pin/unpin a session
    */
   async togglePin(sessionId: string, pinned?: boolean): Promise<boolean> {
-    const session = await this.loadSession(sessionId)
+    const session = await this.loadSession(sessionId);
 
     if (!session) {
-      return false
+      return false;
     }
 
-    session.metadata = session.metadata || {}
-    session.metadata.pinned = pinned ?? !session.metadata.pinned
-    session.lastUsedAt = new Date()
+    session.metadata = session.metadata || {};
+    session.metadata.pinned = pinned ?? !session.metadata.pinned;
+    session.lastUsedAt = new Date();
 
-    await this.saveSession(session)
-    return true
+    await this.saveSession(session);
+    return true;
   }
 
   /**
    * Archive/unarchive a session
    */
   async toggleArchive(sessionId: string, archived?: boolean): Promise<boolean> {
-    const session = await this.loadSession(sessionId)
+    const session = await this.loadSession(sessionId);
 
     if (!session) {
-      return false
+      return false;
     }
 
-    session.metadata = session.metadata || {}
-    session.metadata.archived = archived ?? !session.metadata.archived
-    session.lastUsedAt = new Date()
+    session.metadata = session.metadata || {};
+    session.metadata.archived = archived ?? !session.metadata.archived;
+    session.lastUsedAt = new Date();
 
-    await this.saveSession(session)
-    return true
+    await this.saveSession(session);
+    return true;
   }
 
   /**
@@ -558,10 +558,10 @@ export class SessionManager {
     content: string,
     tokens?: number,
   ): Promise<boolean> {
-    const session = await this.loadSession(sessionId)
+    const session = await this.loadSession(sessionId);
 
     if (!session) {
-      return false
+      return false;
     }
 
     session.history.push({
@@ -569,11 +569,11 @@ export class SessionManager {
       role,
       content,
       tokens,
-    })
+    });
 
-    session.lastUsedAt = new Date()
-    await this.saveSession(session)
-    return true
+    session.lastUsedAt = new Date();
+    await this.saveSession(session);
+    return true;
   }
 
   /**
@@ -583,25 +583,25 @@ export class SessionManager {
     sessionId: string,
     updates: Partial<Omit<Session, 'id' | 'createdAt' | 'history'>>,
   ): Promise<boolean> {
-    const session = await this.loadSession(sessionId)
+    const session = await this.loadSession(sessionId);
 
     if (!session) {
-      return false
+      return false;
     }
 
-    Object.assign(session, updates)
-    session.lastUsedAt = new Date()
+    Object.assign(session, updates);
+    session.lastUsedAt = new Date();
 
-    await this.saveSession(session)
-    return true
+    await this.saveSession(session);
+    return true;
   }
 
   /**
    * Search sessions by content or metadata
    */
   async searchSessions(query: string): Promise<Session[]> {
-    const sessions = await this.listSessions()
-    const lowerQuery = query.toLowerCase()
+    const sessions = await this.listSessions();
+    const lowerQuery = query.toLowerCase();
 
     return sessions.filter(session =>
       session.name?.toLowerCase().includes(lowerQuery)
@@ -609,23 +609,23 @@ export class SessionManager {
       || session.history.some(entry =>
         entry.content.toLowerCase().includes(lowerQuery),
       ),
-    )
+    );
   }
 
   /**
    * Get session statistics
    */
   async getStatistics(): Promise<{
-    totalSessions: number
-    totalHistoryEntries: number
-    oldestSession?: Date
-    newestSession?: Date
-    mostRecentlyUsed?: Date
-    pinnedCount: number
-    archivedCount: number
-    forkedCount: number
+    totalSessions: number;
+    totalHistoryEntries: number;
+    oldestSession?: Date;
+    newestSession?: Date;
+    mostRecentlyUsed?: Date;
+    pinnedCount: number;
+    archivedCount: number;
+    forkedCount: number;
   }> {
-    const sessions = await this.listSessions({ includeArchived: true })
+    const sessions = await this.listSessions({ includeArchived: true });
 
     if (sessions.length === 0) {
       return {
@@ -634,16 +634,16 @@ export class SessionManager {
         pinnedCount: 0,
         archivedCount: 0,
         forkedCount: 0,
-      }
+      };
     }
 
-    const totalHistoryEntries = sessions.reduce((sum, s) => sum + s.history.length, 0)
-    const sortedByCreated = [...sessions].sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
-    const sortedByUsed = [...sessions].sort((a, b) => b.lastUsedAt.getTime() - a.lastUsedAt.getTime())
+    const totalHistoryEntries = sessions.reduce((sum, s) => sum + s.history.length, 0);
+    const sortedByCreated = [...sessions].sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+    const sortedByUsed = [...sessions].sort((a, b) => b.lastUsedAt.getTime() - a.lastUsedAt.getTime());
 
-    const pinnedCount = sessions.filter(s => s.metadata?.pinned).length
-    const archivedCount = sessions.filter(s => s.metadata?.archived).length
-    const forkedCount = sessions.filter(s => s.forkedFrom).length
+    const pinnedCount = sessions.filter(s => s.metadata?.pinned).length;
+    const archivedCount = sessions.filter(s => s.metadata?.archived).length;
+    const forkedCount = sessions.filter(s => s.forkedFrom).length;
 
     return {
       totalSessions: sessions.length,
@@ -654,7 +654,7 @@ export class SessionManager {
       pinnedCount,
       archivedCount,
       forkedCount,
-    }
+    };
   }
 
   /**
@@ -662,40 +662,40 @@ export class SessionManager {
    * Preserves pinned sessions
    */
   async cleanupOldSessions(): Promise<number> {
-    const sessions = await this.listSessions({ includeArchived: true })
-    const cutoffDate = new Date()
-    cutoffDate.setDate(cutoffDate.getDate() - this.autoCleanupDays)
+    const sessions = await this.listSessions({ includeArchived: true });
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - this.autoCleanupDays);
 
-    let deletedCount = 0
+    let deletedCount = 0;
 
     for (const session of sessions) {
       // Skip pinned sessions
       if (session.metadata?.pinned) {
-        continue
+        continue;
       }
 
       if (session.lastUsedAt < cutoffDate) {
-        const deleted = await this.deleteSession(session.id)
+        const deleted = await this.deleteSession(session.id);
         if (deleted) {
-          deletedCount++
+          deletedCount++;
         }
       }
     }
 
-    return deletedCount
+    return deletedCount;
   }
 
   /**
    * Export session to JSON
    */
   async exportSession(sessionId: string): Promise<string | null> {
-    const session = await this.loadSession(sessionId)
+    const session = await this.loadSession(sessionId);
 
     if (!session) {
-      return null
+      return null;
     }
 
-    return JSON.stringify(session, null, 2)
+    return JSON.stringify(session, null, 2);
   }
 
   /**
@@ -703,7 +703,7 @@ export class SessionManager {
    */
   async importSession(jsonData: string): Promise<Session | null> {
     try {
-      const data = JSON.parse(jsonData)
+      const data = JSON.parse(jsonData);
 
       // Generate new ID to avoid conflicts
       const session: Session = {
@@ -716,14 +716,14 @@ export class SessionManager {
           timestamp: new Date(entry.timestamp),
         })),
         forks: [],
-      }
+      };
 
-      await this.saveSession(session)
-      return session
+      await this.saveSession(session);
+      return session;
     }
     catch (error) {
-      console.error('Failed to import session:', error)
-      return null
+      console.error('Failed to import session:', error);
+      return null;
     }
   }
 
@@ -735,12 +735,12 @@ export class SessionManager {
       const branches = execSync('git branch --format \'%(refname:short)\'', {
         encoding: 'utf-8',
         stdio: ['pipe', 'pipe', 'ignore'],
-      })
+      });
 
-      return branches.trim().split('\n').filter(Boolean)
+      return branches.trim().split('\n').filter(Boolean);
     }
     catch {
-      return []
+      return [];
     }
   }
 
@@ -748,24 +748,24 @@ export class SessionManager {
    * Get session by Git branch
    */
   async getSessionsByBranch(branch: string): Promise<Session[]> {
-    return this.listSessions({ branch, sortBy: 'lastUsedAt', order: 'desc' })
+    return this.listSessions({ branch, sortBy: 'lastUsedAt', order: 'desc' });
   }
 
   /**
    * Update session's Git information
    */
   async updateGitInfo(sessionId: string): Promise<boolean> {
-    const session = await this.loadSession(sessionId)
+    const session = await this.loadSession(sessionId);
 
     if (!session) {
-      return false
+      return false;
     }
 
-    session.gitInfo = this.getGitInfo()
-    session.lastUsedAt = new Date()
+    session.gitInfo = this.getGitInfo();
+    session.lastUsedAt = new Date();
 
-    await this.saveSession(session)
-    return true
+    await this.saveSession(session);
+    return true;
   }
 
   /**
@@ -774,12 +774,12 @@ export class SessionManager {
   async mergeSessions(sourceIds: string[], targetName?: string): Promise<Session | null> {
     const sources = await Promise.all(
       sourceIds.map(id => this.loadSession(id)),
-    )
+    );
 
-    const validSources = sources.filter((s): s is Session => s !== null)
+    const validSources = sources.filter((s): s is Session => s !== null);
 
     if (validSources.length === 0) {
-      return null
+      return null;
     }
 
     const mergedSession = await this.createSession(
@@ -794,16 +794,16 @@ export class SessionManager {
           tags: ['merged'],
         },
       },
-    )
+    );
 
     // Combine all histories, sorted by timestamp
-    const allHistory = validSources.flatMap(s => s.history)
-    allHistory.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime())
+    const allHistory = validSources.flatMap(s => s.history);
+    allHistory.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
 
-    mergedSession.history = allHistory
-    await this.saveSession(mergedSession)
+    mergedSession.history = allHistory;
+    await this.saveSession(mergedSession);
 
-    return mergedSession
+    return mergedSession;
   }
 }
 
@@ -815,13 +815,13 @@ export class SessionManager {
  * Recovery checkpoint data
  */
 export interface RecoveryCheckpoint {
-  sessionId: string
-  timestamp: Date
-  historyLength: number
-  lastMessagePreview: string
-  contextTokens: number
-  gitBranch?: string
-  workingDirectory: string
+  sessionId: string;
+  timestamp: Date;
+  historyLength: number;
+  lastMessagePreview: string;
+  contextTokens: number;
+  gitBranch?: string;
+  workingDirectory: string;
 }
 
 /**
@@ -830,13 +830,13 @@ export interface RecoveryCheckpoint {
  * Provides crash recovery and session continuity features.
  */
 export class CrossSessionRecovery {
-  private sessionManager: SessionManager
-  private checkpointFile: string
-  private maxCheckpoints = 10
+  private sessionManager: SessionManager;
+  private checkpointFile: string;
+  private maxCheckpoints = 10;
 
   constructor(sessionManager: SessionManager) {
-    this.sessionManager = sessionManager
-    this.checkpointFile = path.join(sessionManager.sessionsDir, '.recovery-checkpoints.json')
+    this.sessionManager = sessionManager;
+    this.checkpointFile = path.join(sessionManager.sessionsDir, '.recovery-checkpoints.json');
   }
 
   /**
@@ -851,32 +851,32 @@ export class CrossSessionRecovery {
       contextTokens,
       gitBranch: session.gitInfo?.branch,
       workingDirectory: session.gitInfo?.rootPath || process.cwd(),
-    }
+    };
 
-    const checkpoints = await this.loadCheckpoints()
-    checkpoints.unshift(checkpoint)
+    const checkpoints = await this.loadCheckpoints();
+    checkpoints.unshift(checkpoint);
 
     // Keep only recent checkpoints
-    const trimmed = checkpoints.slice(0, this.maxCheckpoints)
+    const trimmed = checkpoints.slice(0, this.maxCheckpoints);
 
     await fs.writeFile(
       this.checkpointFile,
       JSON.stringify(trimmed, null, 2),
       'utf-8',
-    )
+    );
   }
 
   /**
    * Get last message preview
    */
   private getLastMessagePreview(session: Session): string {
-    const lastEntry = session.history[session.history.length - 1]
+    const lastEntry = session.history[session.history.length - 1];
     if (!lastEntry) {
-      return '(empty session)'
+      return '(empty session)';
     }
 
-    const preview = lastEntry.content.slice(0, 100)
-    return preview.length < lastEntry.content.length ? `${preview}...` : preview
+    const preview = lastEntry.content.slice(0, 100);
+    return preview.length < lastEntry.content.length ? `${preview}...` : preview;
   }
 
   /**
@@ -884,15 +884,15 @@ export class CrossSessionRecovery {
    */
   async loadCheckpoints(): Promise<RecoveryCheckpoint[]> {
     try {
-      const data = await fs.readFile(this.checkpointFile, 'utf-8')
-      const checkpoints = JSON.parse(data)
+      const data = await fs.readFile(this.checkpointFile, 'utf-8');
+      const checkpoints = JSON.parse(data);
       return checkpoints.map((cp: any) => ({
         ...cp,
         timestamp: new Date(cp.timestamp),
-      }))
+      }));
     }
     catch {
-      return []
+      return [];
     }
   }
 
@@ -900,23 +900,23 @@ export class CrossSessionRecovery {
    * Get the most recent checkpoint
    */
   async getLatestCheckpoint(): Promise<RecoveryCheckpoint | null> {
-    const checkpoints = await this.loadCheckpoints()
-    return checkpoints[0] || null
+    const checkpoints = await this.loadCheckpoints();
+    return checkpoints[0] || null;
   }
 
   /**
    * Get checkpoints for a specific session
    */
   async getSessionCheckpoints(sessionId: string): Promise<RecoveryCheckpoint[]> {
-    const checkpoints = await this.loadCheckpoints()
-    return checkpoints.filter(cp => cp.sessionId === sessionId)
+    const checkpoints = await this.loadCheckpoints();
+    return checkpoints.filter(cp => cp.sessionId === sessionId);
   }
 
   /**
    * Recover session from checkpoint
    */
   async recoverFromCheckpoint(checkpoint: RecoveryCheckpoint): Promise<Session | null> {
-    return this.sessionManager.loadSession(checkpoint.sessionId)
+    return this.sessionManager.loadSession(checkpoint.sessionId);
   }
 
   /**
@@ -926,12 +926,12 @@ export class CrossSessionRecovery {
     const sessions = await this.sessionManager.listSessions({
       sortBy: 'lastUsedAt',
       order: 'desc',
-    })
+    });
 
-    const cutoff = new Date()
-    cutoff.setHours(cutoff.getHours() - maxAgeHours)
+    const cutoff = new Date();
+    cutoff.setHours(cutoff.getHours() - maxAgeHours);
 
-    return sessions.filter(s => s.lastUsedAt >= cutoff)
+    return sessions.filter(s => s.lastUsedAt >= cutoff);
   }
 
   /**
@@ -939,23 +939,23 @@ export class CrossSessionRecovery {
    */
   async autoRecover(): Promise<Session | null> {
     // First, try the latest checkpoint
-    const latestCheckpoint = await this.getLatestCheckpoint()
+    const latestCheckpoint = await this.getLatestCheckpoint();
 
     if (latestCheckpoint) {
-      const session = await this.recoverFromCheckpoint(latestCheckpoint)
+      const session = await this.recoverFromCheckpoint(latestCheckpoint);
       if (session) {
-        return session
+        return session;
       }
     }
 
     // Fall back to most recently used session
-    const recentSessions = await this.findRecoverableSessions(1) // Last hour
+    const recentSessions = await this.findRecoverableSessions(1); // Last hour
 
     if (recentSessions.length > 0) {
-      return recentSessions[0]
+      return recentSessions[0];
     }
 
-    return null
+    return null;
   }
 
   /**
@@ -963,7 +963,7 @@ export class CrossSessionRecovery {
    */
   async clearCheckpoints(): Promise<void> {
     try {
-      await fs.unlink(this.checkpointFile)
+      await fs.unlink(this.checkpointFile);
     }
     catch {
       // File doesn't exist, ignore
@@ -974,20 +974,20 @@ export class CrossSessionRecovery {
    * Get recovery status
    */
   async getRecoveryStatus(): Promise<{
-    hasCheckpoints: boolean
-    checkpointCount: number
-    latestCheckpoint: RecoveryCheckpoint | null
-    recoverableSessions: number
+    hasCheckpoints: boolean;
+    checkpointCount: number;
+    latestCheckpoint: RecoveryCheckpoint | null;
+    recoverableSessions: number;
   }> {
-    const checkpoints = await this.loadCheckpoints()
-    const recoverableSessions = await this.findRecoverableSessions(24)
+    const checkpoints = await this.loadCheckpoints();
+    const recoverableSessions = await this.findRecoverableSessions(24);
 
     return {
       hasCheckpoints: checkpoints.length > 0,
       checkpointCount: checkpoints.length,
       latestCheckpoint: checkpoints[0] || null,
       recoverableSessions: recoverableSessions.length,
-    }
+    };
   }
 }
 
@@ -1001,32 +1001,32 @@ export class CrossSessionRecovery {
  */
 function detectTaskPhase(history: SessionHistoryEntry[]): TaskPhase {
   if (history.length === 0)
-    return 'idle'
-  const recent = history.slice(-10)
-  const recentText = recent.map(h => h.content).join(' ').toLowerCase()
+    return 'idle';
+  const recent = history.slice(-10);
+  const recentText = recent.map(h => h.content).join(' ').toLowerCase();
 
   // Generating: long assistant outputs, writing files
   if (recentText.includes('write') || recentText.includes('create') || recentText.includes('generating'))
-    return 'generating'
+    return 'generating';
   // Reviewing: checking, testing, verifying
   if (recentText.includes('test') || recentText.includes('review') || recentText.includes('check'))
-    return 'reviewing'
+    return 'reviewing';
   // Executing: running commands, editing files
   if (recentText.includes('edit') || recentText.includes('bash') || recentText.includes('run'))
-    return 'executing'
+    return 'executing';
   // Exploring: reading, searching, analyzing
   if (recentText.includes('read') || recentText.includes('search') || recentText.includes('grep'))
-    return 'exploring'
+    return 'exploring';
 
-  return 'idle'
+  return 'idle';
 }
 
 /**
  * Extracts file paths mentioned in a history entry.
  */
 function extractFilePaths(content: string): string[] {
-  const matches = content.match(/\/[\w./\-]+\.\w+|[\w./\-]+\.(?:ts|js|json|md|py|go|rs)/g)
-  return matches ? [...new Set(matches)] : []
+  const matches = content.match(/\/[\w./\-]+\.\w+|[\w./\-]+\.(?:ts|js|json|md|py|go|rs)/g);
+  return matches ? [...new Set(matches)] : [];
 }
 
 /**
@@ -1041,11 +1041,11 @@ function extractFilePaths(content: string): string[] {
  *   intel.getSystemPromptInjection() // inject into system prompt before compaction
  */
 export class SessionIntelligence {
-  private static instance: SessionIntelligence | null = null
-  private session: Session
+  private static instance: SessionIntelligence | null = null;
+  private session: Session;
 
   constructor(session: Session) {
-    this.session = session
+    this.session = session;
     if (!session.intelligence) {
       session.intelligence = {
         taskPhase: 'idle',
@@ -1053,12 +1053,12 @@ export class SessionIntelligence {
         keyDecisions: [],
         toolCallCount: 0,
         compressionWatermark: 0,
-      }
+      };
     }
   }
 
   get state(): SessionIntelligenceState {
-    return this.session.intelligence!
+    return this.session.intelligence!;
   }
 
   /**
@@ -1066,40 +1066,40 @@ export class SessionIntelligence {
    * Call this after every message added to the session.
    */
   observe(entry: SessionHistoryEntry): void {
-    const intel = this.state
+    const intel = this.state;
 
     // Capture original intent from the very first user message
     if (!intel.userOriginalIntent && entry.role === 'user' && entry.content.trim().length > 10) {
-      intel.userOriginalIntent = entry.content.slice(0, 500)
+      intel.userOriginalIntent = entry.content.slice(0, 500);
     }
 
     // Track files touched
-    const files = extractFilePaths(entry.content)
+    const files = extractFilePaths(entry.content);
     for (const f of files) {
       if (!intel.filesTouched.includes(f)) {
-        intel.filesTouched.push(f)
+        intel.filesTouched.push(f);
       }
     }
 
     // Count tool calls (rough heuristic: assistant messages with tool-like content)
     if (entry.role === 'assistant' && /\b(bash|read|write|edit|grep|glob)\b/i.test(entry.content)) {
-      intel.toolCallCount++
+      intel.toolCallCount++;
     }
 
     // Update task phase
-    intel.taskPhase = detectTaskPhase(this.session.history)
+    intel.taskPhase = detectTaskPhase(this.session.history);
   }
 
   /**
    * Record a key decision explicitly.
    */
   recordDecision(decision: string): void {
-    const intel = this.state
+    const intel = this.state;
     if (!intel.keyDecisions.includes(decision)) {
-      intel.keyDecisions.push(decision.slice(0, 200))
+      intel.keyDecisions.push(decision.slice(0, 200));
       // Keep last 20 decisions
       if (intel.keyDecisions.length > 20) {
-        intel.keyDecisions.shift()
+        intel.keyDecisions.shift();
       }
     }
   }
@@ -1108,7 +1108,7 @@ export class SessionIntelligence {
    * Mark that history up to index N has been compressed.
    */
   markCompressed(upToIndex: number): void {
-    this.state.compressionWatermark = upToIndex
+    this.state.compressionWatermark = upToIndex;
   }
 
   /**
@@ -1116,33 +1116,33 @@ export class SessionIntelligence {
    * Inject this whenever context is about to be compressed.
    */
   getSystemPromptInjection(): string {
-    const intel = this.state
-    const parts: string[] = ['<!-- session-intelligence -->']
+    const intel = this.state;
+    const parts: string[] = ['<!-- session-intelligence -->'];
 
     if (intel.userOriginalIntent) {
-      parts.push(`Original user intent: ${intel.userOriginalIntent}`)
+      parts.push(`Original user intent: ${intel.userOriginalIntent}`);
     }
 
     if (intel.keyDecisions.length > 0) {
-      parts.push(`Key decisions: ${intel.keyDecisions.join('; ')}`)
+      parts.push(`Key decisions: ${intel.keyDecisions.join('; ')}`);
     }
 
     if (intel.filesTouched.length > 0) {
-      parts.push(`Files touched: ${intel.filesTouched.slice(-20).join(', ')}`)
+      parts.push(`Files touched: ${intel.filesTouched.slice(-20).join(', ')}`);
     }
 
-    parts.push(`Task phase: ${intel.taskPhase} | Tool calls: ${intel.toolCallCount}`)
-    parts.push('<!-- /session-intelligence -->')
+    parts.push(`Task phase: ${intel.taskPhase} | Tool calls: ${intel.toolCallCount}`);
+    parts.push('<!-- /session-intelligence -->');
 
-    return parts.join('\n')
+    return parts.join('\n');
   }
 
   /**
    * Returns true if the session has enough context to be worth preserving.
    */
   hasSignificantContext(): boolean {
-    const intel = this.state
-    return !!intel.userOriginalIntent || intel.toolCallCount > 3 || intel.filesTouched.length > 0
+    const intel = this.state;
+    return !!intel.userOriginalIntent || intel.toolCallCount > 3 || intel.filesTouched.length > 0;
   }
 
   static getInstance(): SessionIntelligence {
@@ -1152,9 +1152,9 @@ export class SessionIntelligence {
         createdAt: new Date(),
         lastUsedAt: new Date(),
         history: [],
-      })
+      });
     }
-    return SessionIntelligence.instance
+    return SessionIntelligence.instance;
   }
 
   recordMessage(role: SessionHistoryEntry['role'], content: string): void {
@@ -1162,14 +1162,14 @@ export class SessionIntelligence {
       timestamp: new Date(),
       role,
       content,
-    }
+    };
 
-    this.session.history.push(entry)
-    this.observe(entry)
+    this.session.history.push(entry);
+    this.observe(entry);
   }
 
   updatePhase(phase: TaskPhase): void {
-    this.state.taskPhase = phase
+    this.state.taskPhase = phase;
   }
 }
 
@@ -1177,17 +1177,17 @@ export class SessionIntelligence {
 // Singleton Instance
 // ============================================================================
 
-let sessionManagerInstance: SessionManager | null = null
-let crossSessionRecoveryInstance: CrossSessionRecovery | null = null
+let sessionManagerInstance: SessionManager | null = null;
+let crossSessionRecoveryInstance: CrossSessionRecovery | null = null;
 
 /**
  * Get singleton session manager instance
  */
 export function getSessionManager(options?: SessionManagerOptions): SessionManager {
   if (!sessionManagerInstance) {
-    sessionManagerInstance = new SessionManager(options)
+    sessionManagerInstance = new SessionManager(options);
   }
-  return sessionManagerInstance
+  return sessionManagerInstance;
 }
 
 /**
@@ -1195,15 +1195,15 @@ export function getSessionManager(options?: SessionManagerOptions): SessionManag
  */
 export function getCrossSessionRecovery(): CrossSessionRecovery {
   if (!crossSessionRecoveryInstance) {
-    crossSessionRecoveryInstance = new CrossSessionRecovery(getSessionManager())
+    crossSessionRecoveryInstance = new CrossSessionRecovery(getSessionManager());
   }
-  return crossSessionRecoveryInstance
+  return crossSessionRecoveryInstance;
 }
 
 /**
  * Reset singleton instance (mainly for testing)
  */
 export function resetSessionManager(): void {
-  sessionManagerInstance = null
-  crossSessionRecoveryInstance = null
+  sessionManagerInstance = null;
+  crossSessionRecoveryInstance = null;
 }

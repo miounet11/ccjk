@@ -8,54 +8,54 @@
  * This ensures users have the same experience regardless of entry point.
  */
 
-import type { CodeToolType } from '../constants'
-import ansis from 'ansis'
-import inquirer from 'inquirer'
-import { DEFAULT_CODE_TOOL_TYPE, isCodeToolType } from '../constants'
-import { i18n } from '../i18n'
-import { readZcfConfig } from '../utils/ccjk-config'
-import { ClaudeCodeConfigManager } from '../utils/claude-code-config-manager'
-import { handleCustomApiMode } from '../utils/features'
+import type { CodeToolType } from '../constants';
+import ansis from 'ansis';
+import inquirer from 'inquirer';
+import { DEFAULT_CODE_TOOL_TYPE, isCodeToolType } from '../constants';
+import { i18n } from '../i18n';
+import { readZcfConfig } from '../utils/ccjk-config';
+import { ClaudeCodeConfigManager } from '../utils/claude-code-config-manager';
+import { handleCustomApiMode } from '../utils/features';
 
 async function syncClavueProviderStateIfNeeded(codeTool: CodeToolType, activeProfileId?: string): Promise<void> {
   if (codeTool !== 'clavue') {
-    return
+    return;
   }
 
-  const { syncMyclaudeProviderProfilesFromClaudeConfig } = await import('../utils/claude-config')
-  const config = ClaudeCodeConfigManager.readConfig()
+  const { syncMyclaudeProviderProfilesFromClaudeConfig } = await import('../utils/claude-config');
+  const config = ClaudeCodeConfigManager.readConfig();
   syncMyclaudeProviderProfilesFromClaudeConfig(
     activeProfileId === undefined || !config
       ? config
       : { ...config, currentProfileId: activeProfileId },
-  )
+  );
 }
 
 /**
  * API configuration mode selected by user
  */
-export type ApiConfigMode = 'official' | 'custom' | 'ccr' | 'skip'
+export type ApiConfigMode = 'official' | 'custom' | 'ccr' | 'skip';
 
 /**
  * API configuration result
  */
 export interface ApiConfigResult {
-  mode: ApiConfigMode
-  apiKey?: string
-  provider?: string
-  success: boolean
-  cancelled: boolean
+  mode: ApiConfigMode;
+  apiKey?: string;
+  provider?: string;
+  success: boolean;
+  cancelled: boolean;
 }
 
 /**
  * Get current code tool type from config
  */
 function getCurrentCodeTool(): CodeToolType {
-  const config = readZcfConfig()
+  const config = readZcfConfig();
   if (config?.codeToolType && isCodeToolType(config.codeToolType)) {
-    return config.codeToolType
+    return config.codeToolType;
   }
-  return DEFAULT_CODE_TOOL_TYPE
+  return DEFAULT_CODE_TOOL_TYPE;
 }
 
 /**
@@ -67,19 +67,19 @@ function getCurrentCodeTool(): CodeToolType {
  * @returns API configuration result
  */
 export async function showApiConfigMenu(title?: string, options?: { context?: 'init' | 'menu' }): Promise<ApiConfigResult> {
-  const lang = i18n.language
-  const isZh = lang === 'zh-CN'
+  const lang = i18n.language;
+  const isZh = lang === 'zh-CN';
 
-  console.log('')
-  console.log(ansis.bold.cyan(title || (isZh ? '🔑 API 配置管理' : '🔑 API Configuration')))
-  console.log('')
+  console.log('');
+  console.log(ansis.bold.cyan(title || (isZh ? '🔑 API 配置管理' : '🔑 API Configuration')));
+  console.log('');
 
   const choices = [
     { name: isZh ? '使用官方登录' : 'Use Official Login', value: 'official' },
     { name: isZh ? '自定义 API 配置' : 'Custom API Configuration', value: 'custom' },
     { name: isZh ? '使用 CCR 代理' : 'Use CCR Proxy', value: 'ccr' },
     { name: isZh ? '跳过（稍后手动配置）' : 'Skip (Configure Later)', value: 'skip' },
-  ]
+  ];
 
   const { choice } = await inquirer.prompt<{ choice: ApiConfigMode }>({
     type: 'list',
@@ -88,25 +88,25 @@ export async function showApiConfigMenu(title?: string, options?: { context?: 'i
     choices,
     default: 'custom',
     pageSize: 8,
-  })
+  });
 
-  const codeTool = getCurrentCodeTool()
+  const codeTool = getCurrentCodeTool();
 
   switch (choice) {
     case 'official':
-      return await handleOfficialLogin(codeTool, isZh)
+      return await handleOfficialLogin(codeTool, isZh);
 
     case 'custom':
-      return await handleCustomConfig(isZh, options?.context)
+      return await handleCustomConfig(isZh, options?.context);
 
     case 'ccr':
-      return await handleCcrProxy(codeTool, isZh)
+      return await handleCcrProxy(codeTool, isZh);
 
     case 'skip':
-      return { mode: 'skip', success: true, cancelled: false }
+      return { mode: 'skip', success: true, cancelled: false };
 
     default:
-      return { mode: 'skip', success: true, cancelled: false }
+      return { mode: 'skip', success: true, cancelled: false };
   }
 }
 
@@ -115,26 +115,26 @@ export async function showApiConfigMenu(title?: string, options?: { context?: 'i
  */
 async function handleOfficialLogin(codeTool: CodeToolType, isZh: boolean): Promise<ApiConfigResult> {
   if (codeTool === 'claude-code' || codeTool === 'clavue') {
-    const result = await ClaudeCodeConfigManager.switchToOfficial()
+    const result = await ClaudeCodeConfigManager.switchToOfficial();
     if (result.success) {
-      await syncClavueProviderStateIfNeeded(codeTool, '')
-      console.log('')
-      console.log(ansis.green(isZh ? '✅ 已切换到官方登录' : '✅ Switched to official login'))
-      console.log('')
-      return { mode: 'official', success: true, cancelled: false }
+      await syncClavueProviderStateIfNeeded(codeTool, '');
+      console.log('');
+      console.log(ansis.green(isZh ? '✅ 已切换到官方登录' : '✅ Switched to official login'));
+      console.log('');
+      return { mode: 'official', success: true, cancelled: false };
     }
     else {
-      console.log('')
-      console.log(ansis.red(isZh ? `❌ 切换失败: ${result.error}` : `❌ Failed to switch: ${result.error}`))
-      console.log('')
-      return { mode: 'official', success: false, cancelled: false }
+      console.log('');
+      console.log(ansis.red(isZh ? `❌ 切换失败: ${result.error}` : `❌ Failed to switch: ${result.error}`));
+      console.log('');
+      return { mode: 'official', success: false, cancelled: false };
     }
   }
   else {
-    console.log('')
-    console.log(ansis.yellow(isZh ? '⚠️ 当前代码工具不支持此功能' : '⚠️ Current code tool does not support this feature'))
-    console.log('')
-    return { mode: 'official', success: false, cancelled: false }
+    console.log('');
+    console.log(ansis.yellow(isZh ? '⚠️ 当前代码工具不支持此功能' : '⚠️ Current code tool does not support this feature'));
+    console.log('');
+    return { mode: 'official', success: false, cancelled: false };
   }
 }
 
@@ -144,21 +144,21 @@ async function handleOfficialLogin(codeTool: CodeToolType, isZh: boolean): Promi
  */
 async function handleCustomConfig(_isZh: boolean, context?: 'init' | 'menu'): Promise<ApiConfigResult> {
   try {
-    const codeTool = getCurrentCodeTool()
+    const codeTool = getCurrentCodeTool();
 
     if ((codeTool === 'claude-code' || codeTool === 'clavue') && context === 'init') {
       // During init flow, skip management menu and go directly to add profile
-      const { addProfileDirect } = await import('../utils/claude-code-incremental-manager')
-      await addProfileDirect()
+      const { addProfileDirect } = await import('../utils/claude-code-incremental-manager');
+      await addProfileDirect();
     }
     else {
       // From main menu, show full management (add/edit/copy/delete)
-      await handleCustomApiMode()
+      await handleCustomApiMode();
     }
-    return { mode: 'custom', success: true, cancelled: false }
+    return { mode: 'custom', success: true, cancelled: false };
   }
   catch {
-    return { mode: 'custom', success: false, cancelled: false }
+    return { mode: 'custom', success: false, cancelled: false };
   }
 }
 
@@ -167,26 +167,26 @@ async function handleCustomConfig(_isZh: boolean, context?: 'init' | 'menu'): Pr
  */
 async function handleCcrProxy(codeTool: CodeToolType, isZh: boolean): Promise<ApiConfigResult> {
   if (codeTool === 'claude-code' || codeTool === 'clavue') {
-    const result = await ClaudeCodeConfigManager.switchToCcr()
+    const result = await ClaudeCodeConfigManager.switchToCcr();
     if (result.success) {
-      await syncClavueProviderStateIfNeeded(codeTool, 'ccr-proxy')
-      console.log('')
-      console.log(ansis.green(isZh ? '✅ 已切换到 CCR 代理' : '✅ Switched to CCR proxy'))
-      console.log('')
-      return { mode: 'ccr', success: true, cancelled: false }
+      await syncClavueProviderStateIfNeeded(codeTool, 'ccr-proxy');
+      console.log('');
+      console.log(ansis.green(isZh ? '✅ 已切换到 CCR 代理' : '✅ Switched to CCR proxy'));
+      console.log('');
+      return { mode: 'ccr', success: true, cancelled: false };
     }
     else {
-      console.log('')
-      console.log(ansis.red(isZh ? `❌ 切换失败: ${result.error}` : `❌ Failed to switch: ${result.error}`))
-      console.log('')
-      return { mode: 'ccr', success: false, cancelled: false }
+      console.log('');
+      console.log(ansis.red(isZh ? `❌ 切换失败: ${result.error}` : `❌ Failed to switch: ${result.error}`));
+      console.log('');
+      return { mode: 'ccr', success: false, cancelled: false };
     }
   }
   else {
-    console.log('')
-    console.log(ansis.yellow(isZh ? '⚠️ 当前代码工具不支持此功能' : '⚠️ Current code tool does not support this feature'))
-    console.log('')
-    return { mode: 'ccr', success: false, cancelled: false }
+    console.log('');
+    console.log(ansis.yellow(isZh ? '⚠️ 当前代码工具不支持此功能' : '⚠️ Current code tool does not support this feature'));
+    console.log('');
+    return { mode: 'ccr', success: false, cancelled: false };
   }
 }
 
@@ -204,19 +204,19 @@ async function handleCcrProxy(codeTool: CodeToolType, isZh: boolean): Promise<Ap
  * @returns API key and provider, or undefined if skipped/cancelled
  */
 export async function quickApiConfig(options: {
-  skipPrompt?: boolean
-  defaultProvider?: string
-  defaultApiKey?: string
-  detectedApiKey?: string
-}): Promise<{ apiKey?: string, provider?: string } | undefined> {
-  const isZh = i18n.language === 'zh-CN'
+  skipPrompt?: boolean;
+  defaultProvider?: string;
+  defaultApiKey?: string;
+  detectedApiKey?: string;
+}): Promise<{ apiKey?: string; provider?: string } | undefined> {
+  const isZh = i18n.language === 'zh-CN';
 
   // If default values provided and skipPrompt, use them
   if (options.skipPrompt && options.defaultApiKey) {
     return {
       apiKey: options.defaultApiKey,
       provider: options.defaultProvider || 'anthropic',
-    }
+    };
   }
 
   // If detected API key exists, ask if user wants to use it
@@ -228,25 +228,25 @@ export async function quickApiConfig(options: {
         ? `使用检测到的 API 密钥 (${options.detectedApiKey.substring(0, 12)}...)?`
         : `Use detected API key (${options.detectedApiKey.substring(0, 12)}...)?`,
       default: true,
-    })
+    });
 
     if (useDetected) {
       return {
         apiKey: options.detectedApiKey,
         provider: options.defaultProvider || 'anthropic',
-      }
+      };
     }
   }
 
   // Show full API configuration menu
-  const result = await showApiConfigMenu()
+  const result = await showApiConfigMenu();
 
   if (result.cancelled || result.mode === 'skip') {
-    return undefined
+    return undefined;
   }
 
   // For custom/switch modes, user would have configured through configureApiFeature
   // We need to read the resulting configuration
   // For now, return success marker
-  return { apiKey: '__configured__', provider: options.defaultProvider || 'anthropic' }
+  return { apiKey: '__configured__', provider: options.defaultProvider || 'anthropic' };
 }

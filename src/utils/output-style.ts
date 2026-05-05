@@ -1,23 +1,23 @@
-import type { CodeToolType, SupportedLang } from '../constants'
-import type { ClaudeSettings } from '../types/config'
-import { fileURLToPath } from 'node:url'
-import ansis from 'ansis'
-import inquirer from 'inquirer'
-import { dirname, join } from 'pathe'
-import { ensureI18nInitialized, i18n } from '../i18n'
-import { updateZcfConfig } from './ccjk-config'
-import { normalizeClaudeFamilySettings } from './claude-settings-normalizer'
-import { copyFile, ensureDir, exists, removeFile } from './fs-operations'
-import { readJsonConfig, writeJsonConfig } from './json-config'
-import { mergeAndCleanPermissions } from './permission-cleaner'
-import { addNumbersToChoices } from './prompt-helpers'
-import { resolveClaudeFamilySettingsTarget } from './runtime-settings'
-import { promptBoolean } from './toggle-prompt'
+import type { CodeToolType, SupportedLang } from '../constants';
+import type { ClaudeSettings } from '../types/config';
+import { fileURLToPath } from 'node:url';
+import ansis from 'ansis';
+import inquirer from 'inquirer';
+import { dirname, join } from 'pathe';
+import { ensureI18nInitialized, i18n } from '../i18n';
+import { updateZcfConfig } from './ccjk-config';
+import { normalizeClaudeFamilySettings } from './claude-settings-normalizer';
+import { copyFile, ensureDir, exists, removeFile } from './fs-operations';
+import { readJsonConfig, writeJsonConfig } from './json-config';
+import { mergeAndCleanPermissions } from './permission-cleaner';
+import { addNumbersToChoices } from './prompt-helpers';
+import { resolveClaudeFamilySettingsTarget } from './runtime-settings';
+import { promptBoolean } from './toggle-prompt';
 
 export interface OutputStyle {
-  id: string
-  isCustom: boolean
-  filePath?: string
+  id: string;
+  isCustom: boolean;
+  filePath?: string;
 }
 
 const OUTPUT_STYLES: OutputStyle[] = [
@@ -65,37 +65,37 @@ const OUTPUT_STYLES: OutputStyle[] = [
     id: 'learning',
     isCustom: false,
   },
-]
+];
 
-const LEGACY_FILES = ['personality.md', 'rules.md', 'technical-guides.md', 'mcp.md', 'language.md']
+const LEGACY_FILES = ['personality.md', 'rules.md', 'technical-guides.md', 'mcp.md', 'language.md'];
 
 export function getAvailableOutputStyles(): OutputStyle[] {
-  return OUTPUT_STYLES
+  return OUTPUT_STYLES;
 }
 
 export async function copyOutputStyles(selectedStyles: string[], lang: SupportedLang, codeTool?: CodeToolType): Promise<void> {
-  const target = resolveClaudeFamilySettingsTarget(codeTool)
-  const outputStylesDir = join(target.configDir, 'output-styles')
-  ensureDir(outputStylesDir)
+  const target = resolveClaudeFamilySettingsTarget(codeTool);
+  const outputStylesDir = join(target.configDir, 'output-styles');
+  ensureDir(outputStylesDir);
 
   // Get the root directory of the package
-  const currentFilePath = fileURLToPath(import.meta.url)
-  const distDir = dirname(dirname(currentFilePath))
-  const rootDir = dirname(distDir)
+  const currentFilePath = fileURLToPath(import.meta.url);
+  const distDir = dirname(dirname(currentFilePath));
+  const rootDir = dirname(distDir);
   // Use shared output-styles from common directory
-  const templateDir = join(rootDir, 'templates', 'common', 'output-styles', lang)
+  const templateDir = join(rootDir, 'templates', 'common', 'output-styles', lang);
 
   for (const styleId of selectedStyles) {
-    const style = OUTPUT_STYLES.find(s => s.id === styleId)
+    const style = OUTPUT_STYLES.find(s => s.id === styleId);
     if (!style || !style.isCustom || !style.filePath) {
-      continue // Skip built-in styles or invalid styles
+      continue; // Skip built-in styles or invalid styles
     }
 
-    const sourcePath = join(templateDir, style.filePath)
-    const destPath = join(outputStylesDir, style.filePath)
+    const sourcePath = join(templateDir, style.filePath);
+    const destPath = join(outputStylesDir, style.filePath);
 
     if (exists(sourcePath)) {
-      copyFile(sourcePath, destPath)
+      copyFile(sourcePath, destPath);
     }
   }
 }
@@ -105,26 +105,26 @@ export async function copyOutputStyles(selectedStyles: string[], lang: Supported
  * Claude Code 2.1+ deprecated this field in favor of system prompt alternatives.
  * Custom styles (linus-mode, etc.) stored as .md files are NOT affected.
  */
-const BUILTIN_STYLE_IDS = new Set(['default', 'explanatory', 'learning'])
+const BUILTIN_STYLE_IDS = new Set(['default', 'explanatory', 'learning']);
 
 export function setGlobalDefaultOutputStyle(styleId: string, codeTool?: CodeToolType): void {
-  const target = resolveClaudeFamilySettingsTarget(codeTool)
+  const target = resolveClaudeFamilySettingsTarget(codeTool);
   // Warn if using deprecated built-in outputStyle field (Claude Code 2.1+)
   if (BUILTIN_STYLE_IDS.has(styleId)) {
-    console.log(ansis.yellow(`⚠️  Note: Built-in output styles (${styleId}) are deprecated in Claude Code 2.1+.`))
-    console.log(ansis.gray('   Custom styles (linus-mode, etc.) stored as .md files are still fully supported.'))
+    console.log(ansis.yellow(`⚠️  Note: Built-in output styles (${styleId}) are deprecated in Claude Code 2.1+.`));
+    console.log(ansis.gray('   Custom styles (linus-mode, etc.) stored as .md files are still fully supported.'));
   }
 
   // Get template permissions for validation
-  const templatePermissions = getTemplatePermissions()
+  const templatePermissions = getTemplatePermissions();
 
-  const existingSettings = readJsonConfig<ClaudeSettings>(target.settingsFile) || {}
+  const existingSettings = readJsonConfig<ClaudeSettings>(target.settingsFile) || {};
 
   // Clean permissions before writing
   const cleanedPermissions = mergeAndCleanPermissions(
     templatePermissions,
     existingSettings.permissions?.allow,
-  )
+  );
 
   const updatedSettings: ClaudeSettings = {
     ...existingSettings,
@@ -133,15 +133,15 @@ export function setGlobalDefaultOutputStyle(styleId: string, codeTool?: CodeTool
     permissions: {
       allow: cleanedPermissions,
     },
-  }
+  };
 
   // Remove problematic fields
   if ((updatedSettings as any).plansDirectory === null) {
-    delete (updatedSettings as any).plansDirectory
+    delete (updatedSettings as any).plansDirectory;
   }
 
-  normalizeClaudeFamilySettings(updatedSettings)
-  writeJsonConfig(target.settingsFile, updatedSettings)
+  normalizeClaudeFamilySettings(updatedSettings);
+  writeJsonConfig(target.settingsFile, updatedSettings);
 }
 
 /**
@@ -149,18 +149,18 @@ export function setGlobalDefaultOutputStyle(styleId: string, codeTool?: CodeTool
  */
 function getTemplatePermissions(): string[] {
   try {
-    const { readFileSync } = require('node:fs')
-    const { fileURLToPath } = require('node:url')
-    const { dirname, join } = require('pathe')
+    const { readFileSync } = require('node:fs');
+    const { fileURLToPath } = require('node:url');
+    const { dirname, join } = require('pathe');
 
-    const currentFilePath = fileURLToPath(import.meta.url)
-    const distDir = dirname(dirname(currentFilePath))
-    const rootDir = dirname(distDir)
-    const templatePath = join(rootDir, 'templates', 'claude-code', 'common', 'settings.json')
+    const currentFilePath = fileURLToPath(import.meta.url);
+    const distDir = dirname(dirname(currentFilePath));
+    const rootDir = dirname(distDir);
+    const templatePath = join(rootDir, 'templates', 'claude-code', 'common', 'settings.json');
 
     if (require('node:fs').existsSync(templatePath)) {
-      const template = JSON.parse(readFileSync(templatePath, 'utf-8'))
-      return template.permissions?.allow || []
+      const template = JSON.parse(readFileSync(templatePath, 'utf-8'));
+      return template.permissions?.allow || [];
     }
   }
   catch (_error) {
@@ -176,22 +176,22 @@ function getTemplatePermissions(): string[] {
     'Read(*)',
     'Edit(*)',
     'Write(*)',
-  ]
+  ];
 }
 
 export function hasLegacyPersonalityFiles(codeTool?: CodeToolType): boolean {
-  const target = resolveClaudeFamilySettingsTarget(codeTool)
-  return LEGACY_FILES.some(filename => exists(join(target.configDir, filename)))
+  const target = resolveClaudeFamilySettingsTarget(codeTool);
+  return LEGACY_FILES.some(filename => exists(join(target.configDir, filename)));
 }
 
 export function cleanupLegacyPersonalityFiles(codeTool?: CodeToolType): void {
-  const target = resolveClaudeFamilySettingsTarget(codeTool)
+  const target = resolveClaudeFamilySettingsTarget(codeTool);
   LEGACY_FILES.forEach((filename) => {
-    const filePath = join(target.configDir, filename)
+    const filePath = join(target.configDir, filename);
     if (exists(filePath)) {
-      removeFile(filePath)
+      removeFile(filePath);
     }
-  })
+  });
 }
 
 export async function configureOutputStyle(
@@ -199,7 +199,7 @@ export async function configureOutputStyle(
   preselectedDefault?: string,
   codeTool?: CodeToolType,
 ): Promise<void> {
-  ensureI18nInitialized()
+  ensureI18nInitialized();
 
   // Create static output style list for i18n-ally compatibility
   const outputStyleList = [
@@ -248,61 +248,61 @@ export async function configureOutputStyle(
       name: i18n.t('configuration:outputStyles.learning.name'),
       description: i18n.t('configuration:outputStyles.learning.description'),
     },
-  ]
+  ];
 
-  const availableStyles = getAvailableOutputStyles()
+  const availableStyles = getAvailableOutputStyles();
 
   // Check for legacy files
   if (hasLegacyPersonalityFiles(codeTool) && !preselectedStyles) {
-    console.log(ansis.yellow(`⚠️  ${i18n.t('configuration:legacyFilesDetected')}`))
+    console.log(ansis.yellow(`⚠️  ${i18n.t('configuration:legacyFilesDetected')}`));
 
     const cleanupLegacy = await promptBoolean({
       message: i18n.t('configuration:cleanupLegacyFiles'),
       defaultValue: true,
-    })
+    });
 
     if (cleanupLegacy) {
-      cleanupLegacyPersonalityFiles(codeTool)
-      console.log(ansis.green(`✔ ${i18n.t('configuration:legacyFilesRemoved')}`))
+      cleanupLegacyPersonalityFiles(codeTool);
+      console.log(ansis.green(`✔ ${i18n.t('configuration:legacyFilesRemoved')}`));
     }
   }
   else if (hasLegacyPersonalityFiles(codeTool) && preselectedStyles) {
     // Auto cleanup in non-interactive mode
-    cleanupLegacyPersonalityFiles(codeTool)
+    cleanupLegacyPersonalityFiles(codeTool);
   }
 
-  let selectedStyles: string[]
-  let defaultStyle: string
+  let selectedStyles: string[];
+  let defaultStyle: string;
 
   if (preselectedStyles && preselectedDefault) {
     // Non-interactive mode
-    selectedStyles = preselectedStyles
-    defaultStyle = preselectedDefault
+    selectedStyles = preselectedStyles;
+    defaultStyle = preselectedDefault;
   }
   else {
     // Interactive mode - only show custom styles for installation
-    const customStyles = availableStyles.filter(style => style.isCustom)
+    const customStyles = availableStyles.filter(style => style.isCustom);
     const { selectedStyles: promptedStyles } = await inquirer.prompt<{ selectedStyles: string[] }>({
       type: 'checkbox',
       name: 'selectedStyles',
       message: `${i18n.t('configuration:selectOutputStyles')}${i18n.t('common:multiSelectHint')}`,
       choices: addNumbersToChoices(customStyles.map((style) => {
-        const styleInfo = outputStyleList.find(s => s.id === style.id)
+        const styleInfo = outputStyleList.find(s => s.id === style.id);
         return {
           name: `${styleInfo?.name || style.id} - ${ansis.gray(styleInfo?.description || '')}`,
           value: style.id,
           checked: true, // Default to all selected
-        }
+        };
       })),
       validate: async input => input.length > 0 || i18n.t('configuration:selectAtLeastOne'),
-    })
+    });
 
     if (!promptedStyles || promptedStyles.length === 0) {
-      console.log(ansis.yellow(i18n.t('common:cancelled')))
-      return
+      console.log(ansis.yellow(i18n.t('common:cancelled')));
+      return;
     }
 
-    selectedStyles = promptedStyles
+    selectedStyles = promptedStyles;
 
     const { defaultStyle: promptedDefault } = await inquirer.prompt<{ defaultStyle: string }>({
       type: 'list',
@@ -311,49 +311,49 @@ export async function configureOutputStyle(
       choices: addNumbersToChoices([
         // Show selected custom styles first (only what user actually installed)
         ...selectedStyles.map((styleId) => {
-          const styleInfo = outputStyleList.find(s => s.id === styleId)
+          const styleInfo = outputStyleList.find(s => s.id === styleId);
           return {
             name: `${styleInfo?.name || styleId} - ${ansis.gray(styleInfo?.description || '')}`,
             value: styleId,
             short: styleInfo?.name || styleId,
-          }
+          };
         }),
         // Then show all built-in styles (always available)
         ...availableStyles
           .filter(style => !style.isCustom)
           .map((style) => {
-            const styleInfo = outputStyleList.find(s => s.id === style.id)
+            const styleInfo = outputStyleList.find(s => s.id === style.id);
             return {
               name: `${styleInfo?.name || style.id} - ${ansis.gray(styleInfo?.description || '')}`,
               value: style.id,
               short: styleInfo?.name || style.id,
-            }
+            };
           }),
       ]),
       default: selectedStyles.includes('linus-mode') ? 'linus-mode' : selectedStyles[0],
-    })
+    });
 
     if (!promptedDefault) {
-      console.log(ansis.yellow(i18n.t('common:cancelled')))
-      return
+      console.log(ansis.yellow(i18n.t('common:cancelled')));
+      return;
     }
 
-    defaultStyle = promptedDefault
+    defaultStyle = promptedDefault;
   }
 
   // Copy selected output styles using configLang for template language
-  await copyOutputStyles(selectedStyles, 'zh-CN', codeTool)
+  await copyOutputStyles(selectedStyles, 'zh-CN', codeTool);
 
   // Set global default output style
-  setGlobalDefaultOutputStyle(defaultStyle, codeTool)
+  setGlobalDefaultOutputStyle(defaultStyle, codeTool);
 
   // Update CCJK config
   updateZcfConfig({
     outputStyles: selectedStyles,
     defaultOutputStyle: defaultStyle,
-  })
+  });
 
-  console.log(ansis.green(`✔ ${i18n.t('configuration:outputStyleInstalled')}`))
-  console.log(ansis.gray(`  ${i18n.t('configuration:selectedStyles')}: ${selectedStyles.join(', ')}`))
-  console.log(ansis.gray(`  ${i18n.t('configuration:defaultStyle')}: ${defaultStyle}`))
+  console.log(ansis.green(`✔ ${i18n.t('configuration:outputStyleInstalled')}`));
+  console.log(ansis.gray(`  ${i18n.t('configuration:selectedStyles')}: ${selectedStyles.join(', ')}`));
+  console.log(ansis.gray(`  ${i18n.t('configuration:defaultStyle')}: ${defaultStyle}`));
 }

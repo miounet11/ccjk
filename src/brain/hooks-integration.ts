@@ -3,36 +3,36 @@
  * 通过 hooks 提供更好的推荐体验
  */
 
-import type { SupportedLang } from '../constants'
-import type { ConversationContext } from './practice-enforcer'
-import { PracticeEnforcer } from './practice-enforcer'
-import { skillTrigger } from './skill-trigger'
-import { smartSuggestions } from './smart-suggestions'
+import type { SupportedLang } from '../constants';
+import type { ConversationContext } from './practice-enforcer';
+import { PracticeEnforcer } from './practice-enforcer';
+import { skillTrigger } from './skill-trigger';
+import { smartSuggestions } from './smart-suggestions';
 
 export interface HookContext {
-  userInput: string
-  conversationHistory: Array<{ role: string, content: string }>
-  recentFiles: string[]
-  gitStatus?: any
+  userInput: string;
+  conversationHistory: Array<{ role: string; content: string }>;
+  recentFiles: string[];
+  gitStatus?: any;
 }
 
 export interface HookResponse {
-  shouldBlock: boolean
-  message?: string
-  suggestions?: string[]
-  autoExecute?: string
+  shouldBlock: boolean;
+  message?: string;
+  suggestions?: string[];
+  autoExecute?: string;
 }
 
 /**
  * Hooks 集成管理器
  */
 export class HooksIntegration {
-  private lang: SupportedLang
-  private enforcer: PracticeEnforcer
+  private lang: SupportedLang;
+  private enforcer: PracticeEnforcer;
 
   constructor(lang: SupportedLang = 'zh-CN') {
-    this.lang = lang
-    this.enforcer = new PracticeEnforcer(lang)
+    this.lang = lang;
+    this.enforcer = new PracticeEnforcer(lang);
   }
 
   /**
@@ -43,10 +43,10 @@ export class HooksIntegration {
    * 3. 自动执行高置信度的技能
    */
   async onUserPromptSubmit(context: HookContext): Promise<HookResponse> {
-    const responses: HookResponse[] = []
+    const responses: HookResponse[] = [];
 
     // 1. 技能触发检测
-    const skillMatch = skillTrigger.getBestMatch(context.userInput)
+    const skillMatch = skillTrigger.getBestMatch(context.userInput);
     if (skillMatch) {
       // 高置信度自动执行
       if (skillTrigger.shouldAutoExecute(skillMatch)) {
@@ -57,7 +57,7 @@ export class HooksIntegration {
             skill: skillMatch.skillName,
             confidence: Math.round(skillMatch.confidence * 100),
           }),
-        }
+        };
       }
 
       // 中等置信度建议
@@ -65,7 +65,7 @@ export class HooksIntegration {
         responses.push({
           shouldBlock: false,
           message: skillTrigger.generateSuggestion(skillMatch),
-        })
+        });
       }
     }
 
@@ -74,12 +74,12 @@ export class HooksIntegration {
       messages: context.conversationHistory,
       recentFiles: context.recentFiles,
       gitStatus: context.gitStatus,
-    }
+    };
 
-    const violations = await this.enforcer.checkAll(conversationContext)
+    const violations = await this.enforcer.checkAll(conversationContext);
 
     // 严重违规阻止
-    const criticalViolations = violations.filter(v => v.severity === 'ERROR')
+    const criticalViolations = violations.filter(v => v.severity === 'ERROR');
     if (criticalViolations.length > 0) {
       return {
         shouldBlock: true,
@@ -87,11 +87,11 @@ export class HooksIntegration {
         suggestions: criticalViolations
           .filter(v => v.actionId)
           .map(v => `输入 ${v.actionId} - ${v.suggestion}`),
-      }
+      };
     }
 
     // 警告级违规提示
-    const warnings = violations.filter(v => v.severity === 'WARNING')
+    const warnings = violations.filter(v => v.severity === 'WARNING');
     if (warnings.length > 0) {
       responses.push({
         shouldBlock: false,
@@ -99,20 +99,20 @@ export class HooksIntegration {
         suggestions: warnings
           .filter(v => v.actionId)
           .map(v => `输入 ${v.actionId} - ${v.suggestion}`),
-      })
+      });
     }
 
     // 3. 智能建议
-    const suggestions = await smartSuggestions.analyze(conversationContext)
+    const suggestions = await smartSuggestions.analyze(conversationContext);
     if (suggestions.length > 0) {
       responses.push({
         shouldBlock: false,
         message: smartSuggestions.formatSuggestions(suggestions.slice(0, 2)),
-      })
+      });
     }
 
     // 合并响应
-    return this.mergeResponses(responses)
+    return this.mergeResponses(responses);
   }
 
   /**
@@ -123,41 +123,41 @@ export class HooksIntegration {
    * 3. 提示代码审查
    */
   async onFileChange(files: string[]): Promise<HookResponse> {
-    const responses: HookResponse[] = []
+    const responses: HookResponse[] = [];
 
     // 检测新代码无测试
     const hasNewCode = files.some(f =>
       !f.includes('.test.')
       && !f.includes('.spec.')
       && (f.endsWith('.ts') || f.endsWith('.js') || f.endsWith('.tsx') || f.endsWith('.jsx')),
-    )
+    );
 
     const hasNewTests = files.some(f =>
       f.includes('.test.') || f.includes('.spec.'),
-    )
+    );
 
     if (hasNewCode && !hasNewTests) {
       responses.push({
         shouldBlock: false,
         message: this.t('hooks.fileChange.noTests'),
         suggestions: ['输入 3 - 使用 TDD 工作流'],
-      })
+      });
     }
 
     // 检测 API 变更需要文档更新
     const hasApiChange = files.some(f =>
       f.includes('api') || f.includes('interface') || f.includes('type'),
-    )
+    );
 
     if (hasApiChange) {
       responses.push({
         shouldBlock: false,
         message: this.t('hooks.fileChange.apiChange'),
         suggestions: ['输入 8 - 更新文档'],
-      })
+      });
     }
 
-    return this.mergeResponses(responses)
+    return this.mergeResponses(responses);
   }
 
   /**
@@ -168,19 +168,19 @@ export class HooksIntegration {
    * 3. 验证提交消息
    */
   async onPreCommit(context: HookContext): Promise<HookResponse> {
-    const responses: HookResponse[] = []
+    const responses: HookResponse[] = [];
 
     // 检查是否有未提交的测试
     const hasUncommittedTests = context.recentFiles.some(f =>
       f.includes('.test.') || f.includes('.spec.'),
-    )
+    );
 
     if (!hasUncommittedTests) {
       responses.push({
         shouldBlock: true,
         message: this.t('hooks.preCommit.noTests'),
         suggestions: ['输入 3 - 添加测试', '输入 7 - 验证代码'],
-      })
+      });
     }
 
     // 建议代码审查
@@ -189,10 +189,10 @@ export class HooksIntegration {
         shouldBlock: false,
         message: this.t('hooks.preCommit.largeChanges'),
         suggestions: ['输入 2 - 代码审查'],
-      })
+      });
     }
 
-    return this.mergeResponses(responses)
+    return this.mergeResponses(responses);
   }
 
   /**
@@ -211,7 +211,7 @@ export class HooksIntegration {
           '输入 5 - 系统性调试',
           '考虑架构重构',
         ],
-      }
+      };
     }
 
     if (failureCount >= 2) {
@@ -219,10 +219,10 @@ export class HooksIntegration {
         shouldBlock: false,
         message: this.t('hooks.testFailure.twoFailures'),
         suggestions: ['输入 5 - 系统性调试'],
-      }
+      };
     }
 
-    return { shouldBlock: false }
+    return { shouldBlock: false };
   }
 
   /**
@@ -230,36 +230,36 @@ export class HooksIntegration {
    */
   private mergeResponses(responses: HookResponse[]): HookResponse {
     if (responses.length === 0) {
-      return { shouldBlock: false }
+      return { shouldBlock: false };
     }
 
     if (responses.length === 1) {
-      return responses[0]
+      return responses[0];
     }
 
     // 如果有任何阻止，则阻止
-    const shouldBlock = responses.some(r => r.shouldBlock)
+    const shouldBlock = responses.some(r => r.shouldBlock);
 
     // 合并消息
     const messages = responses
       .filter(r => r.message)
       .map(r => r.message)
-      .join('\n\n')
+      .join('\n\n');
 
     // 合并建议
     const suggestions = responses
       .flatMap(r => r.suggestions || [])
-      .filter((s, i, arr) => arr.indexOf(s) === i) // 去重
+      .filter((s, i, arr) => arr.indexOf(s) === i); // 去重
 
     // 自动执行（只取第一个）
-    const autoExecute = responses.find(r => r.autoExecute)?.autoExecute
+    const autoExecute = responses.find(r => r.autoExecute)?.autoExecute;
 
     return {
       shouldBlock,
       message: messages || undefined,
       suggestions: suggestions.length > 0 ? suggestions : undefined,
       autoExecute,
-    }
+    };
   }
 
   /**
@@ -267,21 +267,21 @@ export class HooksIntegration {
    */
   private formatViolations(violations: any[]): string {
     if (violations.length === 0) {
-      return ''
+      return '';
     }
 
-    let message = ''
+    let message = '';
 
     for (const violation of violations) {
-      const icon = violation.severity === 'ERROR' ? '❌' : '⚠️'
-      message += `${icon} ${violation.message}\n`
+      const icon = violation.severity === 'ERROR' ? '❌' : '⚠️';
+      message += `${icon} ${violation.message}\n`;
       if (violation.suggestion) {
-        message += `   💡 ${violation.suggestion}\n`
+        message += `   💡 ${violation.suggestion}\n`;
       }
-      message += '\n'
+      message += '\n';
     }
 
-    return message.trim()
+    return message.trim();
   }
 
   /**
@@ -307,13 +307,13 @@ export class HooksIntegration {
         'hooks.testFailure.multipleFailures': `🚨 ${params?.count || 0} test failures, this may be an architectural issue`,
         'hooks.testFailure.twoFailures': '⚠️ 2 test failures, suggest systematic debugging',
       },
-    }
+    };
 
-    return messages[this.lang]?.[key] || key
+    return messages[this.lang]?.[key] || key;
   }
 }
 
 /**
  * 全局单例
  */
-export const hooksIntegration = new HooksIntegration()
+export const hooksIntegration = new HooksIntegration();

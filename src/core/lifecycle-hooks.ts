@@ -20,11 +20,11 @@
  * @module core/lifecycle-hooks
  */
 
-import type { HookContext as BridgeHookContext, CCJKHookType, HookHandler } from './hook-skill-bridge'
-import { getHookSkillBridge, triggerHooks } from './hook-skill-bridge'
+import type { HookContext as BridgeHookContext, CCJKHookType, HookHandler } from './hook-skill-bridge';
+import { getHookSkillBridge, triggerHooks } from './hook-skill-bridge';
 
 // Re-export HookContext from hook-skill-bridge for convenience
-export type { HookContext } from './hook-skill-bridge'
+export type { HookContext } from './hook-skill-bridge';
 
 // ============================================================================
 // Hook Types for Lifecycle Integration
@@ -33,26 +33,26 @@ export type { HookContext } from './hook-skill-bridge'
 /**
  * Hook execution phase
  */
-export type HookPhase = 'pre-execution' | 'post-execution' | 'on-error'
+export type HookPhase = 'pre-execution' | 'post-execution' | 'on-error';
 
 /**
  * Hook execution result
  */
 export interface HookResult {
-  success: boolean
-  message?: string
-  data?: Record<string, unknown>
-  error?: Error
+  success: boolean;
+  message?: string;
+  data?: Record<string, unknown>;
+  error?: Error;
 }
 
 /**
  * Lifecycle hook interface
  */
 export interface LifecycleHook {
-  readonly name: string
-  readonly phase: HookPhase
-  readonly priority?: number
-  execute: (context: BridgeHookContext) => Promise<HookResult>
+  readonly name: string;
+  readonly phase: HookPhase;
+  readonly priority?: number;
+  execute: (context: BridgeHookContext) => Promise<HookResult>;
 }
 
 // ============================================================================
@@ -67,29 +67,29 @@ export type LifecyclePhase
     | 'ready'
     | 'running'
     | 'shutting_down'
-    | 'shutdown'
+    | 'shutdown';
 
 /**
  * Lifecycle state
  */
 export interface LifecycleState {
-  phase: LifecyclePhase
-  startTime: number
-  lastEventTime: number
-  commandCount: number
-  errorCount: number
-  activeAgents: Set<string>
-  activeSkills: Set<string>
+  phase: LifecyclePhase;
+  startTime: number;
+  lastEventTime: number;
+  commandCount: number;
+  errorCount: number;
+  activeAgents: Set<string>;
+  activeSkills: Set<string>;
 }
 
 /**
  * Hook registration options
  */
 export interface HookOptions {
-  priority?: number
-  matcher?: string | RegExp
-  once?: boolean
-  enabled?: boolean
+  priority?: number;
+  matcher?: string | RegExp;
+  once?: boolean;
+  enabled?: boolean;
 }
 
 // ============================================================================
@@ -102,9 +102,9 @@ export interface HookOptions {
  * Manages the CLI lifecycle and coordinates hook execution.
  */
 class LifecycleManager {
-  private state: LifecycleState
-  private onceHooks: Set<string> = new Set()
-  private shutdownHandlers: Array<() => Promise<void>> = []
+  private state: LifecycleState;
+  private onceHooks: Set<string> = new Set();
+  private shutdownHandlers: Array<() => Promise<void>> = [];
 
   constructor() {
     this.state = {
@@ -115,10 +115,10 @@ class LifecycleManager {
       errorCount: 0,
       activeAgents: new Set(),
       activeSkills: new Set(),
-    }
+    };
 
     // Register process handlers
-    this.registerProcessHandlers()
+    this.registerProcessHandlers();
   }
 
   /**
@@ -126,17 +126,17 @@ class LifecycleManager {
    */
   private registerProcessHandlers(): void {
     // Handle graceful shutdown
-    process.on('SIGINT', () => this.shutdown('SIGINT'))
-    process.on('SIGTERM', () => this.shutdown('SIGTERM'))
+    process.on('SIGINT', () => this.shutdown('SIGINT'));
+    process.on('SIGTERM', () => this.shutdown('SIGTERM'));
 
     // Handle uncaught errors
     process.on('uncaughtException', (error) => {
-      this.handleError(error, 'uncaughtException')
-    })
+      this.handleError(error, 'uncaughtException');
+    });
 
     process.on('unhandledRejection', (reason) => {
-      this.handleError(reason as Error, 'unhandledRejection')
-    })
+      this.handleError(reason as Error, 'unhandledRejection');
+    });
   }
 
   // ==========================================================================
@@ -147,8 +147,8 @@ class LifecycleManager {
    * Initialize the lifecycle (called on CLI startup)
    */
   async initialize(): Promise<void> {
-    this.state.phase = 'startup'
-    this.state.startTime = Date.now()
+    this.state.phase = 'startup';
+    this.state.startTime = Date.now();
 
     // Trigger Setup hooks
     await triggerHooks('Setup', {
@@ -157,16 +157,16 @@ class LifecycleManager {
         phase: 'startup',
         timestamp: this.state.startTime,
       },
-    })
+    });
 
-    this.state.phase = 'ready'
+    this.state.phase = 'ready';
   }
 
   /**
    * Mark lifecycle as running
    */
   markRunning(): void {
-    this.state.phase = 'running'
+    this.state.phase = 'running';
   }
 
   /**
@@ -174,10 +174,10 @@ class LifecycleManager {
    */
   async shutdown(signal?: string): Promise<void> {
     if (this.state.phase === 'shutting_down' || this.state.phase === 'shutdown') {
-      return
+      return;
     }
 
-    this.state.phase = 'shutting_down'
+    this.state.phase = 'shutting_down';
 
     // Trigger Shutdown hooks
     await triggerHooks('Shutdown', {
@@ -188,26 +188,26 @@ class LifecycleManager {
         commandCount: this.state.commandCount,
         errorCount: this.state.errorCount,
       },
-    })
+    });
 
     // Run shutdown handlers
     for (const handler of this.shutdownHandlers) {
       try {
-        await handler()
+        await handler();
       }
       catch (error) {
-        console.error('Shutdown handler error:', error)
+        console.error('Shutdown handler error:', error);
       }
     }
 
-    this.state.phase = 'shutdown'
+    this.state.phase = 'shutdown';
   }
 
   /**
    * Register a shutdown handler
    */
   onShutdown(handler: () => Promise<void>): void {
-    this.shutdownHandlers.push(handler)
+    this.shutdownHandlers.push(handler);
   }
 
   // ==========================================================================
@@ -222,7 +222,7 @@ class LifecycleManager {
     args: string[],
     options: Record<string, unknown>,
   ): Promise<void> {
-    this.state.lastEventTime = Date.now()
+    this.state.lastEventTime = Date.now();
 
     await triggerHooks('PreCommand', {
       source: 'command',
@@ -231,7 +231,7 @@ class LifecycleManager {
         args,
         options,
       },
-    })
+    });
   }
 
   /**
@@ -244,11 +244,11 @@ class LifecycleManager {
     result?: unknown,
     error?: Error,
   ): Promise<void> {
-    this.state.commandCount++
-    this.state.lastEventTime = Date.now()
+    this.state.commandCount++;
+    this.state.lastEventTime = Date.now();
 
     if (error) {
-      this.state.errorCount++
+      this.state.errorCount++;
     }
 
     await triggerHooks('PostCommand', {
@@ -263,7 +263,7 @@ class LifecycleManager {
         error: error ? { message: error.message, stack: error.stack } : undefined,
         success: !error,
       },
-    })
+    });
   }
 
   // ==========================================================================
@@ -277,7 +277,7 @@ class LifecycleManager {
     toolName: string,
     args?: Record<string, unknown>,
   ): Promise<void> {
-    this.state.lastEventTime = Date.now()
+    this.state.lastEventTime = Date.now();
 
     await triggerHooks('PreToolUse', {
       source: 'tool',
@@ -285,7 +285,7 @@ class LifecycleManager {
         name: toolName,
         args,
       },
-    })
+    });
   }
 
   /**
@@ -297,10 +297,10 @@ class LifecycleManager {
     result?: unknown,
     error?: Error,
   ): Promise<void> {
-    this.state.lastEventTime = Date.now()
+    this.state.lastEventTime = Date.now();
 
     if (error) {
-      this.state.errorCount++
+      this.state.errorCount++;
     }
 
     await triggerHooks('PostToolUse', {
@@ -311,7 +311,7 @@ class LifecycleManager {
         result,
       },
       error: error ? { message: error.message, stack: error.stack } : undefined,
-    })
+    });
   }
 
   // ==========================================================================
@@ -326,8 +326,8 @@ class LifecycleManager {
     skillName: string,
     trigger?: string,
   ): Promise<void> {
-    this.state.activeSkills.add(skillId)
-    this.state.lastEventTime = Date.now()
+    this.state.activeSkills.add(skillId);
+    this.state.lastEventTime = Date.now();
 
     await triggerHooks('SkillActivate', {
       source: 'skill',
@@ -336,7 +336,7 @@ class LifecycleManager {
         name: skillName,
         trigger,
       },
-    })
+    });
   }
 
   /**
@@ -348,11 +348,11 @@ class LifecycleManager {
     result?: unknown,
     error?: Error,
   ): Promise<void> {
-    this.state.activeSkills.delete(skillId)
-    this.state.lastEventTime = Date.now()
+    this.state.activeSkills.delete(skillId);
+    this.state.lastEventTime = Date.now();
 
     if (error) {
-      this.state.errorCount++
+      this.state.errorCount++;
     }
 
     await triggerHooks('SkillComplete', {
@@ -366,7 +366,7 @@ class LifecycleManager {
         success: !error,
       },
       error: error ? { message: error.message, stack: error.stack } : undefined,
-    })
+    });
   }
 
   // ==========================================================================
@@ -377,8 +377,8 @@ class LifecycleManager {
    * Agent start
    */
   async agentStart(agentId: string, agentName: string): Promise<void> {
-    this.state.activeAgents.add(agentId)
-    this.state.lastEventTime = Date.now()
+    this.state.activeAgents.add(agentId);
+    this.state.lastEventTime = Date.now();
 
     await triggerHooks('AgentStart', {
       source: 'agent',
@@ -386,7 +386,7 @@ class LifecycleManager {
         id: agentId,
         name: agentName,
       },
-    })
+    });
   }
 
   /**
@@ -398,11 +398,11 @@ class LifecycleManager {
     result?: unknown,
     error?: Error,
   ): Promise<void> {
-    this.state.activeAgents.delete(agentId)
-    this.state.lastEventTime = Date.now()
+    this.state.activeAgents.delete(agentId);
+    this.state.lastEventTime = Date.now();
 
     if (error) {
-      this.state.errorCount++
+      this.state.errorCount++;
     }
 
     await triggerHooks('AgentStop', {
@@ -416,7 +416,7 @@ class LifecycleManager {
         success: !error,
       },
       error: error ? { message: error.message, stack: error.stack } : undefined,
-    })
+    });
   }
 
   // ==========================================================================
@@ -427,8 +427,8 @@ class LifecycleManager {
    * Handle error
    */
   async handleError(error: Error, source: string = 'unknown'): Promise<void> {
-    this.state.errorCount++
-    this.state.lastEventTime = Date.now()
+    this.state.errorCount++;
+    this.state.lastEventTime = Date.now();
 
     await triggerHooks('Error', {
       source,
@@ -436,7 +436,7 @@ class LifecycleManager {
         message: error.message,
         stack: error.stack,
       },
-    })
+    });
   }
 
   // ==========================================================================
@@ -451,28 +451,28 @@ class LifecycleManager {
       ...this.state,
       activeAgents: new Set(this.state.activeAgents),
       activeSkills: new Set(this.state.activeSkills),
-    }
+    };
   }
 
   /**
    * Get uptime in milliseconds
    */
   getUptime(): number {
-    return Date.now() - this.state.startTime
+    return Date.now() - this.state.startTime;
   }
 
   /**
    * Check if lifecycle is ready
    */
   isReady(): boolean {
-    return this.state.phase === 'ready' || this.state.phase === 'running'
+    return this.state.phase === 'ready' || this.state.phase === 'running';
   }
 
   /**
    * Check if lifecycle is shutting down
    */
   isShuttingDown(): boolean {
-    return this.state.phase === 'shutting_down' || this.state.phase === 'shutdown'
+    return this.state.phase === 'shutting_down' || this.state.phase === 'shutdown';
   }
 }
 
@@ -480,25 +480,25 @@ class LifecycleManager {
 // Singleton Instance
 // ============================================================================
 
-let lifecycleInstance: LifecycleManager | null = null
+let lifecycleInstance: LifecycleManager | null = null;
 
 /**
  * Get the singleton lifecycle manager
  */
 export function getLifecycleManager(): LifecycleManager {
   if (!lifecycleInstance) {
-    lifecycleInstance = new LifecycleManager()
+    lifecycleInstance = new LifecycleManager();
   }
-  return lifecycleInstance
+  return lifecycleInstance;
 }
 
 /**
  * Initialize the lifecycle manager
  */
 export async function initLifecycle(): Promise<LifecycleManager> {
-  const manager = getLifecycleManager()
-  await manager.initialize()
-  return manager
+  const manager = getLifecycleManager();
+  await manager.initialize();
+  return manager;
 }
 
 // ============================================================================
@@ -513,7 +513,7 @@ export function onLifecycleEvent(
   handler: HookHandler,
   options: HookOptions = {},
 ): string {
-  const bridge = getHookSkillBridge()
+  const bridge = getHookSkillBridge();
   return bridge.registerHook({
     type: event,
     handler,
@@ -521,7 +521,7 @@ export function onLifecycleEvent(
     priority: options.priority ?? 50,
     enabled: options.enabled ?? true,
     source: 'user',
-  })
+  });
 }
 
 /**
@@ -532,11 +532,11 @@ export function onLifecycleEventTriggerSkill(
   skillId: string,
   options: HookOptions = {},
 ): string {
-  const bridge = getHookSkillBridge()
+  const bridge = getHookSkillBridge();
   return bridge.registerSkillTriggerHook(event, skillId, {
     matcher: options.matcher,
     priority: options.priority,
-  })
+  });
 }
 
 /**
@@ -608,7 +608,7 @@ export const lifecycle = {
    */
   onShutdown: (handler: HookHandler, options?: HookOptions) =>
     onLifecycleEvent('Shutdown', handler, options),
-}
+};
 
 // ============================================================================
 // Built-in Hooks
@@ -618,44 +618,44 @@ export const lifecycle = {
  * Register built-in CCJK hooks
  */
 export function registerBuiltinHooks(): void {
-  const bridge = getHookSkillBridge()
+  const bridge = getHookSkillBridge();
 
   // Log startup
   bridge.registerHook({
     type: 'Setup',
     handler: async (ctx) => {
       if (process.env.CCJK_DEBUG) {
-        console.log(`[CCJK] Lifecycle started at ${new Date(ctx.timestamp).toISOString()}`)
+        console.log(`[CCJK] Lifecycle started at ${new Date(ctx.timestamp).toISOString()}`);
       }
     },
     priority: 100,
     enabled: true,
     source: 'builtin',
-  })
+  });
 
   // Log errors
   bridge.registerHook({
     type: 'Error',
     handler: async (ctx) => {
       if (process.env.CCJK_DEBUG && ctx.error) {
-        console.error(`[CCJK] Error: ${ctx.error.message}`)
+        console.error(`[CCJK] Error: ${ctx.error.message}`);
       }
     },
     priority: 100,
     enabled: true,
     source: 'builtin',
-  })
+  });
 
   // Log shutdown
   bridge.registerHook({
     type: 'Shutdown',
     handler: async (ctx) => {
       if (process.env.CCJK_DEBUG) {
-        console.log(`[CCJK] Lifecycle shutdown. Uptime: ${ctx.data?.uptime}ms`)
+        console.log(`[CCJK] Lifecycle shutdown. Uptime: ${ctx.data?.uptime}ms`);
       }
     },
     priority: 100,
     enabled: true,
     source: 'builtin',
-  })
+  });
 }

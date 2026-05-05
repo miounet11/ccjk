@@ -11,9 +11,9 @@
  * - System settings
  */
 
-import type { MenuDefinition, MenuItem } from '../types'
-import { showOutputStylesMenu, showQuickActionsMenu, showSmartGuideMenu, showWorkflowsAndSkillsMenu } from '../../../utils/smart-guide'
-import { doctor, workspaceDiagnostics } from '../../doctor'
+import type { MenuDefinition, MenuItem } from '../types';
+import { showOutputStylesMenu, showQuickActionsMenu, showSmartGuideMenu, showWorkflowsAndSkillsMenu } from '../../../utils/smart-guide';
+import { doctor, workspaceDiagnostics } from '../../doctor';
 
 /**
  * Advanced features submenu items
@@ -29,7 +29,7 @@ export const advancedMenuItems: MenuItem[] = [
     icon: '🚀',
     shortcut: '1',
     handler: async () => {
-      await showQuickActionsMenu()
+      await showQuickActionsMenu();
     },
   },
   {
@@ -42,7 +42,7 @@ export const advancedMenuItems: MenuItem[] = [
     icon: '🎯',
     shortcut: '2',
     handler: async () => {
-      await showSmartGuideMenu()
+      await showSmartGuideMenu();
     },
   },
   {
@@ -55,7 +55,7 @@ export const advancedMenuItems: MenuItem[] = [
     icon: '📋',
     shortcut: '3',
     handler: async () => {
-      await showWorkflowsAndSkillsMenu()
+      await showWorkflowsAndSkillsMenu();
     },
   },
   {
@@ -68,7 +68,7 @@ export const advancedMenuItems: MenuItem[] = [
     icon: '🎨',
     shortcut: '4',
     handler: async () => {
-      await showOutputStylesMenu()
+      await showOutputStylesMenu();
     },
   },
   {
@@ -81,7 +81,7 @@ export const advancedMenuItems: MenuItem[] = [
     icon: '🔍',
     shortcut: '5',
     handler: async () => {
-      await doctor()
+      await doctor();
     },
   },
   {
@@ -94,10 +94,10 @@ export const advancedMenuItems: MenuItem[] = [
     icon: '📁',
     shortcut: '6',
     handler: async () => {
-      await workspaceDiagnostics()
+      await workspaceDiagnostics();
     },
   },
-]
+];
 
 /**
  * Get advanced features menu definition
@@ -109,5 +109,5 @@ export function getAdvancedMenu(): MenuDefinition {
     items: advancedMenuItems,
     showCategories: false,
     maxVisible: 10,
-  }
+  };
 }

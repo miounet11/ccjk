@@ -1,10 +1,10 @@
 import type {
-    DecisionResponse,
-    FetchResponse,
-    Gene,
-    HelloResponse,
-    PublishResponse,
-    ReportResponse
+  DecisionResponse,
+  FetchResponse,
+  Gene,
+  HelloResponse,
+  PublishResponse,
+  ReportResponse,
 } from './types';
 
 /**
@@ -88,13 +88,17 @@ export class A2AClient {
     this.ensureAuthenticated();
 
     const params = new URLSearchParams();
-    if (options.minGDI !== undefined) params.set('minGDI', String(options.minGDI));
-    if (options.limit !== undefined) params.set('limit', String(options.limit));
-    if (options.signature) params.set('signature', options.signature);
-    if (options.geneId) params.set('geneId', options.geneId);
+    if (options.minGDI !== undefined)
+      params.set('minGDI', String(options.minGDI));
+    if (options.limit !== undefined)
+      params.set('limit', String(options.limit));
+    if (options.signature)
+      params.set('signature', options.signature);
+    if (options.geneId)
+      params.set('geneId', options.geneId);
 
     const qs = params.toString();
-    const response = await this.request<FetchResponse>(`/a2a/fetch${qs ? '?' + qs : ''}`, {
+    const response = await this.request<FetchResponse>(`/a2a/fetch${qs ? `?${qs}` : ''}`, {
       method: 'GET',
       auth: true,
     });
@@ -172,7 +176,7 @@ export class A2AClient {
       method: string;
       body?: any;
       auth?: boolean;
-    }
+    },
   ): Promise<T> {
     const url = `${this.baseUrl}${path}`;
     const headers: Record<string, string> = {
@@ -180,7 +184,7 @@ export class A2AClient {
     };
 
     if (options.auth && this.token) {
-      headers['Authorization'] = `Bearer ${this.token}`;
+      headers.Authorization = `Bearer ${this.token}`;
     }
 
     const response = await globalThis.fetch(url, {

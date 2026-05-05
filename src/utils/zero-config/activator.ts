@@ -5,26 +5,26 @@
  * Handles detection, installation, and skill loading.
  */
 
-import type { ActivationStatus, SupportedLang } from './types'
-import { existsSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs'
-import { homedir } from 'node:os'
-import process from 'node:process'
-import { join } from 'pathe'
-import { autoInstallSuperpowers } from './auto-install'
-import { loadCoreSkills } from './skill-loader'
+import type { ActivationStatus, SupportedLang } from './types';
+import { existsSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
+import { homedir } from 'node:os';
+import process from 'node:process';
+import { join } from 'pathe';
+import { autoInstallSuperpowers } from './auto-install';
+import { loadCoreSkills } from './skill-loader';
 
 /**
  * Get the activation state file path
  */
 function getActivationStatePath(): string {
-  return join(homedir(), '.claude', 'plugins', 'superpowers', '.activation-state.json')
+  return join(homedir(), '.claude', 'plugins', 'superpowers', '.activation-state.json');
 }
 
 /**
  * Get the Superpowers directory path
  */
 function getSuperpowersDir(): string {
-  return join(homedir(), '.claude', 'plugins', 'superpowers')
+  return join(homedir(), '.claude', 'plugins', 'superpowers');
 }
 
 /**
@@ -34,19 +34,19 @@ function getSuperpowersDir(): string {
  */
 function loadActivationState(): ActivationStatus | null {
   try {
-    const statePath = getActivationStatePath()
+    const statePath = getActivationStatePath();
     if (!existsSync(statePath)) {
-      return null
+      return null;
     }
 
-    const stateJson = readFileSync(statePath, 'utf-8')
-    return JSON.parse(stateJson) as ActivationStatus
+    const stateJson = readFileSync(statePath, 'utf-8');
+    return JSON.parse(stateJson) as ActivationStatus;
   }
   catch (error) {
     if (process.env.DEBUG) {
-      console.error('[Zero-Config] Failed to load activation state:', error)
+      console.error('[Zero-Config] Failed to load activation state:', error);
     }
-    return null
+    return null;
   }
 }
 
@@ -57,12 +57,12 @@ function loadActivationState(): ActivationStatus | null {
  */
 function saveActivationState(status: ActivationStatus): void {
   try {
-    const statePath = getActivationStatePath()
-    writeFileSync(statePath, JSON.stringify(status, null, 2), 'utf-8')
+    const statePath = getActivationStatePath();
+    writeFileSync(statePath, JSON.stringify(status, null, 2), 'utf-8');
   }
   catch (error) {
     if (process.env.DEBUG) {
-      console.error('[Zero-Config] Failed to save activation state:', error)
+      console.error('[Zero-Config] Failed to save activation state:', error);
     }
   }
 }
@@ -73,12 +73,12 @@ function saveActivationState(status: ActivationStatus): void {
  * @returns Current activation status
  */
 export function checkActivationStatus(): ActivationStatus {
-  const superpowersInstalled = existsSync(getSuperpowersDir())
+  const superpowersInstalled = existsSync(getSuperpowersDir());
 
   // Try to load saved state
-  const savedState = loadActivationState()
+  const savedState = loadActivationState();
   if (savedState) {
-    return savedState
+    return savedState;
   }
 
   // No saved state, return default status
@@ -88,7 +88,7 @@ export function checkActivationStatus(): ActivationStatus {
     loadedSkills: [],
     needsActivation: true,
     lastActivation: undefined,
-  }
+  };
 }
 
 /**
@@ -108,16 +108,16 @@ export async function activateSuperpowers(
   lang: SupportedLang = 'zh-CN',
 ): Promise<ActivationStatus> {
   // Check current status
-  const currentStatus = checkActivationStatus()
+  const currentStatus = checkActivationStatus();
 
   // If already activated, return current status
   if (!currentStatus.needsActivation) {
-    return currentStatus
+    return currentStatus;
   }
 
   // Install Superpowers if needed
   if (!currentStatus.isInstalled) {
-    const installSuccess = await autoInstallSuperpowers(lang)
+    const installSuccess = await autoInstallSuperpowers(lang);
     if (!installSuccess) {
       return {
         isInstalled: false,
@@ -125,14 +125,14 @@ export async function activateSuperpowers(
         loadedSkills: [],
         needsActivation: true,
         lastActivation: undefined,
-      }
+      };
     }
   }
 
   // Load core skills
-  const loadResults = await loadCoreSkills(lang)
-  const successfulLoads = loadResults.filter(r => r.success)
-  const allCoreSkillsLoaded = successfulLoads.length === loadResults.length
+  const loadResults = await loadCoreSkills(lang);
+  const successfulLoads = loadResults.filter(r => r.success);
+  const allCoreSkillsLoaded = successfulLoads.length === loadResults.length;
 
   // Create new status
   const newStatus: ActivationStatus = {
@@ -141,12 +141,12 @@ export async function activateSuperpowers(
     loadedSkills: successfulLoads.map(r => r.skill),
     needsActivation: false,
     lastActivation: new Date().toISOString(),
-  }
+  };
 
   // Save state
-  saveActivationState(newStatus)
+  saveActivationState(newStatus);
 
-  return newStatus
+  return newStatus;
 }
 
 /**
@@ -165,17 +165,17 @@ export async function forceReactivation(
 ): Promise<ActivationStatus> {
   // Clear activation state
   try {
-    const statePath = getActivationStatePath()
+    const statePath = getActivationStatePath();
     if (existsSync(statePath)) {
-      unlinkSync(statePath)
+      unlinkSync(statePath);
     }
   }
   catch (error) {
     if (process.env.DEBUG) {
-      console.error('[Zero-Config] Failed to clear activation state:', error)
+      console.error('[Zero-Config] Failed to clear activation state:', error);
     }
   }
 
   // Perform fresh activation
-  return activateSuperpowers(lang)
+  return activateSuperpowers(lang);
 }

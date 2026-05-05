@@ -7,21 +7,21 @@
  * @module core/auto-compact-hook
  */
 
-import type { HookContext, HookPhase, HookResult, LifecycleHook } from './lifecycle-hooks'
-import { i18n } from '../i18n'
+import type { HookContext, HookPhase, HookResult, LifecycleHook } from './lifecycle-hooks';
+import { i18n } from '../i18n';
 
 /**
  * Error patterns that indicate context overflow or service issues
  */
 export interface ErrorPattern {
   /** Pattern name for identification */
-  name: string
+  name: string;
   /** Regular expression to match the error */
-  pattern: RegExp
+  pattern: RegExp;
   /** Severity level: 'warning' triggers notification, 'critical' triggers auto-compact */
-  severity: 'warning' | 'critical'
+  severity: 'warning' | 'critical';
   /** Description of what this pattern detects */
-  description: string
+  description: string;
 }
 
 /**
@@ -29,15 +29,15 @@ export interface ErrorPattern {
  */
 export interface AutoCompactHookOptions {
   /** Whether to automatically trigger compact on critical errors */
-  autoTrigger?: boolean
+  autoTrigger?: boolean;
   /** Minimum interval between auto-compact triggers (in milliseconds) */
-  cooldownMs?: number
+  cooldownMs?: number;
   /** Custom error patterns to detect */
-  customPatterns?: ErrorPattern[]
+  customPatterns?: ErrorPattern[];
   /** Callback for user notifications */
-  onNotify?: (message: string, level: 'info' | 'warning' | 'error') => void
+  onNotify?: (message: string, level: 'info' | 'warning' | 'error') => void;
   /** Callback when compact is triggered */
-  onCompactTrigger?: () => Promise<void>
+  onCompactTrigger?: () => Promise<void>;
 }
 
 /**
@@ -45,13 +45,13 @@ export interface AutoCompactHookOptions {
  */
 export interface DetectionResult {
   /** Whether an error was detected */
-  detected: boolean
+  detected: boolean;
   /** The pattern that matched, if any */
-  matchedPattern?: ErrorPattern
+  matchedPattern?: ErrorPattern;
   /** The matched text from the output */
-  matchedText?: string
+  matchedText?: string;
   /** Timestamp of detection */
-  timestamp: number
+  timestamp: number;
 }
 
 /**
@@ -59,15 +59,15 @@ export interface DetectionResult {
  */
 export interface AutoCompactStats {
   /** Total number of errors detected */
-  totalDetections: number
+  totalDetections: number;
   /** Number of auto-compact triggers */
-  compactTriggers: number
+  compactTriggers: number;
   /** Last detection timestamp */
-  lastDetection?: number
+  lastDetection?: number;
   /** Last compact trigger timestamp */
-  lastCompactTrigger?: number
+  lastCompactTrigger?: number;
   /** Detection counts by pattern name */
-  detectionsByPattern: Record<string, number>
+  detectionsByPattern: Record<string, number>;
 }
 
 /**
@@ -122,12 +122,12 @@ const DEFAULT_ERROR_PATTERNS: ErrorPattern[] = [
     severity: 'warning',
     description: 'Rate limiting related to context size',
   },
-]
+];
 
 /**
  * Default cooldown period between auto-compact triggers (5 minutes)
  */
-const DEFAULT_COOLDOWN_MS = 5 * 60 * 1000
+const DEFAULT_COOLDOWN_MS = 5 * 60 * 1000;
 
 /**
  * AutoCompactHook monitors for upstream service errors and context overflow,
@@ -151,16 +151,16 @@ const DEFAULT_COOLDOWN_MS = 5 * 60 * 1000
  * ```
  */
 export class AutoCompactHook implements LifecycleHook {
-  readonly name = 'auto-compact'
-  readonly phase: HookPhase = 'post-execution'
-  readonly priority = 100 // High priority for error detection
-  enabled = true
+  readonly name = 'auto-compact';
+  readonly phase: HookPhase = 'post-execution';
+  readonly priority = 100; // High priority for error detection
+  enabled = true;
 
-  private options: Required<AutoCompactHookOptions>
-  private patterns: ErrorPattern[]
-  private stats: AutoCompactStats
-  private lastDetection: DetectionResult | null = null
-  private isCompacting = false
+  private options: Required<AutoCompactHookOptions>;
+  private patterns: ErrorPattern[];
+  private stats: AutoCompactStats;
+  private lastDetection: DetectionResult | null = null;
+  private isCompacting = false;
 
   constructor(options: AutoCompactHookOptions = {}) {
     this.options = {
@@ -169,17 +169,17 @@ export class AutoCompactHook implements LifecycleHook {
       customPatterns: options.customPatterns ?? [],
       onNotify: options.onNotify ?? this.defaultNotify.bind(this),
       onCompactTrigger: options.onCompactTrigger ?? this.defaultCompactTrigger.bind(this),
-    }
+    };
 
     // Combine default patterns with custom patterns
-    this.patterns = [...DEFAULT_ERROR_PATTERNS, ...this.options.customPatterns]
+    this.patterns = [...DEFAULT_ERROR_PATTERNS, ...this.options.customPatterns];
 
     // Initialize statistics
     this.stats = {
       totalDetections: 0,
       compactTriggers: 0,
       detectionsByPattern: {},
-    }
+    };
   }
 
   /**
@@ -191,38 +191,38 @@ export class AutoCompactHook implements LifecycleHook {
    */
   async execute(context: HookContext): Promise<HookResult> {
     // Extract output from data if available
-    const output = context.data?.output as string | undefined
+    const output = context.data?.output as string | undefined;
 
     if (!output || typeof output !== 'string') {
-      return { success: true }
+      return { success: true };
     }
 
-    const detection = this.detectError(output)
+    const detection = this.detectError(output);
 
     if (!detection.detected) {
-      return { success: true }
+      return { success: true };
     }
 
     // Notify user about the detection
-    this.notifyDetection(detection)
+    this.notifyDetection(detection);
 
     // Check if we should auto-trigger compact
     if (this.options.autoTrigger && this.shouldTriggerCompact()) {
       try {
-        await this.triggerCompact()
+        await this.triggerCompact();
         return {
           success: true,
           data: {
             compactTriggered: true,
             pattern: detection.matchedPattern?.name,
           },
-        }
+        };
       }
       catch (error) {
         return {
           success: false,
           error: error instanceof Error ? error : new Error(String(error)),
-        }
+        };
       }
     }
 
@@ -233,7 +233,7 @@ export class AutoCompactHook implements LifecycleHook {
         pattern: detection.matchedPattern?.name,
         autoTriggerSkipped: !this.shouldTriggerCompact(),
       },
-    }
+    };
   }
 
   /**
@@ -247,37 +247,37 @@ export class AutoCompactHook implements LifecycleHook {
       return {
         detected: false,
         timestamp: Date.now(),
-      }
+      };
     }
 
     // Check each pattern for matches
     for (const pattern of this.patterns) {
-      const match = output.match(pattern.pattern)
+      const match = output.match(pattern.pattern);
       if (match) {
         const result: DetectionResult = {
           detected: true,
           matchedPattern: pattern,
           matchedText: match[0],
           timestamp: Date.now(),
-        }
+        };
 
         // Update statistics
-        this.stats.totalDetections++
-        this.stats.lastDetection = result.timestamp
+        this.stats.totalDetections++;
+        this.stats.lastDetection = result.timestamp;
         this.stats.detectionsByPattern[pattern.name]
-          = (this.stats.detectionsByPattern[pattern.name] || 0) + 1
+          = (this.stats.detectionsByPattern[pattern.name] || 0) + 1;
 
         // Store last detection
-        this.lastDetection = result
+        this.lastDetection = result;
 
-        return result
+        return result;
       }
     }
 
     return {
       detected: false,
       timestamp: Date.now(),
-    }
+    };
   }
 
   /**
@@ -288,28 +288,28 @@ export class AutoCompactHook implements LifecycleHook {
   shouldTriggerCompact(): boolean {
     // Don't trigger if already compacting
     if (this.isCompacting) {
-      return false
+      return false;
     }
 
     // Don't trigger if no detection
     if (!this.lastDetection?.detected) {
-      return false
+      return false;
     }
 
     // Only trigger for critical severity
     if (this.lastDetection.matchedPattern?.severity !== 'critical') {
-      return false
+      return false;
     }
 
     // Check cooldown period
     if (this.stats.lastCompactTrigger) {
-      const timeSinceLastTrigger = Date.now() - this.stats.lastCompactTrigger
+      const timeSinceLastTrigger = Date.now() - this.stats.lastCompactTrigger;
       if (timeSinceLastTrigger < this.options.cooldownMs) {
-        return false
+        return false;
       }
     }
 
-    return true
+    return true;
   }
 
   /**
@@ -319,30 +319,30 @@ export class AutoCompactHook implements LifecycleHook {
    */
   async triggerCompact(): Promise<void> {
     if (this.isCompacting) {
-      throw new Error(i18n.t('common:autoCompact.alreadyCompacting'))
+      throw new Error(i18n.t('common:autoCompact.alreadyCompacting'));
     }
 
-    this.isCompacting = true
+    this.isCompacting = true;
 
     try {
       // Notify user that compact is being triggered
       this.options.onNotify(
         i18n.t('common:autoCompact.triggeringCompact'),
         'info',
-      )
+      );
 
       // Execute the compact trigger callback
-      await this.options.onCompactTrigger()
+      await this.options.onCompactTrigger();
 
       // Update statistics
-      this.stats.compactTriggers++
-      this.stats.lastCompactTrigger = Date.now()
+      this.stats.compactTriggers++;
+      this.stats.lastCompactTrigger = Date.now();
 
       // Notify success
       this.options.onNotify(
         i18n.t('common:autoCompact.compactSuccess'),
         'info',
-      )
+      );
     }
     catch (error) {
       // Notify failure
@@ -351,11 +351,11 @@ export class AutoCompactHook implements LifecycleHook {
           error: error instanceof Error ? error.message : String(error),
         }),
         'error',
-      )
-      throw error
+      );
+      throw error;
     }
     finally {
-      this.isCompacting = false
+      this.isCompacting = false;
     }
   }
 
@@ -365,7 +365,7 @@ export class AutoCompactHook implements LifecycleHook {
    * @returns Current auto-compact statistics
    */
   getStats(): AutoCompactStats {
-    return { ...this.stats }
+    return { ...this.stats };
   }
 
   /**
@@ -376,8 +376,8 @@ export class AutoCompactHook implements LifecycleHook {
       totalDetections: 0,
       compactTriggers: 0,
       detectionsByPattern: {},
-    }
-    this.lastDetection = null
+    };
+    this.lastDetection = null;
   }
 
   /**
@@ -386,7 +386,7 @@ export class AutoCompactHook implements LifecycleHook {
    * @returns Last detection result or null
    */
   getLastDetection(): DetectionResult | null {
-    return this.lastDetection ? { ...this.lastDetection } : null
+    return this.lastDetection ? { ...this.lastDetection } : null;
   }
 
   /**
@@ -396,13 +396,13 @@ export class AutoCompactHook implements LifecycleHook {
    */
   addPattern(pattern: ErrorPattern): void {
     // Check for duplicate names
-    const existingIndex = this.patterns.findIndex(p => p.name === pattern.name)
+    const existingIndex = this.patterns.findIndex(p => p.name === pattern.name);
     if (existingIndex >= 0) {
       // Replace existing pattern
-      this.patterns[existingIndex] = pattern
+      this.patterns[existingIndex] = pattern;
     }
     else {
-      this.patterns.push(pattern)
+      this.patterns.push(pattern);
     }
   }
 
@@ -413,12 +413,12 @@ export class AutoCompactHook implements LifecycleHook {
    * @returns True if pattern was removed
    */
   removePattern(name: string): boolean {
-    const index = this.patterns.findIndex(p => p.name === name)
+    const index = this.patterns.findIndex(p => p.name === name);
     if (index >= 0) {
-      this.patterns.splice(index, 1)
-      return true
+      this.patterns.splice(index, 1);
+      return true;
     }
-    return false
+    return false;
   }
 
   /**
@@ -427,7 +427,7 @@ export class AutoCompactHook implements LifecycleHook {
    * @returns Array of error patterns
    */
   getPatterns(): ErrorPattern[] {
-    return [...this.patterns]
+    return [...this.patterns];
   }
 
   /**
@@ -437,21 +437,21 @@ export class AutoCompactHook implements LifecycleHook {
    */
   updateOptions(options: Partial<AutoCompactHookOptions>): void {
     if (options.autoTrigger !== undefined) {
-      this.options.autoTrigger = options.autoTrigger
+      this.options.autoTrigger = options.autoTrigger;
     }
     if (options.cooldownMs !== undefined) {
-      this.options.cooldownMs = options.cooldownMs
+      this.options.cooldownMs = options.cooldownMs;
     }
     if (options.onNotify !== undefined) {
-      this.options.onNotify = options.onNotify
+      this.options.onNotify = options.onNotify;
     }
     if (options.onCompactTrigger !== undefined) {
-      this.options.onCompactTrigger = options.onCompactTrigger
+      this.options.onCompactTrigger = options.onCompactTrigger;
     }
     if (options.customPatterns !== undefined) {
       // Re-combine patterns
-      this.patterns = [...DEFAULT_ERROR_PATTERNS, ...options.customPatterns]
-      this.options.customPatterns = options.customPatterns
+      this.patterns = [...DEFAULT_ERROR_PATTERNS, ...options.customPatterns];
+      this.options.customPatterns = options.customPatterns;
     }
   }
 
@@ -461,7 +461,7 @@ export class AutoCompactHook implements LifecycleHook {
    * @returns True if currently compacting
    */
   isCurrentlyCompacting(): boolean {
-    return this.isCompacting
+    return this.isCompacting;
   }
 
   /**
@@ -473,9 +473,9 @@ export class AutoCompactHook implements LifecycleHook {
       info: '[INFO]',
       warning: '[WARN]',
       error: '[ERROR]',
-    }[level]
+    }[level];
 
-    console.log(`${prefix} ${message}`)
+    console.log(`${prefix} ${message}`);
   }
 
   /**
@@ -486,7 +486,7 @@ export class AutoCompactHook implements LifecycleHook {
     // Default implementation logs a warning
     // In production, this should be replaced with actual /compact command execution
 
-    console.warn(i18n.t('common:autoCompact.noCompactHandler'))
+    console.warn(i18n.t('common:autoCompact.noCompactHandler'));
   }
 
   /**
@@ -494,11 +494,11 @@ export class AutoCompactHook implements LifecycleHook {
    */
   private notifyDetection(detection: DetectionResult): void {
     if (!detection.detected || !detection.matchedPattern) {
-      return
+      return;
     }
 
-    const { matchedPattern, matchedText } = detection
-    const level = matchedPattern.severity === 'critical' ? 'error' : 'warning'
+    const { matchedPattern, matchedText } = detection;
+    const level = matchedPattern.severity === 'critical' ? 'error' : 'warning';
 
     this.options.onNotify(
       i18n.t('common:autoCompact.errorDetected', {
@@ -507,7 +507,7 @@ export class AutoCompactHook implements LifecycleHook {
         text: matchedText,
       }),
       level,
-    )
+    );
   }
 }
 
@@ -518,10 +518,10 @@ export class AutoCompactHook implements LifecycleHook {
  * @returns Configured AutoCompactHook instance
  */
 export function createAutoCompactHook(options?: AutoCompactHookOptions): AutoCompactHook {
-  return new AutoCompactHook(options)
+  return new AutoCompactHook(options);
 }
 
 /**
  * Export default error patterns for external use
  */
-export { DEFAULT_ERROR_PATTERNS }
+export { DEFAULT_ERROR_PATTERNS };

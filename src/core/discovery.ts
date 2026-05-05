@@ -9,10 +9,10 @@
  * @module core/discovery
  */
 
-import type { CCJKHookType } from './hook-skill-bridge'
-import type { LifecycleState } from './lifecycle-hooks'
-import { getHookSkillBridge } from './hook-skill-bridge'
-import { getLifecycleManager } from './lifecycle-hooks'
+import type { CCJKHookType } from './hook-skill-bridge';
+import type { LifecycleState } from './lifecycle-hooks';
+import { getHookSkillBridge } from './hook-skill-bridge';
+import { getLifecycleManager } from './lifecycle-hooks';
 
 // ============================================================================
 // Types
@@ -22,73 +22,73 @@ import { getLifecycleManager } from './lifecycle-hooks'
  * Discovered hook information
  */
 export interface DiscoveredHook {
-  id: string
-  type: CCJKHookType
-  priority: number
-  enabled: boolean
-  source: 'builtin' | 'user' | 'skill' | 'plugin'
-  matcher?: string | RegExp
-  triggersSkill?: string
+  id: string;
+  type: CCJKHookType;
+  priority: number;
+  enabled: boolean;
+  source: 'builtin' | 'user' | 'skill' | 'plugin';
+  matcher?: string | RegExp;
+  triggersSkill?: string;
 }
 
 /**
  * Discovered skill information
  */
 export interface DiscoveredSkill {
-  id: string
-  name: string
-  description?: string
-  version?: string
-  category?: string
-  triggers: string[]
+  id: string;
+  name: string;
+  description?: string;
+  version?: string;
+  category?: string;
+  triggers: string[];
   args?: Array<{
-    name: string
-    description?: string
-    required?: boolean
-    default?: string
-  }>
+    name: string;
+    description?: string;
+    required?: boolean;
+    default?: string;
+  }>;
   hooks?: Array<{
-    type: string
-    command?: string
-  }>
-  userInvocable: boolean
-  autoActivate: boolean
-  priority: number
+    type: string;
+    command?: string;
+  }>;
+  userInvocable: boolean;
+  autoActivate: boolean;
+  priority: number;
 }
 
 /**
  * Discovered agent information
  */
 export interface DiscoveredAgent {
-  id: string
-  name: string
-  description?: string
-  model?: string
-  capabilities: string[]
-  tools?: string[]
-  isBuiltin: boolean
+  id: string;
+  name: string;
+  description?: string;
+  model?: string;
+  capabilities: string[];
+  tools?: string[];
+  isBuiltin: boolean;
 }
 
 /**
  * Discovery result
  */
 export interface DiscoveryResult {
-  hooks: DiscoveredHook[]
-  skills: DiscoveredSkill[]
-  agents: DiscoveredAgent[]
-  lifecycle: LifecycleState
-  timestamp: number
+  hooks: DiscoveredHook[];
+  skills: DiscoveredSkill[];
+  agents: DiscoveredAgent[];
+  lifecycle: LifecycleState;
+  timestamp: number;
 }
 
 /**
  * Discovery options
  */
 export interface DiscoveryOptions {
-  includeDisabled?: boolean
-  includeBuiltin?: boolean
-  hookTypes?: CCJKHookType[]
-  skillCategories?: string[]
-  agentCapabilities?: string[]
+  includeDisabled?: boolean;
+  includeBuiltin?: boolean;
+  hookTypes?: CCJKHookType[];
+  skillCategories?: string[];
+  agentCapabilities?: string[];
 }
 
 // ============================================================================
@@ -99,24 +99,24 @@ export interface DiscoveryOptions {
  * Discover all hooks
  */
 export function discoverHooks(options: DiscoveryOptions = {}): DiscoveredHook[] {
-  const bridge = getHookSkillBridge()
-  const allHooks = bridge.getHooks()
+  const bridge = getHookSkillBridge();
+  const allHooks = bridge.getHooks();
 
   return allHooks
     .filter((hook) => {
       // Filter by enabled status
       if (!options.includeDisabled && !hook.enabled) {
-        return false
+        return false;
       }
       // Filter by builtin status
       if (!options.includeBuiltin && hook.source === 'builtin') {
-        return false
+        return false;
       }
       // Filter by hook type
       if (options.hookTypes && !options.hookTypes.includes(hook.type)) {
-        return false
+        return false;
       }
-      return true
+      return true;
     })
     .map(hook => ({
       id: hook.id,
@@ -126,7 +126,7 @@ export function discoverHooks(options: DiscoveryOptions = {}): DiscoveredHook[] 
       source: hook.source,
       matcher: hook.matcher,
       triggersSkill: hook.skillTrigger?.skillId,
-    }))
+    }));
 }
 
 /**
@@ -134,19 +134,19 @@ export function discoverHooks(options: DiscoveryOptions = {}): DiscoveredHook[] 
  */
 export async function discoverSkills(options: DiscoveryOptions = {}): Promise<DiscoveredSkill[]> {
   // Dynamic import to avoid circular dependency
-  const { getSkillRegistry } = await import('../brain/skill-registry')
-  const registry = getSkillRegistry()
-  const allSkills = registry.getAll()
+  const { getSkillRegistry } = await import('../brain/skill-registry');
+  const registry = getSkillRegistry();
+  const allSkills = registry.getAll();
 
   return allSkills
     .filter((skill) => {
       // Filter by category
       if (options.skillCategories && skill.metadata.category) {
         if (!options.skillCategories.includes(skill.metadata.category)) {
-          return false
+          return false;
         }
       }
-      return true
+      return true;
     })
     .map(skill => ({
       id: skill.id || skill.metadata.name,
@@ -168,7 +168,7 @@ export async function discoverSkills(options: DiscoveryOptions = {}): Promise<Di
       userInvocable: skill.metadata.user_invocable ?? true,
       autoActivate: skill.metadata.auto_activate ?? false,
       priority: skill.metadata.priority ?? 50,
-    }))
+    }));
 }
 
 /**
@@ -176,32 +176,32 @@ export async function discoverSkills(options: DiscoveryOptions = {}): Promise<Di
  */
 export async function discoverAgents(options: DiscoveryOptions = {}): Promise<DiscoveredAgent[]> {
   // Dynamic import to avoid circular dependency
-  const { AGENT_REGISTRY } = await import('../agents/registry')
-  const allAgents = AGENT_REGISTRY
+  const { AGENT_REGISTRY } = await import('../agents/registry');
+  const allAgents = AGENT_REGISTRY;
 
   return allAgents
     .filter((agent) => {
       // Filter by builtin status - all registry agents are builtin
       if (!options.includeBuiltin) {
-        return false
+        return false;
       }
       // Filter by capabilities
       if (options.agentCapabilities) {
         const hasCapability = options.agentCapabilities.some(
           cap => agent.expertise?.includes(cap),
-        )
+        );
         if (!hasCapability) {
-          return false
+          return false;
         }
       }
-      return true
+      return true;
     })
     .map(agent => ({
       id: agent.id,
       name: agent.name,
       capabilities: agent.expertise || [],
       isBuiltin: true, // All registry agents are builtin
-    }))
+    }));
 }
 
 /**
@@ -212,9 +212,9 @@ export async function discoverAll(options: DiscoveryOptions = {}): Promise<Disco
     Promise.resolve(discoverHooks(options)),
     discoverSkills(options),
     discoverAgents(options),
-  ])
+  ]);
 
-  const lifecycleManager = getLifecycleManager()
+  const lifecycleManager = getLifecycleManager();
 
   return {
     hooks,
@@ -222,7 +222,7 @@ export async function discoverAll(options: DiscoveryOptions = {}): Promise<Disco
     agents,
     lifecycle: lifecycleManager.getState(),
     timestamp: Date.now(),
-  }
+  };
 }
 
 // ============================================================================
@@ -233,8 +233,8 @@ export async function discoverAll(options: DiscoveryOptions = {}): Promise<Disco
  * Find hooks that trigger a specific skill
  */
 export function findHooksForSkill(skillId: string): DiscoveredHook[] {
-  const bridge = getHookSkillBridge()
-  const allHooks = bridge.getHooks()
+  const bridge = getHookSkillBridge();
+  const allHooks = bridge.getHooks();
 
   return allHooks
     .filter(hook => hook.skillTrigger?.skillId === skillId)
@@ -246,19 +246,19 @@ export function findHooksForSkill(skillId: string): DiscoveredHook[] {
       source: hook.source,
       matcher: hook.matcher,
       triggersSkill: skillId,
-    }))
+    }));
 }
 
 /**
  * Find skills by trigger pattern
  */
 export async function findSkillsByTrigger(trigger: string): Promise<DiscoveredSkill[]> {
-  const { getSkillRegistry } = await import('../brain/skill-registry')
-  const registry = getSkillRegistry()
-  const skills = registry.getByTrigger(trigger)
+  const { getSkillRegistry } = await import('../brain/skill-registry');
+  const registry = getSkillRegistry();
+  const skills = registry.getByTrigger(trigger);
 
   if (!skills || skills.length === 0) {
-    return []
+    return [];
   }
 
   return skills.map(skill => ({
@@ -281,22 +281,22 @@ export async function findSkillsByTrigger(trigger: string): Promise<DiscoveredSk
     userInvocable: skill.metadata.user_invocable ?? true,
     autoActivate: skill.metadata.auto_activate ?? false,
     priority: skill.metadata.priority ?? 50,
-  }))
+  }));
 }
 
 /**
  * Find agents by capability
  */
 export async function findAgentsByCapability(capability: string): Promise<DiscoveredAgent[]> {
-  const { getAgentsByExpertise } = await import('../agents/registry')
-  const agents = getAgentsByExpertise(capability)
+  const { getAgentsByExpertise } = await import('../agents/registry');
+  const agents = getAgentsByExpertise(capability);
 
   return agents.map(agent => ({
     id: agent.id,
     name: agent.name,
     capabilities: agent.expertise || [],
     isBuiltin: true, // All registry agents are builtin
-  }))
+  }));
 }
 
 // ============================================================================
@@ -307,26 +307,26 @@ export async function findAgentsByCapability(capability: string): Promise<Discov
  * Get discovery statistics
  */
 export async function getDiscoveryStats(): Promise<{
-  totalHooks: number
-  enabledHooks: number
-  totalSkills: number
-  userInvocableSkills: number
-  totalAgents: number
-  builtinAgents: number
-  hooksByType: Record<string, number>
-  skillsByCategory: Record<string, number>
+  totalHooks: number;
+  enabledHooks: number;
+  totalSkills: number;
+  userInvocableSkills: number;
+  totalAgents: number;
+  builtinAgents: number;
+  hooksByType: Record<string, number>;
+  skillsByCategory: Record<string, number>;
 }> {
-  const result = await discoverAll({ includeDisabled: true, includeBuiltin: true })
+  const result = await discoverAll({ includeDisabled: true, includeBuiltin: true });
 
-  const hooksByType: Record<string, number> = {}
+  const hooksByType: Record<string, number> = {};
   for (const hook of result.hooks) {
-    hooksByType[hook.type] = (hooksByType[hook.type] || 0) + 1
+    hooksByType[hook.type] = (hooksByType[hook.type] || 0) + 1;
   }
 
-  const skillsByCategory: Record<string, number> = {}
+  const skillsByCategory: Record<string, number> = {};
   for (const skill of result.skills) {
-    const category = skill.category || 'uncategorized'
-    skillsByCategory[category] = (skillsByCategory[category] || 0) + 1
+    const category = skill.category || 'uncategorized';
+    skillsByCategory[category] = (skillsByCategory[category] || 0) + 1;
   }
 
   return {
@@ -338,5 +338,5 @@ export async function getDiscoveryStats(): Promise<{
     builtinAgents: result.agents.filter(a => a.isBuiltin).length,
     hooksByType,
     skillsByCategory,
-  }
+  };
 }

@@ -46,7 +46,7 @@ export {
   displayCurrentStatus,
   runConfigWizard,
   testApiConnection,
-} from './manager'
+} from './manager';
 
 // Presets
 export {
@@ -57,7 +57,7 @@ export {
   getPresetsByCategory,
   getRecommendedPresets,
   PROVIDER_PRESETS,
-} from './presets'
+} from './presets';
 
 // Simple Mode
 export {
@@ -69,7 +69,7 @@ export {
   getCurrentConfig,
   quickSetup,
   validateApiKey,
-} from './simple-mode'
+} from './simple-mode';
 
 // Types
 export type {
@@ -85,4 +85,4 @@ export type {
   ProviderFeature,
   ProviderPreset,
   SimpleApiConfig,
-} from './types'
+} from './types';

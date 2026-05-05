@@ -3,9 +3,9 @@
  * Manual test for context optimization
  */
 
-import { ToolSandbox } from '../src/context/tool-sandbox';
-import { SemanticCompressor } from '../src/context/semantic-compressor';
 import { ContextOptimizer } from '../src/context/context-optimizer';
+import { SemanticCompressor } from '../src/context/semantic-compressor';
+import { ToolSandbox } from '../src/context/tool-sandbox';
 
 console.log('\n🧪 Testing Context Optimization\n');
 
@@ -13,11 +13,11 @@ console.log('\n🧪 Testing Context Optimization\n');
 console.log('1️⃣ Testing ToolSandbox...');
 const sandbox = new ToolSandbox();
 
-const largeJson = JSON.stringify(Array(100).fill({ id: 1, name: 'test', data: 'x'.repeat(100) }));
+const largeJson = JSON.stringify(new Array(100).fill({ id: 1, name: 'test', data: 'x'.repeat(100) }));
 const result1 = sandbox.process({
   toolName: 'Read',
   raw: largeJson,
-  size: largeJson.length
+  size: largeJson.length,
 });
 
 console.log(`   Original: ${result1.originalSize} bytes`);
@@ -29,7 +29,7 @@ console.log(`   ✅ ToolSandbox works\n`);
 console.log('2️⃣ Testing SemanticCompressor...');
 const compressor = new SemanticCompressor();
 
-const messages = Array(20).fill(null).map((_, i) => ([
+const messages = new Array(20).fill(null).map((_, i) => ([
   { role: 'user' as const, content: `User message ${i}: ${'x'.repeat(500)}` },
   { role: 'assistant' as const, content: `Assistant response ${i}: ${'y'.repeat(500)}` },
 ])).flat();
@@ -48,17 +48,17 @@ const optimizer = new ContextOptimizer({
   enabled: true,
   toolCompression: true,
   semanticCompression: true,
-  memoryTree: false // Disable to avoid SQLite dependency
+  memoryTree: false, // Disable to avoid SQLite dependency
 });
 
 const testMessages = [
   { role: 'user', content: 'Test message' },
   { role: 'tool', tool_name: 'Read', content: 'x'.repeat(50000) },
-  { role: 'assistant', content: 'Response' }
+  { role: 'assistant', content: 'Response' },
 ];
 
 optimizer.optimizeContext(testMessages, 'test-session')
-  .then(({ messages: optimized, metrics }) => {
+  .then(({ messages: _optimized, metrics }) => {
     console.log(`   Original: ${metrics.originalSize} bytes`);
     console.log(`   Compressed: ${metrics.compressedSize} bytes`);
     console.log(`   Ratio: ${(metrics.compressionRatio * 100).toFixed(1)}%`);
@@ -70,7 +70,7 @@ optimizer.optimizeContext(testMessages, 'test-session')
 
     console.log('✅ All tests passed!\n');
   })
-  .catch(err => {
+  .catch((err) => {
     console.error('❌ Error:', err);
     process.exit(1);
   });

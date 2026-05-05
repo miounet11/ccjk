@@ -16,9 +16,9 @@
  * - 支持未来扩展（如 snap、flatpak 等）
  */
 
-import * as nodeFs from 'node:fs'
-import * as nodePath from 'node:path'
-import process from 'node:process'
+import * as nodeFs from 'node:fs';
+import * as nodePath from 'node:path';
+import process from 'node:process';
 
 /**
  * Installation source type
@@ -31,45 +31,45 @@ export type InstallationSourceType
     | 'snap' // Linux snap package (future)
     | 'flatpak' // Linux flatpak (future)
     | 'apt' // Debian/Ubuntu apt (future)
-    | 'other' // Unknown source
+    | 'other'; // Unknown source
 
 /**
  * Installation source definition
  */
 export interface InstallationSourceDefinition {
   /** Unique identifier */
-  type: InstallationSourceType
+  type: InstallationSourceType;
 
   /** Human-readable name */
-  name: string
+  name: string;
 
   /** Priority for detection (higher = checked first) */
-  priority: number
+  priority: number;
 
   /** Platforms this source applies to */
-  platforms: Array<'macos' | 'linux' | 'windows'>
+  platforms: Array<'macos' | 'linux' | 'windows'>;
 
   /** Path patterns that indicate this source (regex or glob) */
-  pathPatterns: RegExp[]
+  pathPatterns: RegExp[];
 
   /** Common installation paths to check */
-  commonPaths: string[]
+  commonPaths: string[];
 
   /** Function to get update command */
-  getUpdateCommand: () => { command: string, args: string[] }
+  getUpdateCommand: () => { command: string; args: string[] };
 
   /** Whether this is the recommended installation method */
-  isRecommended: boolean
+  isRecommended: boolean;
 
   /** Description for users */
-  description: string
+  description: string;
 }
 
 /**
  * Get home directory with fallback
  */
 function getHome(): string {
-  return process.env.HOME || process.env.USERPROFILE || ''
+  return process.env.HOME || process.env.USERPROFILE || '';
 }
 
 /**
@@ -233,7 +233,7 @@ export const INSTALLATION_SOURCES: InstallationSourceDefinition[] = [
     isRecommended: false,
     description: 'APT package (future support)',
   },
-]
+];
 
 /**
  * Detect installation source from a given path
@@ -249,17 +249,17 @@ export function detectSourceFromPath(
   // Sort by priority (highest first)
   const sortedSources = [...INSTALLATION_SOURCES]
     .filter(s => s.platforms.includes(platform))
-    .sort((a, b) => b.priority - a.priority)
+    .sort((a, b) => b.priority - a.priority);
 
   for (const source of sortedSources) {
     for (const pattern of source.pathPatterns) {
       if (pattern.test(path)) {
-        return source
+        return source;
       }
     }
   }
 
-  return null
+  return null;
 }
 
 /**
@@ -271,16 +271,16 @@ export function detectSourceFromPath(
 export function getCommonPathsForPlatform(
   platform: 'macos' | 'linux' | 'windows',
 ): string[] {
-  const paths: string[] = []
+  const paths: string[] = [];
 
   for (const source of INSTALLATION_SOURCES) {
     if (source.platforms.includes(platform)) {
-      paths.push(...source.commonPaths)
+      paths.push(...source.commonPaths);
     }
   }
 
   // Deduplicate and filter existing paths
-  return [...new Set(paths)]
+  return [...new Set(paths)];
 }
 
 /**
@@ -291,32 +291,32 @@ export function getCommonPathsForPlatform(
  */
 export function findInstallationByCommonPaths(
   platform: 'macos' | 'linux' | 'windows',
-): { path: string, source: InstallationSourceDefinition } | null {
+): { path: string; source: InstallationSourceDefinition } | null {
   // Sort sources by priority
   const sortedSources = [...INSTALLATION_SOURCES]
     .filter(s => s.platforms.includes(platform))
-    .sort((a, b) => b.priority - a.priority)
+    .sort((a, b) => b.priority - a.priority);
 
   for (const source of sortedSources) {
     for (const commonPath of source.commonPaths) {
       // Handle directory paths (like Caskroom) - need to find actual binary
       if (nodeFs.existsSync(commonPath)) {
-        const stats = nodeFs.statSync(commonPath)
+        const stats = nodeFs.statSync(commonPath);
         if (stats.isDirectory()) {
           // For directories, look for claude binary inside
-          const possibleBinaries = findClaudeBinaryInDirectory(commonPath)
+          const possibleBinaries = findClaudeBinaryInDirectory(commonPath);
           if (possibleBinaries.length > 0) {
-            return { path: possibleBinaries[0], source }
+            return { path: possibleBinaries[0], source };
           }
         }
         else if (stats.isFile()) {
-          return { path: commonPath, source }
+          return { path: commonPath, source };
         }
       }
     }
   }
 
-  return null
+  return null;
 }
 
 /**
@@ -324,21 +324,21 @@ export function findInstallationByCommonPaths(
  */
 function findClaudeBinaryInDirectory(dir: string, depth = 0): string[] {
   if (depth > 3)
-    return []
+    return [];
 
-  const results: string[] = []
+  const results: string[] = [];
 
   try {
-    const entries = nodeFs.readdirSync(dir, { withFileTypes: true })
+    const entries = nodeFs.readdirSync(dir, { withFileTypes: true });
 
     for (const entry of entries) {
-      const fullPath = nodePath.join(dir, entry.name)
+      const fullPath = nodePath.join(dir, entry.name);
 
       if (entry.isFile() && entry.name === 'claude') {
-        results.push(fullPath)
+        results.push(fullPath);
       }
       else if (entry.isDirectory() && !entry.name.startsWith('.')) {
-        results.push(...findClaudeBinaryInDirectory(fullPath, depth + 1))
+        results.push(...findClaudeBinaryInDirectory(fullPath, depth + 1));
       }
     }
   }
@@ -346,7 +346,7 @@ function findClaudeBinaryInDirectory(dir: string, depth = 0): string[] {
     // Ignore permission errors
   }
 
-  return results
+  return results;
 }
 
 /**
@@ -357,7 +357,7 @@ export function getRecommendedSource(
 ): InstallationSourceDefinition | null {
   return INSTALLATION_SOURCES
     .filter(s => s.platforms.includes(platform) && s.isRecommended)
-    .sort((a, b) => b.priority - a.priority)[0] || null
+    .sort((a, b) => b.priority - a.priority)[0] || null;
 }
 
 /**
@@ -365,9 +365,9 @@ export function getRecommendedSource(
  */
 export function getUpdateCommandForSource(
   sourceType: InstallationSourceType,
-): { command: string, args: string[] } | null {
-  const source = INSTALLATION_SOURCES.find(s => s.type === sourceType)
-  return source ? source.getUpdateCommand() : null
+): { command: string; args: string[] } | null {
+  const source = INSTALLATION_SOURCES.find(s => s.type === sourceType);
+  return source ? source.getUpdateCommand() : null;
 }
 
 /**
@@ -377,8 +377,8 @@ export function isSourceSupportedOnPlatform(
   sourceType: InstallationSourceType,
   platform: 'macos' | 'linux' | 'windows',
 ): boolean {
-  const source = INSTALLATION_SOURCES.find(s => s.type === sourceType)
-  return source ? source.platforms.includes(platform) : false
+  const source = INSTALLATION_SOURCES.find(s => s.type === sourceType);
+  return source ? source.platforms.includes(platform) : false;
 }
 
 /**
@@ -388,12 +388,12 @@ export function isSourceSupportedOnPlatform(
  */
 export function registerCustomSource(source: InstallationSourceDefinition): void {
   // Check for duplicate
-  const existingIndex = INSTALLATION_SOURCES.findIndex(s => s.type === source.type)
+  const existingIndex = INSTALLATION_SOURCES.findIndex(s => s.type === source.type);
   if (existingIndex >= 0) {
-    INSTALLATION_SOURCES[existingIndex] = source
+    INSTALLATION_SOURCES[existingIndex] = source;
   }
   else {
-    INSTALLATION_SOURCES.push(source)
+    INSTALLATION_SOURCES.push(source);
   }
 }
 
@@ -405,5 +405,5 @@ export function getSourcesForPlatform(
 ): InstallationSourceDefinition[] {
   return INSTALLATION_SOURCES
     .filter(s => s.platforms.includes(platform))
-    .sort((a, b) => b.priority - a.priority)
+    .sort((a, b) => b.priority - a.priority);
 }

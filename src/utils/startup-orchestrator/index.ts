@@ -5,7 +5,7 @@
  * @module startup-orchestrator
  */
 
-export { StartupHooks } from './hooks'
+export { StartupHooks } from './hooks';
 export {
   createCapabilityDiscoveryModule,
   createConfigGuardianModule,
@@ -14,8 +14,8 @@ export {
   createZeroConfigModule,
   getDefaultModules,
   registerDefaultModules,
-} from './modules'
-export { createDefaultOrchestrator, StartupOrchestrator } from './orchestrator'
+} from './modules';
+export { createDefaultOrchestrator, StartupOrchestrator } from './orchestrator';
 
 export type {
   Capability,
@@ -27,4 +27,4 @@ export type {
   StartupModule,
   StartupResult,
   StartupStatus,
-} from './types'
+} from './types';

@@ -122,6 +122,8 @@ catalogs:
     '@types/uuid': ^10.0.0
   conflicts_ansis_h4_2_0:
     ansis: ^4.2.0
+  conflicts_chalk_h5_6_2:
+    chalk: ^5.6.2
   conflicts_chokidar_h3_5_3:
     chokidar: ^3.5.3
   conflicts_concurrently_h9_2_1:
@@ -138,8 +140,16 @@ catalogs:
     '@types/semver': ^7.7.1
   conflicts_conflicts_@types/uuid_h10_0_0_h11_0_0:
     '@types/uuid': ^11.0.0
+  conflicts_conflicts_chalk_h5_6_2_h5_4_1:
+    chalk: ^5.4.1
   conflicts_conflicts_chokidar_h3_5_3_h4_0_3:
     chokidar: ^4.0.3
+  conflicts_conflicts_conflicts_conflicts_conflicts_conflicts_conflicts_typescript_h5_3_3_h5_9_2_h5_h5_9_2_h5_5_9_3_h5_9_3:
+    typescript: ^5.9.3
+  conflicts_conflicts_conflicts_conflicts_conflicts_conflicts_conflicts_typescript_h5_3_3_h5_9_2_h5_h5_9_2_h5_5_9_3_t5_6_2:
+    typescript: ~5.6.2
+  conflicts_conflicts_conflicts_conflicts_conflicts_conflicts_tsx_h4_7_2_h4_20_5_h4_0_0_h4_20_5_h4_20_6_h4_21_0:
+    tsx: ^4.21.0
   conflicts_conflicts_conflicts_conflicts_conflicts_conflicts_typescript_h5_3_3_h5_9_2_h5_h5_9_2_h5_5_9_3:
     typescript: 5.9.3
   conflicts_conflicts_conflicts_conflicts_conflicts_conflicts_typescript_h5_3_3_h5_9_2_h5_h5_9_2_h5_h5_9_3:
@@ -162,12 +172,16 @@ catalogs:
     typescript: ^5.9.2
   conflicts_conflicts_conflicts_eslint_h8_0_0_h8_h9_36_0:
     eslint: ^9.36.0
+  conflicts_conflicts_conflicts_ioredis_h5_9_2_h5_6_1_h5_9_3:
+    ioredis: ^5.9.3
   conflicts_conflicts_conflicts_tsx_h4_7_2_h4_20_5_h4_0_0:
     tsx: ^4.0.0
   conflicts_conflicts_conflicts_typescript_h5_3_3_h5_9_2_h5:
     typescript: ^5
   conflicts_conflicts_conflicts_typescript_h5_3_3_h5_9_2_h5_0_0:
     typescript: ^5.0.0
+  conflicts_conflicts_dotenv_h16_6_1_h16_4_7:
+    dotenv: ^16.4.7
   conflicts_conflicts_eslint_h8_0_0_h8:
     eslint: ^8
   conflicts_conflicts_eslint_h8_0_0_h9_36_0:
@@ -180,18 +194,30 @@ catalogs:
     ioredis: ^5.9.3
   conflicts_conflicts_ofetch_h1_4_1_h1_5_1:
     ofetch: ^1.5.1
+  conflicts_conflicts_ora_h9_3_0_h8_2_0:
+    ora: ^8.2.0
+  conflicts_conflicts_pkgroll_h2_26_3_h2_14_2:
+    pkgroll: ^2.14.2
+  conflicts_conflicts_shx_h0_4_0_h0_3_3:
+    shx: ^0.3.3
+  conflicts_conflicts_socket.io-client_h4_8_1_h4_8_3:
+    socket.io-client: ^4.8.3
   conflicts_conflicts_tinyglobby_h0_2_14_h0_2_15:
     tinyglobby: ^0.2.15
   conflicts_conflicts_tsx_h4_7_2_h4_20_5:
     tsx: ^4.20.5
   conflicts_conflicts_typescript_h5_3_3_h5_9_2:
     typescript: ^5.9.2
+  conflicts_conflicts_unbuild_h3_3_1_h3_6_1:
+    unbuild: ^3.6.1
   conflicts_conflicts_vitest_h1_0_0_h3_2_4:
     vitest: ^3.2.4
   conflicts_conflicts_web-tree-sitter_h0_24_7_h0_26_5:
     web-tree-sitter: ^0.26.5
   conflicts_dayjs_h1_11_19:
     dayjs: ^1.11.19
+  conflicts_dotenv_h16_6_1:
+    dotenv: ^16.6.1
   conflicts_eslint-plugin-format_h1_4_0:
     eslint-plugin-format: ^1.4.0
   conflicts_eslint_h8_0_0:
@@ -214,14 +240,20 @@ catalogs:
     ohash: ^1.1.4
   conflicts_ora_h9_3_0:
     ora: ^9.3.0
+  conflicts_pkgroll_h2_26_3:
+    pkgroll: ^2.26.3
   conflicts_prettier_h3_8_1:
     prettier: ^3.8.1
   conflicts_react_18_3_1:
     react: 18.3.1
   conflicts_semver_h7_7_4:
     semver: ^7.7.4
+  conflicts_shx_h0_4_0:
+    shx: ^0.4.0
   conflicts_smol-toml_h1_6_0:
     smol-toml: ^1.6.0
+  conflicts_socket.io-client_h4_8_1:
+    socket.io-client: ^4.8.1
   conflicts_tar_h7_5_9:
     tar: ^7.5.9
   conflicts_tinyexec_h1_0_2:
@@ -242,38 +274,32 @@ catalogs:
     vitest: ^1.0.0
   conflicts_web-tree-sitter_h0_24_7:
     web-tree-sitter: ^0.24.7
-  conflicts_conflicts_conflicts_ioredis_h5_9_2_h5_6_1_h5_9_3:
-    ioredis: ^5.9.3
-  conflicts_conflicts_ora_h9_3_0_h8_2_0:
-    ora: ^8.2.0
-  conflicts_pkgroll_h2_26_3:
+  conflicts_better-sqlite3_h12_9_0:
+    better-sqlite3: ^12.9.0
+  conflicts_sql.js_h1_14_1:
+    sql.js: ^1.14.1
+  conflicts_conflicts_tar_h7_5_9_h7_5_13:
+    tar: ^7.5.13
+  conflicts_handlebars_h4_7_9:
+    handlebars: ^4.7.9
+  conflicts_conflicts_conflicts_pkgroll_h2_26_3_h2_14_2_h2_26_3:
     pkgroll: ^2.26.3
-  conflicts_shx_h0_4_0:
+  conflicts_conflicts_conflicts_shx_h0_4_0_h0_3_3_h0_4_0:
     shx: ^0.4.0
-  conflicts_conflicts_conflicts_conflicts_conflicts_conflicts_tsx_h4_7_2_h4_20_5_h4_0_0_h4_20_5_h4_20_6_h4_21_0:
-    tsx: ^4.21.0
-  conflicts_conflicts_conflicts_conflicts_conflicts_conflicts_conflicts_typescript_h5_3_3_h5_9_2_h5_h5_9_2_h5_5_9_3_h5_9_3:
-    typescript: ^5.9.3
-  conflicts_conflicts_unbuild_h3_3_1_h3_6_1:
-    unbuild: ^3.6.1
-  conflicts_socket.io-client_h4_8_1:
+  conflicts_conflicts_conflicts_socket.io-client_h4_8_1_h4_8_3_h4_8_1:
     socket.io-client: ^4.8.1
-  conflicts_conflicts_conflicts_conflicts_conflicts_conflicts_conflicts_typescript_h5_3_3_h5_9_2_h5_h5_9_2_h5_5_9_3_t5_6_2:
+  conflicts_conflicts_conflicts_conflicts_conflicts_conflicts_conflicts_conflicts_typescript_h5_3_3_h5_9_2_h5_h5_9_2_h5_5_9_3_h5_9_3_t5_6_2:
     typescript: ~5.6.2
-  conflicts_chalk_h5_6_2:
-    chalk: ^5.6.2
-  conflicts_dotenv_h16_6_1:
+  conflicts_conflicts_conflicts_conflicts_conflicts_conflicts_conflicts_tsx_h4_7_2_h4_20_5_h4_0_0_h4_20_5_h4_20_6_h4_21_0_h4_20_6:
+    tsx: ^4.20.6
+  conflicts_conflicts_conflicts_conflicts_conflicts_conflicts_conflicts_conflicts_typescript_h5_3_3_h5_9_2_h5_h5_9_2_h5_5_9_3_h5_9_3_5_9_3:
+    typescript: 5.9.3
+  conflicts_conflicts_conflicts_unbuild_h3_3_1_h3_6_1_h3_3_1:
+    unbuild: ^3.3.1
+  conflicts_conflicts_conflicts_conflicts_ioredis_h5_9_2_h5_6_1_h5_9_3_h5_6_1:
+    ioredis: ^5.6.1
+  conflicts_conflicts_conflicts_dotenv_h16_6_1_h16_4_7_h16_6_1:
     dotenv: ^16.6.1
-  conflicts_conflicts_pkgroll_h2_26_3_h2_14_2:
-    pkgroll: ^2.14.2
-  conflicts_conflicts_shx_h0_4_0_h0_3_3:
-    shx: ^0.3.3
-  conflicts_conflicts_socket.io-client_h4_8_1_h4_8_3:
-    socket.io-client: ^4.8.3
-  conflicts_conflicts_dotenv_h16_6_1_h16_4_7:
-    dotenv: ^16.4.7
-  conflicts_conflicts_chalk_h5_6_2_h5_4_1:
-    chalk: ^5.4.1
 
 onlyBuiltDependencies:
   - esbuild

@@ -2,25 +2,25 @@
  * Intent IR System Tests
  */
 
-import type { Intent } from '../src/types/intent'
-import { describe, expect, it } from 'vitest'
-import { codeReviewIntent, intentRegistry, refactorIntent } from '../src/intents'
-import { IntentExecutor } from '../src/utils/intent-executor'
-import { validateComposition, validateIntent } from '../src/utils/intent-validator'
+import type { Intent } from '../src/types/intent';
+import { describe, expect, it } from 'vitest';
+import { codeReviewIntent, intentRegistry, refactorIntent } from '../src/intents';
+import { IntentExecutor } from '../src/utils/intent-executor';
+import { validateComposition, validateIntent } from '../src/utils/intent-validator';
 
 describe('intent IR System', () => {
   describe('intent Validation', () => {
     it('should validate code-review intent', () => {
-      const result = validateIntent(codeReviewIntent)
-      expect(result.valid).toBe(true)
-      expect(result.errors).toHaveLength(0)
-    })
+      const result = validateIntent(codeReviewIntent);
+      expect(result.valid).toBe(true);
+      expect(result.errors).toHaveLength(0);
+    });
 
     it('should validate refactor intent', () => {
-      const result = validateIntent(refactorIntent)
-      expect(result.valid).toBe(true)
-      expect(result.errors).toHaveLength(0)
-    })
+      const result = validateIntent(refactorIntent);
+      expect(result.valid).toBe(true);
+      expect(result.errors).toHaveLength(0);
+    });
 
     it('should reject invalid intent', () => {
       const invalid: Intent = {
@@ -30,77 +30,77 @@ describe('intent IR System', () => {
         input: {},
         how: '',
         output: {},
-      }
-      const result = validateIntent(invalid)
-      expect(result.valid).toBe(false)
-      expect(result.errors.length).toBeGreaterThan(0)
-    })
-  })
+      };
+      const result = validateIntent(invalid);
+      expect(result.valid).toBe(false);
+      expect(result.errors.length).toBeGreaterThan(0);
+    });
+  });
 
   describe('intent Registry', () => {
     it('should list all registered intents', () => {
-      const intents = intentRegistry.list()
-      expect(intents.length).toBeGreaterThanOrEqual(2)
-    })
+      const intents = intentRegistry.list();
+      expect(intents.length).toBeGreaterThanOrEqual(2);
+    });
 
     it('should get intent by id', () => {
-      const intent = intentRegistry.get('code-review')
-      expect(intent).toBeDefined()
-      expect(intent?.id).toBe('code-review')
-    })
+      const intent = intentRegistry.get('code-review');
+      expect(intent).toBeDefined();
+      expect(intent?.id).toBe('code-review');
+    });
 
     it('should find intents by tag', () => {
-      const intents = intentRegistry.findByTag('code-quality')
-      expect(intents.length).toBeGreaterThan(0)
-    })
+      const intents = intentRegistry.findByTag('code-quality');
+      expect(intents.length).toBeGreaterThan(0);
+    });
 
     it('should find intents by category', () => {
-      const intents = intentRegistry.findByCategory('development')
-      expect(intents.length).toBeGreaterThan(0)
-    })
-  })
+      const intents = intentRegistry.findByCategory('development');
+      expect(intents.length).toBeGreaterThan(0);
+    });
+  });
 
   describe('intent Executor', () => {
     it('should validate inputs', async () => {
-      const executor = new IntentExecutor()
+      const executor = new IntentExecutor();
 
       // Register mock tools
-      executor.registerTool('file-reader', {})
-      executor.registerTool('ast-parser', {})
-      executor.registerTool('linter', {})
-      executor.registerTool('security-scanner', {})
-      executor.registerTool('complexity-analyzer', {})
+      executor.registerTool('file-reader', {});
+      executor.registerTool('ast-parser', {});
+      executor.registerTool('linter', {});
+      executor.registerTool('security-scanner', {});
+      executor.registerTool('complexity-analyzer', {});
 
       const inputs = {
         files: ['src/test.ts'],
         severity: 'warning',
-      }
+      };
 
-      const context = await executor.execute(codeReviewIntent, inputs)
-      expect(context.state).toBe('completed')
-      expect(context.results).toBeDefined()
-    })
+      const context = await executor.execute(codeReviewIntent, inputs);
+      expect(context.state).toBe('completed');
+      expect(context.results).toBeDefined();
+    });
 
     it('should reject invalid inputs', async () => {
-      const executor = new IntentExecutor()
+      const executor = new IntentExecutor();
 
       // Register mock tools
-      executor.registerTool('file-reader', {})
-      executor.registerTool('ast-parser', {})
-      executor.registerTool('linter', {})
-      executor.registerTool('security-scanner', {})
-      executor.registerTool('complexity-analyzer', {})
+      executor.registerTool('file-reader', {});
+      executor.registerTool('ast-parser', {});
+      executor.registerTool('linter', {});
+      executor.registerTool('security-scanner', {});
+      executor.registerTool('complexity-analyzer', {});
 
       const invalidInputs = {
         // Missing required 'files' input
         severity: 'invalid-value',
-      }
+      };
 
       await expect(
         executor.execute(codeReviewIntent, invalidInputs),
-      ).rejects.toThrow()
-    })
-  })
+      ).rejects.toThrow();
+    });
+  });
 
   describe('composite Intent', () => {
     it('should validate composite intent', () => {
@@ -118,12 +118,12 @@ describe('intent IR System', () => {
             },
           },
         ],
-      }
+      };
 
-      const result = validateComposition(composite)
-      expect(result.valid).toBe(true)
-      expect(result.errors).toHaveLength(0)
-    })
+      const result = validateComposition(composite);
+      expect(result.valid).toBe(true);
+      expect(result.errors).toHaveLength(0);
+    });
 
     it('should detect circular dependencies', () => {
       const composite = {
@@ -135,11 +135,11 @@ describe('intent IR System', () => {
           { from: 'code-review', to: 'refactor' },
           { from: 'refactor', to: 'code-review' },
         ],
-      }
+      };
 
-      const result = validateComposition(composite)
-      expect(result.valid).toBe(false)
-      expect(result.errors.some(e => e.includes('Circular'))).toBe(true)
-    })
-  })
-})
+      const result = validateComposition(composite);
+      expect(result.valid).toBe(false);
+      expect(result.errors.some(e => e.includes('Circular'))).toBe(true);
+    });
+  });
+});

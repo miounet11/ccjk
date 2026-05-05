@@ -6,7 +6,8 @@ function isHttpsUrl(value: string): boolean {
   try {
     const parsed = new URL(value);
     return parsed.protocol === 'https:';
-  } catch {
+  }
+  catch {
     return false;
   }
 }
@@ -16,11 +17,12 @@ function validateCorsOrigins(raw: string): boolean {
   if (origins.length === 0) {
     return false;
   }
-  return origins.every(origin => {
+  return origins.every((origin) => {
     try {
       const parsed = new URL(origin);
       return parsed.protocol === 'https:';
-    } catch {
+    }
+    catch {
       return false;
     }
   });

@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest'
-import { getCodexEfficiencyActionIds } from './codex'
+import { describe, expect, it } from 'vitest';
+import { getCodexEfficiencyActionIds } from './codex';
 
 describe('getCodexEfficiencyActionIds', () => {
   it('exposes the Codex efficiency center actions in menu order', () => {
@@ -11,6 +11,6 @@ describe('getCodexEfficiencyActionIds', () => {
       'docs-mcp',
       'prompt-memory',
       'back',
-    ])
-  })
-})
+    ]);
+  });
+});

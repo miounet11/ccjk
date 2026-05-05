@@ -108,7 +108,7 @@ const FULLWIDTH_TO_HALFWIDTH: Record<string, string> = {
   '％': '%',
   '＆': '&',
   '＿': '_',
-}
+};
 
 /**
  * Normalize full-width characters to half-width equivalents
@@ -129,13 +129,13 @@ const FULLWIDTH_TO_HALFWIDTH: Record<string, string> = {
  */
 export function normalizeFullWidth(input: string): string {
   if (!input)
-    return input
+    return input;
 
-  let result = ''
+  let result = '';
   for (const char of input) {
-    result += FULLWIDTH_TO_HALFWIDTH[char] ?? char
+    result += FULLWIDTH_TO_HALFWIDTH[char] ?? char;
   }
-  return result
+  return result;
 }
 
 /**
@@ -158,8 +158,8 @@ export function normalizeFullWidth(input: string): string {
  */
 export function normalizeMenuInput(input: string): string {
   if (!input)
-    return input
-  return normalizeFullWidth(input.trim()).toLowerCase()
+    return input;
+  return normalizeFullWidth(input.trim()).toLowerCase();
 }
 
 /**
@@ -169,9 +169,9 @@ export function normalizeMenuInput(input: string): string {
  * @returns True if the character is a full-width digit (０-９)
  */
 export function isFullWidthDigit(char: string): boolean {
-  const code = char.charCodeAt(0)
+  const code = char.charCodeAt(0);
   // Full-width digits: U+FF10 (０) to U+FF19 (９)
-  return code >= 0xFF10 && code <= 0xFF19
+  return code >= 0xFF10 && code <= 0xFF19;
 }
 
 /**
@@ -182,11 +182,11 @@ export function isFullWidthDigit(char: string): boolean {
  */
 export function hasFullWidthChars(input: string): boolean {
   if (!input)
-    return false
+    return false;
   for (const char of input) {
     if (FULLWIDTH_TO_HALFWIDTH[char]) {
-      return true
+      return true;
     }
   }
-  return false
+  return false;
 }

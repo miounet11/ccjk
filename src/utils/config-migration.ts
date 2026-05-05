@@ -3,21 +3,21 @@
  * Fixes problematic settings that interfere with Claude Code token retrieval
  */
 
-import ansis from 'ansis'
-import type { CodeToolType } from '../constants'
-import { ensureI18nInitialized, i18n } from '../i18n'
-import type { ClaudeSettings } from '../types/config'
-import { hasInvalidStatusLineConfig, normalizeClaudeFamilySettings } from './claude-settings-normalizer'
-import { backupExistingConfig } from './config'
-import { exists } from './fs-operations'
-import { readJsonConfig, writeJsonConfig } from './json-config'
-import { resolveClaudeFamilySettingsTarget } from './runtime-settings'
+import type { CodeToolType } from '../constants';
+import type { ClaudeSettings } from '../types/config';
+import ansis from 'ansis';
+import { ensureI18nInitialized, i18n } from '../i18n';
+import { hasInvalidStatusLineConfig, normalizeClaudeFamilySettings } from './claude-settings-normalizer';
+import { backupExistingConfig } from './config';
+import { exists } from './fs-operations';
+import { readJsonConfig, writeJsonConfig } from './json-config';
+import { resolveClaudeFamilySettingsTarget } from './runtime-settings';
 
 export interface MigrationResult {
-  success: boolean
-  changes: string[]
-  backupPath: string | null
-  errors: string[]
+  success: boolean;
+  changes: string[];
+  backupPath: string | null;
+  errors: string[];
 }
 
 /**
@@ -32,106 +32,106 @@ export interface MigrationResult {
  * @returns Migration result with changes made
  */
 export function migrateSettingsForTokenRetrieval(codeTool?: CodeToolType): MigrationResult {
-  ensureI18nInitialized()
-  const target = resolveClaudeFamilySettingsTarget(codeTool)
+  ensureI18nInitialized();
+  const target = resolveClaudeFamilySettingsTarget(codeTool);
 
   const result: MigrationResult = {
     success: false,
     changes: [],
     backupPath: null,
     errors: [],
-  }
+  };
 
   try {
     // Check if settings file exists
     if (!exists(target.settingsFile)) {
-      result.errors.push(i18n.t('common:fileNotFound', { file: 'settings.json' }))
-      return result
+      result.errors.push(i18n.t('common:fileNotFound', { file: 'settings.json' }));
+      return result;
     }
 
     // Read current settings
-    const settings = readJsonConfig<ClaudeSettings>(target.settingsFile)
+    const settings = readJsonConfig<ClaudeSettings>(target.settingsFile);
     if (!settings) {
-      result.errors.push(i18n.t('common:failedToReadFile', { file: 'settings.json' }))
-      return result
+      result.errors.push(i18n.t('common:failedToReadFile', { file: 'settings.json' }));
+      return result;
     }
 
-    let modified = false
+    let modified = false;
     const hasAdaptiveRouting = Boolean(
       settings.env?.ANTHROPIC_DEFAULT_HAIKU_MODEL
       || settings.env?.ANTHROPIC_DEFAULT_SONNET_MODEL
       || settings.env?.ANTHROPIC_DEFAULT_OPUS_MODEL,
-    )
+    );
     if (hasInvalidStatusLineConfig(settings)) {
-      normalizeClaudeFamilySettings(settings)
-      result.changes.push('Repaired invalid statusLine settings for Clavue compatibility')
-      modified = true
+      normalizeClaudeFamilySettings(settings);
+      result.changes.push('Repaired invalid statusLine settings for Clavue compatibility');
+      modified = true;
     }
 
     // Check for problematic environment variables
     if (settings.env) {
       if (settings.env.ANTHROPIC_DEFAULT_HAIKU_MODEL && !settings.env.ANTHROPIC_SMALL_FAST_MODEL) {
-        settings.env.ANTHROPIC_SMALL_FAST_MODEL = settings.env.ANTHROPIC_DEFAULT_HAIKU_MODEL
-        result.changes.push('Restored ANTHROPIC_SMALL_FAST_MODEL from ANTHROPIC_DEFAULT_HAIKU_MODEL for Haiku fast-path compatibility')
-        modified = true
+        settings.env.ANTHROPIC_SMALL_FAST_MODEL = settings.env.ANTHROPIC_DEFAULT_HAIKU_MODEL;
+        result.changes.push('Restored ANTHROPIC_SMALL_FAST_MODEL from ANTHROPIC_DEFAULT_HAIKU_MODEL for Haiku fast-path compatibility');
+        modified = true;
       }
 
       // Issue 1: Remove CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC
       if ('CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC' in settings.env) {
-        delete settings.env.CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC
-        result.changes.push('Removed CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC (was blocking token retrieval)')
-        modified = true
+        delete settings.env.CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC;
+        result.changes.push('Removed CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC (was blocking token retrieval)');
+        modified = true;
       }
 
       // Issue 2: Fix excessive MCP_TIMEOUT
       if (settings.env.MCP_TIMEOUT) {
-        const timeout = Number.parseInt(settings.env.MCP_TIMEOUT as string, 10)
+        const timeout = Number.parseInt(settings.env.MCP_TIMEOUT as string, 10);
         if (!Number.isNaN(timeout) && timeout > 20000) {
-          const oldValue = settings.env.MCP_TIMEOUT
-          settings.env.MCP_TIMEOUT = '15000'
-          result.changes.push(`Reduced MCP_TIMEOUT from ${oldValue}ms to 15000ms (was causing slow failures)`)
-          modified = true
+          const oldValue = settings.env.MCP_TIMEOUT;
+          settings.env.MCP_TIMEOUT = '15000';
+          result.changes.push(`Reduced MCP_TIMEOUT from ${oldValue}ms to 15000ms (was causing slow failures)`);
+          modified = true;
         }
       }
     }
 
     if (settings.model === 'default') {
-      delete settings.model
-      result.changes.push('Removed invalid settings.model value "default"')
-      modified = true
+      delete settings.model;
+      result.changes.push('Removed invalid settings.model value "default"');
+      modified = true;
     }
 
     if (settings.model && hasAdaptiveRouting) {
-      delete settings.model
-      result.changes.push('Removed settings.model to restore adaptive Haiku/Sonnet/Opus routing')
-      modified = true
+      delete settings.model;
+      result.changes.push('Removed settings.model to restore adaptive Haiku/Sonnet/Opus routing');
+      modified = true;
     }
 
     // If no changes needed, return success
     if (!modified) {
-      result.success = true
-      return result
+      result.success = true;
+      return result;
     }
 
     // Create backup before modifying
-    const backupPath = backupExistingConfig(target.codeTool)
+    const backupPath = backupExistingConfig(target.codeTool);
     if (backupPath) {
-      result.backupPath = backupPath
+      result.backupPath = backupPath;
     }
     else {
-      result.errors.push('Failed to create backup (continuing anyway)')
+      result.errors.push('Failed to create backup (continuing anyway)');
     }
 
     // Write updated settings
-    normalizeClaudeFamilySettings(settings)
-    writeJsonConfig(target.settingsFile, settings)
-    result.success = true
+    normalizeClaudeFamilySettings(settings);
+    writeJsonConfig(target.settingsFile, settings);
+    result.success = true;
 
-    return result
+    return result;
   }
   catch (error) {
-    result.errors.push(`Migration failed: ${error instanceof Error ? error.message : String(error)}`)
-    return result
+    result.errors.push(`Migration failed: ${error instanceof Error ? error.message : String(error)}`);
+    return result;
   }
 }
 
@@ -141,36 +141,36 @@ export function migrateSettingsForTokenRetrieval(codeTool?: CodeToolType): Migra
  */
 export function needsMigration(codeTool?: CodeToolType): boolean {
   try {
-    const target = resolveClaudeFamilySettingsTarget(codeTool)
+    const target = resolveClaudeFamilySettingsTarget(codeTool);
     if (!exists(target.settingsFile)) {
-      return false
+      return false;
     }
 
-    const settings = readJsonConfig<ClaudeSettings>(target.settingsFile)
+    const settings = readJsonConfig<ClaudeSettings>(target.settingsFile);
     if (!settings) {
-      return false
+      return false;
     }
 
-    const hasInvalidStatusLine = hasInvalidStatusLineConfig(settings)
+    const hasInvalidStatusLine = hasInvalidStatusLineConfig(settings);
 
     if (!settings.env) {
-      return hasInvalidStatusLine
+      return hasInvalidStatusLine;
     }
 
     // Check for problematic settings
-    const hasProblematicVar = 'CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC' in settings.env
+    const hasProblematicVar = 'CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC' in settings.env;
     const hasExcessiveTimeout = settings.env.MCP_TIMEOUT
-      && Number.parseInt(settings.env.MCP_TIMEOUT as string, 10) > 20000
+      && Number.parseInt(settings.env.MCP_TIMEOUT as string, 10) > 20000;
     const hasMissingHaikuFastCompat = Boolean(
       settings.env.ANTHROPIC_DEFAULT_HAIKU_MODEL && !settings.env.ANTHROPIC_SMALL_FAST_MODEL,
-    )
+    );
     const hasAdaptiveRouting = Boolean(
       settings.env.ANTHROPIC_DEFAULT_HAIKU_MODEL
       || settings.env.ANTHROPIC_DEFAULT_SONNET_MODEL
       || settings.env.ANTHROPIC_DEFAULT_OPUS_MODEL,
-    )
-    const hasInvalidDefaultModel = settings.model === 'default'
-    const hasAdaptiveModelOverride = Boolean(settings.model && hasAdaptiveRouting)
+    );
+    const hasInvalidDefaultModel = settings.model === 'default';
+    const hasAdaptiveModelOverride = Boolean(settings.model && hasAdaptiveRouting);
 
     return Boolean(
       hasProblematicVar
@@ -179,10 +179,10 @@ export function needsMigration(codeTool?: CodeToolType): boolean {
       || hasInvalidDefaultModel
       || hasAdaptiveModelOverride
       || hasInvalidStatusLine,
-    )
+    );
   }
   catch {
-    return false
+    return false;
   }
 }
 
@@ -190,40 +190,40 @@ export function needsMigration(codeTool?: CodeToolType): boolean {
  * Display migration result to user
  */
 export function displayMigrationResult(result: MigrationResult): void {
-  ensureI18nInitialized()
+  ensureI18nInitialized();
 
   if (result.success) {
     if (result.changes.length > 0) {
-      console.log(ansis.green(`\n✅ ${i18n.t('common:configurationFixed')}\n`))
+      console.log(ansis.green(`\n✅ ${i18n.t('common:configurationFixed')}\n`));
 
-      console.log(ansis.bold('Changes made:'))
+      console.log(ansis.bold('Changes made:'));
       for (const change of result.changes) {
-        console.log(ansis.gray(`  • ${change}`))
+        console.log(ansis.gray(`  • ${change}`));
       }
 
       if (result.backupPath) {
-        console.log(ansis.gray(`\n📦 Backup created: ${result.backupPath}`))
+        console.log(ansis.gray(`\n📦 Backup created: ${result.backupPath}`));
       }
 
-      console.log(ansis.yellow('\n⚠️  Please restart Claude Code CLI for changes to take effect.\n'))
+      console.log(ansis.yellow('\n⚠️  Please restart Claude Code CLI for changes to take effect.\n'));
     }
     else {
-      console.log(ansis.green(`\n✅ ${i18n.t('common:noMigrationNeeded')}\n`))
+      console.log(ansis.green(`\n✅ ${i18n.t('common:noMigrationNeeded')}\n`));
     }
   }
   else {
-    console.log(ansis.red(`\n❌ ${i18n.t('common:migrationFailed')}\n`))
+    console.log(ansis.red(`\n❌ ${i18n.t('common:migrationFailed')}\n`));
 
     if (result.errors.length > 0) {
-      console.log(ansis.bold('Errors:'))
+      console.log(ansis.bold('Errors:'));
       for (const error of result.errors) {
-        console.log(ansis.red(`  • ${error}`))
+        console.log(ansis.red(`  • ${error}`));
       }
     }
 
     if (result.backupPath) {
-      console.log(ansis.gray(`\n📦 Backup available at: ${result.backupPath}`))
-      console.log(ansis.gray('You can restore with: cp <backup-path>/settings.json ~/.claude/settings.json\n'))
+      console.log(ansis.gray(`\n📦 Backup available at: ${result.backupPath}`));
+      console.log(ansis.gray('You can restore with: cp <backup-path>/settings.json ~/.claude/settings.json\n'));
     }
   }
 }
@@ -233,54 +233,54 @@ export function displayMigrationResult(result: MigrationResult): void {
  * @returns true if user wants to migrate
  */
 export async function promptMigration(): Promise<boolean> {
-  ensureI18nInitialized()
+  ensureI18nInitialized();
 
-  const inquirer = await import('inquirer')
+  const inquirer = await import('inquirer');
 
-  console.log(ansis.yellow('\n⚠️  Problematic configuration detected!\n'))
-  console.log(ansis.gray('Your settings.json contains configurations that prevent Claude Code'))
-  console.log(ansis.gray('from retrieving token counts, causing /compact failures.\n'))
+  console.log(ansis.yellow('\n⚠️  Problematic configuration detected!\n'));
+  console.log(ansis.gray('Your settings.json contains configurations that prevent Claude Code'));
+  console.log(ansis.gray('from retrieving token counts, causing /compact failures.\n'));
 
   const { shouldMigrate } = await inquirer.default.prompt<{ shouldMigrate: boolean }>({
     type: 'confirm',
     name: 'shouldMigrate',
     message: 'Would you like to fix these issues automatically? (backup will be created)',
     default: true,
-  })
+  });
 
-  return shouldMigrate
+  return shouldMigrate;
 }
 
 /**
  * Get list of problematic settings
  */
 export function getProblematicSettings(codeTool?: CodeToolType): string[] {
-  const problems: string[] = []
+  const problems: string[] = [];
 
   try {
-    const target = resolveClaudeFamilySettingsTarget(codeTool)
+    const target = resolveClaudeFamilySettingsTarget(codeTool);
     if (!exists(target.settingsFile)) {
-      return problems
+      return problems;
     }
 
-    const settings = readJsonConfig<ClaudeSettings>(target.settingsFile)
+    const settings = readJsonConfig<ClaudeSettings>(target.settingsFile);
     if (!settings || !settings.env) {
-      return problems
+      return problems;
     }
 
     if ('CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC' in settings.env) {
-      problems.push('CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: Blocks token retrieval API calls')
+      problems.push('CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: Blocks token retrieval API calls');
     }
 
     if (settings.env.MCP_TIMEOUT) {
-      const timeout = Number.parseInt(settings.env.MCP_TIMEOUT as string, 10)
+      const timeout = Number.parseInt(settings.env.MCP_TIMEOUT as string, 10);
       if (!Number.isNaN(timeout) && timeout > 20000) {
-        problems.push(`MCP_TIMEOUT: ${timeout}ms is too high (recommended: 10000-15000ms)`)
+        problems.push(`MCP_TIMEOUT: ${timeout}ms is too high (recommended: 10000-15000ms)`);
       }
     }
 
     if (settings.model === 'default') {
-      problems.push('settings.model: "default" is invalid and causes provider routing failures')
+      problems.push('settings.model: "default" is invalid and causes provider routing failures');
     }
 
     if (
@@ -291,12 +291,12 @@ export function getProblematicSettings(codeTool?: CodeToolType): string[] {
         || settings.env.ANTHROPIC_DEFAULT_OPUS_MODEL
       )
     ) {
-      problems.push('settings.model overrides adaptive model routing from ANTHROPIC_DEFAULT_*_MODEL env vars')
+      problems.push('settings.model overrides adaptive model routing from ANTHROPIC_DEFAULT_*_MODEL env vars');
     }
   }
   catch {
     // Ignore errors
   }
 
-  return problems
+  return problems;
 }

@@ -13,12 +13,12 @@ import type {
   MarketplaceSearchOptions,
   MarketplaceSearchResult,
   RegistryCacheConfig,
-} from '../../types/marketplace.js'
-import { existsSync } from 'node:fs'
-import { mkdir, readFile } from 'node:fs/promises'
-import { homedir } from 'node:os'
-import { join } from 'pathe'
-import { writeFileAtomicAsync } from '../fs-operations.js'
+} from '../../types/marketplace.js';
+import { existsSync } from 'node:fs';
+import { mkdir, readFile } from 'node:fs/promises';
+import { homedir } from 'node:os';
+import { join } from 'pathe';
+import { writeFileAtomicAsync } from '../fs-operations.js';
 
 /**
  * Default registry URL
@@ -26,7 +26,7 @@ import { writeFileAtomicAsync } from '../fs-operations.js'
  * Points to the official CCJK marketplace registry.
  * Can be overridden via configuration.
  */
-const DEFAULT_REGISTRY_URL = 'https://registry.api.claudehome.cn/v1'
+const DEFAULT_REGISTRY_URL = 'https://registry.api.claudehome.cn/v1';
 
 /**
  * Default cache configuration
@@ -40,7 +40,7 @@ const DEFAULT_CACHE_CONFIG: RegistryCacheConfig = {
   cacheDir: join(homedir(), '.ccjk', 'cache'),
   ttl: 3600, // 1 hour
   enabled: true,
-}
+};
 
 /**
  * Built-in packages registry
@@ -50,7 +50,7 @@ const DEFAULT_CACHE_CONFIG: RegistryCacheConfig = {
  */
 const BUILTIN_PACKAGES: MarketplacePackage[] = [
   // Built-in packages will be added here in future versions
-]
+];
 
 /**
  * Get the cache file path
@@ -61,7 +61,7 @@ const BUILTIN_PACKAGES: MarketplacePackage[] = [
  * @returns Absolute path to cache file
  */
 export function getCacheFilePath(cacheDir: string): string {
-  return join(cacheDir, 'registry-cache.json')
+  return join(cacheDir, 'registry-cache.json');
 }
 
 /**
@@ -78,20 +78,20 @@ export async function isCacheValid(
   cacheDir: string,
   ttl: number,
 ): Promise<boolean> {
-  const cachePath = getCacheFilePath(cacheDir)
+  const cachePath = getCacheFilePath(cacheDir);
   if (!existsSync(cachePath)) {
-    return false
+    return false;
   }
 
   try {
-    const content = await readFile(cachePath, 'utf-8')
-    const cache = JSON.parse(content)
-    const cacheTime = new Date(cache.lastUpdated).getTime()
-    const now = Date.now()
-    return (now - cacheTime) < (ttl * 1000)
+    const content = await readFile(cachePath, 'utf-8');
+    const cache = JSON.parse(content);
+    const cacheTime = new Date(cache.lastUpdated).getTime();
+    const now = Date.now();
+    return (now - cacheTime) < (ttl * 1000);
   }
   catch {
-    return false
+    return false;
   }
 }
 
@@ -107,17 +107,17 @@ export async function isCacheValid(
 export async function readCachedRegistry(
   cacheDir: string,
 ): Promise<MarketplaceRegistry | null> {
-  const cachePath = getCacheFilePath(cacheDir)
+  const cachePath = getCacheFilePath(cacheDir);
   if (!existsSync(cachePath)) {
-    return null
+    return null;
   }
 
   try {
-    const content = await readFile(cachePath, 'utf-8')
-    return JSON.parse(content)
+    const content = await readFile(cachePath, 'utf-8');
+    return JSON.parse(content);
   }
   catch {
-    return null
+    return null;
   }
 }
 
@@ -134,9 +134,9 @@ export async function writeCacheRegistry(
   cacheDir: string,
   registry: MarketplaceRegistry,
 ): Promise<void> {
-  await mkdir(cacheDir, { recursive: true })
-  const cachePath = getCacheFilePath(cacheDir)
-  await writeFileAtomicAsync(cachePath, JSON.stringify(registry, null, 2))
+  await mkdir(cacheDir, { recursive: true });
+  const cachePath = getCacheFilePath(cacheDir);
+  await writeFileAtomicAsync(cachePath, JSON.stringify(registry, null, 2));
 }
 
 /**
@@ -154,8 +154,8 @@ export async function fetchRemoteRegistry(
   registryUrl: string = DEFAULT_REGISTRY_URL,
   timeout: number = 30000,
 ): Promise<MarketplaceRegistry> {
-  const controller = new AbortController()
-  const timeoutId = setTimeout(() => controller.abort(), timeout)
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
 
   try {
     const response = await fetch(`${registryUrl}/registry.json`, {
@@ -164,16 +164,16 @@ export async function fetchRemoteRegistry(
         'Accept': 'application/json',
         'User-Agent': 'ccjk-cli',
       },
-    })
+    });
 
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
 
-    return await response.json() as MarketplaceRegistry
+    return await response.json() as MarketplaceRegistry;
   }
   finally {
-    clearTimeout(timeoutId)
+    clearTimeout(timeoutId);
   }
 }
 
@@ -195,41 +195,41 @@ export async function fetchRemoteRegistry(
  */
 export async function getRegistry(
   options: {
-    registryUrl?: string
-    cache?: Partial<RegistryCacheConfig>
-    forceRefresh?: boolean
+    registryUrl?: string;
+    cache?: Partial<RegistryCacheConfig>;
+    forceRefresh?: boolean;
   } = {},
 ): Promise<MarketplaceRegistry> {
-  const cacheConfig = { ...DEFAULT_CACHE_CONFIG, ...options.cache }
-  const registryUrl = options.registryUrl || DEFAULT_REGISTRY_URL
+  const cacheConfig = { ...DEFAULT_CACHE_CONFIG, ...options.cache };
+  const registryUrl = options.registryUrl || DEFAULT_REGISTRY_URL;
 
   // Check cache first (unless force refresh)
   if (cacheConfig.enabled && !options.forceRefresh) {
-    const cacheValid = await isCacheValid(cacheConfig.cacheDir, cacheConfig.ttl)
+    const cacheValid = await isCacheValid(cacheConfig.cacheDir, cacheConfig.ttl);
     if (cacheValid) {
-      const cached = await readCachedRegistry(cacheConfig.cacheDir)
+      const cached = await readCachedRegistry(cacheConfig.cacheDir);
       if (cached) {
-        return cached
+        return cached;
       }
     }
   }
 
   // Fetch from remote
   try {
-    const registry = await fetchRemoteRegistry(registryUrl)
+    const registry = await fetchRemoteRegistry(registryUrl);
 
     // Update cache
     if (cacheConfig.enabled) {
-      await writeCacheRegistry(cacheConfig.cacheDir, registry)
+      await writeCacheRegistry(cacheConfig.cacheDir, registry);
     }
 
-    return registry
+    return registry;
   }
   catch {
     // Fallback to cache if available
-    const cached = await readCachedRegistry(cacheConfig.cacheDir)
+    const cached = await readCachedRegistry(cacheConfig.cacheDir);
     if (cached) {
-      return cached
+      return cached;
     }
 
     // Return local registry with built-in packages
@@ -247,7 +247,7 @@ export async function getRegistry(
         'output-style': 0,
         'bundle': 0,
       },
-    }
+    };
   }
 }
 
@@ -271,81 +271,81 @@ export async function getRegistry(
 export async function searchPackages(
   options: MarketplaceSearchOptions = {},
 ): Promise<MarketplaceSearchResult> {
-  const registry = await getRegistry()
-  let packages = [...registry.packages]
+  const registry = await getRegistry();
+  let packages = [...registry.packages];
 
   // Apply filters
   if (options.query) {
-    const query = options.query.toLowerCase()
+    const query = options.query.toLowerCase();
     packages = packages.filter(pkg =>
       pkg.name.toLowerCase().includes(query)
       || pkg.id.toLowerCase().includes(query)
       || pkg.keywords.some(k => k.toLowerCase().includes(query))
       || Object.values(pkg.description).some(d => d.toLowerCase().includes(query)),
-    )
+    );
   }
 
   if (options.category) {
-    packages = packages.filter(pkg => pkg.category === options.category)
+    packages = packages.filter(pkg => pkg.category === options.category);
   }
 
   if (options.author) {
     packages = packages.filter(pkg =>
       pkg.author.toLowerCase().includes(options.author!.toLowerCase()),
-    )
+    );
   }
 
   if (options.verified) {
-    packages = packages.filter(pkg => pkg.verified === options.verified)
+    packages = packages.filter(pkg => pkg.verified === options.verified);
   }
 
   if (options.keywords?.length) {
     packages = packages.filter(pkg =>
       options.keywords!.some(k => pkg.keywords.includes(k)),
-    )
+    );
   }
 
   if (options.minRating) {
-    packages = packages.filter(pkg => pkg.rating >= options.minRating!)
+    packages = packages.filter(pkg => pkg.rating >= options.minRating!);
   }
 
   if (options.supportedTool) {
     packages = packages.filter(pkg =>
       pkg.supportedTools?.includes(options.supportedTool!),
-    )
+    );
   }
 
   // Sort
-  const sortBy = options.sortBy || 'downloads'
-  const sortDir = options.sortDir || 'desc'
+  const sortBy = options.sortBy || 'downloads';
+  const sortDir = options.sortDir || 'desc';
 
   packages.sort((a, b) => {
-    let comparison = 0
+    let comparison = 0;
     switch (sortBy) {
       case 'downloads':
-        comparison = a.downloads - b.downloads
-        break
+        comparison = a.downloads - b.downloads;
+        break;
       case 'rating':
-        comparison = a.rating - b.rating
-        break
+        comparison = a.rating - b.rating;
+        break;
       case 'updated':
-        comparison = new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime()
-        break
+        comparison = new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime();
+        break;
       case 'created':
-        comparison = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-        break
+        comparison = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+        break;
       case 'name':
-        comparison = a.name.localeCompare(b.name)
-        break
+        comparison = a.name.localeCompare(b.name);
+        break;
     }
-    return sortDir === 'desc' ? -comparison : comparison
-  })
+    return sortDir === 'desc' ? -comparison : comparison;
+  });
 
   // Pagination
-  const total = packages.length
-  const offset = options.offset || 0
-  const limit = options.limit || 20
-  packages = packages.slice(offset, offset + limit)
+  const total = packages.length;
+  const offset = options.offset || 0;
+  const limit = options.limit || 20;
+  packages = packages.slice(offset, offset + limit);
 
   return {
     packages,
@@ -354,7 +354,7 @@ export async function searchPackages(
     limit,
     query: options.query,
     filters: options,
-  }
+  };
 }
 
 /**
@@ -368,8 +368,8 @@ export async function searchPackages(
 export async function getPackage(
   packageId: string,
 ): Promise<MarketplacePackage | null> {
-  const registry = await getRegistry()
-  return registry.packages.find(pkg => pkg.id === packageId) || null
+  const registry = await getRegistry();
+  return registry.packages.find(pkg => pkg.id === packageId) || null;
 }
 
 /**
@@ -386,8 +386,8 @@ export async function getPackageVersions(
   packageId: string,
 ): Promise<string[]> {
   // In a real implementation, this would fetch from the registry API
-  const pkg = await getPackage(packageId)
-  return pkg ? [pkg.version] : []
+  const pkg = await getPackage(packageId);
+  return pkg ? [pkg.version] : [];
 }
 
 /**
@@ -399,17 +399,17 @@ export async function getPackageVersions(
  * @returns Array of featured packages
  */
 export async function getFeaturedPackages(): Promise<MarketplacePackage[]> {
-  const registry = await getRegistry()
+  const registry = await getRegistry();
   if (!registry.featured?.length) {
     // Return top downloaded packages as featured
     return registry.packages
       .sort((a, b) => b.downloads - a.downloads)
-      .slice(0, 5)
+      .slice(0, 5);
   }
 
   return registry.packages.filter(pkg =>
     registry.featured!.includes(pkg.id),
-  )
+  );
 }
 
 /**
@@ -423,18 +423,18 @@ export async function getFeaturedPackages(): Promise<MarketplacePackage[]> {
 export async function getPackagesByCategory(
   category: string,
 ): Promise<MarketplacePackage[]> {
-  const result = await searchPackages({ category: category as any })
-  return result.packages
+  const result = await searchPackages({ category: category as any });
+  return result.packages;
 }
 
 /**
  * Show marketplace menu
  */
 export async function showMarketplaceMenu(): Promise<void> {
-  const { default: inquirer } = await import('inquirer')
-  const { default: ansis } = await import('ansis')
+  const { default: inquirer } = await import('inquirer');
+  const { default: ansis } = await import('ansis');
 
-  console.log(ansis.cyan('\n📦 Plugin Marketplace'))
+  console.log(ansis.cyan('\n📦 Plugin Marketplace'));
 
   const { action } = await inquirer.prompt([{
     type: 'list',
@@ -447,10 +447,10 @@ export async function showMarketplaceMenu(): Promise<void> {
       { name: '📥 Installed packages', value: 'installed' },
       { name: '← Back', value: 'back' },
     ],
-  }])
+  }]);
 
   if (action === 'back')
-    return
+    return;
 
   switch (action) {
     case 'search': {
@@ -458,23 +458,23 @@ export async function showMarketplaceMenu(): Promise<void> {
         type: 'input',
         name: 'query',
         message: 'Search query:',
-      }])
+      }]);
       if (query) {
-        const results = await searchPackages({ query })
-        console.log(ansis.green(`\nFound ${results.total} packages:`))
+        const results = await searchPackages({ query });
+        console.log(ansis.green(`\nFound ${results.total} packages:`));
         for (const pkg of results.packages.slice(0, 10)) {
-          console.log(`  ${ansis.cyan(pkg.name)} - ${pkg.description || 'No description'}`)
+          console.log(`  ${ansis.cyan(pkg.name)} - ${pkg.description || 'No description'}`);
         }
       }
-      break
+      break;
     }
     case 'featured': {
-      const featured = await getFeaturedPackages()
-      console.log(ansis.green('\n⭐ Featured packages:'))
+      const featured = await getFeaturedPackages();
+      console.log(ansis.green('\n⭐ Featured packages:'));
       for (const pkg of featured.slice(0, 10)) {
-        console.log(`  ${ansis.cyan(pkg.name)} - ${pkg.description || 'No description'}`)
+        console.log(`  ${ansis.cyan(pkg.name)} - ${pkg.description || 'No description'}`);
       }
-      break
+      break;
     }
     case 'category': {
       const { category } = await inquirer.prompt([{
@@ -487,27 +487,27 @@ export async function showMarketplaceMenu(): Promise<void> {
           { name: '🎨 Themes', value: 'themes' },
           { name: '🔌 Integrations', value: 'integrations' },
         ],
-      }])
-      const packages = await getPackagesByCategory(category)
-      console.log(ansis.green(`\n${category} packages:`))
+      }]);
+      const packages = await getPackagesByCategory(category);
+      console.log(ansis.green(`\n${category} packages:`));
       for (const pkg of packages.slice(0, 10)) {
-        console.log(`  ${ansis.cyan(pkg.name)} - ${pkg.description || 'No description'}`)
+        console.log(`  ${ansis.cyan(pkg.name)} - ${pkg.description || 'No description'}`);
       }
-      break
+      break;
     }
     case 'installed': {
-      const { getInstalledPackages } = await import('./installer.js')
-      const installed = await getInstalledPackages()
+      const { getInstalledPackages } = await import('./installer.js');
+      const installed = await getInstalledPackages();
       if (installed.length === 0) {
-        console.log(ansis.yellow('\nNo packages installed'))
+        console.log(ansis.yellow('\nNo packages installed'));
       }
       else {
-        console.log(ansis.green('\n📥 Installed packages:'))
+        console.log(ansis.green('\n📥 Installed packages:'));
         for (const pkg of installed) {
-          console.log(`  ${ansis.cyan(pkg.package.name)} v${pkg.package.version}`)
+          console.log(`  ${ansis.cyan(pkg.package.name)} v${pkg.package.version}`);
         }
       }
-      break
+      break;
     }
   }
 }

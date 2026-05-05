@@ -14,37 +14,37 @@
  * @module commands/cloud-plugins
  */
 
-import type { CAC } from 'cac'
-import type { CloudPlugin, PluginCategory } from '../cloud-plugins/types.js'
-import ansis from 'ansis'
-import inquirer from 'inquirer'
-import ora from 'ora'
-import { getCloudPluginManager } from '../cloud-plugins/manager.js'
-import { i18n } from '../i18n/index.js'
+import type { CAC } from 'cac';
+import type { CloudPlugin, PluginCategory } from '../cloud-plugins/types.js';
+import ansis from 'ansis';
+import inquirer from 'inquirer';
+import ora from 'ora';
+import { getCloudPluginManager } from '../cloud-plugins/manager.js';
+import { i18n } from '../i18n/index.js';
 
 // ============================================================================
 // Types
 // ============================================================================
 
 interface CloudPluginsOptions {
-  lang?: string
-  category?: string
-  limit?: number
-  json?: boolean
-  force?: boolean
-  dryRun?: boolean
-  path?: string
+  lang?: string;
+  category?: string;
+  limit?: number;
+  json?: boolean;
+  force?: boolean;
+  dryRun?: boolean;
+  path?: string;
 }
 
 interface RecommendationResultDisplay {
-  plugins: CloudPlugin[]
-  reason: string
-  confidence: number
+  plugins: CloudPlugin[];
+  reason: string;
+  confidence: number;
   projectContext: {
-    type?: string
-    frameworks?: string[]
-    languages?: string[]
-  }
+    type?: string;
+    frameworks?: string[];
+    languages?: string[];
+  };
 }
 
 // ============================================================================
@@ -52,7 +52,7 @@ interface RecommendationResultDisplay {
 // ============================================================================
 
 function getManager() {
-  return getCloudPluginManager()
+  return getCloudPluginManager();
 }
 
 // ============================================================================
@@ -63,33 +63,33 @@ function getManager() {
  * Get description in current language
  */
 function getDescription(plugin: CloudPlugin): string {
-  const lang = i18n.language as 'en' | 'zh-CN'
-  return plugin.description[lang] || plugin.description.en || Object.values(plugin.description)[0]
+  const lang = i18n.language as 'en' | 'zh-CN';
+  return plugin.description[lang] || plugin.description.en || Object.values(plugin.description)[0];
 }
 
 /**
  * Get name in current language
  */
 function getName(plugin: CloudPlugin): string {
-  const lang = i18n.language as 'en' | 'zh-CN'
-  return plugin.name[lang] || plugin.name.en || Object.values(plugin.name)[0]
+  const lang = i18n.language as 'en' | 'zh-CN';
+  return plugin.name[lang] || plugin.name.en || Object.values(plugin.name)[0];
 }
 
 /**
  * Format plugin for display
  */
 function formatPlugin(plugin: CloudPlugin, index?: number, isInstalled?: boolean): string {
-  const installed = isInstalled ?? getManager().isPluginInstalled(plugin.id)
-  const installedMark = installed ? ansis.green('✓') : ansis.gray('○')
-  const indexStr = index !== undefined ? ansis.green(`${index + 1}.`) : ''
+  const installed = isInstalled ?? getManager().isPluginInstalled(plugin.id);
+  const installedMark = installed ? ansis.green('✓') : ansis.gray('○');
+  const indexStr = index !== undefined ? ansis.green(`${index + 1}.`) : '';
 
   const lines = [
     `${indexStr} ${installedMark} ${ansis.bold(getName(plugin))} ${ansis.gray(`v${plugin.version}`)}`,
     `   ${getDescription(plugin)}`,
     `   ${ansis.gray(i18n.t('plugins:info.category'))}: ${plugin.category} | ${ansis.gray(i18n.t('plugins:info.downloads'))}: ${plugin.downloads.toLocaleString()} | ${ansis.gray(i18n.t('plugins:info.rating'))}: ${'★'.repeat(Math.round(plugin.rating))}${ansis.gray('☆'.repeat(5 - Math.round(plugin.rating)))} (${plugin.rating})`,
-  ]
+  ];
 
-  return lines.join('\n')
+  return lines.join('\n');
 }
 
 /**
@@ -97,40 +97,40 @@ function formatPlugin(plugin: CloudPlugin, index?: number, isInstalled?: boolean
  */
 function displayPlugins(plugins: CloudPlugin[], title?: string): void {
   if (title) {
-    console.log(ansis.green.bold(`\n${title}\n`))
+    console.log(ansis.green.bold(`\n${title}\n`));
   }
 
   if (plugins.length === 0) {
-    console.log(ansis.yellow(i18n.t('plugins:noResults')))
-    return
+    console.log(ansis.yellow(i18n.t('plugins:noResults')));
+    return;
   }
 
   plugins.forEach((plugin, index) => {
-    console.log(formatPlugin(plugin, index))
-    console.log()
-  })
+    console.log(formatPlugin(plugin, index));
+    console.log();
+  });
 }
 
 /**
  * Display recommendations with reasoning
  */
 function displayRecommendations(result: RecommendationResultDisplay): void {
-  console.log(ansis.green.bold(`\n${i18n.t('plugins:recommendations.title')}\n`))
-  console.log(ansis.gray(`${i18n.t('plugins:recommendations.reason')}: ${result.reason}`))
-  console.log(ansis.gray(`${i18n.t('plugins:recommendations.confidence')}: ${Math.round(result.confidence * 100)}%\n`))
+  console.log(ansis.green.bold(`\n${i18n.t('plugins:recommendations.title')}\n`));
+  console.log(ansis.gray(`${i18n.t('plugins:recommendations.reason')}: ${result.reason}`));
+  console.log(ansis.gray(`${i18n.t('plugins:recommendations.confidence')}: ${Math.round(result.confidence * 100)}%\n`));
 
   if (result.projectContext.type) {
-    console.log(ansis.gray(`${i18n.t('plugins:recommendations.projectType')}: ${result.projectContext.type}`))
+    console.log(ansis.gray(`${i18n.t('plugins:recommendations.projectType')}: ${result.projectContext.type}`));
   }
   if (result.projectContext.frameworks && result.projectContext.frameworks.length > 0) {
-    console.log(ansis.gray(`${i18n.t('plugins:recommendations.frameworks')}: ${result.projectContext.frameworks.join(', ')}`))
+    console.log(ansis.gray(`${i18n.t('plugins:recommendations.frameworks')}: ${result.projectContext.frameworks.join(', ')}`));
   }
   if (result.projectContext.languages && result.projectContext.languages.length > 0) {
-    console.log(ansis.gray(`${i18n.t('plugins:recommendations.languages')}: ${result.projectContext.languages.join(', ')}`))
+    console.log(ansis.gray(`${i18n.t('plugins:recommendations.languages')}: ${result.projectContext.languages.join(', ')}`));
   }
 
-  console.log()
-  displayPlugins(result.plugins)
+  console.log();
+  displayPlugins(result.plugins);
 }
 
 // ============================================================================
@@ -141,30 +141,30 @@ function displayRecommendations(result: RecommendationResultDisplay): void {
  * List installed cloud plugins
  */
 async function listCommand(options: CloudPluginsOptions): Promise<void> {
-  const spinner = ora(i18n.t('plugins:list.loading')).start()
+  const spinner = ora(i18n.t('plugins:list.loading')).start();
 
   try {
-    const manager = getManager()
-    let installedPlugins = manager.getInstalledPlugins()
+    const manager = getManager();
+    let installedPlugins = manager.getInstalledPlugins();
 
-    spinner.succeed(i18n.t('plugins:list.success', { count: installedPlugins.length }))
+    spinner.succeed(i18n.t('plugins:list.success', { count: installedPlugins.length }));
 
     if (options.json) {
-      console.log(JSON.stringify(installedPlugins, null, 2))
-      return
+      console.log(JSON.stringify(installedPlugins, null, 2));
+      return;
     }
 
     if (options.category) {
-      installedPlugins = installedPlugins.filter(p => p.category === options.category)
-      displayPlugins(installedPlugins, i18n.t('plugins:list.titleFiltered', { category: options.category }))
+      installedPlugins = installedPlugins.filter(p => p.category === options.category);
+      displayPlugins(installedPlugins, i18n.t('plugins:list.titleFiltered', { category: options.category }));
     }
     else {
-      displayPlugins(installedPlugins, i18n.t('plugins:list.title'))
+      displayPlugins(installedPlugins, i18n.t('plugins:list.title'));
     }
   }
   catch (error) {
-    spinner.fail(i18n.t('plugins:list.failed'))
-    throw error
+    spinner.fail(i18n.t('plugins:list.failed'));
+    throw error;
   }
 }
 
@@ -172,35 +172,35 @@ async function listCommand(options: CloudPluginsOptions): Promise<void> {
  * Search cloud plugins
  */
 async function searchCommand(query: string, options: CloudPluginsOptions): Promise<void> {
-  const spinner = ora(i18n.t('plugins:search.searching', { query })).start()
+  const spinner = ora(i18n.t('plugins:search.searching', { query })).start();
 
   try {
-    const manager = getManager()
+    const manager = getManager();
     const result = await manager.searchPlugins({
       query,
       category: options.category as PluginCategory | undefined,
       pageSize: options.limit || 10,
-    })
+    });
 
     if (!result.success || !result.data) {
-      spinner.fail(result.error || i18n.t('plugins:search.failed'))
-      return
+      spinner.fail(result.error || i18n.t('plugins:search.failed'));
+      return;
     }
 
-    const results = result.data
+    const results = result.data;
 
-    spinner.succeed(i18n.t('plugins:search.found', { count: results.length, query }))
+    spinner.succeed(i18n.t('plugins:search.found', { count: results.length, query }));
 
     if (options.json) {
-      console.log(JSON.stringify(results, null, 2))
-      return
+      console.log(JSON.stringify(results, null, 2));
+      return;
     }
 
-    displayPlugins(results, i18n.t('plugins:search.results'))
+    displayPlugins(results, i18n.t('plugins:search.results'));
   }
   catch (error) {
-    spinner.fail(i18n.t('plugins:search.failed'))
-    throw error
+    spinner.fail(i18n.t('plugins:search.failed'));
+    throw error;
   }
 }
 
@@ -208,56 +208,56 @@ async function searchCommand(query: string, options: CloudPluginsOptions): Promi
  * Install a cloud plugin
  */
 async function installCommand(id: string, options: CloudPluginsOptions): Promise<void> {
-  const manager = getManager()
+  const manager = getManager();
 
   // Get plugin info first
-  const pluginInfo = await manager.getPluginInfo(id)
+  const pluginInfo = await manager.getPluginInfo(id);
   if (!pluginInfo) {
-    console.log(ansis.red(i18n.t('plugins:install.notFound', { id })))
-    return
+    console.log(ansis.red(i18n.t('plugins:install.notFound', { id })));
+    return;
   }
 
-  const pluginName = getName(pluginInfo)
+  const pluginName = getName(pluginInfo);
 
   if (manager.isPluginInstalled(id) && !options.force) {
-    console.log(ansis.yellow(i18n.t('plugins:install.alreadyInstalled', { name: pluginName })))
-    return
+    console.log(ansis.yellow(i18n.t('plugins:install.alreadyInstalled', { name: pluginName })));
+    return;
   }
 
   if (options.dryRun) {
-    console.log(ansis.green(i18n.t('plugins:install.dryRun')))
-    console.log(formatPlugin(pluginInfo))
-    return
+    console.log(ansis.green(i18n.t('plugins:install.dryRun')));
+    console.log(formatPlugin(pluginInfo));
+    return;
   }
 
-  const spinner = ora(i18n.t('plugins:install.installing', { name: pluginName })).start()
+  const spinner = ora(i18n.t('plugins:install.installing', { name: pluginName })).start();
 
   try {
     const result = await manager.installPlugin(id, {
       force: options.force,
       dryRun: options.dryRun,
-    })
+    });
 
     if (!result.success) {
-      spinner.fail(i18n.t('plugins:install.failed', { name: pluginName }))
-      console.log(ansis.red(result.error || 'Unknown error'))
-      return
+      spinner.fail(i18n.t('plugins:install.failed', { name: pluginName }));
+      console.log(ansis.red(result.error || 'Unknown error'));
+      return;
     }
 
-    spinner.succeed(i18n.t('plugins:install.success', { name: pluginName }))
+    spinner.succeed(i18n.t('plugins:install.success', { name: pluginName }));
 
     if (result.installedPath) {
-      console.log(ansis.gray(`\n${i18n.t('plugins:install.location')}: ${result.installedPath}`))
+      console.log(ansis.gray(`\n${i18n.t('plugins:install.location')}: ${result.installedPath}`));
     }
-    console.log(ansis.gray(`${i18n.t('plugins:install.version')}: ${pluginInfo.version}`))
+    console.log(ansis.gray(`${i18n.t('plugins:install.version')}: ${pluginInfo.version}`));
 
     if (result.dependencies && result.dependencies.length > 0) {
-      console.log(ansis.gray(`${i18n.t('plugins:install.dependencies')}: ${result.dependencies.join(', ')}`))
+      console.log(ansis.gray(`${i18n.t('plugins:install.dependencies')}: ${result.dependencies.join(', ')}`));
     }
   }
   catch (error) {
-    spinner.fail(i18n.t('plugins:install.failed', { name: pluginName }))
-    throw error
+    spinner.fail(i18n.t('plugins:install.failed', { name: pluginName }));
+    throw error;
   }
 }
 
@@ -265,16 +265,16 @@ async function installCommand(id: string, options: CloudPluginsOptions): Promise
  * Uninstall a cloud plugin
  */
 async function uninstallCommand(id: string, options: CloudPluginsOptions): Promise<void> {
-  const manager = getManager()
+  const manager = getManager();
 
   if (!manager.isPluginInstalled(id)) {
-    console.log(ansis.yellow(i18n.t('plugins:uninstall.notInstalled', { name: id })))
-    return
+    console.log(ansis.yellow(i18n.t('plugins:uninstall.notInstalled', { name: id })));
+    return;
   }
 
   // Get plugin info for display name
-  const pluginInfo = await manager.getPluginInfo(id)
-  const pluginName = pluginInfo ? getName(pluginInfo) : id
+  const pluginInfo = await manager.getPluginInfo(id);
+  const pluginName = pluginInfo ? getName(pluginInfo) : id;
 
   // Confirm uninstall
   if (!options.force) {
@@ -283,30 +283,30 @@ async function uninstallCommand(id: string, options: CloudPluginsOptions): Promi
       name: 'confirm',
       message: i18n.t('plugins:uninstall.confirm', { name: pluginName }),
       default: false,
-    }])
+    }]);
 
     if (!confirm) {
-      console.log(ansis.yellow(i18n.t('plugins:uninstall.cancelled')))
-      return
+      console.log(ansis.yellow(i18n.t('plugins:uninstall.cancelled')));
+      return;
     }
   }
 
-  const spinner = ora(i18n.t('plugins:uninstall.uninstalling', { name: pluginName })).start()
+  const spinner = ora(i18n.t('plugins:uninstall.uninstalling', { name: pluginName })).start();
 
   try {
-    const result = await manager.uninstallPlugin(id)
+    const result = await manager.uninstallPlugin(id);
 
     if (!result.success) {
-      spinner.fail(i18n.t('plugins:uninstall.failed', { name: pluginName }))
-      console.log(ansis.red(result.error || 'Unknown error'))
-      return
+      spinner.fail(i18n.t('plugins:uninstall.failed', { name: pluginName }));
+      console.log(ansis.red(result.error || 'Unknown error'));
+      return;
     }
 
-    spinner.succeed(i18n.t('plugins:uninstall.success', { name: pluginName }))
+    spinner.succeed(i18n.t('plugins:uninstall.success', { name: pluginName }));
   }
   catch (error) {
-    spinner.fail(i18n.t('plugins:uninstall.failed', { name: pluginName }))
-    throw error
+    spinner.fail(i18n.t('plugins:uninstall.failed', { name: pluginName }));
+    throw error;
   }
 }
 
@@ -314,81 +314,81 @@ async function uninstallCommand(id: string, options: CloudPluginsOptions): Promi
  * Update plugins
  */
 async function updateCommand(id: string | undefined, _options: CloudPluginsOptions): Promise<void> {
-  const manager = getManager()
+  const manager = getManager();
 
   if (id) {
     // Update specific plugin
     if (!manager.isPluginInstalled(id)) {
-      console.log(ansis.yellow(i18n.t('plugins:update.notInstalled', { name: id })))
-      return
+      console.log(ansis.yellow(i18n.t('plugins:update.notInstalled', { name: id })));
+      return;
     }
 
-    const pluginInfo = await manager.getPluginInfo(id)
-    const pluginName = pluginInfo ? getName(pluginInfo) : id
+    const pluginInfo = await manager.getPluginInfo(id);
+    const pluginName = pluginInfo ? getName(pluginInfo) : id;
 
-    const spinner = ora(i18n.t('plugins:update.updating', { name: pluginName })).start()
+    const spinner = ora(i18n.t('plugins:update.updating', { name: pluginName })).start();
 
     try {
-      const result = await manager.updatePlugin(id)
+      const result = await manager.updatePlugin(id);
 
       if (!result.success) {
-        spinner.fail(i18n.t('plugins:update.failed', { name: pluginName }))
-        console.log(ansis.red(result.error || 'Unknown error'))
-        return
+        spinner.fail(i18n.t('plugins:update.failed', { name: pluginName }));
+        console.log(ansis.red(result.error || 'Unknown error'));
+        return;
       }
 
       if (result.updated) {
-        spinner.succeed(i18n.t('plugins:update.success', { name: pluginName, version: result.newVersion }))
-        console.log(ansis.gray(`  ${result.oldVersion} → ${result.newVersion}`))
+        spinner.succeed(i18n.t('plugins:update.success', { name: pluginName, version: result.newVersion }));
+        console.log(ansis.gray(`  ${result.oldVersion} → ${result.newVersion}`));
       }
       else {
-        spinner.succeed(i18n.t('plugins:update.alreadyLatest', { name: pluginName }))
+        spinner.succeed(i18n.t('plugins:update.alreadyLatest', { name: pluginName }));
       }
     }
     catch (error) {
-      spinner.fail(i18n.t('plugins:update.failed', { name: pluginName }))
-      throw error
+      spinner.fail(i18n.t('plugins:update.failed', { name: pluginName }));
+      throw error;
     }
   }
   else {
     // Check for updates for all installed plugins
-    const spinner = ora(i18n.t('plugins:update.checking')).start()
+    const spinner = ora(i18n.t('plugins:update.checking')).start();
 
     try {
-      const results = await manager.updateAllPlugins()
+      const results = await manager.updateAllPlugins();
 
-      spinner.succeed(i18n.t('plugins:update.checkComplete'))
+      spinner.succeed(i18n.t('plugins:update.checkComplete'));
 
-      const updatesAvailable = results.filter(r => r.updated)
-      const upToDate = results.filter(r => r.success && !r.updated)
-      const failed = results.filter(r => !r.success)
+      const updatesAvailable = results.filter(r => r.updated);
+      const upToDate = results.filter(r => r.success && !r.updated);
+      const failed = results.filter(r => !r.success);
 
       if (updatesAvailable.length === 0 && failed.length === 0) {
-        console.log(ansis.green(`\n${i18n.t('plugins:update.noUpdates')}`))
+        console.log(ansis.green(`\n${i18n.t('plugins:update.noUpdates')}`));
       }
       else {
         if (updatesAvailable.length > 0) {
-          console.log(ansis.green(`\n${i18n.t('plugins:update.updated', { count: updatesAvailable.length })}\n`))
+          console.log(ansis.green(`\n${i18n.t('plugins:update.updated', { count: updatesAvailable.length })}\n`));
           updatesAvailable.forEach((result) => {
-            console.log(`  ${ansis.bold(result.pluginId)}: ${ansis.gray(`v${result.oldVersion}`)} → ${ansis.green(`v${result.newVersion}`)}`)
-          })
+            console.log(`  ${ansis.bold(result.pluginId)}: ${ansis.gray(`v${result.oldVersion}`)} → ${ansis.green(`v${result.newVersion}`)}`);
+          });
         }
 
         if (upToDate.length > 0) {
-          console.log(ansis.gray(`\n${i18n.t('plugins:update.upToDate', { count: upToDate.length })}`))
+          console.log(ansis.gray(`\n${i18n.t('plugins:update.upToDate', { count: upToDate.length })}`));
         }
 
         if (failed.length > 0) {
-          console.log(ansis.red(`\n${i18n.t('plugins:update.failedCount', { count: failed.length })}`))
+          console.log(ansis.red(`\n${i18n.t('plugins:update.failedCount', { count: failed.length })}`));
           failed.forEach((result) => {
-            console.log(`  ${ansis.bold(result.pluginId)}: ${result.error}`)
-          })
+            console.log(`  ${ansis.bold(result.pluginId)}: ${result.error}`);
+          });
         }
       }
     }
     catch (error) {
-      spinner.fail(i18n.t('plugins:update.checkFailed'))
-      throw error
+      spinner.fail(i18n.t('plugins:update.checkFailed'));
+      throw error;
     }
   }
 }
@@ -397,17 +397,17 @@ async function updateCommand(id: string | undefined, _options: CloudPluginsOptio
  * Get plugin recommendations
  */
 async function recommendCommand(options: CloudPluginsOptions): Promise<void> {
-  const spinner = ora(i18n.t('plugins:recommend.analyzing')).start()
+  const spinner = ora(i18n.t('plugins:recommend.analyzing')).start();
 
   try {
-    const manager = getManager()
-    const recommendResult = await manager.getRecommendations(options.path)
+    const manager = getManager();
+    const recommendResult = await manager.getRecommendations(options.path);
 
-    spinner.succeed(i18n.t('plugins:recommend.complete'))
+    spinner.succeed(i18n.t('plugins:recommend.complete'));
 
     if (options.json) {
-      console.log(JSON.stringify(recommendResult, null, 2))
-      return
+      console.log(JSON.stringify(recommendResult, null, 2));
+      return;
     }
 
     // Convert to display format
@@ -429,13 +429,13 @@ async function recommendCommand(options: CloudPluginsOptions): Promise<void> {
         frameworks: recommendResult.context.frameworks,
         languages: recommendResult.context.languages,
       },
-    }
+    };
 
-    displayRecommendations(result)
+    displayRecommendations(result);
   }
   catch (error) {
-    spinner.fail(i18n.t('plugins:recommend.failed'))
-    console.error(ansis.red(`Error: ${error}`))
+    spinner.fail(i18n.t('plugins:recommend.failed'));
+    console.error(ansis.red(`Error: ${error}`));
   }
 }
 
@@ -443,53 +443,53 @@ async function recommendCommand(options: CloudPluginsOptions): Promise<void> {
  * Show plugin info
  */
 async function infoCommand(id: string, options: CloudPluginsOptions): Promise<void> {
-  const spinner = ora(i18n.t('plugins:info.loading')).start()
+  const spinner = ora(i18n.t('plugins:info.loading')).start();
 
   try {
-    const manager = getManager()
-    const plugin = await manager.getPluginInfo(id)
+    const manager = getManager();
+    const plugin = await manager.getPluginInfo(id);
 
     if (!plugin) {
-      spinner.fail(i18n.t('plugins:info.notFound', { id }))
-      return
+      spinner.fail(i18n.t('plugins:info.notFound', { id }));
+      return;
     }
 
-    spinner.succeed(i18n.t('plugins:info.loaded'))
+    spinner.succeed(i18n.t('plugins:info.loaded'));
 
     if (options.json) {
-      console.log(JSON.stringify(plugin, null, 2))
-      return
+      console.log(JSON.stringify(plugin, null, 2));
+      return;
     }
 
-    const installed = manager.isPluginInstalled(id)
-    const pluginName = getName(plugin)
+    const installed = manager.isPluginInstalled(id);
+    const pluginName = getName(plugin);
 
-    console.log()
-    console.log(ansis.bold.cyan(pluginName))
-    console.log(ansis.gray('─'.repeat(60)))
-    console.log()
-    console.log(`${ansis.bold(i18n.t('plugins:info.description'))}: ${getDescription(plugin)}`)
-    console.log(`${ansis.bold(i18n.t('plugins:info.version'))}: ${plugin.version}`)
-    console.log(`${ansis.bold(i18n.t('plugins:info.category'))}: ${plugin.category}`)
-    console.log(`${ansis.bold(i18n.t('plugins:info.author'))}: ${plugin.author}`)
-    console.log(`${ansis.bold(i18n.t('plugins:info.downloads'))}: ${plugin.downloads.toLocaleString()}`)
-    console.log(`${ansis.bold(i18n.t('plugins:info.rating'))}: ${'★'.repeat(Math.round(plugin.rating))}${ansis.gray('☆'.repeat(5 - Math.round(plugin.rating)))} (${plugin.rating}/5)`)
+    console.log();
+    console.log(ansis.bold.cyan(pluginName));
+    console.log(ansis.gray('─'.repeat(60)));
+    console.log();
+    console.log(`${ansis.bold(i18n.t('plugins:info.description'))}: ${getDescription(plugin)}`);
+    console.log(`${ansis.bold(i18n.t('plugins:info.version'))}: ${plugin.version}`);
+    console.log(`${ansis.bold(i18n.t('plugins:info.category'))}: ${plugin.category}`);
+    console.log(`${ansis.bold(i18n.t('plugins:info.author'))}: ${plugin.author}`);
+    console.log(`${ansis.bold(i18n.t('plugins:info.downloads'))}: ${plugin.downloads.toLocaleString()}`);
+    console.log(`${ansis.bold(i18n.t('plugins:info.rating'))}: ${'★'.repeat(Math.round(plugin.rating))}${ansis.gray('☆'.repeat(5 - Math.round(plugin.rating)))} (${plugin.rating}/5)`);
 
     if (plugin.tags.length > 0) {
-      console.log(`${ansis.bold(i18n.t('plugins:info.keywords'))}: ${plugin.tags.join(', ')}`)
+      console.log(`${ansis.bold(i18n.t('plugins:info.keywords'))}: ${plugin.tags.join(', ')}`);
     }
 
     if (plugin.dependencies && plugin.dependencies.length > 0) {
-      console.log(`${ansis.bold(i18n.t('plugins:info.dependencies'))}: ${plugin.dependencies.join(', ')}`)
+      console.log(`${ansis.bold(i18n.t('plugins:info.dependencies'))}: ${plugin.dependencies.join(', ')}`);
     }
 
-    console.log()
-    console.log(`${ansis.bold(i18n.t('plugins:info.status'))}: ${installed ? ansis.green(i18n.t('plugins:info.installed')) : ansis.gray(i18n.t('plugins:info.notInstalled'))}`)
-    console.log()
+    console.log();
+    console.log(`${ansis.bold(i18n.t('plugins:info.status'))}: ${installed ? ansis.green(i18n.t('plugins:info.installed')) : ansis.gray(i18n.t('plugins:info.notInstalled'))}`);
+    console.log();
   }
   catch (error) {
-    spinner.fail(i18n.t('plugins:info.loadFailed'))
-    throw error
+    spinner.fail(i18n.t('plugins:info.loadFailed'));
+    throw error;
   }
 }
 
@@ -507,33 +507,33 @@ async function cacheCommand(_options: CloudPluginsOptions): Promise<void> {
       { name: i18n.t('plugins:cache.refresh'), value: 'refresh' },
       { name: ansis.gray(i18n.t('common:back')), value: 'back' },
     ],
-  }])
+  }]);
 
   if (action === 'back') {
-    return
+    return;
   }
 
-  const manager = getManager()
+  const manager = getManager();
 
   if (action === 'clear') {
-    const spinner = ora(i18n.t('plugins:cache.clearing')).start()
-    manager.clearCache()
-    spinner.succeed(i18n.t('plugins:cache.cleared'))
+    const spinner = ora(i18n.t('plugins:cache.clearing')).start();
+    manager.clearCache();
+    spinner.succeed(i18n.t('plugins:cache.cleared'));
   }
   else if (action === 'refresh') {
-    const spinner = ora(i18n.t('plugins:cache.refreshing')).start()
-    await manager.refreshCache()
-    spinner.succeed(i18n.t('plugins:cache.refreshed'))
+    const spinner = ora(i18n.t('plugins:cache.refreshing')).start();
+    await manager.refreshCache();
+    spinner.succeed(i18n.t('plugins:cache.refreshed'));
   }
   else if (action === 'info') {
-    const stats = manager.getCacheStats()
-    console.log(ansis.green.bold(`\n${i18n.t('plugins:cache.infoTitle')}\n`))
-    console.log(`${i18n.t('plugins:cache.totalPlugins')}: ${stats.totalPlugins}`)
-    console.log(`${i18n.t('plugins:cache.size')}: ${(stats.cacheSize / 1024).toFixed(2)} KB`)
-    console.log(`${i18n.t('plugins:cache.cachedContents')}: ${stats.cachedContents}`)
-    console.log(`${i18n.t('plugins:cache.lastUpdated')}: ${stats.lastUpdated || 'N/A'}`)
-    console.log(`${i18n.t('plugins:cache.expiresAt')}: ${stats.expiresAt || 'N/A'}`)
-    console.log(`${i18n.t('plugins:cache.isExpired')}: ${stats.isExpired ? ansis.yellow(i18n.t('common:yes')) : ansis.green(i18n.t('common:no'))}`)
+    const stats = manager.getCacheStats();
+    console.log(ansis.green.bold(`\n${i18n.t('plugins:cache.infoTitle')}\n`));
+    console.log(`${i18n.t('plugins:cache.totalPlugins')}: ${stats.totalPlugins}`);
+    console.log(`${i18n.t('plugins:cache.size')}: ${(stats.cacheSize / 1024).toFixed(2)} KB`);
+    console.log(`${i18n.t('plugins:cache.cachedContents')}: ${stats.cachedContents}`);
+    console.log(`${i18n.t('plugins:cache.lastUpdated')}: ${stats.lastUpdated || 'N/A'}`);
+    console.log(`${i18n.t('plugins:cache.expiresAt')}: ${stats.expiresAt || 'N/A'}`);
+    console.log(`${i18n.t('plugins:cache.isExpired')}: ${stats.isExpired ? ansis.yellow(i18n.t('common:yes')) : ansis.green(i18n.t('common:no'))}`);
   }
 }
 
@@ -542,7 +542,7 @@ async function cacheCommand(_options: CloudPluginsOptions): Promise<void> {
  */
 async function showInteractiveMenu(): Promise<void> {
   while (true) {
-    console.log(ansis.green.bold(`\n${i18n.t('plugins:menu.title')}\n`))
+    console.log(ansis.green.bold(`\n${i18n.t('plugins:menu.title')}\n`));
 
     const { action } = await inquirer.prompt([{
       type: 'list',
@@ -558,10 +558,10 @@ async function showInteractiveMenu(): Promise<void> {
         new inquirer.Separator(),
         { name: ansis.gray(`↩️  ${i18n.t('common:back')}`), value: 'back' },
       ],
-    }])
+    }]);
 
     if (action === 'back') {
-      break
+      break;
     }
 
     try {
@@ -571,39 +571,39 @@ async function showInteractiveMenu(): Promise<void> {
             type: 'input',
             name: 'query',
             message: i18n.t('plugins:menu.searchPrompt'),
-          }])
+          }]);
           if (query) {
-            await searchCommand(query, {})
+            await searchCommand(query, {});
           }
-          break
+          break;
         }
         case 'recommend':
-          await recommendCommand({})
-          break
+          await recommendCommand({});
+          break;
         case 'list':
-          await listCommand({})
-          break
+          await listCommand({});
+          break;
         case 'update':
-          await updateCommand(undefined, {})
-          break
+          await updateCommand(undefined, {});
+          break;
         case 'info': {
           const { id } = await inquirer.prompt([{
             type: 'input',
             name: 'id',
             message: i18n.t('plugins:menu.infoPrompt'),
-          }])
+          }]);
           if (id) {
-            await infoCommand(id, {})
+            await infoCommand(id, {});
           }
-          break
+          break;
         }
         case 'cache':
-          await cacheCommand({})
-          break
+          await cacheCommand({});
+          break;
       }
     }
     catch (error) {
-      console.error(ansis.red(`\n${i18n.t('common:error')}: ${error}`))
+      console.error(ansis.red(`\n${i18n.t('common:error')}: ${error}`));
     }
 
     // Pause before showing menu again
@@ -611,7 +611,7 @@ async function showInteractiveMenu(): Promise<void> {
       type: 'input',
       name: 'continue',
       message: ansis.gray(i18n.t('common:pressEnterToContinue')),
-    }])
+    }]);
   }
 }
 
@@ -639,52 +639,52 @@ export async function registerCloudPluginsCommand(
     .option('--dry-run', i18n.t('plugins:options.dryRun'))
     .option('--path <dir>', i18n.t('plugins:options.path'), { default: '.' })
     .action(await withLanguageResolution(async (action?: string, target?: string, options?: CloudPluginsOptions) => {
-      const opts = options || {}
+      const opts = options || {};
 
       switch (action) {
         case 'list':
-          await listCommand(opts)
-          break
+          await listCommand(opts);
+          break;
         case 'search':
           if (!target) {
-            console.error(i18n.t('plugins:errors.searchQueryRequired'))
-            return
+            console.error(i18n.t('plugins:errors.searchQueryRequired'));
+            return;
           }
-          await searchCommand(target, opts)
-          break
+          await searchCommand(target, opts);
+          break;
         case 'install':
           if (!target) {
-            console.error(i18n.t('plugins:errors.pluginIdRequired'))
-            return
+            console.error(i18n.t('plugins:errors.pluginIdRequired'));
+            return;
           }
-          await installCommand(target, opts)
-          break
+          await installCommand(target, opts);
+          break;
         case 'uninstall':
           if (!target) {
-            console.error(i18n.t('plugins:errors.pluginIdRequired'))
-            return
+            console.error(i18n.t('plugins:errors.pluginIdRequired'));
+            return;
           }
-          await uninstallCommand(target, opts)
-          break
+          await uninstallCommand(target, opts);
+          break;
         case 'update':
-          await updateCommand(target, opts)
-          break
+          await updateCommand(target, opts);
+          break;
         case 'recommend':
-          await recommendCommand(opts)
-          break
+          await recommendCommand(opts);
+          break;
         case 'info':
           if (!target) {
-            console.error(i18n.t('plugins:errors.pluginIdRequired'))
-            return
+            console.error(i18n.t('plugins:errors.pluginIdRequired'));
+            return;
           }
-          await infoCommand(target, opts)
-          break
+          await infoCommand(target, opts);
+          break;
         case 'cache':
-          await cacheCommand(opts)
-          break
+          await cacheCommand(opts);
+          break;
         default:
           // No action or unknown action - show interactive menu
-          await showInteractiveMenu()
+          await showInteractiveMenu();
       }
-    }))
+    }));
 }

@@ -10,6 +10,6 @@
  * 使用懒加载架构，只在需要时加载命令模块
  */
 
-import { runLazyCli } from './cli-lazy'
+import { runLazyCli } from './cli-lazy';
 
-runLazyCli().catch(console.error)
+runLazyCli().catch(console.error);

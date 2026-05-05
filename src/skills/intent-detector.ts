@@ -2,12 +2,12 @@
  * Intent Detector - Automatically detect user intent and trigger skills
  */
 
-import type { CcjkSkill } from './types'
+import type { CcjkSkill } from './types';
 
 export interface IntentMatch {
-  skill: CcjkSkill
-  confidence: number
-  trigger: string
+  skill: CcjkSkill;
+  confidence: number;
+  trigger: string;
 }
 
 /**
@@ -53,35 +53,35 @@ const INTENT_PATTERNS: Record<string, RegExp[]> = {
     /(readme|说明)/i,
     /(comment|注释)/i,
   ],
-}
+};
 
 /**
  * Detect user intent from input text
  */
 export function detectIntent(input: string, skills: CcjkSkill[]): IntentMatch[] {
-  const matches: IntentMatch[] = []
-  const lowerInput = input.toLowerCase()
+  const matches: IntentMatch[] = [];
+  const lowerInput = input.toLowerCase();
 
   for (const skill of skills) {
     if (!skill.enabled)
-      continue
+      continue;
 
     // Check direct trigger match (highest confidence)
     for (const trigger of skill.triggers) {
       if (lowerInput.includes(trigger.toLowerCase())) {
-        matches.push({ skill, confidence: 1.0, trigger })
-        continue
+        matches.push({ skill, confidence: 1.0, trigger });
+        continue;
       }
     }
 
     // Check intent patterns (medium confidence)
-    const category = skill.category
-    const patterns = INTENT_PATTERNS[category] || []
+    const category = skill.category;
+    const patterns = INTENT_PATTERNS[category] || [];
 
     for (const pattern of patterns) {
       if (pattern.test(input)) {
-        matches.push({ skill, confidence: 0.7, trigger: skill.triggers[0] })
-        break
+        matches.push({ skill, confidence: 0.7, trigger: skill.triggers[0] });
+        break;
       }
     }
 
@@ -89,8 +89,8 @@ export function detectIntent(input: string, skills: CcjkSkill[]): IntentMatch[] 
     if (skill.tags) {
       for (const tag of skill.tags) {
         if (lowerInput.includes(tag.toLowerCase())) {
-          matches.push({ skill, confidence: 0.5, trigger: skill.triggers[0] })
-          break
+          matches.push({ skill, confidence: 0.5, trigger: skill.triggers[0] });
+          break;
         }
       }
     }
@@ -101,7 +101,7 @@ export function detectIntent(input: string, skills: CcjkSkill[]): IntentMatch[] 
     .sort((a, b) => b.confidence - a.confidence)
     .filter((match, index, self) =>
       index === self.findIndex(m => m.skill.id === match.skill.id),
-    )
+    );
 }
 
 /**
@@ -109,16 +109,16 @@ export function detectIntent(input: string, skills: CcjkSkill[]): IntentMatch[] 
  */
 export function getRecommendationMessage(matches: IntentMatch[], lang: 'en' | 'zh-CN' = 'en'): string {
   if (matches.length === 0)
-    return ''
+    return '';
 
-  const topMatch = matches[0]
+  const topMatch = matches[0];
   const skillName = typeof topMatch.skill.name === 'string'
     ? topMatch.skill.name
-    : topMatch.skill.name[lang] || topMatch.skill.name.en
+    : topMatch.skill.name[lang] || topMatch.skill.name.en;
 
   if (lang === 'zh-CN') {
-    return `💡 检测到意图，推荐使用技能: ${skillName} (输入 "${topMatch.trigger}")`
+    return `💡 检测到意图，推荐使用技能: ${skillName} (输入 "${topMatch.trigger}")`;
   }
 
-  return `💡 Intent detected, recommended skill: ${skillName} (type "${topMatch.trigger}")`
+  return `💡 Intent detected, recommended skill: ${skillName} (type "${topMatch.trigger}")`;
 }

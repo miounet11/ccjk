@@ -11,14 +11,14 @@ import type {
   SyncOptions,
   SyncResult,
   SyncStateStorage,
-} from '../../types/cloud-sync.js'
+} from '../../types/cloud-sync.js';
 import {
   loadSyncState as loadSkillsSyncState,
   pullSkills,
   pushSkills,
   saveSyncState as saveSkillsSyncState,
   syncAllSkills,
-} from './skills-sync.js'
+} from './skills-sync.js';
 
 // ============================================================================
 // Types
@@ -27,20 +27,20 @@ import {
 /**
  * Resource type for synchronization
  */
-export type SyncResourceType = 'skills' | 'workflows' | 'configs' | 'all'
+export type SyncResourceType = 'skills' | 'workflows' | 'configs' | 'all';
 
 /**
  * Sync manager options
  */
 export interface SyncManagerOptions extends SyncOptions {
   /** Resource type to sync */
-  resourceType?: SyncResourceType
+  resourceType?: SyncResourceType;
 
   /** Whether to show progress */
-  showProgress?: boolean
+  showProgress?: boolean;
 
   /** Progress callback */
-  onProgress?: (progress: SyncProgress) => void
+  onProgress?: (progress: SyncProgress) => void;
 }
 
 /**
@@ -48,22 +48,22 @@ export interface SyncManagerOptions extends SyncOptions {
  */
 export interface SyncProgress {
   /** Resource type being synced */
-  resourceType: SyncResourceType
+  resourceType: SyncResourceType;
 
   /** Current item being synced */
-  currentItem: string
+  currentItem: string;
 
   /** Current item index (0-based) */
-  currentIndex: number
+  currentIndex: number;
 
   /** Total items to sync */
-  totalItems: number
+  totalItems: number;
 
   /** Progress percentage (0-100) */
-  percentage: number
+  percentage: number;
 
   /** Current operation */
-  operation: 'uploading' | 'downloading' | 'checking' | 'resolving'
+  operation: 'uploading' | 'downloading' | 'checking' | 'resolving';
 }
 
 /**
@@ -71,27 +71,27 @@ export interface SyncProgress {
  */
 export interface SyncManagerResult {
   /** Whether overall sync succeeded */
-  success: boolean
+  success: boolean;
 
   /** Results by resource type */
-  results: Record<SyncResourceType, SyncResult | null>
+  results: Record<SyncResourceType, SyncResult | null>;
 
   /** Overall statistics */
   stats: {
-    totalResources: number
-    succeededResources: number
-    failedResources: number
-    totalItems: number
-    succeededItems: number
-    failedItems: number
-    conflicts: number
-  }
+    totalResources: number;
+    succeededResources: number;
+    failedResources: number;
+    totalItems: number;
+    succeededItems: number;
+    failedItems: number;
+    conflicts: number;
+  };
 
   /** Overall error message (if failed) */
-  error?: string
+  error?: string;
 
   /** Total duration in milliseconds */
-  durationMs: number
+  durationMs: number;
 }
 
 // ============================================================================
@@ -104,18 +104,18 @@ export interface SyncManagerResult {
  * Manages synchronization operations across different resource types.
  */
 export class SyncManager {
-  private options: SyncManagerOptions
+  private options: SyncManagerOptions;
 
   constructor(options: SyncManagerOptions = {}) {
-    this.options = options
+    this.options = options;
   }
 
   /**
    * Sync resources based on options
    */
   async sync(): Promise<SyncManagerResult> {
-    const startTime = Date.now()
-    const resourceType = this.options.resourceType || 'all'
+    const startTime = Date.now();
+    const resourceType = this.options.resourceType || 'all';
 
     try {
       const results: Record<SyncResourceType, SyncResult | null> = {
@@ -123,30 +123,30 @@ export class SyncManager {
         workflows: null,
         configs: null,
         all: null,
-      }
+      };
 
       // Sync based on resource type
       if (resourceType === 'skills' || resourceType === 'all') {
-        results.skills = await this.syncSkills()
+        results.skills = await this.syncSkills();
       }
 
       if (resourceType === 'workflows' || resourceType === 'all') {
-        results.workflows = await this.syncWorkflows()
+        results.workflows = await this.syncWorkflows();
       }
 
       if (resourceType === 'configs' || resourceType === 'all') {
-        results.configs = await this.syncConfigs()
+        results.configs = await this.syncConfigs();
       }
 
       // Calculate overall statistics
-      const stats = this.calculateStats(results)
+      const stats = this.calculateStats(results);
 
       return {
         success: stats.failedResources === 0,
         results,
         stats,
         durationMs: Date.now() - startTime,
-      }
+      };
     }
     catch (error) {
       return {
@@ -168,7 +168,7 @@ export class SyncManager {
         },
         error: error instanceof Error ? error.message : String(error),
         durationMs: Date.now() - startTime,
-      }
+      };
     }
   }
 
@@ -176,8 +176,8 @@ export class SyncManager {
    * Push resources to cloud
    */
   async push(): Promise<SyncManagerResult> {
-    const startTime = Date.now()
-    const resourceType = this.options.resourceType || 'all'
+    const startTime = Date.now();
+    const resourceType = this.options.resourceType || 'all';
 
     try {
       const results: Record<SyncResourceType, SyncResult | null> = {
@@ -185,33 +185,33 @@ export class SyncManager {
         workflows: null,
         configs: null,
         all: null,
-      }
+      };
 
       // Push based on resource type
       if (resourceType === 'skills' || resourceType === 'all') {
         results.skills = await pushSkills(this.options.skillIds, {
           ...this.options,
           conflictResolution: 'local',
-        })
+        });
       }
 
       if (resourceType === 'workflows' || resourceType === 'all') {
-        results.workflows = await this.pushWorkflows()
+        results.workflows = await this.pushWorkflows();
       }
 
       if (resourceType === 'configs' || resourceType === 'all') {
-        results.configs = await this.pushConfigs()
+        results.configs = await this.pushConfigs();
       }
 
       // Calculate overall statistics
-      const stats = this.calculateStats(results)
+      const stats = this.calculateStats(results);
 
       return {
         success: stats.failedResources === 0,
         results,
         stats,
         durationMs: Date.now() - startTime,
-      }
+      };
     }
     catch (error) {
       return {
@@ -233,7 +233,7 @@ export class SyncManager {
         },
         error: error instanceof Error ? error.message : String(error),
         durationMs: Date.now() - startTime,
-      }
+      };
     }
   }
 
@@ -241,8 +241,8 @@ export class SyncManager {
    * Pull resources from cloud
    */
   async pull(): Promise<SyncManagerResult> {
-    const startTime = Date.now()
-    const resourceType = this.options.resourceType || 'all'
+    const startTime = Date.now();
+    const resourceType = this.options.resourceType || 'all';
 
     try {
       const results: Record<SyncResourceType, SyncResult | null> = {
@@ -250,33 +250,33 @@ export class SyncManager {
         workflows: null,
         configs: null,
         all: null,
-      }
+      };
 
       // Pull based on resource type
       if (resourceType === 'skills' || resourceType === 'all') {
         results.skills = await pullSkills(this.options.skillIds, {
           ...this.options,
           conflictResolution: 'remote',
-        })
+        });
       }
 
       if (resourceType === 'workflows' || resourceType === 'all') {
-        results.workflows = await this.pullWorkflows()
+        results.workflows = await this.pullWorkflows();
       }
 
       if (resourceType === 'configs' || resourceType === 'all') {
-        results.configs = await this.pullConfigs()
+        results.configs = await this.pullConfigs();
       }
 
       // Calculate overall statistics
-      const stats = this.calculateStats(results)
+      const stats = this.calculateStats(results);
 
       return {
         success: stats.failedResources === 0,
         results,
         stats,
         durationMs: Date.now() - startTime,
-      }
+      };
     }
     catch (error) {
       return {
@@ -298,7 +298,7 @@ export class SyncManager {
         },
         error: error instanceof Error ? error.message : String(error),
         durationMs: Date.now() - startTime,
-      }
+      };
     }
   }
 
@@ -306,15 +306,15 @@ export class SyncManager {
    * Get sync status for all resources
    */
   async getStatus(): Promise<{
-    skills: SyncStateStorage
-    workflows: SyncStateStorage | null
-    configs: SyncStateStorage | null
+    skills: SyncStateStorage;
+    workflows: SyncStateStorage | null;
+    configs: SyncStateStorage | null;
   }> {
     return {
       skills: loadSkillsSyncState(),
       workflows: null, // TODO: Implement workflows sync state
       configs: null, // TODO: Implement configs sync state
-    }
+    };
   }
 
   /**
@@ -326,8 +326,8 @@ export class SyncManager {
       version: '1.0.0',
       lastGlobalSync: new Date().toISOString(),
       skills: {},
-    }
-    saveSkillsSyncState(emptyState)
+    };
+    saveSkillsSyncState(emptyState);
 
     // TODO: Reset workflows sync state
     // TODO: Reset configs sync state
@@ -349,10 +349,10 @@ export class SyncManager {
         totalItems: 0,
         percentage: 0,
         operation: 'checking',
-      })
+      });
     }
 
-    return syncAllSkills(this.options)
+    return syncAllSkills(this.options);
   }
 
   /**
@@ -371,7 +371,7 @@ export class SyncManager {
       skipped: 0,
       results: [],
       durationMs: 0,
-    }
+    };
   }
 
   /**
@@ -390,7 +390,7 @@ export class SyncManager {
       skipped: 0,
       results: [],
       durationMs: 0,
-    }
+    };
   }
 
   /**
@@ -409,7 +409,7 @@ export class SyncManager {
       skipped: 0,
       results: [],
       durationMs: 0,
-    }
+    };
   }
 
   /**
@@ -428,7 +428,7 @@ export class SyncManager {
       skipped: 0,
       results: [],
       durationMs: 0,
-    }
+    };
   }
 
   /**
@@ -447,7 +447,7 @@ export class SyncManager {
       skipped: 0,
       results: [],
       durationMs: 0,
-    }
+    };
   }
 
   /**
@@ -466,7 +466,7 @@ export class SyncManager {
       skipped: 0,
       results: [],
       durationMs: 0,
-    }
+    };
   }
 
   /**
@@ -475,30 +475,30 @@ export class SyncManager {
   private calculateStats(
     results: Record<SyncResourceType, SyncResult | null>,
   ): SyncManagerResult['stats'] {
-    let totalResources = 0
-    let succeededResources = 0
-    let failedResources = 0
-    let totalItems = 0
-    let succeededItems = 0
-    let failedItems = 0
-    let conflicts = 0
+    let totalResources = 0;
+    let succeededResources = 0;
+    let failedResources = 0;
+    let totalItems = 0;
+    let succeededItems = 0;
+    let failedItems = 0;
+    let conflicts = 0;
 
     for (const [type, result] of Object.entries(results)) {
       if (type === 'all' || !result)
-        continue
+        continue;
 
-      totalResources++
+      totalResources++;
       if (result.success) {
-        succeededResources++
+        succeededResources++;
       }
       else {
-        failedResources++
+        failedResources++;
       }
 
-      totalItems += result.total
-      succeededItems += result.succeeded
-      failedItems += result.failed
-      conflicts += result.conflicts
+      totalItems += result.total;
+      succeededItems += result.succeeded;
+      failedItems += result.failed;
+      conflicts += result.conflicts;
     }
 
     return {
@@ -509,7 +509,7 @@ export class SyncManager {
       succeededItems,
       failedItems,
       conflicts,
-    }
+    };
   }
 }
 
@@ -521,29 +521,29 @@ export class SyncManager {
  * Create a sync manager instance
  */
 export function createSyncManager(options: SyncManagerOptions = {}): SyncManager {
-  return new SyncManager(options)
+  return new SyncManager(options);
 }
 
 /**
  * Quick sync all resources
  */
 export async function quickSync(options: SyncOptions = {}): Promise<SyncManagerResult> {
-  const manager = createSyncManager({ ...options, resourceType: 'all' })
-  return manager.sync()
+  const manager = createSyncManager({ ...options, resourceType: 'all' });
+  return manager.sync();
 }
 
 /**
  * Quick push all resources
  */
 export async function quickPush(options: SyncOptions = {}): Promise<SyncManagerResult> {
-  const manager = createSyncManager({ ...options, resourceType: 'all' })
-  return manager.push()
+  const manager = createSyncManager({ ...options, resourceType: 'all' });
+  return manager.push();
 }
 
 /**
  * Quick pull all resources
  */
 export async function quickPull(options: SyncOptions = {}): Promise<SyncManagerResult> {
-  const manager = createSyncManager({ ...options, resourceType: 'all' })
-  return manager.pull()
+  const manager = createSyncManager({ ...options, resourceType: 'all' });
+  return manager.pull();
 }

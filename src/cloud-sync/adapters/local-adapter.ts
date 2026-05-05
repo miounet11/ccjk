@@ -5,7 +5,7 @@ import type {
   LocalConfig,
   RemoteItem,
   UploadResult,
-} from './types'
+} from './types';
 /**
  * Local File System Cloud Storage Adapter
  *
@@ -15,26 +15,26 @@ import type {
  * @module cloud-sync/adapters/local-adapter
  */
 
-import { Buffer } from 'node:buffer'
-import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs'
-import { dirname, join, relative } from 'pathe'
-import { CloudAdapter } from './base-adapter'
-import { AdapterError } from './types'
+import { Buffer } from 'node:buffer';
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { dirname, join, relative } from 'pathe';
+import { CloudAdapter } from './base-adapter';
+import { AdapterError } from './types';
 
 /**
  * Metadata file extension
  */
-const META_EXTENSION = '.ccjk-meta.json'
+const META_EXTENSION = '.ccjk-meta.json';
 
 /**
  * Local metadata structure
  */
 interface LocalMetadata {
-  checksum: string
-  contentType?: string
-  createdAt: string
-  updatedAt: string
-  custom?: Record<string, unknown>
+  checksum: string;
+  contentType?: string;
+  createdAt: string;
+  updatedAt: string;
+  custom?: Record<string, unknown>;
 }
 
 /**
@@ -44,30 +44,30 @@ interface LocalMetadata {
  * Stores files and metadata in a specified base directory.
  */
 export class LocalAdapter extends CloudAdapter<LocalConfig> {
-  readonly provider: CloudProvider = 'local'
+  readonly provider: CloudProvider = 'local';
 
-  private baseDir: string = ''
+  private baseDir: string = '';
 
   // ===========================================================================
   // Connection Management
   // ===========================================================================
 
   async connect(config: LocalConfig): Promise<void> {
-    this.config = config
-    this.baseDir = config.baseDir
+    this.config = config;
+    this.baseDir = config.baseDir;
 
     try {
       // Ensure base directory exists
       if (!existsSync(this.baseDir)) {
-        mkdirSync(this.baseDir, { recursive: true })
+        mkdirSync(this.baseDir, { recursive: true });
       }
 
       // Verify we can write to the directory
-      const testFile = join(this.baseDir, '.ccjk-test')
-      writeFileSync(testFile, 'test')
-      rmSync(testFile)
+      const testFile = join(this.baseDir, '.ccjk-test');
+      writeFileSync(testFile, 'test');
+      rmSync(testFile);
 
-      this.connected = true
+      this.connected = true;
     }
     catch (error) {
       throw new AdapterError(
@@ -75,14 +75,14 @@ export class LocalAdapter extends CloudAdapter<LocalConfig> {
         'CONNECTION_FAILED',
         this.provider,
         error instanceof Error ? error : undefined,
-      )
+      );
     }
   }
 
   async disconnect(): Promise<void> {
-    this.connected = false
-    this.config = null
-    this.baseDir = ''
+    this.connected = false;
+    this.config = null;
+    this.baseDir = '';
   }
 
   // ===========================================================================
@@ -90,26 +90,26 @@ export class LocalAdapter extends CloudAdapter<LocalConfig> {
   // ===========================================================================
 
   async upload(key: string, data: Buffer, metadata?: Record<string, unknown>): Promise<UploadResult> {
-    this.ensureConnected()
+    this.ensureConnected();
 
-    const normalizedKey = this.normalizeKey(key)
-    const filePath = this.getFilePath(normalizedKey)
-    const metaPath = filePath + META_EXTENSION
-    const checksum = this.calculateChecksum(data)
+    const normalizedKey = this.normalizeKey(key);
+    const filePath = this.getFilePath(normalizedKey);
+    const metaPath = filePath + META_EXTENSION;
+    const checksum = this.calculateChecksum(data);
 
     try {
       // Ensure parent directory exists
-      const parentDir = dirname(filePath)
+      const parentDir = dirname(filePath);
       if (!existsSync(parentDir)) {
-        mkdirSync(parentDir, { recursive: true })
+        mkdirSync(parentDir, { recursive: true });
       }
 
       // Check if file exists for createdAt
-      let createdAt = this.getCurrentTimestamp()
+      let createdAt = this.getCurrentTimestamp();
       if (existsSync(metaPath)) {
         try {
-          const existingMeta = JSON.parse(readFileSync(metaPath, 'utf-8')) as LocalMetadata
-          createdAt = existingMeta.createdAt
+          const existingMeta = JSON.parse(readFileSync(metaPath, 'utf-8')) as LocalMetadata;
+          createdAt = existingMeta.createdAt;
         }
         catch {
           // Ignore parse errors
@@ -117,7 +117,7 @@ export class LocalAdapter extends CloudAdapter<LocalConfig> {
       }
 
       // Write file
-      writeFileSync(filePath, data)
+      writeFileSync(filePath, data);
 
       // Write metadata
       const localMeta: LocalMetadata = {
@@ -126,10 +126,10 @@ export class LocalAdapter extends CloudAdapter<LocalConfig> {
         createdAt,
         updatedAt: this.getCurrentTimestamp(),
         custom: metadata,
-      }
-      writeFileSync(metaPath, JSON.stringify(localMeta, null, 2))
+      };
+      writeFileSync(metaPath, JSON.stringify(localMeta, null, 2));
 
-      this.reportProgress('upload', normalizedKey, data.length, data.length)
+      this.reportProgress('upload', normalizedKey, data.length, data.length);
 
       return {
         success: true,
@@ -137,11 +137,11 @@ export class LocalAdapter extends CloudAdapter<LocalConfig> {
         size: data.length,
         checksum,
         uploadedAt: localMeta.updatedAt,
-      }
+      };
     }
     catch (error) {
       if (error instanceof AdapterError) {
-        throw error
+        throw error;
       }
       return {
         success: false,
@@ -150,16 +150,16 @@ export class LocalAdapter extends CloudAdapter<LocalConfig> {
         checksum: '',
         uploadedAt: this.getCurrentTimestamp(),
         error: error instanceof Error ? error.message : String(error),
-      }
+      };
     }
   }
 
   async download(key: string): Promise<DownloadResult> {
-    this.ensureConnected()
+    this.ensureConnected();
 
-    const normalizedKey = this.normalizeKey(key)
-    const filePath = this.getFilePath(normalizedKey)
-    const metaPath = filePath + META_EXTENSION
+    const normalizedKey = this.normalizeKey(key);
+    const filePath = this.getFilePath(normalizedKey);
+    const metaPath = filePath + META_EXTENSION;
 
     try {
       if (!existsSync(filePath)) {
@@ -167,30 +167,30 @@ export class LocalAdapter extends CloudAdapter<LocalConfig> {
           `Item not found: ${normalizedKey}`,
           'NOT_FOUND',
           this.provider,
-        )
+        );
       }
 
-      const data = readFileSync(filePath)
-      const checksum = this.calculateChecksum(data)
-      const stats = statSync(filePath)
+      const data = readFileSync(filePath);
+      const checksum = this.calculateChecksum(data);
+      const stats = statSync(filePath);
 
-      this.reportProgress('download', normalizedKey, data.length, data.length)
+      this.reportProgress('download', normalizedKey, data.length, data.length);
 
       // Read metadata if exists
       let metadata: ItemMetadata = {
         updatedAt: stats.mtime.toISOString(),
-      }
+      };
 
       if (existsSync(metaPath)) {
         try {
-          const localMeta = JSON.parse(readFileSync(metaPath, 'utf-8')) as LocalMetadata
+          const localMeta = JSON.parse(readFileSync(metaPath, 'utf-8')) as LocalMetadata;
           metadata = {
             contentType: localMeta.contentType,
             custom: localMeta.custom,
             createdAt: localMeta.createdAt,
             updatedAt: localMeta.updatedAt,
             etag: localMeta.checksum,
-          }
+          };
         }
         catch {
           // Ignore parse errors
@@ -204,11 +204,11 @@ export class LocalAdapter extends CloudAdapter<LocalConfig> {
         checksum,
         lastModified: stats.mtime.toISOString(),
         metadata,
-      }
+      };
     }
     catch (error) {
       if (error instanceof AdapterError) {
-        throw error
+        throw error;
       }
       return {
         success: false,
@@ -217,31 +217,31 @@ export class LocalAdapter extends CloudAdapter<LocalConfig> {
         checksum: '',
         lastModified: this.getCurrentTimestamp(),
         error: error instanceof Error ? error.message : String(error),
-      }
+      };
     }
   }
 
   async delete(key: string): Promise<void> {
-    this.ensureConnected()
+    this.ensureConnected();
 
-    const normalizedKey = this.normalizeKey(key)
-    const filePath = this.getFilePath(normalizedKey)
-    const metaPath = filePath + META_EXTENSION
+    const normalizedKey = this.normalizeKey(key);
+    const filePath = this.getFilePath(normalizedKey);
+    const metaPath = filePath + META_EXTENSION;
 
     if (!existsSync(filePath)) {
       throw new AdapterError(
         `Item not found: ${normalizedKey}`,
         'NOT_FOUND',
         this.provider,
-      )
+      );
     }
 
     try {
-      rmSync(filePath)
+      rmSync(filePath);
 
       // Also delete metadata file if exists
       if (existsSync(metaPath)) {
-        rmSync(metaPath)
+        rmSync(metaPath);
       }
     }
     catch (error) {
@@ -250,71 +250,71 @@ export class LocalAdapter extends CloudAdapter<LocalConfig> {
         'PERMISSION_DENIED',
         this.provider,
         error instanceof Error ? error : undefined,
-      )
+      );
     }
   }
 
   async list(prefix?: string): Promise<RemoteItem[]> {
-    this.ensureConnected()
+    this.ensureConnected();
 
-    const normalizedPrefix = prefix ? this.normalizeKey(prefix) : ''
+    const normalizedPrefix = prefix ? this.normalizeKey(prefix) : '';
     const searchDir = normalizedPrefix
       ? join(this.baseDir, normalizedPrefix)
-      : this.baseDir
+      : this.baseDir;
 
-    const items: RemoteItem[] = []
+    const items: RemoteItem[] = [];
 
     try {
-      this.listRecursive(searchDir, normalizedPrefix, items)
+      this.listRecursive(searchDir, normalizedPrefix, items);
     }
     catch (error) {
       if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
-        return []
+        return [];
       }
-      throw error
+      throw error;
     }
 
-    return items
+    return items;
   }
 
   async getMetadata(key: string): Promise<ItemMetadata> {
-    this.ensureConnected()
+    this.ensureConnected();
 
-    const normalizedKey = this.normalizeKey(key)
-    const filePath = this.getFilePath(normalizedKey)
-    const metaPath = filePath + META_EXTENSION
+    const normalizedKey = this.normalizeKey(key);
+    const filePath = this.getFilePath(normalizedKey);
+    const metaPath = filePath + META_EXTENSION;
 
     if (!existsSync(filePath)) {
       throw new AdapterError(
         `Item not found: ${normalizedKey}`,
         'NOT_FOUND',
         this.provider,
-      )
+      );
     }
 
-    const stats = statSync(filePath)
+    const stats = statSync(filePath);
     let metadata: ItemMetadata = {
       updatedAt: stats.mtime.toISOString(),
       createdAt: stats.birthtime.toISOString(),
-    }
+    };
 
     if (existsSync(metaPath)) {
       try {
-        const localMeta = JSON.parse(readFileSync(metaPath, 'utf-8')) as LocalMetadata
+        const localMeta = JSON.parse(readFileSync(metaPath, 'utf-8')) as LocalMetadata;
         metadata = {
           contentType: localMeta.contentType,
           custom: localMeta.custom,
           createdAt: localMeta.createdAt,
           updatedAt: localMeta.updatedAt,
           etag: localMeta.checksum,
-        }
+        };
       }
       catch {
         // Ignore parse errors
       }
     }
 
-    return metadata
+    return metadata;
   }
 
   // ===========================================================================
@@ -325,7 +325,7 @@ export class LocalAdapter extends CloudAdapter<LocalConfig> {
    * Get full file path for a key
    */
   private getFilePath(key: string): string {
-    return join(this.baseDir, key)
+    return join(this.baseDir, key);
   }
 
   /**
@@ -333,58 +333,58 @@ export class LocalAdapter extends CloudAdapter<LocalConfig> {
    */
   private listRecursive(dir: string, prefix: string, items: RemoteItem[]): void {
     if (!existsSync(dir)) {
-      return
+      return;
     }
 
-    const entries = readdirSync(dir, { withFileTypes: true })
+    const entries = readdirSync(dir, { withFileTypes: true });
 
     for (const entry of entries) {
       // Skip metadata files
       if (entry.name.endsWith(META_EXTENSION)) {
-        continue
+        continue;
       }
 
       // Skip hidden files
       if (entry.name.startsWith('.')) {
-        continue
+        continue;
       }
 
-      const fullPath = join(dir, entry.name)
-      const key = relative(this.baseDir, fullPath).replace(/\\/g, '/')
+      const fullPath = join(dir, entry.name);
+      const key = relative(this.baseDir, fullPath).replace(/\\/g, '/');
 
       if (entry.isDirectory()) {
         // Add directory entry
-        const stats = statSync(fullPath)
+        const stats = statSync(fullPath);
         items.push({
           key,
           name: entry.name,
           size: 0,
           isDirectory: true,
           lastModified: stats.mtime.toISOString(),
-        })
+        });
 
         // Recurse into directory
-        this.listRecursive(fullPath, prefix, items)
+        this.listRecursive(fullPath, prefix, items);
       }
       else {
         // Add file entry
-        const stats = statSync(fullPath)
-        const metaPath = fullPath + META_EXTENSION
+        const stats = statSync(fullPath);
+        const metaPath = fullPath + META_EXTENSION;
 
         let metadata: ItemMetadata = {
           updatedAt: stats.mtime.toISOString(),
-        }
+        };
 
         if (existsSync(metaPath)) {
           try {
-            const localMeta = JSON.parse(readFileSync(metaPath, 'utf-8')) as LocalMetadata
+            const localMeta = JSON.parse(readFileSync(metaPath, 'utf-8')) as LocalMetadata;
             metadata = {
               contentType: localMeta.contentType,
               custom: localMeta.custom,
               createdAt: localMeta.createdAt,
               updatedAt: localMeta.updatedAt,
               etag: localMeta.checksum,
-            }
+            };
           }
           catch {
             // Ignore parse errors
@@ -399,7 +399,7 @@ export class LocalAdapter extends CloudAdapter<LocalConfig> {
           lastModified: stats.mtime.toISOString(),
           checksum: metadata.etag,
           metadata,
-        })
+        });
       }
     }
   }

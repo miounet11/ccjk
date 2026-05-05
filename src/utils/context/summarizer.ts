@@ -7,11 +7,11 @@ import type {
   FCSummary,
   SummarizationRequest,
   SummarizationResponse,
-} from '../../types/context'
-import type { AnthropicApiClient } from './api-client'
-import process from 'node:process'
-import { createApiClient } from './api-client'
-import { estimateTokens } from './token-estimator'
+} from '../../types/context';
+import type { AnthropicApiClient } from './api-client';
+import process from 'node:process';
+import { createApiClient } from './api-client';
+import { estimateTokens } from './token-estimator';
 
 /**
  * Summarization prompt template
@@ -27,26 +27,26 @@ Provide a one-line summary (max 100 chars) capturing:
 2. Key outcome or finding
 3. Any important details for future reference
 
-Summary:`
+Summary:`;
 
 /**
  * Summarizer configuration
  */
 export interface SummarizerConfig {
-  model?: 'haiku' | 'user-default'
-  apiKey?: string
-  batchSize?: number
-  maxConcurrent?: number
+  model?: 'haiku' | 'user-default';
+  apiKey?: string;
+  batchSize?: number;
+  maxConcurrent?: number;
 }
 
 /**
  * Summarizer class
  */
 export class Summarizer {
-  private apiClient: AnthropicApiClient
-  private config: Required<SummarizerConfig>
-  private queue: SummarizationRequest[] = []
-  private processing = false
+  private apiClient: AnthropicApiClient;
+  private config: Required<SummarizerConfig>;
+  private queue: SummarizationRequest[] = [];
+  private processing = false;
 
   constructor(config: SummarizerConfig = {}) {
     this.config = {
@@ -54,19 +54,19 @@ export class Summarizer {
       apiKey: config.apiKey || process.env.ANTHROPIC_API_KEY || '',
       batchSize: config.batchSize || 5,
       maxConcurrent: config.maxConcurrent || 3,
-    }
+    };
 
     // Initialize API client
     const modelName = this.config.model === 'haiku'
       ? 'claude-haiku-4-5-20251001'
-      : undefined
+      : undefined;
 
     this.apiClient = createApiClient({
       apiKey: this.config.apiKey,
       model: modelName,
       maxTokens: 150, // Short summaries
       temperature: 0.3, // Consistent output
-    })
+    });
   }
 
   /**
@@ -75,16 +75,16 @@ export class Summarizer {
   async summarize(request: SummarizationRequest): Promise<FCSummary> {
     try {
       // Build prompt
-      const prompt = this.buildPrompt(request)
+      const prompt = this.buildPrompt(request);
 
       // Call API
-      const summary = await this.apiClient.sendMessage(prompt)
+      const summary = await this.apiClient.sendMessage(prompt);
 
       // Clean up summary
-      const cleanedSummary = this.cleanSummary(summary)
+      const cleanedSummary = this.cleanSummary(summary);
 
       // Estimate tokens
-      const tokens = estimateTokens(cleanedSummary)
+      const tokens = estimateTokens(cleanedSummary);
 
       return {
         fcId: request.fcId,
@@ -92,11 +92,11 @@ export class Summarizer {
         summary: cleanedSummary,
         tokens,
         timestamp: new Date(),
-      }
+      };
     }
     catch {
       // Fallback to simple summary on error
-      return this.createFallbackSummary(request)
+      return this.createFallbackSummary(request);
     }
   }
 
@@ -104,11 +104,11 @@ export class Summarizer {
    * Add request to queue for batch processing
    */
   async queueSummarization(request: SummarizationRequest): Promise<void> {
-    this.queue.push(request)
+    this.queue.push(request);
 
     // Start processing if not already running
     if (!this.processing) {
-      this.processBatch()
+      this.processBatch();
     }
   }
 
@@ -117,22 +117,22 @@ export class Summarizer {
    */
   private async processBatch(): Promise<void> {
     if (this.processing || this.queue.length === 0) {
-      return
+      return;
     }
 
-    this.processing = true
+    this.processing = true;
 
     try {
       while (this.queue.length > 0) {
         // Take batch from queue
-        const batch = this.queue.splice(0, this.config.batchSize)
+        const batch = this.queue.splice(0, this.config.batchSize);
 
         // Process batch concurrently
-        await this.processConcurrent(batch)
+        await this.processConcurrent(batch);
       }
     }
     finally {
-      this.processing = false
+      this.processing = false;
     }
   }
 
@@ -142,16 +142,16 @@ export class Summarizer {
   private async processConcurrent(
     requests: SummarizationRequest[],
   ): Promise<FCSummary[]> {
-    const results: FCSummary[] = []
-    const chunks = this.chunkArray(requests, this.config.maxConcurrent)
+    const results: FCSummary[] = [];
+    const chunks = this.chunkArray(requests, this.config.maxConcurrent);
 
     for (const chunk of chunks) {
-      const promises = chunk.map(req => this.summarize(req))
-      const chunkResults = await Promise.all(promises)
-      results.push(...chunkResults)
+      const promises = chunk.map(req => this.summarize(req));
+      const chunkResults = await Promise.all(promises);
+      results.push(...chunkResults);
     }
 
-    return results
+    return results;
   }
 
   /**
@@ -160,13 +160,13 @@ export class Summarizer {
   async summarizeBatch(
     requests: SummarizationRequest[],
   ): Promise<SummarizationResponse[]> {
-    const summaries = await this.processConcurrent(requests)
+    const summaries = await this.processConcurrent(requests);
 
     return summaries.map(summary => ({
       fcId: summary.fcId,
       summary: summary.summary,
       tokens: summary.tokens,
-    }))
+    }));
   }
 
   /**
@@ -174,16 +174,16 @@ export class Summarizer {
    */
   private buildPrompt(request: SummarizationRequest): string {
     // Format arguments
-    const argsStr = JSON.stringify(request.fcArgs, null, 2)
+    const argsStr = JSON.stringify(request.fcArgs, null, 2);
 
     // Truncate result if too long
-    const resultStr = this.truncateResult(request.fcResult)
+    const resultStr = this.truncateResult(request.fcResult);
 
     // Replace placeholders
     return SUMMARIZE_PROMPT
       .replace('{fc_name}', request.fcName)
       .replace('{fc_args}', argsStr)
-      .replace('{fc_result}', resultStr)
+      .replace('{fc_result}', resultStr);
   }
 
   /**
@@ -191,10 +191,10 @@ export class Summarizer {
    */
   private truncateResult(result: string, maxLength = 2000): string {
     if (result.length <= maxLength) {
-      return result
+      return result;
     }
 
-    return `${result.substring(0, maxLength)}... [truncated]`
+    return `${result.substring(0, maxLength)}... [truncated]`;
   }
 
   /**
@@ -202,25 +202,25 @@ export class Summarizer {
    */
   private cleanSummary(summary: string): string {
     // Remove leading/trailing whitespace
-    let cleaned = summary.trim()
+    let cleaned = summary.trim();
 
     // Remove "Summary:" prefix if present
-    cleaned = cleaned.replace(/^Summary:\s*/i, '')
+    cleaned = cleaned.replace(/^Summary:\s*/i, '');
 
     // Truncate to 100 chars
     if (cleaned.length > 100) {
-      cleaned = `${cleaned.substring(0, 97)}...`
+      cleaned = `${cleaned.substring(0, 97)}...`;
     }
 
-    return cleaned
+    return cleaned;
   }
 
   /**
    * Create fallback summary when API fails
    */
   private createFallbackSummary(request: SummarizationRequest): FCSummary {
-    const summary = `${request.fcName} executed`
-    const tokens = estimateTokens(summary)
+    const summary = `${request.fcName} executed`;
+    const tokens = estimateTokens(summary);
 
     return {
       fcId: request.fcId,
@@ -228,18 +228,18 @@ export class Summarizer {
       summary,
       tokens,
       timestamp: new Date(),
-    }
+    };
   }
 
   /**
    * Chunk array into smaller arrays
    */
   private chunkArray<T>(array: T[], size: number): T[][] {
-    const chunks: T[][] = []
+    const chunks: T[][] = [];
     for (let i = 0; i < array.length; i += size) {
-      chunks.push(array.slice(i, i + size))
+      chunks.push(array.slice(i, i + size));
     }
-    return chunks
+    return chunks;
   }
 
   /**
@@ -247,24 +247,24 @@ export class Summarizer {
    */
   updateConfig(config: Partial<SummarizerConfig>): void {
     if (config.model)
-      this.config.model = config.model
+      this.config.model = config.model;
     if (config.apiKey)
-      this.config.apiKey = config.apiKey
+      this.config.apiKey = config.apiKey;
     if (config.batchSize)
-      this.config.batchSize = config.batchSize
+      this.config.batchSize = config.batchSize;
     if (config.maxConcurrent)
-      this.config.maxConcurrent = config.maxConcurrent
+      this.config.maxConcurrent = config.maxConcurrent;
 
     // Update API client if needed
     if (config.apiKey || config.model) {
       const modelName = this.config.model === 'haiku'
         ? 'claude-3-5-haiku-20241022'
-        : undefined
+        : undefined;
 
       this.apiClient.updateConfig({
         apiKey: this.config.apiKey,
         model: modelName,
-      })
+      });
     }
   }
 
@@ -272,21 +272,21 @@ export class Summarizer {
    * Get current configuration
    */
   getConfig(): Required<SummarizerConfig> {
-    return { ...this.config }
+    return { ...this.config };
   }
 
   /**
    * Get queue length
    */
   getQueueLength(): number {
-    return this.queue.length
+    return this.queue.length;
   }
 
   /**
    * Check if processing
    */
   isProcessing(): boolean {
-    return this.processing
+    return this.processing;
   }
 }
 
@@ -294,5 +294,5 @@ export class Summarizer {
  * Create summarizer instance
  */
 export function createSummarizer(config?: SummarizerConfig): Summarizer {
-  return new Summarizer(config)
+  return new Summarizer(config);
 }

@@ -7,8 +7,8 @@
  * - L2 (Cold): >7 days, lazy-loaded from DB, slower access
  */
 
-import type { ContextPersistence, PersistedContext } from './persistence'
-import type { CompressedContext } from './types'
+import type { ContextPersistence, PersistedContext } from './persistence';
+import type { CompressedContext } from './types';
 
 /**
  * Context tier levels
@@ -24,24 +24,24 @@ export enum ContextTier {
  */
 export interface TierConfig {
   /** Hot tier: contexts accessed within this time (ms) */
-  hotThreshold: number
+  hotThreshold: number;
   /** Warm tier: contexts accessed within this time (ms) */
-  warmThreshold: number
+  warmThreshold: number;
   /** Max entries in L0 cache */
-  l0MaxEntries: number
+  l0MaxEntries: number;
   /** Max size in bytes for L0 cache */
-  l0MaxSize: number
+  l0MaxSize: number;
 }
 
 /**
  * Tiered context entry
  */
 export interface TieredContext {
-  id: string
-  tier: ContextTier
-  lastAccessed: number
-  accessCount: number
-  context: CompressedContext
+  id: string;
+  tier: ContextTier;
+  lastAccessed: number;
+  accessCount: number;
+  context: CompressedContext;
 }
 
 /**
@@ -49,133 +49,133 @@ export interface TieredContext {
  */
 export interface TierStats {
   l0: {
-    count: number
-    size: number
-    hitRate: number
-  }
+    count: number;
+    size: number;
+    hitRate: number;
+  };
   l1: {
-    count: number
-    avgAccessTime: number
-  }
+    count: number;
+    avgAccessTime: number;
+  };
   l2: {
-    count: number
-    avgAccessTime: number
-  }
+    count: number;
+    avgAccessTime: number;
+  };
   migrations: {
-    hotToWarm: number
-    warmToCold: number
-    coldToWarm: number
-    warmToHot: number
-  }
+    hotToWarm: number;
+    warmToCold: number;
+    coldToWarm: number;
+    warmToHot: number;
+  };
 }
 
 /**
  * LRU Cache for L0 (Hot) tier
  */
 class L0Cache {
-  private cache: Map<string, TieredContext>
-  private maxEntries: number
-  private maxSize: number
-  private currentSize: number
-  private hits: number
-  private misses: number
+  private cache: Map<string, TieredContext>;
+  private maxEntries: number;
+  private maxSize: number;
+  private currentSize: number;
+  private hits: number;
+  private misses: number;
 
   constructor(maxEntries: number, maxSize: number) {
-    this.cache = new Map()
-    this.maxEntries = maxEntries
-    this.maxSize = maxSize
-    this.currentSize = 0
-    this.hits = 0
-    this.misses = 0
+    this.cache = new Map();
+    this.maxEntries = maxEntries;
+    this.maxSize = maxSize;
+    this.currentSize = 0;
+    this.hits = 0;
+    this.misses = 0;
   }
 
   get(id: string): TieredContext | null {
-    const entry = this.cache.get(id)
+    const entry = this.cache.get(id);
     if (!entry) {
-      this.misses++
-      return null
+      this.misses++;
+      return null;
     }
 
     // Update access time and move to end (most recent)
-    entry.lastAccessed = Date.now()
-    entry.accessCount++
-    this.cache.delete(id)
-    this.cache.set(id, entry)
+    entry.lastAccessed = Date.now();
+    entry.accessCount++;
+    this.cache.delete(id);
+    this.cache.set(id, entry);
 
-    this.hits++
-    return entry
+    this.hits++;
+    return entry;
   }
 
   set(id: string, context: TieredContext): void {
-    const size = this.estimateSize(context.context)
+    const size = this.estimateSize(context.context);
 
     // Evict if necessary
     while (
       (this.currentSize + size > this.maxSize || this.cache.size >= this.maxEntries)
       && this.cache.size > 0
     ) {
-      this.evictLRU()
+      this.evictLRU();
     }
 
     // Remove existing entry
-    const existing = this.cache.get(id)
+    const existing = this.cache.get(id);
     if (existing) {
-      this.currentSize -= this.estimateSize(existing.context)
-      this.cache.delete(id)
+      this.currentSize -= this.estimateSize(existing.context);
+      this.cache.delete(id);
     }
 
     // Add new entry
-    this.cache.set(id, context)
-    this.currentSize += size
+    this.cache.set(id, context);
+    this.currentSize += size;
   }
 
   has(id: string): boolean {
-    return this.cache.has(id)
+    return this.cache.has(id);
   }
 
   delete(id: string): boolean {
-    const entry = this.cache.get(id)
+    const entry = this.cache.get(id);
     if (!entry)
-      return false
+      return false;
 
-    this.currentSize -= this.estimateSize(entry.context)
-    return this.cache.delete(id)
+    this.currentSize -= this.estimateSize(entry.context);
+    return this.cache.delete(id);
   }
 
   clear(): void {
-    this.cache.clear()
-    this.currentSize = 0
-    this.hits = 0
-    this.misses = 0
+    this.cache.clear();
+    this.currentSize = 0;
+    this.hits = 0;
+    this.misses = 0;
   }
 
   getAll(): TieredContext[] {
-    return Array.from(this.cache.values())
+    return Array.from(this.cache.values());
   }
 
   getStats() {
-    const total = this.hits + this.misses
+    const total = this.hits + this.misses;
     return {
       count: this.cache.size,
       size: this.currentSize,
       hitRate: total > 0 ? this.hits / total : 0,
-    }
+    };
   }
 
   private evictLRU(): void {
-    const firstKey = this.cache.keys().next().value
+    const firstKey = this.cache.keys().next().value;
     if (firstKey) {
-      this.delete(firstKey)
+      this.delete(firstKey);
     }
   }
 
   private estimateSize(context: CompressedContext): number {
-    let size = context.compressed.length * 2
+    let size = context.compressed.length * 2;
     if (context.metadata) {
-      size += JSON.stringify(context.metadata).length * 2
+      size += JSON.stringify(context.metadata).length * 2;
     }
-    size += 200
-    return size
+    size += 200;
+    return size;
   }
 }
 
@@ -183,24 +183,24 @@ class L0Cache {
  * Hierarchical Context Loader
  */
 export class HierarchicalContextLoader {
-  private persistence: ContextPersistence
-  private projectHash: string
-  private config: TierConfig
-  private l0Cache: L0Cache
+  private persistence: ContextPersistence;
+  private projectHash: string;
+  private config: TierConfig;
+  private l0Cache: L0Cache;
   private tierMigrations: {
-    hotToWarm: number
-    warmToCold: number
-    coldToWarm: number
-    warmToHot: number
-  }
+    hotToWarm: number;
+    warmToCold: number;
+    coldToWarm: number;
+    warmToHot: number;
+  };
 
   constructor(
     persistence: ContextPersistence,
     projectHash: string,
     config?: Partial<TierConfig>,
   ) {
-    this.persistence = persistence
-    this.projectHash = projectHash
+    this.persistence = persistence;
+    this.projectHash = projectHash;
 
     // Default configuration
     this.config = {
@@ -209,18 +209,18 @@ export class HierarchicalContextLoader {
       l0MaxEntries: 100,
       l0MaxSize: 5 * 1024 * 1024, // 5MB
       ...config,
-    }
+    };
 
-    this.l0Cache = new L0Cache(this.config.l0MaxEntries, this.config.l0MaxSize)
+    this.l0Cache = new L0Cache(this.config.l0MaxEntries, this.config.l0MaxSize);
     this.tierMigrations = {
       hotToWarm: 0,
       warmToCold: 0,
       coldToWarm: 0,
       warmToHot: 0,
-    }
+    };
 
     // Initialize L0 cache with hot contexts
-    this.initializeL0Cache()
+    this.initializeL0Cache();
   }
 
   /**
@@ -228,41 +228,41 @@ export class HierarchicalContextLoader {
    */
   async getContext(contextId: string): Promise<CompressedContext | null> {
     // Check L0 (hot) cache first
-    const l0Entry = this.l0Cache.get(contextId)
+    const l0Entry = this.l0Cache.get(contextId);
     if (l0Entry) {
-      return l0Entry.context
+      return l0Entry.context;
     }
 
     // Check L1/L2 in persistence
-    const persisted = this.persistence.getContext(contextId)
+    const persisted = this.persistence.getContext(contextId);
     if (!persisted)
-      return null
+      return null;
 
-    const context = this.persistedToCompressed(persisted)
-    const tier = this.determineTier(persisted.lastAccessed)
+    const context = this.persistedToCompressed(persisted);
+    const tier = this.determineTier(persisted.lastAccessed);
 
     // Promote to L0 if accessed frequently
     if (tier === ContextTier.HOT || persisted.accessCount > 5) {
-      this.promoteToL0(contextId, context, persisted.lastAccessed, persisted.accessCount)
+      this.promoteToL0(contextId, context, persisted.lastAccessed, persisted.accessCount);
     }
 
-    return context
+    return context;
   }
 
   /**
    * Get hot contexts (L0 tier, <1 day)
    */
   getHotContexts(): TieredContext[] {
-    return this.l0Cache.getAll()
+    return this.l0Cache.getAll();
   }
 
   /**
    * Get warm contexts (L1 tier, 1-7 days)
    */
   getWarmContexts(limit?: number): TieredContext[] {
-    const now = Date.now()
-    const warmStart = now - this.config.warmThreshold
-    const warmEnd = now - this.config.hotThreshold
+    const now = Date.now();
+    const warmStart = now - this.config.warmThreshold;
+    const warmEnd = now - this.config.hotThreshold;
 
     const contexts = this.persistence.getProjectContexts(this.projectHash, {
       startTime: warmStart,
@@ -270,25 +270,25 @@ export class HierarchicalContextLoader {
       sortBy: 'lastAccessed',
       sortOrder: 'desc',
       limit,
-    })
+    });
 
-    return contexts.map(p => this.persistedToTiered(p, ContextTier.WARM))
+    return contexts.map(p => this.persistedToTiered(p, ContextTier.WARM));
   }
 
   /**
    * Get cold contexts (L2 tier, >7 days)
    */
   getColdContexts(limit?: number): TieredContext[] {
-    const cutoff = Date.now() - this.config.warmThreshold
+    const cutoff = Date.now() - this.config.warmThreshold;
 
     const contexts = this.persistence.getProjectContexts(this.projectHash, {
       endTime: cutoff,
       sortBy: 'lastAccessed',
       sortOrder: 'desc',
       limit,
-    })
+    });
 
-    return contexts.map(p => this.persistedToTiered(p, ContextTier.COLD))
+    return contexts.map(p => this.persistedToTiered(p, ContextTier.COLD));
   }
 
   /**
@@ -297,11 +297,11 @@ export class HierarchicalContextLoader {
   getContextsByTier(tier: ContextTier, limit?: number): TieredContext[] {
     switch (tier) {
       case ContextTier.HOT:
-        return this.getHotContexts()
+        return this.getHotContexts();
       case ContextTier.WARM:
-        return this.getWarmContexts(limit)
+        return this.getWarmContexts(limit);
       case ContextTier.COLD:
-        return this.getColdContexts(limit)
+        return this.getColdContexts(limit);
     }
   }
 
@@ -309,7 +309,7 @@ export class HierarchicalContextLoader {
    * Lazy load cold contexts (batch loading)
    */
   async lazyColdContexts(offset: number = 0, limit: number = 50): Promise<TieredContext[]> {
-    const cutoff = Date.now() - this.config.warmThreshold
+    const cutoff = Date.now() - this.config.warmThreshold;
 
     const contexts = this.persistence.queryContexts({
       projectHash: this.projectHash,
@@ -317,69 +317,69 @@ export class HierarchicalContextLoader {
       sortBy: 'lastAccessed',
       sortOrder: 'desc',
       limit,
-    })
+    });
 
     // Skip offset manually since persistence doesn't support it
-    const sliced = contexts.slice(offset, offset + limit)
-    return sliced.map(p => this.persistedToTiered(p, ContextTier.COLD))
+    const sliced = contexts.slice(offset, offset + limit);
+    return sliced.map(p => this.persistedToTiered(p, ContextTier.COLD));
   }
 
   /**
    * Migrate contexts between tiers based on access patterns
    */
   migrateContexts(): {
-    promoted: number
-    demoted: number
+    promoted: number;
+    demoted: number;
   } {
-    const now = Date.now()
-    let promoted = 0
-    let demoted = 0
+    const now = Date.now();
+    let promoted = 0;
+    let demoted = 0;
 
     // Demote L0 contexts that are no longer hot
-    const l0Contexts = this.l0Cache.getAll()
+    const l0Contexts = this.l0Cache.getAll();
     for (const entry of l0Contexts) {
-      const age = now - entry.lastAccessed
+      const age = now - entry.lastAccessed;
       if (age > this.config.hotThreshold) {
-        this.l0Cache.delete(entry.id)
-        this.tierMigrations.hotToWarm++
-        demoted++
+        this.l0Cache.delete(entry.id);
+        this.tierMigrations.hotToWarm++;
+        demoted++;
       }
     }
 
     // Promote frequently accessed L1 contexts to L0
-    const warmContexts = this.getWarmContexts(50)
+    const warmContexts = this.getWarmContexts(50);
     for (const entry of warmContexts) {
       if (entry.accessCount > 10) {
-        this.promoteToL0(entry.id, entry.context, entry.lastAccessed, entry.accessCount)
-        this.tierMigrations.warmToHot++
-        promoted++
+        this.promoteToL0(entry.id, entry.context, entry.lastAccessed, entry.accessCount);
+        this.tierMigrations.warmToHot++;
+        promoted++;
       }
     }
 
-    return { promoted, demoted }
+    return { promoted, demoted };
   }
 
   /**
    * Get tier statistics
    */
   getStats(): TierStats {
-    const l0Stats = this.l0Cache.getStats()
+    const l0Stats = this.l0Cache.getStats();
 
     // Count L1 and L2 contexts
-    const now = Date.now()
-    const warmStart = now - this.config.warmThreshold
-    const warmEnd = now - this.config.hotThreshold
+    const now = Date.now();
+    const warmStart = now - this.config.warmThreshold;
+    const warmEnd = now - this.config.hotThreshold;
 
     const l1Contexts = this.persistence.queryContexts({
       projectHash: this.projectHash,
       startTime: warmStart,
       endTime: warmEnd,
-    })
+    });
 
     const l2Contexts = this.persistence.queryContexts({
       projectHash: this.projectHash,
       endTime: warmStart,
-    })
+    });
 
     return {
       l0: l0Stats,
@@ -392,47 +392,47 @@ export class HierarchicalContextLoader {
         avgAccessTime: this.calculateAvgAccessTime(l2Contexts),
       },
       migrations: { ...this.tierMigrations },
-    }
+    };
   }
 
   /**
    * Clear L0 cache
    */
   clearL0Cache(): void {
-    this.l0Cache.clear()
+    this.l0Cache.clear();
   }
 
   /**
    * Refresh L0 cache with current hot contexts
    */
   refreshL0Cache(): void {
-    this.l0Cache.clear()
-    this.initializeL0Cache()
+    this.l0Cache.clear();
+    this.initializeL0Cache();
   }
 
   /**
    * Initialize L0 cache with hot contexts from persistence
    */
   private initializeL0Cache(): void {
-    const cutoff = Date.now() - this.config.hotThreshold
+    const cutoff = Date.now() - this.config.hotThreshold;
 
     const hotContexts = this.persistence.getProjectContexts(this.projectHash, {
       startTime: cutoff,
       sortBy: 'lastAccessed',
       sortOrder: 'desc',
       limit: this.config.l0MaxEntries,
-    })
+    });
 
     for (const persisted of hotContexts) {
-      const context = this.persistedToCompressed(persisted)
+      const context = this.persistedToCompressed(persisted);
       const tiered: TieredContext = {
         id: persisted.id,
         tier: ContextTier.HOT,
         lastAccessed: persisted.lastAccessed,
         accessCount: persisted.accessCount,
         context,
-      }
-      this.l0Cache.set(persisted.id, tiered)
+      };
+      this.l0Cache.set(persisted.id, tiered);
     }
   }
 
@@ -451,24 +451,24 @@ export class HierarchicalContextLoader {
       lastAccessed,
       accessCount,
       context,
-    }
-    this.l0Cache.set(id, tiered)
+    };
+    this.l0Cache.set(id, tiered);
   }
 
   /**
    * Determine tier based on last accessed time
    */
   private determineTier(lastAccessed: number): ContextTier {
-    const age = Date.now() - lastAccessed
+    const age = Date.now() - lastAccessed;
 
     if (age < this.config.hotThreshold) {
-      return ContextTier.HOT
+      return ContextTier.HOT;
     }
     else if (age < this.config.warmThreshold) {
-      return ContextTier.WARM
+      return ContextTier.WARM;
     }
     else {
-      return ContextTier.COLD
+      return ContextTier.COLD;
     }
   }
 
@@ -486,7 +486,7 @@ export class HierarchicalContextLoader {
       compressionRatio: persisted.compressionRatio,
       metadata: JSON.parse(persisted.metadata),
       compressedAt: persisted.timestamp,
-    }
+    };
   }
 
   /**
@@ -499,7 +499,7 @@ export class HierarchicalContextLoader {
       lastAccessed: persisted.lastAccessed,
       accessCount: persisted.accessCount,
       context: this.persistedToCompressed(persisted),
-    }
+    };
   }
 
   /**
@@ -507,11 +507,11 @@ export class HierarchicalContextLoader {
    */
   private calculateAvgAccessTime(contexts: PersistedContext[]): number {
     if (contexts.length === 0)
-      return 0
+      return 0;
 
-    const now = Date.now()
-    const totalAge = contexts.reduce((sum, c) => sum + (now - c.lastAccessed), 0)
-    return totalAge / contexts.length
+    const now = Date.now();
+    const totalAge = contexts.reduce((sum, c) => sum + (now - c.lastAccessed), 0);
+    return totalAge / contexts.length;
   }
 }
 
@@ -523,5 +523,5 @@ export function createHierarchicalLoader(
   projectHash: string,
   config?: Partial<TierConfig>,
 ): HierarchicalContextLoader {
-  return new HierarchicalContextLoader(persistence, projectHash, config)
+  return new HierarchicalContextLoader(persistence, projectHash, config);
 }

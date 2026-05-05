@@ -31,4 +31,4 @@ export {
   // Types
   type RegistrySource,
   type VersionQueryResult,
-} from './npm-registry'
+} from './npm-registry';

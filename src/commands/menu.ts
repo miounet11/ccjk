@@ -1,1 +1,1 @@
-export { showMainMenu } from './menu/index'
+export { showMainMenu } from './menu/index';

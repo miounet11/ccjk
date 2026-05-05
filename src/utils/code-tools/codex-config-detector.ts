@@ -1,14 +1,14 @@
-import type { CodexConfigData, CodexProvider } from './codex'
-import { readCodexConfig } from './codex'
+import type { CodexConfigData, CodexProvider } from './codex';
+import { readCodexConfig } from './codex';
 
 export interface ConfigManagementMode {
-  mode: 'initial' | 'management'
-  hasProviders: boolean
-  providerCount: number
-  currentProvider?: string | null
-  providers?: CodexProvider[]
-  isUnmanaged?: boolean
-  error?: string
+  mode: 'initial' | 'management';
+  hasProviders: boolean;
+  providerCount: number;
+  currentProvider?: string | null;
+  providers?: CodexProvider[];
+  isUnmanaged?: boolean;
+  error?: string;
 }
 
 /**
@@ -17,14 +17,14 @@ export interface ConfigManagementMode {
  */
 export function detectConfigManagementMode(): ConfigManagementMode {
   try {
-    const config = readCodexConfig()
+    const config = readCodexConfig();
 
     if (!config || !config.providers || config.providers.length === 0) {
       return {
         mode: 'initial',
         hasProviders: false,
         providerCount: 0,
-      }
+      };
     }
 
     return {
@@ -34,7 +34,7 @@ export function detectConfigManagementMode(): ConfigManagementMode {
       currentProvider: config.modelProvider,
       providers: config.providers,
       isUnmanaged: config.managed === false ? true : undefined,
-    }
+    };
   }
   catch (error) {
     return {
@@ -42,7 +42,7 @@ export function detectConfigManagementMode(): ConfigManagementMode {
       hasProviders: false,
       providerCount: 0,
       error: error instanceof Error ? error.message : 'Unknown error',
-    }
+    };
   }
 }
 
@@ -53,9 +53,9 @@ export function detectConfigManagementMode(): ConfigManagementMode {
  */
 export function shouldShowManagementMode(config: CodexConfigData | null): boolean {
   if (!config || !config.providers || config.providers.length === 0) {
-    return false
+    return false;
   }
-  return true
+  return true;
 }
 
 /**
@@ -64,11 +64,11 @@ export function shouldShowManagementMode(config: CodexConfigData | null): boolea
  * @returns Array of available management actions
  */
 export function getAvailableManagementActions(config: CodexConfigData): string[] {
-  const actions: string[] = []
+  const actions: string[] = [];
 
   if (config.providers.length > 0) {
-    actions.push('add', 'edit', 'delete', 'switch')
+    actions.push('add', 'edit', 'delete', 'switch');
   }
 
-  return actions
+  return actions;
 }

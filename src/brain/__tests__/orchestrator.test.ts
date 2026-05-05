@@ -4,14 +4,14 @@
  * @module brain/__tests__/orchestrator.test
  */
 
-import type { AgentCapability, CloudAgent } from '../../types/agent'
-import type { SkillCategory, SkillMdFile } from '../../types/skill-md'
+import type { AgentCapability, CloudAgent } from '../../types/agent';
+import type { SkillCategory, SkillMdFile } from '../../types/skill-md';
 import type {
   Task,
   TaskPriority,
-} from '../orchestrator-types'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { BrainOrchestrator } from '../orchestrator'
+} from '../orchestrator-types';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { BrainOrchestrator } from '../orchestrator';
 
 // Mock dependencies
 vi.mock('../task-decomposer', () => ({
@@ -30,7 +30,7 @@ vi.mock('../task-decomposer', () => ({
       metadata: {},
     }),
   })),
-}))
+}));
 
 vi.mock('../result-aggregator', () => ({
   ResultAggregator: vi.fn().mockImplementation(() => ({
@@ -40,7 +40,7 @@ vi.mock('../result-aggregator', () => ({
       conflicts: [],
     }),
   })),
-}))
+}));
 
 vi.mock('../agent-fork', () => ({
   AgentForkManager: vi.fn().mockImplementation(() => ({
@@ -53,7 +53,7 @@ vi.mock('../agent-fork', () => ({
     on: vi.fn(),
   })),
   getGlobalForkManager: vi.fn(),
-}))
+}));
 
 vi.mock('../agent-dispatcher', () => ({
   AgentDispatcher: vi.fn().mockImplementation(() => ({
@@ -74,7 +74,7 @@ vi.mock('../agent-dispatcher', () => ({
     }),
   })),
   getGlobalDispatcher: vi.fn(),
-}))
+}));
 
 /**
  * Create a mock task for testing
@@ -96,7 +96,7 @@ function createMockTask(overrides: Partial<Task> = {}): Task {
     createdAt: new Date().toISOString(),
     progress: 0,
     ...overrides,
-  }
+  };
 }
 
 /**
@@ -127,25 +127,25 @@ function createMockCloudAgent(overrides: Partial<CloudAgent> = {}): CloudAgent {
     },
     privacy: 'private',
     ...overrides,
-  }
+  };
 }
 
 describe('brainOrchestrator', () => {
-  let orchestrator: BrainOrchestrator
+  let orchestrator: BrainOrchestrator;
 
   beforeEach(() => {
-    vi.clearAllMocks()
+    vi.clearAllMocks();
     orchestrator = new BrainOrchestrator({
       maxConcurrentTasks: 5,
       maxConcurrentAgents: 3,
       defaultTaskTimeout: 5000,
       verboseLogging: false,
-    })
-  })
+    });
+  });
 
   afterEach(() => {
-    orchestrator.terminateAllAgents()
-  })
+    orchestrator.terminateAllAgents();
+  });
 
   // ===========================================================================
   // Normal Flow Tests
@@ -153,85 +153,85 @@ describe('brainOrchestrator', () => {
 
   describe('normal Flow', () => {
     it('should dispatch tasks to correct agents', async () => {
-      const agent = createMockCloudAgent()
-      orchestrator.registerAgent('typescript-cli-architect', agent)
+      const agent = createMockCloudAgent();
+      orchestrator.registerAgent('typescript-cli-architect', agent);
 
       const task = createMockTask({
         requiredCapabilities: ['code-generation'],
-      })
+      });
 
-      const result = await orchestrator.execute(task)
+      const result = await orchestrator.execute(task);
 
-      expect(result).toBeDefined()
-      expect(result.planId).toBeDefined()
-    })
+      expect(result).toBeDefined();
+      expect(result.planId).toBeDefined();
+    });
 
     it('should create orchestration plan from task', async () => {
-      const agent = createMockCloudAgent()
-      orchestrator.registerAgent('typescript-cli-architect', agent)
+      const agent = createMockCloudAgent();
+      orchestrator.registerAgent('typescript-cli-architect', agent);
 
-      const task = createMockTask()
-      const planCreatedSpy = vi.fn()
-      orchestrator.on('plan:created', planCreatedSpy)
+      const task = createMockTask();
+      const planCreatedSpy = vi.fn();
+      orchestrator.on('plan:created', planCreatedSpy);
 
-      await orchestrator.execute(task)
+      await orchestrator.execute(task);
 
-      expect(planCreatedSpy).toHaveBeenCalled()
-      const plan = planCreatedSpy.mock.calls[0][0]
-      expect(plan.id).toBeDefined()
-      expect(plan.rootTask).toBeDefined()
-    })
+      expect(planCreatedSpy).toHaveBeenCalled();
+      const plan = planCreatedSpy.mock.calls[0][0];
+      expect(plan.id).toBeDefined();
+      expect(plan.rootTask).toBeDefined();
+    });
 
     it('should emit events during execution lifecycle', async () => {
-      const agent = createMockCloudAgent()
-      orchestrator.registerAgent('typescript-cli-architect', agent)
+      const agent = createMockCloudAgent();
+      orchestrator.registerAgent('typescript-cli-architect', agent);
 
-      const events: string[] = []
-      orchestrator.on('plan:created', () => events.push('plan:created'))
-      orchestrator.on('plan:started', () => events.push('plan:started'))
-      orchestrator.on('plan:completed', () => events.push('plan:completed'))
+      const events: string[] = [];
+      orchestrator.on('plan:created', () => events.push('plan:created'));
+      orchestrator.on('plan:started', () => events.push('plan:started'));
+      orchestrator.on('plan:completed', () => events.push('plan:completed'));
 
-      const task = createMockTask()
-      await orchestrator.execute(task)
+      const task = createMockTask();
+      await orchestrator.execute(task);
 
-      expect(events).toContain('plan:created')
-      expect(events).toContain('plan:started')
-      expect(events).toContain('plan:completed')
-    })
+      expect(events).toContain('plan:created');
+      expect(events).toContain('plan:started');
+      expect(events).toContain('plan:completed');
+    });
 
     it('should register and unregister agents', () => {
-      const agent = createMockCloudAgent()
+      const agent = createMockCloudAgent();
 
-      orchestrator.registerAgent('typescript-cli-architect', agent)
-      const state1 = orchestrator.getState()
-      expect(state1.status).toBe('idle')
+      orchestrator.registerAgent('typescript-cli-architect', agent);
+      const state1 = orchestrator.getState();
+      expect(state1.status).toBe('idle');
 
-      orchestrator.unregisterAgent('typescript-cli-architect')
-    })
+      orchestrator.unregisterAgent('typescript-cli-architect');
+    });
 
     it('should return orchestration result with metrics', async () => {
-      const agent = createMockCloudAgent()
-      orchestrator.registerAgent('typescript-cli-architect', agent)
+      const agent = createMockCloudAgent();
+      orchestrator.registerAgent('typescript-cli-architect', agent);
 
-      const task = createMockTask()
-      const result = await orchestrator.execute(task)
+      const task = createMockTask();
+      const result = await orchestrator.execute(task);
 
-      expect(result.metrics).toBeDefined()
-      expect(result.metrics.totalTasks).toBeGreaterThanOrEqual(0)
-      expect(result.startedAt).toBeDefined()
-      expect(result.completedAt).toBeDefined()
-    })
+      expect(result.metrics).toBeDefined();
+      expect(result.metrics.totalTasks).toBeGreaterThanOrEqual(0);
+      expect(result.startedAt).toBeDefined();
+      expect(result.completedAt).toBeDefined();
+    });
 
     it('should get current orchestrator state', () => {
-      const state = orchestrator.getState()
+      const state = orchestrator.getState();
 
-      expect(state).toBeDefined()
-      expect(state.status).toBe('idle')
-      expect(state.activeTasks).toBeDefined()
-      expect(state.activeAgents).toBeDefined()
-      expect(state.taskQueue).toBeDefined()
-    })
-  })
+      expect(state).toBeDefined();
+      expect(state.status).toBe('idle');
+      expect(state.activeTasks).toBeDefined();
+      expect(state.activeAgents).toBeDefined();
+      expect(state.taskQueue).toBeDefined();
+    });
+  });
 
   // ===========================================================================
   // Agent Failure Handling Tests
@@ -240,44 +240,44 @@ describe('brainOrchestrator', () => {
   describe('agent Failure Handling', () => {
     it('should handle agent failures gracefully', async () => {
       // No agents registered - should handle gracefully
-      const task = createMockTask()
-      const result = await orchestrator.execute(task)
+      const task = createMockTask();
+      const result = await orchestrator.execute(task);
 
       // Should complete without throwing
-      expect(result).toBeDefined()
-    })
+      expect(result).toBeDefined();
+    });
 
     it('should emit error event on orchestration failure', async () => {
-      const errorSpy = vi.fn()
-      orchestrator.on('error', errorSpy)
+      const errorSpy = vi.fn();
+      orchestrator.on('error', errorSpy);
 
       // Create a task that will fail due to missing agent
       const task = createMockTask({
         requiredCapabilities: ['code-analysis' as AgentCapability],
-      })
+      });
 
-      await orchestrator.execute(task)
+      await orchestrator.execute(task);
 
       // The orchestrator should handle this gracefully
-      expect(orchestrator.getState().status).not.toBe('error')
-    })
+      expect(orchestrator.getState().status).not.toBe('error');
+    });
 
     it('should track failed tasks in result', async () => {
-      const task = createMockTask()
-      const result = await orchestrator.execute(task)
+      const task = createMockTask();
+      const result = await orchestrator.execute(task);
 
-      expect(result.failedTasks).toBeDefined()
-      expect(Array.isArray(result.failedTasks)).toBe(true)
-    })
+      expect(result.failedTasks).toBeDefined();
+      expect(Array.isArray(result.failedTasks)).toBe(true);
+    });
 
     it('should include errors in orchestration result', async () => {
-      const task = createMockTask()
-      const result = await orchestrator.execute(task)
+      const task = createMockTask();
+      const result = await orchestrator.execute(task);
 
-      expect(result.errors).toBeDefined()
-      expect(Array.isArray(result.errors)).toBe(true)
-    })
-  })
+      expect(result.errors).toBeDefined();
+      expect(Array.isArray(result.errors)).toBe(true);
+    });
+  });
 
   // ===========================================================================
   // Task Priority Tests
@@ -285,45 +285,45 @@ describe('brainOrchestrator', () => {
 
   describe('task Priority', () => {
     it('should respect task priorities', async () => {
-      const agent = createMockCloudAgent()
-      orchestrator.registerAgent('typescript-cli-architect', agent)
+      const agent = createMockCloudAgent();
+      orchestrator.registerAgent('typescript-cli-architect', agent);
 
       const criticalTask = createMockTask({
         id: 'critical-task',
         priority: 'critical',
-      })
+      });
 
       const normalTask = createMockTask({
         id: 'normal-task',
         priority: 'normal',
-      })
+      });
 
       const lowTask = createMockTask({
         id: 'low-task',
         priority: 'low',
-      })
+      });
 
       // Execute tasks - priority should be respected
-      const result1 = await orchestrator.execute(criticalTask)
-      const result2 = await orchestrator.execute(normalTask)
-      const result3 = await orchestrator.execute(lowTask)
+      const result1 = await orchestrator.execute(criticalTask);
+      const result2 = await orchestrator.execute(normalTask);
+      const result3 = await orchestrator.execute(lowTask);
 
-      expect(result1).toBeDefined()
-      expect(result2).toBeDefined()
-      expect(result3).toBeDefined()
-    })
+      expect(result1).toBeDefined();
+      expect(result2).toBeDefined();
+      expect(result3).toBeDefined();
+    });
 
     it('should handle critical task failures appropriately', async () => {
       const task = createMockTask({
         priority: 'critical',
-      })
+      });
 
-      const result = await orchestrator.execute(task)
+      const result = await orchestrator.execute(task);
 
       // Critical failures should be tracked
-      expect(result).toBeDefined()
-    })
-  })
+      expect(result).toBeDefined();
+    });
+  });
 
   // ===========================================================================
   // Timeout Tests
@@ -334,27 +334,27 @@ describe('brainOrchestrator', () => {
       const orchestratorWithShortTimeout = new BrainOrchestrator({
         defaultTaskTimeout: 100, // Very short timeout
         verboseLogging: false,
-      })
+      });
 
       const task = createMockTask({
         timeout: 100,
-      })
+      });
 
-      const result = await orchestratorWithShortTimeout.execute(task)
+      const result = await orchestratorWithShortTimeout.execute(task);
 
-      expect(result).toBeDefined()
-      orchestratorWithShortTimeout.terminateAllAgents()
-    })
+      expect(result).toBeDefined();
+      orchestratorWithShortTimeout.terminateAllAgents();
+    });
 
     it('should use default timeout when task timeout not specified', async () => {
-      const task = createMockTask()
-      delete task.timeout
+      const task = createMockTask();
+      delete task.timeout;
 
-      const result = await orchestrator.execute(task)
+      const result = await orchestrator.execute(task);
 
-      expect(result).toBeDefined()
-    })
-  })
+      expect(result).toBeDefined();
+    });
+  });
 
   // ===========================================================================
   // Pause/Resume/Cancel Tests
@@ -363,37 +363,37 @@ describe('brainOrchestrator', () => {
   describe('orchestration Control', () => {
     it('should pause orchestration', () => {
       // Start execution state
-      const state = orchestrator.getState()
-      expect(state.status).toBe('idle')
+      const state = orchestrator.getState();
+      expect(state.status).toBe('idle');
 
-      orchestrator.pause()
+      orchestrator.pause();
       // Pause only works when executing
-      expect(orchestrator.getState().status).toBe('idle')
-    })
+      expect(orchestrator.getState().status).toBe('idle');
+    });
 
     it('should resume paused orchestration', () => {
-      orchestrator.pause()
-      orchestrator.resume()
+      orchestrator.pause();
+      orchestrator.resume();
 
-      expect(orchestrator.getState().status).toBe('idle')
-    })
+      expect(orchestrator.getState().status).toBe('idle');
+    });
 
     it('should cancel orchestration', () => {
-      orchestrator.cancel()
+      orchestrator.cancel();
 
-      expect(orchestrator.getState().status).toBe('idle')
-      expect(orchestrator.getState().activeTasks.size).toBe(0)
-    })
+      expect(orchestrator.getState().status).toBe('idle');
+      expect(orchestrator.getState().activeTasks.size).toBe(0);
+    });
 
     it('should terminate all agents', () => {
-      const agent = createMockCloudAgent()
-      orchestrator.registerAgent('typescript-cli-architect', agent)
+      const agent = createMockCloudAgent();
+      orchestrator.registerAgent('typescript-cli-architect', agent);
 
-      orchestrator.terminateAllAgents()
+      orchestrator.terminateAllAgents();
 
-      expect(orchestrator.getState().activeAgents.size).toBe(0)
-    })
-  })
+      expect(orchestrator.getState().activeAgents.size).toBe(0);
+    });
+  });
 
   // ===========================================================================
   // Fork Context Tests (v3.8)
@@ -412,9 +412,9 @@ describe('brainOrchestrator', () => {
         },
         content: '',
         filePath: '/test/skill.md',
-      }
+      };
 
-      const task = createMockTask()
+      const task = createMockTask();
       const executeFn = vi.fn().mockResolvedValue({
         planId: 'test',
         success: true,
@@ -439,18 +439,18 @@ describe('brainOrchestrator', () => {
         startedAt: new Date().toISOString(),
         completedAt: new Date().toISOString(),
         duration: 100,
-      })
+      });
 
-      const result = await orchestrator.executeInForkContext(skill, task, executeFn)
+      const result = await orchestrator.executeInForkContext(skill, task, executeFn);
 
-      expect(result).toBeDefined()
-      expect(result.success).toBe(true)
-    })
+      expect(result).toBeDefined();
+      expect(result.success).toBe(true);
+    });
 
     it('should throw error when fork context is disabled', async () => {
       const orchestratorNoFork = new BrainOrchestrator({
         enableForkContext: false,
-      })
+      });
 
       const skill = {
         metadata: {
@@ -463,36 +463,36 @@ describe('brainOrchestrator', () => {
         },
         content: '',
         filePath: '/test/skill.md',
-      }
+      };
 
-      const task = createMockTask()
-      const executeFn = vi.fn()
+      const task = createMockTask();
+      const executeFn = vi.fn();
 
       await expect(
         orchestratorNoFork.executeInForkContext(skill, task, executeFn),
-      ).rejects.toThrow('Fork context execution is disabled')
+      ).rejects.toThrow('Fork context execution is disabled');
 
-      orchestratorNoFork.terminateAllAgents()
-    })
+      orchestratorNoFork.terminateAllAgents();
+    });
 
     it('should cancel fork context', () => {
-      orchestrator.cancelFork('fork-1')
+      orchestrator.cancelFork('fork-1');
       // Should not throw
-    })
+    });
 
     it('should get fork statistics', () => {
-      const stats = orchestrator.getForkStats()
+      const stats = orchestrator.getForkStats();
 
-      expect(stats).toBeDefined()
-    })
+      expect(stats).toBeDefined();
+    });
 
     it('should get active forks', () => {
-      const forks = orchestrator.getActiveForks()
+      const forks = orchestrator.getActiveForks();
 
-      expect(forks).toBeDefined()
-      expect(Array.isArray(forks)).toBe(true)
-    })
-  })
+      expect(forks).toBeDefined();
+      expect(Array.isArray(forks)).toBe(true);
+    });
+  });
 
   // ===========================================================================
   // Dispatcher Tests
@@ -500,17 +500,17 @@ describe('brainOrchestrator', () => {
 
   describe('agent Dispatcher Integration', () => {
     it('should get dispatcher statistics', () => {
-      const stats = orchestrator.getDispatcherStats()
+      const stats = orchestrator.getDispatcherStats();
 
-      expect(stats).toBeDefined()
-      expect(stats.registeredCloudAgents).toBeDefined()
-      expect(stats.cachedAgents).toBeDefined()
-    })
+      expect(stats).toBeDefined();
+      expect(stats.registeredCloudAgents).toBeDefined();
+      expect(stats.cachedAgents).toBeDefined();
+    });
 
     it('should throw error when dispatcher is disabled', async () => {
       const orchestratorNoDispatcher = new BrainOrchestrator({
         enableDispatcher: false,
-      })
+      });
 
       const skill = {
         metadata: {
@@ -523,18 +523,18 @@ describe('brainOrchestrator', () => {
         },
         content: '',
         filePath: '/test/skill.md',
-      }
+      };
 
-      const task = createMockTask()
-      const executeFn = vi.fn()
+      const task = createMockTask();
+      const executeFn = vi.fn();
 
       await expect(
         orchestratorNoDispatcher.executeWithAgentDispatch(skill, task, executeFn),
-      ).rejects.toThrow('Agent dispatcher is disabled')
+      ).rejects.toThrow('Agent dispatcher is disabled');
 
-      orchestratorNoDispatcher.terminateAllAgents()
-    })
-  })
+      orchestratorNoDispatcher.terminateAllAgents();
+    });
+  });
 
   // ===========================================================================
   // Concurrent Execution Tests
@@ -542,42 +542,42 @@ describe('brainOrchestrator', () => {
 
   describe('concurrent Execution', () => {
     it('should handle multiple concurrent task executions', async () => {
-      const agent = createMockCloudAgent()
-      orchestrator.registerAgent('typescript-cli-architect', agent)
+      const agent = createMockCloudAgent();
+      orchestrator.registerAgent('typescript-cli-architect', agent);
 
       const tasks = Array.from({ length: 5 }, (_, i) =>
-        createMockTask({ id: `concurrent-task-${i}` }))
+        createMockTask({ id: `concurrent-task-${i}` }));
 
       const results = await Promise.all(
         tasks.map(task => orchestrator.execute(task)),
-      )
+      );
 
-      expect(results).toHaveLength(5)
+      expect(results).toHaveLength(5);
       results.forEach((result) => {
-        expect(result).toBeDefined()
-        expect(result.planId).toBeDefined()
-      })
-    })
+        expect(result).toBeDefined();
+        expect(result.planId).toBeDefined();
+      });
+    });
 
     it('should respect max concurrent tasks limit', async () => {
       const orchestratorLimited = new BrainOrchestrator({
         maxConcurrentTasks: 2,
         maxConcurrentAgents: 2,
-      })
+      });
 
-      const agent = createMockCloudAgent()
-      orchestratorLimited.registerAgent('typescript-cli-architect', agent)
+      const agent = createMockCloudAgent();
+      orchestratorLimited.registerAgent('typescript-cli-architect', agent);
 
       const tasks = Array.from({ length: 5 }, (_, i) =>
-        createMockTask({ id: `limited-task-${i}` }))
+        createMockTask({ id: `limited-task-${i}` }));
 
       const results = await Promise.all(
         tasks.map(task => orchestratorLimited.execute(task)),
-      )
+      );
 
-      expect(results).toHaveLength(5)
-      orchestratorLimited.terminateAllAgents()
-    })
+      expect(results).toHaveLength(5);
+      orchestratorLimited.terminateAllAgents();
+    });
 
     it('should execute parallel forks', async () => {
       const execution = {
@@ -603,7 +603,7 @@ describe('brainOrchestrator', () => {
           },
         ],
         maxParallel: 2,
-      }
+      };
 
       const executeFn = vi.fn().mockResolvedValue({
         planId: 'test',
@@ -629,14 +629,14 @@ describe('brainOrchestrator', () => {
         startedAt: new Date().toISOString(),
         completedAt: new Date().toISOString(),
         duration: 100,
-      })
+      });
 
-      const result = await orchestrator.executeParallelForks(execution, executeFn)
+      const result = await orchestrator.executeParallelForks(execution, executeFn);
 
-      expect(result).toBeDefined()
-      expect(result.id).toBe('parallel-exec-1')
-    })
-  })
+      expect(result).toBeDefined();
+      expect(result.id).toBe('parallel-exec-1');
+    });
+  });
 
   // ===========================================================================
   // Edge Cases and Boundary Conditions
@@ -646,22 +646,22 @@ describe('brainOrchestrator', () => {
     it('should handle empty task input', async () => {
       const task = createMockTask({
         input: { parameters: {} },
-      })
+      });
 
-      const result = await orchestrator.execute(task)
+      const result = await orchestrator.execute(task);
 
-      expect(result).toBeDefined()
-    })
+      expect(result).toBeDefined();
+    });
 
     it('should handle task with no required capabilities', async () => {
       const task = createMockTask({
         requiredCapabilities: [],
-      })
+      });
 
-      const result = await orchestrator.execute(task)
+      const result = await orchestrator.execute(task);
 
-      expect(result).toBeDefined()
-    })
+      expect(result).toBeDefined();
+    });
 
     it('should handle task with many dependencies', async () => {
       const task = createMockTask({
@@ -670,29 +670,29 @@ describe('brainOrchestrator', () => {
           { taskId: 'dep-2', type: 'data', required: false },
           { taskId: 'dep-3', type: 'conditional', required: true },
         ],
-      })
+      });
 
-      const result = await orchestrator.execute(task)
+      const result = await orchestrator.execute(task);
 
-      expect(result).toBeDefined()
-    })
+      expect(result).toBeDefined();
+    });
 
     it('should handle orchestrator with zero max concurrent tasks', () => {
       const orchestratorZero = new BrainOrchestrator({
         maxConcurrentTasks: 0,
-      })
+      });
 
-      expect(orchestratorZero.getState().status).toBe('idle')
-      orchestratorZero.terminateAllAgents()
-    })
+      expect(orchestratorZero.getState().status).toBe('idle');
+      orchestratorZero.terminateAllAgents();
+    });
 
     it('should handle rapid pause/resume cycles', () => {
       for (let i = 0; i < 10; i++) {
-        orchestrator.pause()
-        orchestrator.resume()
+        orchestrator.pause();
+        orchestrator.resume();
       }
 
-      expect(orchestrator.getState().status).toBe('idle')
-    })
-  })
-})
+      expect(orchestrator.getState().status).toBe('idle');
+    });
+  });
+});

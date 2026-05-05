@@ -16,41 +16,41 @@
  * @module config-manager
  */
 
-import type { CloudSyncEvent } from './cloud-config-sync'
-import type { ConfigChangeEvent } from './config-watcher'
-import type { ApiProviderPreset } from './config/api-providers'
-import type { ApiConfig, ClaudeSettings } from './types/config'
-import { EventEmitter } from 'node:events'
-import { existsSync } from 'node:fs'
-import { CloudConfigSync } from './cloud-config-sync'
-import { ConfigWatcher } from './config-watcher'
-import { getApiProvidersAsync, LOCAL_PROVIDER_PRESETS } from './config/api-providers'
-import { SETTINGS_FILE } from './constants'
-import { readJsonConfig } from './utils/json-config'
+import type { CloudSyncEvent } from './cloud-config-sync';
+import type { ConfigChangeEvent } from './config-watcher';
+import type { ApiProviderPreset } from './config/api-providers';
+import type { ApiConfig, ClaudeSettings } from './types/config';
+import { EventEmitter } from 'node:events';
+import { existsSync } from 'node:fs';
+import { CloudConfigSync } from './cloud-config-sync';
+import { ConfigWatcher } from './config-watcher';
+import { getApiProvidersAsync, LOCAL_PROVIDER_PRESETS } from './config/api-providers';
+import { SETTINGS_FILE } from './constants';
+import { readJsonConfig } from './utils/json-config';
 
 /**
  * Configuration source types
  */
-export type ConfigSource = 'cli' | 'env' | 'local' | 'cloud' | 'default'
+export type ConfigSource = 'cli' | 'env' | 'local' | 'cloud' | 'default';
 
 /**
  * Configuration change event
  */
 export interface ConfigUpdateEvent {
   /** Configuration source that triggered the update */
-  source: ConfigSource
+  source: ConfigSource;
 
   /** Timestamp of the update */
-  timestamp: Date
+  timestamp: Date;
 
   /** Previous configuration (if available) */
-  previous?: any
+  previous?: any;
 
   /** New configuration */
-  current: any
+  current: any;
 
   /** Changed keys (if applicable) */
-  changedKeys?: string[]
+  changedKeys?: string[];
 }
 
 /**
@@ -61,40 +61,40 @@ export interface ConfigManagerOptions {
    * Enable file watching for hot-reload
    * @default true
    */
-  enableFileWatch?: boolean
+  enableFileWatch?: boolean;
 
   /**
    * Enable cloud synchronization
    * @default false
    */
-  enableCloudSync?: boolean
+  enableCloudSync?: boolean;
 
   /**
    * Cloud sync interval in milliseconds
    * @default 300000 (5 minutes)
    */
-  cloudSyncInterval?: number
+  cloudSyncInterval?: number;
 
   /**
    * File watch debounce delay in milliseconds
    * @default 300
    */
-  watchDebounceMs?: number
+  watchDebounceMs?: number;
 
   /**
    * Cloud API endpoint
    */
-  cloudApiEndpoint?: string
+  cloudApiEndpoint?: string;
 
   /**
    * Cloud API key for authenticated requests
    */
-  cloudApiKey?: string
+  cloudApiKey?: string;
 
   /**
    * Configuration file paths to watch
    */
-  configPaths?: string[]
+  configPaths?: string[];
 }
 
 /**
@@ -102,20 +102,20 @@ export interface ConfigManagerOptions {
  */
 interface ManagedConfig {
   /** Claude Code settings */
-  settings: ClaudeSettings
+  settings: ClaudeSettings;
 
   /** API provider presets */
-  providers: ApiProviderPreset[]
+  providers: ApiProviderPreset[];
 
   /** Current API configuration */
-  apiConfig: ApiConfig | null
+  apiConfig: ApiConfig | null;
 
   /** Configuration metadata */
   metadata: {
-    lastUpdated: Date
-    source: ConfigSource
-    version: number
-  }
+    lastUpdated: Date;
+    source: ConfigSource;
+    version: number;
+  };
 }
 
 /**
@@ -160,16 +160,16 @@ interface ManagedConfig {
  */
 export class ConfigManager extends EventEmitter {
   private options: Required<Omit<ConfigManagerOptions, 'cloudApiKey' | 'cloudApiEndpoint' | 'configPaths'>> & {
-    cloudApiKey?: string
-    cloudApiEndpoint?: string
-    configPaths?: string[]
-  }
+    cloudApiKey?: string;
+    cloudApiEndpoint?: string;
+    configPaths?: string[];
+  };
 
-  private fileWatcher: ConfigWatcher | null = null
-  private cloudSync: CloudConfigSync | null = null
-  private config: ManagedConfig
-  private initialized = false
-  private updateLock = false
+  private fileWatcher: ConfigWatcher | null = null;
+  private cloudSync: CloudConfigSync | null = null;
+  private config: ManagedConfig;
+  private initialized = false;
+  private updateLock = false;
 
   /**
    * Create a new configuration manager
@@ -186,7 +186,7 @@ export class ConfigManager extends EventEmitter {
    * ```
    */
   constructor(options: ConfigManagerOptions = {}) {
-    super()
+    super();
 
     // Set default options
     this.options = {
@@ -197,7 +197,7 @@ export class ConfigManager extends EventEmitter {
       cloudApiEndpoint: options.cloudApiEndpoint,
       cloudApiKey: options.cloudApiKey,
       configPaths: options.configPaths,
-    }
+    };
 
     // Initialize default configuration
     this.config = {
@@ -209,7 +209,7 @@ export class ConfigManager extends EventEmitter {
         source: 'default',
         version: 0,
       },
-    }
+    };
   }
 
   /**
@@ -226,23 +226,23 @@ export class ConfigManager extends EventEmitter {
    */
   async initialize(): Promise<void> {
     if (this.initialized) {
-      throw new Error('ConfigManager is already initialized')
+      throw new Error('ConfigManager is already initialized');
     }
 
     // Load initial configuration
-    await this.loadInitialConfig()
+    await this.loadInitialConfig();
 
     // Setup file watching if enabled
     if (this.options.enableFileWatch) {
-      this.setupFileWatcher()
+      this.setupFileWatcher();
     }
 
     // Setup cloud sync if enabled
     if (this.options.enableCloudSync) {
-      this.setupCloudSync()
+      this.setupCloudSync();
     }
 
-    this.initialized = true
+    this.initialized = true;
   }
 
   /**
@@ -258,17 +258,17 @@ export class ConfigManager extends EventEmitter {
    */
   async dispose(): Promise<void> {
     if (this.fileWatcher) {
-      await this.fileWatcher.stopWatching()
-      this.fileWatcher = null
+      await this.fileWatcher.stopWatching();
+      this.fileWatcher = null;
     }
 
     if (this.cloudSync) {
-      this.cloudSync.stopSync()
-      this.cloudSync = null
+      this.cloudSync.stopSync();
+      this.cloudSync = null;
     }
 
-    this.initialized = false
-    this.removeAllListeners()
+    this.initialized = false;
+    this.removeAllListeners();
   }
 
   /**
@@ -287,11 +287,11 @@ export class ConfigManager extends EventEmitter {
    */
   async getConfig(): Promise<ManagedConfig> {
     if (!this.initialized) {
-      await this.initialize()
+      await this.initialize();
     }
 
     // Return deep copy to prevent external modifications
-    return JSON.parse(JSON.stringify(this.config))
+    return JSON.parse(JSON.stringify(this.config));
   }
 
   /**
@@ -316,27 +316,27 @@ export class ConfigManager extends EventEmitter {
     source: ConfigSource = 'local',
   ): Promise<ManagedConfig> {
     if (!this.initialized) {
-      await this.initialize()
+      await this.initialize();
     }
 
     // Acquire update lock
     while (this.updateLock) {
-      await this.sleep(10)
+      await this.sleep(10);
     }
-    this.updateLock = true
+    this.updateLock = true;
 
     try {
-      const previous = { ...this.config }
+      const previous = { ...this.config };
 
       // Merge updates
       if (updates.settings) {
-        this.config.settings = this.deepMerge(this.config.settings, updates.settings)
+        this.config.settings = this.deepMerge(this.config.settings, updates.settings);
       }
       if (updates.providers) {
-        this.config.providers = updates.providers
+        this.config.providers = updates.providers;
       }
       if (updates.apiConfig !== undefined) {
-        this.config.apiConfig = updates.apiConfig
+        this.config.apiConfig = updates.apiConfig;
       }
 
       // Update metadata
@@ -344,7 +344,7 @@ export class ConfigManager extends EventEmitter {
         lastUpdated: new Date(),
         source,
         version: this.config.metadata.version + 1,
-      }
+      };
 
       // Emit update event
       const event: ConfigUpdateEvent = {
@@ -353,22 +353,22 @@ export class ConfigManager extends EventEmitter {
         previous,
         current: this.config,
         changedKeys: this.getChangedKeys(previous, this.config),
-      }
+      };
 
-      this.emit('config-updated', event)
+      this.emit('config-updated', event);
 
       // Emit specific events for settings and providers
       if (updates.settings) {
-        this.emit('settings-updated', event)
+        this.emit('settings-updated', event);
       }
       if (updates.providers) {
-        this.emit('providers-updated', event)
+        this.emit('providers-updated', event);
       }
 
-      return this.getConfig()
+      return this.getConfig();
     }
     finally {
-      this.updateLock = false
+      this.updateLock = false;
     }
   }
 
@@ -386,19 +386,19 @@ export class ConfigManager extends EventEmitter {
    */
   async reloadConfig(): Promise<void> {
     if (!this.initialized) {
-      await this.initialize()
+      await this.initialize();
     }
 
-    await this.loadInitialConfig()
+    await this.loadInitialConfig();
 
     // Force cloud sync if enabled
     if (this.cloudSync && this.options.enableCloudSync) {
       try {
-        await this.cloudSync.forceSync()
+        await this.cloudSync.forceSync();
       }
       catch (error) {
         // Don't fail reload on cloud sync error
-        this.emit('error', error)
+        this.emit('error', error);
       }
     }
   }
@@ -420,13 +420,13 @@ export class ConfigManager extends EventEmitter {
    * ```
    */
   subscribe(callback: (event: ConfigUpdateEvent) => void): () => void {
-    const handler = (event: ConfigUpdateEvent): void => callback(event)
-    this.on('config-updated', handler)
+    const handler = (event: ConfigUpdateEvent): void => callback(event);
+    this.on('config-updated', handler);
 
     // Return unsubscribe function
     return () => {
-      this.off('config-updated', handler)
-    }
+      this.off('config-updated', handler);
+    };
   }
 
   /**
@@ -435,7 +435,7 @@ export class ConfigManager extends EventEmitter {
    * @returns Configuration metadata
    */
   getMetadata(): ManagedConfig['metadata'] {
-    return { ...this.config.metadata }
+    return { ...this.config.metadata };
   }
 
   /**
@@ -444,7 +444,7 @@ export class ConfigManager extends EventEmitter {
    * @returns true if initialized
    */
   isInitialized(): boolean {
-    return this.initialized
+    return this.initialized;
   }
 
   /**
@@ -455,39 +455,39 @@ export class ConfigManager extends EventEmitter {
   private async loadInitialConfig(): Promise<void> {
     // Load settings.json
     if (existsSync(SETTINGS_FILE)) {
-      const settings = readJsonConfig<ClaudeSettings>(SETTINGS_FILE)
+      const settings = readJsonConfig<ClaudeSettings>(SETTINGS_FILE);
       if (settings) {
-        this.config.settings = settings
-        this.config.metadata.source = 'local'
+        this.config.settings = settings;
+        this.config.metadata.source = 'local';
       }
     }
 
     // Load API providers (cloud + local)
     try {
-      const providers = await getApiProvidersAsync()
+      const providers = await getApiProvidersAsync();
       if (providers.length > 0) {
-        this.config.providers = providers
+        this.config.providers = providers;
       }
     }
     catch {
       // Fallback to local providers
-      this.config.providers = LOCAL_PROVIDER_PRESETS
+      this.config.providers = LOCAL_PROVIDER_PRESETS;
     }
 
     // Extract API config from settings
     if (this.config.settings.env) {
-      const { ANTHROPIC_API_KEY, ANTHROPIC_AUTH_TOKEN, ANTHROPIC_BASE_URL } = this.config.settings.env
+      const { ANTHROPIC_API_KEY, ANTHROPIC_AUTH_TOKEN, ANTHROPIC_BASE_URL } = this.config.settings.env;
 
       if (ANTHROPIC_BASE_URL || ANTHROPIC_API_KEY || ANTHROPIC_AUTH_TOKEN) {
         this.config.apiConfig = {
           url: ANTHROPIC_BASE_URL || '',
           key: ANTHROPIC_AUTH_TOKEN || ANTHROPIC_API_KEY || '',
           authType: ANTHROPIC_AUTH_TOKEN ? 'auth_token' : 'api_key',
-        }
+        };
       }
     }
 
-    this.config.metadata.lastUpdated = new Date()
+    this.config.metadata.lastUpdated = new Date();
   }
 
   /**
@@ -496,31 +496,31 @@ export class ConfigManager extends EventEmitter {
    * @private
    */
   private setupFileWatcher(): void {
-    const configPaths = this.options.configPaths || [SETTINGS_FILE]
+    const configPaths = this.options.configPaths || [SETTINGS_FILE];
 
     this.fileWatcher = new ConfigWatcher({
       debounceMs: this.options.watchDebounceMs,
       ignoreInitial: true,
-    })
+    });
 
     // Listen for configuration changes
     this.fileWatcher.on('config-changed', (event: ConfigChangeEvent): void => {
       this.handleFileChange(event).catch((error) => {
-        this.emit('error', error)
-      })
-    })
+        this.emit('error', error);
+      });
+    });
 
     // Listen for errors
     this.fileWatcher.on('error', (error: Error): void => {
-      this.emit('error', error)
-    })
+      this.emit('error', error);
+    });
 
     // Start watching
     try {
-      this.fileWatcher.watch(configPaths)
+      this.fileWatcher.watch(configPaths);
     }
     catch (error) {
-      this.emit('error', error)
+      this.emit('error', error);
     }
   }
 
@@ -535,22 +535,22 @@ export class ConfigManager extends EventEmitter {
       apiEndpoint: this.options.cloudApiEndpoint,
       apiKey: this.options.cloudApiKey,
       syncOnStart: true,
-    })
+    });
 
     // Listen for configuration updates
     this.cloudSync.on('config-updated', (event: CloudSyncEvent) => {
       this.handleCloudUpdate(event).catch((error) => {
-        this.emit('error', error)
-      })
-    })
+        this.emit('error', error);
+      });
+    });
 
     // Listen for errors
     this.cloudSync.on('error', (error: Error) => {
-      this.emit('error', error)
-    })
+      this.emit('error', error);
+    });
 
     // Start syncing
-    this.cloudSync.startSync()
+    this.cloudSync.startSync();
   }
 
   /**
@@ -568,7 +568,7 @@ export class ConfigManager extends EventEmitter {
           settings: event.content,
         },
         'local',
-      )
+      );
     }
   }
 
@@ -587,7 +587,7 @@ export class ConfigManager extends EventEmitter {
           providers: event.data,
         },
         'cloud',
-      )
+      );
     }
   }
 
@@ -597,14 +597,14 @@ export class ConfigManager extends EventEmitter {
    * @private
    */
   private deepMerge<T extends Record<string, any>>(target: T, source: Partial<T>): T {
-    const result = { ...target }
+    const result = { ...target };
 
     for (const key in source) {
-      const sourceValue = source[key]
-      const targetValue = result[key]
+      const sourceValue = source[key];
+      const targetValue = result[key];
 
       if (sourceValue === undefined) {
-        continue
+        continue;
       }
 
       if (
@@ -615,14 +615,14 @@ export class ConfigManager extends EventEmitter {
         && targetValue !== null
         && !Array.isArray(targetValue)
       ) {
-        result[key] = this.deepMerge(targetValue, sourceValue)
+        result[key] = this.deepMerge(targetValue, sourceValue);
       }
       else {
-        result[key] = sourceValue as T[Extract<keyof T, string>]
+        result[key] = sourceValue as T[Extract<keyof T, string>];
       }
     }
 
-    return result
+    return result;
   }
 
   /**
@@ -631,17 +631,17 @@ export class ConfigManager extends EventEmitter {
    * @private
    */
   private getChangedKeys(prev: any, curr: any, prefix = ''): string[] {
-    const changed: string[] = []
+    const changed: string[] = [];
 
-    const allKeys = new Set([...Object.keys(prev), ...Object.keys(curr)])
+    const allKeys = new Set([...Object.keys(prev), ...Object.keys(curr)]);
 
     for (const key of allKeys) {
-      const fullKey = prefix ? `${prefix}.${key}` : key
-      const prevValue = prev[key]
-      const currValue = curr[key]
+      const fullKey = prefix ? `${prefix}.${key}` : key;
+      const prevValue = prev[key];
+      const currValue = curr[key];
 
       if (JSON.stringify(prevValue) !== JSON.stringify(currValue)) {
-        changed.push(fullKey)
+        changed.push(fullKey);
 
         // Recursively check nested objects
         if (
@@ -650,12 +650,12 @@ export class ConfigManager extends EventEmitter {
           && typeof currValue === 'object'
           && currValue !== null
         ) {
-          changed.push(...this.getChangedKeys(prevValue, currValue, fullKey))
+          changed.push(...this.getChangedKeys(prevValue, currValue, fullKey));
         }
       }
     }
 
-    return changed
+    return changed;
   }
 
   /**
@@ -664,14 +664,14 @@ export class ConfigManager extends EventEmitter {
    * @private
    */
   private sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms))
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 }
 
 /**
  * Global configuration manager instance
  */
-let globalConfigManager: ConfigManager | null = null
+let globalConfigManager: ConfigManager | null = null;
 
 /**
  * Get global configuration manager instance
@@ -689,9 +689,9 @@ let globalConfigManager: ConfigManager | null = null
  */
 export function getConfigManager(options?: ConfigManagerOptions): ConfigManager {
   if (!globalConfigManager) {
-    globalConfigManager = new ConfigManager(options)
+    globalConfigManager = new ConfigManager(options);
   }
-  return globalConfigManager
+  return globalConfigManager;
 }
 
 /**
@@ -711,11 +711,11 @@ export function getConfigManager(options?: ConfigManagerOptions): ConfigManager 
  */
 export async function resetConfigManager(options?: ConfigManagerOptions): Promise<ConfigManager> {
   if (globalConfigManager) {
-    await globalConfigManager.dispose()
+    await globalConfigManager.dispose();
   }
-  globalConfigManager = new ConfigManager(options)
-  await globalConfigManager.initialize()
-  return globalConfigManager
+  globalConfigManager = new ConfigManager(options);
+  await globalConfigManager.initialize();
+  return globalConfigManager;
 }
 
 /**
@@ -734,5 +734,5 @@ export async function resetConfigManager(options?: ConfigManagerOptions): Promis
  * ```
  */
 export function createConfigManager(options?: ConfigManagerOptions): ConfigManager {
-  return new ConfigManager(options)
+  return new ConfigManager(options);
 }

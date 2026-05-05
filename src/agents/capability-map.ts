@@ -2,15 +2,15 @@
  * Agent capability map defining available agents and their specialties
  */
 
-import type { AgentCapability, AgentModel } from '../types/agent'
+import type { AgentCapability, AgentModel } from '../types/agent';
 
 interface AgentDefinition {
-  id: string
-  name: string
-  model: AgentModel
-  specialties: string[]
-  strength: number
-  costFactor: number
+  id: string;
+  name: string;
+  model: AgentModel;
+  specialties: string[];
+  strength: number;
+  costFactor: number;
 }
 
 /**
@@ -96,24 +96,24 @@ const AGENT_DEFINITIONS: AgentDefinition[] = [
     strength: 0.93,
     costFactor: 1.0,
   },
-]
+];
 
 /**
  * Agent capability map with lookup and cost estimation
  */
 export class AgentCapabilityMap {
-  private agents: Map<string, AgentCapability>
+  private agents: Map<string, AgentCapability>;
 
   constructor() {
-    this.agents = new Map()
-    this.initializeAgents()
+    this.agents = new Map();
+    this.initializeAgents();
   }
 
   private initializeAgents(): void {
     for (const def of AGENT_DEFINITIONS) {
       this.agents.set(def.id, {
         ...def,
-      })
+      });
     }
   }
 
@@ -124,31 +124,31 @@ export class AgentCapabilityMap {
   findBySpecialty(specialty: string): AgentCapability[] {
     const matchingAgents = Array.from(this.agents.values()).filter(agent =>
       agent.specialties.some(s => s.toLowerCase().includes(specialty.toLowerCase())),
-    )
+    );
 
-    return matchingAgents.sort((a, b) => b.strength - a.strength)
+    return matchingAgents.sort((a, b) => b.strength - a.strength);
   }
 
   /**
    * Find best agent for a specific specialty
    */
   findBestBySpecialty(specialty: string): AgentCapability | null {
-    const agents = this.findBySpecialty(specialty)
-    return agents.length > 0 ? agents[0] : null
+    const agents = this.findBySpecialty(specialty);
+    return agents.length > 0 ? agents[0] : null;
   }
 
   /**
    * Get agent by ID
    */
   getAgent(id: string): AgentCapability | null {
-    return this.agents.get(id) || null
+    return this.agents.get(id) || null;
   }
 
   /**
    * Get all agents
    */
   getAllAgents(): AgentCapability[] {
-    return Array.from(this.agents.values())
+    return Array.from(this.agents.values());
   }
 
   /**
@@ -156,9 +156,9 @@ export class AgentCapabilityMap {
    * Base cost = model cost factor * complexity * agent cost factor
    */
   estimateCost(agentId: string, complexity: number, tokenCount: number = 1000): number {
-    const agent = this.getAgent(agentId)
+    const agent = this.getAgent(agentId);
     if (!agent) {
-      throw new Error(`Agent not found: ${agentId}`)
+      throw new Error(`Agent not found: ${agentId}`);
     }
 
     // Model base costs (relative to haiku = 1)
@@ -167,13 +167,13 @@ export class AgentCapabilityMap {
       sonnet: 3,
       opus: 15,
       inherit: 0.5,
-    }
+    };
 
-    const baseCost = modelCosts[agent.model]
-    const complexityFactor = complexity / 5 // Normalize to 0-2 range
-    const tokenFactor = tokenCount / 1000 // Normalize to per-1k tokens
+    const baseCost = modelCosts[agent.model];
+    const complexityFactor = complexity / 5; // Normalize to 0-2 range
+    const tokenFactor = tokenCount / 1000; // Normalize to per-1k tokens
 
-    return baseCost * agent.costFactor * complexityFactor * tokenFactor
+    return baseCost * agent.costFactor * complexityFactor * tokenFactor;
   }
 
   /**
@@ -181,49 +181,49 @@ export class AgentCapabilityMap {
    * Returns 0-1 score
    */
   calculateCompatibility(agentId: string, requiredCapabilities: string[]): number {
-    const agent = this.getAgent(agentId)
+    const agent = this.getAgent(agentId);
     if (!agent) {
-      return 0
+      return 0;
     }
 
     if (requiredCapabilities.length === 0) {
-      return agent.strength
+      return agent.strength;
     }
 
     const matchedCapabilities = requiredCapabilities.filter(cap =>
       agent.specialties.some(s =>
         s.toLowerCase().includes(cap.toLowerCase()) || cap.toLowerCase().includes(s.toLowerCase()),
       ),
-    )
+    );
 
-    const matchRatio = matchedCapabilities.length / requiredCapabilities.length
-    return (matchRatio * 0.7) + (agent.strength * 0.3)
+    const matchRatio = matchedCapabilities.length / requiredCapabilities.length;
+    return (matchRatio * 0.7) + (agent.strength * 0.3);
   }
 
   /**
    * Get agent statistics
    */
   getStats(): {
-    totalAgents: number
-    modelDistribution: Record<AgentModel, number>
-    averageStrength: number
-    specialties: string[]
+    totalAgents: number;
+    modelDistribution: Record<AgentModel, number>;
+    averageStrength: number;
+    specialties: string[];
   } {
-    const agents = this.getAllAgents()
+    const agents = this.getAllAgents();
     const modelDistribution: Record<AgentModel, number> = {
       opus: 0,
       sonnet: 0,
       haiku: 0,
       inherit: 0,
-    }
+    };
 
-    let totalStrength = 0
-    const allSpecialties = new Set<string>()
+    let totalStrength = 0;
+    const allSpecialties = new Set<string>();
 
     for (const agent of agents) {
-      modelDistribution[agent.model]++
-      totalStrength += agent.strength
-      agent.specialties.forEach(s => allSpecialties.add(s))
+      modelDistribution[agent.model]++;
+      totalStrength += agent.strength;
+      agent.specialties.forEach(s => allSpecialties.add(s));
     }
 
     return {
@@ -231,12 +231,12 @@ export class AgentCapabilityMap {
       modelDistribution,
       averageStrength: totalStrength / agents.length,
       specialties: Array.from(allSpecialties).sort(),
-    }
+    };
   }
 }
 
 // Export singleton instance
-export const agentCapabilityMap = new AgentCapabilityMap()
+export const agentCapabilityMap = new AgentCapabilityMap();
 
 // ============================================================================
 // Convenience exports for backward compatibility
@@ -245,38 +245,38 @@ export const agentCapabilityMap = new AgentCapabilityMap()
 /** All agent capabilities */
 export const AGENT_CAPABILITIES = AGENT_DEFINITIONS.map(def => ({
   ...def,
-})) as AgentCapability[]
+})) as AgentCapability[];
 
 /**
  * Find agents by specialty
  */
 export function findAgentsBySpecialty(specialty: string): AgentCapability[] {
-  return agentCapabilityMap.findBySpecialty(specialty)
+  return agentCapabilityMap.findBySpecialty(specialty);
 }
 
 /**
  * Get agent capability by ID
  */
 export function getAgentCapability(id: string): AgentCapability | null {
-  return agentCapabilityMap.getAgent(id)
+  return agentCapabilityMap.getAgent(id);
 }
 
 /**
  * Get collaborators for an agent (agents with complementary skills)
  */
 export function getCollaborators(agentId: string): AgentCapability[] {
-  const agent = agentCapabilityMap.getAgent(agentId)
+  const agent = agentCapabilityMap.getAgent(agentId);
   if (!agent)
-    return []
+    return [];
 
   // Find agents with different specialties that could complement
   return agentCapabilityMap.getAllAgents().filter((other) => {
     if (other.id === agentId)
-      return false
+      return false;
     // Check if there's minimal overlap (complementary skills)
     const overlap = other.specialties.filter(s =>
       agent.specialties.includes(s),
-    ).length
-    return overlap < agent.specialties.length / 2
-  })
+    ).length;
+    return overlap < agent.specialties.length / 2;
+  });
 }

@@ -1,22 +1,22 @@
 export interface ClaudeFamilyModelSlots {
-  primaryModel?: string
-  haikuModel?: string
-  sonnetModel?: string
-  opusModel?: string
+  primaryModel?: string;
+  haikuModel?: string;
+  sonnetModel?: string;
+  opusModel?: string;
 }
 
 export interface ResolveClaudeFamilyModelSlotsOptions {
-  defaultModels?: readonly unknown[]
-  selectedModel?: unknown
+  defaultModels?: readonly unknown[];
+  selectedModel?: unknown;
 }
 
 function normalizeExactModelId(model: unknown): string | undefined {
   if (typeof model !== 'string') {
-    return undefined
+    return undefined;
   }
 
-  const trimmed = model.trim()
-  return trimmed || undefined
+  const trimmed = model.trim();
+  return trimmed || undefined;
 }
 
 /**
@@ -32,26 +32,26 @@ function normalizeExactModelId(model: unknown): string | undefined {
 export function resolveClaudeFamilyModelSlots(
   options: ResolveClaudeFamilyModelSlotsOptions = {},
 ): ClaudeFamilyModelSlots {
-  const selectedModel = normalizeExactModelId(options.selectedModel)
+  const selectedModel = normalizeExactModelId(options.selectedModel);
   if (selectedModel) {
     return {
       primaryModel: selectedModel,
       haikuModel: selectedModel,
       sonnetModel: selectedModel,
       opusModel: selectedModel,
-    }
+    };
   }
 
-  const defaults = options.defaultModels || []
-  const primaryModel = normalizeExactModelId(defaults[0])
-  const haikuModel = normalizeExactModelId(defaults[1]) || primaryModel
-  const sonnetModel = normalizeExactModelId(defaults[2]) || primaryModel
-  const opusModel = normalizeExactModelId(defaults[3]) || primaryModel
+  const defaults = options.defaultModels || [];
+  const primaryModel = normalizeExactModelId(defaults[0]);
+  const haikuModel = normalizeExactModelId(defaults[1]) || primaryModel;
+  const sonnetModel = normalizeExactModelId(defaults[2]) || primaryModel;
+  const opusModel = normalizeExactModelId(defaults[3]) || primaryModel;
 
   return {
     primaryModel,
     haikuModel,
     sonnetModel,
     opusModel,
-  }
+  };
 }

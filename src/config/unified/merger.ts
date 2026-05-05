@@ -5,40 +5,40 @@
  * array handling strategies, and validation
  */
 
-import type { ClaudeSettings } from '../../types/config'
-import type { DeepMergeOptions } from '../../utils/object-utils'
-import type { CcjkConfig, ConfigMergeOptions, ConfigValidationError, MergeStrategy, ValidationResult } from './types'
+import type { ClaudeSettings } from '../../types/config';
+import type { DeepMergeOptions } from '../../utils/object-utils';
+import type { CcjkConfig, ConfigMergeOptions, ConfigValidationError, MergeStrategy, ValidationResult } from './types';
 
-import { deepMerge, isPlainObject } from '../../utils/object-utils'
+import { deepMerge, isPlainObject } from '../../utils/object-utils';
 
 /**
  * Merge result with metadata
  */
 export interface MergeResult<T = unknown> {
-  result: T
-  conflicts: MergeConflict[]
-  warnings: string[]
-  sourceInfo: SourceInfo
+  result: T;
+  conflicts: MergeConflict[];
+  warnings: string[];
+  sourceInfo: SourceInfo;
 }
 
 /**
  * Merge conflict information
  */
 export interface MergeConflict {
-  path: string
-  baseValue: unknown
-  sourceValue: unknown
-  resolvedValue: unknown
-  strategy: MergeStrategy
+  path: string;
+  baseValue: unknown;
+  sourceValue: unknown;
+  resolvedValue: unknown;
+  strategy: MergeStrategy;
 }
 
 /**
  * Source information for merge
  */
 export interface SourceInfo {
-  baseProvided: boolean
-  sourceProvided: boolean
-  mergeTime: number
+  baseProvided: boolean;
+  sourceProvided: boolean;
+  mergeTime: number;
 }
 
 /**
@@ -49,7 +49,7 @@ const DEFAULT_MERGE_OPTIONS: Required<ConfigMergeOptions> = {
   priority: 'user',
   arrayMerge: 'unique',
   deep: true,
-}
+};
 
 /**
  * Merge two configurations with smart conflict resolution
@@ -59,36 +59,36 @@ export function mergeConfigs<T extends Record<string, unknown>>(
   source: Partial<T> | null,
   options: ConfigMergeOptions = {},
 ): MergeResult<T> {
-  const opts = { ...DEFAULT_MERGE_OPTIONS, ...options }
-  const startTime = Date.now()
+  const opts = { ...DEFAULT_MERGE_OPTIONS, ...options };
+  const startTime = Date.now();
 
-  const conflicts: MergeConflict[] = []
-  const warnings: string[] = []
+  const conflicts: MergeConflict[] = [];
+  const warnings: string[] = [];
 
   // Handle null cases
-  const baseConfig = base || ({} as T)
-  const sourceConfig = source || ({} as Partial<T>)
+  const baseConfig = base || ({} as T);
+  const sourceConfig = source || ({} as Partial<T>);
 
   // Apply merge strategy
-  let result: T
+  let result: T;
   switch (opts.strategy) {
     case 'replace':
-      result = { ...baseConfig, ...sourceConfig } as T
-      break
+      result = { ...baseConfig, ...sourceConfig } as T;
+      break;
     case 'preserve':
-      result = mergePreserve(baseConfig, sourceConfig, conflicts, opts)
-      break
+      result = mergePreserve(baseConfig, sourceConfig, conflicts, opts);
+      break;
     case 'ask':
       // For 'ask' strategy, we collect conflicts but default to merge
-      result = mergeWithConflictTracking(baseConfig, sourceConfig, conflicts, opts)
+      result = mergeWithConflictTracking(baseConfig, sourceConfig, conflicts, opts);
       if (conflicts.length > 0) {
-        warnings.push(`${conflicts.length} conflicts detected. Review resolved values.`)
+        warnings.push(`${conflicts.length} conflicts detected. Review resolved values.`);
       }
-      break
+      break;
     case 'merge':
     default:
-      result = mergeWithConflictTracking(baseConfig, sourceConfig, conflicts, opts)
-      break
+      result = mergeWithConflictTracking(baseConfig, sourceConfig, conflicts, opts);
+      break;
   }
 
   return {
@@ -100,7 +100,7 @@ export function mergeConfigs<T extends Record<string, unknown>>(
       sourceProvided: source !== null,
       mergeTime: Date.now() - startTime,
     },
-  }
+  };
 }
 
 /**
@@ -115,9 +115,9 @@ function mergeWithConflictTracking<T extends Record<string, unknown>>(
   const deepOptions: DeepMergeOptions = {
     mergeArrays: true,
     arrayMergeStrategy: options.arrayMerge,
-  }
+  };
 
-  return deepMerge(base, source, deepOptions)
+  return deepMerge(base, source, deepOptions);
 }
 
 /**
@@ -129,11 +129,11 @@ function mergePreserve<T extends Record<string, unknown>>(
   conflicts: MergeConflict[],
   options: Required<ConfigMergeOptions>,
 ): T {
-  const result = { ...base }
+  const result = { ...base };
 
   for (const key in source) {
     if (!(key in result)) {
-      (result as any)[key] = source[key]
+      (result as any)[key] = source[key];
     }
     else if (options.deep && isPlainObject(source[key]) && isPlainObject(result[key])) {
       (result as any)[key] = mergePreserve(
@@ -141,11 +141,11 @@ function mergePreserve<T extends Record<string, unknown>>(
         source[key] as Partial<Record<string, unknown>>,
         conflicts,
         options,
-      )
+      );
     }
   }
 
-  return result
+  return result;
 }
 
 /**
@@ -156,35 +156,35 @@ export function mergeClaudeSettings(
   source: Partial<ClaudeSettings> | null,
   options: ConfigMergeOptions = {},
 ): MergeResult<ClaudeSettings> {
-  const opts = { ...DEFAULT_MERGE_OPTIONS, ...options }
+  const opts = { ...DEFAULT_MERGE_OPTIONS, ...options };
 
   // Special handling for env variables - user values always win
-  const mergeResult = mergeConfigs(base || {}, source || {}, opts)
+  const mergeResult = mergeConfigs(base || {}, source || {}, opts);
 
   // Ensure env is handled correctly
   if (base?.env && source?.env) {
     mergeResult.result.env = {
       ...source.env,
       ...base.env, // User env vars take priority
-    }
+    };
   }
   else if (source?.env) {
-    mergeResult.result.env = { ...source.env }
+    mergeResult.result.env = { ...source.env };
   }
   else if (base?.env) {
-    mergeResult.result.env = { ...base.env }
+    mergeResult.result.env = { ...base.env };
   }
 
   // Special handling for permissions - unique merge
   if (base?.permissions?.allow && source?.permissions?.allow) {
-    mergeResult.result.permissions = mergeResult.result.permissions || {}
+    mergeResult.result.permissions = mergeResult.result.permissions || {};
     mergeResult.result.permissions.allow = mergeArraysUnique(
       base.permissions.allow,
       source.permissions.allow,
-    )
+    );
   }
 
-  return mergeResult as MergeResult<ClaudeSettings>
+  return mergeResult as MergeResult<ClaudeSettings>;
 }
 
 /**
@@ -195,31 +195,31 @@ export function mergeCcjkConfig(
   source: Partial<CcjkConfig> | null,
   options: ConfigMergeOptions = {},
 ): MergeResult<CcjkConfig> {
-  const opts = { ...DEFAULT_MERGE_OPTIONS, ...options }
+  const opts = { ...DEFAULT_MERGE_OPTIONS, ...options };
 
   // For CCJK config, preserve user's general settings
-  const mergeResult = mergeConfigs<Record<string, unknown>>((base || {}) as Record<string, unknown>, (source || {}) as Record<string, unknown>, opts)
+  const mergeResult = mergeConfigs<Record<string, unknown>>((base || {}) as Record<string, unknown>, (source || {}) as Record<string, unknown>, opts);
 
   // Ensure general section preserves user preferences
   if (base?.general && source?.general) {
-    const result = mergeResult.result as unknown as CcjkConfig
+    const result = mergeResult.result as unknown as CcjkConfig;
     result.general = {
       ...source.general,
       // Preserve these user preferences
       preferredLang: base.general.preferredLang,
       currentTool: base.general.currentTool,
-    }
+    };
   }
 
-  return mergeResult as unknown as MergeResult<CcjkConfig>
+  return mergeResult as unknown as MergeResult<CcjkConfig>;
 }
 
 /**
  * Merge arrays with unique values
  */
 export function mergeArraysUnique<T>(arr1: T[], arr2: T[]): T[] {
-  const combined = [...(arr1 || []), ...(arr2 || [])]
-  return Array.from(new Set(combined))
+  const combined = [...(arr1 || []), ...(arr2 || [])];
+  return Array.from(new Set(combined));
 }
 
 /**
@@ -229,10 +229,10 @@ export function detectConflicts<T extends Record<string, unknown>>(
   base: T | null,
   source: Partial<T> | null,
 ): MergeConflict[] {
-  const conflicts: MergeConflict[] = []
+  const conflicts: MergeConflict[] = [];
 
   if (!base || !source) {
-    return conflicts
+    return conflicts;
   }
 
   for (const key in source) {
@@ -243,11 +243,11 @@ export function detectConflicts<T extends Record<string, unknown>>(
         sourceValue: source[key],
         resolvedValue: source[key], // Default: source wins
         strategy: 'merge',
-      })
+      });
     }
   }
 
-  return conflicts
+  return conflicts;
 }
 
 /**
@@ -257,21 +257,21 @@ export function validateMergedConfig<T extends Record<string, unknown>>(
   config: T,
   validators: ConfigValidator<T>[] = [],
 ): ValidationResult {
-  const errors: ConfigValidationError[] = []
-  const warnings: ConfigValidationError[] = []
+  const errors: ConfigValidationError[] = [];
+  const warnings: ConfigValidationError[] = [];
 
   for (const validator of validators) {
     try {
-      const result = validator.validate(config)
-      errors.push(...result.errors)
-      warnings.push(...result.warnings)
+      const result = validator.validate(config);
+      errors.push(...result.errors);
+      warnings.push(...result.warnings);
     }
     catch (error) {
       errors.push({
         path: 'validation',
         message: error instanceof Error ? error.message : String(error),
         code: 'validator_error',
-      })
+      });
     }
   }
 
@@ -279,35 +279,35 @@ export function validateMergedConfig<T extends Record<string, unknown>>(
     valid: errors.length === 0,
     errors,
     warnings,
-  }
+  };
 }
 
 /**
  * Config validator interface
  */
 export interface ConfigValidator<T = unknown> {
-  name: string
-  validate: (config: T) => ValidationResult
+  name: string;
+  validate: (config: T) => ValidationResult;
 }
 
 /**
  * Schema-based validator
  */
 export class SchemaValidator<T extends Record<string, unknown>> implements ConfigValidator<T> {
-  name = 'schema'
+  name = 'schema';
 
   constructor(
     private schema: ValidationSchema<T>,
   ) {}
 
   validate(config: T): ValidationResult {
-    const errors: ConfigValidationError[] = []
-    const warnings: ConfigValidationError[] = []
+    const errors: ConfigValidationError[] = [];
+    const warnings: ConfigValidationError[] = [];
 
     for (const key in this.schema) {
-      const fieldSchema = this.schema[key]
+      const fieldSchema = this.schema[key];
       if (!fieldSchema) {
-        continue
+        continue;
       }
 
       // Check required
@@ -316,13 +316,13 @@ export class SchemaValidator<T extends Record<string, unknown>> implements Confi
           path: key,
           message: `Required field missing`,
           code: 'required',
-        })
-        continue
+        });
+        continue;
       }
 
-      const value = (config as any)[key]
+      const value = (config as any)[key];
       if (value === undefined) {
-        continue
+        continue;
       }
 
       // Type validation
@@ -332,7 +332,7 @@ export class SchemaValidator<T extends Record<string, unknown>> implements Confi
           message: `Expected ${fieldSchema.type}, got ${typeof value}`,
           code: 'type_mismatch',
           value,
-        })
+        });
       }
 
       // Enum validation
@@ -342,24 +342,24 @@ export class SchemaValidator<T extends Record<string, unknown>> implements Confi
           message: `Value must be one of: ${fieldSchema.enum.join(', ')}`,
           code: 'invalid_enum',
           value,
-        })
+        });
       }
 
       // Custom validator
       if (fieldSchema.validator) {
-        const result = fieldSchema.validator(value as any, config as any)
+        const result = fieldSchema.validator(value as any, config as any);
         if (!result.valid) {
           errors.push({
             path: key,
             message: result.message || 'Validation failed',
             code: result.code || 'custom_validation_failed',
             value,
-          })
+          });
         }
       }
     }
 
-    return { valid: errors.length === 0, errors, warnings }
+    return { valid: errors.length === 0, errors, warnings };
   }
 }
 
@@ -368,16 +368,16 @@ export class SchemaValidator<T extends Record<string, unknown>> implements Confi
  */
 export type ValidationSchema<T extends Record<string, unknown>> = {
   [K in keyof T]?: FieldSchema<T[K]>
-}
+};
 
 /**
  * Field schema definition
  */
 export interface FieldSchema<T> {
-  type?: string
-  required?: boolean
-  enum?: T[]
-  validator?: (value: T, config: T) => { valid: boolean, message?: string, code?: string }
+  type?: string;
+  required?: boolean;
+  enum?: T[];
+  validator?: (value: T, config: T) => { valid: boolean; message?: string; code?: string };
 }
 
 /**
@@ -388,15 +388,15 @@ export function applyMergeWithValidation<T extends Record<string, unknown>>(
   source: Partial<T> | null,
   options: ConfigMergeOptions = {},
   validators: ConfigValidator<T>[] = [],
-): { result: T, validation: ValidationResult, mergeInfo: MergeResult<T> } {
-  const mergeInfo = mergeConfigs(base, source, options)
-  const validation = validateMergedConfig(mergeInfo.result, validators)
+): { result: T; validation: ValidationResult; mergeInfo: MergeResult<T> } {
+  const mergeInfo = mergeConfigs(base, source, options);
+  const validation = validateMergedConfig(mergeInfo.result, validators);
 
   return {
     result: mergeInfo.result,
     validation,
     mergeInfo,
-  }
+  };
 }
 
 /**
@@ -412,7 +412,7 @@ export function createMerger<T extends Record<string, unknown>>(
     mergeWithValidation: (base: T | null, source: Partial<T> | null, options?: ConfigMergeOptions) =>
       applyMergeWithValidation(base, source, { ...defaultOptions, ...options }, defaultValidators),
     validate: (config: T) => validateMergedConfig(config, defaultValidators),
-  }
+  };
 }
 
 /**
@@ -442,4 +442,4 @@ export const PresetMergers = {
     { strategy: 'preserve', priority: 'user', arrayMerge: 'concat', deep: true },
     [],
   ),
-}
+};

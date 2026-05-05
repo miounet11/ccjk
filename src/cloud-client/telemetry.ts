@@ -13,10 +13,10 @@
  * @module cloud-client/telemetry
  */
 
-import type { CloudClient } from './client'
-import type { MetricType, TelemetryConfig, TelemetryEvent, UsageReport } from './types'
-import { randomUUID } from 'node:crypto'
-import consola from 'consola'
+import type { CloudClient } from './client';
+import type { MetricType, TelemetryConfig, TelemetryEvent, UsageReport } from './types';
+import { randomUUID } from 'node:crypto';
+import consola from 'consola';
 
 /**
  * Default telemetry configuration
@@ -25,26 +25,26 @@ const DEFAULT_TELEMETRY_CONFIG: TelemetryConfig = {
   enabled: true,
   batchSize: 10,
   flushInterval: 30000, // 30 seconds
-}
+};
 
 /**
  * Telemetry reporter with batching
  */
 export class TelemetryReporter {
-  private client: CloudClient
-  private config: TelemetryConfig
-  private events: TelemetryEvent[] = []
-  private flushTimer?: NodeJS.Timeout
-  private userId: string
+  private client: CloudClient;
+  private config: TelemetryConfig;
+  private events: TelemetryEvent[] = [];
+  private flushTimer?: NodeJS.Timeout;
+  private userId: string;
 
   constructor(client: CloudClient, config: Partial<TelemetryConfig> = {}) {
-    this.client = client
-    this.config = { ...DEFAULT_TELEMETRY_CONFIG, ...config }
-    this.userId = this.config.userId || this.client.getIdentity().anonymousUserId || this.generateUserId()
+    this.client = client;
+    this.config = { ...DEFAULT_TELEMETRY_CONFIG, ...config };
+    this.userId = this.config.userId || this.client.getIdentity().anonymousUserId || this.generateUserId();
 
     // Start flush timer if enabled
     if (this.config.enabled) {
-      this.startFlushTimer()
+      this.startFlushTimer();
     }
   }
 
@@ -53,13 +53,13 @@ export class TelemetryReporter {
    */
   private generateUserId(): string {
     // Try to load from environment or generate new
-    const envUserId = process.env.CCJK_TELEMETRY_USER_ID
+    const envUserId = process.env.CCJK_TELEMETRY_USER_ID;
     if (envUserId) {
-      return envUserId
+      return envUserId;
     }
 
     // Generate anonymous ID
-    return randomUUID()
+    return randomUUID();
   }
 
   /**
@@ -69,13 +69,13 @@ export class TelemetryReporter {
     this.flushTimer = setInterval(() => {
       if (this.events.length > 0) {
         this.flush().catch((error) => {
-          consola.debug('Failed to flush telemetry events:', error)
-        })
+          consola.debug('Failed to flush telemetry events:', error);
+        });
       }
-    }, this.config.flushInterval)
+    }, this.config.flushInterval);
 
     // Ensure timer doesn't keep process alive
-    this.flushTimer.unref()
+    this.flushTimer.unref();
   }
 
   /**
@@ -83,8 +83,8 @@ export class TelemetryReporter {
    */
   private stopFlushTimer(): void {
     if (this.flushTimer) {
-      clearInterval(this.flushTimer)
-      this.flushTimer = undefined
+      clearInterval(this.flushTimer);
+      this.flushTimer = undefined;
     }
   }
 
@@ -94,11 +94,11 @@ export class TelemetryReporter {
   isEnabled(): boolean {
     // Check environment variable
     if (process.env.CCJK_TELEMETRY === 'false') {
-      return false
+      return false;
     }
 
     // Check config
-    return this.config.enabled
+    return this.config.enabled;
   }
 
   /**
@@ -109,25 +109,25 @@ export class TelemetryReporter {
    */
   track(type: MetricType, data?: import('./dto').TelemetryEventData): void {
     if (!this.isEnabled()) {
-      return
+      return;
     }
 
     const event: TelemetryEvent = {
       type,
       data: data as any, // Type assertion needed for flexible telemetry data
       timestamp: new Date().toISOString(),
-    }
+    };
 
-    this.events.push(event)
-    consola.debug(`Telemetry event tracked: ${type}`, data)
+    this.events.push(event);
+    consola.debug(`Telemetry event tracked: ${type}`, data);
 
     // Flush if batch size reached (non-blocking)
     if (this.events.length >= this.config.batchSize) {
       // Fire and forget - don't await
       this.flush().catch((error) => {
         // Silent failure - only debug log
-        consola.debug('Telemetry flush failed (non-blocking):', error)
-      })
+        consola.debug('Telemetry flush failed (non-blocking):', error);
+      });
     }
   }
 
@@ -139,7 +139,7 @@ export class TelemetryReporter {
       templateId,
       templateType,
       timestamp: Date.now(),
-    })
+    });
   }
 
   /**
@@ -150,7 +150,7 @@ export class TelemetryReporter {
       recommendationId,
       category,
       timestamp: Date.now(),
-    })
+    });
   }
 
   /**
@@ -161,7 +161,7 @@ export class TelemetryReporter {
       recommendationId,
       category,
       timestamp: Date.now(),
-    })
+    });
   }
 
   /**
@@ -173,7 +173,7 @@ export class TelemetryReporter {
       frameworks,
       recommendationCount: frameworks?.length || 0,
       timestamp: Date.now(),
-    })
+    });
   }
 
   /**
@@ -185,7 +185,7 @@ export class TelemetryReporter {
       errorMessage,
       context,
       timestamp: Date.now(),
-    })
+    });
   }
 
   /**
@@ -194,28 +194,28 @@ export class TelemetryReporter {
    */
   async flush(): Promise<void> {
     if (!this.isEnabled() || this.events.length === 0) {
-      return
+      return;
     }
 
-    const eventsToSend = [...this.events]
-    this.events = []
+    const eventsToSend = [...this.events];
+    this.events = [];
 
     try {
-      consola.debug(`Flushing ${eventsToSend.length} telemetry events`)
+      consola.debug(`Flushing ${eventsToSend.length} telemetry events`);
 
       // Send events in batches
-      const batchSize = 100 // API batch limit
+      const batchSize = 100; // API batch limit
       for (let i = 0; i < eventsToSend.length; i += batchSize) {
-        const batch = eventsToSend.slice(i, i + batchSize)
-        await this.sendBatch(batch)
+        const batch = eventsToSend.slice(i, i + batchSize);
+        await this.sendBatch(batch);
       }
 
-      consola.debug('Telemetry events flushed successfully')
+      consola.debug('Telemetry events flushed successfully');
     }
     catch (error) {
       // Silent failure - don't re-add events, don't throw
       // This prevents telemetry from blocking the main flow
-      consola.debug('Telemetry flush failed silently:', error)
+      consola.debug('Telemetry flush failed silently:', error);
     }
   }
 
@@ -236,10 +236,10 @@ export class TelemetryReporter {
         batchSize: events.length,
         userId: this.userId,
       },
-    }
+    };
 
     // Send report with retry budget (max 3 attempts, 5s timeout)
-    await this.sendWithRetry(report, 3, 5000)
+    await this.sendWithRetry(report, 3, 5000);
   }
 
   /**
@@ -255,35 +255,35 @@ export class TelemetryReporter {
       try {
         // Create a timeout promise
         const timeoutPromise = new Promise<never>((_, reject) => {
-          setTimeout(() => reject(new Error('Telemetry timeout')), timeout)
-        })
+          setTimeout(() => reject(new Error('Telemetry timeout')), timeout);
+        });
 
         // Race between actual request and timeout
         await Promise.race([
           this.client.reportUsage(report),
           timeoutPromise,
-        ])
+        ]);
 
         // Success - exit retry loop
-        consola.debug(`Telemetry sent successfully (attempt ${attempt}/${maxAttempts})`)
-        return
+        consola.debug(`Telemetry sent successfully (attempt ${attempt}/${maxAttempts})`);
+        return;
       }
       catch (error) {
         // Silent failure - only log at debug level
         consola.debug(
           `Telemetry attempt ${attempt}/${maxAttempts} failed:`,
           error instanceof Error ? error.message : error,
-        )
+        );
 
         // Don't retry on last attempt
         if (attempt === maxAttempts) {
-          consola.debug('Telemetry failed after all retry attempts - giving up silently')
-          return
+          consola.debug('Telemetry failed after all retry attempts - giving up silently');
+          return;
         }
 
         // Wait before retry (exponential backoff: 100ms, 200ms, 400ms)
-        const delay = 100 * (2 ** (attempt - 1))
-        await new Promise(resolve => setTimeout(resolve, delay))
+        const delay = 100 * (2 ** (attempt - 1));
+        await new Promise(resolve => setTimeout(resolve, delay));
       }
     }
   }
@@ -292,11 +292,11 @@ export class TelemetryReporter {
    * Stop telemetry and flush remaining events
    */
   async stop(): Promise<void> {
-    this.stopFlushTimer()
+    this.stopFlushTimer();
 
     // Flush remaining events
     if (this.events.length > 0) {
-      await this.flush()
+      await this.flush();
     }
   }
 
@@ -304,18 +304,18 @@ export class TelemetryReporter {
    * Get current queue size
    */
   getQueueSize(): number {
-    return this.events.length
+    return this.events.length;
   }
 
   /**
    * Get telemetry status
    */
-  getStatus(): { enabled: boolean, queueSize: number, userId: string } {
+  getStatus(): { enabled: boolean; queueSize: number; userId: string } {
     return {
       enabled: this.isEnabled(),
       queueSize: this.getQueueSize(),
       userId: this.userId,
-    }
+    };
   }
 
   /**
@@ -326,21 +326,21 @@ export class TelemetryReporter {
    */
   reportUsage(report: UsageReport): void {
     if (!this.isEnabled()) {
-      return
+      return;
     }
 
     // Fire and forget - don't await
     this.sendWithRetry(report, 3, 5000).catch((error) => {
       // Silent failure - only debug log
-      consola.debug('Direct usage report failed (non-blocking):', error)
-    })
+      consola.debug('Direct usage report failed (non-blocking):', error);
+    });
   }
 }
 
 /**
  * Global telemetry instance
  */
-let globalTelemetry: TelemetryReporter | undefined
+let globalTelemetry: TelemetryReporter | undefined;
 
 /**
  * Initialize telemetry
@@ -350,25 +350,25 @@ export function initializeTelemetry(
   config?: Partial<TelemetryConfig>,
 ): TelemetryReporter {
   if (globalTelemetry) {
-    globalTelemetry.stop().catch(() => {})
+    globalTelemetry.stop().catch(() => {});
   }
 
-  globalTelemetry = new TelemetryReporter(client, config)
+  globalTelemetry = new TelemetryReporter(client, config);
 
   if (client.getConfig().autoHandshake !== false && client.getConfig().enableUsageAnalytics !== false) {
     client.handshake().catch((error) => {
-      consola.debug('Failed to send startup handshake (non-blocking):', error)
-    })
+      consola.debug('Failed to send startup handshake (non-blocking):', error);
+    });
   }
 
-  return globalTelemetry
+  return globalTelemetry;
 }
 
 /**
  * Get global telemetry instance
  */
 export function getTelemetry(): TelemetryReporter | undefined {
-  return globalTelemetry
+  return globalTelemetry;
 }
 
 /**
@@ -376,8 +376,8 @@ export function getTelemetry(): TelemetryReporter | undefined {
  */
 export async function stopTelemetry(): Promise<void> {
   if (globalTelemetry) {
-    await globalTelemetry.stop()
-    globalTelemetry = undefined
+    await globalTelemetry.stop();
+    globalTelemetry = undefined;
   }
 }
 
@@ -386,7 +386,7 @@ export async function stopTelemetry(): Promise<void> {
  */
 export function trackEvent(type: MetricType, data?: import('./dto').TelemetryEventData): void {
   if (globalTelemetry) {
-    globalTelemetry.track(type, data)
+    globalTelemetry.track(type, data);
   }
 }
 
@@ -399,9 +399,9 @@ export const telemetryUtils = {
    */
   isEnabled(): boolean {
     if (globalTelemetry) {
-      return globalTelemetry.isEnabled()
+      return globalTelemetry.isEnabled();
     }
-    return process.env.CCJK_TELEMETRY !== 'false'
+    return process.env.CCJK_TELEMETRY !== 'false';
   },
 
   /**
@@ -409,10 +409,10 @@ export const telemetryUtils = {
    */
   trackSafe(type: MetricType, data?: import('./dto').TelemetryEventData): void {
     try {
-      trackEvent(type, data)
+      trackEvent(type, data);
     }
     catch (error) {
-      consola.debug('Failed to track telemetry event:', error)
+      consola.debug('Failed to track telemetry event:', error);
     }
   },
 
@@ -421,11 +421,11 @@ export const telemetryUtils = {
    */
   getStatus() {
     if (globalTelemetry) {
-      return globalTelemetry.getStatus()
+      return globalTelemetry.getStatus();
     }
-    return { enabled: false, queueSize: 0, userId: '' }
+    return { enabled: false, queueSize: 0, userId: '' };
   },
-}
+};
 
 // Export types
-export type { TelemetryConfig, TelemetryEvent } from './types'
+export type { TelemetryConfig, TelemetryEvent } from './types';

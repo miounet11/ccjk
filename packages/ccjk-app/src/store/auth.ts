@@ -1,6 +1,6 @@
-import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { create } from 'zustand';
+import { createJSONStorage, persist } from 'zustand/middleware';
 import { apiClient } from '../api/client';
 import { socketClient } from '../api/socket';
 
@@ -48,7 +48,8 @@ export const useAuthStore = create<AuthState>()(persist(
 
     verifyToken: async () => {
       const { token } = get();
-      if (!token) return false;
+      if (!token)
+        return false;
 
       try {
         set({ isLoading: true });
@@ -57,7 +58,8 @@ export const useAuthStore = create<AuthState>()(persist(
         socketClient.connect(token);
         set({ user, isAuthenticated: true, isLoading: false });
         return true;
-      } catch (error) {
+      }
+      catch (error) {
         console.error('Token verification failed:', error);
         get().logout();
         set({ isLoading: false });
@@ -68,5 +70,5 @@ export const useAuthStore = create<AuthState>()(persist(
   {
     name: 'auth-storage',
     storage: createJSONStorage(() => AsyncStorage),
-  }
+  },
 ));

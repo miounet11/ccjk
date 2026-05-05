@@ -133,3 +133,9 @@ stdout.log
 tmp/
 temp/
 .tmp/
+.npm-cache/
+setup-report-*.md
+
+# Expo local state
+.expo/
+**/.expo/

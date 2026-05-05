@@ -11,17 +11,17 @@ import type {
   CreateProviderInput,
   ProviderCreateResponse,
   ProviderRegistry,
-} from '../types/provider'
-import type { CloudApiClient } from './cloud/api-client'
-import { createApiClient } from './cloud/api-client'
-import { CLOUD_ENDPOINTS } from '../constants'
+} from '../types/provider';
+import type { CloudApiClient } from './cloud/api-client';
+import { CLOUD_ENDPOINTS } from '../constants';
+import { createApiClient } from './cloud/api-client';
 
 // ============================================================================
 // Constants
 // ============================================================================
 
-const CLOUD_API_BASE_URL = `${CLOUD_ENDPOINTS.MAIN.BASE_URL}${CLOUD_ENDPOINTS.MAIN.API_VERSION}`
-const REQUEST_TIMEOUT = 10000 // 10 seconds for quick operations
+const CLOUD_API_BASE_URL = `${CLOUD_ENDPOINTS.MAIN.BASE_URL}${CLOUD_ENDPOINTS.MAIN.API_VERSION}`;
+const REQUEST_TIMEOUT = 10000; // 10 seconds for quick operations
 
 // ============================================================================
 // Built-in Providers (Fallback when cloud is unavailable)
@@ -97,7 +97,7 @@ const BUILTIN_PROVIDERS: Record<string, ProviderRegistry> = {
     status: 'active',
     createdAt: '2024-01-01T00:00:00Z',
   },
-}
+};
 
 // ============================================================================
 // ProviderRegistryService Class
@@ -109,16 +109,16 @@ const BUILTIN_PROVIDERS: Record<string, ProviderRegistry> = {
  * Manages provider lookups and registrations with cloud fallback support.
  */
 export class ProviderRegistryService {
-  private client: CloudApiClient
-  private useCloud: boolean = true
+  private client: CloudApiClient;
+  private useCloud: boolean = true;
 
-  constructor(options?: { baseUrl?: string, useCloud?: boolean }) {
+  constructor(options?: { baseUrl?: string; useCloud?: boolean }) {
     this.client = createApiClient({
       baseUrl: options?.baseUrl || CLOUD_API_BASE_URL,
       timeout: REQUEST_TIMEOUT,
       userAgent: 'CCJK-QuickLaunch/1.0',
-    })
-    this.useCloud = options?.useCloud ?? true
+    });
+    this.useCloud = options?.useCloud ?? true;
   }
 
   // ==========================================================================
@@ -134,17 +134,17 @@ export class ProviderRegistryService {
    * @returns Provider info or null if not found
    */
   async getProvider(shortcode: string): Promise<ProviderRegistry | null> {
-    const normalizedCode = shortcode.toLowerCase().trim()
+    const normalizedCode = shortcode.toLowerCase().trim();
 
     // Try cloud first if enabled
     if (this.useCloud) {
       try {
         const response = await this.client.get<ProviderRegistry>(
           `/providers/${encodeURIComponent(normalizedCode)}`,
-        )
+        );
 
         if (response.success && response.data) {
-          return response.data
+          return response.data;
         }
       }
       catch {
@@ -153,7 +153,7 @@ export class ProviderRegistryService {
     }
 
     // Fallback to built-in providers
-    return BUILTIN_PROVIDERS[normalizedCode] || null
+    return BUILTIN_PROVIDERS[normalizedCode] || null;
   }
 
   /**
@@ -163,8 +163,8 @@ export class ProviderRegistryService {
    * @returns true if exists, false otherwise
    */
   async exists(shortcode: string): Promise<boolean> {
-    const provider = await this.getProvider(shortcode)
-    return provider !== null
+    const provider = await this.getProvider(shortcode);
+    return provider !== null;
   }
 
   /**
@@ -174,7 +174,7 @@ export class ProviderRegistryService {
    * @returns true if available, false if taken
    */
   async isAvailable(shortcode: string): Promise<boolean> {
-    return !(await this.exists(shortcode))
+    return !(await this.exists(shortcode));
   }
 
   // ==========================================================================
@@ -195,20 +195,20 @@ export class ProviderRegistryService {
           code: 'CLOUD_DISABLED',
           message: 'Cloud service is disabled',
         },
-      }
+      };
     }
 
     try {
       const response = await this.client.post<ProviderRegistry>(
         '/providers',
         input,
-      )
+      );
 
       if (response.success && response.data) {
         return {
           success: true,
           data: response.data,
-        }
+        };
       }
 
       return {
@@ -217,7 +217,7 @@ export class ProviderRegistryService {
           code: response.code || 'CREATE_FAILED',
           message: response.error || 'Failed to create provider',
         },
-      }
+      };
     }
     catch (error) {
       return {
@@ -226,7 +226,7 @@ export class ProviderRegistryService {
           code: 'NETWORK_ERROR',
           message: error instanceof Error ? error.message : 'Network error',
         },
-      }
+      };
     }
   }
 
@@ -241,28 +241,28 @@ export class ProviderRegistryService {
    * @returns List of providers
    */
   async listProviders(options?: {
-    category?: string
-    verified?: boolean
-    limit?: number
+    category?: string;
+    verified?: boolean;
+    limit?: number;
   }): Promise<ProviderRegistry[]> {
     // Try cloud first
     if (this.useCloud) {
       try {
-        const query: Record<string, string | number | boolean> = {}
+        const query: Record<string, string | number | boolean> = {};
         if (options?.category)
-          query.category = options.category
+          query.category = options.category;
         if (options?.verified !== undefined)
-          query.verified = options.verified
+          query.verified = options.verified;
         if (options?.limit)
-          query.limit = options.limit
+          query.limit = options.limit;
 
-        const response = await this.client.get<{ providers: ProviderRegistry[], total: number }>(
+        const response = await this.client.get<{ providers: ProviderRegistry[]; total: number }>(
           '/providers',
           query,
-        )
+        );
 
         if (response.success && response.data?.providers) {
-          return response.data.providers
+          return response.data.providers;
         }
       }
       catch {
@@ -271,19 +271,19 @@ export class ProviderRegistryService {
     }
 
     // Return built-in providers
-    let providers = Object.values(BUILTIN_PROVIDERS)
+    let providers = Object.values(BUILTIN_PROVIDERS);
 
     if (options?.category) {
-      providers = providers.filter(p => p.category === options.category)
+      providers = providers.filter(p => p.category === options.category);
     }
     if (options?.verified !== undefined) {
-      providers = providers.filter(p => p.verified === options.verified)
+      providers = providers.filter(p => p.verified === options.verified);
     }
     if (options?.limit) {
-      providers = providers.slice(0, options.limit)
+      providers = providers.slice(0, options.limit);
     }
 
-    return providers
+    return providers;
   }
 
   /**
@@ -293,7 +293,7 @@ export class ProviderRegistryService {
    * @returns Built-in provider or null
    */
   getBuiltinProvider(shortcode: string): ProviderRegistry | null {
-    return BUILTIN_PROVIDERS[shortcode.toLowerCase()] || null
+    return BUILTIN_PROVIDERS[shortcode.toLowerCase()] || null;
   }
 
   /**
@@ -302,7 +302,7 @@ export class ProviderRegistryService {
    * @returns Array of built-in providers
    */
   listBuiltinProviders(): ProviderRegistry[] {
-    return Object.values(BUILTIN_PROVIDERS)
+    return Object.values(BUILTIN_PROVIDERS);
   }
 
   // ==========================================================================
@@ -313,14 +313,14 @@ export class ProviderRegistryService {
    * Enable or disable cloud service
    */
   setUseCloud(enabled: boolean): void {
-    this.useCloud = enabled
+    this.useCloud = enabled;
   }
 
   /**
    * Check if cloud service is enabled
    */
   isCloudEnabled(): boolean {
-    return this.useCloud
+    return this.useCloud;
   }
 }
 
@@ -328,24 +328,24 @@ export class ProviderRegistryService {
 // Singleton Instance
 // ============================================================================
 
-let _instance: ProviderRegistryService | null = null
+let _instance: ProviderRegistryService | null = null;
 
 /**
  * Get the singleton ProviderRegistryService instance
  */
 export function getProviderRegistry(): ProviderRegistryService {
   if (!_instance) {
-    _instance = new ProviderRegistryService()
+    _instance = new ProviderRegistryService();
   }
-  return _instance
+  return _instance;
 }
 
 /**
  * Create a new ProviderRegistryService instance
  */
 export function createProviderRegistry(options?: {
-  baseUrl?: string
-  useCloud?: boolean
+  baseUrl?: string;
+  useCloud?: boolean;
 }): ProviderRegistryService {
-  return new ProviderRegistryService(options)
+  return new ProviderRegistryService(options);
 }

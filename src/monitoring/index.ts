@@ -18,19 +18,19 @@
 // Convenience Functions
 // ============================================================================
 
-import type { Dashboard, DashboardConfig, PerformanceReport, ReportConfig } from './types'
-import { createDashboard } from './dashboard'
-import { getMetricsCollector } from './metrics-collector'
-import { getPerformanceTracker } from './performance-tracker'
-import { createReporter } from './reporter'
+import type { Dashboard, DashboardConfig, PerformanceReport, ReportConfig } from './types';
+import { createDashboard } from './dashboard';
+import { getMetricsCollector } from './metrics-collector';
+import { getPerformanceTracker } from './performance-tracker';
+import { createReporter } from './reporter';
 
-export { createDashboard, PerformanceDashboard } from './dashboard'
+export { createDashboard, PerformanceDashboard } from './dashboard';
 
 // ============================================================================
 // Metrics Collector Exports
 // ============================================================================
 
-export { getMetricsCollector, MetricsCollector, resetMetricsCollector } from './metrics-collector'
+export { getMetricsCollector, MetricsCollector, resetMetricsCollector } from './metrics-collector';
 
 // ============================================================================
 // Performance Tracker Exports
@@ -45,7 +45,7 @@ export {
   resetPerformanceTracker,
   trackErrors,
   trackPerformance,
-} from './performance-tracker'
+} from './performance-tracker';
 
 // ============================================================================
 // Dashboard Exports
@@ -55,13 +55,13 @@ export {
   createReporter,
   generateQuickReport,
   PerformanceReporter,
-} from './reporter'
+} from './reporter';
 
 // ============================================================================
 // Reporter Exports
 // ============================================================================
 
-export * from './types'
+export * from './types';
 
 /**
  * Get the monitoring system singleton
@@ -70,22 +70,22 @@ export function getMonitoring() {
   return {
     collector: getMetricsCollector(),
     tracker: getPerformanceTracker(),
-  }
+  };
 }
 
 /**
  * Start the performance dashboard
  */
 export function startDashboard(config?: Partial<DashboardConfig>): Dashboard {
-  const dashboard = createDashboard(config)
-  dashboard.show()
-  return dashboard
+  const dashboard = createDashboard(config);
+  dashboard.show();
+  return dashboard;
 }
 
 /**
  * Generate a performance report
  */
 export function generateReport(config?: Partial<ReportConfig>): PerformanceReport {
-  const reporter = createReporter(config)
-  return reporter.generateReport()
+  const reporter = createReporter(config);
+  return reporter.generateReport();
 }

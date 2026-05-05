@@ -7,12 +7,12 @@
  * @module config-guardian
  */
 
-export { ConfigGuardian } from './guardian'
-export { ConfigRepairer } from './repairer'
+export { ConfigGuardian } from './guardian';
+export { ConfigRepairer } from './repairer';
 export type {
   CommandFileInfo,
   GuardianStatus,
   RepairResult,
   ValidationResult,
-} from './types'
-export { ConfigValidator } from './validator'
+} from './types';
+export { ConfigValidator } from './validator';

@@ -9,7 +9,7 @@
 
 import type {
   SkillsApiClient,
-} from '../../cloud-client/skills/index.js'
+} from '../../cloud-client/skills/index.js';
 import type {
   CloudApiResponse,
   CloudSkill,
@@ -22,35 +22,35 @@ import type {
   SyncState,
   SyncStateStorage,
   UploadSkillRequest,
-} from '../../types/cloud-sync.js'
-import type { SkillMdFile } from '../../types/skill-md.js'
-import { createHash } from 'node:crypto'
-import { existsSync, mkdirSync, readdirSync, readFileSync, unlinkSync } from 'node:fs'
-import process from 'node:process'
-import { join } from 'pathe'
-import { createGateway } from '../../cloud-client/gateway.js'
+} from '../../types/cloud-sync.js';
+import type { SkillMdFile } from '../../types/skill-md.js';
+import { createHash } from 'node:crypto';
+import { existsSync, mkdirSync, readdirSync, readFileSync, unlinkSync } from 'node:fs';
+import process from 'node:process';
+import { join } from 'pathe';
+import { createGateway } from '../../cloud-client/gateway.js';
 
 // ============================================================================
 // Cloud API Client
 // ============================================================================
 
-import { createSkillsClient } from '../../cloud-client/skills/index.js'
-import { CCJK_CONFIG_DIR, CCJK_SKILLS_DIR, CLOUD_ENDPOINTS } from '../../constants.js'
-import { writeFileAtomic } from '../../utils/fs-operations'
+import { createSkillsClient } from '../../cloud-client/skills/index.js';
+import { CCJK_CONFIG_DIR, CCJK_SKILLS_DIR, CLOUD_ENDPOINTS } from '../../constants.js';
+import { writeFileAtomic } from '../../utils/fs-operations';
 
 // ============================================================================
 // Cloud Skills API
 // ============================================================================
 
-import { parseSkillMdFile } from '../../utils/skill-md/parser.js'
+import { parseSkillMdFile } from '../../utils/skill-md/parser.js';
 
 // ============================================================================
 // Constants
 // ============================================================================
 
-const _CLOUD_API_BASE_URL = process.env.CCJK_CLOUD_API_URL || `${CLOUD_ENDPOINTS.MAIN.BASE_URL}${CLOUD_ENDPOINTS.MAIN.API_VERSION}`
-const SYNC_STATE_FILE = join(CCJK_CONFIG_DIR, 'skills-sync-state.json')
-const DEFAULT_TIMEOUT = 30000 // 30 seconds
+const _CLOUD_API_BASE_URL = process.env.CCJK_CLOUD_API_URL || `${CLOUD_ENDPOINTS.MAIN.BASE_URL}${CLOUD_ENDPOINTS.MAIN.API_VERSION}`;
+const SYNC_STATE_FILE = join(CCJK_CONFIG_DIR, 'skills-sync-state.json');
+const DEFAULT_TIMEOUT = 30000; // 30 seconds
 
 // ============================================================================
 // Sync State Management
@@ -65,20 +65,20 @@ export function loadSyncState(): SyncStateStorage {
       version: '1.0.0',
       lastGlobalSync: new Date().toISOString(),
       skills: {},
-    }
+    };
   }
 
   try {
-    const content = readFileSync(SYNC_STATE_FILE, 'utf-8')
-    return JSON.parse(content) as SyncStateStorage
+    const content = readFileSync(SYNC_STATE_FILE, 'utf-8');
+    return JSON.parse(content) as SyncStateStorage;
   }
   catch (error) {
-    console.warn('Failed to load sync state, using empty state:', error)
+    console.warn('Failed to load sync state, using empty state:', error);
     return {
       version: '1.0.0',
       lastGlobalSync: new Date().toISOString(),
       skills: {},
-    }
+    };
   }
 }
 
@@ -88,14 +88,14 @@ export function loadSyncState(): SyncStateStorage {
 export function saveSyncState(state: SyncStateStorage): void {
   try {
     if (!existsSync(CCJK_CONFIG_DIR)) {
-      mkdirSync(CCJK_CONFIG_DIR, { recursive: true })
+      mkdirSync(CCJK_CONFIG_DIR, { recursive: true });
     }
 
-    writeFileAtomic(SYNC_STATE_FILE, JSON.stringify(state, null, 2), 'utf-8')
+    writeFileAtomic(SYNC_STATE_FILE, JSON.stringify(state, null, 2), 'utf-8');
   }
   catch (error) {
-    console.error('Failed to save sync state:', error)
-    throw new Error(`Failed to save sync state: ${error}`)
+    console.error('Failed to save sync state:', error);
+    throw new Error(`Failed to save sync state: ${error}`);
   }
 }
 
@@ -109,27 +109,27 @@ export function updateSyncState(
   localChecksum: string,
   remoteChecksum: string,
 ): void {
-  const state = loadSyncState()
+  const state = loadSyncState();
 
   // Determine sync status
-  let status: SyncState['status'] = 'synced'
+  let status: SyncState['status'] = 'synced';
   if (localChecksum === remoteChecksum) {
-    status = 'synced'
+    status = 'synced';
   }
   else if (!remoteChecksum) {
-    status = 'local_only'
+    status = 'local_only';
   }
   else if (!localChecksum) {
-    status = 'remote_only'
+    status = 'remote_only';
   }
   else if (localVersion > remoteVersion) {
-    status = 'local_ahead'
+    status = 'local_ahead';
   }
   else if (remoteVersion > localVersion) {
-    status = 'remote_ahead'
+    status = 'remote_ahead';
   }
   else {
-    status = 'conflict'
+    status = 'conflict';
   }
 
   state.skills[skillId] = {
@@ -140,10 +140,10 @@ export function updateSyncState(
     localChecksum,
     remoteChecksum,
     status,
-  }
+  };
 
-  state.lastGlobalSync = new Date().toISOString()
-  saveSyncState(state)
+  state.lastGlobalSync = new Date().toISOString();
+  saveSyncState(state);
 }
 
 // ============================================================================
@@ -154,7 +154,7 @@ export function updateSyncState(
  * Calculate checksum for skill content
  */
 export function calculateChecksum(content: string): string {
-  return createHash('sha256').update(content).digest('hex')
+  return createHash('sha256').update(content).digest('hex');
 }
 
 /**
@@ -162,43 +162,43 @@ export function calculateChecksum(content: string): string {
  */
 export async function getLocalSkills(): Promise<SkillMdFile[]> {
   if (!existsSync(CCJK_SKILLS_DIR)) {
-    return []
+    return [];
   }
 
-  const skills: SkillMdFile[] = []
-  const files = readdirSync(CCJK_SKILLS_DIR)
+  const skills: SkillMdFile[] = [];
+  const files = readdirSync(CCJK_SKILLS_DIR);
 
   for (const file of files) {
     if (file.endsWith('.md')) {
-      const filePath = join(CCJK_SKILLS_DIR, file)
+      const filePath = join(CCJK_SKILLS_DIR, file);
       try {
-        const skill = await parseSkillMdFile(filePath)
-        skills.push(skill)
+        const skill = await parseSkillMdFile(filePath);
+        skills.push(skill);
       }
       catch (error) {
-        console.warn(`Failed to parse skill file ${file}:`, error)
+        console.warn(`Failed to parse skill file ${file}:`, error);
       }
     }
   }
 
-  return skills
+  return skills;
 }
 
 /**
  * Get local skill by ID
  */
 export async function getLocalSkill(skillId: string): Promise<SkillMdFile | null> {
-  const filePath = join(CCJK_SKILLS_DIR, `${skillId}.md`)
+  const filePath = join(CCJK_SKILLS_DIR, `${skillId}.md`);
   if (!existsSync(filePath)) {
-    return null
+    return null;
   }
 
   try {
-    return await parseSkillMdFile(filePath)
+    return await parseSkillMdFile(filePath);
   }
   catch (error) {
-    console.error(`Failed to parse skill ${skillId}:`, error)
-    return null
+    console.error(`Failed to parse skill ${skillId}:`, error);
+    return null;
   }
 }
 
@@ -207,26 +207,26 @@ export async function getLocalSkill(skillId: string): Promise<SkillMdFile | null
  */
 export function saveLocalSkill(skillId: string, content: string): void {
   if (!existsSync(CCJK_SKILLS_DIR)) {
-    mkdirSync(CCJK_SKILLS_DIR, { recursive: true })
+    mkdirSync(CCJK_SKILLS_DIR, { recursive: true });
   }
 
-  const filePath = join(CCJK_SKILLS_DIR, `${skillId}.md`)
-  writeFileAtomic(filePath, content, 'utf-8')
+  const filePath = join(CCJK_SKILLS_DIR, `${skillId}.md`);
+  writeFileAtomic(filePath, content, 'utf-8');
 }
 
 /**
  * Delete local skill
  */
 export function deleteLocalSkill(skillId: string): void {
-  const filePath = join(CCJK_SKILLS_DIR, `${skillId}.md`)
+  const filePath = join(CCJK_SKILLS_DIR, `${skillId}.md`);
   if (existsSync(filePath)) {
     // Use trash for safe deletion
     import('trash').then(({ default: trash }) => {
-      trash([filePath])
+      trash([filePath]);
     }).catch(() => {
       // Fallback to direct deletion if trash is not available
-      unlinkSync(filePath)
-    })
+      unlinkSync(filePath);
+    });
   }
 }
 
@@ -234,47 +234,47 @@ export function deleteLocalSkill(skillId: string): void {
  * Get authentication token from storage
  */
 function getAuthToken(): string | null {
-  const tokenFile = join(CCJK_CONFIG_DIR, 'cloud-token.json')
+  const tokenFile = join(CCJK_CONFIG_DIR, 'cloud-token.json');
   if (!existsSync(tokenFile)) {
-    return null
+    return null;
   }
 
   try {
-    const content = readFileSync(tokenFile, 'utf-8')
-    const data = JSON.parse(content)
-    return data.deviceToken || null
+    const content = readFileSync(tokenFile, 'utf-8');
+    const data = JSON.parse(content);
+    return data.deviceToken || null;
   }
   catch {
-    return null
+    return null;
   }
 }
 
 /**
  * Get or create skills API client
  */
-let skillsClient: SkillsApiClient | null = null
+let skillsClient: SkillsApiClient | null = null;
 
 function getSkillsClient(): SkillsApiClient {
   if (!skillsClient) {
-    const token = getAuthToken()
+    const token = getAuthToken();
     if (!token) {
-      throw new Error('Not authenticated. Please bind device first using: npx ccjk notification bind')
+      throw new Error('Not authenticated. Please bind device first using: npx ccjk notification bind');
     }
 
     const gateway = createGateway({
       authToken: token,
       timeout: DEFAULT_TIMEOUT,
-    })
-    skillsClient = createSkillsClient(gateway)
+    });
+    skillsClient = createSkillsClient(gateway);
   }
-  return skillsClient
+  return skillsClient;
 }
 
 /**
  * Reset skills client (for testing or token refresh)
  */
 export function resetSkillsClient(): void {
-  skillsClient = null
+  skillsClient = null;
 }
 
 /**
@@ -284,7 +284,7 @@ export async function listCloudSkills(
   options: ListSkillsOptions = {},
 ): Promise<CloudApiResponse<ListSkillsResponse>> {
   try {
-    const client = getSkillsClient()
+    const client = getSkillsClient();
     const response = await client.list({
       privacy: options.privacy as any,
       author: options.author,
@@ -294,7 +294,7 @@ export async function listCloudSkills(
       pageSize: options.pageSize,
       sortBy: options.sortBy as any,
       sortDir: options.sortDir,
-    })
+    });
 
     if (!response.success || !response.data) {
       return {
@@ -302,7 +302,7 @@ export async function listCloudSkills(
         error: response.error || 'Failed to list skills',
         code: response.code,
         timestamp: new Date().toISOString(),
-      }
+      };
     }
 
     // Convert SkillListResponse to ListSkillsResponse
@@ -316,7 +316,7 @@ export async function listCloudSkills(
       checksum: skill.checksum,
       createdAt: skill.createdAt,
       updatedAt: skill.updatedAt,
-    }))
+    }));
 
     return {
       success: true,
@@ -328,14 +328,14 @@ export async function listCloudSkills(
         totalPages: response.data.totalPages,
       },
       timestamp: new Date().toISOString(),
-    }
+    };
   }
   catch (error) {
     return {
       success: false,
       error: error instanceof Error ? error.message : String(error),
       timestamp: new Date().toISOString(),
-    }
+    };
   }
 }
 
@@ -347,11 +347,11 @@ export async function getCloudSkill(
   version?: string,
 ): Promise<CloudApiResponse<CloudSkill>> {
   try {
-    const client = getSkillsClient()
+    const client = getSkillsClient();
     const response = await client.get({
       skillId,
       version,
-    })
+    });
 
     if (!response.success || !response.data) {
       return {
@@ -359,11 +359,11 @@ export async function getCloudSkill(
         error: response.error || 'Failed to get skill',
         code: response.code,
         timestamp: new Date().toISOString(),
-      }
+      };
     }
 
     // Convert SkillGetResponse to CloudSkill format
-    const skill = response.data.skill
+    const skill = response.data.skill;
     return {
       success: true,
       data: {
@@ -378,14 +378,14 @@ export async function getCloudSkill(
         updatedAt: skill.updatedAt,
       } as CloudSkill,
       timestamp: new Date().toISOString(),
-    }
+    };
   }
   catch (error) {
     return {
       success: false,
       error: error instanceof Error ? error.message : String(error),
       timestamp: new Date().toISOString(),
-    }
+    };
   }
 }
 
@@ -396,7 +396,7 @@ export async function uploadSkill(
   request: UploadSkillRequest,
 ): Promise<CloudApiResponse<CloudSkill>> {
   try {
-    const client = getSkillsClient()
+    const client = getSkillsClient();
     const response = await client.upload({
       name: request.name,
       version: request.version,
@@ -404,7 +404,7 @@ export async function uploadSkill(
       metadata: request.metadata,
       privacy: request.privacy,
       checksum: request.checksum,
-    })
+    });
 
     if (!response.success || !response.data) {
       return {
@@ -412,11 +412,11 @@ export async function uploadSkill(
         error: response.error || 'Failed to upload skill',
         code: response.code,
         timestamp: new Date().toISOString(),
-      }
+      };
     }
 
     // Convert SkillUploadResponse to CloudSkill format
-    const skill = response.data.skill
+    const skill = response.data.skill;
     return {
       success: true,
       data: {
@@ -431,14 +431,14 @@ export async function uploadSkill(
         updatedAt: skill.updatedAt,
       } as CloudSkill,
       timestamp: new Date().toISOString(),
-    }
+    };
   }
   catch (error) {
     return {
       success: false,
       error: error instanceof Error ? error.message : String(error),
       timestamp: new Date().toISOString(),
-    }
+    };
   }
 }
 
@@ -450,7 +450,7 @@ export async function updateCloudSkill(
   request: Partial<UploadSkillRequest>,
 ): Promise<CloudApiResponse<CloudSkill>> {
   try {
-    const client = getSkillsClient()
+    const client = getSkillsClient();
     const response = await client.update({
       skillId,
       version: request.version,
@@ -458,7 +458,7 @@ export async function updateCloudSkill(
       metadata: request.metadata,
       privacy: request.privacy,
       checksum: request.checksum,
-    })
+    });
 
     if (!response.success || !response.data) {
       return {
@@ -466,11 +466,11 @@ export async function updateCloudSkill(
         error: response.error || 'Failed to update skill',
         code: response.code,
         timestamp: new Date().toISOString(),
-      }
+      };
     }
 
     // Convert SkillUpdateResponse to CloudSkill format
-    const skill = response.data.skill
+    const skill = response.data.skill;
     return {
       success: true,
       data: {
@@ -485,14 +485,14 @@ export async function updateCloudSkill(
         updatedAt: skill.updatedAt,
       } as CloudSkill,
       timestamp: new Date().toISOString(),
-    }
+    };
   }
   catch (error) {
     return {
       success: false,
       error: error instanceof Error ? error.message : String(error),
       timestamp: new Date().toISOString(),
-    }
+    };
   }
 }
 
@@ -503,8 +503,8 @@ export async function deleteCloudSkill(
   skillId: string,
 ): Promise<CloudApiResponse<void>> {
   try {
-    const client = getSkillsClient()
-    const response = await client.delete({ skillId })
+    const client = getSkillsClient();
+    const response = await client.delete({ skillId });
 
     if (!response.success) {
       return {
@@ -512,20 +512,20 @@ export async function deleteCloudSkill(
         error: response.error || 'Failed to delete skill',
         code: response.code,
         timestamp: new Date().toISOString(),
-      }
+      };
     }
 
     return {
       success: true,
       timestamp: new Date().toISOString(),
-    }
+    };
   }
   catch (error) {
     return {
       success: false,
       error: error instanceof Error ? error.message : String(error),
       timestamp: new Date().toISOString(),
-    }
+    };
   }
 }
 
@@ -542,32 +542,32 @@ export async function syncSkill(
 ): Promise<SkillSyncResult> {
   try {
     // Get local skill
-    const localSkill = await getLocalSkill(skillId)
+    const localSkill = await getLocalSkill(skillId);
     const localContent = localSkill
       ? readFileSync(join(CCJK_SKILLS_DIR, `${skillId}.md`), 'utf-8')
-      : ''
-    const localChecksum = localContent ? calculateChecksum(localContent) : ''
-    const localVersion = localSkill?.metadata.version || ''
+      : '';
+    const localChecksum = localContent ? calculateChecksum(localContent) : '';
+    const localVersion = localSkill?.metadata.version || '';
 
     // Get cloud skill
-    const cloudResponse = await getCloudSkill(skillId)
-    const cloudSkill = cloudResponse.success ? cloudResponse.data : null
-    const remoteChecksum = cloudSkill?.checksum || ''
-    const remoteVersion = cloudSkill?.version || ''
+    const cloudResponse = await getCloudSkill(skillId);
+    const cloudSkill = cloudResponse.success ? cloudResponse.data : null;
+    const remoteChecksum = cloudSkill?.checksum || '';
+    const remoteVersion = cloudSkill?.version || '';
 
     // Get current sync state
-    const syncState = loadSyncState()
-    const previousState = syncState.skills[skillId]
+    const syncState = loadSyncState();
+    const previousState = syncState.skills[skillId];
 
     // Determine action based on state
-    let action: SkillSyncResult['action'] = 'skipped'
-    let newState: SyncState | undefined
+    let action: SkillSyncResult['action'] = 'skipped';
+    let newState: SyncState | undefined;
 
     // Both exist - check for conflicts
     if (localSkill && cloudSkill) {
       if (localChecksum === remoteChecksum) {
         // Already synced
-        action = 'skipped'
+        action = 'skipped';
       }
       else if (options.force) {
         // Force upload
@@ -584,14 +584,14 @@ export async function syncSkill(
             },
             privacy: 'private',
             checksum: localChecksum,
-          }
-          await updateCloudSkill(skillId, uploadRequest)
+          };
+          await updateCloudSkill(skillId, uploadRequest);
         }
-        action = 'uploaded'
+        action = 'uploaded';
       }
       else {
         // Check conflict resolution strategy
-        const resolution = options.conflictResolution || 'prompt'
+        const resolution = options.conflictResolution || 'prompt';
 
         if (resolution === 'local') {
           // Upload local version
@@ -608,22 +608,22 @@ export async function syncSkill(
               },
               privacy: 'private',
               checksum: localChecksum,
-            }
-            await updateCloudSkill(skillId, uploadRequest)
+            };
+            await updateCloudSkill(skillId, uploadRequest);
           }
-          action = 'uploaded'
+          action = 'uploaded';
         }
         else if (resolution === 'remote') {
           // Download remote version
           if (!options.dryRun) {
-            saveLocalSkill(skillId, cloudSkill.content)
+            saveLocalSkill(skillId, cloudSkill.content);
           }
-          action = 'downloaded'
+          action = 'downloaded';
         }
         else if (resolution === 'newer') {
           // Compare timestamps
-          const localTime = localSkill.modifiedAt?.getTime() || 0
-          const remoteTime = new Date(cloudSkill.updatedAt).getTime()
+          const localTime = localSkill.modifiedAt?.getTime() || 0;
+          const remoteTime = new Date(cloudSkill.updatedAt).getTime();
 
           if (localTime > remoteTime) {
             // Upload local version
@@ -640,22 +640,22 @@ export async function syncSkill(
                 },
                 privacy: 'private',
                 checksum: localChecksum,
-              }
-              await updateCloudSkill(skillId, uploadRequest)
+              };
+              await updateCloudSkill(skillId, uploadRequest);
             }
-            action = 'uploaded'
+            action = 'uploaded';
           }
           else {
             // Download remote version
             if (!options.dryRun) {
-              saveLocalSkill(skillId, cloudSkill.content)
+              saveLocalSkill(skillId, cloudSkill.content);
             }
-            action = 'downloaded'
+            action = 'downloaded';
           }
         }
         else {
           // Prompt - mark as conflict
-          action = 'conflict'
+          action = 'conflict';
         }
       }
     }
@@ -674,23 +674,23 @@ export async function syncSkill(
           },
           privacy: 'private',
           checksum: localChecksum,
-        }
-        await uploadSkill(uploadRequest)
+        };
+        await uploadSkill(uploadRequest);
       }
-      action = 'uploaded'
+      action = 'uploaded';
     }
     // Only remote exists - download
     else if (!localSkill && cloudSkill) {
       if (!options.dryRun) {
-        saveLocalSkill(skillId, cloudSkill.content)
+        saveLocalSkill(skillId, cloudSkill.content);
       }
-      action = 'downloaded'
+      action = 'downloaded';
     }
 
     // Update sync state
     if (!options.dryRun && action !== 'conflict') {
-      updateSyncState(skillId, localVersion, remoteVersion, localChecksum, remoteChecksum)
-      newState = loadSyncState().skills[skillId]
+      updateSyncState(skillId, localVersion, remoteVersion, localChecksum, remoteChecksum);
+      newState = loadSyncState().skills[skillId];
     }
 
     return {
@@ -700,7 +700,7 @@ export async function syncSkill(
       action,
       previousState,
       newState,
-    }
+    };
   }
   catch (error) {
     return {
@@ -709,7 +709,7 @@ export async function syncSkill(
       success: false,
       action: 'skipped',
       error: error instanceof Error ? error.message : String(error),
-    }
+    };
   }
 }
 
@@ -719,44 +719,44 @@ export async function syncSkill(
 export async function syncAllSkills(
   options: SyncOptions = {},
 ): Promise<SyncResult> {
-  const startTime = Date.now()
+  const startTime = Date.now();
   try {
     // Get all local skills
-    const localSkills = await getLocalSkills()
-    const localSkillIds = new Set(localSkills.map(s => s.metadata.name))
+    const localSkills = await getLocalSkills();
+    const localSkillIds = new Set(localSkills.map(s => s.metadata.name));
 
     // Get all cloud skills
-    const cloudResponse = await listCloudSkills({ privacy: options.privacy })
+    const cloudResponse = await listCloudSkills({ privacy: options.privacy });
     if (!cloudResponse.success) {
-      throw new Error(cloudResponse.error || 'Failed to list cloud skills')
+      throw new Error(cloudResponse.error || 'Failed to list cloud skills');
     }
 
-    const cloudSkills = cloudResponse.data?.skills || []
-    const cloudSkillIds = new Set(cloudSkills.map(s => s.id))
+    const cloudSkills = cloudResponse.data?.skills || [];
+    const cloudSkillIds = new Set(cloudSkills.map(s => s.id));
 
     // Combine all skill IDs
-    const allSkillIds = new Set([...localSkillIds, ...cloudSkillIds])
+    const allSkillIds = new Set([...localSkillIds, ...cloudSkillIds]);
 
     // Filter by options
-    let skillIdsToSync = Array.from(allSkillIds)
+    let skillIdsToSync = Array.from(allSkillIds);
     if (options.skillIds && options.skillIds.length > 0) {
-      skillIdsToSync = skillIdsToSync.filter(id => options.skillIds!.includes(id))
+      skillIdsToSync = skillIdsToSync.filter(id => options.skillIds!.includes(id));
     }
 
     // Sync each skill
-    const results: SkillSyncResult[] = []
+    const results: SkillSyncResult[] = [];
     for (const skillId of skillIdsToSync) {
-      const result = await syncSkill(skillId, options)
-      results.push(result)
+      const result = await syncSkill(skillId, options);
+      results.push(result);
     }
 
     // Calculate statistics
-    const succeeded = results.filter(r => r.success).length
-    const failed = results.filter(r => !r.success).length
-    const conflicts = results.filter(r => r.action === 'conflict').length
-    const uploaded = results.filter(r => r.action === 'uploaded').length
-    const downloaded = results.filter(r => r.action === 'downloaded').length
-    const skipped = results.filter(r => r.action === 'skipped').length
+    const succeeded = results.filter(r => r.success).length;
+    const failed = results.filter(r => !r.success).length;
+    const conflicts = results.filter(r => r.action === 'conflict').length;
+    const uploaded = results.filter(r => r.action === 'uploaded').length;
+    const downloaded = results.filter(r => r.action === 'downloaded').length;
+    const skipped = results.filter(r => r.action === 'skipped').length;
 
     return {
       success: failed === 0,
@@ -769,7 +769,7 @@ export async function syncAllSkills(
       skipped,
       results,
       durationMs: Date.now() - startTime,
-    }
+    };
   }
   catch (error) {
     return {
@@ -784,7 +784,7 @@ export async function syncAllSkills(
       results: [],
       error: error instanceof Error ? error.message : String(error),
       durationMs: Date.now() - startTime,
-    }
+    };
   }
 }
 
@@ -799,7 +799,7 @@ export async function pushSkills(
     ...options,
     skillIds,
     conflictResolution: options.conflictResolution || 'local',
-  })
+  });
 }
 
 /**
@@ -813,5 +813,5 @@ export async function pullSkills(
     ...options,
     skillIds,
     conflictResolution: options.conflictResolution || 'remote',
-  })
+  });
 }

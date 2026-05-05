@@ -5,7 +5,7 @@
  * 支持发现、安装和管理 MCP 插件
  */
 
-import type { CcjkSkill } from '../skills/types'
+import type { CcjkSkill } from '../skills/types';
 
 /**
  * MCP Marketplace Skill 定义
@@ -266,20 +266,20 @@ claude --mcp-list  # Shows marketplace-installed plugins
 "Connect to my PostgreSQL database and show tables"
 \`\`\`
 `,
-}
+};
 
 /**
  * Get marketplace skill markdown template
  */
 export function getMarketplaceSkillTemplate(): string {
-  return marketplaceSkill.template
+  return marketplaceSkill.template;
 }
 
 /**
  * Get marketplace skill definition
  */
 export function getMarketplaceSkill(): CcjkSkill {
-  return marketplaceSkill
+  return marketplaceSkill;
 }
 
 /**

@@ -26,41 +26,41 @@
  * └── index.ts           - This file - main entry point
  */
 
-import type { CodeToolType, SupportedLang } from '../../constants'
-import type { ToolModeRuntimeSummary } from './renderer'
-import { buildMyclaudeProviderPresentation } from '../../utils/claude-config'
-import type { MyclaudeProviderSyncResult } from '../../utils/claude-config'
-import type { MenuItem, MenuLevel, MenuResult } from './types'
-import ansis from 'ansis'
-import inquirer from 'inquirer'
-import { CODE_TOOL_BANNERS, DEFAULT_CODE_TOOL_TYPE, isCodeToolType } from '../../constants'
-import { i18n } from '../../i18n/index'
-import { displayBannerWithInfo } from '../../utils/banner'
-import { readZcfConfig, updateZcfConfig } from '../../utils/ccjk-config'
-import { configureCodexAiMemoryFeature, configureCodexApi, configureCodexDefaultModelFeature, configureCodexMcp, configureCodexPresetFeature, runCodexFullInit, runCodexUninstall, runCodexUpdate, runCodexWorkflowImportWithLanguageSelection } from '../../utils/code-tools/codex'
-import { resolveStartupCodeType } from '../../utils/code-type-resolver'
-import { handleExitPromptError, handleGeneralError } from '../../utils/error-handler'
-import { changeScriptLanguageFeature } from '../../utils/features'
-import { checkForUpdates, getInstalledPackages } from '../../utils/marketplace/index'
-import { searchPackages } from '../../utils/marketplace/registry'
-import { addNumbersToChoices } from '../../utils/prompt-helpers'
-import { generateQuickActionsPanel, generateSkillReferenceCard, injectSmartGuide, isSmartGuideInstalled, QUICK_ACTIONS, removeSmartGuide } from '../../utils/smart-guide'
-import { checkSuperpowersInstalled, getSuperpowersSkills, installSuperpowers, installSuperpowersViaGit, uninstallSuperpowers, updateSuperpowers } from '../../utils/superpowers'
-import { promptBoolean } from '../../utils/toggle-prompt'
-import { runCcrMenuFeature, runCcusageFeature, runCometixMenuFeature } from '../../utils/tools'
-import { checkUpdates } from '../check-updates'
-import { configSwitchCommand } from '../config-switch'
-import { showContextMenu } from '../context-menu'
-import { doctor, workspaceDiagnostics } from '../doctor'
-import { hooksSync } from '../hooks-sync'
-import { init } from '../init'
-import { mcpInstall, mcpList, mcpSearch, mcpTrending, mcpUninstall } from '../mcp-market'
-import { notificationCommand } from '../notification'
-import { isOnboardingCompleted, runOnboardingWizard } from '../onboarding-wizard'
-import { uninstall } from '../uninstall'
-import { update } from '../update'
-import { getItemsForLevel, levelDefinitions } from './progressive'
-import { createAllSections, filterSectionsByItemLimit, findItemByInput, getToolModeMenuTitle, getVisibleItemCount, isBackCommand, isExitCommand, isMoreCommand, parseMenuInput, promptMenuSelection, renderMenu, renderToolModeHero } from './renderer'
+import type { CodeToolType, SupportedLang } from '../../constants';
+import type { MyclaudeProviderSyncResult } from '../../utils/claude-config';
+import type { ToolModeRuntimeSummary } from './renderer';
+import type { MenuItem, MenuLevel, MenuResult } from './types';
+import ansis from 'ansis';
+import inquirer from 'inquirer';
+import { CODE_TOOL_BANNERS, DEFAULT_CODE_TOOL_TYPE, isCodeToolType } from '../../constants';
+import { i18n } from '../../i18n/index';
+import { displayBannerWithInfo } from '../../utils/banner';
+import { readZcfConfig, updateZcfConfig } from '../../utils/ccjk-config';
+import { buildMyclaudeProviderPresentation } from '../../utils/claude-config';
+import { configureCodexAiMemoryFeature, configureCodexApi, configureCodexDefaultModelFeature, configureCodexMcp, configureCodexPresetFeature, runCodexFullInit, runCodexUninstall, runCodexUpdate, runCodexWorkflowImportWithLanguageSelection } from '../../utils/code-tools/codex';
+import { resolveStartupCodeType } from '../../utils/code-type-resolver';
+import { handleExitPromptError, handleGeneralError } from '../../utils/error-handler';
+import { changeScriptLanguageFeature } from '../../utils/features';
+import { checkForUpdates, getInstalledPackages } from '../../utils/marketplace/index';
+import { searchPackages } from '../../utils/marketplace/registry';
+import { addNumbersToChoices } from '../../utils/prompt-helpers';
+import { generateQuickActionsPanel, generateSkillReferenceCard, injectSmartGuide, isSmartGuideInstalled, QUICK_ACTIONS, removeSmartGuide } from '../../utils/smart-guide';
+import { checkSuperpowersInstalled, getSuperpowersSkills, installSuperpowers, installSuperpowersViaGit, uninstallSuperpowers, updateSuperpowers } from '../../utils/superpowers';
+import { promptBoolean } from '../../utils/toggle-prompt';
+import { runCcrMenuFeature, runCcusageFeature, runCometixMenuFeature } from '../../utils/tools';
+import { checkUpdates } from '../check-updates';
+import { configSwitchCommand } from '../config-switch';
+import { showContextMenu } from '../context-menu';
+import { doctor, workspaceDiagnostics } from '../doctor';
+import { hooksSync } from '../hooks-sync';
+import { init } from '../init';
+import { mcpInstall, mcpList, mcpSearch, mcpTrending, mcpUninstall } from '../mcp-market';
+import { notificationCommand } from '../notification';
+import { isOnboardingCompleted, runOnboardingWizard } from '../onboarding-wizard';
+import { uninstall } from '../uninstall';
+import { update } from '../update';
+import { getItemsForLevel, levelDefinitions } from './progressive';
+import { createAllSections, filterSectionsByItemLimit, findItemByInput, getToolModeMenuTitle, getVisibleItemCount, isBackCommand, isExitCommand, isMoreCommand, parseMenuInput, promptMenuSelection, renderMenu, renderToolModeHero } from './renderer';
 
 /**
  * Default menu configuration
@@ -71,7 +71,7 @@ const DEFAULT_MENU_CONFIG = {
   showHints: true,
   keyboardNav: true,
   animationSpeed: 0,
-}
+};
 
 /**
  * Menu state singleton
@@ -80,63 +80,63 @@ const menuState = {
   level: DEFAULT_MENU_CONFIG.defaultLevel as MenuLevel,
   usageCount: 0,
   actionsPerformed: [] as string[],
-}
+};
 
 /**
  * Print separator line
  */
 function printSeparator(): void {
-  console.log(`\n${ansis.dim('─'.repeat(50))}\n`)
+  console.log(`\n${ansis.dim('─'.repeat(50))}\n`);
 }
 
 interface SimpleNumericMenuOption {
-  key: string
-  label: string
-  description?: string
-  action: () => Promise<void>
+  key: string;
+  label: string;
+  description?: string;
+  action: () => Promise<void>;
 }
 
 async function runSimpleNumericMenu(options: {
-  title: string
-  subtitle?: string
-  items: SimpleNumericMenuOption[]
-  backLabel?: string
-  showSeparatorAfterAction?: boolean
+  title: string;
+  subtitle?: string;
+  items: SimpleNumericMenuOption[];
+  backLabel?: string;
+  showSeparatorAfterAction?: boolean;
 }): Promise<void> {
-  console.log(ansis.green(options.title))
+  console.log(ansis.green(options.title));
   if (options.subtitle) {
-    console.log(options.subtitle)
+    console.log(options.subtitle);
   }
 
   for (const item of options.items) {
-    const description = item.description ? ` ${ansis.gray(`- ${item.description}`)}` : ''
-    console.log(`  ${ansis.green(`${item.key}.`)} ${item.label}${description}`)
+    const description = item.description ? ` ${ansis.gray(`- ${item.description}`)}` : '';
+    console.log(`  ${ansis.green(`${item.key}.`)} ${item.label}${description}`);
   }
 
-  console.log(`  ${ansis.green('0.')} ${options.backLabel || i18n.t('common:back')}`)
-  console.log('')
+  console.log(`  ${ansis.green('0.')} ${options.backLabel || i18n.t('common:back')}`);
+  console.log('');
 
-  const validChoices = ['0', ...options.items.map(item => item.key)]
+  const validChoices = ['0', ...options.items.map(item => item.key)];
   const { choice } = await inquirer.prompt<{ choice: string }>({
     type: 'input',
     name: 'choice',
     message: i18n.t('common:enterChoice'),
     validate: value => validChoices.includes(value) || i18n.t('common:invalidChoice'),
-  })
+  });
 
   if (!choice || choice === '0') {
-    return
+    return;
   }
 
-  const selectedItem = options.items.find(item => item.key === choice)
+  const selectedItem = options.items.find(item => item.key === choice);
   if (!selectedItem) {
-    return
+    return;
   }
 
-  await selectedItem.action()
+  await selectedItem.action();
 
   if (options.showSeparatorAfterAction ?? true) {
-    printSeparator()
+    printSeparator();
   }
 }
 
@@ -144,11 +144,11 @@ async function runSimpleNumericMenu(options: {
  * Get current code tool type
  */
 function getCurrentCodeTool(): CodeToolType {
-  const config = readZcfConfig()
+  const config = readZcfConfig();
   if (config?.codeToolType && isCodeToolType(config.codeToolType)) {
-    return config.codeToolType
+    return config.codeToolType;
   }
-  return DEFAULT_CODE_TOOL_TYPE
+  return DEFAULT_CODE_TOOL_TYPE;
 }
 
 /**
@@ -158,7 +158,7 @@ function attachHandlers(items: MenuItem[], codeTool: CodeToolType): MenuItem[] {
   return items.map((item) => {
     // Skip if handler already exists
     if (item.handler) {
-      return item
+      return item;
     }
 
     // Attach handler based on item id
@@ -168,294 +168,294 @@ function attachHandlers(items: MenuItem[], codeTool: CodeToolType): MenuItem[] {
           ...item,
           handler: async () => {
             if (codeTool === 'codex') {
-              await runCodexFullInit()
-              return
+              await runCodexFullInit();
+              return;
             }
-            await init({ skipBanner: true, codeType: codeTool })
+            await init({ skipBanner: true, codeType: codeTool });
           },
-        }
+        };
 
       case 'workflow-import':
         return {
           ...item,
           handler: async () => {
-            await runCodexWorkflowImportWithLanguageSelection()
+            await runCodexWorkflowImportWithLanguageSelection();
           },
-        }
+        };
 
       case 'codex-preset':
         return {
           ...item,
           handler: async () => {
-            await configureCodexPresetFeature()
+            await configureCodexPresetFeature();
           },
-        }
+        };
 
       case 'diagnostics':
         return {
           ...item,
           handler: async () => {
-            await oneClickCheckup()
+            await oneClickCheckup();
           },
-        }
+        };
 
       case 'update':
         return {
           ...item,
           handler: async () => {
-            await oneClickUpdate()
+            await oneClickUpdate();
           },
-        }
+        };
 
       case 'notifications':
         return {
           ...item,
           handler: async () => {
-            await notificationCommand()
+            await notificationCommand();
           },
-        }
+        };
 
       case 'api-config':
         return {
           ...item,
           handler: async () => {
             if (codeTool === 'codex') {
-              await configureCodexApi()
-              return
+              await configureCodexApi();
+              return;
             }
-            const { showApiConfigMenu } = await import('../api-config-selector')
-            await showApiConfigMenu(undefined, { context: 'menu' })
+            const { showApiConfigMenu } = await import('../api-config-selector');
+            await showApiConfigMenu(undefined, { context: 'menu' });
           },
-        }
+        };
 
       case 'mcp-config':
         return {
           ...item,
           handler: async () => {
             if (codeTool === 'codex') {
-              await configureCodexMcp()
-              return
+              await configureCodexMcp();
+              return;
             }
-            await (await import('../../utils/features')).configureMcpFeature()
+            await (await import('../../utils/features')).configureMcpFeature();
           },
-        }
+        };
 
       case 'model-config':
         return {
           ...item,
           handler: async () => {
             if (codeTool === 'codex') {
-              await configureCodexDefaultModelFeature()
-              return
+              await configureCodexDefaultModelFeature();
+              return;
             }
-            await (await import('../../utils/features')).configureDefaultModelFeature(codeTool)
+            await (await import('../../utils/features')).configureDefaultModelFeature(codeTool);
           },
-        }
+        };
 
       case 'memory-config':
         return {
           ...item,
           handler: async () => {
             if (codeTool === 'codex') {
-              await configureCodexAiMemoryFeature()
-              return
+              await configureCodexAiMemoryFeature();
+              return;
             }
-            await (await import('../../utils/features')).configureMemoryFeature()
+            await (await import('../../utils/features')).configureMemoryFeature();
           },
-        }
+        };
 
       case 'permission-config':
-        return { ...item, handler: async () => await (await import('../../utils/features')).configureMergedPermissionsFeature() }
+        return { ...item, handler: async () => await (await import('../../utils/features')).configureMergedPermissionsFeature() };
 
       case 'config-switch':
         return {
           ...item,
           handler: async () => {
-            await configSwitchCommand({ codeType: codeTool })
+            await configSwitchCommand({ codeType: codeTool });
           },
-        }
+        };
 
       case 'context-config':
         return {
           ...item,
           handler: async () => {
-            await showContextMenu()
+            await showContextMenu();
           },
-        }
+        };
 
       case 'ccr':
         return {
           ...item,
           handler: async () => {
-            await runCcrMenuFeature()
+            await runCcrMenuFeature();
           },
-        }
+        };
 
       case 'ccusage':
         return {
           ...item,
           handler: async () => {
-            await runCcusageFeature()
+            await runCcusageFeature();
           },
-        }
+        };
 
       case 'cometix':
         return {
           ...item,
           handler: async () => {
-            await runCometixMenuFeature()
+            await runCometixMenuFeature();
           },
-        }
+        };
 
       case 'superpowers':
         return {
           ...item,
           handler: async () => {
-            await showSuperpowersMenu()
+            await showSuperpowersMenu();
           },
-        }
+        };
 
       case 'mcp-market':
         return {
           ...item,
           handler: async () => {
-            await showMcpMarketMenu()
+            await showMcpMarketMenu();
           },
-        }
+        };
 
       case 'marketplace':
         return {
           ...item,
           handler: async () => {
-            await showMarketplaceMenu()
+            await showMarketplaceMenu();
           },
-        }
+        };
 
       case 'hooks-sync':
         return {
           ...item,
           handler: async () => {
-            await showHooksSyncMenu()
+            await showHooksSyncMenu();
           },
-        }
+        };
 
       case 'quick-actions':
         return {
           ...item,
           handler: async () => {
-            await showQuickActionsMenu()
+            await showQuickActionsMenu();
           },
-        }
+        };
 
       case 'smart-guide':
         return {
           ...item,
           handler: async () => {
-            await showSmartGuideMenu()
+            await showSmartGuideMenu();
           },
-        }
+        };
 
       case 'workflows':
         return {
           ...item,
           handler: async () => {
-            await showWorkflowsAndSkillsMenu()
+            await showWorkflowsAndSkillsMenu();
           },
-        }
+        };
 
       case 'output-styles':
         return {
           ...item,
           handler: async () => {
-            await showOutputStylesMenu()
+            await showOutputStylesMenu();
           },
-        }
+        };
 
       case 'doctor':
         return {
           ...item,
           handler: async () => {
-            await doctor()
+            await doctor();
           },
-        }
+        };
 
       case 'workspace':
         return {
           ...item,
           handler: async () => {
-            await workspaceDiagnostics()
+            await workspaceDiagnostics();
           },
-        }
+        };
 
       case 'switch-code-tool':
       case 'codex-switch-tool':
         return {
           ...item,
           handler: async () => {
-            await handleCodeToolSwitch(getCurrentCodeTool())
+            await handleCodeToolSwitch(getCurrentCodeTool());
           },
-        }
+        };
 
       case 'uninstall':
         return {
           ...item,
           handler: async () => {
             if (codeTool === 'codex') {
-              await runCodexUninstall()
-              return
+              await runCodexUninstall();
+              return;
             }
-            await uninstall()
+            await uninstall();
           },
-        }
+        };
 
       case 'language':
-        return { ...item, handler: async () => { await changeScriptLanguageFeature(i18n.language as SupportedLang) } }
+        return { ...item, handler: async () => { await changeScriptLanguageFeature(i18n.language as SupportedLang); } };
 
       default:
-        return item
+        return item;
     }
-  })
+  });
 }
 
 /**
  * One-click checkup: diagnose and auto-fix issues
  */
 async function oneClickCheckup(): Promise<void> {
-  console.log(ansis.green(i18n.t('menu:oneClick.running')))
-  console.log('')
+  console.log(ansis.green(i18n.t('menu:oneClick.running')));
+  console.log('');
 
   // Run doctor diagnostics
-  await doctor()
+  await doctor();
 
   // Run workspace diagnostics
-  await workspaceDiagnostics()
+  await workspaceDiagnostics();
 
-  console.log('')
-  console.log(ansis.green(i18n.t('menu:oneClick.fixComplete')))
+  console.log('');
+  console.log(ansis.green(i18n.t('menu:oneClick.fixComplete')));
 }
 
 /**
  * One-click update: update all components
  */
 async function oneClickUpdate(): Promise<void> {
-  console.log(ansis.green(i18n.t('menu:oneClick.running')))
-  console.log('')
+  console.log(ansis.green(i18n.t('menu:oneClick.running')));
+  console.log('');
 
   // Update Claude Code and workflows
-  await checkUpdates()
+  await checkUpdates();
 
-  console.log('')
-  console.log(ansis.green(i18n.t('menu:oneClick.updateComplete')))
+  console.log('');
+  console.log(ansis.green(i18n.t('menu:oneClick.updateComplete')));
 }
 
 function flattenSections(itemsBySection: Array<{ items: MenuItem[] }>): MenuItem[] {
-  return itemsBySection.flatMap(section => section.items)
+  return itemsBySection.flatMap(section => section.items);
 }
 
 function getProgressiveFooterCommands(codeTool: CodeToolType): Array<{
-  key: string
-  label: string
-  variant?: 'default' | 'danger'
+  key: string;
+  label: string;
+  variant?: 'default' | 'danger';
 }> {
   if (codeTool === 'clavue') {
     return [
@@ -467,11 +467,11 @@ function getProgressiveFooterCommands(codeTool: CodeToolType): Array<{
         key: '+',
         label: i18n.t('menu:menuOptions.checkUpdates', 'Check Updates'),
       },
-    ]
+    ];
   }
 
   if (codeTool !== 'codex') {
-    return []
+    return [];
   }
 
   return [
@@ -488,46 +488,46 @@ function getProgressiveFooterCommands(codeTool: CodeToolType): Array<{
       label: i18n.t('menu:menuOptions.codexUninstall'),
       variant: 'danger',
     },
-  ]
+  ];
 }
 
 function buildMyclaudeRuntimeSummary(syncResult: MyclaudeProviderSyncResult | null | undefined): ToolModeRuntimeSummary | undefined {
   if (!syncResult?.activeProfile) {
     return {
       runtimeLabel: 'clavue / no active provider synced',
-    }
+    };
   }
 
-  const profile = syncResult.activeProfile
-  const presentation = buildMyclaudeProviderPresentation(profile)
-  const primaryModel = typeof profile.primaryModel === 'string' ? profile.primaryModel : profile.model
-  const fastModel = typeof profile.defaultHaikuModel === 'string' ? profile.defaultHaikuModel : profile.fastModel
-  const sonnetModel = typeof profile.defaultSonnetModel === 'string' ? profile.defaultSonnetModel : undefined
-  const opusModel = typeof profile.defaultOpusModel === 'string' ? profile.defaultOpusModel : undefined
+  const profile = syncResult.activeProfile;
+  const presentation = buildMyclaudeProviderPresentation(profile);
+  const primaryModel = typeof profile.primaryModel === 'string' ? profile.primaryModel : profile.model;
+  const fastModel = typeof profile.defaultHaikuModel === 'string' ? profile.defaultHaikuModel : profile.fastModel;
+  const sonnetModel = typeof profile.defaultSonnetModel === 'string' ? profile.defaultSonnetModel : undefined;
+  const opusModel = typeof profile.defaultOpusModel === 'string' ? profile.defaultOpusModel : undefined;
   const modelParts = [
     primaryModel ? `primary ${primaryModel}` : undefined,
     fastModel ? `haiku ${fastModel}` : undefined,
     sonnetModel ? `sonnet ${sonnetModel}` : undefined,
     opusModel ? `opus ${opusModel}` : undefined,
-  ].filter(Boolean)
+  ].filter(Boolean);
 
   return {
     runtimeLabel: 'clavue',
     profileLabel: `${profile.name} (${syncResult.activeProfileId || profile.id})`,
     ...presentation,
     modelLabel: modelParts.join(' · ') || undefined,
-  }
+  };
 }
 
 function getMenuShellConfig(codeTool: CodeToolType): {
-  allowMore: boolean
+  allowMore: boolean;
   footerCommands: Array<{
-    key: string
-    label: string
-    variant?: 'default' | 'danger'
-  }>
-  menuTitle: string
-  showHero: boolean
+    key: string;
+    label: string;
+    variant?: 'default' | 'danger';
+  }>;
+  menuTitle: string;
+  showHero: boolean;
 } {
   if (codeTool === 'codex' || codeTool === 'clavue') {
     return {
@@ -535,7 +535,7 @@ function getMenuShellConfig(codeTool: CodeToolType): {
       footerCommands: getProgressiveFooterCommands(codeTool),
       menuTitle: getToolModeMenuTitle(codeTool),
       showHero: true,
-    }
+    };
   }
 
   return {
@@ -543,7 +543,7 @@ function getMenuShellConfig(codeTool: CodeToolType): {
     footerCommands: [],
     menuTitle: i18n.t('menu:menu.title', 'CCJK Main Menu'),
     showHero: false,
-  }
+  };
 }
 
 /**
@@ -554,20 +554,20 @@ async function showProgressiveMenu(
   runtimeSyncResult?: MyclaudeProviderSyncResult | null,
 ): Promise<MenuResult> {
   if (codeTool !== 'codex' && codeTool !== 'clavue') {
-    const rawItems = getItemsForLevel(menuState.level, codeTool)
-    const items = attachHandlers(rawItems, 'claude-code')
-    const sections = createAllSections(menuState.level, codeTool)
-    const maxItems = levelDefinitions[menuState.level].maxItems
-    const filteredSections = filterSectionsByItemLimit(sections, maxItems)
-    const visibleItemCount = getVisibleItemCount(filteredSections)
-    const visibleItems = items.slice(0, visibleItemCount)
+    const rawItems = getItemsForLevel(menuState.level, codeTool);
+    const items = attachHandlers(rawItems, 'claude-code');
+    const sections = createAllSections(menuState.level, codeTool);
+    const maxItems = levelDefinitions[menuState.level].maxItems;
+    const filteredSections = filterSectionsByItemLimit(sections, maxItems);
+    const visibleItemCount = getVisibleItemCount(filteredSections);
+    const visibleItems = items.slice(0, visibleItemCount);
     const footerCommands = [
       {
         key: 's',
         label: i18n.t('menu:menuOptions.switchCodeTool'),
       },
-    ]
-    const allowedCommands = ['0', 'q', 'm', 's']
+    ];
+    const allowedCommands = ['0', 'q', 'm', 's'];
 
     const menuOutput = renderMenu(
       'menu:oneClick.title',
@@ -580,97 +580,97 @@ async function showProgressiveMenu(
         showMoreCommand: true,
         extraFooterCommands: footerCommands,
       },
-    )
+    );
 
-    console.log(menuOutput)
+    console.log(menuOutput);
 
-    const choice = await promptMenuSelection(visibleItemCount, visibleItems, undefined, allowedCommands)
-    const input = parseMenuInput(choice)
+    const choice = await promptMenuSelection(visibleItemCount, visibleItems, undefined, allowedCommands);
+    const input = parseMenuInput(choice);
 
     if (isExitCommand(input)) {
-      console.log(ansis.green(i18n.t('common:goodbye')))
-      return 'exit'
+      console.log(ansis.green(i18n.t('common:goodbye')));
+      return 'exit';
     }
 
     if (isBackCommand(input)) {
-      const currentLang = i18n.language as SupportedLang
-      await changeScriptLanguageFeature(currentLang)
-      printSeparator()
-      return 'continue'
+      const currentLang = i18n.language as SupportedLang;
+      await changeScriptLanguageFeature(currentLang);
+      printSeparator();
+      return 'continue';
     }
 
     if (isMoreCommand(input)) {
-      await showMoreFeaturesMenu()
-      printSeparator()
-      return 'continue'
+      await showMoreFeaturesMenu();
+      printSeparator();
+      return 'continue';
     }
 
     if (input.normalized === 's') {
-      const switched = await handleCodeToolSwitch(codeTool)
+      const switched = await handleCodeToolSwitch(codeTool);
       if (switched) {
-        return 'switch'
+        return 'switch';
       }
-      printSeparator()
-      return 'continue'
+      printSeparator();
+      return 'continue';
     }
 
-    const selectedItem = findItemByInput(input, filteredSections)
+    const selectedItem = findItemByInput(input, filteredSections);
 
     if (selectedItem) {
-      menuState.actionsPerformed.push(selectedItem.id)
-      menuState.usageCount++
+      menuState.actionsPerformed.push(selectedItem.id);
+      menuState.usageCount++;
 
-      const hydratedItem = visibleItems.find(item => item.id === selectedItem.id) || items.find(item => item.id === selectedItem.id)
+      const hydratedItem = visibleItems.find(item => item.id === selectedItem.id) || items.find(item => item.id === selectedItem.id);
       if (hydratedItem?.handler) {
-        await hydratedItem.handler()
+        await hydratedItem.handler();
       }
       else {
-        console.log(ansis.yellow(`No handler for ${selectedItem.id}`))
+        console.log(ansis.yellow(`No handler for ${selectedItem.id}`));
       }
     }
 
-    printSeparator()
+    printSeparator();
 
     const shouldContinue = await promptBoolean({
       message: i18n.t('common:returnToMenu'),
       defaultValue: true,
-    })
+    });
 
     if (!shouldContinue) {
-      console.log(ansis.green(i18n.t('common:goodbye')))
-      return 'exit'
+      console.log(ansis.green(i18n.t('common:goodbye')));
+      return 'exit';
     }
 
-    return 'continue'
+    return 'continue';
   }
 
   // Get items for current level
-  const rawItems = getItemsForLevel(menuState.level, codeTool)
+  const rawItems = getItemsForLevel(menuState.level, codeTool);
 
   // Attach handlers
-  const items = attachHandlers(rawItems, codeTool)
-  const itemMap = new Map(items.map(item => [item.id, item]))
+  const items = attachHandlers(rawItems, codeTool);
+  const itemMap = new Map(items.map(item => [item.id, item]));
 
   // Create sections
   const sections = createAllSections(menuState.level, codeTool).map(section => ({
     ...section,
     items: section.items.map(item => itemMap.get(item.id) || item),
-  }))
+  }));
 
   // Filter to max items for level
-  const maxItems = levelDefinitions[menuState.level].maxItems
-  const filteredSections = filterSectionsByItemLimit(sections, maxItems)
-  const visibleItems = flattenSections(filteredSections)
+  const maxItems = levelDefinitions[menuState.level].maxItems;
+  const filteredSections = filterSectionsByItemLimit(sections, maxItems);
+  const visibleItems = flattenSections(filteredSections);
 
   // Count visible items
-  const visibleItemCount = visibleItems.length
-  const menuShell = getMenuShellConfig(codeTool)
-  const allowedCommands = ['0', 'q', ...(menuShell.allowMore ? ['m'] : []), ...menuShell.footerCommands.map(command => command.key)]
+  const visibleItemCount = visibleItems.length;
+  const menuShell = getMenuShellConfig(codeTool);
+  const allowedCommands = ['0', 'q', ...(menuShell.allowMore ? ['m'] : []), ...menuShell.footerCommands.map(command => command.key)];
 
   // Render menu
   if (menuShell.showHero) {
-    console.log(renderToolModeHero(codeTool, 76, codeTool === 'clavue' ? buildMyclaudeRuntimeSummary(runtimeSyncResult) : undefined))
-    console.log('')
+    console.log(renderToolModeHero(codeTool, 76, codeTool === 'clavue' ? buildMyclaudeRuntimeSummary(runtimeSyncResult) : undefined));
+    console.log('');
   }
   const menuOutput = renderMenu(
     menuShell.menuTitle,
@@ -683,244 +683,244 @@ async function showProgressiveMenu(
       showMoreCommand: menuShell.allowMore,
       extraFooterCommands: menuShell.footerCommands,
     },
-  )
+  );
 
-  console.log(menuOutput)
+  console.log(menuOutput);
 
   // Prompt for selection
-  const choice = await promptMenuSelection(visibleItemCount, visibleItems, undefined, allowedCommands)
+  const choice = await promptMenuSelection(visibleItemCount, visibleItems, undefined, allowedCommands);
 
   // Parse input
-  const input = parseMenuInput(choice)
+  const input = parseMenuInput(choice);
 
   // Handle special commands
   if (isExitCommand(input)) {
-    console.log(ansis.green(i18n.t('common:goodbye')))
-    return 'exit'
+    console.log(ansis.green(i18n.t('common:goodbye')));
+    return 'exit';
   }
 
   if (isBackCommand(input)) {
-    const currentLang = i18n.language as SupportedLang
-    await changeScriptLanguageFeature(currentLang)
-    printSeparator()
-    return 'continue'
+    const currentLang = i18n.language as SupportedLang;
+    await changeScriptLanguageFeature(currentLang);
+    printSeparator();
+    return 'continue';
   }
 
   if (menuShell.allowMore && isMoreCommand(input)) {
     // Show more features submenu
-    await showMoreFeaturesMenu()
-    printSeparator()
-    return 'continue'
+    await showMoreFeaturesMenu();
+    printSeparator();
+    return 'continue';
   }
 
   if ((codeTool === 'codex' || codeTool === 'clavue') && input.normalized === 's') {
-    const switched = await handleCodeToolSwitch(codeTool)
+    const switched = await handleCodeToolSwitch(codeTool);
     if (switched) {
-      return 'switch'
+      return 'switch';
     }
-    printSeparator()
-    return 'continue'
+    printSeparator();
+    return 'continue';
   }
 
   if (codeTool === 'clavue' && input.normalized === '+') {
-    await checkUpdates()
-    printSeparator()
-    return 'continue'
+    await checkUpdates();
+    printSeparator();
+    return 'continue';
   }
 
   if (codeTool === 'codex' && input.normalized === '+') {
-    await runCodexUpdate()
-    printSeparator()
-    return 'continue'
+    await runCodexUpdate();
+    printSeparator();
+    return 'continue';
   }
 
   if (codeTool === 'codex' && input.normalized === '-') {
-    await runCodexUninstall()
-    printSeparator()
-    return 'continue'
+    await runCodexUninstall();
+    printSeparator();
+    return 'continue';
   }
 
   // Find selected item
-  const selectedItem = findItemByInput(input, filteredSections)
+  const selectedItem = findItemByInput(input, filteredSections);
 
   if (selectedItem) {
     // Track action
-    menuState.actionsPerformed.push(selectedItem.id)
-    menuState.usageCount++
+    menuState.actionsPerformed.push(selectedItem.id);
+    menuState.usageCount++;
 
     // Execute handler
     if (selectedItem.handler) {
-      await selectedItem.handler()
+      await selectedItem.handler();
     }
     else {
-      console.log(ansis.yellow(`No handler for ${selectedItem.id}`))
+      console.log(ansis.yellow(`No handler for ${selectedItem.id}`));
     }
 
     if (['switch-code-tool', 'codex-switch-tool'].includes(selectedItem.id) && getCurrentCodeTool() !== codeTool) {
-      return 'switch'
+      return 'switch';
     }
   }
 
-  printSeparator()
+  printSeparator();
 
   // Ask if user wants to continue
   const shouldContinue = await promptBoolean({
     message: i18n.t('common:returnToMenu'),
     defaultValue: true,
-  })
+  });
 
   if (!shouldContinue) {
-    console.log(ansis.green(i18n.t('common:goodbye')))
-    return 'exit'
+    console.log(ansis.green(i18n.t('common:goodbye')));
+    return 'exit';
   }
 
-  return 'continue'
+  return 'continue';
 }
 
 /**
  * Show the "More Features" submenu
  */
 async function showMoreFeaturesMenu(): Promise<void> {
-  let stayInMenu = true
+  let stayInMenu = true;
 
   while (stayInMenu) {
-    const codeTool = getCurrentCodeTool()
-    displayBannerWithInfo(CODE_TOOL_BANNERS[codeTool] || 'CCJK')
+    const codeTool = getCurrentCodeTool();
+    displayBannerWithInfo(CODE_TOOL_BANNERS[codeTool] || 'CCJK');
 
-    console.log(ansis.green.bold(i18n.t('menu:moreMenu.title')))
-    console.log('')
+    console.log(ansis.green.bold(i18n.t('menu:moreMenu.title')));
+    console.log('');
 
     // Extensions section
-    console.log(`  ${ansis.green.bold(i18n.t('menu:moreMenu.extensions'))}`)
+    console.log(`  ${ansis.green.bold(i18n.t('menu:moreMenu.extensions'))}`);
     console.log(
       `  ${ansis.white('1.')} ${ansis.white(i18n.t('menu:pluginsMenu.ccr'))} ${ansis.dim(`- ${i18n.t('menu:pluginsMenu.ccrDesc')}`)}`,
-    )
+    );
     console.log(
       `  ${ansis.white('2.')} ${ansis.white(i18n.t('menu:pluginsMenu.ccusage'))} ${ansis.dim(`- ${i18n.t('menu:pluginsMenu.ccusageDesc')}`)}`,
-    )
+    );
     console.log(
       `  ${ansis.white('3.')} ${ansis.white(i18n.t('menu:pluginsMenu.cometix'))} ${ansis.dim(`- ${i18n.t('menu:pluginsMenu.cometixDesc')}`)}`,
-    )
+    );
     console.log(
       `  ${ansis.white('4.')} ${ansis.white(i18n.t('menu:pluginsMenu.superpowers'))} ${ansis.dim(`- ${i18n.t('menu:pluginsMenu.superpowersDesc')}`)}`,
-    )
+    );
     console.log(
       `  ${ansis.white('5.')} ${ansis.white(i18n.t('menu:categorizedMenu.mcpMarket'))} ${ansis.dim(`- ${i18n.t('menu:categorizedMenu.mcpMarketDesc')}`)}`,
-    )
+    );
     console.log(
       `  ${ansis.white('6.')} ${ansis.white(i18n.t('menu:categorizedMenu.marketplace'))} ${ansis.dim(`- ${i18n.t('menu:categorizedMenu.marketplaceDesc')}`)}`,
-    )
-    console.log('')
+    );
+    console.log('');
 
     // Config section
-    console.log(`  ${ansis.green.bold(i18n.t('menu:moreMenu.config'))}`)
+    console.log(`  ${ansis.green.bold(i18n.t('menu:moreMenu.config'))}`);
     console.log(
       `  ${ansis.white('7.')} ${ansis.white(i18n.t('menu:configCenter.memory'))} ${ansis.dim(`- ${i18n.t('menu:configCenter.memoryDesc')}`)}`,
-    )
+    );
     console.log(
       `  ${ansis.white('8.')} ${ansis.white(i18n.t('menu:configCenter.permission'))} ${ansis.dim(`- ${i18n.t('menu:configCenter.permissionDesc')}`)}`,
-    )
+    );
     console.log(
       `  ${ansis.white('9.')} ${ansis.white(i18n.t('menu:configCenter.configSwitch'))} ${ansis.dim(`- ${i18n.t('menu:configCenter.configSwitchDesc')}`)}`,
-    )
+    );
     console.log(
       `  ${ansis.white('10.')} ${ansis.white(i18n.t('menu:configCenter.context'))} ${ansis.dim(`- ${i18n.t('menu:configCenter.contextDesc')}`)}`,
-    )
-    console.log('')
+    );
+    console.log('');
 
     // System section
-    console.log(`  ${ansis.green.bold(i18n.t('menu:moreMenu.system'))}`)
+    console.log(`  ${ansis.green.bold(i18n.t('menu:moreMenu.system'))}`);
     console.log(
       `  ${ansis.white('11.')} ${ansis.white(i18n.t('menu:menuOptions.changeLanguage').split(' / ')[0])} ${ansis.dim(`- ${i18n.t('menu:menuDescriptions.changeLanguage')}`)}`,
-    )
+    );
     console.log(
       `  ${ansis.white('12.')} ${ansis.white(i18n.t('menu:menuOptions.switchCodeTool'))} ${ansis.dim(`- ${i18n.t('menu:menuDescriptions.switchCodeTool')}`)}`,
-    )
+    );
     console.log(
       `  ${ansis.white('13.')} ${ansis.white(i18n.t('menu:categorizedMenu.diagnostics'))} ${ansis.dim(`- ${i18n.t('menu:categorizedMenu.diagnosticsDesc')}`)}`,
-    )
+    );
     console.log(
       `  ${ansis.white('14.')} ${ansis.white(i18n.t('menu:categorizedMenu.workspace'))} ${ansis.dim(`- ${i18n.t('menu:categorizedMenu.workspaceDesc')}`)}`,
-    )
+    );
     console.log(
       `  ${ansis.white('15.')} ${ansis.white(i18n.t('menu:menuOptions.uninstall'))} ${ansis.dim(`- ${i18n.t('menu:menuDescriptions.uninstall')}`)}`,
-    )
-    console.log('')
+    );
+    console.log('');
 
-    console.log(`  ${ansis.green('0.')} ${ansis.green(i18n.t('common:back'))}`)
-    console.log('')
+    console.log(`  ${ansis.green('0.')} ${ansis.green(i18n.t('common:back'))}`);
+    console.log('');
 
-    const validChoices = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15']
+    const validChoices = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15'];
     const { choice } = await inquirer.prompt<{ choice: string }>({
       type: 'input',
       name: 'choice',
       message: i18n.t('common:enterChoice'),
       validate: (value) => {
-        return validChoices.includes(value) || i18n.t('common:invalidChoice')
+        return validChoices.includes(value) || i18n.t('common:invalidChoice');
       },
-    })
+    });
 
     if (!choice || choice === '0') {
-      stayInMenu = false
-      continue
+      stayInMenu = false;
+      continue;
     }
 
-    printSeparator()
+    printSeparator();
 
     switch (choice) {
       case '1':
-        await runCcrMenuFeature()
-        break
+        await runCcrMenuFeature();
+        break;
       case '2':
-        await runCcusageFeature()
-        break
+        await runCcusageFeature();
+        break;
       case '3':
-        await runCometixMenuFeature()
-        break
+        await runCometixMenuFeature();
+        break;
       case '4':
-        await showSuperpowersMenu()
-        break
+        await showSuperpowersMenu();
+        break;
       case '5':
-        await showMcpMarketMenu()
-        break
+        await showMcpMarketMenu();
+        break;
       case '6':
-        await showMarketplaceMenu()
-        break
+        await showMarketplaceMenu();
+        break;
       case '7':
-        await (await import('../config')).configCommand('set', ['memory'], {})
-        break
+        await (await import('../config')).configCommand('set', ['memory'], {});
+        break;
       case '8':
-        await (await import('../../utils/features')).configureMergedPermissionsFeature()
-        break
+        await (await import('../../utils/features')).configureMergedPermissionsFeature();
+        break;
       case '9':
-        await configSwitchCommand({ codeType: codeTool })
-        break
+        await configSwitchCommand({ codeType: codeTool });
+        break;
       case '10':
-        await showContextMenu()
-        break
+        await showContextMenu();
+        break;
       case '11': {
-        const currentLang = i18n.language as SupportedLang
-        await changeScriptLanguageFeature(currentLang)
-        break
+        const currentLang = i18n.language as SupportedLang;
+        await changeScriptLanguageFeature(currentLang);
+        break;
       }
       case '12':
         if (await handleCodeToolSwitch(codeTool)) {
-          stayInMenu = false
+          stayInMenu = false;
         }
-        break
+        break;
       case '13':
-        await doctor()
-        break
+        await doctor();
+        break;
       case '14':
-        await workspaceDiagnostics()
-        break
+        await workspaceDiagnostics();
+        break;
       case '15':
-        await uninstall()
-        break
+        await uninstall();
+        break;
     }
 
     if (stayInMenu) {
-      printSeparator()
+      printSeparator();
     }
   }
 }
@@ -929,39 +929,39 @@ async function showMoreFeaturesMenu(): Promise<void> {
  * Legacy submenu functions (ported from old menu.ts)
  */
 async function showSuperpowersMenu(): Promise<void> {
-  console.log(ansis.green(i18n.t('superpowers:menu.title')))
-  console.log('  -------- Superpowers --------')
+  console.log(ansis.green(i18n.t('superpowers:menu.title')));
+  console.log('  -------- Superpowers --------');
   console.log(
     `  ${ansis.green('1.')} ${i18n.t('superpowers:menu.install')} ${ansis.gray(`- ${i18n.t('superpowers:menu.installDesc')}`)}`,
-  )
+  );
   console.log(
     `  ${ansis.green('2.')} ${i18n.t('superpowers:menu.uninstall')} ${ansis.gray(`- ${i18n.t('superpowers:menu.uninstallDesc')}`)}`,
-  )
+  );
   console.log(
     `  ${ansis.green('3.')} ${i18n.t('superpowers:menu.update')} ${ansis.gray(`- ${i18n.t('superpowers:menu.updateDesc')}`)}`,
-  )
+  );
   console.log(
     `  ${ansis.green('4.')} ${i18n.t('superpowers:menu.checkStatus')} ${ansis.gray(`- ${i18n.t('superpowers:menu.checkStatusDesc')}`)}`,
-  )
+  );
   console.log(
     `  ${ansis.green('5.')} ${i18n.t('superpowers:menu.viewSkills')} ${ansis.gray(`- ${i18n.t('superpowers:menu.viewSkillsDesc')}`)}`,
-  )
-  console.log(`  ${ansis.green('0.')} ${i18n.t('superpowers:menu.back')}`)
-  console.log('')
+  );
+  console.log(`  ${ansis.green('0.')} ${i18n.t('superpowers:menu.back')}`);
+  console.log('');
 
   const { choice } = await inquirer.prompt<{ choice: string }>({
     type: 'input',
     name: 'choice',
     message: i18n.t('common:enterChoice'),
     validate: (value) => {
-      const valid = ['1', '2', '3', '4', '5', '0']
-      return valid.includes(value) || i18n.t('common:invalidChoice')
+      const valid = ['1', '2', '3', '4', '5', '0'];
+      return valid.includes(value) || i18n.t('common:invalidChoice');
     },
-  })
+  });
 
   if (!choice) {
-    console.log(ansis.yellow(i18n.t('common:cancelled')))
-    return
+    console.log(ansis.yellow(i18n.t('common:cancelled')));
+    return;
   }
 
   switch (choice) {
@@ -974,21 +974,21 @@ async function showSuperpowersMenu(): Promise<void> {
           { name: i18n.t('superpowers:install.methodNpm'), value: 'npm' },
           { name: i18n.t('superpowers:install.methodGit'), value: 'git' },
         ]),
-      })
+      });
 
       if (method === 'npm') {
-        await installSuperpowers({ lang: i18n.language as SupportedLang })
+        await installSuperpowers({ lang: i18n.language as SupportedLang });
       }
       else if (method === 'git') {
-        await installSuperpowersViaGit()
+        await installSuperpowersViaGit();
       }
-      break
+      break;
     }
     case '2': {
-      const status = await checkSuperpowersInstalled()
+      const status = await checkSuperpowersInstalled();
       if (!status.installed) {
-        console.log(ansis.yellow(i18n.t('superpowers:status.notInstalled')))
-        break
+        console.log(ansis.yellow(i18n.t('superpowers:status.notInstalled')));
+        break;
       }
 
       const { confirm } = await inquirer.prompt<{ confirm: boolean }>({
@@ -996,97 +996,97 @@ async function showSuperpowersMenu(): Promise<void> {
         name: 'confirm',
         message: i18n.t('superpowers:uninstall.confirm'),
         default: false,
-      })
+      });
 
       if (confirm) {
-        await uninstallSuperpowers()
+        await uninstallSuperpowers();
       }
       else {
-        console.log(ansis.yellow(i18n.t('common:cancelled')))
+        console.log(ansis.yellow(i18n.t('common:cancelled')));
       }
-      break
+      break;
     }
     case '3': {
-      const status = await checkSuperpowersInstalled()
+      const status = await checkSuperpowersInstalled();
       if (!status.installed) {
-        console.log(ansis.yellow(i18n.t('superpowers:status.notInstalled')))
-        break
+        console.log(ansis.yellow(i18n.t('superpowers:status.notInstalled')));
+        break;
       }
 
-      await updateSuperpowers()
-      break
+      await updateSuperpowers();
+      break;
     }
     case '4': {
-      const status = await checkSuperpowersInstalled()
+      const status = await checkSuperpowersInstalled();
       if (status.installed) {
-        console.log(ansis.green(`✔ ${i18n.t('superpowers:status.installed')}`))
+        console.log(ansis.green(`✔ ${i18n.t('superpowers:status.installed')}`));
       }
       else {
-        console.log(ansis.yellow(i18n.t('superpowers:status.notInstalled')))
+        console.log(ansis.yellow(i18n.t('superpowers:status.notInstalled')));
       }
-      break
+      break;
     }
     case '5': {
-      const status = await checkSuperpowersInstalled()
+      const status = await checkSuperpowersInstalled();
       if (!status.installed) {
-        console.log(ansis.yellow(i18n.t('superpowers:status.notInstalled')))
-        break
+        console.log(ansis.yellow(i18n.t('superpowers:status.notInstalled')));
+        break;
       }
 
-      const skills = await getSuperpowersSkills()
+      const skills = await getSuperpowersSkills();
       if (skills.length === 0) {
-        console.log(ansis.yellow(i18n.t('superpowers:skills.noSkills')))
+        console.log(ansis.yellow(i18n.t('superpowers:skills.noSkills')));
       }
       else {
-        console.log(ansis.green(i18n.t('superpowers:skills.available')))
+        console.log(ansis.green(i18n.t('superpowers:skills.available')));
         skills.forEach((skill) => {
-          console.log(`  ${ansis.green('•')} ${skill}`)
-        })
+          console.log(`  ${ansis.green('•')} ${skill}`);
+        });
       }
-      break
+      break;
     }
     case '0':
-      return
+      return;
     default:
-      return
+      return;
   }
 
-  printSeparator()
+  printSeparator();
 }
 
 async function showMcpMarketMenu(): Promise<void> {
-  console.log(ansis.green(i18n.t('menu:mcpMarket.title')))
-  console.log('  -------- MCP Market --------')
+  console.log(ansis.green(i18n.t('menu:mcpMarket.title')));
+  console.log('  -------- MCP Market --------');
   console.log(
     `  ${ansis.green('1.')} ${i18n.t('menu:mcpMarket.search')} ${ansis.gray(`- ${i18n.t('menu:mcpMarket.searchDesc')}`)}`,
-  )
+  );
   console.log(
     `  ${ansis.green('2.')} ${i18n.t('menu:mcpMarket.trending')} ${ansis.gray(`- ${i18n.t('menu:mcpMarket.trendingDesc')}`)}`,
-  )
+  );
   console.log(
     `  ${ansis.green('3.')} ${i18n.t('menu:mcpMarket.install')} ${ansis.gray(`- ${i18n.t('menu:mcpMarket.installDesc')}`)}`,
-  )
+  );
   console.log(
     `  ${ansis.green('4.')} ${i18n.t('menu:mcpMarket.uninstall')} ${ansis.gray(`- ${i18n.t('menu:mcpMarket.uninstallDesc')}`)}`,
-  )
+  );
   console.log(
     `  ${ansis.green('5.')} ${i18n.t('menu:mcpMarket.list')} ${ansis.gray(`- ${i18n.t('menu:mcpMarket.listDesc')}`)}`,
-  )
-  console.log(`  ${ansis.green('0.')} ${i18n.t('common:back')}`)
-  console.log('')
+  );
+  console.log(`  ${ansis.green('0.')} ${i18n.t('common:back')}`);
+  console.log('');
 
   const { choice } = await inquirer.prompt<{ choice: string }>({
     type: 'input',
     name: 'choice',
     message: i18n.t('common:enterChoice'),
     validate: (value) => {
-      const valid = ['1', '2', '3', '4', '5', '0']
-      return valid.includes(value) || i18n.t('common:invalidChoice')
+      const valid = ['1', '2', '3', '4', '5', '0'];
+      return valid.includes(value) || i18n.t('common:invalidChoice');
     },
-  })
+  });
 
   if (!choice || choice === '0') {
-    return
+    return;
   }
 
   switch (choice) {
@@ -1095,78 +1095,78 @@ async function showMcpMarketMenu(): Promise<void> {
         type: 'input',
         name: 'query',
         message: i18n.t('menu:mcpMarket.searchPrompt'),
-      })
+      });
       if (query) {
-        await mcpSearch(query)
+        await mcpSearch(query);
       }
-      break
+      break;
     }
     case '2': {
-      await mcpTrending()
-      break
+      await mcpTrending();
+      break;
     }
     case '3': {
       const { serverName } = await inquirer.prompt<{ serverName: string }>({
         type: 'input',
         name: 'serverName',
         message: i18n.t('menu:mcpMarket.installPrompt'),
-      })
+      });
       if (serverName) {
-        await mcpInstall(serverName)
+        await mcpInstall(serverName);
       }
-      break
+      break;
     }
     case '4': {
       const { serverName } = await inquirer.prompt<{ serverName: string }>({
         type: 'input',
         name: 'serverName',
         message: i18n.t('menu:mcpMarket.uninstallPrompt'),
-      })
+      });
       if (serverName) {
-        await mcpUninstall(serverName)
+        await mcpUninstall(serverName);
       }
-      break
+      break;
     }
     case '5': {
-      await mcpList()
-      break
+      await mcpList();
+      break;
     }
   }
 
-  printSeparator()
+  printSeparator();
 }
 
 async function showMarketplaceMenu(): Promise<void> {
-  console.log(ansis.green(i18n.t('marketplace:menu.title')))
-  console.log('  -------- Marketplace --------')
+  console.log(ansis.green(i18n.t('marketplace:menu.title')));
+  console.log('  -------- Marketplace --------');
   console.log(
     `  ${ansis.green('1.')} ${i18n.t('marketplace:menu.search')} ${ansis.gray(`- ${i18n.t('marketplace:commands.search')}`)}`,
-  )
+  );
   console.log(
     `  ${ansis.green('2.')} ${i18n.t('marketplace:menu.browse')} ${ansis.gray(`- Browse by category`)}`,
-  )
+  );
   console.log(
     `  ${ansis.green('3.')} ${i18n.t('marketplace:menu.installed')} ${ansis.gray(`- ${i18n.t('marketplace:commands.list')}`)}`,
-  )
+  );
   console.log(
     `  ${ansis.green('4.')} ${i18n.t('marketplace:menu.updates')} ${ansis.gray(`- ${i18n.t('marketplace:commands.update')}`)}`,
-  )
-  console.log(`  ${ansis.green('0.')} ${i18n.t('marketplace:menu.back')}`)
-  console.log('')
+  );
+  console.log(`  ${ansis.green('0.')} ${i18n.t('marketplace:menu.back')}`);
+  console.log('');
 
   const { choice } = await inquirer.prompt<{ choice: string }>({
     type: 'input',
     name: 'choice',
     message: i18n.t('common:enterChoice'),
     validate: (value) => {
-      const valid = ['1', '2', '3', '4', '0']
-      return valid.includes(value) || i18n.t('common:invalidChoice')
+      const valid = ['1', '2', '3', '4', '0'];
+      return valid.includes(value) || i18n.t('common:invalidChoice');
     },
-  })
+  });
 
   if (!choice) {
-    console.log(ansis.yellow(i18n.t('common:cancelled')))
-    return
+    console.log(ansis.yellow(i18n.t('common:cancelled')));
+    return;
   }
 
   switch (choice) {
@@ -1175,83 +1175,83 @@ async function showMarketplaceMenu(): Promise<void> {
         type: 'input',
         name: 'query',
         message: i18n.t('marketplace:prompts.searchQuery'),
-      })
+      });
 
       if (query) {
-        console.log(i18n.t('marketplace:searching', { query }))
+        console.log(i18n.t('marketplace:searching', { query }));
         try {
-          const result = await searchPackages({ query, limit: 10 })
+          const result = await searchPackages({ query, limit: 10 });
           if (result.packages.length === 0) {
-            console.log(ansis.yellow(i18n.t('marketplace:noResults')))
+            console.log(ansis.yellow(i18n.t('marketplace:noResults')));
           }
           else {
-            console.log(ansis.green(i18n.t('marketplace:searchResults', { count: result.total })))
-            console.log('')
+            console.log(ansis.green(i18n.t('marketplace:searchResults', { count: result.total })));
+            console.log('');
             for (const pkg of result.packages) {
-              console.log(`  ${ansis.green(pkg.id)} ${ansis.gray(`v${pkg.version}`)}`)
-              const description = pkg.description.en || Object.values(pkg.description)[0] || ''
-              console.log(`    ${ansis.dim(description)}`)
+              console.log(`  ${ansis.green(pkg.id)} ${ansis.gray(`v${pkg.version}`)}`);
+              const description = pkg.description.en || Object.values(pkg.description)[0] || '';
+              console.log(`    ${ansis.dim(description)}`);
             }
           }
         }
         catch {
-          console.error(ansis.red(i18n.t('marketplace:searchFailed')))
+          console.error(ansis.red(i18n.t('marketplace:searchFailed')));
         }
       }
-      break
+      break;
     }
     case '2': {
-      console.log(ansis.green(i18n.t('marketplace:categories.plugin')))
-      console.log(ansis.dim('Category browsing coming soon...'))
-      break
+      console.log(ansis.green(i18n.t('marketplace:categories.plugin')));
+      console.log(ansis.dim('Category browsing coming soon...'));
+      break;
     }
     case '3': {
       try {
-        const installed = await getInstalledPackages()
+        const installed = await getInstalledPackages();
         if (installed.length === 0) {
-          console.log(ansis.yellow(i18n.t('marketplace:noInstalled')))
+          console.log(ansis.yellow(i18n.t('marketplace:noInstalled')));
         }
         else {
-          console.log(ansis.green(i18n.t('marketplace:installedPackages', { count: installed.length })))
-          console.log('')
+          console.log(ansis.green(i18n.t('marketplace:installedPackages', { count: installed.length })));
+          console.log('');
           for (const pkg of installed) {
-            const status = pkg.enabled ? ansis.green('●') : ansis.gray('○')
-            console.log(`  ${status} ${ansis.green(pkg.package.id)} ${ansis.gray(`v${pkg.package.version}`)}`)
+            const status = pkg.enabled ? ansis.green('●') : ansis.gray('○');
+            console.log(`  ${status} ${ansis.green(pkg.package.id)} ${ansis.gray(`v${pkg.package.version}`)}`);
           }
         }
       }
       catch {
-        console.error(ansis.red(i18n.t('marketplace:listFailed')))
+        console.error(ansis.red(i18n.t('marketplace:listFailed')));
       }
-      break
+      break;
     }
     case '4': {
-      console.log(i18n.t('marketplace:checkingUpdates'))
+      console.log(i18n.t('marketplace:checkingUpdates'));
       try {
-        const updates = await checkForUpdates()
+        const updates = await checkForUpdates();
         if (updates.length === 0) {
-          console.log(ansis.green(i18n.t('marketplace:noUpdates')))
+          console.log(ansis.green(i18n.t('marketplace:noUpdates')));
         }
         else {
-          console.log(ansis.green(i18n.t('marketplace:updatesAvailable', { count: updates.length })))
-          console.log('')
+          console.log(ansis.green(i18n.t('marketplace:updatesAvailable', { count: updates.length })));
+          console.log('');
           for (const update of updates) {
-            console.log(`  ${ansis.green(update.id)}: ${update.currentVersion} → ${ansis.green(update.latestVersion)}`)
+            console.log(`  ${ansis.green(update.id)}: ${update.currentVersion} → ${ansis.green(update.latestVersion)}`);
           }
         }
       }
       catch {
-        console.error(ansis.red(i18n.t('marketplace:updateCheckFailed')))
+        console.error(ansis.red(i18n.t('marketplace:updateCheckFailed')));
       }
-      break
+      break;
     }
     case '0':
-      return
+      return;
     default:
-      return
+      return;
   }
 
-  printSeparator()
+  printSeparator();
 }
 
 async function showHooksSyncMenu(): Promise<void> {
@@ -1284,219 +1284,219 @@ async function showHooksSyncMenu(): Promise<void> {
         action: async () => hooksSync({ action: 'templates' }),
       },
     ],
-  })
+  });
 }
 
 async function showQuickActionsMenu(): Promise<void> {
-  const lang = i18n.language as SupportedLang
-  const isZh = lang === 'zh-CN'
+  const lang = i18n.language as SupportedLang;
+  const isZh = lang === 'zh-CN';
 
-  console.log(ansis.green(isZh ? '🚀 快捷操作' : '🚀 Quick Actions'))
-  console.log('')
-  console.log(generateQuickActionsPanel(lang))
-  console.log('')
+  console.log(ansis.green(isZh ? '🚀 快捷操作' : '🚀 Quick Actions'));
+  console.log('');
+  console.log(generateQuickActionsPanel(lang));
+  console.log('');
 
   const { choice } = await inquirer.prompt<{ choice: string }>({
     type: 'input',
     name: 'choice',
     message: isZh ? '输入数字 (1-8) 或 0 返回:' : 'Enter number (1-8) or 0 to go back:',
     validate: (value) => {
-      const valid = ['1', '2', '3', '4', '5', '6', '7', '8', '0', '?']
-      return valid.includes(value) || (isZh ? '请输入有效选项' : 'Please enter a valid option')
+      const valid = ['1', '2', '3', '4', '5', '6', '7', '8', '0', '?'];
+      return valid.includes(value) || (isZh ? '请输入有效选项' : 'Please enter a valid option');
     },
-  })
+  });
 
   if (!choice || choice === '0') {
-    return
+    return;
   }
 
   if (choice === '?') {
-    console.log('')
-    console.log(generateSkillReferenceCard(lang))
-    console.log('')
-    printSeparator()
-    await showQuickActionsMenu()
-    return
+    console.log('');
+    console.log(generateSkillReferenceCard(lang));
+    console.log('');
+    printSeparator();
+    await showQuickActionsMenu();
+    return;
   }
 
-  const actionNum = Number.parseInt(choice, 10)
-  const action = QUICK_ACTIONS.find(a => a.id === actionNum)
+  const actionNum = Number.parseInt(choice, 10);
+  const action = QUICK_ACTIONS.find(a => a.id === actionNum);
 
   if (action) {
-    const actionName = isZh ? action.nameZh : action.name
-    console.log('')
-    console.log(ansis.green(`✔ ${isZh ? '执行' : 'Executing'}: ${action.icon} ${actionName}`))
-    console.log(ansis.gray(`${isZh ? '命令' : 'Command'}: ${action.command}`))
-    console.log('')
+    const actionName = isZh ? action.nameZh : action.name;
+    console.log('');
+    console.log(ansis.green(`✔ ${isZh ? '执行' : 'Executing'}: ${action.icon} ${actionName}`));
+    console.log(ansis.gray(`${isZh ? '命令' : 'Command'}: ${action.command}`));
+    console.log('');
     console.log(ansis.green(isZh
       ? `💡 提示: 在 Claude Code 中输入 "${action.command}" 或直接输入 "${choice}" 来执行此操作`
-      : `💡 Tip: In Claude Code, type "${action.command}" or just "${choice}" to execute this action`))
+      : `💡 Tip: In Claude Code, type "${action.command}" or just "${choice}" to execute this action`));
   }
 
-  printSeparator()
+  printSeparator();
 }
 
 async function showSmartGuideMenu(): Promise<void> {
-  const lang = i18n.language as SupportedLang
-  const isZh = lang === 'zh-CN'
-  const installed = await isSmartGuideInstalled()
+  const lang = i18n.language as SupportedLang;
+  const isZh = lang === 'zh-CN';
+  const installed = await isSmartGuideInstalled();
 
-  console.log(ansis.green(isZh ? '🎯 智能助手' : '🎯 Smart Assistant'))
-  console.log('')
+  console.log(ansis.green(isZh ? '🎯 智能助手' : '🎯 Smart Assistant'));
+  console.log('');
   console.log(isZh
     ? '智能助手让你在 Claude Code 中通过输入数字快速执行操作'
-    : 'Smart Assistant lets you execute actions by typing numbers in Claude Code')
-  console.log('')
-  console.log(`  ${isZh ? '状态' : 'Status'}: ${installed ? ansis.green(isZh ? '已启用' : 'Enabled') : ansis.yellow(isZh ? '未启用' : 'Disabled')}`)
-  console.log('')
-  console.log(`  ${ansis.green('1.')} ${installed ? (isZh ? '更新智能助手' : 'Update Smart Assistant') : (isZh ? '启用智能助手' : 'Enable Smart Assistant')}`)
-  console.log(`  ${ansis.green('2.')} ${isZh ? '禁用智能助手' : 'Disable Smart Assistant'}`)
-  console.log(`  ${ansis.green('3.')} ${isZh ? '查看技能速查卡' : 'View Skills Reference Card'}`)
-  console.log(`  ${ansis.green('0.')} ${i18n.t('common:back')}`)
-  console.log('')
+    : 'Smart Assistant lets you execute actions by typing numbers in Claude Code');
+  console.log('');
+  console.log(`  ${isZh ? '状态' : 'Status'}: ${installed ? ansis.green(isZh ? '已启用' : 'Enabled') : ansis.yellow(isZh ? '未启用' : 'Disabled')}`);
+  console.log('');
+  console.log(`  ${ansis.green('1.')} ${installed ? (isZh ? '更新智能助手' : 'Update Smart Assistant') : (isZh ? '启用智能助手' : 'Enable Smart Assistant')}`);
+  console.log(`  ${ansis.green('2.')} ${isZh ? '禁用智能助手' : 'Disable Smart Assistant'}`);
+  console.log(`  ${ansis.green('3.')} ${isZh ? '查看技能速查卡' : 'View Skills Reference Card'}`);
+  console.log(`  ${ansis.green('0.')} ${i18n.t('common:back')}`);
+  console.log('');
 
   const { choice } = await inquirer.prompt<{ choice: string }>({
     type: 'input',
     name: 'choice',
     message: i18n.t('common:enterChoice'),
     validate: (value) => {
-      const valid = ['1', '2', '3', '0']
-      return valid.includes(value) || i18n.t('common:invalidChoice')
+      const valid = ['1', '2', '3', '0'];
+      return valid.includes(value) || i18n.t('common:invalidChoice');
     },
-  })
+  });
 
   if (!choice || choice === '0') {
-    return
+    return;
   }
 
   switch (choice) {
     case '1': {
-      const success = await injectSmartGuide(lang)
+      const success = await injectSmartGuide(lang);
       if (success) {
-        console.log(ansis.green(`✔ ${isZh ? '智能助手已启用' : 'Smart Assistant enabled'}`))
+        console.log(ansis.green(`✔ ${isZh ? '智能助手已启用' : 'Smart Assistant enabled'}`));
       }
       else {
-        console.log(ansis.red(isZh ? '启用失败' : 'Failed to enable'))
+        console.log(ansis.red(isZh ? '启用失败' : 'Failed to enable'));
       }
-      break
+      break;
     }
     case '2': {
       if (!installed) {
-        console.log(ansis.yellow(isZh ? '智能助手未启用' : 'Smart Assistant is not enabled'))
-        break
+        console.log(ansis.yellow(isZh ? '智能助手未启用' : 'Smart Assistant is not enabled'));
+        break;
       }
-      const success = await removeSmartGuide()
+      const success = await removeSmartGuide();
       if (success) {
-        console.log(ansis.green(`✔ ${isZh ? '智能助手已禁用' : 'Smart Assistant disabled'}`))
+        console.log(ansis.green(`✔ ${isZh ? '智能助手已禁用' : 'Smart Assistant disabled'}`));
       }
       else {
-        console.log(ansis.red(isZh ? '禁用失败' : 'Failed to disable'))
+        console.log(ansis.red(isZh ? '禁用失败' : 'Failed to disable'));
       }
-      break
+      break;
     }
     case '3': {
-      console.log('')
-      console.log(generateSkillReferenceCard(lang))
-      break
+      console.log('');
+      console.log(generateSkillReferenceCard(lang));
+      break;
     }
   }
 
-  printSeparator()
+  printSeparator();
 }
 
 async function showWorkflowsAndSkillsMenu(): Promise<void> {
-  const lang = i18n.language as SupportedLang
-  const isZh = lang === 'zh-CN'
+  const lang = i18n.language as SupportedLang;
+  const isZh = lang === 'zh-CN';
 
-  console.log(ansis.green(i18n.t('menu:ccjkFeatures.workflowsTitle')))
-  console.log('  -------- Workflows & Skills --------')
-  console.log(`  ${ansis.green('1.')} ${i18n.t('menu:ccjkFeatures.viewInstalledWorkflows')}`)
-  console.log(`  ${ansis.green('2.')} ${i18n.t('menu:ccjkFeatures.viewInstalledSkills')}`)
-  console.log(`  ${ansis.green('3.')} ${i18n.t('menu:ccjkFeatures.installNewWorkflow')}`)
-  console.log(`  ${ansis.green('4.')} ${isZh ? '🚀 快捷操作面板' : '🚀 Quick Actions Panel'}`)
-  console.log(`  ${ansis.green('5.')} ${isZh ? '🎯 智能助手设置' : '🎯 Smart Assistant Settings'}`)
-  console.log(`  ${ansis.green('0.')} ${i18n.t('common:back')}`)
-  console.log('')
+  console.log(ansis.green(i18n.t('menu:ccjkFeatures.workflowsTitle')));
+  console.log('  -------- Workflows & Skills --------');
+  console.log(`  ${ansis.green('1.')} ${i18n.t('menu:ccjkFeatures.viewInstalledWorkflows')}`);
+  console.log(`  ${ansis.green('2.')} ${i18n.t('menu:ccjkFeatures.viewInstalledSkills')}`);
+  console.log(`  ${ansis.green('3.')} ${i18n.t('menu:ccjkFeatures.installNewWorkflow')}`);
+  console.log(`  ${ansis.green('4.')} ${isZh ? '🚀 快捷操作面板' : '🚀 Quick Actions Panel'}`);
+  console.log(`  ${ansis.green('5.')} ${isZh ? '🎯 智能助手设置' : '🎯 Smart Assistant Settings'}`);
+  console.log(`  ${ansis.green('0.')} ${i18n.t('common:back')}`);
+  console.log('');
 
   const { choice } = await inquirer.prompt<{ choice: string }>({
     type: 'input',
     name: 'choice',
     message: i18n.t('common:enterChoice'),
     validate: (value) => {
-      const valid = ['1', '2', '3', '4', '5', '0']
-      return valid.includes(value) || i18n.t('common:invalidChoice')
+      const valid = ['1', '2', '3', '4', '5', '0'];
+      return valid.includes(value) || i18n.t('common:invalidChoice');
     },
-  })
+  });
 
   if (!choice) {
-    console.log(ansis.yellow(i18n.t('common:cancelled')))
-    return
+    console.log(ansis.yellow(i18n.t('common:cancelled')));
+    return;
   }
 
   switch (choice) {
     case '1': {
-      console.log(ansis.green(i18n.t('menu:ccjkFeatures.availableStyles')))
-      console.log(ansis.dim('Feature coming soon - will show installed workflows'))
-      break
+      console.log(ansis.green(i18n.t('menu:ccjkFeatures.availableStyles')));
+      console.log(ansis.dim('Feature coming soon - will show installed workflows'));
+      break;
     }
     case '2': {
-      const status = await checkSuperpowersInstalled()
+      const status = await checkSuperpowersInstalled();
       if (!status.installed) {
-        console.log(ansis.yellow(i18n.t('superpowers:status.notInstalled')))
-        break
+        console.log(ansis.yellow(i18n.t('superpowers:status.notInstalled')));
+        break;
       }
 
-      const skills = await getSuperpowersSkills()
+      const skills = await getSuperpowersSkills();
       if (skills.length === 0) {
-        console.log(ansis.yellow(i18n.t('menu:ccjkFeatures.noSkillsInstalled')))
+        console.log(ansis.yellow(i18n.t('menu:ccjkFeatures.noSkillsInstalled')));
       }
       else {
-        console.log(ansis.green(i18n.t('menu:ccjkFeatures.skillCount', { count: skills.length })))
-        console.log('')
+        console.log(ansis.green(i18n.t('menu:ccjkFeatures.skillCount', { count: skills.length })));
+        console.log('');
         skills.forEach((skill) => {
-          console.log(`  ${ansis.green('•')} ${skill}`)
-        })
+          console.log(`  ${ansis.green('•')} ${skill}`);
+        });
       }
-      break
+      break;
     }
     case '3': {
-      await update({ skipBanner: true })
-      break
+      await update({ skipBanner: true });
+      break;
     }
     case '4': {
-      printSeparator()
-      await showQuickActionsMenu()
-      return
+      printSeparator();
+      await showQuickActionsMenu();
+      return;
     }
     case '5': {
-      printSeparator()
-      await showSmartGuideMenu()
-      return
+      printSeparator();
+      await showSmartGuideMenu();
+      return;
     }
     case '0':
-      return
+      return;
     default:
-      return
+      return;
   }
 
-  printSeparator()
+  printSeparator();
 }
 
 async function showOutputStylesMenu(): Promise<void> {
-  console.log(ansis.green(i18n.t('menu:ccjkFeatures.outputStylesTitle')))
-  console.log('')
-  console.log(ansis.green(i18n.t('menu:ccjkFeatures.availableStyles')))
-  console.log(`  ${ansis.green('•')} speed-coder`)
-  console.log(`  ${ansis.green('•')} senior-architect`)
-  console.log(`  ${ansis.green('•')} pair-programmer`)
-  console.log(`  ${ansis.green('•')} expert-concise`)
-  console.log(`  ${ansis.green('•')} teaching-mode`)
-  console.log(`  ${ansis.green('•')} casual-friendly`)
-  console.log(`  ${ansis.green('•')} technical-precise`)
-  console.log('')
-  console.log(ansis.dim('Tip: Output styles are configured during initialization or via "Configure Claude global memory"'))
+  console.log(ansis.green(i18n.t('menu:ccjkFeatures.outputStylesTitle')));
+  console.log('');
+  console.log(ansis.green(i18n.t('menu:ccjkFeatures.availableStyles')));
+  console.log(`  ${ansis.green('•')} speed-coder`);
+  console.log(`  ${ansis.green('•')} senior-architect`);
+  console.log(`  ${ansis.green('•')} pair-programmer`);
+  console.log(`  ${ansis.green('•')} expert-concise`);
+  console.log(`  ${ansis.green('•')} teaching-mode`);
+  console.log(`  ${ansis.green('•')} casual-friendly`);
+  console.log(`  ${ansis.green('•')} technical-precise`);
+  console.log('');
+  console.log(ansis.dim('Tip: Output styles are configured during initialization or via "Configure Claude global memory"'));
 
-  printSeparator()
+  printSeparator();
 }
 
 /**
@@ -1511,13 +1511,13 @@ async function handleCodeToolSwitch(current: CodeToolType): Promise<boolean> {
     'continue': 'Continue',
     'cline': 'Cline',
     'cursor': 'Cursor',
-  }
+  };
 
   const choices = addNumbersToChoices(Object.entries(CODE_TOOL_LABELS).map(([value, label]) => ({
     name: label,
     value,
     short: label,
-  })))
+  })));
 
   const { tool } = await inquirer.prompt<{ tool: CodeToolType | '' }>({
     type: 'list',
@@ -1525,20 +1525,20 @@ async function handleCodeToolSwitch(current: CodeToolType): Promise<boolean> {
     message: i18n.t('menu:switchCodeToolPrompt'),
     default: current,
     choices,
-  })
+  });
 
   if (!tool) {
-    console.log(ansis.yellow(i18n.t('common:cancelled')))
-    return false
+    console.log(ansis.yellow(i18n.t('common:cancelled')));
+    return false;
   }
 
   if (tool !== current) {
-    updateZcfConfig({ codeToolType: tool })
-    console.log(ansis.green(`✔ ${i18n.t('menu:codeToolSwitched', { tool: CODE_TOOL_LABELS[tool] })}`))
-    return true
+    updateZcfConfig({ codeToolType: tool });
+    console.log(ansis.green(`✔ ${i18n.t('menu:codeToolSwitched', { tool: CODE_TOOL_LABELS[tool] })}`));
+    return true;
   }
 
-  return false
+  return false;
 }
 
 /**
@@ -1546,15 +1546,15 @@ async function handleCodeToolSwitch(current: CodeToolType): Promise<boolean> {
  */
 async function isFirstTimeUser(): Promise<boolean> {
   if (isOnboardingCompleted()) {
-    return false
+    return false;
   }
 
-  const config = readZcfConfig()
+  const config = readZcfConfig();
   if (!config || !config.version || !config.preferredLang || !config.codeToolType) {
-    return true
+    return true;
   }
 
-  return false
+  return false;
 }
 
 /**
@@ -1563,56 +1563,55 @@ async function isFirstTimeUser(): Promise<boolean> {
 export async function showMainMenu(options: { codeType?: string } = {}): Promise<void> {
   try {
     if (await isFirstTimeUser()) {
-      await runOnboardingWizard({ preferredCodeTool: options.codeType })
+      await runOnboardingWizard({ preferredCodeTool: options.codeType });
     }
 
-    let clavueRuntimeSyncResult: MyclaudeProviderSyncResult | null = null
+    let clavueRuntimeSyncResult: MyclaudeProviderSyncResult | null = null;
 
     try {
-      const previousType = getCurrentCodeTool()
+      const previousType = getCurrentCodeTool();
       const resolvedType = await resolveStartupCodeType({
         codeTypeParam: options.codeType,
         interactive: true,
-      })
+      });
 
       if (resolvedType !== previousType || options.codeType) {
-        updateZcfConfig({ codeToolType: resolvedType })
+        updateZcfConfig({ codeToolType: resolvedType });
         if (resolvedType !== previousType) {
-          console.log(ansis.green(`✔ Switched to ${resolvedType}`))
+          console.log(ansis.green(`✔ Switched to ${resolvedType}`));
         }
       }
-
     }
     catch (err) {
-      const errorMessage = err instanceof Error ? err.message : String(err)
-      console.error(ansis.yellow(errorMessage))
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      console.error(ansis.yellow(errorMessage));
     }
 
     // Menu loop
-    let exitMenu = false
+    let exitMenu = false;
     while (!exitMenu) {
-      const codeTool = getCurrentCodeTool()
-      displayBannerWithInfo(CODE_TOOL_BANNERS[codeTool] || 'CCJK')
+      const codeTool = getCurrentCodeTool();
+      displayBannerWithInfo(CODE_TOOL_BANNERS[codeTool] || 'CCJK');
 
       if (codeTool === 'clavue') {
-        const { syncMyclaudeProviderProfilesFromCurrentClaudeConfig } = await import('../../utils/claude-config')
-        clavueRuntimeSyncResult = syncMyclaudeProviderProfilesFromCurrentClaudeConfig()
+        const { syncMyclaudeProviderProfilesFromCurrentClaudeConfig } = await import('../../utils/claude-config');
+        clavueRuntimeSyncResult = syncMyclaudeProviderProfilesFromCurrentClaudeConfig();
       }
 
-      const result = await showProgressiveMenu(codeTool, clavueRuntimeSyncResult)
+      const result = await showProgressiveMenu(codeTool, clavueRuntimeSyncResult);
 
       if (result === 'exit') {
-        exitMenu = true
+        exitMenu = true;
       }
       else if (result === 'switch') {
         // Loop will read updated config and refresh banner
-        continue
+        continue;
       }
     }
   }
   catch (error) {
     if (!handleExitPromptError(error)) {
-      handleGeneralError(error)
+      handleGeneralError(error);
     }
   }
 }
@@ -1620,8 +1619,8 @@ export async function showMainMenu(options: { codeType?: string } = {}): Promise
 /**
  * Export types
  */
-export * from './types'
+export * from './types';
 export const __testUtils = {
   attachHandlers,
   getMenuShellConfig,
-}
+};

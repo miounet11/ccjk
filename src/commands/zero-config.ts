@@ -3,39 +3,39 @@
  * Provides one-click permission presets for different use cases
  */
 
-import type { PartialZcfTomlConfig, SafetyLevel } from '../types/toml-config'
-import type { RuntimeSettingsTarget } from '../utils/runtime-settings'
-import { existsSync, readFileSync } from 'node:fs'
-import ansis from 'ansis'
-import inquirer from 'inquirer'
-import { applyConfigPlan, createConfigPlan, createFileChange, formatConfigPlan } from '../config/change-plan'
-import { CODEX_CONFIG_FILE, isClaudeFamilyCodeTool, isCodeToolType, ZCF_CONFIG_FILE } from '../constants'
-import { i18n } from '../i18n'
-import { buildUpdatedTomlConfig, readZcfConfig, stringifyTomlConfig } from '../utils/ccjk-config'
-import { ensureClaudeFamilyCoreFeatures } from '../utils/claude-family-core-features'
-import { normalizeClaudeFamilySettings } from '../utils/claude-settings-normalizer'
-import { buildCodexGoalsFeatureConfigContent } from '../utils/code-tools/codex'
-import { addNumbersToChoices } from '../utils/prompt-helpers'
-import { resolveClaudeFamilySettingsTarget } from '../utils/runtime-settings'
+import type { PartialZcfTomlConfig, SafetyLevel } from '../types/toml-config';
+import type { RuntimeSettingsTarget } from '../utils/runtime-settings';
+import { existsSync, readFileSync } from 'node:fs';
+import ansis from 'ansis';
+import inquirer from 'inquirer';
+import { applyConfigPlan, createConfigPlan, createFileChange, formatConfigPlan } from '../config/change-plan';
+import { CODEX_CONFIG_FILE, isClaudeFamilyCodeTool, isCodeToolType, ZCF_CONFIG_FILE } from '../constants';
+import { i18n } from '../i18n';
+import { buildUpdatedTomlConfig, readZcfConfig, stringifyTomlConfig } from '../utils/ccjk-config';
+import { ensureClaudeFamilyCoreFeatures } from '../utils/claude-family-core-features';
+import { normalizeClaudeFamilySettings } from '../utils/claude-settings-normalizer';
+import { buildCodexGoalsFeatureConfigContent } from '../utils/code-tools/codex';
+import { addNumbersToChoices } from '../utils/prompt-helpers';
+import { resolveClaudeFamilySettingsTarget } from '../utils/runtime-settings';
 
 // ============================================================================
 // Permission Presets
 // ============================================================================
 
-type ZeroConfigArchetype = 'pc-dev' | 'app-dev' | 'text-studio' | 'service-ops' | 'research' | 'automation' | 'custom'
+type ZeroConfigArchetype = 'pc-dev' | 'app-dev' | 'text-studio' | 'service-ops' | 'research' | 'automation' | 'custom';
 
 interface PermissionPreset {
-  id: string
-  name: string
-  description: string
-  permissions: string[]
-  env?: Record<string, string>
+  id: string;
+  name: string;
+  description: string;
+  permissions: string[];
+  env?: Record<string, string>;
 }
 
-type ZeroConfigCodeTool = 'claude-code' | 'clavue' | 'codex'
+type ZeroConfigCodeTool = 'claude-code' | 'clavue' | 'codex';
 
 function isZeroConfigCodeTool(value: unknown): value is ZeroConfigCodeTool {
-  return value === 'claude-code' || value === 'clavue' || value === 'codex'
+  return value === 'claude-code' || value === 'clavue' || value === 'codex';
 }
 
 /**
@@ -163,7 +163,7 @@ const MAX_PRESET: PermissionPreset = {
     ANTHROPIC_DEFAULT_SONNET_MODEL: '',
     ANTHROPIC_DEFAULT_OPUS_MODEL: '',
   },
-}
+};
 
 /**
  * Developer preset - Common development tools
@@ -227,7 +227,7 @@ const DEV_PRESET: PermissionPreset = {
   env: {
     ANTHROPIC_MODEL: '',
   },
-}
+};
 
 /**
  * Safe preset - Read-only operations
@@ -270,9 +270,9 @@ const SAFE_PRESET: PermissionPreset = {
     // Web access
     'WebFetch(*)',
   ],
-}
+};
 
-const PRESETS: PermissionPreset[] = [MAX_PRESET, DEV_PRESET, SAFE_PRESET]
+const PRESETS: PermissionPreset[] = [MAX_PRESET, DEV_PRESET, SAFE_PRESET];
 
 function getArchetypeProfile(archetype: ZeroConfigArchetype = 'pc-dev') {
   switch (archetype) {
@@ -281,44 +281,44 @@ function getArchetypeProfile(archetype: ZeroConfigArchetype = 'pc-dev') {
         id: 'app-dev' as const,
         name: 'Application Development',
         goal: 'Plan, build, verify, and ship application features with a product-focused workflow',
-      }
+      };
     case 'text-studio':
       return {
         id: 'text-studio' as const,
         name: 'Text Studio',
         goal: 'Research, draft, edit, and review text-heavy work with a documentation-first workflow',
-      }
+      };
     case 'service-ops':
       return {
         id: 'service-ops' as const,
         name: 'Service Operations',
         goal: 'Inspect, operate, and maintain services safely with verification and controlled changes',
-      }
+      };
     case 'research':
       return {
         id: 'research' as const,
         name: 'Research and Analysis',
         goal: 'Investigate code, docs, and technical options before applying targeted changes',
-      }
+      };
     case 'automation':
       return {
         id: 'automation' as const,
         name: 'Automation and Scripting',
         goal: 'Automate repetitive development and operations tasks with reliable execution flows',
-      }
+      };
     case 'custom':
       return {
         id: 'custom' as const,
         name: 'Custom Workflow',
         goal: 'Adapt CCJK to a custom working style and toolchain combination',
-      }
+      };
     case 'pc-dev':
     default:
       return {
         id: 'pc-dev' as const,
         name: 'PC Software Development',
         goal: 'Build, debug, test, and ship software efficiently',
-      }
+      };
   }
 }
 
@@ -333,19 +333,19 @@ function getCapabilityProfile(archetype: ZeroConfigArchetype = 'pc-dev') {
     documentAuthoring: archetype === 'text-studio' || archetype === 'research',
     serviceOps: archetype === 'service-ops',
     multiAgent: archetype !== 'custom',
-  }
+  };
 }
 
 function getOperatorMode(archetype: ZeroConfigArchetype = 'pc-dev') {
   if (archetype === 'research' || archetype === 'text-studio') {
-    return 'planning-first' as const
+    return 'planning-first' as const;
   }
 
   if (archetype === 'custom') {
-    return 'conversational' as const
+    return 'conversational' as const;
   }
 
-  return 'execution-first' as const
+  return 'execution-first' as const;
 }
 
 // ============================================================================
@@ -357,15 +357,15 @@ function getOperatorMode(archetype: ZeroConfigArchetype = 'pc-dev') {
  */
 function loadCurrentSettings(target: RuntimeSettingsTarget = resolveClaudeFamilySettingsTarget()): any {
   if (!existsSync(target.settingsFile)) {
-    return {}
+    return {};
   }
 
   try {
-    const content = readFileSync(target.settingsFile, 'utf-8')
-    return JSON.parse(content)
+    const content = readFileSync(target.settingsFile, 'utf-8');
+    return JSON.parse(content);
   }
   catch {
-    return {}
+    return {};
   }
 }
 
@@ -373,49 +373,49 @@ function loadCurrentSettings(target: RuntimeSettingsTarget = resolveClaudeFamily
  * Save settings to settings.json
  */
 function stringifySettings(settings: any): string {
-  normalizeClaudeFamilySettings(settings)
-  return JSON.stringify(settings, null, 2)
+  normalizeClaudeFamilySettings(settings);
+  return JSON.stringify(settings, null, 2);
 }
 
 /**
  * Apply permission preset to settings
  */
 function applyPreset(preset: PermissionPreset, currentSettings: any): any {
-  const newSettings = structuredClone(currentSettings || {})
+  const newSettings = structuredClone(currentSettings || {});
 
   // Merge permissions
   if (!newSettings.permissions) {
-    newSettings.permissions = { allow: [] }
+    newSettings.permissions = { allow: [] };
   }
 
   // Preserve existing user permissions and only add missing preset entries.
   const existingPermissions = Array.isArray(newSettings.permissions.allow)
     ? newSettings.permissions.allow.filter((permission: unknown): permission is string => typeof permission === 'string')
-    : []
+    : [];
   newSettings.permissions.allow = [
     ...existingPermissions,
     ...preset.permissions.filter(permission => !existingPermissions.includes(permission)),
-  ]
+  ];
 
   // Merge environment variables if provided. Empty preset placeholders must not
   // overwrite user-selected models or tokens.
   if (preset.env) {
-    newSettings.env = { ...newSettings.env }
+    newSettings.env = { ...newSettings.env };
     for (const [key, value] of Object.entries(preset.env)) {
       if (value === '') {
-        continue
+        continue;
       }
       if (newSettings.env[key] === undefined || newSettings.env[key] === '') {
-        newSettings.env[key] = value
+        newSettings.env[key] = value;
       }
     }
   }
 
-  return newSettings
+  return newSettings;
 }
 
 function buildAdaptationPresetUpdates(preset: PermissionPreset, archetype: ZeroConfigArchetype = 'pc-dev'): PartialZcfTomlConfig {
-  const safetyLevel: SafetyLevel = preset.id === 'safe' ? 'safe' : preset.id === 'max' ? 'max' : 'dev'
+  const safetyLevel: SafetyLevel = preset.id === 'safe' ? 'safe' : preset.id === 'max' ? 'max' : 'dev';
 
   return {
     codex: {
@@ -445,7 +445,7 @@ function buildAdaptationPresetUpdates(preset: PermissionPreset, archetype: ZeroC
         operatorMode: getOperatorMode(archetype),
       },
     },
-  }
+  };
 }
 
 function createZeroConfigPlan(
@@ -455,14 +455,14 @@ function createZeroConfigPlan(
   currentSettings: any,
   archetype: ZeroConfigArchetype = 'pc-dev',
 ) {
-  const adaptationUpdates = buildAdaptationPresetUpdates(preset, archetype)
-  const nextToml = buildUpdatedTomlConfig(ZCF_CONFIG_FILE, adaptationUpdates)
-  const nextTomlContent = stringifyTomlConfig(nextToml)
-  const changes: ReturnType<typeof createFileChange>[] = []
+  const adaptationUpdates = buildAdaptationPresetUpdates(preset, archetype);
+  const nextToml = buildUpdatedTomlConfig(ZCF_CONFIG_FILE, adaptationUpdates);
+  const nextTomlContent = stringifyTomlConfig(nextToml);
+  const changes: ReturnType<typeof createFileChange>[] = [];
 
   if (target) {
-    const nextSettings = applyPreset(preset, currentSettings)
-    const nextSettingsContent = stringifySettings(nextSettings)
+    const nextSettings = applyPreset(preset, currentSettings);
+    const nextSettingsContent = stringifySettings(nextSettings);
     changes.push(
       createFileChange({
         target: target.codeTool,
@@ -472,12 +472,12 @@ function createZeroConfigPlan(
         reason: `Merge ${preset.name} permissions into ${target.displayName} settings.`,
         afterContent: nextSettingsContent,
       }),
-    )
+    );
   }
 
   if (codeTool === 'codex') {
-    const currentCodexContent = existsSync(CODEX_CONFIG_FILE) ? readFileSync(CODEX_CONFIG_FILE, 'utf-8') : ''
-    const nextCodexContent = buildCodexGoalsFeatureConfigContent(currentCodexContent)
+    const currentCodexContent = existsSync(CODEX_CONFIG_FILE) ? readFileSync(CODEX_CONFIG_FILE, 'utf-8') : '';
+    const nextCodexContent = buildCodexGoalsFeatureConfigContent(currentCodexContent);
     changes.push(
       createFileChange({
         target: 'codex',
@@ -488,7 +488,7 @@ function createZeroConfigPlan(
         beforeContent: currentCodexContent,
         afterContent: nextCodexContent,
       }),
-    )
+    );
   }
 
   changes.push(
@@ -500,55 +500,55 @@ function createZeroConfigPlan(
       reason: 'Record the selected zero-config product profile and runtime-native goal support for future diagnostics.',
       afterContent: nextTomlContent,
     }),
-  )
+  );
 
   return createConfigPlan({
     title: `Apply zero-config preset: ${preset.name}`,
     description: `Configure ${codeTool === 'codex' ? 'Codex' : target?.displayName} with the ${getArchetypeProfile(archetype).name} product profile.`,
     changes,
-  })
+  });
 }
 
 /**
  * Show what will be added by the preset
  */
 function showPresetDiff(preset: PermissionPreset, currentSettings: any): void {
-  const isZh = i18n.language === 'zh-CN'
-  const currentPermissions = new Set(currentSettings.permissions?.allow || [])
-  const newPermissions = preset.permissions.filter(p => !currentPermissions.has(p))
+  const isZh = i18n.language === 'zh-CN';
+  const currentPermissions = new Set(currentSettings.permissions?.allow || []);
+  const newPermissions = preset.permissions.filter(p => !currentPermissions.has(p));
 
-  console.log('')
-  console.log(ansis.bold.cyan(isZh ? '📋 预设详情' : '📋 Preset Details'))
-  console.log(ansis.dim('─'.repeat(60)))
-  console.log(`${ansis.green('Name:')} ${preset.name}`)
-  console.log(`${ansis.green('Description:')} ${preset.description}`)
-  console.log('')
+  console.log('');
+  console.log(ansis.bold.cyan(isZh ? '📋 预设详情' : '📋 Preset Details'));
+  console.log(ansis.dim('─'.repeat(60)));
+  console.log(`${ansis.green('Name:')} ${preset.name}`);
+  console.log(`${ansis.green('Description:')} ${preset.description}`);
+  console.log('');
 
   if (newPermissions.length > 0) {
-    console.log(ansis.bold.yellow(isZh ? '✨ 将添加的权限:' : '✨ Permissions to be added:'))
-    console.log(ansis.dim(`  ${isZh ? '总计' : 'Total'}: ${newPermissions.length} ${isZh ? '项' : 'items'}`))
+    console.log(ansis.bold.yellow(isZh ? '✨ 将添加的权限:' : '✨ Permissions to be added:'));
+    console.log(ansis.dim(`  ${isZh ? '总计' : 'Total'}: ${newPermissions.length} ${isZh ? '项' : 'items'}`));
 
     // Group by type
-    const bashPerms = newPermissions.filter(p => p.startsWith('Bash('))
-    const filePerms = newPermissions.filter(p => ['Read', 'Edit', 'Write', 'NotebookEdit'].some(t => p.startsWith(t)))
-    const otherPerms = newPermissions.filter(p => !bashPerms.includes(p) && !filePerms.includes(p))
+    const bashPerms = newPermissions.filter(p => p.startsWith('Bash('));
+    const filePerms = newPermissions.filter(p => ['Read', 'Edit', 'Write', 'NotebookEdit'].some(t => p.startsWith(t)));
+    const otherPerms = newPermissions.filter(p => !bashPerms.includes(p) && !filePerms.includes(p));
 
     if (bashPerms.length > 0) {
-      console.log(`  ${ansis.cyan('Bash:')} ${bashPerms.length} ${isZh ? '个命令' : 'commands'}`)
+      console.log(`  ${ansis.cyan('Bash:')} ${bashPerms.length} ${isZh ? '个命令' : 'commands'}`);
     }
     if (filePerms.length > 0) {
-      console.log(`  ${ansis.cyan('File:')} ${filePerms.length} ${isZh ? '个操作' : 'operations'}`)
+      console.log(`  ${ansis.cyan('File:')} ${filePerms.length} ${isZh ? '个操作' : 'operations'}`);
     }
     if (otherPerms.length > 0) {
-      console.log(`  ${ansis.cyan('Other:')} ${otherPerms.length} ${isZh ? '项' : 'items'}`)
+      console.log(`  ${ansis.cyan('Other:')} ${otherPerms.length} ${isZh ? '项' : 'items'}`);
     }
   }
   else {
-    console.log(ansis.yellow(isZh ? '✓ 所有权限已存在' : '✓ All permissions already exist'))
+    console.log(ansis.yellow(isZh ? '✓ 所有权限已存在' : '✓ All permissions already exist'));
   }
 
-  console.log(ansis.dim('─'.repeat(60)))
-  console.log('')
+  console.log(ansis.dim('─'.repeat(60)));
+  console.log('');
 }
 
 // ============================================================================
@@ -556,61 +556,61 @@ function showPresetDiff(preset: PermissionPreset, currentSettings: any): void {
 // ============================================================================
 
 export interface ZeroConfigOptions {
-  preset?: string
-  list?: boolean
-  skipBackup?: boolean
-  dryRun?: boolean
-  archetype?: ZeroConfigArchetype
-  codeTool?: string
-  installCcr?: boolean
+  preset?: string;
+  list?: boolean;
+  skipBackup?: boolean;
+  dryRun?: boolean;
+  archetype?: ZeroConfigArchetype;
+  codeTool?: string;
+  installCcr?: boolean;
 }
 
 /**
  * Zero-config permission preset command
  */
 export async function zeroConfig(options: ZeroConfigOptions = {}): Promise<void> {
-  const isZh = i18n.language === 'zh-CN'
+  const isZh = i18n.language === 'zh-CN';
   const requestedCodeTool = isCodeToolType(options.codeTool)
     ? options.codeTool
-    : undefined
-  const savedCodeTool = readZcfConfig()?.codeToolType
+    : undefined;
+  const savedCodeTool = readZcfConfig()?.codeToolType;
   const codeTool: ZeroConfigCodeTool = isZeroConfigCodeTool(requestedCodeTool)
     ? requestedCodeTool
     : isZeroConfigCodeTool(savedCodeTool)
       ? savedCodeTool
-      : 'claude-code'
+      : 'claude-code';
   const target = isClaudeFamilyCodeTool(codeTool)
     ? resolveClaudeFamilySettingsTarget(codeTool)
-    : null
+    : null;
 
   // List presets
   if (options.list) {
-    console.log('')
-    console.log(ansis.bold.cyan(isZh ? '📦 可用的权限预设' : '📦 Available Permission Presets'))
-    console.log(ansis.dim('─'.repeat(60)))
+    console.log('');
+    console.log(ansis.bold.cyan(isZh ? '📦 可用的权限预设' : '📦 Available Permission Presets'));
+    console.log(ansis.dim('─'.repeat(60)));
 
     for (const preset of PRESETS) {
-      console.log(`  ${ansis.green(preset.id.padEnd(8))} - ${preset.name}`)
-      console.log(`  ${ansis.dim(' '.repeat(10))}${preset.description}`)
-      console.log(`  ${ansis.dim(' '.repeat(10))}${preset.permissions.length} ${isZh ? '项权限' : 'permissions'}`)
-      console.log('')
+      console.log(`  ${ansis.green(preset.id.padEnd(8))} - ${preset.name}`);
+      console.log(`  ${ansis.dim(' '.repeat(10))}${preset.description}`);
+      console.log(`  ${ansis.dim(' '.repeat(10))}${preset.permissions.length} ${isZh ? '项权限' : 'permissions'}`);
+      console.log('');
     }
 
-    console.log(ansis.dim('─'.repeat(60)))
-    console.log(ansis.gray(isZh ? '使用: npx ccjk zc --preset=<id>' : 'Usage: npx ccjk zc --preset=<id>'))
-    console.log('')
-    return
+    console.log(ansis.dim('─'.repeat(60)));
+    console.log(ansis.gray(isZh ? '使用: npx ccjk zc --preset=<id>' : 'Usage: npx ccjk zc --preset=<id>'));
+    console.log('');
+    return;
   }
 
   // Select preset
-  let selectedPreset: PermissionPreset | undefined
+  let selectedPreset: PermissionPreset | undefined;
 
   if (options.preset) {
-    selectedPreset = PRESETS.find(p => p.id === options.preset)
+    selectedPreset = PRESETS.find(p => p.id === options.preset);
     if (!selectedPreset) {
-      console.error(ansis.red(isZh ? `错误: 未找到预设 "${options.preset}"` : `Error: Preset "${options.preset}" not found`))
-      console.log(ansis.gray(isZh ? '使用 --list 查看可用预设' : 'Use --list to see available presets'))
-      return
+      console.error(ansis.red(isZh ? `错误: 未找到预设 "${options.preset}"` : `Error: Preset "${options.preset}" not found`));
+      console.log(ansis.gray(isZh ? '使用 --list 查看可用预设' : 'Use --list to see available presets'));
+      return;
     }
   }
   else {
@@ -626,30 +626,30 @@ export async function zeroConfig(options: ZeroConfigOptions = {}): Promise<void>
           short: p.name,
         })),
       ),
-    })
+    });
 
-    selectedPreset = PRESETS.find(p => p.id === presetId)
+    selectedPreset = PRESETS.find(p => p.id === presetId);
     if (!selectedPreset) {
-      console.log(ansis.yellow(i18n.t('common:cancelled')))
-      return
+      console.log(ansis.yellow(i18n.t('common:cancelled')));
+      return;
     }
   }
 
   // Load current settings
-  const currentSettings = target ? loadCurrentSettings(target) : {}
+  const currentSettings = target ? loadCurrentSettings(target) : {};
   const plan = createZeroConfigPlan(
     selectedPreset,
     target,
     codeTool,
     currentSettings,
     options.archetype,
-  )
+  );
 
   // Show what will be added
-  showPresetDiff(selectedPreset, currentSettings)
+  showPresetDiff(selectedPreset, currentSettings);
   if (options.dryRun) {
-    console.log(formatConfigPlan(plan))
-    return
+    console.log(formatConfigPlan(plan));
+    return;
   }
 
   // Confirm
@@ -659,30 +659,30 @@ export async function zeroConfig(options: ZeroConfigOptions = {}): Promise<void>
       name: 'confirm',
       message: isZh ? '确认应用此预设?' : 'Confirm applying this preset?',
       default: true,
-    })
+    });
 
     if (!confirm) {
-      console.log(ansis.yellow(i18n.t('common:cancelled')))
-      return
+      console.log(ansis.yellow(i18n.t('common:cancelled')));
+      return;
     }
   }
 
-  const applyResult = applyConfigPlan(plan, { createSnapshot: !options.skipBackup })
+  const applyResult = applyConfigPlan(plan, { createSnapshot: !options.skipBackup });
   if (applyResult.snapshotId) {
-    console.log(ansis.gray(`✔ ${isZh ? '已创建快照' : 'Snapshot created'}: ${applyResult.snapshotId}`))
+    console.log(ansis.gray(`✔ ${isZh ? '已创建快照' : 'Snapshot created'}: ${applyResult.snapshotId}`));
   }
 
-  console.log('')
-  console.log(ansis.green(`✅ ${isZh ? '权限预设已应用' : 'Permission preset applied'}: ${selectedPreset.name}`))
+  console.log('');
+  console.log(ansis.green(`✅ ${isZh ? '权限预设已应用' : 'Permission preset applied'}: ${selectedPreset.name}`));
   if (target) {
-    console.log(ansis.gray(`   ${isZh ? '配置文件' : 'Config file'}: ${target.settingsFile}`))
+    console.log(ansis.gray(`   ${isZh ? '配置文件' : 'Config file'}: ${target.settingsFile}`));
   }
   if (codeTool === 'codex') {
-    console.log(ansis.gray(`   ${isZh ? 'Codex 配置' : 'Codex config'}: ${CODEX_CONFIG_FILE}`))
-    console.log(ansis.gray(`   ${isZh ? '已启用' : 'Enabled'}: [features].goals = true`))
+    console.log(ansis.gray(`   ${isZh ? 'Codex 配置' : 'Codex config'}: ${CODEX_CONFIG_FILE}`));
+    console.log(ansis.gray(`   ${isZh ? '已启用' : 'Enabled'}: [features].goals = true`));
   }
   if (applyResult.snapshotId) {
-    console.log(ansis.gray(`   ${isZh ? '回滚命令' : 'Rollback'}: npx ccjk rollback ${applyResult.snapshotId}`))
+    console.log(ansis.gray(`   ${isZh ? '回滚命令' : 'Rollback'}: npx ccjk rollback ${applyResult.snapshotId}`));
   }
 
   if (target) {
@@ -690,16 +690,16 @@ export async function zeroConfig(options: ZeroConfigOptions = {}): Promise<void>
       codeTool: target.codeTool,
       configLang: 'en',
       installCcr: options.installCcr !== false,
-    })
-    console.log(ansis.bold.cyan(isZh ? '核心功能检查' : 'Core feature check'))
+    });
+    console.log(ansis.bold.cyan(isZh ? '核心功能检查' : 'Core feature check'));
     for (const result of featureResults) {
-      const ok = result.status !== 'failed'
-      const marker = ok ? ansis.green('✔') : ansis.red('✖')
-      console.log(`${marker} ${result.feature}: ${result.message}`)
+      const ok = result.status !== 'failed';
+      const marker = ok ? ansis.green('✔') : ansis.red('✖');
+      console.log(`${marker} ${result.feature}: ${result.message}`);
       if (result.error) {
-        console.log(ansis.dim(`  ${result.error}`))
+        console.log(ansis.dim(`  ${result.error}`));
       }
     }
   }
-  console.log('')
+  console.log('');
 }

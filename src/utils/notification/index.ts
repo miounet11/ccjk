@@ -16,7 +16,7 @@ export {
   sendCloudNotification,
   startReplyPolling,
   stopReplyPolling,
-} from './cloud-client'
+} from './cloud-client';
 
 // Configuration management
 export {
@@ -35,7 +35,7 @@ export {
   toggleNotifications,
   updateNotificationConfig,
   validateCurrentConfig,
-} from './config'
+} from './config';
 
 // Notification manager
 export {
@@ -46,7 +46,7 @@ export {
   initializeNotifications,
   NotificationManager,
   startTaskMonitoring,
-} from './manager'
+} from './manager';
 
 // Token management
 export {
@@ -61,12 +61,12 @@ export {
   maskToken,
   shouldRefreshToken,
   verifyTokenHash,
-} from './token'
+} from './token';
 
 export type {
   DeviceInfo,
   TokenRefreshResult,
-} from './token'
+} from './token';
 
 // Types
 export type {
@@ -105,9 +105,9 @@ export type {
   WebSocketEventType,
   WebSocketState,
   WechatConfig,
-} from './types'
+} from './types';
 
 export {
   DEFAULT_NOTIFICATION_CONFIG,
   validateNotificationConfig,
-} from './types'
+} from './types';

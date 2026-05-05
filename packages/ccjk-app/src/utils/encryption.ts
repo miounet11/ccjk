@@ -7,7 +7,8 @@ import { decode as base64Decode } from 'base64-arraybuffer';
 export function decryptMessage(envelope: any, sessionKey: Uint8Array): any {
   try {
     return wireDecrypt(envelope, sessionKey);
-  } catch (error) {
+  }
+  catch (error) {
     console.error('Failed to decrypt message:', error);
     return null;
   }
@@ -25,13 +26,14 @@ export function base64ToUint8Array(base64: string): Uint8Array {
  * Get session key from storage or config
  * In production, this should be securely exchanged via key exchange protocol
  */
-export async function getSessionKey(sessionId: string): Promise<Uint8Array | null> {
+export async function getSessionKey(_sessionId: string): Promise<Uint8Array | null> {
   try {
     // TODO: Implement secure key exchange
     // For now, return null and handle gracefully
     console.warn('Session key exchange not implemented yet');
     return null;
-  } catch (error) {
+  }
+  catch (error) {
     console.error('Failed to get session key:', error);
     return null;
   }

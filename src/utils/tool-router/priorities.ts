@@ -6,7 +6,7 @@
 /**
  * Fallback behavior when primary tool is unavailable
  */
-export type FallbackBehavior = 'next' | 'error' | 'prompt'
+export type FallbackBehavior = 'next' | 'error' | 'prompt';
 
 /**
  * Tool category configuration
@@ -15,7 +15,7 @@ export interface ToolCategory {
   /**
    * Tools in priority order (highest to lowest)
    */
-  tools: string[]
+  tools: string[];
 
   /**
    * Behavior when primary tool is unavailable
@@ -23,12 +23,12 @@ export interface ToolCategory {
    * - 'error': Throw error if primary unavailable
    * - 'prompt': Ask user which tool to use
    */
-  fallbackBehavior: FallbackBehavior
+  fallbackBehavior: FallbackBehavior;
 
   /**
    * Category description
    */
-  description?: string
+  description?: string;
 }
 
 /**
@@ -39,8 +39,8 @@ export interface ToolPriorityConfig {
    * Tool categories with priority definitions
    */
   categories: {
-    [category: string]: ToolCategory
-  }
+    [category: string]: ToolCategory;
+  };
 }
 
 /**
@@ -118,7 +118,7 @@ export const DEFAULT_TOOL_PRIORITIES: ToolPriorityConfig = {
       description: 'Command and code execution',
     },
   },
-}
+};
 
 /**
  * Tool metadata for better decision making
@@ -127,35 +127,35 @@ export interface ToolMetadata {
   /**
    * Tool name
    */
-  name: string
+  name: string;
 
   /**
    * Tool type
    */
-  type: 'skill' | 'mcp' | 'cli' | 'builtin'
+  type: 'skill' | 'mcp' | 'cli' | 'builtin';
 
   /**
    * Categories this tool belongs to
    */
-  categories: string[]
+  categories: string[];
 
   /**
    * Tool description
    */
-  description?: string
+  description?: string;
 
   /**
    * Installation requirements
    */
-  requirements?: string[]
+  requirements?: string[];
 
   /**
    * Performance characteristics
    */
   performance?: {
-    speed: 'fast' | 'medium' | 'slow'
-    memory: 'light' | 'medium' | 'heavy'
-  }
+    speed: 'fast' | 'medium' | 'slow';
+    memory: 'light' | 'medium' | 'heavy';
+  };
 }
 
 /**
@@ -297,4 +297,4 @@ export const TOOL_METADATA: Record<string, ToolMetadata> = {
       memory: 'light',
     },
   },
-}
+};

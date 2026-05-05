@@ -7,7 +7,7 @@
  */
 
 // Export client
-export { createSkillsClient, SkillsApiClient } from './client'
+export { createSkillsClient, SkillsApiClient } from './client';
 
 // Export types
 export type {
@@ -29,7 +29,7 @@ export type {
   SkillUploadRequest,
   SkillUploadResponse,
   SortDirection,
-} from './types'
+} from './types';
 
 // Export validation functions
 export {
@@ -38,4 +38,4 @@ export {
   validateSkillGetResponse,
   validateSkillListResponse,
   validateSkillUploadResponse,
-} from './types'
+} from './types';

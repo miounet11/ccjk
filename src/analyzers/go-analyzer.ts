@@ -3,27 +3,27 @@
  * Detects frameworks like Gin, Echo, etc.
  */
 
-import type { FrameworkDetectionResult, LanguageDetection } from './types.js'
-import { promises as fsp } from 'node:fs'
-import consola from 'consola'
-import path from 'pathe'
+import type { FrameworkDetectionResult, LanguageDetection } from './types.js';
+import { promises as fsp } from 'node:fs';
+import consola from 'consola';
+import path from 'pathe';
 
 // fs-extra compatibility helpers
 async function pathExists(p: string): Promise<boolean> {
   try {
-    await fsp.access(p)
-    return true
+    await fsp.access(p);
+    return true;
   }
   catch {
-    return false
+    return false;
   }
 }
 
 async function _readFile(p: string): Promise<string> {
-  return fsp.readFile(p, 'utf-8')
+  return fsp.readFile(p, 'utf-8');
 }
 
-const logger = consola.withTag('go-analyzer')
+const logger = consola.withTag('go-analyzer');
 
 // Go framework detection patterns
 const FRAMEWORK_PATTERNS = {
@@ -111,7 +111,7 @@ const FRAMEWORK_PATTERNS = {
     imports: ['k8s.io/client-go'],
     indicators: ['kubernetes.Clientset', 'k8s.io'],
   },
-}
+};
 
 /**
  * Analyze Go project
@@ -121,45 +121,45 @@ export async function analyzeGoProject(
   files: string[],
   _languages: LanguageDetection[],
 ): Promise<FrameworkDetectionResult[]> {
-  logger.info('Analyzing Go project')
+  logger.info('Analyzing Go project');
 
-  const frameworks: FrameworkDetectionResult[] = []
-  const goModPath = path.join(projectPath, 'go.mod')
+  const frameworks: FrameworkDetectionResult[] = [];
+  const goModPath = path.join(projectPath, 'go.mod');
 
   // Read go.mod
-  let _goMod: any = null
+  let _goMod: any = null;
   try {
     if (await pathExists(goModPath)) {
-      const content = await fsp.readFile(goModPath, 'utf-8')
-      _goMod = parseGoMod(content)
+      const content = await fsp.readFile(goModPath, 'utf-8');
+      _goMod = parseGoMod(content);
     }
   }
   catch (error) {
-    logger.warn('Failed to read go.mod:', error)
+    logger.warn('Failed to read go.mod:', error);
   }
 
   // Scan Go source files for imports
-  const imports = await scanGoImports(projectPath, files)
+  const imports = await scanGoImports(projectPath, files);
 
   // Check for each framework
   for (const [frameworkName, patterns] of Object.entries(FRAMEWORK_PATTERNS)) {
-    const evidence: string[] = []
-    let confidence = 0
+    const evidence: string[] = [];
+    let confidence = 0;
 
     // Check imports
     for (const importPath of patterns.imports) {
       if (imports[importPath]) {
-        evidence.push(`Found import: ${importPath}`)
-        confidence += 0.5
+        evidence.push(`Found import: ${importPath}`);
+        confidence += 0.5;
       }
     }
 
     // Check code indicators
     for (const indicator of patterns.indicators) {
-      const filesWithIndicator = Object.values(imports).flat()
+      const filesWithIndicator = Object.values(imports).flat();
       if (filesWithIndicator.some(f => f.includes(indicator))) {
-        evidence.push(`Found pattern: ${indicator}`)
-        confidence += 0.3
+        evidence.push(`Found pattern: ${indicator}`);
+        confidence += 0.3;
       }
     }
 
@@ -170,57 +170,57 @@ export async function analyzeGoProject(
         category: getFrameworkCategory(frameworkName),
         confidence: Math.min(confidence, 1),
         evidence,
-      })
+      });
     }
   }
 
   // Detect additional patterns
-  await detectAdditionalPatterns(projectPath, files, frameworks, imports)
+  await detectAdditionalPatterns(projectPath, files, frameworks, imports);
 
   // Sort by confidence
-  frameworks.sort((a, b) => b.confidence - a.confidence)
+  frameworks.sort((a, b) => b.confidence - a.confidence);
 
-  logger.debug(`Detected frameworks: ${frameworks.map(f => `${f.name} (${Math.round(f.confidence * 100)}%)`).join(', ')}`)
+  logger.debug(`Detected frameworks: ${frameworks.map(f => `${f.name} (${Math.round(f.confidence * 100)}%)`).join(', ')}`);
 
-  return frameworks
+  return frameworks;
 }
 
 /**
  * Parse go.mod file
  */
-function parseGoMod(content: string): { module?: string, go?: string, requires: Record<string, string> } {
-  const result: { module?: string, go?: string, requires: Record<string, string> } = {
+function parseGoMod(content: string): { module?: string; go?: string; requires: Record<string, string> } {
+  const result: { module?: string; go?: string; requires: Record<string, string> } = {
     requires: {},
-  }
+  };
 
-  const lines = content.split('\n')
+  const lines = content.split('\n');
 
   for (const line of lines) {
-    const trimmed = line.trim()
+    const trimmed = line.trim();
 
     if (trimmed.startsWith('module')) {
-      result.module = trimmed.split(' ')[1]
+      result.module = trimmed.split(' ')[1];
     }
     else if (trimmed.startsWith('go')) {
-      result.go = trimmed.split(' ')[1]
+      result.go = trimmed.split(' ')[1];
     }
     else if (trimmed.startsWith('require')) {
       // Handle single require
-      const parts = trimmed.split(' ')
+      const parts = trimmed.split(' ');
       if (parts.length >= 3) {
-        result.requires[parts[1]] = parts[2]
+        result.requires[parts[1]] = parts[2];
       }
     }
     else if (trimmed.includes(' ')) {
       // Handle require block
-      const parts = trimmed.split(' ')
+      const parts = trimmed.split(' ');
       if (parts.length >= 2 && !trimmed.startsWith('//')) {
-        result.requires[parts[0]] = parts[1]
+        result.requires[parts[0]] = parts[1];
       }
     }
   }
 
-  return result
+  return result;
 }
 
 /**
@@ -230,54 +230,54 @@ async function scanGoImports(
   projectPath: string,
   files: string[],
 ): Promise<Record<string, string[]>> {
-  const imports: Record<string, string[]> = {}
-  const goFiles = files.filter(f => f.endsWith('.go'))
+  const imports: Record<string, string[]> = {};
+  const goFiles = files.filter(f => f.endsWith('.go'));
 
   for (const file of goFiles) {
     try {
-      const content = await fsp.readFile(path.join(projectPath, file), 'utf-8')
-      const fileImports = extractGoImports(content)
+      const content = await fsp.readFile(path.join(projectPath, file), 'utf-8');
+      const fileImports = extractGoImports(content);
 
       for (const importPath of fileImports) {
         if (!imports[importPath]) {
-          imports[importPath] = []
+          imports[importPath] = [];
         }
-        imports[importPath].push(file)
+        imports[importPath].push(file);
       }
     }
     catch (error) {
-      logger.warn(`Failed to read ${file}:`, error)
+      logger.warn(`Failed to read ${file}:`, error);
     }
   }
 
-  return imports
+  return imports;
 }
 
 /**
  * Extract imports from Go source code
  */
 function extractGoImports(content: string): string[] {
-  const imports: string[] = []
+  const imports: string[] = [];
 
   // Match import statements
-  const importRegex = /import\s+(?:\(\s*([\s\S]*?)\s*\)|(["`][^"`]+["`]))/g
-  let match
+  const importRegex = /import\s+(?:\(\s*([\s\S]*?)\s*\)|(["`][^"`]+["`]))/g;
+  let match;
 
   while ((match = importRegex.exec(content)) !== null) {
-    const importBlock = match[1] || match[2]
+    const importBlock = match[1] || match[2];
 
     if (importBlock) {
       // Extract individual imports
-      const singleImportRegex = /["`]([^"`]+)["`]/g
-      let importMatch
+      const singleImportRegex = /["`]([^"`]+)["`]/g;
+      let importMatch;
 
       while ((importMatch = singleImportRegex.exec(importBlock)) !== null) {
-        imports.push(importMatch[1])
+        imports.push(importMatch[1]);
       }
     }
   }
 
-  return imports
+  return imports;
 }
 
 /**
@@ -302,15 +302,15 @@ function getFrameworkCategory(framework: string): string {
     database2: ['mongo'],
     monitoring: ['prometheus', 'jaeger'],
     infrastructure: ['kubernetes'],
-  }
+  };
 
   for (const [category, frameworks] of Object.entries(categories)) {
     if (frameworks.includes(framework)) {
-      return category
+      return category;
     }
   }
 
-  return 'other'
+  return 'other';
 }
 
 /**
@@ -323,11 +323,11 @@ async function detectAdditionalPatterns(
   imports: Record<string, string[]>,
 ): Promise<void> {
   // Check for Go version
-  const goModPath = path.join(projectPath, 'go.mod')
+  const goModPath = path.join(projectPath, 'go.mod');
   if (files.includes('go.mod') && await pathExists(goModPath)) {
     try {
-      const content = await fsp.readFile(goModPath, 'utf-8')
-      const goVersionMatch = content.match(/^go\s+(\d+\.\d+)/m)
+      const content = await fsp.readFile(goModPath, 'utf-8');
+      const goVersionMatch = content.match(/^go\s+(\d+\.\d+)/m);
       if (goVersionMatch) {
         frameworks.push({
           name: 'go',
@@ -335,16 +335,16 @@ async function detectAdditionalPatterns(
           version: goVersionMatch[1],
           confidence: 0.9,
           evidence: ['Found go.mod'],
-        })
+        });
       }
     }
     catch (error) {
-      logger.warn('Failed to read go.mod:', error)
+      logger.warn('Failed to read go.mod:', error);
     }
   }
 
   // Check for Docker
-  const dockerFiles = ['Dockerfile', 'docker-compose.yml', 'docker-compose.yaml']
+  const dockerFiles = ['Dockerfile', 'docker-compose.yml', 'docker-compose.yaml'];
   for (const file of dockerFiles) {
     if (files.includes(file)) {
       frameworks.push({
@@ -352,7 +352,7 @@ async function detectAdditionalPatterns(
         category: 'deployment',
         confidence: 0.9,
         evidence: [`Found ${file}`],
-      })
+      });
     }
   }
 
@@ -363,7 +363,7 @@ async function detectAdditionalPatterns(
       category: 'testing',
       confidence: 0.7,
       evidence: ['Found test files'],
-    })
+    });
   }
 
   // Check for build tools
@@ -372,7 +372,7 @@ async function detectAdditionalPatterns(
     'Dockerfile': 'docker',
     '.goreleaser.yml': 'goreleaser',
     '.goreleaser.yaml': 'goreleaser',
-  }
+  };
 
   for (const [file, tool] of Object.entries(buildFiles)) {
     if (files.includes(file)) {
@@ -381,7 +381,7 @@ async function detectAdditionalPatterns(
         category: 'build',
         confidence: 0.8,
         evidence: [`Found ${file}`],
-      })
+      });
     }
   }
 
@@ -390,7 +390,7 @@ async function detectAdditionalPatterns(
     'github.com/golangci/golangci-lint',
     'golang.org/x/lint',
     'honnef.co/go/tools',
-  ]
+  ];
 
   for (const tool of lintingTools) {
     if (imports[tool]) {
@@ -399,7 +399,7 @@ async function detectAdditionalPatterns(
         category: 'linting',
         confidence: 0.8,
         evidence: [`Found ${tool} import`],
-      })
+      });
     }
   }
 
@@ -409,7 +409,7 @@ async function detectAdditionalPatterns(
     '.gitlab-ci.yml': 'gitlab-ci',
     'Jenkinsfile': 'jenkins',
     '.travis.yml': 'travis-ci',
-  }
+  };
 
   for (const [file, tool] of Object.entries(ciFiles)) {
     if (files.includes(file) || files.some(f => f.startsWith(file))) {
@@ -418,7 +418,7 @@ async function detectAdditionalPatterns(
         category: 'ci-cd',
         confidence: 0.8,
         evidence: [`Found ${file}`],
-      })
+      });
     }
   }
 
@@ -429,18 +429,18 @@ async function detectAdditionalPatterns(
       category: 'rpc',
       confidence: 0.9,
       evidence: ['Found .proto files'],
-    })
+    });
   }
 
   // Check for workspace
-  const goWorkPath = path.join(projectPath, 'go.work')
+  const goWorkPath = path.join(projectPath, 'go.work');
   if (files.includes('go.work') && await pathExists(goWorkPath)) {
     frameworks.push({
       name: 'workspace',
       category: 'workspace',
       confidence: 0.9,
       evidence: ['Found go.work'],
-    })
+    });
   }
 
   // Check for vendor directory
@@ -450,6 +450,6 @@ async function detectAdditionalPatterns(
       category: 'dependency',
       confidence: 0.8,
       evidence: ['Found vendor directory'],
-    })
+    });
   }
 }

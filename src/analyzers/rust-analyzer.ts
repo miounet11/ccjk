@@ -3,28 +3,28 @@
  * Detects frameworks like Actix, Rocket, etc.
  */
 
-import type { FrameworkDetectionResult, LanguageDetection } from './types.js'
-import { promises as fsp } from 'node:fs'
-import consola from 'consola'
-import path from 'pathe'
-import { parse } from 'smol-toml'
+import type { FrameworkDetectionResult, LanguageDetection } from './types.js';
+import { promises as fsp } from 'node:fs';
+import consola from 'consola';
+import path from 'pathe';
+import { parse } from 'smol-toml';
 
 // fs-extra compatibility helpers
 async function pathExists(p: string): Promise<boolean> {
   try {
-    await fsp.access(p)
-    return true
+    await fsp.access(p);
+    return true;
   }
   catch {
-    return false
+    return false;
   }
 }
 
 async function _readFile(p: string): Promise<string> {
-  return fsp.readFile(p, 'utf-8')
+  return fsp.readFile(p, 'utf-8');
 }
 
-const logger = consola.withTag('rust-analyzer')
+const logger = consola.withTag('rust-analyzer');
 
 // Rust framework detection patterns
 const FRAMEWORK_PATTERNS = {
@@ -164,7 +164,7 @@ const FRAMEWORK_PATTERNS = {
     dependencies: ['egui'],
     indicators: ['egui::', 'CentralPanel'],
   },
-}
+};
 
 /**
  * Analyze Rust project
@@ -174,47 +174,47 @@ export async function analyzeRustProject(
   files: string[],
   _languages: LanguageDetection[],
 ): Promise<FrameworkDetectionResult[]> {
-  logger.info('Analyzing Rust project')
+  logger.info('Analyzing Rust project');
 
-  const frameworks: FrameworkDetectionResult[] = []
-  const cargoTomlPath = path.join(projectPath, 'Cargo.toml')
+  const frameworks: FrameworkDetectionResult[] = [];
+  const cargoTomlPath = path.join(projectPath, 'Cargo.toml');
 
   // Read Cargo.toml
-  let cargoToml: any = null
+  let cargoToml: any = null;
   try {
     if (await pathExists(cargoTomlPath)) {
-      const content = await fsp.readFile(cargoTomlPath, 'utf-8')
-      cargoToml = parse(content)
+      const content = await fsp.readFile(cargoTomlPath, 'utf-8');
+      cargoToml = parse(content);
     }
   }
   catch (error) {
-    logger.warn('Failed to read Cargo.toml:', error)
+    logger.warn('Failed to read Cargo.toml:', error);
   }
 
   // Extract dependencies
-  const dependencies = extractCargoDependencies(cargoToml)
+  const dependencies = extractCargoDependencies(cargoToml);
 
   // Scan Rust source files for usage patterns
-  const patterns = await scanRustPatterns(projectPath, files)
+  const patterns = await scanRustPatterns(projectPath, files);
 
   // Check for each framework
   for (const [frameworkName, frameworkPatterns] of Object.entries(FRAMEWORK_PATTERNS)) {
-    const evidence: string[] = []
-    let confidence = 0
+    const evidence: string[] = [];
+    let confidence = 0;
 
     // Check dependencies
     for (const dep of frameworkPatterns.dependencies) {
       if (dependencies[dep]) {
-        evidence.push(`Found ${dep} in dependencies`)
-        confidence += 0.5
+        evidence.push(`Found ${dep} in dependencies`);
+        confidence += 0.5;
       }
     }
 
     // Check code indicators
     for (const indicator of frameworkPatterns.indicators) {
       if (patterns[indicator]) {
-        evidence.push(`Found pattern: ${indicator}`)
-        confidence += 0.3
+        evidence.push(`Found pattern: ${indicator}`);
+        confidence += 0.3;
       }
     }
 
@@ -226,29 +226,29 @@ export async function analyzeRustProject(
         version: dependencies[frameworkName],
         confidence: Math.min(confidence, 1),
         evidence,
-      })
+      });
     }
   }
 
   // Detect additional patterns
-  await detectAdditionalPatterns(projectPath, files, frameworks, dependencies, patterns, cargoToml)
+  await detectAdditionalPatterns(projectPath, files, frameworks, dependencies, patterns, cargoToml);
 
   // Sort by confidence
-  frameworks.sort((a, b) => b.confidence - a.confidence)
+  frameworks.sort((a, b) => b.confidence - a.confidence);
 
-  logger.debug(`Detected frameworks: ${frameworks.map(f => `${f.name} (${Math.round(f.confidence * 100)}%)`).join(', ')}`)
+  logger.debug(`Detected frameworks: ${frameworks.map(f => `${f.name} (${Math.round(f.confidence * 100)}%)`).join(', ')}`);
 
-  return frameworks
+  return frameworks;
 }
 
 /**
  * Extract dependencies from Cargo.toml
  */
 function extractCargoDependencies(cargoToml: any): Record<string, string> {
-  const dependencies: Record<string, string> = {}
+  const dependencies: Record<string, string> = {};
 
   if (!cargoToml) {
-    return dependencies
+    return dependencies;
   }
 
   // Extract from dependencies section
@@ -256,16 +256,16 @@ function extractCargoDependencies(cargoToml: any): Record<string, string> {
     cargoToml.dependencies,
     cargoToml['dev-dependencies'],
     cargoToml['build-dependencies'],
-  ]
+  ];
 
   for (const section of depsSections) {
     if (typeof section === 'object') {
       for (const [name, version] of Object.entries(section)) {
         if (typeof version === 'string') {
-          dependencies[name] = version
+          dependencies[name] = version;
         }
         else if (typeof version === 'object' && version !== null && 'version' in version) {
-          dependencies[name] = (version as { version: string }).version
+          dependencies[name] = (version as { version: string }).version;
         }
       }
     }
@@ -276,16 +276,16 @@ function extractCargoDependencies(cargoToml: any): Record<string, string> {
     for (const [name, version] of Object.entries(cargoToml.workspace.dependencies)) {
       if (!dependencies[name]) {
         if (typeof version === 'string') {
-          dependencies[name] = version
+          dependencies[name] = version;
         }
         else if (typeof version === 'object' && version !== null && 'version' in version) {
-          dependencies[name] = (version as { version: string }).version
+          dependencies[name] = (version as { version: string }).version;
         }
       }
     }
   }
 
-  return dependencies
+  return dependencies;
 }
 
 /**
@@ -295,44 +295,44 @@ async function scanRustPatterns(
   projectPath: string,
   files: string[],
 ): Promise<Record<string, number>> {
-  const patterns: Record<string, number> = {}
-  const rustFiles = files.filter(f => f.endsWith('.rs'))
+  const patterns: Record<string, number> = {};
+  const rustFiles = files.filter(f => f.endsWith('.rs'));
 
   for (const file of rustFiles) {
     try {
-      const content = await fsp.readFile(path.join(projectPath, file), 'utf-8')
+      const content = await fsp.readFile(path.join(projectPath, file), 'utf-8');
 
       // Extract common patterns
-      const patternRegex = /(\w+::|@\[|!\w+\()/g
-      let match
+      const patternRegex = /(\w+::|@\[|!\w+\()/g;
+      let match;
 
       while ((match = patternRegex.exec(content)) !== null) {
-        const pattern = match[1]
-        patterns[pattern] = (patterns[pattern] || 0) + 1
+        const pattern = match[1];
+        patterns[pattern] = (patterns[pattern] || 0) + 1;
       }
 
       // Extract macro usage
-      const macroRegex = /(\w+!)/g
+      const macroRegex = /(\w+!)/g;
       while ((match = macroRegex.exec(content)) !== null) {
-        const macroName = match[1]
-        patterns[macroName] = (patterns[macroName] || 0) + 1
+        const macroName = match[1];
+        patterns[macroName] = (patterns[macroName] || 0) + 1;
       }
 
       // Extract trait usage
-      const traitRegex = /:\s*([\w\s,]+)(?:\s*\{|<)/g
+      const traitRegex = /:\s*([\w\s,]+)(?:\s*\{|<)/g;
       while ((match = traitRegex.exec(content)) !== null) {
-        const traits = match[1].split(',').map(t => t.trim())
+        const traits = match[1].split(',').map(t => t.trim());
         for (const trait of traits) {
-          patterns[trait] = (patterns[trait] || 0) + 1
+          patterns[trait] = (patterns[trait] || 0) + 1;
         }
       }
     }
     catch (error) {
-      logger.warn(`Failed to read ${file}:`, error)
+      logger.warn(`Failed to read ${file}:`, error);
     }
   }
 
-  return patterns
+  return patterns;
 }
 
 /**
@@ -363,15 +363,15 @@ function getFrameworkCategory(framework: string): string {
     desktop: ['tauri'],
     game: ['bevy'],
     gui: ['egui'],
-  }
+  };
 
   for (const [category, frameworks] of Object.entries(categories)) {
     if (frameworks.includes(framework)) {
-      return category
+      return category;
     }
   }
 
-  return 'other'
+  return 'other';
 }
 
 /**
@@ -393,7 +393,7 @@ async function detectAdditionalPatterns(
       version: cargoToml.package.edition,
       confidence: 0.9,
       evidence: ['Found Cargo.toml'],
-    })
+    });
   }
 
   // Check for workspace
@@ -403,7 +403,7 @@ async function detectAdditionalPatterns(
       category: 'workspace',
       confidence: 0.9,
       evidence: ['Found workspace in Cargo.toml'],
-    })
+    });
   }
 
   // Check for binary targets
@@ -413,7 +413,7 @@ async function detectAdditionalPatterns(
       category: 'build',
       confidence: 0.8,
       evidence: ['Found binary targets'],
-    })
+    });
   }
 
   // Check for library
@@ -423,11 +423,11 @@ async function detectAdditionalPatterns(
       category: 'build',
       confidence: 0.8,
       evidence: ['Found library configuration'],
-    })
+    });
   }
 
   // Check for Docker
-  const dockerFiles = ['Dockerfile', 'docker-compose.yml', 'docker-compose.yaml']
+  const dockerFiles = ['Dockerfile', 'docker-compose.yml', 'docker-compose.yaml'];
   for (const file of dockerFiles) {
     if (files.includes(file)) {
       frameworks.push({
@@ -435,7 +435,7 @@ async function detectAdditionalPatterns(
         category: 'deployment',
         confidence: 0.9,
         evidence: [`Found ${file}`],
-      })
+      });
     }
   }
 
@@ -446,7 +446,7 @@ async function detectAdditionalPatterns(
       category: 'testing',
       confidence: 0.7,
       evidence: ['Found test files'],
-    })
+    });
   }
 
   // Check for benchmarking
@@ -456,7 +456,7 @@ async function detectAdditionalPatterns(
       category: 'testing',
       confidence: 0.8,
       evidence: ['Found benchmark files'],
-    })
+    });
   }
 
   // Check for examples
@@ -466,7 +466,7 @@ async function detectAdditionalPatterns(
       category: 'documentation',
       confidence: 0.7,
       evidence: ['Found examples directory'],
-    })
+    });
   }
 
   // Check for CI/CD
@@ -475,7 +475,7 @@ async function detectAdditionalPatterns(
     '.gitlab-ci.yml': 'gitlab-ci',
     'Jenkinsfile': 'jenkins',
     '.travis.yml': 'travis-ci',
-  }
+  };
 
   for (const [file, tool] of Object.entries(ciFiles)) {
     if (files.includes(file) || files.some(f => f.startsWith(file))) {
@@ -484,7 +484,7 @@ async function detectAdditionalPatterns(
         category: 'ci-cd',
         confidence: 0.8,
         evidence: [`Found ${file}`],
-      })
+      });
     }
   }
 
@@ -493,7 +493,7 @@ async function detectAdditionalPatterns(
     'Makefile': 'make',
     'justfile': 'just',
     'build.rs': 'build-script',
-  }
+  };
 
   for (const [file, tool] of Object.entries(buildFiles)) {
     if (files.includes(file)) {
@@ -502,7 +502,7 @@ async function detectAdditionalPatterns(
         category: 'build',
         confidence: 0.8,
         evidence: [`Found ${file}`],
-      })
+      });
     }
   }
 
@@ -513,7 +513,7 @@ async function detectAdditionalPatterns(
       category: 'rpc',
       confidence: 0.9,
       evidence: ['Found .proto files'],
-    })
+    });
   }
 
   // Check for WASM support
@@ -523,7 +523,7 @@ async function detectAdditionalPatterns(
       category: 'webassembly',
       confidence: 0.8,
       evidence: ['Found WASM dependencies'],
-    })
+    });
   }
 
   // Check for no_std
@@ -533,7 +533,7 @@ async function detectAdditionalPatterns(
       category: 'embedded',
       confidence: 0.9,
       evidence: ['Found #![no_std]'],
-    })
+    });
   }
 
   // Check for proc macros
@@ -543,7 +543,7 @@ async function detectAdditionalPatterns(
       category: 'meta',
       confidence: 0.9,
       evidence: ['Found proc-macro configuration'],
-    })
+    });
   }
 
   // Check for linting tools
@@ -553,7 +553,7 @@ async function detectAdditionalPatterns(
       category: 'linting',
       confidence: 0.8,
       evidence: ['Found clippy dependency'],
-    })
+    });
   }
 
   // Check for formatting
@@ -563,7 +563,7 @@ async function detectAdditionalPatterns(
       category: 'formatting',
       confidence: 0.8,
       evidence: ['Found rustfmt dependency'],
-    })
+    });
   }
 
   // Check for documentation tools
@@ -573,7 +573,7 @@ async function detectAdditionalPatterns(
       category: 'documentation',
       confidence: 0.8,
       evidence: ['Found rustdoc dependency'],
-    })
+    });
   }
 
   // Check for package registry
@@ -583,7 +583,7 @@ async function detectAdditionalPatterns(
       category: 'registry',
       confidence: 0.7,
       evidence: ['Found publish configuration'],
-    })
+    });
   }
 
   // Check for license
@@ -593,24 +593,24 @@ async function detectAdditionalPatterns(
       category: 'legal',
       confidence: 0.6,
       evidence: ['Found license in Cargo.toml'],
-    })
+    });
   }
 
   // Detect package type
   if (cargoToml?.package) {
-    const type = cargoToml.bin ? 'binary' : cargoToml.lib ? 'library' : 'unknown'
+    const type = cargoToml.bin ? 'binary' : cargoToml.lib ? 'library' : 'unknown';
     frameworks.push({
       name: type,
       category: 'package',
       confidence: 0.9,
       evidence: [`Detected as ${type}`],
-    })
+    });
   }
 
   // Check for targets directory (indicative of Cargo workspace build artifacts)
   if (files.includes('target/') || files.some(f => f.startsWith('target/'))) {
     // This is just build artifacts, not a framework
-    logger.debug('Found target/ directory (build artifacts)')
+    logger.debug('Found target/ directory (build artifacts)');
   }
 
   // Check for Cargo.lock
@@ -620,6 +620,6 @@ async function detectAdditionalPatterns(
       category: 'dependency',
       confidence: 0.9,
       evidence: ['Found Cargo.lock'],
-    })
+    });
   }
 }

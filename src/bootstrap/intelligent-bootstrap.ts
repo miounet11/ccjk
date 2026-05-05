@@ -12,53 +12,53 @@ import type {
   StartupContext,
   StartupModule,
   StartupResult,
-} from '../utils/startup-orchestrator/types'
-import type { EventEmitResult, StartupEventBus } from './event-bus'
+} from '../utils/startup-orchestrator/types';
+import type { EventEmitResult, StartupEventBus } from './event-bus';
 import {
 
   getStartupEventBus,
   resetStartupEventBus,
 
-} from './event-bus'
+} from './event-bus';
 
 /**
  * Bootstrap configuration options
  */
 export interface BootstrapConfig {
   /** Enable verbose logging */
-  verbose?: boolean
+  verbose?: boolean;
   /** Skip non-critical modules on failure */
-  gracefulDegradation?: boolean
+  gracefulDegradation?: boolean;
   /** Maximum startup time before timeout (ms) */
-  timeout?: number
+  timeout?: number;
   /** Enable parallel module execution where possible */
-  parallel?: boolean
+  parallel?: boolean;
   /** Custom module filter */
-  moduleFilter?: (module: StartupModule) => boolean
+  moduleFilter?: (module: StartupModule) => boolean;
   /** Environment overrides */
-  environment?: 'development' | 'production' | 'test'
+  environment?: 'development' | 'production' | 'test';
 }
 
 /**
  * Bootstrap execution statistics
  */
 export interface BootstrapStats {
-  totalDuration: number
-  moduleCount: number
-  successCount: number
-  failedCount: number
-  skippedCount: number
-  parallelExecutions: number
-  eventEmissions: EventEmitResult[]
+  totalDuration: number;
+  moduleCount: number;
+  successCount: number;
+  failedCount: number;
+  skippedCount: number;
+  parallelExecutions: number;
+  eventEmissions: EventEmitResult[];
 }
 
 /**
  * Extended startup result with statistics
  */
 export interface IntelligentBootstrapResult extends StartupResult {
-  stats: BootstrapStats
-  environment: string
-  timestamp: number
+  stats: BootstrapStats;
+  environment: string;
+  timestamp: number;
 }
 
 /**
@@ -71,7 +71,7 @@ const DEFAULT_CONFIG: Required<BootstrapConfig> = {
   parallel: true,
   moduleFilter: () => true,
   environment: 'production',
-}
+};
 
 /**
  * Intelligent Bootstrap Manager
@@ -84,16 +84,16 @@ const DEFAULT_CONFIG: Required<BootstrapConfig> = {
  * - Event-driven lifecycle management
  */
 export class IntelligentBootstrap {
-  private config: Required<BootstrapConfig>
-  private modules: Map<string, StartupModule> = new Map()
-  private results: Map<string, ModuleResult> = new Map()
-  private eventBus: StartupEventBus
-  private isRunning = false
-  private startTime = 0
+  private config: Required<BootstrapConfig>;
+  private modules: Map<string, StartupModule> = new Map();
+  private results: Map<string, ModuleResult> = new Map();
+  private eventBus: StartupEventBus;
+  private isRunning = false;
+  private startTime = 0;
 
   constructor(config: BootstrapConfig = {}) {
-    this.config = { ...DEFAULT_CONFIG, ...config }
-    this.eventBus = getStartupEventBus()
+    this.config = { ...DEFAULT_CONFIG, ...config };
+    this.eventBus = getStartupEventBus();
   }
 
   /**
@@ -101,10 +101,10 @@ export class IntelligentBootstrap {
    */
   registerModule(module: StartupModule): this {
     if (this.isRunning) {
-      throw new Error('Cannot register modules while bootstrap is running')
+      throw new Error('Cannot register modules while bootstrap is running');
     }
-    this.modules.set(module.name, module)
-    return this
+    this.modules.set(module.name, module);
+    return this;
   }
 
   /**
@@ -112,16 +112,16 @@ export class IntelligentBootstrap {
    */
   registerModules(modules: StartupModule[]): this {
     for (const module of modules) {
-      this.registerModule(module)
+      this.registerModule(module);
     }
-    return this
+    return this;
   }
 
   /**
    * Get the event bus for hook registration
    */
   getEventBus(): StartupEventBus {
-    return this.eventBus
+    return this.eventBus;
   }
 
   /**
@@ -129,12 +129,12 @@ export class IntelligentBootstrap {
    */
   async run(): Promise<IntelligentBootstrapResult> {
     if (this.isRunning) {
-      throw new Error('Bootstrap is already running')
+      throw new Error('Bootstrap is already running');
     }
 
-    this.isRunning = true
-    this.startTime = Date.now()
-    this.results.clear()
+    this.isRunning = true;
+    this.startTime = Date.now();
+    this.results.clear();
 
     const stats: BootstrapStats = {
       totalDuration: 0,
@@ -144,55 +144,55 @@ export class IntelligentBootstrap {
       skippedCount: 0,
       parallelExecutions: 0,
       eventEmissions: [],
-    }
+    };
 
     try {
       // Filter modules based on config
       const filteredModules = Array.from(this.modules.values())
-        .filter(this.config.moduleFilter)
+        .filter(this.config.moduleFilter);
 
-      stats.moduleCount = filteredModules.length
+      stats.moduleCount = filteredModules.length;
 
       // Create initial context
       const context: StartupContext = {
         results: this.results,
         capabilities: [],
         config: {},
-      }
+      };
 
       // Emit onBeforeStart
-      const beforeStartResult = await this.eventBus.emit('onBeforeStart', context)
-      stats.eventEmissions.push(beforeStartResult)
+      const beforeStartResult = await this.eventBus.emit('onBeforeStart', context);
+      stats.eventEmissions.push(beforeStartResult);
 
       if (this.config.verbose) {
-        this.log('Starting intelligent bootstrap...')
-        this.log(`Modules to execute: ${filteredModules.map(m => m.name).join(', ')}`)
+        this.log('Starting intelligent bootstrap...');
+        this.log(`Modules to execute: ${filteredModules.map(m => m.name).join(', ')}`);
       }
 
       // Resolve execution order
-      const executionOrder = this.resolveExecutionOrder(filteredModules)
+      const executionOrder = this.resolveExecutionOrder(filteredModules);
 
       // Execute modules
       if (this.config.parallel) {
-        await this.executeParallel(executionOrder, context, stats)
+        await this.executeParallel(executionOrder, context, stats);
       }
       else {
-        await this.executeSequential(executionOrder, context, stats)
+        await this.executeSequential(executionOrder, context, stats);
       }
 
       // Collect capabilities
-      const capabilities = this.collectCapabilities()
-      context.capabilities = capabilities
+      const capabilities = this.collectCapabilities();
+      context.capabilities = capabilities;
 
       // Emit onCapabilitiesLoaded
-      const capabilitiesResult = await this.eventBus.emit('onCapabilitiesLoaded', context)
-      stats.eventEmissions.push(capabilitiesResult)
+      const capabilitiesResult = await this.eventBus.emit('onCapabilitiesLoaded', context);
+      stats.eventEmissions.push(capabilitiesResult);
 
       // Emit onReady
-      const readyResult = await this.eventBus.emit('onReady', context)
-      stats.eventEmissions.push(readyResult)
+      const readyResult = await this.eventBus.emit('onReady', context);
+      stats.eventEmissions.push(readyResult);
 
-      stats.totalDuration = Date.now() - this.startTime
+      stats.totalDuration = Date.now() - this.startTime;
 
       const result: IntelligentBootstrapResult = {
         success: stats.failedCount === 0 || this.config.gracefulDegradation,
@@ -202,16 +202,16 @@ export class IntelligentBootstrap {
         stats,
         environment: this.config.environment,
         timestamp: Date.now(),
-      }
+      };
 
       if (this.config.verbose) {
-        this.logResult(result)
+        this.logResult(result);
       }
 
-      return result
+      return result;
     }
     finally {
-      this.isRunning = false
+      this.isRunning = false;
     }
   }
 
@@ -224,7 +224,7 @@ export class IntelligentBootstrap {
     stats: BootstrapStats,
   ): Promise<void> {
     for (const module of modules) {
-      await this.executeModule(module, context, stats)
+      await this.executeModule(module, context, stats);
     }
   }
 
@@ -236,21 +236,21 @@ export class IntelligentBootstrap {
     context: StartupContext,
     stats: BootstrapStats,
   ): Promise<void> {
-    const executed = new Set<string>()
-    const pending = new Set(modules.map(m => m.name))
+    const executed = new Set<string>();
+    const pending = new Set(modules.map(m => m.name));
 
     while (pending.size > 0) {
       // Find modules that can be executed (all dependencies satisfied)
       const ready = modules.filter(m =>
         pending.has(m.name)
         && m.dependencies.every(dep => executed.has(dep) || !this.modules.has(dep)),
-      )
+      );
 
       if (ready.length === 0) {
         // No modules ready - might have circular dependencies or missing deps
-        const remaining = Array.from(pending)
+        const remaining = Array.from(pending);
         if (this.config.verbose) {
-          this.log(`Warning: Cannot execute remaining modules: ${remaining.join(', ')}`)
+          this.log(`Warning: Cannot execute remaining modules: ${remaining.join(', ')}`);
         }
         // Mark remaining as skipped
         for (const name of remaining) {
@@ -258,25 +258,25 @@ export class IntelligentBootstrap {
             status: 'skipped',
             duration: 0,
             error: 'Dependencies not satisfied',
-          })
-          stats.skippedCount++
-          pending.delete(name)
+          });
+          stats.skippedCount++;
+          pending.delete(name);
         }
-        break
+        break;
       }
 
       // Execute ready modules in parallel
       if (ready.length > 1) {
-        stats.parallelExecutions++
+        stats.parallelExecutions++;
       }
 
       await Promise.all(
         ready.map(async (module) => {
-          await this.executeModule(module, context, stats)
-          executed.add(module.name)
-          pending.delete(module.name)
+          await this.executeModule(module, context, stats);
+          executed.add(module.name);
+          pending.delete(module.name);
         }),
-      )
+      );
     }
   }
 
@@ -288,7 +288,7 @@ export class IntelligentBootstrap {
     context: StartupContext,
     stats: BootstrapStats,
   ): Promise<void> {
-    const startTime = Date.now()
+    const startTime = Date.now();
 
     // Check timeout
     if (Date.now() - this.startTime > this.config.timeout) {
@@ -296,9 +296,9 @@ export class IntelligentBootstrap {
         status: 'skipped',
         duration: 0,
         error: 'Bootstrap timeout exceeded',
-      })
-      stats.skippedCount++
-      return
+      });
+      stats.skippedCount++;
+      return;
     }
 
     // Check dependencies
@@ -307,54 +307,54 @@ export class IntelligentBootstrap {
         status: 'skipped',
         duration: 0,
         error: 'Dependencies not satisfied',
-      })
-      stats.skippedCount++
-      return
+      });
+      stats.skippedCount++;
+      return;
     }
 
     if (this.config.verbose) {
-      this.log(`Executing module: ${module.name}`)
+      this.log(`Executing module: ${module.name}`);
     }
 
     try {
-      const result = await module.execute()
+      const result = await module.execute();
       this.results.set(module.name, {
         ...result,
         duration: Date.now() - startTime,
-      })
+      });
 
       if (result.status === 'success') {
-        stats.successCount++
+        stats.successCount++;
 
         // Emit config validated hook for config-guardian
         if (module.name === 'config-guardian') {
           const configResult = await this.eventBus.emit('onConfigValidated', {
             ...context,
             config: result.data,
-          })
-          stats.eventEmissions.push(configResult)
+          });
+          stats.eventEmissions.push(configResult);
         }
       }
       else if (result.status === 'skipped') {
-        stats.skippedCount++
+        stats.skippedCount++;
       }
       else {
-        stats.failedCount++
+        stats.failedCount++;
       }
     }
     catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error)
+      const errorMessage = error instanceof Error ? error.message : String(error);
 
       if (module.canSkip && this.config.gracefulDegradation) {
         this.results.set(module.name, {
           status: 'skipped',
           duration: Date.now() - startTime,
           error: errorMessage,
-        })
-        stats.skippedCount++
+        });
+        stats.skippedCount++;
 
         if (this.config.verbose) {
-          this.log(`Module ${module.name} skipped due to error: ${errorMessage}`)
+          this.log(`Module ${module.name} skipped due to error: ${errorMessage}`);
         }
       }
       else {
@@ -362,11 +362,11 @@ export class IntelligentBootstrap {
           status: 'failed',
           duration: Date.now() - startTime,
           error: errorMessage,
-        })
-        stats.failedCount++
+        });
+        stats.failedCount++;
 
         if (this.config.verbose) {
-          this.log(`Module ${module.name} failed: ${errorMessage}`)
+          this.log(`Module ${module.name} failed: ${errorMessage}`);
         }
       }
     }
@@ -377,67 +377,67 @@ export class IntelligentBootstrap {
    */
   private checkDependencies(module: StartupModule): boolean {
     for (const dep of module.dependencies) {
-      const depResult = this.results.get(dep)
+      const depResult = this.results.get(dep);
       if (!depResult || depResult.status === 'failed') {
-        return false
+        return false;
       }
     }
-    return true
+    return true;
   }
 
   /**
    * Resolve module execution order using topological sort
    */
   private resolveExecutionOrder(modules: StartupModule[]): StartupModule[] {
-    const order: StartupModule[] = []
-    const visited = new Set<string>()
-    const visiting = new Set<string>()
-    const moduleMap = new Map(modules.map(m => [m.name, m]))
+    const order: StartupModule[] = [];
+    const visited = new Set<string>();
+    const visiting = new Set<string>();
+    const moduleMap = new Map(modules.map(m => [m.name, m]));
 
     const visit = (name: string): void => {
       if (visited.has(name))
-        return
+        return;
       if (visiting.has(name)) {
-        throw new Error(`Circular dependency detected: ${name}`)
+        throw new Error(`Circular dependency detected: ${name}`);
       }
 
-      visiting.add(name)
-      const module = moduleMap.get(name)
+      visiting.add(name);
+      const module = moduleMap.get(name);
       if (module) {
         for (const dep of module.dependencies) {
           if (moduleMap.has(dep)) {
-            visit(dep)
+            visit(dep);
           }
         }
-        visiting.delete(name)
-        visited.add(name)
-        order.push(module)
+        visiting.delete(name);
+        visited.add(name);
+        order.push(module);
       }
-    }
+    };
 
     for (const module of modules) {
-      visit(module.name)
+      visit(module.name);
     }
 
-    return order
+    return order;
   }
 
   /**
    * Collect capabilities from all successful modules
    */
   private collectCapabilities(): Capability[] {
-    const capabilities: Capability[] = []
+    const capabilities: Capability[] = [];
 
     for (const [_moduleName, result] of this.results) {
       if (result.status === 'success' && result.data) {
-        const moduleCapabilities = (result.data as { capabilities?: Capability[] }).capabilities
+        const moduleCapabilities = (result.data as { capabilities?: Capability[] }).capabilities;
         if (Array.isArray(moduleCapabilities)) {
-          capabilities.push(...moduleCapabilities)
+          capabilities.push(...moduleCapabilities);
         }
       }
     }
 
-    return capabilities
+    return capabilities;
   }
 
   /**
@@ -445,8 +445,8 @@ export class IntelligentBootstrap {
    */
   private log(message: string): void {
     if (this.config.verbose) {
-      const elapsed = Date.now() - this.startTime
-      console.log(`[bootstrap +${elapsed}ms] ${message}`)
+      const elapsed = Date.now() - this.startTime;
+      console.log(`[bootstrap +${elapsed}ms] ${message}`);
     }
   }
 
@@ -454,43 +454,43 @@ export class IntelligentBootstrap {
    * Log the final result summary
    */
   private logResult(result: IntelligentBootstrapResult): void {
-    console.log('\n=== Bootstrap Complete ===')
-    console.log(`Status: ${result.success ? '✓ Success' : '✗ Failed'}`)
-    console.log(`Duration: ${result.duration}ms`)
-    console.log(`Modules: ${result.stats.successCount} success, ${result.stats.failedCount} failed, ${result.stats.skippedCount} skipped`)
-    console.log(`Capabilities: ${result.capabilities.length} discovered`)
+    console.log('\n=== Bootstrap Complete ===');
+    console.log(`Status: ${result.success ? '✓ Success' : '✗ Failed'}`);
+    console.log(`Duration: ${result.duration}ms`);
+    console.log(`Modules: ${result.stats.successCount} success, ${result.stats.failedCount} failed, ${result.stats.skippedCount} skipped`);
+    console.log(`Capabilities: ${result.capabilities.length} discovered`);
     if (result.stats.parallelExecutions > 0) {
-      console.log(`Parallel executions: ${result.stats.parallelExecutions}`)
+      console.log(`Parallel executions: ${result.stats.parallelExecutions}`);
     }
-    console.log('========================\n')
+    console.log('========================\n');
   }
 
   /**
    * Reset the bootstrap manager
    */
   reset(): void {
-    this.modules.clear()
-    this.results.clear()
-    this.isRunning = false
-    this.startTime = 0
-    resetStartupEventBus()
-    this.eventBus = getStartupEventBus()
+    this.modules.clear();
+    this.results.clear();
+    this.isRunning = false;
+    this.startTime = 0;
+    resetStartupEventBus();
+    this.eventBus = getStartupEventBus();
   }
 }
 
 /**
  * Global singleton bootstrap instance
  */
-let globalBootstrap: IntelligentBootstrap | null = null
+let globalBootstrap: IntelligentBootstrap | null = null;
 
 /**
  * Get the global intelligent bootstrap instance
  */
 export function getIntelligentBootstrap(config?: BootstrapConfig): IntelligentBootstrap {
   if (!globalBootstrap) {
-    globalBootstrap = new IntelligentBootstrap(config)
+    globalBootstrap = new IntelligentBootstrap(config);
   }
-  return globalBootstrap
+  return globalBootstrap;
 }
 
 /**
@@ -498,9 +498,9 @@ export function getIntelligentBootstrap(config?: BootstrapConfig): IntelligentBo
  */
 export function resetIntelligentBootstrap(): void {
   if (globalBootstrap) {
-    globalBootstrap.reset()
+    globalBootstrap.reset();
   }
-  globalBootstrap = null
+  globalBootstrap = null;
 }
 
 /**
@@ -509,10 +509,10 @@ export function resetIntelligentBootstrap(): void {
 export async function quickBootstrap(
   config?: BootstrapConfig,
 ): Promise<IntelligentBootstrapResult> {
-  const { registerDefaultModules } = await import('../utils/startup-orchestrator/modules')
+  const { registerDefaultModules } = await import('../utils/startup-orchestrator/modules');
 
-  const bootstrap = new IntelligentBootstrap(config)
-  registerDefaultModules(bootstrap)
+  const bootstrap = new IntelligentBootstrap(config);
+  registerDefaultModules(bootstrap);
 
-  return bootstrap.run()
+  return bootstrap.run();
 }

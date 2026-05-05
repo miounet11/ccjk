@@ -6,63 +6,63 @@
  * @module task-manager
  */
 
-import type { Task, TaskManagerOptions, TaskPriority, TaskSearchOptions, TaskStatus } from './types'
-import * as fs from 'node:fs/promises'
-import * as os from 'node:os'
-import * as path from 'node:path'
+import type { Task, TaskManagerOptions, TaskPriority, TaskSearchOptions, TaskStatus } from './types';
+import * as fs from 'node:fs/promises';
+import * as os from 'node:os';
+import * as path from 'node:path';
 
 /**
  * Cloud API response structure
  */
 interface CloudApiResponse<T = any> {
-  code: number
-  message?: string
-  data?: T
+  code: number;
+  message?: string;
+  data?: T;
 }
 
 /**
  * Cloud task structure (from API)
  */
 interface CloudTask {
-  id: string
-  name: string
-  description?: string
-  status: TaskStatus
-  priority: TaskPriority
-  depends_on?: string[]
-  dependents?: string[]
-  metadata?: Record<string, any>
-  created_at: string
-  updated_at: string
-  completed_at?: string
-  started_at?: string
-  duration?: number
+  id: string;
+  name: string;
+  description?: string;
+  status: TaskStatus;
+  priority: TaskPriority;
+  depends_on?: string[];
+  dependents?: string[];
+  metadata?: Record<string, any>;
+  created_at: string;
+  updated_at: string;
+  completed_at?: string;
+  started_at?: string;
+  duration?: number;
 }
 
 /**
  * Cloud task list response
  */
 interface CloudTaskListResponse {
-  items: CloudTask[]
-  total: number
-  limit: number
-  offset: number
+  items: CloudTask[];
+  total: number;
+  limit: number;
+  offset: number;
 }
 
 /**
  * Task Storage class
  */
 export class TaskStorage {
-  public readonly storageType: 'local' | 'cloud'
-  private storagePath: string
-  private cloudEndpoint?: string
-  private cache: Map<string, Task>
+  public readonly storageType: 'local' | 'cloud';
+  private storagePath: string;
+  private cloudEndpoint?: string;
+  private cache: Map<string, Task>;
 
   constructor(options?: TaskManagerOptions) {
-    this.storageType = options?.storageType || 'local'
-    this.cloudEndpoint = options?.cloudEndpoint
-    this.storagePath = path.join(os.homedir(), '.claude', 'tasks.json')
-    this.cache = new Map()
+    this.storageType = options?.storageType || 'local';
+    this.cloudEndpoint = options?.cloudEndpoint;
+    this.storagePath = path.join(os.homedir(), '.claude', 'tasks.json');
+    this.cache = new Map();
   }
 
   /**
@@ -70,8 +70,8 @@ export class TaskStorage {
    */
   async initialize(): Promise<void> {
     if (this.storageType === 'local') {
-      await this.ensureStorageDir()
-      await this.loadCache()
+      await this.ensureStorageDir();
+      await this.loadCache();
     }
   }
 
@@ -81,18 +81,18 @@ export class TaskStorage {
    */
   async saveTask(task: Task): Promise<Task> {
     if (this.storageType === 'local') {
-      this.cache.set(task.id, task)
-      await this.saveToLocal()
-      return task
+      this.cache.set(task.id, task);
+      await this.saveToLocal();
+      return task;
     }
     else {
       // Always POST for now (creates new task)
-      const savedTask = await this.saveToCloud(task)
+      const savedTask = await this.saveToCloud(task);
       if (savedTask) {
-        this.cache.set(savedTask.id, savedTask)
-        return savedTask
+        this.cache.set(savedTask.id, savedTask);
+        return savedTask;
       }
-      return task
+      return task;
     }
   }
 
@@ -101,17 +101,17 @@ export class TaskStorage {
    */
   async updateTask(taskId: string, updates: Partial<Task>): Promise<Task | null> {
     if (this.storageType === 'local') {
-      const existing = this.cache.get(taskId)
+      const existing = this.cache.get(taskId);
       if (!existing)
-        return null
+        return null;
 
-      const updated = { ...existing, ...updates, updatedAt: new Date().toISOString() }
-      this.cache.set(taskId, updated)
-      await this.saveToLocal()
-      return updated
+      const updated = { ...existing, ...updates, updatedAt: new Date().toISOString() };
+      this.cache.set(taskId, updated);
+      await this.saveToLocal();
+      return updated;
     }
     else {
-      return await this.updateInCloud(taskId, updates)
+      return await this.updateInCloud(taskId, updates);
     }
   }
 
@@ -121,34 +121,34 @@ export class TaskStorage {
   async getTask(taskId: string): Promise<Task | null> {
     // Cloud storage: always fetch from server for fresh data
     if (this.storageType === 'cloud') {
-      return await this.getFromCloud(taskId)
+      return await this.getFromCloud(taskId);
     }
 
     // Local storage: check cache first
     if (this.cache.has(taskId)) {
-      return this.cache.get(taskId)!
+      return this.cache.get(taskId)!;
     }
 
     // Load from local storage
-    await this.loadCache()
-    return this.cache.get(taskId) || null
+    await this.loadCache();
+    return this.cache.get(taskId) || null;
   }
 
   /**
    * Delete a task
    */
   async deleteTask(taskId: string): Promise<boolean> {
-    const existed = this.cache.has(taskId)
-    this.cache.delete(taskId)
+    const existed = this.cache.has(taskId);
+    this.cache.delete(taskId);
 
     if (this.storageType === 'local') {
-      await this.saveToLocal()
+      await this.saveToLocal();
     }
     else {
-      await this.deleteFromCloud(taskId)
+      await this.deleteFromCloud(taskId);
     }
 
-    return existed
+    return existed;
   }
 
   /**
@@ -157,54 +157,54 @@ export class TaskStorage {
   async searchTasks(options?: TaskSearchOptions): Promise<Task[]> {
     // Cloud storage
     if (this.storageType === 'cloud') {
-      return await this.searchFromCloud(options)
+      return await this.searchFromCloud(options);
     }
 
     // Local storage
-    await this.loadCache()
+    await this.loadCache();
 
-    let tasks = Array.from(this.cache.values())
+    let tasks = Array.from(this.cache.values());
 
     // Apply filters
     if (options?.status) {
-      tasks = tasks.filter(t => t.status === options.status)
+      tasks = tasks.filter(t => t.status === options.status);
     }
 
     if (options?.priority) {
-      tasks = tasks.filter(t => t.priority === options.priority)
+      tasks = tasks.filter(t => t.priority === options.priority);
     }
 
     if (options?.nameContains) {
-      const query = options.nameContains.toLowerCase()
+      const query = options.nameContains.toLowerCase();
       tasks = tasks.filter(t =>
         t.name.toLowerCase().includes(query)
         || t.description?.toLowerCase().includes(query),
-      )
+      );
     }
 
     // Sort by creation time (newest first)
-    tasks.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    tasks.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
     // Apply pagination
     if (options?.offset !== undefined) {
-      tasks = tasks.slice(options.offset)
+      tasks = tasks.slice(options.offset);
     }
 
     if (options?.limit !== undefined) {
-      tasks = tasks.slice(0, options.limit)
+      tasks = tasks.slice(0, options.limit);
     }
 
-    return tasks
+    return tasks;
   }
 
   /**
    * Clear all tasks
    */
   async clearAll(): Promise<void> {
-    this.cache.clear()
+    this.cache.clear();
 
     if (this.storageType === 'local') {
-      await this.saveToLocal()
+      await this.saveToLocal();
     }
   }
 
@@ -212,9 +212,9 @@ export class TaskStorage {
    * Ensure storage directory exists
    */
   private async ensureStorageDir(): Promise<void> {
-    const dir = path.dirname(this.storagePath)
+    const dir = path.dirname(this.storagePath);
     try {
-      await fs.mkdir(dir, { recursive: true })
+      await fs.mkdir(dir, { recursive: true });
     }
     catch (_error) {
       // Directory might already exist
@@ -226,16 +226,16 @@ export class TaskStorage {
    */
   private async loadCache(): Promise<void> {
     try {
-      const data = await fs.readFile(this.storagePath, 'utf-8')
-      const tasks: Task[] = JSON.parse(data)
-      this.cache.clear()
+      const data = await fs.readFile(this.storagePath, 'utf-8');
+      const tasks: Task[] = JSON.parse(data);
+      this.cache.clear();
       for (const task of tasks) {
-        this.cache.set(task.id, task)
+        this.cache.set(task.id, task);
       }
     }
     catch (_error) {
       // File doesn't exist or is invalid, start with empty cache
-      this.cache.clear()
+      this.cache.clear();
     }
   }
 
@@ -243,9 +243,9 @@ export class TaskStorage {
    * Save cache to local storage
    */
   private async saveToLocal(): Promise<void> {
-    const tasks = Array.from(this.cache.values())
-    const data = JSON.stringify(tasks, null, 2)
-    await fs.writeFile(this.storagePath, data, 'utf-8')
+    const tasks = Array.from(this.cache.values());
+    const data = JSON.stringify(tasks, null, 2);
+    await fs.writeFile(this.storagePath, data, 'utf-8');
   }
 
   /**
@@ -253,7 +253,7 @@ export class TaskStorage {
    */
   private async saveToCloud(task: Task): Promise<Task | null> {
     if (!this.cloudEndpoint) {
-      throw new Error('Cloud endpoint not configured')
+      throw new Error('Cloud endpoint not configured');
     }
 
     try {
@@ -271,21 +271,21 @@ export class TaskStorage {
           dependsOn: task.dependsOn,
           metadata: task.metadata,
         }),
-      })
+      });
 
       if (!response.ok) {
-        throw new Error(`Failed to save task to cloud: ${response.statusText}`)
+        throw new Error(`Failed to save task to cloud: ${response.statusText}`);
       }
 
-      const result = await response.json() as CloudApiResponse<CloudTask>
+      const result = await response.json() as CloudApiResponse<CloudTask>;
       if (result.code !== 0) {
-        throw new Error(`Cloud API error: ${result.message}`)
+        throw new Error(`Cloud API error: ${result.message}`);
       }
 
       // Transform response to match our Task interface
-      const cloudTask = result.data
+      const cloudTask = result.data;
       if (!cloudTask)
-        return null
+        return null;
 
       return {
         id: cloudTask.id,
@@ -301,11 +301,11 @@ export class TaskStorage {
         completedAt: cloudTask.completed_at,
         startedAt: cloudTask.started_at,
         duration: cloudTask.duration,
-      }
+      };
     }
     catch (error) {
-      console.error('Error saving task to cloud:', error)
-      throw error
+      console.error('Error saving task to cloud:', error);
+      throw error;
     }
   }
 
@@ -314,7 +314,7 @@ export class TaskStorage {
    */
   private async getFromCloud(taskId: string): Promise<Task | null> {
     if (!this.cloudEndpoint) {
-      throw new Error('Cloud endpoint not configured')
+      throw new Error('Cloud endpoint not configured');
     }
 
     try {
@@ -322,24 +322,24 @@ export class TaskStorage {
         headers: {
           Authorization: `Bearer ${process.env.CCJK_API_KEY || 'test'}`,
         },
-      })
+      });
 
       if (!response.ok) {
         if (response.status === 404) {
-          return null
+          return null;
         }
-        throw new Error(`Failed to get task from cloud: ${response.statusText}`)
+        throw new Error(`Failed to get task from cloud: ${response.statusText}`);
       }
 
-      const result = await response.json() as CloudApiResponse<CloudTask>
+      const result = await response.json() as CloudApiResponse<CloudTask>;
       if (result.code !== 0) {
-        throw new Error(`Cloud API error: ${result.message}`)
+        throw new Error(`Cloud API error: ${result.message}`);
       }
 
       // Transform response data to match our Task interface
-      const cloudTask = result.data
+      const cloudTask = result.data;
       if (!cloudTask)
-        return null
+        return null;
 
       return {
         id: cloudTask.id,
@@ -355,11 +355,11 @@ export class TaskStorage {
         completedAt: cloudTask.completed_at,
         startedAt: cloudTask.started_at,
         duration: cloudTask.duration,
-      }
+      };
     }
     catch (error) {
-      console.error('Error getting task from cloud:', error)
-      return null
+      console.error('Error getting task from cloud:', error);
+      return null;
     }
   }
 
@@ -368,7 +368,7 @@ export class TaskStorage {
    */
   private async deleteFromCloud(taskId: string): Promise<void> {
     if (!this.cloudEndpoint) {
-      throw new Error('Cloud endpoint not configured')
+      throw new Error('Cloud endpoint not configured');
     }
 
     try {
@@ -377,20 +377,20 @@ export class TaskStorage {
         headers: {
           Authorization: `Bearer ${process.env.CCJK_API_KEY || 'test'}`,
         },
-      })
+      });
 
       if (!response.ok) {
-        throw new Error(`Failed to delete task from cloud: ${response.statusText}`)
+        throw new Error(`Failed to delete task from cloud: ${response.statusText}`);
       }
 
-      const result = await response.json() as CloudApiResponse
+      const result = await response.json() as CloudApiResponse;
       if (result.code !== 0) {
-        throw new Error(`Cloud API error: ${result.message}`)
+        throw new Error(`Cloud API error: ${result.message}`);
       }
     }
     catch (error) {
-      console.error('Error deleting task from cloud:', error)
-      throw error
+      console.error('Error deleting task from cloud:', error);
+      throw error;
     }
   }
 
@@ -399,52 +399,52 @@ export class TaskStorage {
    */
   private async searchFromCloud(options?: TaskSearchOptions): Promise<Task[]> {
     if (!this.cloudEndpoint) {
-      throw new Error('Cloud endpoint not configured')
+      throw new Error('Cloud endpoint not configured');
     }
 
     try {
       // Build query string
-      const params = new URLSearchParams()
+      const params = new URLSearchParams();
 
       if (options?.status) {
-        params.append('status', options.status)
+        params.append('status', options.status);
       }
 
       if (options?.priority) {
-        params.append('priority', options.priority)
+        params.append('priority', options.priority);
       }
 
       if (options?.nameContains) {
-        params.append('query', options.nameContains)
+        params.append('query', options.nameContains);
       }
 
       if (options?.limit !== undefined) {
-        params.append('limit', options.limit.toString())
+        params.append('limit', options.limit.toString());
       }
 
       if (options?.offset !== undefined) {
-        params.append('offset', options.offset.toString())
+        params.append('offset', options.offset.toString());
       }
 
-      const url = `${this.cloudEndpoint}/api/v8/tasks?${params.toString()}`
+      const url = `${this.cloudEndpoint}/api/v8/tasks?${params.toString()}`;
 
       const response = await fetch(url, {
         headers: {
           Authorization: `Bearer ${process.env.CCJK_API_KEY || 'test'}`,
         },
-      })
+      });
 
       if (!response.ok) {
-        throw new Error(`Failed to search tasks from cloud: ${response.statusText}`)
+        throw new Error(`Failed to search tasks from cloud: ${response.statusText}`);
       }
 
-      const result = await response.json() as CloudApiResponse<CloudTaskListResponse>
+      const result = await response.json() as CloudApiResponse<CloudTaskListResponse>;
       if (result.code !== 0) {
-        throw new Error(`Cloud API error: ${result.message}`)
+        throw new Error(`Cloud API error: ${result.message}`);
       }
 
       // Transform response format: { data: { items: [...], total, limit, offset } }
-      const cloudTasks = result.data?.items || []
+      const cloudTasks = result.data?.items || [];
 
       // Map database field names to our Task interface
       return cloudTasks.map(task => ({
@@ -461,11 +461,11 @@ export class TaskStorage {
         completedAt: task.completed_at,
         startedAt: task.started_at,
         duration: task.duration,
-      }))
+      }));
     }
     catch (error) {
-      console.error('Error searching tasks from cloud:', error)
-      return []
+      console.error('Error searching tasks from cloud:', error);
+      return [];
     }
   }
 
@@ -474,7 +474,7 @@ export class TaskStorage {
    */
   private async updateInCloud(taskId: string, updates: Partial<Task>): Promise<Task | null> {
     if (!this.cloudEndpoint) {
-      throw new Error('Cloud endpoint not configured')
+      throw new Error('Cloud endpoint not configured');
     }
 
     try {
@@ -485,23 +485,23 @@ export class TaskStorage {
           'Authorization': `Bearer ${process.env.CCJK_API_KEY || 'test'}`,
         },
         body: JSON.stringify(updates),
-      })
+      });
 
       if (!response.ok) {
-        throw new Error(`Failed to update task in cloud: ${response.statusText}`)
+        throw new Error(`Failed to update task in cloud: ${response.statusText}`);
       }
 
-      const result = await response.json() as CloudApiResponse
+      const result = await response.json() as CloudApiResponse;
       if (result.code !== 0) {
-        throw new Error(`Cloud API error: ${result.message}`)
+        throw new Error(`Cloud API error: ${result.message}`);
       }
 
       // Fetch the updated task to return full data
-      return await this.getFromCloud(taskId)
+      return await this.getFromCloud(taskId);
     }
     catch (error) {
-      console.error('Error updating task in cloud:', error)
-      throw error
+      console.error('Error updating task in cloud:', error);
+      throw error;
     }
   }
 }

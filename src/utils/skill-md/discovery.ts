@@ -7,12 +7,12 @@
  * @module utils/skill-md/discovery
  */
 
-import type { SkillMdFile, SkillValidationResult } from '../../types/skill-md.js'
-import { readdir, stat } from 'node:fs/promises'
-import { homedir } from 'node:os'
-import { cwd } from 'node:process'
-import { join, resolve } from 'pathe'
-import { parseSkillMdFile, validateSkillMd } from './parser.js'
+import type { SkillMdFile, SkillValidationResult } from '../../types/skill-md.js';
+import { readdir, stat } from 'node:fs/promises';
+import { homedir } from 'node:os';
+import { cwd } from 'node:process';
+import { join, resolve } from 'pathe';
+import { parseSkillMdFile, validateSkillMd } from './parser.js';
 
 /**
  * Skill validation result with file path
@@ -22,7 +22,7 @@ import { parseSkillMdFile, validateSkillMd } from './parser.js'
  */
 export interface SkillValidationResultWithPath extends SkillValidationResult {
   /** File path that was validated */
-  filePath: string
+  filePath: string;
 }
 
 /**
@@ -71,11 +71,11 @@ export class SkillDiscovery {
    * ```
    */
   getDefaultDirs(): string[] {
-    const home = homedir()
-    const globalSkillsDir = join(home, '.claude', 'skills')
-    const localSkillsDir = resolve(cwd(), '.claude', 'skills')
+    const home = homedir();
+    const globalSkillsDir = join(home, '.claude', 'skills');
+    const localSkillsDir = resolve(cwd(), '.claude', 'skills');
 
-    return [globalSkillsDir, localSkillsDir]
+    return [globalSkillsDir, localSkillsDir];
   }
 
   /**
@@ -109,56 +109,56 @@ export class SkillDiscovery {
    * ```
    */
   async scanDirectory(dir: string): Promise<SkillMdFile[]> {
-    const skills: SkillMdFile[] = []
-    const resolvedDir = resolve(dir)
+    const skills: SkillMdFile[] = [];
+    const resolvedDir = resolve(dir);
 
     try {
       // Check if directory exists
-      const dirStat = await stat(resolvedDir)
+      const dirStat = await stat(resolvedDir);
       if (!dirStat.isDirectory()) {
-        return skills
+        return skills;
       }
 
       // Read directory contents
-      const entries = await readdir(resolvedDir, { withFileTypes: true })
+      const entries = await readdir(resolvedDir, { withFileTypes: true });
 
       for (const entry of entries) {
-        const fullPath = join(resolvedDir, entry.name)
+        const fullPath = join(resolvedDir, entry.name);
 
         if (entry.isDirectory()) {
           // Look for SKILL.md in subdirectory
-          const skillPath = join(fullPath, 'SKILL.md')
+          const skillPath = join(fullPath, 'SKILL.md');
 
           try {
-            await stat(skillPath)
+            await stat(skillPath);
             // SKILL.md exists, try to parse it
-            const skill = await parseSkillMdFile(skillPath)
-            skills.push(skill)
+            const skill = await parseSkillMdFile(skillPath);
+            skills.push(skill);
           }
           catch {
             // SKILL.md doesn't exist or failed to parse, skip
-            continue
+            continue;
           }
         }
         else if (entry.name === 'SKILL.md') {
           // Found SKILL.md in root directory
           try {
-            const skill = await parseSkillMdFile(fullPath)
-            skills.push(skill)
+            const skill = await parseSkillMdFile(fullPath);
+            skills.push(skill);
           }
           catch {
             // Failed to parse, skip
-            continue
+            continue;
           }
         }
       }
     }
     catch {
       // Directory doesn't exist or can't be read, return empty array
-      return skills
+      return skills;
     }
 
-    return skills
+    return skills;
   }
 
   /**
@@ -181,15 +181,15 @@ export class SkillDiscovery {
    * ```
    */
   async scanDefaultDirs(): Promise<SkillMdFile[]> {
-    const dirs = this.getDefaultDirs()
-    const allSkills: SkillMdFile[] = []
+    const dirs = this.getDefaultDirs();
+    const allSkills: SkillMdFile[] = [];
 
     for (const dir of dirs) {
-      const skills = await this.scanDirectory(dir)
-      allSkills.push(...skills)
+      const skills = await this.scanDirectory(dir);
+      allSkills.push(...skills);
     }
 
-    return allSkills
+    return allSkills;
   }
 
   /**
@@ -212,14 +212,14 @@ export class SkillDiscovery {
    * ```
    */
   async scanDirectories(dirs: string[]): Promise<SkillMdFile[]> {
-    const allSkills: SkillMdFile[] = []
+    const allSkills: SkillMdFile[] = [];
 
     for (const dir of dirs) {
-      const skills = await this.scanDirectory(dir)
-      allSkills.push(...skills)
+      const skills = await this.scanDirectory(dir);
+      allSkills.push(...skills);
     }
 
-    return allSkills
+    return allSkills;
   }
 
   /**
@@ -253,13 +253,13 @@ export class SkillDiscovery {
    * ```
    */
   async validateSkillFile(filePath: string): Promise<SkillValidationResultWithPath> {
-    const skill = await parseSkillMdFile(filePath)
-    const validation = validateSkillMd(skill)
+    const skill = await parseSkillMdFile(filePath);
+    const validation = validateSkillMd(skill);
 
     return {
       ...validation,
       filePath,
-    }
+    };
   }
 
   /**
@@ -284,8 +284,8 @@ export class SkillDiscovery {
    * ```
    */
   async findSkillByName(name: string): Promise<SkillMdFile | null> {
-    const skills = await this.scanDefaultDirs()
-    return skills.find(skill => skill.metadata.name === name) || null
+    const skills = await this.scanDefaultDirs();
+    return skills.find(skill => skill.metadata.name === name) || null;
   }
 
   /**
@@ -308,8 +308,8 @@ export class SkillDiscovery {
    * ```
    */
   async findSkillsByTrigger(trigger: string): Promise<SkillMdFile[]> {
-    const skills = await this.scanDefaultDirs()
-    return skills.filter(skill => skill.metadata.triggers.includes(trigger))
+    const skills = await this.scanDefaultDirs();
+    return skills.filter(skill => skill.metadata.triggers.includes(trigger));
   }
 
   /**
@@ -330,8 +330,8 @@ export class SkillDiscovery {
    * ```
    */
   async findSkillsByCategory(category: string): Promise<SkillMdFile[]> {
-    const skills = await this.scanDefaultDirs()
-    return skills.filter(skill => skill.metadata.category === category)
+    const skills = await this.scanDefaultDirs();
+    return skills.filter(skill => skill.metadata.category === category);
   }
 
   /**
@@ -352,22 +352,22 @@ export class SkillDiscovery {
    * ```
    */
   async getStats(): Promise<{
-    totalSkills: number
-    categories: string[]
-    totalTriggers: number
-    autoActivateCount: number
+    totalSkills: number;
+    categories: string[];
+    totalTriggers: number;
+    autoActivateCount: number;
   }> {
-    const skills = await this.scanDefaultDirs()
+    const skills = await this.scanDefaultDirs();
 
-    const categories = new Set(skills.map(skill => skill.metadata.category))
-    const totalTriggers = skills.reduce((sum, skill) => sum + skill.metadata.triggers.length, 0)
-    const autoActivateCount = skills.filter(skill => skill.metadata.auto_activate).length
+    const categories = new Set(skills.map(skill => skill.metadata.category));
+    const totalTriggers = skills.reduce((sum, skill) => sum + skill.metadata.triggers.length, 0);
+    const autoActivateCount = skills.filter(skill => skill.metadata.auto_activate).length;
 
     return {
       totalSkills: skills.length,
       categories: Array.from(categories),
       totalTriggers,
       autoActivateCount,
-    }
+    };
   }
 }

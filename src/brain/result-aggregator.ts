@@ -14,29 +14,29 @@ import type {
   Task,
   TaskArtifact,
   TaskOutput,
-} from './orchestrator-types.js'
+} from './orchestrator-types.js';
 
 /**
  * Result aggregation options
  */
 export interface ResultAggregationOptions {
   /** Default conflict resolution strategy */
-  defaultStrategy?: ConflictResolutionStrategy
+  defaultStrategy?: ConflictResolutionStrategy;
 
   /** Enable automatic conflict detection */
-  autoDetectConflicts?: boolean
+  autoDetectConflicts?: boolean;
 
   /** Enable result validation */
-  enableValidation?: boolean
+  enableValidation?: boolean;
 
   /** Minimum confidence threshold (0-1) */
-  minConfidenceThreshold?: number
+  minConfidenceThreshold?: number;
 
   /** Enable result merging */
-  enableMerging?: boolean
+  enableMerging?: boolean;
 
   /** Maximum merge attempts */
-  maxMergeAttempts?: number
+  maxMergeAttempts?: number;
 }
 
 /**
@@ -46,16 +46,16 @@ export interface ResultAggregationOptions {
  */
 export interface AggregationContext {
   /** Tasks being aggregated */
-  tasks: Task[]
+  tasks: Task[];
 
   /** Aggregation strategy */
-  strategy: ConflictResolutionStrategy
+  strategy: ConflictResolutionStrategy;
 
   /** Expected output schema */
-  expectedSchema?: Record<string, unknown>
+  expectedSchema?: Record<string, unknown>;
 
   /** Aggregation metadata */
-  metadata?: Record<string, unknown>
+  metadata?: Record<string, unknown>;
 }
 
 /**
@@ -65,38 +65,38 @@ export interface AggregationContext {
  */
 export interface AggregationResult {
   /** Whether aggregation succeeded */
-  success: boolean
+  success: boolean;
 
   /** Aggregated output */
-  output?: TaskOutput
+  output?: TaskOutput;
 
   /** Conflicts detected */
-  conflicts: ConflictResolutionContext[]
+  conflicts: ConflictResolutionContext[];
 
   /** Conflicts resolved */
-  resolvedConflicts: ConflictResolutionResult[]
+  resolvedConflicts: ConflictResolutionResult[];
 
   /** Unresolved conflicts */
-  unresolvedConflicts: ConflictResolutionContext[]
+  unresolvedConflicts: ConflictResolutionContext[];
 
   /** Validation errors */
   validationErrors: Array<{
-    taskId: string
-    field: string
-    message: string
-  }>
+    taskId: string;
+    field: string;
+    message: string;
+  }>;
 
   /** Aggregation warnings */
-  warnings: string[]
+  warnings: string[];
 
   /** Aggregation metadata */
   metadata: {
-    totalTasks: number
-    successfulTasks: number
-    failedTasks: number
-    averageConfidence: number
-    aggregationTimestamp: string
-  }
+    totalTasks: number;
+    successfulTasks: number;
+    failedTasks: number;
+    averageConfidence: number;
+    aggregationTimestamp: string;
+  };
 }
 
 /**
@@ -104,7 +104,7 @@ export interface AggregationResult {
  */
 export interface ResultValidator {
   /** Validate a task output */
-  validate: (output: TaskOutput, schema?: Record<string, unknown>) => ValidationResult
+  validate: (output: TaskOutput, schema?: Record<string, unknown>) => ValidationResult;
 }
 
 /**
@@ -112,21 +112,21 @@ export interface ResultValidator {
  */
 export interface ValidationResult {
   /** Whether validation passed */
-  valid: boolean
+  valid: boolean;
 
   /** Validation errors */
   errors: Array<{
-    field: string
-    message: string
-    code: string
-  }>
+    field: string;
+    message: string;
+    code: string;
+  }>;
 
   /** Validation warnings */
   warnings: Array<{
-    field: string
-    message: string
-    code: string
-  }>
+    field: string;
+    message: string;
+    code: string;
+  }>;
 }
 
 /**
@@ -135,8 +135,8 @@ export interface ValidationResult {
  * Aggregates results from multiple agents with intelligent conflict resolution.
  */
 export class ResultAggregator {
-  private readonly options: Required<ResultAggregationOptions>
-  private readonly validator: ResultValidator
+  private readonly options: Required<ResultAggregationOptions>;
+  private readonly validator: ResultValidator;
 
   constructor(options: ResultAggregationOptions = {}) {
     this.options = {
@@ -146,9 +146,9 @@ export class ResultAggregator {
       minConfidenceThreshold: options.minConfidenceThreshold ?? 0.7,
       enableMerging: options.enableMerging ?? true,
       maxMergeAttempts: options.maxMergeAttempts ?? 3,
-    }
+    };
 
-    this.validator = this.createValidator()
+    this.validator = this.createValidator();
   }
 
   /**
@@ -167,20 +167,20 @@ export class ResultAggregator {
       strategy: context?.strategy ?? this.options.defaultStrategy,
       expectedSchema: context?.expectedSchema,
       metadata: context?.metadata,
-    }
+    };
 
     // Filter tasks with outputs
-    const tasksWithOutputs = tasks.filter(t => t.output !== undefined)
+    const tasksWithOutputs = tasks.filter(t => t.output !== undefined);
 
     if (tasksWithOutputs.length === 0) {
-      return this.createEmptyResult(tasks)
+      return this.createEmptyResult(tasks);
     }
 
     // Validate outputs if enabled
-    const validationErrors: Array<{ taskId: string, field: string, message: string }> = []
+    const validationErrors: Array<{ taskId: string; field: string; message: string }> = [];
     if (this.options.enableValidation) {
       for (const task of tasksWithOutputs) {
-        const validation = this.validator.validate(task.output!, aggregationContext.expectedSchema)
+        const validation = this.validator.validate(task.output!, aggregationContext.expectedSchema);
         if (!validation.valid) {
           validationErrors.push(
             ...validation.errors.map(err => ({
@@ -188,28 +188,28 @@ export class ResultAggregator {
               field: err.field,
               message: err.message,
             })),
-          )
+          );
         }
       }
     }
 
     // Detect conflicts if enabled
-    const conflicts: ConflictResolutionContext[] = []
+    const conflicts: ConflictResolutionContext[] = [];
     if (this.options.autoDetectConflicts) {
-      conflicts.push(...this.detectConflicts(tasksWithOutputs))
+      conflicts.push(...this.detectConflicts(tasksWithOutputs));
     }
 
     // Resolve conflicts
-    const resolvedConflicts: ConflictResolutionResult[] = []
-    const unresolvedConflicts: ConflictResolutionContext[] = []
+    const resolvedConflicts: ConflictResolutionResult[] = [];
+    const unresolvedConflicts: ConflictResolutionContext[] = [];
 
     for (const conflict of conflicts) {
-      const resolution = await this.resolveConflict(conflict)
+      const resolution = await this.resolveConflict(conflict);
       if (resolution.resolved) {
-        resolvedConflicts.push(resolution)
+        resolvedConflicts.push(resolution);
       }
       else {
-        unresolvedConflicts.push(conflict)
+        unresolvedConflicts.push(conflict);
       }
     }
 
@@ -218,20 +218,20 @@ export class ResultAggregator {
       tasksWithOutputs,
       aggregationContext,
       resolvedConflicts,
-    )
+    );
 
     // Calculate metadata
-    const successfulTasks = tasksWithOutputs.filter(t => t.status === 'completed')
-    const failedTasks = tasks.filter(t => t.status === 'failed')
-    const averageConfidence = this.calculateAverageConfidence(tasksWithOutputs)
+    const successfulTasks = tasksWithOutputs.filter(t => t.status === 'completed');
+    const failedTasks = tasks.filter(t => t.status === 'failed');
+    const averageConfidence = this.calculateAverageConfidence(tasksWithOutputs);
 
     // Generate warnings
-    const warnings: string[] = []
+    const warnings: string[] = [];
     if (averageConfidence < this.options.minConfidenceThreshold) {
-      warnings.push(`Average confidence ${averageConfidence.toFixed(2)} is below threshold ${this.options.minConfidenceThreshold}`)
+      warnings.push(`Average confidence ${averageConfidence.toFixed(2)} is below threshold ${this.options.minConfidenceThreshold}`);
     }
     if (unresolvedConflicts.length > 0) {
-      warnings.push(`${unresolvedConflicts.length} conflicts remain unresolved`)
+      warnings.push(`${unresolvedConflicts.length} conflicts remain unresolved`);
     }
 
     return {
@@ -249,7 +249,7 @@ export class ResultAggregator {
         averageConfidence,
         aggregationTimestamp: new Date().toISOString(),
       },
-    }
+    };
   }
 
   /**
@@ -259,29 +259,29 @@ export class ResultAggregator {
    * @returns Detected conflicts
    */
   private detectConflicts(tasks: Task[]): ConflictResolutionContext[] {
-    const conflicts: ConflictResolutionContext[] = []
+    const conflicts: ConflictResolutionContext[] = [];
 
     // Group tasks by type
-    const tasksByType = this.groupTasksByType(tasks)
+    const tasksByType = this.groupTasksByType(tasks);
 
     for (const [_type, typeTasks] of tasksByType) {
       if (typeTasks.length < 2)
-        continue
+        continue;
 
       // Check for data conflicts
-      const dataConflicts = this.detectDataConflicts(typeTasks)
-      conflicts.push(...dataConflicts)
+      const dataConflicts = this.detectDataConflicts(typeTasks);
+      conflicts.push(...dataConflicts);
 
       // Check for file conflicts
-      const fileConflicts = this.detectFileConflicts(typeTasks)
-      conflicts.push(...fileConflicts)
+      const fileConflicts = this.detectFileConflicts(typeTasks);
+      conflicts.push(...fileConflicts);
 
       // Check for decision conflicts
-      const decisionConflicts = this.detectDecisionConflicts(typeTasks)
-      conflicts.push(...decisionConflicts)
+      const decisionConflicts = this.detectDecisionConflicts(typeTasks);
+      conflicts.push(...decisionConflicts);
     }
 
-    return conflicts
+    return conflicts;
   }
 
   /**
@@ -291,21 +291,21 @@ export class ResultAggregator {
    * @returns Data conflicts
    */
   private detectDataConflicts(tasks: Task[]): ConflictResolutionContext[] {
-    const conflicts: ConflictResolutionContext[] = []
+    const conflicts: ConflictResolutionContext[] = [];
 
     // Compare data fields across tasks
-    const dataFields = this.extractDataFields(tasks)
+    const dataFields = this.extractDataFields(tasks);
 
     for (const field of dataFields) {
       const values = tasks
         .map(t => ({ taskId: t.id, value: this.getFieldValue(t.output!, field) }))
-        .filter(v => v.value !== undefined)
+        .filter(v => v.value !== undefined);
 
       if (values.length < 2)
-        continue
+        continue;
 
       // Check if values differ
-      const uniqueValues = new Set(values.map(v => JSON.stringify(v.value)))
+      const uniqueValues = new Set(values.map(v => JSON.stringify(v.value)));
       if (uniqueValues.size > 1) {
         conflicts.push({
           conflictingTasks: values.map(v => v.taskId),
@@ -317,11 +317,11 @@ export class ResultAggregator {
             field,
             values: values.map(v => v.value),
           },
-        })
+        });
       }
     }
 
-    return conflicts
+    return conflicts;
   }
 
   /**
@@ -331,20 +331,20 @@ export class ResultAggregator {
    * @returns File conflicts
    */
   private detectFileConflicts(tasks: Task[]): ConflictResolutionContext[] {
-    const conflicts: ConflictResolutionContext[] = []
+    const conflicts: ConflictResolutionContext[] = [];
 
     // Group files by path
-    const filesByPath = new Map<string, Array<{ taskId: string, file: string }>>()
+    const filesByPath = new Map<string, Array<{ taskId: string; file: string }>>();
 
     for (const task of tasks) {
       if (!task.output?.files)
-        continue
+        continue;
 
       for (const file of task.output.files) {
         if (!filesByPath.has(file)) {
-          filesByPath.set(file, [])
+          filesByPath.set(file, []);
         }
-        filesByPath.get(file)!.push({ taskId: task.id, file })
+        filesByPath.get(file)!.push({ taskId: task.id, file });
       }
     }
 
@@ -361,11 +361,11 @@ export class ResultAggregator {
             filePath: path,
             taskCount: files.length,
           },
-        })
+        });
       }
     }
 
-    return conflicts
+    return conflicts;
   }
 
   /**
@@ -375,7 +375,7 @@ export class ResultAggregator {
    * @returns Decision conflicts
    */
   private detectDecisionConflicts(tasks: Task[]): ConflictResolutionContext[] {
-    const conflicts: ConflictResolutionContext[] = []
+    const conflicts: ConflictResolutionContext[] = [];
 
     // Check for conflicting decisions in metadata
     const decisions = tasks
@@ -383,12 +383,12 @@ export class ResultAggregator {
         taskId: t.id,
         decision: t.output?.metadata?.decision as string | undefined,
       }))
-      .filter(d => d.decision !== undefined)
+      .filter(d => d.decision !== undefined);
 
     if (decisions.length < 2)
-      return conflicts
+      return conflicts;
 
-    const uniqueDecisions = new Set(decisions.map(d => d.decision))
+    const uniqueDecisions = new Set(decisions.map(d => d.decision));
     if (uniqueDecisions.size > 1) {
       conflicts.push({
         conflictingTasks: decisions.map(d => d.taskId),
@@ -399,10 +399,10 @@ export class ResultAggregator {
         metadata: {
           decisions: decisions.map(d => d.decision),
         },
-      })
+      });
     }
 
-    return conflicts
+    return conflicts;
   }
 
   /**
@@ -416,24 +416,24 @@ export class ResultAggregator {
   ): Promise<ConflictResolutionResult> {
     switch (conflict.strategy) {
       case 'first-wins':
-        return this.resolveFirstWins(conflict)
+        return this.resolveFirstWins(conflict);
       case 'last-wins':
-        return this.resolveLastWins(conflict)
+        return this.resolveLastWins(conflict);
       case 'vote':
-        return this.resolveByVote(conflict)
+        return this.resolveByVote(conflict);
       case 'merge':
-        return this.resolveByMerge(conflict)
+        return this.resolveByMerge(conflict);
       case 'highest-confidence':
-        return this.resolveByConfidence(conflict)
+        return this.resolveByConfidence(conflict);
       case 'manual':
-        return this.resolveManually(conflict)
+        return this.resolveManually(conflict);
       default:
         return {
           resolved: false,
           method: 'unknown',
           confidence: 0,
           explanation: `Unknown resolution strategy: ${conflict.strategy}`,
-        }
+        };
     }
   }
 
@@ -451,7 +451,7 @@ export class ResultAggregator {
       confidence: 0.5,
       explanation: 'Used first completed result',
       discarded: conflict.results.slice(1),
-    }
+    };
   }
 
   /**
@@ -461,7 +461,7 @@ export class ResultAggregator {
    * @returns Resolution result
    */
   private resolveLastWins(conflict: ConflictResolutionContext): ConflictResolutionResult {
-    const lastResult = conflict.results[conflict.results.length - 1]
+    const lastResult = conflict.results[conflict.results.length - 1];
     return {
       resolved: true,
       result: lastResult,
@@ -469,7 +469,7 @@ export class ResultAggregator {
       confidence: 0.5,
       explanation: 'Used last completed result',
       discarded: conflict.results.slice(0, -1),
-    }
+    };
   }
 
   /**
@@ -480,31 +480,31 @@ export class ResultAggregator {
    */
   private resolveByVote(conflict: ConflictResolutionContext): ConflictResolutionResult {
     // Count occurrences of each result
-    const resultCounts = new Map<string, { count: number, result: TaskOutput }>()
+    const resultCounts = new Map<string, { count: number; result: TaskOutput }>();
 
     for (const result of conflict.results) {
-      const key = JSON.stringify(result.data)
-      const existing = resultCounts.get(key)
+      const key = JSON.stringify(result.data);
+      const existing = resultCounts.get(key);
       if (existing) {
-        existing.count++
+        existing.count++;
       }
       else {
-        resultCounts.set(key, { count: 1, result })
+        resultCounts.set(key, { count: 1, result });
       }
     }
 
     // Find result with most votes
-    let maxCount = 0
-    let winningResult: TaskOutput | undefined
+    let maxCount = 0;
+    let winningResult: TaskOutput | undefined;
 
     for (const [_, { count, result }] of resultCounts) {
       if (count > maxCount) {
-        maxCount = count
-        winningResult = result
+        maxCount = count;
+        winningResult = result;
       }
     }
 
-    const confidence = maxCount / conflict.results.length
+    const confidence = maxCount / conflict.results.length;
 
     return {
       resolved: winningResult !== undefined,
@@ -513,7 +513,7 @@ export class ResultAggregator {
       confidence,
       explanation: `Result won with ${maxCount}/${conflict.results.length} votes`,
       discarded: conflict.results.filter(r => r !== winningResult),
-    }
+    };
   }
 
   /**
@@ -529,11 +529,11 @@ export class ResultAggregator {
         method: 'merge',
         confidence: 0,
         explanation: 'Merging is disabled',
-      }
+      };
     }
 
     try {
-      const mergedResult = await this.mergeResults(conflict.results, conflict.conflictType)
+      const mergedResult = await this.mergeResults(conflict.results, conflict.conflictType);
 
       return {
         resolved: true,
@@ -541,7 +541,7 @@ export class ResultAggregator {
         method: 'merge',
         confidence: 0.8,
         explanation: 'Successfully merged conflicting results',
-      }
+      };
     }
     catch (error) {
       return {
@@ -549,7 +549,7 @@ export class ResultAggregator {
         method: 'merge',
         confidence: 0,
         explanation: `Merge failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      }
+      };
     }
   }
 
@@ -561,14 +561,14 @@ export class ResultAggregator {
    */
   private resolveByConfidence(conflict: ConflictResolutionContext): ConflictResolutionResult {
     // Find result with highest confidence
-    let maxConfidence = 0
-    let bestResult: TaskOutput | undefined
+    let maxConfidence = 0;
+    let bestResult: TaskOutput | undefined;
 
     for (const result of conflict.results) {
-      const confidence = result.confidence ?? 0
+      const confidence = result.confidence ?? 0;
       if (confidence > maxConfidence) {
-        maxConfidence = confidence
-        bestResult = result
+        maxConfidence = confidence;
+        bestResult = result;
       }
     }
 
@@ -579,7 +579,7 @@ export class ResultAggregator {
       confidence: maxConfidence,
       explanation: `Selected result with confidence ${maxConfidence.toFixed(2)}`,
       discarded: conflict.results.filter(r => r !== bestResult),
-    }
+    };
   }
 
   /**
@@ -594,7 +594,7 @@ export class ResultAggregator {
       method: 'manual',
       confidence: 0,
       explanation: 'Manual resolution required',
-    }
+    };
   }
 
   /**
@@ -607,24 +607,24 @@ export class ResultAggregator {
     results: TaskOutput[],
     _conflictType: 'data' | 'file' | 'decision' | 'state',
   ): Promise<TaskOutput> {
-    const mergedData: Record<string, unknown> = {}
-    const mergedFiles: string[] = []
-    const mergedArtifacts: TaskArtifact[] = []
-    const mergedLogs: string[] = []
+    const mergedData: Record<string, unknown> = {};
+    const mergedFiles: string[] = [];
+    const mergedArtifacts: TaskArtifact[] = [];
+    const mergedLogs: string[] = [];
 
     // Merge data fields
     for (const result of results) {
       for (const [key, value] of Object.entries(result.data)) {
         if (!(key in mergedData)) {
-          mergedData[key] = value
+          mergedData[key] = value;
         }
         else if (Array.isArray(mergedData[key]) && Array.isArray(value)) {
           // Merge arrays
-          mergedData[key] = [...(mergedData[key] as unknown[]), ...value]
+          mergedData[key] = [...(mergedData[key] as unknown[]), ...value];
         }
         else if (typeof mergedData[key] === 'object' && typeof value === 'object') {
           // Merge objects
-          mergedData[key] = { ...(mergedData[key] as Record<string, unknown>), ...(value as Record<string, unknown>) }
+          mergedData[key] = { ...(mergedData[key] as Record<string, unknown>), ...(value as Record<string, unknown>) };
         }
         // Otherwise keep existing value
       }
@@ -633,27 +633,27 @@ export class ResultAggregator {
       if (result.files) {
         for (const file of result.files) {
           if (!mergedFiles.includes(file)) {
-            mergedFiles.push(file)
+            mergedFiles.push(file);
           }
         }
       }
 
       // Merge artifacts
       if (result.artifacts) {
-        mergedArtifacts.push(...result.artifacts)
+        mergedArtifacts.push(...result.artifacts);
       }
 
       // Merge logs
       if (result.logs) {
-        mergedLogs.push(...result.logs)
+        mergedLogs.push(...result.logs);
       }
     }
 
     // Calculate average confidence
-    const confidences = results.map(r => r.confidence ?? 0).filter(c => c > 0)
+    const confidences = results.map(r => r.confidence ?? 0).filter(c => c > 0);
     const avgConfidence = confidences.length > 0
       ? confidences.reduce((sum, c) => sum + c, 0) / confidences.length
-      : undefined
+      : undefined;
 
     return {
       data: mergedData,
@@ -666,7 +666,7 @@ export class ResultAggregator {
         sourceCount: results.length,
         mergeTimestamp: new Date().toISOString(),
       },
-    }
+    };
   }
 
   /**
@@ -688,39 +688,39 @@ export class ResultAggregator {
       files: [],
       artifacts: [],
       logs: [],
-    }
+    };
 
     // Apply resolved conflicts first
     for (const resolution of resolvedConflicts) {
       if (resolution.result) {
-        this.mergeIntoAggregated(aggregated, resolution.result)
+        this.mergeIntoAggregated(aggregated, resolution.result);
       }
     }
 
     // Add outputs from non-conflicting tasks
     for (const task of tasks) {
       if (!task.output)
-        continue
+        continue;
 
       // Check if this task was involved in a conflict
-      const taskOutput = task.output
+      const taskOutput = task.output;
       const wasInConflict = resolvedConflicts.some(r =>
         r.discarded?.includes(taskOutput),
-      )
+      );
 
       if (!wasInConflict) {
-        this.mergeIntoAggregated(aggregated, taskOutput)
+        this.mergeIntoAggregated(aggregated, taskOutput);
       }
     }
 
     // Calculate overall confidence
     const confidences = tasks
       .map(t => t.output?.confidence ?? 0)
-      .filter(c => c > 0)
+      .filter(c => c > 0);
 
     aggregated.confidence = confidences.length > 0
       ? confidences.reduce((sum, c) => sum + c, 0) / confidences.length
-      : undefined
+      : undefined;
 
     // Add aggregation metadata
     aggregated.metadata = {
@@ -729,9 +729,9 @@ export class ResultAggregator {
       taskCount: tasks.length,
       aggregationStrategy: context.strategy,
       aggregationTimestamp: new Date().toISOString(),
-    }
+    };
 
-    return aggregated
+    return aggregated;
   }
 
   /**
@@ -742,21 +742,21 @@ export class ResultAggregator {
    */
   private mergeIntoAggregated(aggregated: TaskOutput, output: TaskOutput): void {
     // Merge data
-    Object.assign(aggregated.data, output.data)
+    Object.assign(aggregated.data, output.data);
 
     // Merge files
     if (output.files) {
-      aggregated.files = [...(aggregated.files ?? []), ...output.files]
+      aggregated.files = [...(aggregated.files ?? []), ...output.files];
     }
 
     // Merge artifacts
     if (output.artifacts) {
-      aggregated.artifacts = [...(aggregated.artifacts ?? []), ...output.artifacts]
+      aggregated.artifacts = [...(aggregated.artifacts ?? []), ...output.artifacts];
     }
 
     // Merge logs
     if (output.logs) {
-      aggregated.logs = [...(aggregated.logs ?? []), ...output.logs]
+      aggregated.logs = [...(aggregated.logs ?? []), ...output.logs];
     }
   }
 
@@ -781,7 +781,7 @@ export class ResultAggregator {
         averageConfidence: 0,
         aggregationTimestamp: new Date().toISOString(),
       },
-    }
+    };
   }
 
   /**
@@ -791,16 +791,16 @@ export class ResultAggregator {
    * @returns Tasks grouped by type
    */
   private groupTasksByType(tasks: Task[]): Map<string, Task[]> {
-    const groups = new Map<string, Task[]>()
+    const groups = new Map<string, Task[]>();
 
     for (const task of tasks) {
       if (!groups.has(task.type)) {
-        groups.set(task.type, [])
+        groups.set(task.type, []);
       }
-      groups.get(task.type)!.push(task)
+      groups.get(task.type)!.push(task);
     }
 
-    return groups
+    return groups;
   }
 
   /**
@@ -810,18 +810,18 @@ export class ResultAggregator {
    * @returns Data field names
    */
   private extractDataFields(tasks: Task[]): string[] {
-    const fields = new Set<string>()
+    const fields = new Set<string>();
 
     for (const task of tasks) {
       if (!task.output)
-        continue
+        continue;
 
       for (const key of Object.keys(task.output.data)) {
-        fields.add(key)
+        fields.add(key);
       }
     }
 
-    return Array.from(fields)
+    return Array.from(fields);
   }
 
   /**
@@ -832,7 +832,7 @@ export class ResultAggregator {
    * @returns Field value
    */
   private getFieldValue(output: TaskOutput, field: string): unknown {
-    return output.data[field]
+    return output.data[field];
   }
 
   /**
@@ -844,12 +844,12 @@ export class ResultAggregator {
   private calculateAverageConfidence(tasks: Task[]): number {
     const confidences = tasks
       .map(t => t.output?.confidence ?? 0)
-      .filter(c => c > 0)
+      .filter(c => c > 0);
 
     if (confidences.length === 0)
-      return 0
+      return 0;
 
-    return confidences.reduce((sum, c) => sum + c, 0) / confidences.length
+    return confidences.reduce((sum, c) => sum + c, 0) / confidences.length;
   }
 
   /**
@@ -860,8 +860,8 @@ export class ResultAggregator {
   private createValidator(): ResultValidator {
     return {
       validate: (output: TaskOutput, schema?: Record<string, unknown>): ValidationResult => {
-        const errors: Array<{ field: string, message: string, code: string }> = []
-        const warnings: Array<{ field: string, message: string, code: string }> = []
+        const errors: Array<{ field: string; message: string; code: string }> = [];
+        const warnings: Array<{ field: string; message: string; code: string }> = [];
 
         // Basic validation
         if (!output.data || Object.keys(output.data).length === 0) {
@@ -869,7 +869,7 @@ export class ResultAggregator {
             field: 'data',
             message: 'Output data is empty',
             code: 'EMPTY_DATA',
-          })
+          });
         }
 
         // Schema validation if provided
@@ -880,7 +880,7 @@ export class ResultAggregator {
                 field,
                 message: `Required field "${field}" is missing`,
                 code: 'MISSING_FIELD',
-              })
+              });
             }
           }
         }
@@ -891,15 +891,15 @@ export class ResultAggregator {
             field: 'confidence',
             message: 'Confidence score should be between 0 and 1',
             code: 'INVALID_CONFIDENCE',
-          })
+          });
         }
 
         return {
           valid: errors.length === 0,
           errors,
           warnings,
-        }
+        };
       },
-    }
+    };
   }
 }

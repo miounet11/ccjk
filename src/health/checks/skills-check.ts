@@ -1,9 +1,9 @@
-import type { HealthCheck, HealthResult } from '../types'
+import type { HealthCheck, HealthResult } from '../types';
 /**
  * Skills Health Check
  */
-import { existsSync, readdirSync } from 'node:fs'
-import { CCJK_SKILLS_DIR } from '../../constants'
+import { existsSync, readdirSync } from 'node:fs';
+import { CCJK_SKILLS_DIR } from '../../constants';
 
 export const skillsCheck: HealthCheck = {
   name: 'Skills',
@@ -19,11 +19,11 @@ export const skillsCheck: HealthCheck = {
           message: 'No skills directory found',
           fix: 'Install skills to enhance Claude Code',
           command: 'ccjk skills',
-        }
+        };
       }
 
-      const files = readdirSync(CCJK_SKILLS_DIR).filter(f => f.endsWith('.md'))
-      const skillCount = files.length
+      const files = readdirSync(CCJK_SKILLS_DIR).filter(f => f.endsWith('.md'));
+      const skillCount = files.length;
 
       if (skillCount === 0) {
         return {
@@ -34,10 +34,10 @@ export const skillsCheck: HealthCheck = {
           message: 'No skills installed',
           fix: 'Install skills based on your project',
           command: 'ccjk skills',
-        }
+        };
       }
 
-      const score = Math.min(100, 30 + skillCount * 10)
+      const score = Math.min(100, 30 + skillCount * 10);
       return {
         name: this.name,
         status: score >= 60 ? 'pass' : 'warn',
@@ -46,10 +46,10 @@ export const skillsCheck: HealthCheck = {
         message: `${skillCount} skill${skillCount > 1 ? 's' : ''} installed`,
         details: files.slice(0, 8).map(f => `  ${f.replace('.md', '')}`),
         ...(skillCount < 5 && { fix: 'Install more project-specific skills', command: 'ccjk skills' }),
-      }
+      };
     }
     catch {
-      return { name: this.name, status: 'fail', score: 0, weight: this.weight, message: 'Failed to read skills' }
+      return { name: this.name, status: 'fail', score: 0, weight: this.weight, message: 'Failed to read skills' };
     }
   },
-}
+};

@@ -29,40 +29,40 @@ export type {
   SkillValidationError,
   SkillValidationResult,
   SkillValidationWarning,
-} from '../../types/skill-md.js'
+} from '../../types/skill-md.js';
 
 // Export cache management
 export {
   SkillCache,
-} from './cache.js'
+} from './cache.js';
 
 export type {
   CachedSkill,
-} from './cache.js'
+} from './cache.js';
 // Export discovery service
 export {
   SkillDiscovery,
-} from './discovery.js'
+} from './discovery.js';
 
 export type {
   SkillValidationResultWithPath,
-} from './discovery.js'
+} from './discovery.js';
 // Export hot reload system
 // @deprecated Use `@/brain/skill-hot-reload` instead. Will be removed in v9.0.0.
 export {
   /** @deprecated Use `SkillHotReload` from `@/brain` instead */
   SkillHotReloader,
-} from './hot-reload.js'
+} from './hot-reload.js';
 
 export type {
   HotReloadEvent,
   HotReloadEventType,
   HotReloadOptions,
-} from './hot-reload.js'
+} from './hot-reload.js';
 // Export all parser functions
 export {
   extractSkillMetadata,
   parseSkillMd,
   parseSkillMdFile,
   validateSkillMd,
-} from './parser.js'
+} from './parser.js';

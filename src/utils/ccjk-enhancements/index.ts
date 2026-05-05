@@ -12,7 +12,7 @@
 
 // Capability Discovery
 // Import for internal use in initializeCCJKEnhancements
-import type { StartupResult as _StartupResult } from '../startup-orchestrator'
+import type { StartupResult as _StartupResult } from '../startup-orchestrator';
 import {
   createCapabilityDiscoveryModule as _createCapabilityDiscoveryModule,
   createConfigGuardianModule as _createConfigGuardianModule,
@@ -20,7 +20,7 @@ import {
   createToolRouterModule as _createToolRouterModule,
   createVersionSyncModule as _createVersionSyncModule,
   createZeroConfigModule as _createZeroConfigModule,
-} from '../startup-orchestrator'
+} from '../startup-orchestrator';
 
 export {
   type Capability,
@@ -37,7 +37,7 @@ export {
   scanCapabilities,
   type StatusOptions,
   type WelcomeOptions,
-} from '../capability-discovery'
+} from '../capability-discovery';
 
 // Config Guardian
 export {
@@ -48,7 +48,7 @@ export {
   type GuardianStatus,
   type RepairResult,
   type ValidationResult,
-} from '../config-guardian'
+} from '../config-guardian';
 
 // Startup Orchestrator
 export {
@@ -70,7 +70,7 @@ export {
   StartupOrchestrator,
   type StartupResult,
   type StartupStatus,
-} from '../startup-orchestrator'
+} from '../startup-orchestrator';
 
 // Tool Router
 export {
@@ -94,7 +94,7 @@ export {
   type ToolPriorityConfig,
   ToolRouter,
   type ToolSelection,
-} from '../tool-router'
+} from '../tool-router';
 
 // Version Sync
 export {
@@ -126,7 +126,7 @@ export {
   validateConfig,
   type VersionHistory,
   type VersionInfo,
-} from '../version-sync'
+} from '../version-sync';
 
 // Zero-Config Activation
 export {
@@ -137,18 +137,18 @@ export {
   loadCoreSkills,
   loadSkill,
   type SkillLoadResult,
-} from '../zero-config'
+} from '../zero-config';
 
 /**
  * Initialize all CCJK enhancements using the startup orchestrator
  */
 export async function initializeCCJKEnhancements(options?: {
-  enableConfigGuardian?: boolean
-  enableToolRouter?: boolean
-  enableCapabilityDiscovery?: boolean
-  enableZeroConfig?: boolean
-  enableVersionSync?: boolean
-  verbose?: boolean
+  enableConfigGuardian?: boolean;
+  enableToolRouter?: boolean;
+  enableCapabilityDiscovery?: boolean;
+  enableZeroConfig?: boolean;
+  enableVersionSync?: boolean;
+  verbose?: boolean;
 }): Promise<_StartupResult> {
   const {
     enableConfigGuardian = true,
@@ -157,28 +157,28 @@ export async function initializeCCJKEnhancements(options?: {
     enableZeroConfig = true,
     enableVersionSync = true,
     verbose = false,
-  } = options ?? {}
+  } = options ?? {};
 
-  const orchestrator = _createDefaultOrchestrator()
+  const orchestrator = _createDefaultOrchestrator();
 
   // Register only enabled modules
   if (enableConfigGuardian) {
-    orchestrator.registerModule(_createConfigGuardianModule())
+    orchestrator.registerModule(_createConfigGuardianModule());
   }
   if (enableToolRouter) {
-    orchestrator.registerModule(_createToolRouterModule())
+    orchestrator.registerModule(_createToolRouterModule());
   }
   if (enableCapabilityDiscovery) {
-    orchestrator.registerModule(_createCapabilityDiscoveryModule())
+    orchestrator.registerModule(_createCapabilityDiscoveryModule());
   }
   if (enableZeroConfig) {
-    orchestrator.registerModule(_createZeroConfigModule())
+    orchestrator.registerModule(_createZeroConfigModule());
   }
   if (enableVersionSync) {
-    orchestrator.registerModule(_createVersionSyncModule())
+    orchestrator.registerModule(_createVersionSyncModule());
   }
 
   // Note: verbose and skipOnError options are handled by individual modules
-  void verbose // Used for future enhancement
-  return orchestrator.run()
+  void verbose; // Used for future enhancement
+  return orchestrator.run();
 }

@@ -1,1 +1,1 @@
-export * from './project-analyzer'
+export * from './project-analyzer';

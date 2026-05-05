@@ -18,8 +18,8 @@
  * @module core/hook-skill-bridge
  */
 
-import type { Hook, SkillMdFile } from '../types/skill-md'
-import { EventEmitter } from 'node:events'
+import type { Hook, SkillMdFile } from '../types/skill-md';
+import { EventEmitter } from 'node:events';
 
 // ============================================================================
 // Types
@@ -39,67 +39,67 @@ export type CCJKHookType
     | 'AgentStart' // Agent starts
     | 'AgentStop' // Agent stops
     | 'Error' // Error occurred
-    | 'Shutdown' // CLI shutdown
+    | 'Shutdown'; // CLI shutdown
 
 /**
  * Hook execution context
  */
 export interface HookContext {
-  type: CCJKHookType
-  timestamp: number
-  source: string
-  data?: Record<string, unknown>
+  type: CCJKHookType;
+  timestamp: number;
+  source: string;
+  data?: Record<string, unknown>;
   tool?: {
-    name: string
-    args?: Record<string, unknown>
-    result?: unknown
-  }
+    name: string;
+    args?: Record<string, unknown>;
+    result?: unknown;
+  };
   command?: {
-    name: string
-    args?: string[]
-    options?: Record<string, unknown>
-  }
+    name: string;
+    args?: string[];
+    options?: Record<string, unknown>;
+  };
   skill?: {
-    id: string
-    name: string
-    trigger?: string
-  }
+    id: string;
+    name: string;
+    trigger?: string;
+  };
   agent?: {
-    id: string
-    name: string
-  }
+    id: string;
+    name: string;
+  };
   error?: {
-    message: string
-    stack?: string
-  }
+    message: string;
+    stack?: string;
+  };
 }
 
 /**
  * Hook handler function
  */
-export type HookHandler = (context: HookContext) => Promise<void> | void
+export type HookHandler = (context: HookContext) => Promise<void> | void;
 
 /**
  * Skill trigger from hook
  */
 export interface SkillTrigger {
-  skillId: string
-  args?: string
-  condition?: (context: HookContext) => boolean
+  skillId: string;
+  args?: string;
+  condition?: (context: HookContext) => boolean;
 }
 
 /**
  * Registered hook
  */
 export interface RegisteredHook {
-  id: string
-  type: CCJKHookType
-  matcher?: string | RegExp
-  handler?: HookHandler
-  skillTrigger?: SkillTrigger
-  priority: number
-  enabled: boolean
-  source: 'builtin' | 'skill' | 'user' | 'plugin'
+  id: string;
+  type: CCJKHookType;
+  matcher?: string | RegExp;
+  handler?: HookHandler;
+  skillTrigger?: SkillTrigger;
+  priority: number;
+  enabled: boolean;
+  source: 'builtin' | 'skill' | 'user' | 'plugin';
 }
 
 // ============================================================================
@@ -112,15 +112,15 @@ export interface RegisteredHook {
  * Central system for managing hooks and their integration with skills.
  */
 export class HookSkillBridge extends EventEmitter {
-  private hooks: Map<string, RegisteredHook> = new Map()
-  private hooksByType: Map<CCJKHookType, Set<string>> = new Map()
-  private skillRegistry: Map<string, SkillMdFile> = new Map()
-  private executionQueue: Array<{ hook: RegisteredHook, context: HookContext }> = []
-  private isProcessing = false
+  private hooks: Map<string, RegisteredHook> = new Map();
+  private hooksByType: Map<CCJKHookType, Set<string>> = new Map();
+  private skillRegistry: Map<string, SkillMdFile> = new Map();
+  private executionQueue: Array<{ hook: RegisteredHook; context: HookContext }> = [];
+  private isProcessing = false;
 
   constructor() {
-    super()
-    this.initializeHookTypes()
+    super();
+    this.initializeHookTypes();
   }
 
   /**
@@ -139,10 +139,10 @@ export class HookSkillBridge extends EventEmitter {
       'AgentStop',
       'Error',
       'Shutdown',
-    ]
+    ];
 
     for (const type of types) {
-      this.hooksByType.set(type, new Set())
+      this.hooksByType.set(type, new Set());
     }
   }
 
@@ -154,25 +154,25 @@ export class HookSkillBridge extends EventEmitter {
    * Register a hook
    */
   registerHook(hook: Omit<RegisteredHook, 'id'> & { id?: string }): string {
-    const id = hook.id || this.generateHookId()
+    const id = hook.id || this.generateHookId();
 
     const registeredHook: RegisteredHook = {
       ...hook,
       id,
       priority: hook.priority ?? 50,
       enabled: hook.enabled ?? true,
-    }
+    };
 
-    this.hooks.set(id, registeredHook)
+    this.hooks.set(id, registeredHook);
 
     // Add to type index
-    const typeSet = this.hooksByType.get(hook.type)
+    const typeSet = this.hooksByType.get(hook.type);
     if (typeSet) {
-      typeSet.add(id)
+      typeSet.add(id);
     }
 
-    this.emit('hook:registered', registeredHook)
-    return id
+    this.emit('hook:registered', registeredHook);
+    return id;
   }
 
   /**
@@ -182,10 +182,10 @@ export class HookSkillBridge extends EventEmitter {
     type: CCJKHookType,
     skillId: string,
     options: {
-      matcher?: string | RegExp
-      args?: string
-      condition?: (context: HookContext) => boolean
-      priority?: number
+      matcher?: string | RegExp;
+      args?: string;
+      condition?: (context: HookContext) => boolean;
+      priority?: number;
     } = {},
   ): string {
     return this.registerHook({
@@ -199,83 +199,83 @@ export class HookSkillBridge extends EventEmitter {
       priority: options.priority ?? 50,
       enabled: true,
       source: 'skill',
-    })
+    });
   }
 
   /**
    * Register hooks from a skill's frontmatter
    */
   registerSkillHooks(skill: SkillMdFile): string[] {
-    const hookIds: string[] = []
+    const hookIds: string[] = [];
 
     if (!skill.metadata.hooks)
-      return hookIds
+      return hookIds;
 
     for (const hook of skill.metadata.hooks) {
-      const hookType = this.mapHookType(hook.type)
+      const hookType = this.mapHookType(hook.type);
       if (!hookType)
-        continue
+        continue;
 
       const id = this.registerHook({
         type: hookType,
         matcher: hook.matcher,
         handler: hook.command
           ? async () => {
-            await this.executeCommand(hook.command!)
+            await this.executeCommand(hook.command!);
           }
           : hook.script
             ? async () => {
-              await this.executeScript(hook.script!)
+              await this.executeScript(hook.script!);
             }
             : undefined,
         priority: 50,
         enabled: true,
         source: 'skill',
-      })
+      });
 
-      hookIds.push(id)
+      hookIds.push(id);
     }
 
     // Store skill reference
-    this.skillRegistry.set(skill.metadata.name, skill)
+    this.skillRegistry.set(skill.metadata.name, skill);
 
-    return hookIds
+    return hookIds;
   }
 
   /**
    * Unregister a hook
    */
   unregisterHook(id: string): boolean {
-    const hook = this.hooks.get(id)
+    const hook = this.hooks.get(id);
     if (!hook)
-      return false
+      return false;
 
     // Remove from type index
-    const typeSet = this.hooksByType.get(hook.type)
+    const typeSet = this.hooksByType.get(hook.type);
     if (typeSet) {
-      typeSet.delete(id)
+      typeSet.delete(id);
     }
 
-    this.hooks.delete(id)
-    this.emit('hook:unregistered', id)
-    return true
+    this.hooks.delete(id);
+    this.emit('hook:unregistered', id);
+    return true;
   }
 
   /**
    * Unregister all hooks from a skill
    */
   unregisterSkillHooks(skillId: string): number {
-    let count = 0
+    let count = 0;
 
     for (const [id, hook] of this.hooks) {
       if (hook.source === 'skill' && hook.skillTrigger?.skillId === skillId) {
-        this.unregisterHook(id)
-        count++
+        this.unregisterHook(id);
+        count++;
       }
     }
 
-    this.skillRegistry.delete(skillId)
-    return count
+    this.skillRegistry.delete(skillId);
+    return count;
   }
 
   // ==========================================================================
@@ -291,22 +291,22 @@ export class HookSkillBridge extends EventEmitter {
       timestamp: Date.now(),
       source: 'system',
       ...context,
-    }
+    };
 
-    const hookIds = this.hooksByType.get(type)
+    const hookIds = this.hooksByType.get(type);
     if (!hookIds || hookIds.size === 0)
-      return
+      return;
 
     // Get matching hooks sorted by priority
-    const matchingHooks = this.getMatchingHooks(type, fullContext)
+    const matchingHooks = this.getMatchingHooks(type, fullContext);
 
     // Execute hooks
     for (const hook of matchingHooks) {
       try {
-        await this.executeHook(hook, fullContext)
+        await this.executeHook(hook, fullContext);
       }
       catch (error) {
-        this.emit('hook:error', { hook, error, context: fullContext })
+        this.emit('hook:error', { hook, error, context: fullContext });
 
         // Trigger error hook (but prevent infinite loop)
         if (type !== 'Error') {
@@ -316,7 +316,7 @@ export class HookSkillBridge extends EventEmitter {
               message: error instanceof Error ? error.message : String(error),
               stack: error instanceof Error ? error.stack : undefined,
             },
-          })
+          });
         }
       }
     }
@@ -326,82 +326,82 @@ export class HookSkillBridge extends EventEmitter {
    * Get hooks matching a context
    */
   private getMatchingHooks(type: CCJKHookType, context: HookContext): RegisteredHook[] {
-    const hookIds = this.hooksByType.get(type)
+    const hookIds = this.hooksByType.get(type);
     if (!hookIds)
-      return []
+      return [];
 
-    const hooks: RegisteredHook[] = []
+    const hooks: RegisteredHook[] = [];
 
     for (const id of hookIds) {
-      const hook = this.hooks.get(id)
+      const hook = this.hooks.get(id);
       if (!hook || !hook.enabled)
-        continue
+        continue;
 
       // Check matcher
       if (hook.matcher) {
-        const matchTarget = this.getMatchTarget(context)
+        const matchTarget = this.getMatchTarget(context);
         if (!this.matchesPattern(matchTarget, hook.matcher)) {
-          continue
+          continue;
         }
       }
 
       // Check skill trigger condition
       if (hook.skillTrigger?.condition) {
         if (!hook.skillTrigger.condition(context)) {
-          continue
+          continue;
         }
       }
 
-      hooks.push(hook)
+      hooks.push(hook);
     }
 
     // Sort by priority (higher first)
-    return hooks.sort((a, b) => b.priority - a.priority)
+    return hooks.sort((a, b) => b.priority - a.priority);
   }
 
   /**
    * Execute a single hook
    */
   private async executeHook(hook: RegisteredHook, context: HookContext): Promise<void> {
-    this.emit('hook:executing', { hook, context })
+    this.emit('hook:executing', { hook, context });
 
     // Execute handler if present
     if (hook.handler) {
-      await hook.handler(context)
+      await hook.handler(context);
     }
 
     // Trigger skill if configured
     if (hook.skillTrigger) {
-      await this.triggerSkill(hook.skillTrigger, context)
+      await this.triggerSkill(hook.skillTrigger, context);
     }
 
-    this.emit('hook:executed', { hook, context })
+    this.emit('hook:executed', { hook, context });
   }
 
   /**
    * Trigger a skill from a hook
    */
   private async triggerSkill(trigger: SkillTrigger, context: HookContext): Promise<void> {
-    const skill = this.skillRegistry.get(trigger.skillId)
+    const skill = this.skillRegistry.get(trigger.skillId);
 
     if (!skill) {
       // Try to load skill dynamically
       try {
-        const { getSkillRegistry } = await import('../brain/skill-registry')
-        const registry = getSkillRegistry()
-        const entry = registry.getById(trigger.skillId)
+        const { getSkillRegistry } = await import('../brain/skill-registry');
+        const registry = getSkillRegistry();
+        const entry = registry.getById(trigger.skillId);
 
         if (entry) {
           this.skillRegistry.set(trigger.skillId, {
             metadata: entry.metadata,
             content: entry.content,
             filePath: entry.filePath,
-          })
+          });
         }
       }
       catch {
-        this.emit('skill:not_found', trigger.skillId)
-        return
+        this.emit('skill:not_found', trigger.skillId);
+        return;
       }
     }
 
@@ -410,7 +410,7 @@ export class HookSkillBridge extends EventEmitter {
       skillId: trigger.skillId,
       args: trigger.args,
       context,
-    })
+    });
 
     // The actual skill execution is handled by the skill system
     // This bridge just triggers the activation
@@ -421,7 +421,7 @@ export class HookSkillBridge extends EventEmitter {
         name: trigger.skillId,
         trigger: context.type,
       },
-    })
+    });
   }
 
   // ==========================================================================
@@ -440,9 +440,9 @@ export class HookSkillBridge extends EventEmitter {
       PermissionRequest: 'PreToolUse',
       SkillActivate: 'SkillActivate',
       SkillComplete: 'SkillComplete',
-    }
+    };
 
-    return mapping[type] || null
+    return mapping[type] || null;
   }
 
   /**
@@ -450,15 +450,15 @@ export class HookSkillBridge extends EventEmitter {
    */
   private getMatchTarget(context: HookContext): string {
     if (context.tool) {
-      return `${context.tool.name}(${JSON.stringify(context.tool.args || {})})`
+      return `${context.tool.name}(${JSON.stringify(context.tool.args || {})})`;
     }
     if (context.command) {
-      return `${context.command.name} ${context.command.args?.join(' ') || ''}`
+      return `${context.command.name} ${context.command.args?.join(' ') || ''}`;
     }
     if (context.skill) {
-      return context.skill.id
+      return context.skill.id;
     }
-    return ''
+    return '';
   }
 
   /**
@@ -466,23 +466,23 @@ export class HookSkillBridge extends EventEmitter {
    */
   private matchesPattern(target: string, pattern: string | RegExp): boolean {
     if (pattern instanceof RegExp) {
-      return pattern.test(target)
+      return pattern.test(target);
     }
 
     // Support wildcard patterns like "Bash(npm *)" or "mcp__*"
     const regexPattern = pattern
       .replace(/[.+^${}()|[\]\\]/g, '\\$&') // Escape special chars except *
-      .replace(/\*/g, '.*') // Convert * to .*
+      .replace(/\*/g, '.*'); // Convert * to .*
 
-    return new RegExp(`^${regexPattern}$`).test(target)
+    return new RegExp(`^${regexPattern}$`).test(target);
   }
 
   /**
    * Execute a shell command
    */
   private async executeCommand(command: string): Promise<void> {
-    const { x } = await import('tinyexec')
-    await x('sh', ['-c', command])
+    const { x } = await import('tinyexec');
+    await x('sh', ['-c', command]);
   }
 
   /**
@@ -490,14 +490,14 @@ export class HookSkillBridge extends EventEmitter {
    */
   private async executeScript(script: string): Promise<void> {
     // For now, execute as shell script
-    await this.executeCommand(script)
+    await this.executeCommand(script);
   }
 
   /**
    * Generate unique hook ID
    */
   private generateHookId(): string {
-    return `hook_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
+    return `hook_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
   }
 
   // ==========================================================================
@@ -508,66 +508,66 @@ export class HookSkillBridge extends EventEmitter {
    * Get all registered hooks
    */
   getHooks(): RegisteredHook[] {
-    return Array.from(this.hooks.values())
+    return Array.from(this.hooks.values());
   }
 
   /**
    * Get hooks by type
    */
   getHooksByType(type: CCJKHookType): RegisteredHook[] {
-    const hookIds = this.hooksByType.get(type)
+    const hookIds = this.hooksByType.get(type);
     if (!hookIds)
-      return []
+      return [];
 
-    const hooks: RegisteredHook[] = []
+    const hooks: RegisteredHook[] = [];
     for (const id of hookIds) {
-      const hook = this.hooks.get(id)
+      const hook = this.hooks.get(id);
       if (hook)
-        hooks.push(hook)
+        hooks.push(hook);
     }
 
-    return hooks
+    return hooks;
   }
 
   /**
    * Get hook by ID
    */
   getHook(id: string): RegisteredHook | undefined {
-    return this.hooks.get(id)
+    return this.hooks.get(id);
   }
 
   /**
    * Enable/disable a hook
    */
   setHookEnabled(id: string, enabled: boolean): boolean {
-    const hook = this.hooks.get(id)
+    const hook = this.hooks.get(id);
     if (!hook)
-      return false
+      return false;
 
-    hook.enabled = enabled
-    this.emit('hook:toggled', { id, enabled })
-    return true
+    hook.enabled = enabled;
+    this.emit('hook:toggled', { id, enabled });
+    return true;
   }
 
   /**
    * Get statistics
    */
   getStats(): {
-    totalHooks: number
-    enabledHooks: number
-    hooksByType: Record<string, number>
-    skillsWithHooks: number
+    totalHooks: number;
+    enabledHooks: number;
+    hooksByType: Record<string, number>;
+    skillsWithHooks: number;
   } {
-    const hooksByType: Record<string, number> = {}
+    const hooksByType: Record<string, number> = {};
 
     for (const [type, ids] of this.hooksByType) {
-      hooksByType[type] = ids.size
+      hooksByType[type] = ids.size;
     }
 
-    let enabledCount = 0
+    let enabledCount = 0;
     for (const hook of this.hooks.values()) {
       if (hook.enabled)
-        enabledCount++
+        enabledCount++;
     }
 
     return {
@@ -575,19 +575,19 @@ export class HookSkillBridge extends EventEmitter {
       enabledHooks: enabledCount,
       hooksByType,
       skillsWithHooks: this.skillRegistry.size,
-    }
+    };
   }
 
   /**
    * Clear all hooks
    */
   clear(): void {
-    this.hooks.clear()
+    this.hooks.clear();
     for (const set of this.hooksByType.values()) {
-      set.clear()
+      set.clear();
     }
-    this.skillRegistry.clear()
-    this.emit('hooks:cleared')
+    this.skillRegistry.clear();
+    this.emit('hooks:cleared');
   }
 }
 
@@ -595,24 +595,24 @@ export class HookSkillBridge extends EventEmitter {
 // Singleton Instance
 // ============================================================================
 
-let bridgeInstance: HookSkillBridge | null = null
+let bridgeInstance: HookSkillBridge | null = null;
 
 /**
  * Get the singleton hook-skill bridge
  */
 export function getHookSkillBridge(): HookSkillBridge {
   if (!bridgeInstance) {
-    bridgeInstance = new HookSkillBridge()
+    bridgeInstance = new HookSkillBridge();
   }
-  return bridgeInstance
+  return bridgeInstance;
 }
 
 /**
  * Initialize the hook-skill bridge
  */
 export function initHookSkillBridge(): HookSkillBridge {
-  bridgeInstance = new HookSkillBridge()
-  return bridgeInstance
+  bridgeInstance = new HookSkillBridge();
+  return bridgeInstance;
 }
 
 // ============================================================================
@@ -625,9 +625,9 @@ export function initHookSkillBridge(): HookSkillBridge {
 export function registerHook(
   type: CCJKHookType,
   handler: HookHandler,
-  options: { matcher?: string | RegExp, priority?: number } = {},
+  options: { matcher?: string | RegExp; priority?: number } = {},
 ): string {
-  const bridge = getHookSkillBridge()
+  const bridge = getHookSkillBridge();
   return bridge.registerHook({
     type,
     handler,
@@ -635,7 +635,7 @@ export function registerHook(
     priority: options.priority ?? 50,
     enabled: true,
     source: 'user',
-  })
+  });
 }
 
 /**
@@ -644,10 +644,10 @@ export function registerHook(
 export function onHookTriggerSkill(
   type: CCJKHookType,
   skillId: string,
-  options: { matcher?: string | RegExp, args?: string } = {},
+  options: { matcher?: string | RegExp; args?: string } = {},
 ): string {
-  const bridge = getHookSkillBridge()
-  return bridge.registerSkillTriggerHook(type, skillId, options)
+  const bridge = getHookSkillBridge();
+  return bridge.registerSkillTriggerHook(type, skillId, options);
 }
 
 /**
@@ -657,14 +657,14 @@ export async function triggerHooks(
   type: CCJKHookType,
   context?: Partial<HookContext>,
 ): Promise<void> {
-  const bridge = getHookSkillBridge()
-  await bridge.trigger(type, context)
+  const bridge = getHookSkillBridge();
+  await bridge.trigger(type, context);
 }
 
 /**
  * Unregister a hook
  */
 export function unregisterHook(id: string): boolean {
-  const bridge = getHookSkillBridge()
-  return bridge.unregisterHook(id)
+  const bridge = getHookSkillBridge();
+  return bridge.unregisterHook(id);
 }

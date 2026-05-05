@@ -16,7 +16,7 @@ export {
   MOCK_CATEGORIES,
   MOCK_MCP_PACKAGES,
   resetDefaultMarketplaceClient,
-} from './marketplace-client'
+} from './marketplace-client';
 
 // Export all types
 export type {
@@ -37,4 +37,4 @@ export type {
   UpdateInfo,
   VerificationStatus,
   VersionInfo,
-} from './types'
+} from './types';

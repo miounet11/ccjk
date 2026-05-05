@@ -7,17 +7,17 @@
  */
 export interface SandboxConfig {
   /** Enable sandbox mode */
-  enabled: boolean
+  enabled: boolean;
   /** Isolate requests to prevent cross-contamination */
-  isolateRequests: boolean
+  isolateRequests: boolean;
   /** Mask sensitive data in logs and responses */
-  maskSensitiveData: boolean
+  maskSensitiveData: boolean;
   /** Enable audit logging */
-  auditLog: boolean
+  auditLog: boolean;
   /** Maximum requests per minute (rate limiting) */
-  maxRequestsPerMinute?: number
+  maxRequestsPerMinute?: number;
   /** Audit log directory */
-  auditLogDir?: string
+  auditLogDir?: string;
 }
 
 /**
@@ -25,13 +25,13 @@ export interface SandboxConfig {
  */
 export interface SandboxRequest {
   /** Original request data */
-  original: any
+  original: any;
   /** Request ID for tracking */
-  requestId: string
+  requestId: string;
   /** Timestamp */
-  timestamp: number
+  timestamp: number;
   /** Request metadata */
-  metadata?: Record<string, any>
+  metadata?: Record<string, any>;
 }
 
 /**
@@ -39,13 +39,13 @@ export interface SandboxRequest {
  */
 export interface SandboxResponse {
   /** Original response data */
-  original: any
+  original: any;
   /** Request ID for correlation */
-  requestId: string
+  requestId: string;
   /** Timestamp */
-  timestamp: number
+  timestamp: number;
   /** Response metadata */
-  metadata?: Record<string, any>
+  metadata?: Record<string, any>;
 }
 
 /**
@@ -53,21 +53,21 @@ export interface SandboxResponse {
  */
 export interface AuditLogEntry {
   /** Log entry ID */
-  id: string
+  id: string;
   /** Log type */
-  type: 'request' | 'response' | 'error'
+  type: 'request' | 'response' | 'error';
   /** Timestamp */
-  timestamp: number
+  timestamp: number;
   /** Request/Response data */
-  data: any
+  data: any;
   /** Additional metadata */
-  metadata?: Record<string, any>
+  metadata?: Record<string, any>;
   /** Error information (if type is 'error') */
   error?: {
-    message: string
-    stack?: string
-    code?: string
-  }
+    message: string;
+    stack?: string;
+    code?: string;
+  };
 }
 
 /**
@@ -75,15 +75,15 @@ export interface AuditLogEntry {
  */
 export interface AuditLogFilter {
   /** Filter by type */
-  type?: 'request' | 'response' | 'error'
+  type?: 'request' | 'response' | 'error';
   /** Start timestamp */
-  startTime?: number
+  startTime?: number;
   /** End timestamp */
-  endTime?: number
+  endTime?: number;
   /** Filter by request ID */
-  requestId?: string
+  requestId?: string;
   /** Maximum number of results */
-  limit?: number
+  limit?: number;
 }
 
 /**
@@ -91,13 +91,13 @@ export interface AuditLogFilter {
  */
 export interface RateLimitQuota {
   /** Limit key */
-  key: string
+  key: string;
   /** Maximum requests allowed */
-  limit: number
+  limit: number;
   /** Remaining quota */
-  remaining: number
+  remaining: number;
   /** Reset timestamp */
-  resetAt: number
+  resetAt: number;
 }
 
 /**
@@ -111,20 +111,20 @@ export type SensitiveFieldPattern
     | 'credential'
     | 'auth'
     | 'bearer'
-    | 'authorization'
+    | 'authorization';
 
 /**
  * Data masking options
  */
 export interface MaskingOptions {
   /** Show first N characters */
-  showFirst?: number
+  showFirst?: number;
   /** Show last N characters */
-  showLast?: number
+  showLast?: number;
   /** Mask character */
-  maskChar?: string
+  maskChar?: string;
   /** Custom patterns to mask */
-  customPatterns?: RegExp[]
+  customPatterns?: RegExp[];
 }
 
 /**
@@ -132,18 +132,18 @@ export interface MaskingOptions {
  */
 export interface SandboxStatus {
   /** Is sandbox enabled */
-  enabled: boolean
+  enabled: boolean;
   /** Current configuration */
-  config: SandboxConfig
+  config: SandboxConfig;
   /** Statistics */
   stats: {
     /** Total requests processed */
-    totalRequests: number
+    totalRequests: number;
     /** Total responses processed */
-    totalResponses: number
+    totalResponses: number;
     /** Total errors logged */
-    totalErrors: number
+    totalErrors: number;
     /** Rate limit hits */
-    rateLimitHits: number
-  }
+    rateLimitHits: number;
+  };
 }

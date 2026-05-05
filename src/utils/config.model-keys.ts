@@ -6,17 +6,17 @@ export const MODEL_ENV_KEYS = [
   'ANTHROPIC_DEFAULT_OPUS_MODEL',
   // Deprecated but still cleaned to avoid stale values
   'ANTHROPIC_SMALL_FAST_MODEL',
-] as const
+] as const;
 
-export type ModelEnvKey = typeof MODEL_ENV_KEYS[number]
+export type ModelEnvKey = typeof MODEL_ENV_KEYS[number];
 
 export function clearModelEnv(env: Record<string, string | undefined>, mode: 'reset' | 'override' = 'reset'): void {
   for (const key of MODEL_ENV_KEYS) {
     if (mode === 'reset' && key === 'ANTHROPIC_MODEL') {
-      env[key] = '' // Set to empty string to allow Claude Code adaptive selection
+      env[key] = ''; // Set to empty string to allow Claude Code adaptive selection
     }
     else {
-      delete env[key]
+      delete env[key];
     }
   }
 }

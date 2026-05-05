@@ -1,7 +1,7 @@
-import type { ClaudeSettings, StatusLineConfig } from '../types/config'
+import type { ClaudeSettings, StatusLineConfig } from '../types/config';
 
 function hasOwn(object: object, key: string): boolean {
-  return Object.prototype.hasOwnProperty.call(object, key)
+  return Object.prototype.hasOwnProperty.call(object, key);
 }
 
 export function isValidStatusLineConfig(value: unknown): value is StatusLineConfig {
@@ -11,7 +11,7 @@ export function isValidStatusLineConfig(value: unknown): value is StatusLineConf
     && !Array.isArray(value)
     && (value as StatusLineConfig).type === 'command'
     && typeof (value as StatusLineConfig).command === 'string',
-  )
+  );
 }
 
 export function hasInvalidStatusLineConfig(settings: unknown): boolean {
@@ -21,7 +21,7 @@ export function hasInvalidStatusLineConfig(settings: unknown): boolean {
     && !Array.isArray(settings)
     && hasOwn(settings, 'statusLine')
     && !isValidStatusLineConfig((settings as ClaudeSettings).statusLine),
-  )
+  );
 }
 
 /**
@@ -32,15 +32,15 @@ export function hasInvalidStatusLineConfig(settings: unknown): boolean {
  */
 export function normalizeClaudeFamilySettings<T extends Record<string, any>>(settings: T): T {
   if (!settings || typeof settings !== 'object' || Array.isArray(settings)) {
-    return settings
+    return settings;
   }
 
-  const mutableSettings = settings as Record<string, unknown>
+  const mutableSettings = settings as Record<string, unknown>;
   if (!hasOwn(mutableSettings, 'statusLine')) {
-    return settings
+    return settings;
   }
 
-  const statusLine = mutableSettings.statusLine
+  const statusLine = mutableSettings.statusLine;
   if (
     statusLine
     && typeof statusLine === 'object'
@@ -50,10 +50,10 @@ export function normalizeClaudeFamilySettings<T extends Record<string, any>>(set
     mutableSettings.statusLine = {
       ...statusLine,
       type: 'command',
-    }
-    return settings
+    };
+    return settings;
   }
 
-  delete mutableSettings.statusLine
-  return settings
+  delete mutableSettings.statusLine;
+  return settings;
 }

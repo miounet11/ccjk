@@ -10,45 +10,45 @@
  * Users don't need to do anything - the system handles everything.
  */
 
-import type { AskUserAnswer, AskUserQuestion, AskUserQuestionHandler } from './ask-user-question'
-import type { ExecutionTelemetry, ExecutionTelemetrySummary, TelemetryEvent } from './execution-telemetry'
-import type { AnalyzedIntent, IntentType } from './intent-router'
-import { EventEmitter } from 'node:events'
-import { getGlobalConvoyManager } from '../convoy/convoy-manager'
-import { emitCommandHookEvent } from '../hooks/command-hook-bridge'
-import { getGlobalMayorAgent } from '../mayor/mayor-agent'
-import { getGlobalMailboxManager } from '../messaging/persistent-mailbox'
-import { getMetricsCollector } from '../metrics'
-import { getGlobalStateManager } from '../persistence/git-backed-state'
-import { promptUserQuestion } from './ask-user-question'
-import { getGlobalExecutionTelemetry } from './execution-telemetry'
-import { getGlobalIntentRouter } from './intent-router'
+import type { AskUserAnswer, AskUserQuestion, AskUserQuestionHandler } from './ask-user-question';
+import type { ExecutionTelemetry, ExecutionTelemetrySummary, TelemetryEvent } from './execution-telemetry';
+import type { AnalyzedIntent, IntentType } from './intent-router';
+import { EventEmitter } from 'node:events';
+import { getGlobalConvoyManager } from '../convoy/convoy-manager';
+import { emitCommandHookEvent } from '../hooks/command-hook-bridge';
+import { getGlobalMayorAgent } from '../mayor/mayor-agent';
+import { getGlobalMailboxManager } from '../messaging/persistent-mailbox';
+import { getMetricsCollector } from '../metrics';
+import { getGlobalStateManager } from '../persistence/git-backed-state';
+import { promptUserQuestion } from './ask-user-question';
+import { getGlobalExecutionTelemetry } from './execution-telemetry';
+import { getGlobalIntentRouter } from './intent-router';
 
-type ExecutionRoute = 'mayor' | 'plan' | 'feature' | 'direct'
+type ExecutionRoute = 'mayor' | 'plan' | 'feature' | 'direct';
 
 interface RouteResult {
-  route: ExecutionRoute
-  intent: AnalyzedIntent
-  shouldExecute: boolean
-  message: string
+  route: ExecutionRoute;
+  intent: AnalyzedIntent;
+  shouldExecute: boolean;
+  message: string;
 }
 
 interface RouteResolutionResult {
-  route: ExecutionRoute
-  intent: AnalyzedIntent
-  elicitationAsked: boolean
-  userSelectedRoute: boolean
+  route: ExecutionRoute;
+  intent: AnalyzedIntent;
+  elicitationAsked: boolean;
+  userSelectedRoute: boolean;
 }
 
 interface IntentRouterLike {
-  route(input: string): Promise<RouteResult>
+  route(input: string): Promise<RouteResult>;
 }
 
 interface McpToolProfile {
-  tool: string
-  keywords: string[]
-  basePriority: number
-  intentBoost?: Partial<Record<IntentType, number>>
+  tool: string;
+  keywords: string[];
+  basePriority: number;
+  intentBoost?: Partial<Record<IntentType, number>>;
 }
 
 const MCP_TOOL_PROFILES: McpToolProfile[] = [
@@ -108,98 +108,98 @@ const MCP_TOOL_PROFILES: McpToolProfile[] = [
       bug_fix: 1,
     },
   },
-]
+];
 
 /**
  * Execution result
  */
 export interface ExecutionResult {
-  success: boolean
-  route: ExecutionRoute
-  intent: AnalyzedIntent
-  convoyId?: string
-  agentsCreated: string[]
-  skillsCreated: string[]
-  mcpToolsUsed: string[]
-  message: string
-  insights?: ExecutionInsights
-  details?: any
+  success: boolean;
+  route: ExecutionRoute;
+  intent: AnalyzedIntent;
+  convoyId?: string;
+  agentsCreated: string[];
+  skillsCreated: string[];
+  mcpToolsUsed: string[];
+  message: string;
+  insights?: ExecutionInsights;
+  details?: any;
 }
 
 export interface ExecutionInsights {
-  decisionProfile: 'automatic' | 'user_guided'
+  decisionProfile: 'automatic' | 'user_guided';
   routeDecision: {
-    initial: ExecutionRoute
-    final: ExecutionRoute
-    elicitationAsked: boolean
-    userSelectedRoute: boolean
-  }
+    initial: ExecutionRoute;
+    final: ExecutionRoute;
+    elicitationAsked: boolean;
+    userSelectedRoute: boolean;
+  };
   mcpSelection: {
-    selected: string[]
-    candidates: string[]
-    truncated: boolean
-    reason: string
-  }
+    selected: string[];
+    candidates: string[];
+    truncated: boolean;
+    reason: string;
+  };
   telemetry: {
-    totalDurationMs: number
-    eventCount: number
-  }
+    totalDurationMs: number;
+    eventCount: number;
+  };
 }
 
 /**
  * Auto executor configuration
  */
 export interface AutoExecutorConfig {
-  autoCreateSkills: boolean // Default: true
-  autoCreateAgents: boolean // Default: true
-  autoSelectMcp: boolean // Default: true
-  enableElicitation: boolean // Default: true
-  maxMcpTools: number // Default: 3
-  askUserQuestion: AskUserQuestionHandler // Default: promptUserQuestion
-  intentRouter: IntentRouterLike // Default: global intent router
-  telemetry: ExecutionTelemetry // Default: global execution telemetry
-  verbose: boolean // Default: false
+  autoCreateSkills: boolean; // Default: true
+  autoCreateAgents: boolean; // Default: true
+  autoSelectMcp: boolean; // Default: true
+  enableElicitation: boolean; // Default: true
+  maxMcpTools: number; // Default: 3
+  askUserQuestion: AskUserQuestionHandler; // Default: promptUserQuestion
+  intentRouter: IntentRouterLike; // Default: global intent router
+  telemetry: ExecutionTelemetry; // Default: global execution telemetry
+  verbose: boolean; // Default: false
 }
 
 /**
  * Skill requirement detection
  */
 interface SkillRequirement {
-  needed: boolean
-  skillName: string
-  skillType: 'code' | 'analysis' | 'integration' | 'deployment'
-  reason: string
+  needed: boolean;
+  skillName: string;
+  skillType: 'code' | 'analysis' | 'integration' | 'deployment';
+  reason: string;
 }
 
 /**
  * Agent requirement detection
  */
 interface AgentRequirement {
-  needed: boolean
-  agentType: 'architect' | 'specialist' | 'engineer' | 'devops'
-  domain: string
-  reason: string
+  needed: boolean;
+  agentType: 'architect' | 'specialist' | 'engineer' | 'devops';
+  domain: string;
+  reason: string;
 }
 
 /**
  * MCP tool requirement detection
  */
 interface McpRequirement {
-  needed: boolean
-  tools: string[]
-  reason: string
-  candidates: string[]
+  needed: boolean;
+  tools: string[];
+  reason: string;
+  candidates: string[];
 }
 
 /**
  * Auto Executor - Automatic execution when invoked by brain routing.
  */
 export class AutoExecutor extends EventEmitter {
-  private config: Required<AutoExecutorConfig>
-  private metricsCollector = getMetricsCollector()
+  private config: Required<AutoExecutorConfig>;
+  private metricsCollector = getMetricsCollector();
 
   constructor(config: Partial<AutoExecutorConfig> = {}) {
-    super()
+    super();
 
     this.config = {
       autoCreateSkills: config.autoCreateSkills !== undefined ? config.autoCreateSkills : true,
@@ -211,22 +211,22 @@ export class AutoExecutor extends EventEmitter {
       intentRouter: config.intentRouter || getGlobalIntentRouter(),
       telemetry: config.telemetry || getGlobalExecutionTelemetry(),
       verbose: config.verbose !== undefined ? config.verbose : false,
-    }
+    };
   }
 
   /**
    * Execute a user request after a router has selected this executor.
    */
   async execute(userInput: string): Promise<ExecutionResult> {
-    const executionId = `exec-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
-    const startedAt = Date.now()
+    const executionId = `exec-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const startedAt = Date.now();
 
-    this.emit('execution:started', { input: userInput })
+    this.emit('execution:started', { input: userInput });
     this.emitCommandHook('command-start', {
       executionId,
       inputLength: userInput.length,
       source: 'auto-executor',
-    })
+    });
     this.config.telemetry.record({
       executionId,
       phase: 'execution',
@@ -235,12 +235,12 @@ export class AutoExecutor extends EventEmitter {
       metadata: {
         inputLength: userInput.length,
       },
-    })
+    });
 
     try {
       // Step 1: Analyze intent
-      const routeStart = Date.now()
-      const routeResult = await this.config.intentRouter.route(userInput)
+      const routeStart = Date.now();
+      const routeResult = await this.config.intentRouter.route(userInput);
       this.config.telemetry.record({
         executionId,
         phase: 'intent',
@@ -253,29 +253,29 @@ export class AutoExecutor extends EventEmitter {
           intentType: routeResult.intent.type,
           complexity: routeResult.intent.complexity,
         },
-      })
+      });
       this.emitCommandHook('command-telemetry', {
         executionId,
         phase: 'intent',
         action: 'route',
         route: routeResult.route,
         confidence: routeResult.intent.confidence,
-      })
+      });
 
       const elicitationResult = await this.resolveRouteWithElicitation(
         routeResult.route,
         routeResult.intent,
         executionId,
-      )
-      const route = elicitationResult.route
-      const intent = elicitationResult.intent
+      );
+      const route = elicitationResult.route;
+      const intent = elicitationResult.intent;
 
-      this.log(`Intent analyzed: ${intent.type} (${intent.complexity})`)
-      this.log(`Suggested route: ${route}`)
+      this.log(`Intent analyzed: ${intent.type} (${intent.complexity})`);
+      this.log(`Suggested route: ${route}`);
 
       // Step 2: Detect requirements
-      const skillDetectStart = Date.now()
-      const skillReq = await this.detectSkillRequirement(userInput, intent)
+      const skillDetectStart = Date.now();
+      const skillReq = await this.detectSkillRequirement(userInput, intent);
       this.config.telemetry.record({
         executionId,
         phase: 'skill',
@@ -286,10 +286,10 @@ export class AutoExecutor extends EventEmitter {
           needed: skillReq.needed,
           reason: skillReq.reason,
         },
-      })
+      });
 
-      const agentDetectStart = Date.now()
-      const agentReq = await this.detectAgentRequirement(userInput, intent)
+      const agentDetectStart = Date.now();
+      const agentReq = await this.detectAgentRequirement(userInput, intent);
       this.config.telemetry.record({
         executionId,
         phase: 'agent',
@@ -300,10 +300,10 @@ export class AutoExecutor extends EventEmitter {
           needed: agentReq.needed,
           reason: agentReq.reason,
         },
-      })
+      });
 
-      const mcpDetectStart = Date.now()
-      const mcpReq = await this.detectMcpRequirement(userInput, intent)
+      const mcpDetectStart = Date.now();
+      const mcpReq = await this.detectMcpRequirement(userInput, intent);
       this.config.telemetry.record({
         executionId,
         phase: 'mcp',
@@ -316,18 +316,18 @@ export class AutoExecutor extends EventEmitter {
           candidates: mcpReq.candidates,
           reason: mcpReq.reason,
         },
-      })
+      });
 
-      const agentsCreated: string[] = []
-      const skillsCreated: string[] = []
-      const mcpToolsUsed: string[] = []
+      const agentsCreated: string[] = [];
+      const skillsCreated: string[] = [];
+      const mcpToolsUsed: string[] = [];
 
       // Step 3: Auto-create skills if needed
       if (this.config.autoCreateSkills && skillReq.needed) {
-        this.log(`Auto-creating skill: ${skillReq.skillName}`)
-        const skillCreateStart = Date.now()
-        const skillId = await this.autoCreateSkill(skillReq)
-        skillsCreated.push(skillId)
+        this.log(`Auto-creating skill: ${skillReq.skillName}`);
+        const skillCreateStart = Date.now();
+        const skillId = await this.autoCreateSkill(skillReq);
+        skillsCreated.push(skillId);
         this.config.telemetry.record({
           executionId,
           phase: 'skill',
@@ -338,16 +338,16 @@ export class AutoExecutor extends EventEmitter {
             skillId,
             skillName: skillReq.skillName,
           },
-        })
-        this.emit('skill:created', { skillId, skillReq })
+        });
+        this.emit('skill:created', { skillId, skillReq });
       }
 
       // Step 4: Auto-create agents if needed
       if (this.config.autoCreateAgents && agentReq.needed) {
-        this.log(`Auto-creating agent: ${agentReq.domain}`)
-        const agentCreateStart = Date.now()
-        const agentId = await this.autoCreateAgent(agentReq)
-        agentsCreated.push(agentId)
+        this.log(`Auto-creating agent: ${agentReq.domain}`);
+        const agentCreateStart = Date.now();
+        const agentId = await this.autoCreateAgent(agentReq);
+        agentsCreated.push(agentId);
         this.config.telemetry.record({
           executionId,
           phase: 'agent',
@@ -359,14 +359,14 @@ export class AutoExecutor extends EventEmitter {
             agentType: agentReq.agentType,
             domain: agentReq.domain,
           },
-        })
-        this.emit('agent:created', { agentId, agentReq })
+        });
+        this.emit('agent:created', { agentId, agentReq });
       }
 
       // Step 5: Auto-select MCP tools if needed
       if (this.config.autoSelectMcp && mcpReq.needed) {
-        this.log(`Auto-selecting MCP tools: ${mcpReq.tools.join(', ')}`)
-        mcpToolsUsed.push(...mcpReq.tools)
+        this.log(`Auto-selecting MCP tools: ${mcpReq.tools.join(', ')}`);
+        mcpToolsUsed.push(...mcpReq.tools);
         this.config.telemetry.record({
           executionId,
           phase: 'mcp',
@@ -376,32 +376,32 @@ export class AutoExecutor extends EventEmitter {
             tools: mcpReq.tools,
             candidates: mcpReq.candidates,
           },
-        })
-        this.emit('mcp:selected', { tools: mcpReq.tools, mcpReq })
+        });
+        this.emit('mcp:selected', { tools: mcpReq.tools, mcpReq });
       }
 
       // Step 6: Execute based on route
-      let result: ExecutionResult
-      const routeExecutionStart = Date.now()
+      let result: ExecutionResult;
+      const routeExecutionStart = Date.now();
 
       switch (route) {
         case 'mayor':
-          result = await this.executeMayor(userInput, intent, agentsCreated, skillsCreated, mcpToolsUsed)
-          break
+          result = await this.executeMayor(userInput, intent, agentsCreated, skillsCreated, mcpToolsUsed);
+          break;
         case 'plan':
-          result = await this.executePlan(userInput, intent, agentsCreated, skillsCreated, mcpToolsUsed)
-          break
+          result = await this.executePlan(userInput, intent, agentsCreated, skillsCreated, mcpToolsUsed);
+          break;
         case 'feature':
-          result = await this.executeFeature(userInput, intent, agentsCreated, skillsCreated, mcpToolsUsed)
-          break
+          result = await this.executeFeature(userInput, intent, agentsCreated, skillsCreated, mcpToolsUsed);
+          break;
         case 'direct':
-          result = await this.executeDirect(userInput, intent, agentsCreated, skillsCreated, mcpToolsUsed)
-          break
+          result = await this.executeDirect(userInput, intent, agentsCreated, skillsCreated, mcpToolsUsed);
+          break;
         default:
-          throw new Error(`Unknown route: ${route}`)
+          throw new Error(`Unknown route: ${route}`);
       }
 
-      const routeDuration = Date.now() - routeExecutionStart
+      const routeDuration = Date.now() - routeExecutionStart;
       this.config.telemetry.record({
         executionId,
         phase: 'route',
@@ -412,17 +412,17 @@ export class AutoExecutor extends EventEmitter {
           intentType: intent.type,
           complexity: intent.complexity,
         },
-      })
+      });
       this.emitCommandHook('command-telemetry', {
         executionId,
         phase: 'route',
         action: route,
         durationMs: routeDuration,
-      })
+      });
 
-      const totalDuration = Date.now() - startedAt
-      this.metricsCollector.recordResponseTime('auto-executor', totalDuration)
-      this.metricsCollector.recordTaskCompletion('auto-executor', true, totalDuration)
+      const totalDuration = Date.now() - startedAt;
+      this.metricsCollector.recordResponseTime('auto-executor', totalDuration);
+      this.metricsCollector.recordTaskCompletion('auto-executor', true, totalDuration);
 
       this.config.telemetry.record({
         executionId,
@@ -436,14 +436,14 @@ export class AutoExecutor extends EventEmitter {
           skillsCreated: skillsCreated.length,
           mcpToolsUsed: mcpToolsUsed.length,
         },
-      })
+      });
       this.emitCommandHook('command-complete', {
         executionId,
         success: true,
         route,
         durationMs: totalDuration,
         mcpToolsUsed: mcpToolsUsed.length,
-      })
+      });
 
       result.insights = this.buildExecutionInsights({
         initialRoute: routeResult.route,
@@ -453,18 +453,18 @@ export class AutoExecutor extends EventEmitter {
         mcpReq,
         totalDurationMs: totalDuration,
         executionId,
-      })
+      });
 
-      this.emit('execution:completed', result)
-      return result
+      this.emit('execution:completed', result);
+      return result;
     }
     catch (error) {
-      const totalDuration = Date.now() - startedAt
-      const errorMessage = this.getErrorMessage(error)
+      const totalDuration = Date.now() - startedAt;
+      const errorMessage = this.getErrorMessage(error);
 
-      this.metricsCollector.recordResponseTime('auto-executor', totalDuration)
-      this.metricsCollector.recordTaskCompletion('auto-executor', false, totalDuration)
-      this.metricsCollector.recordError('auto-executor', 'execution_error', errorMessage)
+      this.metricsCollector.recordResponseTime('auto-executor', totalDuration);
+      this.metricsCollector.recordTaskCompletion('auto-executor', false, totalDuration);
+      this.metricsCollector.recordError('auto-executor', 'execution_error', errorMessage);
 
       this.config.telemetry.record({
         executionId,
@@ -475,16 +475,16 @@ export class AutoExecutor extends EventEmitter {
         metadata: {
           error: errorMessage,
         },
-      })
+      });
       this.emitCommandHook('command-complete', {
         executionId,
         success: false,
         durationMs: totalDuration,
         error: errorMessage,
-      })
+      });
 
-      this.emit('execution:failed', { error, input: userInput })
-      throw error
+      this.emit('execution:failed', { error, input: userInput });
+      throw error;
     }
   }
 
@@ -503,12 +503,12 @@ export class AutoExecutor extends EventEmitter {
         intent,
         elicitationAsked: false,
         userSelectedRoute: false,
-      }
+      };
     }
 
-    const question = this.buildRouteQuestion(suggestedRoute, intent)
-    const askStart = Date.now()
-    const answer = await this.config.askUserQuestion(question)
+    const question = this.buildRouteQuestion(suggestedRoute, intent);
+    const askStart = Date.now();
+    const answer = await this.config.askUserQuestion(question);
 
     this.config.telemetry.record({
       executionId,
@@ -522,7 +522,7 @@ export class AutoExecutor extends EventEmitter {
         answered: Boolean(answer),
         selected: answer?.value,
       },
-    })
+    });
 
     if (!answer) {
       return {
@@ -530,20 +530,20 @@ export class AutoExecutor extends EventEmitter {
         intent,
         elicitationAsked: true,
         userSelectedRoute: false,
-      }
+      };
     }
 
-    return this.applyRouteAnswer(suggestedRoute, intent, answer)
+    return this.applyRouteAnswer(suggestedRoute, intent, answer);
   }
 
   private shouldAskRouteQuestion(intent: AnalyzedIntent): boolean {
     if (intent.complexity === 'trivial' || intent.complexity === 'simple') {
-      return false
+      return false;
     }
 
-    const lowConfidence = intent.confidence < 0.65
-    const multiRouteIndicators = intent.requiresPlanning && intent.requiresMultipleAgents
-    return lowConfidence || multiRouteIndicators
+    const lowConfidence = intent.confidence < 0.65;
+    const multiRouteIndicators = intent.requiresPlanning && intent.requiresMultipleAgents;
+    return lowConfidence || multiRouteIndicators;
   }
 
   private buildRouteQuestion(
@@ -555,7 +555,7 @@ export class AutoExecutor extends EventEmitter {
       feature: 'Feature implementation',
       plan: 'Plan first',
       mayor: 'Multi-agent orchestration',
-    }
+    };
 
     const options = [
       {
@@ -583,14 +583,14 @@ export class AutoExecutor extends EventEmitter {
         label: routeLabels.mayor,
         description: 'Use specialized agents for decomposition and coordination',
       },
-    ].filter((option, index, arr) => arr.findIndex(x => x.value === option.value) === index)
+    ].filter((option, index, arr) => arr.findIndex(x => x.value === option.value) === index);
 
     return {
       id: 'execution-route-choice',
       prompt: 'How should I execute this request?',
       options,
       defaultValue: suggestedRoute,
-    }
+    };
   }
 
   private applyRouteAnswer(
@@ -600,7 +600,7 @@ export class AutoExecutor extends EventEmitter {
   ): RouteResolutionResult {
     const selectedRoute = ['direct', 'feature', 'plan', 'mayor'].includes(answer.value)
       ? answer.value as ExecutionRoute
-      : suggestedRoute
+      : suggestedRoute;
 
     if (selectedRoute === suggestedRoute) {
       return {
@@ -608,7 +608,7 @@ export class AutoExecutor extends EventEmitter {
         intent,
         elicitationAsked: true,
         userSelectedRoute: false,
-      }
+      };
     }
 
     return {
@@ -620,14 +620,14 @@ export class AutoExecutor extends EventEmitter {
       },
       elicitationAsked: true,
       userSelectedRoute: true,
-    }
+    };
   }
 
   /**
    * Detect if a new skill is needed
    */
   private async detectSkillRequirement(input: string, intent: AnalyzedIntent): Promise<SkillRequirement> {
-    const normalized = input.toLowerCase()
+    const normalized = input.toLowerCase();
 
     // Check for specific technology/framework mentions
     const technologies = [
@@ -640,7 +640,7 @@ export class AutoExecutor extends EventEmitter {
       { name: 'websocket', type: 'integration' as const },
       { name: 'oauth', type: 'integration' as const },
       { name: 'jwt', type: 'integration' as const },
-    ]
+    ];
 
     for (const tech of technologies) {
       if (normalized.includes(tech.name)) {
@@ -649,7 +649,7 @@ export class AutoExecutor extends EventEmitter {
           skillName: `${tech.name}-specialist`,
           skillType: tech.type,
           reason: `Detected ${tech.name} technology requirement`,
-        }
+        };
       }
     }
 
@@ -660,7 +660,7 @@ export class AutoExecutor extends EventEmitter {
         skillName: 'authentication-specialist',
         skillType: 'integration',
         reason: 'Authentication system requires specialized skill',
-      }
+      };
     }
 
     if (normalized.includes('database') || normalized.includes('sql')) {
@@ -669,7 +669,7 @@ export class AutoExecutor extends EventEmitter {
         skillName: 'database-specialist',
         skillType: 'code',
         reason: 'Database operations require specialized skill',
-      }
+      };
     }
 
     if (normalized.includes('api') && normalized.includes('design')) {
@@ -678,7 +678,7 @@ export class AutoExecutor extends EventEmitter {
         skillName: 'api-architect',
         skillType: 'analysis',
         reason: 'API design requires architectural skill',
-      }
+      };
     }
 
     // For complex tasks, might need a custom skill
@@ -688,7 +688,7 @@ export class AutoExecutor extends EventEmitter {
         skillName: `custom-${intent.type}-specialist`,
         skillType: 'code',
         reason: `Complex ${intent.type} task requires specialized skill`,
-      }
+      };
     }
 
     return {
@@ -696,14 +696,14 @@ export class AutoExecutor extends EventEmitter {
       skillName: '',
       skillType: 'code',
       reason: 'No specialized skill needed',
-    }
+    };
   }
 
   /**
    * Detect if a new agent is needed
    */
   private async detectAgentRequirement(input: string, intent: AnalyzedIntent): Promise<AgentRequirement> {
-    const normalized = input.toLowerCase()
+    const normalized = input.toLowerCase();
 
     // Check for architecture needs
     if (normalized.includes('architecture') || normalized.includes('design system')) {
@@ -712,7 +712,7 @@ export class AutoExecutor extends EventEmitter {
         agentType: 'architect',
         domain: 'System Architecture',
         reason: 'Architectural design requires architect agent',
-      }
+      };
     }
 
     // Check for DevOps needs
@@ -722,7 +722,7 @@ export class AutoExecutor extends EventEmitter {
         agentType: 'devops',
         domain: 'DevOps & Deployment',
         reason: 'Deployment tasks require DevOps agent',
-      }
+      };
     }
 
     // Check for specialized domains
@@ -733,7 +733,7 @@ export class AutoExecutor extends EventEmitter {
       { keywords: ['ui', 'ux', 'design', 'frontend'], domain: 'Frontend' },
       { keywords: ['api', 'backend', 'server'], domain: 'Backend' },
       { keywords: ['database', 'sql', 'query'], domain: 'Database' },
-    ]
+    ];
 
     for (const spec of specializations) {
       if (spec.keywords.some(kw => normalized.includes(kw))) {
@@ -742,7 +742,7 @@ export class AutoExecutor extends EventEmitter {
           agentType: 'specialist',
           domain: spec.domain,
           reason: `${spec.domain} tasks require specialized agent`,
-        }
+        };
       }
     }
 
@@ -753,7 +753,7 @@ export class AutoExecutor extends EventEmitter {
         agentType: 'engineer',
         domain: 'Implementation',
         reason: 'Multi-step implementation requires engineer agent',
-      }
+      };
     }
 
     return {
@@ -761,37 +761,37 @@ export class AutoExecutor extends EventEmitter {
       agentType: 'engineer',
       domain: '',
       reason: 'Existing agents can handle this task',
-    }
+    };
   }
 
   /**
    * Detect which MCP tools are needed
    */
   private async detectMcpRequirement(input: string, intent: AnalyzedIntent): Promise<McpRequirement> {
-    const normalized = input.toLowerCase()
+    const normalized = input.toLowerCase();
     const scoredTools = MCP_TOOL_PROFILES
       .map((profile) => {
-        const matchedKeywords = profile.keywords.filter(keyword => normalized.includes(keyword))
+        const matchedKeywords = profile.keywords.filter(keyword => normalized.includes(keyword));
         if (matchedKeywords.length === 0) {
-          return null
+          return null;
         }
 
-        const intentBoost = profile.intentBoost?.[intent.type] ?? 0
-        const complexityBoost = intent.complexity === 'complex' || intent.complexity === 'very_complex' ? 1 : 0
-        const score = profile.basePriority + (matchedKeywords.length * 2) + intentBoost + complexityBoost
+        const intentBoost = profile.intentBoost?.[intent.type] ?? 0;
+        const complexityBoost = intent.complexity === 'complex' || intent.complexity === 'very_complex' ? 1 : 0;
+        const score = profile.basePriority + (matchedKeywords.length * 2) + intentBoost + complexityBoost;
 
         return {
           tool: profile.tool,
           score,
-        }
+        };
       })
-      .filter((item): item is { tool: string, score: number } => item !== null)
-      .sort((a, b) => b.score - a.score)
+      .filter((item): item is { tool: string; score: number } => item !== null)
+      .sort((a, b) => b.score - a.score);
 
-    const candidates = scoredTools.map(item => item.tool)
+    const candidates = scoredTools.map(item => item.tool);
     const tools = scoredTools
       .slice(0, this.config.maxMcpTools)
-      .map(item => item.tool)
+      .map(item => item.tool);
 
     return {
       needed: tools.length > 0,
@@ -802,7 +802,7 @@ export class AutoExecutor extends EventEmitter {
             ? `Selected top ${tools.length}/${candidates.length} MCP tools by capability score: ${tools.join(', ')}`
             : `Requires MCP tools: ${tools.join(', ')}`)
         : 'No MCP tools needed',
-    }
+    };
   }
 
   /**
@@ -810,7 +810,7 @@ export class AutoExecutor extends EventEmitter {
    */
   private async autoCreateSkill(req: SkillRequirement): Promise<string> {
     // Generate skill ID
-    const skillId = `skill-${req.skillName}-${Date.now()}`
+    const skillId = `skill-${req.skillName}-${Date.now()}`;
 
     // Create skill definition
     const skillDefinition = {
@@ -821,14 +821,14 @@ export class AutoExecutor extends EventEmitter {
       capabilities: this.generateSkillCapabilities(req),
       createdAt: new Date().toISOString(),
       autoGenerated: true,
-    }
+    };
 
     // Save skill to state
-    const stateManager = getGlobalStateManager()
-    await stateManager.initialize()
+    const stateManager = getGlobalStateManager();
+    await stateManager.initialize();
 
     // Create skill worktree
-    await stateManager.createAgentWorktree(skillId)
+    await stateManager.createAgentWorktree(skillId);
 
     // Save skill definition
     await stateManager.saveState(skillId, {
@@ -836,11 +836,11 @@ export class AutoExecutor extends EventEmitter {
       status: 'active',
       currentTask: 'Ready',
       memory: { skillDefinition },
-    })
+    });
 
-    this.log(`Skill created: ${skillId}`)
+    this.log(`Skill created: ${skillId}`);
 
-    return skillId
+    return skillId;
   }
 
   /**
@@ -852,9 +852,9 @@ export class AutoExecutor extends EventEmitter {
       analysis: ['analyze_requirements', 'design_architecture', 'create_diagrams', 'document_design'],
       integration: ['integrate_apis', 'configure_services', 'test_integration', 'handle_auth'],
       deployment: ['deploy_application', 'configure_infrastructure', 'setup_ci_cd', 'monitor_services'],
-    }
+    };
 
-    return capabilitiesMap[req.skillType] || ['general_task']
+    return capabilitiesMap[req.skillType] || ['general_task'];
   }
 
   /**
@@ -862,7 +862,7 @@ export class AutoExecutor extends EventEmitter {
    */
   private async autoCreateAgent(req: AgentRequirement): Promise<string> {
     // Generate agent ID
-    const agentId = `agent-${req.agentType}-${Date.now()}`
+    const agentId = `agent-${req.agentType}-${Date.now()}`;
 
     // Create agent definition
     const agentDefinition = {
@@ -875,14 +875,14 @@ export class AutoExecutor extends EventEmitter {
       capabilities: this.generateAgentCapabilities(req),
       createdAt: new Date().toISOString(),
       autoGenerated: true,
-    }
+    };
 
     // Save agent to state
-    const stateManager = getGlobalStateManager()
-    await stateManager.initialize()
+    const stateManager = getGlobalStateManager();
+    await stateManager.initialize();
 
     // Create agent worktree
-    await stateManager.createAgentWorktree(agentId)
+    await stateManager.createAgentWorktree(agentId);
 
     // Save agent definition
     await stateManager.saveState(agentId, {
@@ -890,16 +890,16 @@ export class AutoExecutor extends EventEmitter {
       status: 'active',
       currentTask: 'Ready',
       memory: { agentDefinition },
-    })
+    });
 
     // Create mailbox for agent
-    const mailboxManager = getGlobalMailboxManager()
-    await mailboxManager.initialize()
-    await mailboxManager.createMailbox(agentId)
+    const mailboxManager = getGlobalMailboxManager();
+    await mailboxManager.initialize();
+    await mailboxManager.createMailbox(agentId);
 
-    this.log(`Agent created: ${agentId}`)
+    this.log(`Agent created: ${agentId}`);
 
-    return agentId
+    return agentId;
   }
 
   /**
@@ -911,9 +911,9 @@ export class AutoExecutor extends EventEmitter {
       specialist: ['deep_expertise', 'solve_complex_problems', 'optimize_solutions', 'provide_guidance'],
       engineer: ['implement_features', 'write_code', 'test_code', 'fix_bugs'],
       devops: ['deploy_applications', 'manage_infrastructure', 'setup_pipelines', 'monitor_systems'],
-    }
+    };
 
-    return capabilitiesMap[req.agentType] || ['general_task']
+    return capabilitiesMap[req.agentType] || ['general_task'];
   }
 
   /**
@@ -926,17 +926,17 @@ export class AutoExecutor extends EventEmitter {
     skillsCreated: string[],
     mcpToolsUsed: string[],
   ): Promise<ExecutionResult> {
-    this.log('Executing via Mayor Agent')
+    this.log('Executing via Mayor Agent');
 
     const mayor = getGlobalMayorAgent({
       autoCreateConvoy: true,
       autoSpawnWorkers: true,
       monitorProgress: true,
       notifyHuman: true,
-    })
+    });
 
     // Process request through Mayor
-    const response = await mayor.processRequest(input)
+    const response = await mayor.processRequest(input);
 
     return {
       success: true,
@@ -948,7 +948,7 @@ export class AutoExecutor extends EventEmitter {
       mcpToolsUsed,
       message: response.message,
       details: response,
-    }
+    };
   }
 
   /**
@@ -961,23 +961,23 @@ export class AutoExecutor extends EventEmitter {
     skillsCreated: string[],
     mcpToolsUsed: string[],
   ): Promise<ExecutionResult> {
-    this.log('Executing via Plan Mode')
+    this.log('Executing via Plan Mode');
 
     // Create a convoy for planning
-    const convoyManager = getGlobalConvoyManager()
-    await convoyManager.initialize()
+    const convoyManager = getGlobalConvoyManager();
+    await convoyManager.initialize();
 
     const convoy = await convoyManager.create(`Plan: ${input.substring(0, 50)}`, {
       description: input,
       createdBy: 'auto-executor',
-    })
+    });
 
     // Add planning tasks
-    await convoyManager.addTask(convoy.id, 'Analyze requirements')
-    await convoyManager.addTask(convoy.id, 'Design architecture')
-    await convoyManager.addTask(convoy.id, 'Create implementation plan')
+    await convoyManager.addTask(convoy.id, 'Analyze requirements');
+    await convoyManager.addTask(convoy.id, 'Design architecture');
+    await convoyManager.addTask(convoy.id, 'Create implementation plan');
 
-    await convoyManager.start(convoy.id)
+    await convoyManager.start(convoy.id);
 
     return {
       success: true,
@@ -989,7 +989,7 @@ export class AutoExecutor extends EventEmitter {
       mcpToolsUsed,
       message: `Planning convoy created: ${convoy.id}`,
       details: { convoy },
-    }
+    };
   }
 
   /**
@@ -1002,23 +1002,23 @@ export class AutoExecutor extends EventEmitter {
     skillsCreated: string[],
     mcpToolsUsed: string[],
   ): Promise<ExecutionResult> {
-    this.log('Executing via Feature Mode')
+    this.log('Executing via Feature Mode');
 
     // Create a convoy for feature implementation
-    const convoyManager = getGlobalConvoyManager()
-    await convoyManager.initialize()
+    const convoyManager = getGlobalConvoyManager();
+    await convoyManager.initialize();
 
     const convoy = await convoyManager.create(`Feature: ${input.substring(0, 50)}`, {
       description: input,
       createdBy: 'auto-executor',
-    })
+    });
 
     // Add feature tasks
-    await convoyManager.addTask(convoy.id, 'Implement feature')
-    await convoyManager.addTask(convoy.id, 'Write tests')
-    await convoyManager.addTask(convoy.id, 'Update documentation')
+    await convoyManager.addTask(convoy.id, 'Implement feature');
+    await convoyManager.addTask(convoy.id, 'Write tests');
+    await convoyManager.addTask(convoy.id, 'Update documentation');
 
-    await convoyManager.start(convoy.id)
+    await convoyManager.start(convoy.id);
 
     return {
       success: true,
@@ -1030,7 +1030,7 @@ export class AutoExecutor extends EventEmitter {
       mcpToolsUsed,
       message: `Feature convoy created: ${convoy.id}`,
       details: { convoy },
-    }
+    };
   }
 
   /**
@@ -1043,7 +1043,7 @@ export class AutoExecutor extends EventEmitter {
     skillsCreated: string[],
     mcpToolsUsed: string[],
   ): Promise<ExecutionResult> {
-    this.log('Executing directly')
+    this.log('Executing directly');
 
     return {
       success: true,
@@ -1054,17 +1054,17 @@ export class AutoExecutor extends EventEmitter {
       mcpToolsUsed,
       message: `Direct execution: ${input}`,
       details: { input },
-    }
+    };
   }
 
   private buildExecutionInsights(options: {
-    initialRoute: ExecutionRoute
-    resolvedRoute: ExecutionRoute
-    elicitationAsked: boolean
-    userSelectedRoute: boolean
-    mcpReq: McpRequirement
-    totalDurationMs: number
-    executionId: string
+    initialRoute: ExecutionRoute;
+    resolvedRoute: ExecutionRoute;
+    elicitationAsked: boolean;
+    userSelectedRoute: boolean;
+    mcpReq: McpRequirement;
+    totalDurationMs: number;
+    executionId: string;
   }): ExecutionInsights {
     return {
       decisionProfile: options.userSelectedRoute ? 'user_guided' : 'automatic',
@@ -1084,39 +1084,39 @@ export class AutoExecutor extends EventEmitter {
         totalDurationMs: options.totalDurationMs,
         eventCount: this.getExecutionTelemetryEventCount(options.executionId),
       },
-    }
+    };
   }
 
   private getExecutionTelemetryEventCount(executionId: string): number {
     return this.config.telemetry
       .getRecent(500)
       .filter(event => event.executionId === executionId)
-      .length
+      .length;
   }
 
   /**
    * Get aggregated execution telemetry.
    */
   getTelemetrySummary(): ExecutionTelemetrySummary {
-    return this.config.telemetry.summarize()
+    return this.config.telemetry.summarize();
   }
 
   /**
    * Get recent execution telemetry events.
    */
   getTelemetryEvents(limit = 50): TelemetryEvent[] {
-    return this.config.telemetry.getRecent(limit)
+    return this.config.telemetry.getRecent(limit);
   }
 
   clearTelemetry(): void {
-    this.config.telemetry.clear()
+    this.config.telemetry.clear();
   }
 
   private getErrorMessage(error: unknown): string {
     if (error instanceof Error) {
-      return error.message
+      return error.message;
     }
-    return String(error)
+    return String(error);
   }
 
   /**
@@ -1124,31 +1124,31 @@ export class AutoExecutor extends EventEmitter {
    */
   private log(message: string): void {
     if (this.config.verbose) {
-      console.log(`[AutoExecutor] ${message}`)
+      console.log(`[AutoExecutor] ${message}`);
     }
   }
 
   private emitCommandHook(event: string, data: Record<string, unknown>): void {
-    void emitCommandHookEvent(event, data)
+    void emitCommandHookEvent(event, data);
   }
 }
 
 // Global singleton instance
-let globalExecutor: AutoExecutor | null = null
+let globalExecutor: AutoExecutor | null = null;
 
 /**
  * Get global auto executor instance
  */
 export function getGlobalAutoExecutor(config?: Partial<AutoExecutorConfig>): AutoExecutor {
   if (!globalExecutor) {
-    globalExecutor = new AutoExecutor(config)
+    globalExecutor = new AutoExecutor(config);
   }
-  return globalExecutor
+  return globalExecutor;
 }
 
 /**
  * Reset global executor (for testing)
  */
 export function resetGlobalAutoExecutor(): void {
-  globalExecutor = null
+  globalExecutor = null;
 }

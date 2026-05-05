@@ -5,10 +5,10 @@
  * @module cloud-client/retry
  */
 
-import type { CloudClient } from './client'
-import type { RetryConfig } from './types'
-import consola from 'consola'
-import { CloudClientError } from './types'
+import type { CloudClient } from './client';
+import type { RetryConfig } from './types';
+import consola from 'consola';
+import { CloudClientError } from './types';
 
 /**
  * Default retry configuration
@@ -19,7 +19,7 @@ const DEFAULT_RETRY_CONFIG: RetryConfig = {
   multiplier: 2,
   maxDelay: 800,
   retryableStatusCodes: [500, 502, 503, 504, 408, 429],
-}
+};
 
 /**
  * Retry wrapper for async functions
@@ -32,41 +32,41 @@ export async function withRetry<T>(
   fn: () => Promise<T>,
   config: Partial<RetryConfig> = {},
 ): Promise<T> {
-  const retryConfig = { ...DEFAULT_RETRY_CONFIG, ...config }
-  let lastError: unknown
+  const retryConfig = { ...DEFAULT_RETRY_CONFIG, ...config };
+  let lastError: unknown;
 
   for (let attempt = 0; attempt < retryConfig.maxAttempts; attempt++) {
     try {
       // Execute the function
-      return await fn()
+      return await fn();
     }
     catch (error) {
-      lastError = error
+      lastError = error;
 
       // Check if we should retry
       if (!shouldRetry(error, retryConfig, attempt)) {
-        throw error
+        throw error;
       }
 
       // Calculate delay
       const delay = Math.min(
         retryConfig.initialDelay * retryConfig.multiplier ** attempt,
         retryConfig.maxDelay,
-      )
+      );
 
       consola.warn(
         `Request failed (attempt ${attempt + 1}/${retryConfig.maxAttempts}), `
         + `retrying in ${delay}ms:`,
         error instanceof Error ? error.message : error,
-      )
+      );
 
       // Wait before retry
-      await sleep(delay)
+      await sleep(delay);
     }
   }
 
   // All attempts failed
-  throw lastError
+  throw lastError;
 }
 
 /**
@@ -80,30 +80,30 @@ export async function withRetry<T>(
 function shouldRetry(error: unknown, config: RetryConfig, attempt: number): boolean {
   // Don't retry if we've reached max attempts
   if (attempt >= config.maxAttempts - 1) {
-    return false
+    return false;
   }
 
   // Check if it's a CloudClientError
   if (error instanceof CloudClientError) {
     // Don't retry client errors (4xx)
     if (error.type === 'VALIDATION_ERROR' || error.type === 'AUTH_ERROR') {
-      return false
+      return false;
     }
 
     // Retry on network/timeout errors
     if (error.type === 'NETWORK_ERROR' || error.type === 'TIMEOUT_ERROR') {
-      return true
+      return true;
     }
 
     // Check status code for retryable status codes
     if (error.statusCode && config.retryableStatusCodes.includes(error.statusCode)) {
-      return true
+      return true;
     }
   }
 
   // Check for network errors in regular errors
   if (error instanceof Error) {
-    const message = error.message.toLowerCase()
+    const message = error.message.toLowerCase();
     if (
       message.includes('network')
       || message.includes('connection')
@@ -111,19 +111,19 @@ function shouldRetry(error: unknown, config: RetryConfig, attempt: number): bool
       || message.includes('econnrefused')
       || message.includes('enotfound')
     ) {
-      return true
+      return true;
     }
   }
 
   // Default: don't retry
-  return false
+  return false;
 }
 
 /**
  * Sleep for specified milliseconds
  */
 function sleep(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms))
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 /**
@@ -132,12 +132,12 @@ function sleep(ms: number): Promise<void> {
  * Wraps CloudClient with retry logic
  */
 export class RetryableCloudClient {
-  private client: CloudClient
-  private retryConfig: Partial<RetryConfig>
+  private client: CloudClient;
+  private retryConfig: Partial<RetryConfig>;
 
   constructor(client: CloudClient, retryConfig: Partial<RetryConfig> = {}) {
-    this.client = client
-    this.retryConfig = retryConfig
+    this.client = client;
+    this.retryConfig = retryConfig;
   }
 
   /**
@@ -147,8 +147,8 @@ export class RetryableCloudClient {
     return withRetry(
       () => this.client.analyzeProject(request),
       this.retryConfig,
-    )
-  }
+    );
+  };
 
   /**
    * Get template with retry
@@ -157,8 +157,8 @@ export class RetryableCloudClient {
     return withRetry(
       () => this.client.getTemplate(id, language),
       this.retryConfig,
-    )
-  }
+    );
+  };
 
   /**
    * Get batch templates with retry
@@ -167,15 +167,15 @@ export class RetryableCloudClient {
     return withRetry(
       () => this.client.getBatchTemplates(request),
       this.retryConfig,
-    )
-  }
+    );
+  };
 
   /**
    * Report usage (no retry)
    */
   reportUsage = async (report: import('./types').UsageReport): Promise<import('./types').UsageReportResponse> => {
-    return this.client.reportUsage(report)
-  }
+    return this.client.reportUsage(report);
+  };
 
   /**
    * Health check (no retry)
@@ -184,14 +184,14 @@ export class RetryableCloudClient {
     return withRetry(
       () => this.client.healthCheck(),
       this.retryConfig,
-    )
-  }
+    );
+  };
 
   /**
    * Get underlying client
    */
   getClient(): CloudClient {
-    return this.client
+    return this.client;
   }
 }
 
@@ -211,7 +211,7 @@ export const retryUtils = {
     return Math.min(
       initialDelay * multiplier ** attempt,
       maxDelay,
-    )
+    );
   },
 
   /**
@@ -221,21 +221,21 @@ export const retryUtils = {
     if (error instanceof CloudClientError) {
       return error.type === 'NETWORK_ERROR'
         || error.type === 'TIMEOUT_ERROR'
-        || (error.statusCode !== undefined && [500, 502, 503, 504, 408, 429].includes(error.statusCode))
+        || (error.statusCode !== undefined && [500, 502, 503, 504, 408, 429].includes(error.statusCode));
     }
 
     if (error instanceof Error) {
-      const message = error.message.toLowerCase()
+      const message = error.message.toLowerCase();
       return message.includes('network')
         || message.includes('connection')
         || message.includes('timeout')
         || message.includes('econnrefused')
-        || message.includes('enotfound')
+        || message.includes('enotfound');
     }
 
-    return false
+    return false;
   },
-}
+};
 
 // Export types
-export type { RetryConfig } from './types'
+export type { RetryConfig } from './types';

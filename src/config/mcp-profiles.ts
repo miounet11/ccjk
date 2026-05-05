@@ -3,21 +3,21 @@
  * Pre-configured service combinations for different use cases
  */
 
-import type { McpTier } from './mcp-tiers'
+import type { McpTier } from './mcp-tiers';
 
 /**
  * MCP Profile definition
  */
 export interface McpProfile {
-  id: string
-  name: string
-  nameZh: string
-  description: string
-  descriptionZh: string
-  services: string[]
-  maxServices?: number
-  tier?: McpTier
-  isDefault?: boolean
+  id: string;
+  name: string;
+  nameZh: string;
+  description: string;
+  descriptionZh: string;
+  services: string[];
+  maxServices?: number;
+  tier?: McpTier;
+  isDefault?: boolean;
 }
 
 /**
@@ -75,48 +75,48 @@ export const MCP_PROFILES: McpProfile[] = [
     maxServices: undefined,
     tier: 'scenario',
   },
-]
+];
 
 /**
  * Get profile by ID
  */
 export function getProfileById(id: string): McpProfile | undefined {
-  return MCP_PROFILES.find(p => p.id === id)
+  return MCP_PROFILES.find(p => p.id === id);
 }
 
 /**
  * Get default profile
  */
 export function getDefaultProfile(): McpProfile {
-  return MCP_PROFILES.find(p => p.isDefault) || MCP_PROFILES[0]
+  return MCP_PROFILES.find(p => p.isDefault) || MCP_PROFILES[0];
 }
 
 /**
  * Get all profile IDs
  */
 export function getProfileIds(): string[] {
-  return MCP_PROFILES.map(p => p.id)
+  return MCP_PROFILES.map(p => p.id);
 }
 
 /**
  * Check if a profile ID is valid
  */
 export function isValidProfileId(id: string): boolean {
-  return MCP_PROFILES.some(p => p.id === id)
+  return MCP_PROFILES.some(p => p.id === id);
 }
 
 /**
  * Get profile name with i18n support
  */
 export function getProfileName(profile: McpProfile, lang: 'en' | 'zh-CN' = 'en'): string {
-  return lang === 'zh-CN' ? profile.nameZh : profile.name
+  return lang === 'zh-CN' ? profile.nameZh : profile.name;
 }
 
 /**
  * Get profile description with i18n support
  */
 export function getProfileDescription(profile: McpProfile, lang: 'en' | 'zh-CN' = 'en'): string {
-  return lang === 'zh-CN' ? profile.descriptionZh : profile.description
+  return lang === 'zh-CN' ? profile.descriptionZh : profile.description;
 }
 
 /**
@@ -136,5 +136,5 @@ export function createCustomProfile(
     descriptionZh: description || `自定义配置: ${name}`,
     services,
     maxServices: services.length + 2,
-  }
+  };
 }

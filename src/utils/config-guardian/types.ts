@@ -7,15 +7,15 @@
  */
 export interface CommandFileInfo {
   /** File name (e.g., 'feat.md') */
-  name: string
+  name: string;
   /** Full path to the file */
-  path: string
+  path: string;
   /** Whether the file exists */
-  exists: boolean
+  exists: boolean;
   /** File size in bytes (if exists) */
-  size?: number
+  size?: number;
   /** Last modified timestamp (if exists) */
-  lastModified?: Date
+  lastModified?: Date;
 }
 
 /**
@@ -23,15 +23,15 @@ export interface CommandFileInfo {
  */
 export interface ValidationResult {
   /** Whether validation passed */
-  valid: boolean
+  valid: boolean;
   /** List of all expected command files */
-  expectedFiles: CommandFileInfo[]
+  expectedFiles: CommandFileInfo[];
   /** List of missing command files */
-  missingFiles: CommandFileInfo[]
+  missingFiles: CommandFileInfo[];
   /** List of existing command files */
-  existingFiles: CommandFileInfo[]
+  existingFiles: CommandFileInfo[];
   /** Validation timestamp */
-  timestamp: Date
+  timestamp: Date;
 }
 
 /**
@@ -39,17 +39,17 @@ export interface ValidationResult {
  */
 export interface RepairResult {
   /** Whether repair was successful */
-  success: boolean
+  success: boolean;
   /** Number of files repaired */
-  repairedCount: number
+  repairedCount: number;
   /** List of repaired files */
-  repairedFiles: string[]
+  repairedFiles: string[];
   /** List of files that failed to repair */
-  failedFiles: string[]
+  failedFiles: string[];
   /** Error messages (if any) */
-  errors: string[]
+  errors: string[];
   /** Repair timestamp */
-  timestamp: Date
+  timestamp: Date;
 }
 
 /**
@@ -57,11 +57,11 @@ export interface RepairResult {
  */
 export interface GuardianStatus {
   /** Whether configuration is healthy */
-  healthy: boolean
+  healthy: boolean;
   /** Validation result */
-  validation: ValidationResult
+  validation: ValidationResult;
   /** Repair result (if repair was performed) */
-  repair?: RepairResult
+  repair?: RepairResult;
   /** Status message */
-  message: string
+  message: string;
 }

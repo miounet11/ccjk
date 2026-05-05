@@ -4,11 +4,11 @@
  */
 
 export interface ToolConflict {
-  skillName: string
-  mcpToolName: string
-  conflictType: ConflictType
-  resolution: ConflictResolution
-  reason: string
+  skillName: string;
+  mcpToolName: string;
+  conflictType: ConflictType;
+  resolution: ConflictResolution;
+  reason: string;
 }
 
 export enum ConflictType {
@@ -27,20 +27,20 @@ export enum ConflictResolution {
 }
 
 export interface ConflictRule {
-  pattern: RegExp | string
-  mcpPattern: RegExp | string
-  resolution: ConflictResolution
-  reason: string
+  pattern: RegExp | string;
+  mcpPattern: RegExp | string;
+  resolution: ConflictResolution;
+  reason: string;
 }
 
 /**
  * 工具冲突检测器
  */
 export class ConflictDetector {
-  private rules: ConflictRule[] = []
+  private rules: ConflictRule[] = [];
 
   constructor() {
-    this.initializeDefaultRules()
+    this.initializeDefaultRules();
   }
 
   /**
@@ -76,32 +76,32 @@ export class ConflictDetector {
         resolution: ConflictResolution.PREFER_SKILL,
         reason: 'Built-in web search has better integration',
       },
-    ]
+    ];
   }
 
   /**
    * 添加自定义规则
    */
   addRule(rule: ConflictRule): void {
-    this.rules.push(rule)
+    this.rules.push(rule);
   }
 
   /**
    * 检测冲突
    */
   detectConflicts(skillNames: string[], mcpToolNames: string[]): ToolConflict[] {
-    const conflicts: ToolConflict[] = []
+    const conflicts: ToolConflict[] = [];
 
     for (const skillName of skillNames) {
       for (const mcpToolName of mcpToolNames) {
-        const conflict = this.checkConflict(skillName, mcpToolName)
+        const conflict = this.checkConflict(skillName, mcpToolName);
         if (conflict) {
-          conflicts.push(conflict)
+          conflicts.push(conflict);
         }
       }
     }
 
-    return conflicts
+    return conflicts;
   }
 
   /**
@@ -109,8 +109,8 @@ export class ConflictDetector {
    */
   private checkConflict(skillName: string, mcpToolName: string): ToolConflict | null {
     for (const rule of this.rules) {
-      const skillMatch = this.matchPattern(skillName, rule.pattern)
-      const mcpMatch = this.matchPattern(mcpToolName, rule.mcpPattern)
+      const skillMatch = this.matchPattern(skillName, rule.pattern);
+      const mcpMatch = this.matchPattern(mcpToolName, rule.mcpPattern);
 
       if (skillMatch && mcpMatch) {
         return {
@@ -119,11 +119,11 @@ export class ConflictDetector {
           conflictType: ConflictType.DUPLICATE_FUNCTIONALITY,
           resolution: rule.resolution,
           reason: rule.reason,
-        }
+        };
       }
     }
 
-    return null
+    return null;
   }
 
   /**
@@ -131,9 +131,9 @@ export class ConflictDetector {
    */
   private matchPattern(value: string, pattern: RegExp | string): boolean {
     if (pattern instanceof RegExp) {
-      return pattern.test(value)
+      return pattern.test(value);
     }
-    return value === pattern || value.includes(pattern)
+    return value === pattern || value.includes(pattern);
   }
 }
 
@@ -141,10 +141,10 @@ export class ConflictDetector {
  * 冲突解决器
  */
 export class ConflictResolver {
-  private detector: ConflictDetector
+  private detector: ConflictDetector;
 
   constructor() {
-    this.detector = new ConflictDetector()
+    this.detector = new ConflictDetector();
   }
 
   /**
@@ -153,24 +153,24 @@ export class ConflictResolver {
   resolve(
     skillNames: string[],
     mcpToolNames: string[],
-  ): { enabledSkills: string[], enabledMcpTools: string[], disabledMcpTools: string[] } {
-    const conflicts = this.detector.detectConflicts(skillNames, mcpToolNames)
+  ): { enabledSkills: string[]; enabledMcpTools: string[]; disabledMcpTools: string[] } {
+    const conflicts = this.detector.detectConflicts(skillNames, mcpToolNames);
 
-    const disabledMcpTools = new Set<string>()
+    const disabledMcpTools = new Set<string>();
 
     for (const conflict of conflicts) {
       switch (conflict.resolution) {
         case ConflictResolution.PREFER_SKILL:
         case ConflictResolution.DISABLE_MCP:
-          disabledMcpTools.add(conflict.mcpToolName)
-          break
+          disabledMcpTools.add(conflict.mcpToolName);
+          break;
         case ConflictResolution.PREFER_MCP:
           // MCP 优先，不禁用
-          break
+          break;
         case ConflictResolution.MERGE:
         case ConflictResolution.USER_CHOICE:
           // 需要用户决定或合并，暂时保留两者
-          break
+          break;
       }
     }
 
@@ -178,78 +178,78 @@ export class ConflictResolver {
       enabledSkills: skillNames,
       enabledMcpTools: mcpToolNames.filter(name => !disabledMcpTools.has(name)),
       disabledMcpTools: Array.from(disabledMcpTools),
-    }
+    };
   }
 
   /**
    * 获取冲突报告
    */
   getConflictReport(skillNames: string[], mcpToolNames: string[]): string {
-    const conflicts = this.detector.detectConflicts(skillNames, mcpToolNames)
+    const conflicts = this.detector.detectConflicts(skillNames, mcpToolNames);
 
     if (conflicts.length === 0) {
-      return 'No conflicts detected between Skills and MCP tools.'
+      return 'No conflicts detected between Skills and MCP tools.';
     }
 
-    const lines = ['Tool Conflicts Detected:', '']
+    const lines = ['Tool Conflicts Detected:', ''];
 
     for (const conflict of conflicts) {
-      lines.push(`• ${conflict.skillName} ↔ ${conflict.mcpToolName}`)
-      lines.push(`  Type: ${conflict.conflictType}`)
-      lines.push(`  Resolution: ${conflict.resolution}`)
-      lines.push(`  Reason: ${conflict.reason}`)
-      lines.push('')
+      lines.push(`• ${conflict.skillName} ↔ ${conflict.mcpToolName}`);
+      lines.push(`  Type: ${conflict.conflictType}`);
+      lines.push(`  Resolution: ${conflict.resolution}`);
+      lines.push(`  Reason: ${conflict.reason}`);
+      lines.push('');
     }
 
-    return lines.join('\n')
+    return lines.join('\n');
   }
 }
 
-export default ConflictResolver
+export default ConflictResolver;
 
 // ============================================
 // Convenience functions for index.ts exports
 // ============================================
 
 export interface ToolAvailability {
-  tool: string
-  available: boolean
-  reason?: string
-  alternative?: string
+  tool: string;
+  available: boolean;
+  reason?: string;
+  alternative?: string;
 }
 
-const defaultDetector = new ConflictDetector()
-const defaultResolver = new ConflictResolver()
+const defaultDetector = new ConflictDetector();
+const defaultResolver = new ConflictResolver();
 
 /**
  * Check if a tool is available
  */
 export function checkToolAvailability(toolName: string, mcpTools: string[]): ToolAvailability {
-  const conflicts = defaultDetector.detectConflicts([toolName], mcpTools)
+  const conflicts = defaultDetector.detectConflicts([toolName], mcpTools);
   if (conflicts.length === 0) {
-    return { tool: toolName, available: true }
+    return { tool: toolName, available: true };
   }
-  const conflict = conflicts[0]
+  const conflict = conflicts[0];
   return {
     tool: toolName,
     available: conflict.resolution !== ConflictResolution.DISABLE_MCP,
     reason: conflict.reason,
     alternative: conflict.skillName,
-  }
+  };
 }
 
 /**
  * Detect conflicts between skills and MCP tools
  */
 export function detectConflicts(skillNames: string[], mcpToolNames: string[]): ToolConflict[] {
-  return defaultDetector.detectConflicts(skillNames, mcpToolNames)
+  return defaultDetector.detectConflicts(skillNames, mcpToolNames);
 }
 
 /**
  * Format a conflict report
  */
 export function formatConflictReport(skillNames: string[], mcpToolNames: string[]): string {
-  return defaultResolver.getConflictReport(skillNames, mcpToolNames)
+  return defaultResolver.getConflictReport(skillNames, mcpToolNames);
 }
 
 /**
@@ -259,15 +259,15 @@ export function generateSuggestions(conflicts: ToolConflict[]): string[] {
   return conflicts.map((c) => {
     switch (c.resolution) {
       case ConflictResolution.PREFER_SKILL:
-        return `Use built-in "${c.skillName}" instead of "${c.mcpToolName}": ${c.reason}`
+        return `Use built-in "${c.skillName}" instead of "${c.mcpToolName}": ${c.reason}`;
       case ConflictResolution.PREFER_MCP:
-        return `Use MCP tool "${c.mcpToolName}" for this task`
+        return `Use MCP tool "${c.mcpToolName}" for this task`;
       case ConflictResolution.DISABLE_MCP:
-        return `Disable "${c.mcpToolName}" to avoid conflicts`
+        return `Disable "${c.mcpToolName}" to avoid conflicts`;
       default:
-        return `Review conflict between "${c.skillName}" and "${c.mcpToolName}"`
+        return `Review conflict between "${c.skillName}" and "${c.mcpToolName}"`;
     }
-  })
+  });
 }
 
 /**
@@ -278,13 +278,13 @@ export function getAvailableToolsInCategory(
   skillNames: string[],
   mcpToolNames: string[],
 ): string[] {
-  const result = defaultResolver.resolve(skillNames, mcpToolNames)
+  const result = defaultResolver.resolve(skillNames, mcpToolNames);
   // Filter by category pattern
-  const categoryPattern = new RegExp(category, 'i')
+  const categoryPattern = new RegExp(category, 'i');
   return [
     ...result.enabledSkills.filter(s => categoryPattern.test(s)),
     ...result.enabledMcpTools.filter(t => categoryPattern.test(t)),
-  ]
+  ];
 }
 
 /**
@@ -293,12 +293,12 @@ export function getAvailableToolsInCategory(
 export function resolveConflict(conflict: ToolConflict): string {
   switch (conflict.resolution) {
     case ConflictResolution.PREFER_SKILL:
-      return conflict.skillName
+      return conflict.skillName;
     case ConflictResolution.PREFER_MCP:
-      return conflict.mcpToolName
+      return conflict.mcpToolName;
     case ConflictResolution.DISABLE_MCP:
-      return conflict.skillName
+      return conflict.skillName;
     default:
-      return conflict.skillName // Default to skill
+      return conflict.skillName; // Default to skill
   }
 }

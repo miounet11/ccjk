@@ -1,25 +1,25 @@
-import type { CodeToolType, SupportedLang } from '../constants'
-import type { WorkflowConfig, WorkflowInstallResult, WorkflowTag, WorkflowType } from '../types/workflow'
-import { existsSync } from 'node:fs'
-import { copyFile, mkdir, rm } from 'node:fs/promises'
-import { fileURLToPath } from 'node:url'
-import ansis from 'ansis'
-import inquirer from 'inquirer'
-import { dirname, join } from 'pathe'
-import { getOrderedWorkflows, getTagLabel, getWorkflowConfig } from '../config/workflows'
-import { ensureI18nInitialized, i18n } from '../i18n'
-import { resolveClaudeFamilySettingsTarget } from './runtime-settings'
+import type { CodeToolType, SupportedLang } from '../constants';
+import type { WorkflowConfig, WorkflowInstallResult, WorkflowTag, WorkflowType } from '../types/workflow';
+import { existsSync } from 'node:fs';
+import { copyFile, mkdir, rm } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
+import ansis from 'ansis';
+import inquirer from 'inquirer';
+import { dirname, join } from 'pathe';
+import { getOrderedWorkflows, getTagLabel, getWorkflowConfig } from '../config/workflows';
+import { ensureI18nInitialized, i18n } from '../i18n';
+import { resolveClaudeFamilySettingsTarget } from './runtime-settings';
 
 function getRootDir(): string {
-  const currentFilePath = fileURLToPath(import.meta.url)
-  const distDir = dirname(dirname(currentFilePath))
-  return dirname(distDir)
+  const currentFilePath = fileURLToPath(import.meta.url);
+  const distDir = dirname(dirname(currentFilePath));
+  return dirname(distDir);
 }
 
-const DEFAULT_CODE_TOOL_TEMPLATE = 'claude-code'
+const DEFAULT_CODE_TOOL_TEMPLATE = 'claude-code';
 
 // Categories that use shared templates from common directory
-const COMMON_TEMPLATE_CATEGORIES = ['git', 'sixStep', 'essential', 'interview', 'specFirstTDD', 'continuousDelivery', 'refactoringMaster', 'linearMethod']
+const COMMON_TEMPLATE_CATEGORIES = ['git', 'sixStep', 'essential', 'interview', 'specFirstTDD', 'continuousDelivery', 'refactoringMaster', 'linearMethod'];
 
 // Format tags for display with colors
 function formatTags(tags: WorkflowTag[]): string {
@@ -29,59 +29,59 @@ function formatTags(tags: WorkflowTag[]): string {
     new: text => ansis.bgCyan.black(` ${text} `),
     essential: text => ansis.bgBlue.white(` ${text} `),
     professional: text => ansis.bgMagenta.white(` ${text} `),
-  }
+  };
 
   return tags
     .map(tag => tagColors[tag](getTagLabel(tag)))
-    .join(' ')
+    .join(' ');
 }
 
 // Build rich choice display for workflow selection
-function buildWorkflowChoice(workflow: WorkflowConfig): { name: string, value: string, checked: boolean } {
-  const tags = formatTags(workflow.metadata.tags)
-  const stats = workflow.stats ? ansis.dim(workflow.stats) : ''
-  const description = workflow.description ? ansis.gray(workflow.description) : ''
+function buildWorkflowChoice(workflow: WorkflowConfig): { name: string; value: string; checked: boolean } {
+  const tags = formatTags(workflow.metadata.tags);
+  const stats = workflow.stats ? ansis.dim(workflow.stats) : '';
+  const description = workflow.description ? ansis.gray(workflow.description) : '';
 
   // Build multi-line display
-  const nameLine = `${workflow.name} ${tags}`
-  const detailLine = stats ? `     ${stats}` : ''
-  const descLine = description ? `     ${description}` : ''
+  const nameLine = `${workflow.name} ${tags}`;
+  const detailLine = stats ? `     ${stats}` : '';
+  const descLine = description ? `     ${description}` : '';
 
-  const displayName = [nameLine, detailLine, descLine].filter(Boolean).join('\n')
+  const displayName = [nameLine, detailLine, descLine].filter(Boolean).join('\n');
 
   return {
     name: displayName,
     value: workflow.id,
     checked: workflow.defaultSelected,
-  }
+  };
 }
 
 export async function selectAndInstallWorkflows(
   configLang: SupportedLang,
   preselectedWorkflows?: string[],
   options: {
-    codeToolType?: CodeToolType
+    codeToolType?: CodeToolType;
   } = {},
 ): Promise<void> {
-  ensureI18nInitialized()
-  const workflows = getOrderedWorkflows()
+  ensureI18nInitialized();
+  const workflows = getOrderedWorkflows();
 
   // Build rich choices from configuration
-  const choices = workflows.map(workflow => buildWorkflowChoice(workflow))
+  const choices = workflows.map(workflow => buildWorkflowChoice(workflow));
 
   // Multi-select workflow types or use preselected
-  let selectedWorkflows: WorkflowType[]
+  let selectedWorkflows: WorkflowType[];
 
   if (preselectedWorkflows) {
-    selectedWorkflows = preselectedWorkflows as WorkflowType[]
+    selectedWorkflows = preselectedWorkflows as WorkflowType[];
   }
   else {
     // Print header
-    console.log('')
-    console.log(ansis.bold.cyan('━'.repeat(60)))
-    console.log(ansis.bold.white(`  🚀 ${i18n.t('workflow:selectWorkflowType')}`))
-    console.log(ansis.bold.cyan('━'.repeat(60)))
-    console.log('')
+    console.log('');
+    console.log(ansis.bold.cyan('━'.repeat(60)));
+    console.log(ansis.bold.white(`  🚀 ${i18n.t('workflow:selectWorkflowType')}`));
+    console.log(ansis.bold.cyan('━'.repeat(60)));
+    console.log('');
 
     const response = await inquirer.prompt<{ selectedWorkflows: WorkflowType[] }>({
       type: 'checkbox',
@@ -89,25 +89,25 @@ export async function selectAndInstallWorkflows(
       message: i18n.t('common:multiSelectHint'),
       choices,
       pageSize: 15,
-    })
-    selectedWorkflows = response.selectedWorkflows
+    });
+    selectedWorkflows = response.selectedWorkflows;
   }
 
   if (!selectedWorkflows || selectedWorkflows.length === 0) {
-    console.log(ansis.yellow(i18n.t('common:cancelled')))
-    return
+    console.log(ansis.yellow(i18n.t('common:cancelled')));
+    return;
   }
 
   // Clean up old version files before installation
-  const installTarget = resolveClaudeFamilySettingsTarget(options.codeToolType)
+  const installTarget = resolveClaudeFamilySettingsTarget(options.codeToolType);
 
-  await cleanupOldVersionFiles(installTarget.configDir)
+  await cleanupOldVersionFiles(installTarget.configDir);
 
   // Install selected workflows with their dependencies
   for (const workflowId of selectedWorkflows) {
-    const config = getWorkflowConfig(workflowId)
+    const config = getWorkflowConfig(workflowId);
     if (config) {
-      await installWorkflowWithDependencies(config, configLang, installTarget.configDir)
+      await installWorkflowWithDependencies(config, configLang, installTarget.configDir);
     }
   }
 }
@@ -117,15 +117,15 @@ async function installWorkflowWithDependencies(
   configLang: SupportedLang,
   runtimeConfigDir: string,
 ): Promise<WorkflowInstallResult> {
-  const rootDir = getRootDir()
-  ensureI18nInitialized()
+  const rootDir = getRootDir();
+  ensureI18nInitialized();
   const result: WorkflowInstallResult = {
     workflow: config.id,
     success: true,
     installedCommands: [],
     installedAgents: [],
     errors: [],
-  }
+  };
 
   // Create static workflow option keys for i18n-ally compatibility
   const WORKFLOW_OPTION_KEYS = {
@@ -137,20 +137,20 @@ async function installWorkflowWithDependencies(
     continuousDelivery: i18n.t('workflow:workflowOption.continuousDelivery'),
     refactoringMaster: i18n.t('workflow:workflowOption.refactoringMaster'),
     linearMethod: i18n.t('workflow:workflowOption.linearMethod'),
-  } as const
+  } as const;
 
-  const workflowName = WORKFLOW_OPTION_KEYS[config.id as keyof typeof WORKFLOW_OPTION_KEYS] || config.id
-  console.log(ansis.green(`\n📦 ${i18n.t('workflow:installingWorkflow')}: ${workflowName}...`))
+  const workflowName = WORKFLOW_OPTION_KEYS[config.id as keyof typeof WORKFLOW_OPTION_KEYS] || config.id;
+  console.log(ansis.green(`\n📦 ${i18n.t('workflow:installingWorkflow')}: ${workflowName}...`));
 
   // Install commands to new structure
-  const commandsDir = join(runtimeConfigDir, 'commands', 'ccjk')
+  const commandsDir = join(runtimeConfigDir, 'commands', 'ccjk');
   if (!existsSync(commandsDir)) {
-    await mkdir(commandsDir, { recursive: true })
+    await mkdir(commandsDir, { recursive: true });
   }
 
   for (const commandFile of config.commands) {
     // Shared workflows (git, sixStep) use templates from common directory
-    const isCommonTemplate = COMMON_TEMPLATE_CATEGORIES.includes(config.category)
+    const isCommonTemplate = COMMON_TEMPLATE_CATEGORIES.includes(config.category);
     const commandSource = isCommonTemplate
       ? join(
           rootDir,
@@ -170,36 +170,36 @@ async function installWorkflowWithDependencies(
           config.category,
           'commands',
           commandFile,
-        )
+        );
     // Keep original file names for all commands
-    const destFileName = commandFile
-    const commandDest = join(commandsDir, destFileName)
+    const destFileName = commandFile;
+    const commandDest = join(commandsDir, destFileName);
 
     if (existsSync(commandSource)) {
       try {
-        await copyFile(commandSource, commandDest)
-        result.installedCommands.push(destFileName)
-        console.log(ansis.gray(`  ✔ ${i18n.t('workflow:installedCommand')}: ccjk/${destFileName}`))
+        await copyFile(commandSource, commandDest);
+        result.installedCommands.push(destFileName);
+        console.log(ansis.gray(`  ✔ ${i18n.t('workflow:installedCommand')}: ccjk/${destFileName}`));
       }
       catch (error) {
-        const errorMsg = `${i18n.t('workflow:failedToInstallCommand')} ${commandFile}: ${error}`
-        result.errors?.push(errorMsg)
-        console.error(ansis.red(`  ✗ ${errorMsg}`))
-        result.success = false
+        const errorMsg = `${i18n.t('workflow:failedToInstallCommand')} ${commandFile}: ${error}`;
+        result.errors?.push(errorMsg);
+        console.error(ansis.red(`  ✗ ${errorMsg}`));
+        result.success = false;
       }
     }
   }
 
   // Install agents if autoInstallAgents is true
   if (config.autoInstallAgents && config.agents.length > 0) {
-    const agentsCategoryDir = join(runtimeConfigDir, 'agents', 'ccjk', config.category)
+    const agentsCategoryDir = join(runtimeConfigDir, 'agents', 'ccjk', config.category);
     if (!existsSync(agentsCategoryDir)) {
-      await mkdir(agentsCategoryDir, { recursive: true })
+      await mkdir(agentsCategoryDir, { recursive: true });
     }
 
     for (const agent of config.agents) {
       // Agents also use common templates for shared categories
-      const isCommonTemplate = COMMON_TEMPLATE_CATEGORIES.includes(config.category)
+      const isCommonTemplate = COMMON_TEMPLATE_CATEGORIES.includes(config.category);
       const agentSource = isCommonTemplate
         ? join(
             rootDir,
@@ -220,21 +220,21 @@ async function installWorkflowWithDependencies(
             config.category,
             'agents',
             agent.filename,
-          )
-      const agentDest = join(agentsCategoryDir, agent.filename)
+          );
+      const agentDest = join(agentsCategoryDir, agent.filename);
 
       if (existsSync(agentSource)) {
         try {
-          await copyFile(agentSource, agentDest)
-          result.installedAgents.push(agent.filename)
-          console.log(ansis.gray(`  ✔ ${i18n.t('workflow:installedAgent')}: ccjk/${config.category}/${agent.filename}`))
+          await copyFile(agentSource, agentDest);
+          result.installedAgents.push(agent.filename);
+          console.log(ansis.gray(`  ✔ ${i18n.t('workflow:installedAgent')}: ccjk/${config.category}/${agent.filename}`));
         }
         catch (error) {
-          const errorMsg = `${i18n.t('workflow:failedToInstallAgent')} ${agent.filename}: ${error}`
-          result.errors?.push(errorMsg)
-          console.error(ansis.red(`  ✗ ${errorMsg}`))
+          const errorMsg = `${i18n.t('workflow:failedToInstallAgent')} ${agent.filename}: ${error}`;
+          result.errors?.push(errorMsg);
+          console.error(ansis.red(`  ✗ ${errorMsg}`));
           if (agent.required) {
-            result.success = false
+            result.success = false;
           }
         }
       }
@@ -242,40 +242,40 @@ async function installWorkflowWithDependencies(
   }
 
   if (result.success) {
-    console.log(ansis.green(`✔ ${workflowName} ${i18n.t('workflow:workflowInstallSuccess')}`))
+    console.log(ansis.green(`✔ ${workflowName} ${i18n.t('workflow:workflowInstallSuccess')}`));
   }
   else {
-    console.log(ansis.red(`✗ ${workflowName} ${i18n.t('workflow:workflowInstallError')}`))
+    console.log(ansis.red(`✗ ${workflowName} ${i18n.t('workflow:workflowInstallError')}`));
   }
 
-  return result
+  return result;
 }
 
 async function cleanupOldVersionFiles(runtimeConfigDir: string): Promise<void> {
-  ensureI18nInitialized()
-  console.log(ansis.green(`\n🧹 ${i18n.t('workflow:cleaningOldFiles')}...`))
+  ensureI18nInitialized();
+  console.log(ansis.green(`\n🧹 ${i18n.t('workflow:cleaningOldFiles')}...`));
 
   // Old command files to remove
   const oldCommandFiles = [
     join(runtimeConfigDir, 'commands', 'workflow.md'),
     join(runtimeConfigDir, 'commands', 'feat.md'),
-  ]
+  ];
 
   // Old agent files to remove
   const oldAgentFiles = [
     join(runtimeConfigDir, 'agents', 'planner.md'),
     join(runtimeConfigDir, 'agents', 'ui-ux-designer.md'),
-  ]
+  ];
 
   // Clean up old command files
   for (const file of oldCommandFiles) {
     if (existsSync(file)) {
       try {
-        await rm(file, { force: true })
-        console.log(ansis.gray(`  ✔ ${i18n.t('workflow:removedOldFile')}: ${formatRuntimePath(file, runtimeConfigDir)}`))
+        await rm(file, { force: true });
+        console.log(ansis.gray(`  ✔ ${i18n.t('workflow:removedOldFile')}: ${formatRuntimePath(file, runtimeConfigDir)}`));
       }
       catch {
-        console.error(ansis.yellow(`  ⚠ ${i18n.t('errors:failedToRemoveFile')}: ${formatRuntimePath(file, runtimeConfigDir)}`))
+        console.error(ansis.yellow(`  ⚠ ${i18n.t('errors:failedToRemoveFile')}: ${formatRuntimePath(file, runtimeConfigDir)}`));
       }
     }
   }
@@ -284,17 +284,17 @@ async function cleanupOldVersionFiles(runtimeConfigDir: string): Promise<void> {
   for (const file of oldAgentFiles) {
     if (existsSync(file)) {
       try {
-        await rm(file, { force: true })
-        console.log(ansis.gray(`  ✔ ${i18n.t('workflow:removedOldFile')}: ${formatRuntimePath(file, runtimeConfigDir)}`))
+        await rm(file, { force: true });
+        console.log(ansis.gray(`  ✔ ${i18n.t('workflow:removedOldFile')}: ${formatRuntimePath(file, runtimeConfigDir)}`));
       }
       catch {
-        console.error(ansis.yellow(`  ⚠ ${i18n.t('errors:failedToRemoveFile')}: ${formatRuntimePath(file, runtimeConfigDir)}`))
+        console.error(ansis.yellow(`  ⚠ ${i18n.t('errors:failedToRemoveFile')}: ${formatRuntimePath(file, runtimeConfigDir)}`));
       }
     }
   }
 }
 
 function formatRuntimePath(filePath: string, runtimeConfigDir: string): string {
-  const homeLabel = runtimeConfigDir.endsWith('.clavue') ? '~/.clavue' : '~/.claude'
-  return filePath.replace(runtimeConfigDir, homeLabel)
+  const homeLabel = runtimeConfigDir.endsWith('.clavue') ? '~/.clavue' : '~/.claude';
+  return filePath.replace(runtimeConfigDir, homeLabel);
 }

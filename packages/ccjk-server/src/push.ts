@@ -1,4 +1,5 @@
-import { Expo, ExpoPushMessage } from 'expo-server-sdk';
+import type { ExpoPushMessage } from 'expo-server-sdk';
+import { Expo } from 'expo-server-sdk';
 import { CONFIG } from './config';
 
 /**
@@ -25,7 +26,7 @@ export async function sendPushNotification(
     title: string;
     body: string;
     data?: Record<string, any>;
-  }
+  },
 ): Promise<void> {
   if (!CONFIG.expoPushToken) {
     console.warn('Expo push token not configured, skipping notification');
@@ -63,7 +64,8 @@ export async function sendPushNotification(
         console.error('Push notification error:', ticket.message);
       }
     }
-  } catch (error) {
+  }
+  catch (error) {
     console.error('Failed to send push notification:', error);
   }
 }
@@ -77,7 +79,7 @@ export async function sendBatchPushNotifications(
     title: string;
     body: string;
     data?: Record<string, any>;
-  }>
+  }>,
 ): Promise<void> {
   if (!CONFIG.expoPushToken) {
     console.warn('Expo push token not configured, skipping notifications');
@@ -102,7 +104,8 @@ export async function sendBatchPushNotifications(
     for (const chunk of chunks) {
       await expo.sendPushNotificationsAsync(chunk);
     }
-  } catch (error) {
+  }
+  catch (error) {
     console.error('Failed to send batch push notifications:', error);
   }
 }

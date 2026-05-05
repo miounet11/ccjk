@@ -12,62 +12,62 @@
  */
 export interface Intent {
   /** Unique identifier */
-  id: string
+  id: string;
 
   /** What the intent aims to achieve */
-  goal: string
+  goal: string;
 
   /** Contextual information needed */
-  contexts?: Record<string, any>
+  contexts?: Record<string, any>;
 
   /** Available tools/capabilities */
-  tools: string[]
+  tools: string[];
 
   /** Input data schema (not the actual data) */
-  input: Record<string, InputSchema>
+  input: Record<string, InputSchema>;
 
   /** Execution strategy/approach */
-  how: string
+  how: string;
 
   /** Constraints and rules */
-  rules?: string[]
+  rules?: string[];
 
   /** Expected output schema */
-  output: Record<string, OutputSchema>
+  output: Record<string, OutputSchema>;
 
   /** Metadata */
   metadata?: {
-    author?: string
-    version?: string
-    tags?: string[]
-    category?: string
-    estimatedTokens?: number
-  }
+    author?: string;
+    version?: string;
+    tags?: string[];
+    category?: string;
+    estimatedTokens?: number;
+  };
 }
 
 /**
  * Input schema definition
  */
 export interface InputSchema {
-  type: 'string' | 'number' | 'boolean' | 'object' | 'array' | 'file' | 'directory'
-  description: string
-  required?: boolean
-  default?: any
+  type: 'string' | 'number' | 'boolean' | 'object' | 'array' | 'file' | 'directory';
+  description: string;
+  required?: boolean;
+  default?: any;
   validation?: {
-    pattern?: string
-    min?: number
-    max?: number
-    enum?: any[]
-  }
+    pattern?: string;
+    min?: number;
+    max?: number;
+    enum?: any[];
+  };
 }
 
 /**
  * Output schema definition
  */
 export interface OutputSchema {
-  type: 'string' | 'number' | 'boolean' | 'object' | 'array' | 'file' | 'report'
-  description: string
-  format?: string
+  type: 'string' | 'number' | 'boolean' | 'object' | 'array' | 'file' | 'report';
+  description: string;
+  format?: string;
 }
 
 /**
@@ -75,49 +75,49 @@ export interface OutputSchema {
  */
 export interface IntentContext {
   /** Session ID for tracking */
-  sessionId: string
+  sessionId: string;
 
   /** Actual input values */
-  inputs: Record<string, any>
+  inputs: Record<string, any>;
 
   /** Available tool instances */
-  toolInstances: Map<string, any>
+  toolInstances: Map<string, any>;
 
   /** Execution state */
-  state: 'pending' | 'running' | 'completed' | 'failed'
+  state: 'pending' | 'running' | 'completed' | 'failed';
 
   /** Execution results */
-  results?: Record<string, any>
+  results?: Record<string, any>;
 
   /** Error if failed */
-  error?: Error
+  error?: Error;
 
   /** Execution metadata */
-  startTime?: number
-  endTime?: number
-  tokenUsage?: number
+  startTime?: number;
+  endTime?: number;
+  tokenUsage?: number;
 }
 
 /**
  * Intent validation result
  */
 export interface IntentValidationResult {
-  valid: boolean
-  errors: string[]
-  warnings: string[]
+  valid: boolean;
+  errors: string[];
+  warnings: string[];
 }
 
 /**
  * Intent composition - combine multiple intents
  */
 export interface CompositeIntent {
-  id: string
-  name: string
-  description: string
-  intents: Intent[]
+  id: string;
+  name: string;
+  description: string;
+  intents: Intent[];
   dependencies: Array<{
-    from: string // intent id
-    to: string // intent id
-    dataFlow?: Record<string, string> // output -> input mapping
-  }>
+    from: string; // intent id
+    to: string; // intent id
+    dataFlow?: Record<string, string>; // output -> input mapping
+  }>;
 }

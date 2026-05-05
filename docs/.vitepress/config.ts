@@ -18,20 +18,22 @@ interface SidebarDefinitionSection {
 
 function createSidebar(
   definition: SidebarDefinitionSection[],
-  base: string
+  base: string,
 ): DefaultTheme.SidebarItem[] {
   const normalizedBase = base.endsWith('/') ? base : `${base}/`;
 
   return definition.map(section => ({
     text: section.text,
     collapsed: false,
-    items: section.items.map(item => {
+    items: section.items.map((item) => {
       let link = item.link;
       if (!link) {
         link = normalizedBase;
-      } else if (link === 'index') {
+      }
+      else if (link === 'index') {
         link = normalizedBase;
-      } else if (!link.startsWith('/')) {
+      }
+      else if (!link.startsWith('/')) {
         link = `${normalizedBase}${link}`;
       }
       return {
@@ -124,7 +126,7 @@ const zhSidebar: DefaultTheme.SidebarItem[] = createSidebar(
       ],
     },
   ],
-  '/zh-CN'
+  '/zh-CN',
 );
 
 const enSidebar: DefaultTheme.SidebarItem[] = createSidebar(
@@ -209,7 +211,7 @@ const enSidebar: DefaultTheme.SidebarItem[] = createSidebar(
       ],
     },
   ],
-  '/en'
+  '/en',
 );
 
 const jaSidebar: DefaultTheme.SidebarItem[] = createSidebar(
@@ -294,7 +296,7 @@ const jaSidebar: DefaultTheme.SidebarItem[] = createSidebar(
       ],
     },
   ],
-  '/ja-JP'
+  '/ja-JP',
 );
 
 export default defineConfig({
@@ -336,7 +338,7 @@ export default defineConfig({
     },
   },
   locales: {
-    root: {
+    'root': {
       label: 'English',
       lang: 'en-US',
       link: '/en/',

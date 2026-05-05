@@ -1,7 +1,7 @@
-import { readFileSync, writeFileSync, unlinkSync, existsSync } from 'fs';
-import { homedir } from 'os';
-import { join } from 'path';
 import type { LockFile } from './types';
+import { existsSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
+import { homedir } from 'node:os';
+import { join } from 'node:path';
 
 /**
  * Lock file management to prevent multiple daemon instances
@@ -17,7 +17,8 @@ function isProcessRunning(pid: number): boolean {
     // Signal 0 checks if process exists without killing it
     process.kill(pid, 0);
     return true;
-  } catch (e) {
+  }
+  catch (_e) {
     return false;
   }
 }
@@ -41,12 +42,14 @@ export function acquireDaemonLock(machineId: string): boolean {
       // Stale lock file, remove it
       console.log(`Removing stale lock file (PID ${lockData.pid} not running)`);
       unlinkSync(LOCK_FILE_PATH);
-    } catch (error) {
+    }
+    catch (error) {
       console.error('Failed to read lock file:', error);
       // Try to remove corrupted lock file
       try {
         unlinkSync(LOCK_FILE_PATH);
-      } catch {}
+      }
+      catch {}
     }
   }
 
@@ -60,7 +63,8 @@ export function acquireDaemonLock(machineId: string): boolean {
   try {
     writeFileSync(LOCK_FILE_PATH, JSON.stringify(lockData, null, 2));
     return true;
-  } catch (error) {
+  }
+  catch (error) {
     console.error('Failed to create lock file:', error);
     return false;
   }
@@ -79,7 +83,8 @@ export function releaseDaemonLock(): void {
         unlinkSync(LOCK_FILE_PATH);
       }
     }
-  } catch (error) {
+  }
+  catch (error) {
     console.error('Failed to release lock:', error);
   }
 }
@@ -92,7 +97,8 @@ export function getDaemonLock(): LockFile | null {
     if (existsSync(LOCK_FILE_PATH)) {
       return JSON.parse(readFileSync(LOCK_FILE_PATH, 'utf-8')) as LockFile;
     }
-  } catch (error) {
+  }
+  catch (error) {
     console.error('Failed to read lock file:', error);
   }
   return null;
@@ -103,6 +109,7 @@ export function getDaemonLock(): LockFile | null {
  */
 export function isDaemonRunning(): boolean {
   const lock = getDaemonLock();
-  if (!lock) return false;
+  if (!lock)
+    return false;
   return isProcessRunning(lock.pid);
 }

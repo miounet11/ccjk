@@ -6,46 +6,46 @@
 /**
  * Session status enumeration
  */
-export type SessionStatus = 'active' | 'completed' | 'archived'
+export type SessionStatus = 'active' | 'completed' | 'archived';
 
 /**
  * Function call status enumeration
  */
-export type FCStatus = 'success' | 'error'
+export type FCStatus = 'success' | 'error';
 
 /**
  * Sync queue item status
  */
-export type SyncStatus = 'pending' | 'syncing' | 'synced' | 'failed'
+export type SyncStatus = 'pending' | 'syncing' | 'synced' | 'failed';
 
 /**
  * Session metadata stored in meta.json
  */
 export interface SessionMeta {
   /** Unique session identifier */
-  id: string
+  id: string;
   /** Absolute path to project directory */
-  projectPath: string
+  projectPath: string;
   /** Hash identifier for project */
-  projectHash: string
+  projectHash: string;
   /** Session start time (ISO 8601) */
-  startTime: string
+  startTime: string;
   /** Session end time (ISO 8601) */
-  endTime?: string
+  endTime?: string;
   /** Current session status */
-  status: SessionStatus
+  status: SessionStatus;
   /** Total tokens used in session */
-  tokenCount: number
+  tokenCount: number;
   /** Tokens used for summaries */
-  summaryTokens: number
+  summaryTokens: number;
   /** Total function call count */
-  fcCount: number
+  fcCount: number;
   /** CCJK version that created this session */
-  version: string
+  version: string;
   /** Optional session description */
-  description?: string
+  description?: string;
   /** Last updated timestamp */
-  lastUpdated: string
+  lastUpdated: string;
 }
 
 /**
@@ -53,25 +53,25 @@ export interface SessionMeta {
  */
 export interface FCLogEntry {
   /** Timestamp (ISO 8601) */
-  ts: string
+  ts: string;
   /** Unique function call identifier */
-  id: string
+  id: string;
   /** Function name */
-  fc: string
+  fc: string;
   /** Function arguments (may be truncated) */
-  args: Record<string, unknown>
+  args: Record<string, unknown>;
   /** Function result (truncated if large) */
-  result?: string
+  result?: string;
   /** Token count for this FC */
-  tokens: number
+  tokens: number;
   /** Execution duration in milliseconds */
-  duration: number
+  duration: number;
   /** AI-generated summary of this FC */
-  summary: string
+  summary: string;
   /** Execution status */
-  status: FCStatus
+  status: FCStatus;
   /** Error message if status is 'error' */
-  error?: string
+  error?: string;
 }
 
 /**
@@ -79,13 +79,13 @@ export interface FCLogEntry {
  */
 export interface Session {
   /** Session metadata */
-  meta: SessionMeta
+  meta: SessionMeta;
   /** Path to session directory */
-  path: string
+  path: string;
   /** Path to FC log file */
-  fcLogPath: string
+  fcLogPath: string;
   /** Path to summary file */
-  summaryPath: string
+  summaryPath: string;
 }
 
 /**
@@ -93,9 +93,9 @@ export interface Session {
  */
 export interface CurrentSessionPointer {
   /** Current active session ID */
-  sessionId: string
+  sessionId: string;
   /** Last updated timestamp */
-  lastUpdated: string
+  lastUpdated: string;
 }
 
 /**
@@ -103,23 +103,23 @@ export interface CurrentSessionPointer {
  */
 export interface SyncQueueItem {
   /** Unique queue item identifier */
-  id: string
+  id: string;
   /** Type of data to sync */
-  type: 'session' | 'summary' | 'fc-log'
+  type: 'session' | 'summary' | 'fc-log';
   /** Associated session ID */
-  sessionId: string
+  sessionId: string;
   /** Data payload to sync */
-  data: unknown
+  data: unknown;
   /** Creation timestamp (ISO 8601) */
-  createdAt: string
+  createdAt: string;
   /** Current sync status */
-  status: SyncStatus
+  status: SyncStatus;
   /** Number of retry attempts */
-  retries: number
+  retries: number;
   /** Last error message if failed */
-  lastError?: string
+  lastError?: string;
   /** Next retry timestamp */
-  nextRetry?: string
+  nextRetry?: string;
 }
 
 /**
@@ -127,42 +127,42 @@ export interface SyncQueueItem {
  */
 export interface ContextConfig {
   /** Enable context compression system */
-  enabled: boolean
+  enabled: boolean;
   /** Automatically generate summaries */
-  autoSummarize: boolean
+  autoSummarize: boolean;
   /** Token threshold to trigger summarization */
-  contextThreshold: number
+  contextThreshold: number;
   /** Maximum context tokens before compression */
-  maxContextTokens: number
+  maxContextTokens: number;
   /** Model to use for summarization */
-  summaryModel: 'haiku' | 'user-default'
+  summaryModel: 'haiku' | 'user-default';
   /** Cloud sync configuration */
   cloudSync: {
     /** Enable cloud synchronization */
-    enabled: boolean
+    enabled: boolean;
     /** API key for cloud service */
-    apiKey?: string
+    apiKey?: string;
     /** Cloud service endpoint */
-    endpoint?: string
-  }
+    endpoint?: string;
+  };
   /** Cleanup policies */
   cleanup: {
     /** Maximum session age in days */
-    maxSessionAge: number
+    maxSessionAge: number;
     /** Maximum storage size in MB */
-    maxStorageSize: number
+    maxStorageSize: number;
     /** Auto-cleanup enabled */
-    autoCleanup: boolean
-  }
+    autoCleanup: boolean;
+  };
   /** Storage paths */
   storage: {
     /** Base directory for context storage */
-    baseDir: string
+    baseDir: string;
     /** Sessions subdirectory */
-    sessionsDir: string
+    sessionsDir: string;
     /** Sync queue subdirectory */
-    syncQueueDir: string
-  }
+    syncQueueDir: string;
+  };
 }
 
 /**
@@ -170,25 +170,25 @@ export interface ContextConfig {
  */
 export interface StorageStats {
   /** Total number of sessions */
-  totalSessions: number
+  totalSessions: number;
   /** Number of active sessions */
-  activeSessions: number
+  activeSessions: number;
   /** Number of completed sessions */
-  completedSessions: number
+  completedSessions: number;
   /** Number of archived sessions */
-  archivedSessions: number
+  archivedSessions: number;
   /** Total storage size in bytes */
-  totalSize: number
+  totalSize: number;
   /** Total token count across all sessions */
-  totalTokens: number
+  totalTokens: number;
   /** Total FC count across all sessions */
-  totalFCs: number
+  totalFCs: number;
   /** Oldest session timestamp */
-  oldestSession?: string
+  oldestSession?: string;
   /** Newest session timestamp */
-  newestSession?: string
+  newestSession?: string;
   /** Number of pending sync items */
-  pendingSyncItems: number
+  pendingSyncItems: number;
 }
 
 /**
@@ -196,15 +196,15 @@ export interface StorageStats {
  */
 export interface SessionListOptions {
   /** Filter by project hash */
-  projectHash?: string
+  projectHash?: string;
   /** Filter by status */
-  status?: SessionStatus
+  status?: SessionStatus;
   /** Limit number of results */
-  limit?: number
+  limit?: number;
   /** Sort order */
-  sortBy?: 'startTime' | 'endTime' | 'tokenCount'
+  sortBy?: 'startTime' | 'endTime' | 'tokenCount';
   /** Sort direction */
-  sortOrder?: 'asc' | 'desc'
+  sortOrder?: 'asc' | 'desc';
 }
 
 /**
@@ -212,15 +212,15 @@ export interface SessionListOptions {
  */
 export interface FCLogQueryOptions {
   /** Start from this timestamp */
-  startTime?: string
+  startTime?: string;
   /** End at this timestamp */
-  endTime?: string
+  endTime?: string;
   /** Filter by function name */
-  functionName?: string
+  functionName?: string;
   /** Filter by status */
-  status?: FCStatus
+  status?: FCStatus;
   /** Limit number of results */
-  limit?: number
+  limit?: number;
 }
 
 /**
@@ -228,11 +228,11 @@ export interface FCLogQueryOptions {
  */
 export interface StorageResult<T = void> {
   /** Operation success status */
-  success: boolean
+  success: boolean;
   /** Result data if successful */
-  data?: T
+  data?: T;
   /** Error message if failed */
-  error?: string
+  error?: string;
 }
 
 /**
@@ -240,11 +240,11 @@ export interface StorageResult<T = void> {
  */
 export interface CleanupResult {
   /** Number of sessions cleaned */
-  sessionsRemoved: number
+  sessionsRemoved: number;
   /** Number of bytes freed */
-  bytesFreed: number
+  bytesFreed: number;
   /** List of removed session IDs */
-  removedSessionIds: string[]
+  removedSessionIds: string[];
   /** Cleanup duration in milliseconds */
-  duration: number
+  duration: number;
 }

@@ -3,48 +3,48 @@
  * Tools for checking and warning about MCP service performance impact
  */
 
-import type { McpTier } from '../config/mcp-tiers'
-import { getMcpTierConfig, MCP_PERFORMANCE_THRESHOLDS, MCP_SERVICE_TIERS } from '../config/mcp-tiers'
+import type { McpTier } from '../config/mcp-tiers';
+import { getMcpTierConfig, MCP_PERFORMANCE_THRESHOLDS, MCP_SERVICE_TIERS } from '../config/mcp-tiers';
 
 /**
  * Performance warning levels
  */
-export type PerformanceWarningLevel = 'info' | 'warning' | 'critical'
+export type PerformanceWarningLevel = 'info' | 'warning' | 'critical';
 
 /**
  * Performance warning result
  */
 export interface PerformanceWarning {
-  level: PerformanceWarningLevel
-  message: string
-  messageZh: string
-  suggestion: string
-  suggestionZh: string
-  serviceCount: number
-  estimatedMemory: number
-  estimatedCpu: number
+  level: PerformanceWarningLevel;
+  message: string;
+  messageZh: string;
+  suggestion: string;
+  suggestionZh: string;
+  serviceCount: number;
+  estimatedMemory: number;
+  estimatedCpu: number;
 }
 
 /**
  * Service analysis result
  */
 export interface ServiceAnalysis {
-  serviceId: string
-  tier: McpTier
-  autoStart: boolean
-  idleTimeout?: number
-  recommendation?: string
-  recommendationZh?: string
+  serviceId: string;
+  tier: McpTier;
+  autoStart: boolean;
+  idleTimeout?: number;
+  recommendation?: string;
+  recommendationZh?: string;
 }
 
 /**
  * Check MCP performance based on service count
  */
 export function checkMcpPerformance(serviceCount: number): PerformanceWarning | null {
-  const { warningCount, criticalCount, estimatedMemoryPerService, estimatedCpuPerService } = MCP_PERFORMANCE_THRESHOLDS
+  const { warningCount, criticalCount, estimatedMemoryPerService, estimatedCpuPerService } = MCP_PERFORMANCE_THRESHOLDS;
 
-  const estimatedMemory = serviceCount * estimatedMemoryPerService
-  const estimatedCpu = serviceCount * estimatedCpuPerService
+  const estimatedMemory = serviceCount * estimatedMemoryPerService;
+  const estimatedCpu = serviceCount * estimatedCpuPerService;
 
   if (serviceCount >= criticalCount) {
     return {
@@ -56,7 +56,7 @@ export function checkMcpPerformance(serviceCount: number): PerformanceWarning | 
       serviceCount,
       estimatedMemory,
       estimatedCpu,
-    }
+    };
   }
 
   if (serviceCount >= warningCount) {
@@ -69,10 +69,10 @@ export function checkMcpPerformance(serviceCount: number): PerformanceWarning | 
       serviceCount,
       estimatedMemory,
       estimatedCpu,
-    }
+    };
   }
 
-  return null
+  return null;
 }
 
 /**
@@ -80,108 +80,108 @@ export function checkMcpPerformance(serviceCount: number): PerformanceWarning | 
  */
 export function analyzeServices(serviceIds: string[]): ServiceAnalysis[] {
   return serviceIds.map((serviceId) => {
-    const tierConfig = getMcpTierConfig(serviceId)
-    const tier = MCP_SERVICE_TIERS[serviceId] || 'ondemand'
+    const tierConfig = getMcpTierConfig(serviceId);
+    const tier = MCP_SERVICE_TIERS[serviceId] || 'ondemand';
 
     const analysis: ServiceAnalysis = {
       serviceId,
       tier,
       autoStart: tierConfig.autoStart,
       idleTimeout: tierConfig.idleTimeout,
-    }
+    };
 
     // Add recommendations for non-core services
     if (tier !== 'core') {
-      analysis.recommendation = `Consider using on-demand loading for ${serviceId}`
-      analysis.recommendationZh = `建议对 ${serviceId} 使用按需加载`
+      analysis.recommendation = `Consider using on-demand loading for ${serviceId}`;
+      analysis.recommendationZh = `建议对 ${serviceId} 使用按需加载`;
     }
 
-    return analysis
-  })
+    return analysis;
+  });
 }
 
 /**
  * Get optimization suggestions based on current services
  */
 export function getOptimizationSuggestions(serviceIds: string[]): string[] {
-  const suggestions: string[] = []
-  const analysis = analyzeServices(serviceIds)
+  const suggestions: string[] = [];
+  const analysis = analyzeServices(serviceIds);
 
   // Count services by tier
   const tierCounts = {
     core: 0,
     ondemand: 0,
     scenario: 0,
-  }
+  };
 
   for (const a of analysis) {
-    tierCounts[a.tier]++
+    tierCounts[a.tier]++;
   }
 
   // Suggestion: Too many scenario services
   if (tierCounts.scenario > 2) {
-    suggestions.push('Consider disabling some scenario-specific services when not needed')
+    suggestions.push('Consider disabling some scenario-specific services when not needed');
   }
 
   // Suggestion: Browser automation services
-  const hasBothBrowserServices = serviceIds.includes('Playwright') && serviceIds.includes('puppeteer')
+  const hasBothBrowserServices = serviceIds.includes('Playwright') && serviceIds.includes('puppeteer');
   if (hasBothBrowserServices) {
-    suggestions.push('Both Playwright and Puppeteer are enabled - consider using only one')
+    suggestions.push('Both Playwright and Puppeteer are enabled - consider using only one');
   }
 
   // Suggestion: High total count
   if (serviceIds.length > MCP_PERFORMANCE_THRESHOLDS.maxRecommended) {
-    suggestions.push(`You have ${serviceIds.length} services. Recommended maximum is ${MCP_PERFORMANCE_THRESHOLDS.maxRecommended}`)
+    suggestions.push(`You have ${serviceIds.length} services. Recommended maximum is ${MCP_PERFORMANCE_THRESHOLDS.maxRecommended}`);
   }
 
   // Suggestion: No core services
   if (tierCounts.core === 0) {
-    suggestions.push('Consider enabling core services (context7, open-websearch) for better experience')
+    suggestions.push('Consider enabling core services (context7, open-websearch) for better experience');
   }
 
-  return suggestions
+  return suggestions;
 }
 
 /**
  * Calculate estimated resource usage
  */
 export function calculateResourceUsage(serviceCount: number): {
-  memory: { value: number, unit: string }
-  cpu: { value: number, unit: string }
-  rating: 'low' | 'medium' | 'high' | 'critical'
+  memory: { value: number; unit: string };
+  cpu: { value: number; unit: string };
+  rating: 'low' | 'medium' | 'high' | 'critical';
 } {
-  const { estimatedMemoryPerService, estimatedCpuPerService, warningCount, criticalCount } = MCP_PERFORMANCE_THRESHOLDS
+  const { estimatedMemoryPerService, estimatedCpuPerService, warningCount, criticalCount } = MCP_PERFORMANCE_THRESHOLDS;
 
-  const memory = serviceCount * estimatedMemoryPerService
-  const cpu = serviceCount * estimatedCpuPerService
+  const memory = serviceCount * estimatedMemoryPerService;
+  const cpu = serviceCount * estimatedCpuPerService;
 
-  let rating: 'low' | 'medium' | 'high' | 'critical'
+  let rating: 'low' | 'medium' | 'high' | 'critical';
   if (serviceCount >= criticalCount) {
-    rating = 'critical'
+    rating = 'critical';
   }
   else if (serviceCount >= warningCount) {
-    rating = 'high'
+    rating = 'high';
   }
   else if (serviceCount >= 3) {
-    rating = 'medium'
+    rating = 'medium';
   }
   else {
-    rating = 'low'
+    rating = 'low';
   }
 
   return {
     memory: { value: memory, unit: 'MB' },
     cpu: { value: cpu, unit: '%' },
     rating,
-  }
+  };
 }
 
 /**
  * Format performance warning for display
  */
 export function formatPerformanceWarning(warning: PerformanceWarning, lang: 'en' | 'zh-CN' = 'en'): string {
-  const message = lang === 'zh-CN' ? warning.messageZh : warning.message
-  const suggestion = lang === 'zh-CN' ? warning.suggestionZh : warning.suggestion
+  const message = lang === 'zh-CN' ? warning.messageZh : warning.message;
+  const suggestion = lang === 'zh-CN' ? warning.suggestionZh : warning.suggestion;
 
   const lines = [
     message,
@@ -190,37 +190,37 @@ export function formatPerformanceWarning(warning: PerformanceWarning, lang: 'en'
     `  ${lang === 'zh-CN' ? '预估CPU' : 'Est. CPU'}: ~${warning.estimatedCpu}%`,
     '',
     `💡 ${suggestion}`,
-  ]
+  ];
 
-  return lines.join('\n')
+  return lines.join('\n');
 }
 
 /**
  * Check if adding a service would exceed thresholds
  */
 export function wouldExceedThreshold(currentCount: number, addCount: number = 1): {
-  wouldExceed: boolean
-  newLevel: PerformanceWarningLevel | null
-  currentLevel: PerformanceWarningLevel | null
+  wouldExceed: boolean;
+  newLevel: PerformanceWarningLevel | null;
+  currentLevel: PerformanceWarningLevel | null;
 } {
-  const { warningCount, criticalCount } = MCP_PERFORMANCE_THRESHOLDS
+  const { warningCount, criticalCount } = MCP_PERFORMANCE_THRESHOLDS;
 
   const currentLevel = currentCount >= criticalCount
     ? 'critical'
     : currentCount >= warningCount
       ? 'warning'
-      : null
+      : null;
 
-  const newCount = currentCount + addCount
+  const newCount = currentCount + addCount;
   const newLevel = newCount >= criticalCount
     ? 'critical'
     : newCount >= warningCount
       ? 'warning'
-      : null
+      : null;
 
   return {
     wouldExceed: newLevel !== null && (currentLevel === null || newLevel !== currentLevel),
     newLevel,
     currentLevel,
-  }
+  };
 }

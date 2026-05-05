@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
-import { randomBytes } from 'crypto';
-import { existsSync, readFileSync } from 'fs';
-import { homedir } from 'os';
-import { join } from 'path';
+import { randomBytes } from 'node:crypto';
+import { existsSync, readFileSync } from 'node:fs';
+import { homedir } from 'node:os';
+import { join } from 'node:path';
 import { getDaemonStatus, startDaemon, stopDaemon } from '../dist/index.mjs';
 
 const command = process.argv[2];
@@ -17,7 +17,8 @@ function loadDaemonConfig() {
   try {
     const data = readFileSync(DAEMON_CONFIG_PATH, 'utf-8');
     return JSON.parse(data);
-  } catch (error) {
+  }
+  catch (error) {
     console.error('❌ Failed to read daemon config:', error?.message || error);
     return null;
   }
@@ -30,7 +31,8 @@ function parseEncryptionKey(config) {
       if (key.length === 32) {
         return new Uint8Array(key);
       }
-    } catch {
+    }
+    catch {
       // fallback below
     }
   }

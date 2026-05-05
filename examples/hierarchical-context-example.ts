@@ -4,8 +4,8 @@
  * Demonstrates L0/L1/L2 tiered context loading with the CCJK context system.
  */
 
-import { ContextManager } from '../src/context'
 import type { ContextData } from '../src/context/types'
+import { ContextManager } from '../src/context'
 import { CompressionStrategy } from '../src/context/types'
 
 async function main() {
@@ -178,7 +178,7 @@ async function main() {
   const pruned = manager.optimizeCache()
   console.log(`\n✓ Optimized cache (pruned ${pruned} entries)`)
 
-  console.log('\n' + '='.repeat(80))
+  console.log(`\n${'='.repeat(80)}`)
   console.log('Example completed successfully!')
   console.log('='.repeat(80))
 }

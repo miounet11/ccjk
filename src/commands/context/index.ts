@@ -4,55 +4,55 @@
  * Merges context-menu, context-compression, and new context management features
  */
 
-import { existsSync, lstatSync, readdirSync, readFileSync } from 'node:fs'
-import ansis from 'ansis'
-import { join } from 'pathe'
-import { getTranslation } from '../../i18n'
-import { inspectMemoryFiles } from '../../utils/memory-sync.js'
+import { existsSync, lstatSync, readdirSync, readFileSync } from 'node:fs';
+import ansis from 'ansis';
+import { join } from 'pathe';
+import { getTranslation } from '../../i18n';
+import { inspectMemoryFiles } from '../../utils/memory-sync.js';
 
 /**
  * Context analysis result
  */
 export interface ContextAnalysis {
-  files: ContextFile[]
-  totalTokens: number
-  totalSize: number
-  largestFiles: ContextFile[]
+  files: ContextFile[];
+  totalTokens: number;
+  totalSize: number;
+  largestFiles: ContextFile[];
 }
 
 /**
  * Context file info
  */
 export interface ContextFile {
-  path: string
-  size: number
-  tokens: number
-  type: 'code' | 'markdown' | 'text' | 'binary'
+  path: string;
+  size: number;
+  tokens: number;
+  type: 'code' | 'markdown' | 'text' | 'binary';
 }
 
 /**
  * Analyze context in current directory
  */
 export async function analyzeContext(): Promise<void> {
-  const t = getTranslation()
+  const t = getTranslation();
 
-  console.log(ansis.green.bold(`\n🔍 ${t('context.analyzing')}\n`))
+  console.log(ansis.green.bold(`\n🔍 ${t('context.analyzing')}\n`));
 
-  const analysis = analyzeDirectory(process.cwd())
+  const analysis = analyzeDirectory(process.cwd());
 
-  console.log(ansis.white(`${t('context.filesInContext')}: ${ansis.bold(analysis.files.length.toString())}`))
-  console.log(ansis.white(`${t('context.estimatedTokens')}: ${ansis.bold(analysis.totalTokens.toLocaleString())}`))
-  console.log(ansis.white(`${t('context.totalSize')}: ${ansis.bold(formatBytes(analysis.totalSize))}\n`))
+  console.log(ansis.white(`${t('context.filesInContext')}: ${ansis.bold(analysis.files.length.toString())}`));
+  console.log(ansis.white(`${t('context.estimatedTokens')}: ${ansis.bold(analysis.totalTokens.toLocaleString())}`));
+  console.log(ansis.white(`${t('context.totalSize')}: ${ansis.bold(formatBytes(analysis.totalSize))}\n`));
 
   if (analysis.largestFiles.length > 0) {
-    console.log(ansis.yellow(`${t('context.largestFiles')}:\n`))
+    console.log(ansis.yellow(`${t('context.largestFiles')}:\n`));
     for (const file of analysis.largestFiles.slice(0, 5)) {
-      const sizeStr = formatBytes(file.size)
-      const tokensStr = file.tokens.toLocaleString()
-      console.log(`  ${ansis.white(file.path)}`)
-      console.log(`    ${ansis.dim(`${t('context.size')}: ${sizeStr} | ${t('context.tokens')}: ${tokensStr}`)}`)
+      const sizeStr = formatBytes(file.size);
+      const tokensStr = file.tokens.toLocaleString();
+      console.log(`  ${ansis.white(file.path)}`);
+      console.log(`    ${ansis.dim(`${t('context.size')}: ${sizeStr} | ${t('context.tokens')}: ${tokensStr}`)}`);
     }
-    console.log()
+    console.log();
   }
 }
 
@@ -60,83 +60,83 @@ export async function analyzeContext(): Promise<void> {
  * Show context status
  */
 export async function showContextStatus(): Promise<void> {
-  const t = getTranslation()
-  const memoryStatus = inspectMemoryFiles({ projectPath: process.cwd() })
+  const t = getTranslation();
+  const memoryStatus = inspectMemoryFiles({ projectPath: process.cwd() });
 
-  console.log(ansis.green.bold(`\n📊 ${t('context.status')}\n`))
-  console.log(ansis.white(`Project: ${ansis.bold(process.cwd())}`))
+  console.log(ansis.green.bold(`\n📊 ${t('context.status')}\n`));
+  console.log(ansis.white(`Project: ${ansis.bold(process.cwd())}`));
 
   // Check CLAUDE.md
-  const claudeMdPath = join(process.cwd(), 'CLAUDE.md')
-  const hasClaudeMd = existsSync(claudeMdPath)
+  const claudeMdPath = join(process.cwd(), 'CLAUDE.md');
+  const hasClaudeMd = existsSync(claudeMdPath);
 
-  console.log(`${hasClaudeMd ? ansis.green('✓') : ansis.red('✗')} CLAUDE.md`)
+  console.log(`${hasClaudeMd ? ansis.green('✓') : ansis.red('✗')} CLAUDE.md`);
 
   if (hasClaudeMd) {
-    const stats = lstatSync(claudeMdPath)
-    const content = readFileSync(claudeMdPath, 'utf-8')
-    const tokens = estimateTokens(content)
+    const stats = lstatSync(claudeMdPath);
+    const content = readFileSync(claudeMdPath, 'utf-8');
+    const tokens = estimateTokens(content);
 
-    console.log(`  ${ansis.dim(`${t('context.size')}: ${formatBytes(stats.size)} | ${t('context.tokens')}: ${tokens.toLocaleString()}`)}`)
+    console.log(`  ${ansis.dim(`${t('context.size')}: ${formatBytes(stats.size)} | ${t('context.tokens')}: ${tokens.toLocaleString()}`)}`);
   }
 
-  console.log()
+  console.log();
 
   // Check .claudeignore
-  const claudeIgnorePath = join(process.cwd(), '.claudeignore')
-  const hasIgnore = existsSync(claudeIgnorePath)
-  console.log(`${hasIgnore ? ansis.green('✓') : ansis.yellow('○')} .claudeignore`)
+  const claudeIgnorePath = join(process.cwd(), '.claudeignore');
+  const hasIgnore = existsSync(claudeIgnorePath);
+  console.log(`${hasIgnore ? ansis.green('✓') : ansis.yellow('○')} .claudeignore`);
 
   // Check for other context files
-  const contextFiles = findContextFiles(process.cwd())
-  console.log(`\n${ansis.white(`${t('context.additionalFiles')}: ${contextFiles.length}`)}\n`)
+  const contextFiles = findContextFiles(process.cwd());
+  console.log(`\n${ansis.white(`${t('context.additionalFiles')}: ${contextFiles.length}`)}\n`);
 
   for (const file of contextFiles.slice(0, 10)) {
-    const tokens = estimateTokens(readFileSync(file, 'utf-8'))
-    const _size = lstatSync(file).size
-    console.log(`  ${ansis.white(file)} ${ansis.dim(`(${tokens.toLocaleString()} ${t('context.tokens')})`)}`)
+    const tokens = estimateTokens(readFileSync(file, 'utf-8'));
+    const _size = lstatSync(file).size;
+    console.log(`  ${ansis.white(file)} ${ansis.dim(`(${tokens.toLocaleString()} ${t('context.tokens')})`)}`);
   }
 
   if (contextFiles.length > 10) {
-    console.log(`  ${ansis.dim(`... and ${contextFiles.length - 10} more`)}`)
+    console.log(`  ${ansis.dim(`... and ${contextFiles.length - 10} more`)}`);
   }
 
-  console.log(ansis.yellow('\nMemory\n'))
-  console.log(`  ${ansis.white(`State: ${describeMemorySyncState(memoryStatus.syncState)}`)}`)
-  console.log(`  ${ansis.dim(`Claude: ${memoryStatus.paths.claude}`)}`)
-  console.log(`  ${ansis.dim(`CCJK:   ${memoryStatus.paths.ccjk}`)}`)
+  console.log(ansis.yellow('\nMemory\n'));
+  console.log(`  ${ansis.white(`State: ${describeMemorySyncState(memoryStatus.syncState)}`)}`);
+  console.log(`  ${ansis.dim(`Claude: ${memoryStatus.paths.claude}`)}`);
+  console.log(`  ${ansis.dim(`CCJK:   ${memoryStatus.paths.ccjk}`)}`);
   if (memoryStatus.parseMode === 'structured') {
-    console.log(`  ${ansis.dim(`Entries: ${memoryStatus.entryCount} | Facts: ${memoryStatus.factCount} | Patterns: ${memoryStatus.patternCount} | Decisions: ${memoryStatus.decisionCount}`)}`)
+    console.log(`  ${ansis.dim(`Entries: ${memoryStatus.entryCount} | Facts: ${memoryStatus.factCount} | Patterns: ${memoryStatus.patternCount} | Decisions: ${memoryStatus.decisionCount}`)}`);
   }
   else if (memoryStatus.parseMode === 'freeform') {
-    console.log(`  ${ansis.dim('Structured parsing: freeform notes detected')}`)
+    console.log(`  ${ansis.dim('Structured parsing: freeform notes detected')}`);
   }
   else {
-    console.log(`  ${ansis.dim('Structured parsing: no memory content found')}`)
+    console.log(`  ${ansis.dim('Structured parsing: no memory content found')}`);
   }
 
-  console.log(ansis.yellow('\nNext Commands\n'))
-  console.log(`  ${ansis.white('ccjk context status')} ${ansis.dim('Review project context readiness')}`)
-  console.log(`  ${ansis.white('ccjk memory --status')} ${ansis.dim('Inspect Claude and CCJK memory files')}`)
-  console.log(`  ${ansis.white('ccjk memory --doctor')} ${ansis.dim('Run memory diagnostics and recommendations')}`)
-  console.log(`  ${ansis.white('ccjk context --show')} ${ansis.dim('Preview loaded context layers')}`)
-  console.log()
+  console.log(ansis.yellow('\nNext Commands\n'));
+  console.log(`  ${ansis.white('ccjk context status')} ${ansis.dim('Review project context readiness')}`);
+  console.log(`  ${ansis.white('ccjk memory --status')} ${ansis.dim('Inspect Claude and CCJK memory files')}`);
+  console.log(`  ${ansis.white('ccjk memory --doctor')} ${ansis.dim('Run memory diagnostics and recommendations')}`);
+  console.log(`  ${ansis.white('ccjk context --show')} ${ansis.dim('Preview loaded context layers')}`);
+  console.log();
 }
 
 function describeMemorySyncState(syncState: ReturnType<typeof inspectMemoryFiles>['syncState']): string {
   switch (syncState) {
     case 'in-sync':
-      return 'Claude and CCJK memory are in sync'
+      return 'Claude and CCJK memory are in sync';
     case 'claude-only':
-      return 'Only Claude memory has content'
+      return 'Only Claude memory has content';
     case 'ccjk-only':
-      return 'Only CCJK memory has content'
+      return 'Only CCJK memory has content';
     case 'claude-newer':
-      return 'Claude memory is newer than the CCJK mirror'
+      return 'Claude memory is newer than the CCJK mirror';
     case 'ccjk-newer':
-      return 'CCJK mirror is newer than Claude memory'
+      return 'CCJK mirror is newer than Claude memory';
     case 'empty':
-      return 'No project memory found'
+      return 'No project memory found';
   }
 }
 
@@ -144,48 +144,48 @@ function describeMemorySyncState(syncState: ReturnType<typeof inspectMemoryFiles
  * Compress context
  */
 export async function compressContext(): Promise<void> {
-  const t = getTranslation()
+  const t = getTranslation();
 
-  console.log(ansis.green.bold(`\n🗜️  ${t('context.compressing')}\n`))
+  console.log(ansis.green.bold(`\n🗜️  ${t('context.compressing')}\n`));
 
-  const analysis = analyzeDirectory(process.cwd())
+  const analysis = analyzeDirectory(process.cwd());
 
   // Identify potential compression opportunities
-  const duplicates = findDuplicates(analysis.files)
-  const largeFiles = analysis.files.filter(f => f.tokens > 1000)
-  const binaryFiles = analysis.files.filter(f => f.type === 'binary')
+  const duplicates = findDuplicates(analysis.files);
+  const largeFiles = analysis.files.filter(f => f.tokens > 1000);
+  const binaryFiles = analysis.files.filter(f => f.type === 'binary');
 
-  let totalSavings = 0
+  let totalSavings = 0;
 
   if (duplicates.length > 0) {
-    console.log(ansis.yellow(`${t('context.duplicatesFound')}: ${duplicates.length}\n`))
-    totalSavings += duplicates.length * 500 // Estimated savings
+    console.log(ansis.yellow(`${t('context.duplicatesFound')}: ${duplicates.length}\n`));
+    totalSavings += duplicates.length * 500; // Estimated savings
   }
 
   if (largeFiles.length > 0) {
-    console.log(ansis.yellow(`${t('context.largeFiles')}: ${largeFiles.length}\n`))
+    console.log(ansis.yellow(`${t('context.largeFiles')}: ${largeFiles.length}\n`));
     for (const file of largeFiles.slice(0, 5)) {
-      console.log(`  ${ansis.white(file.path)} (${file.tokens.toLocaleString()} ${t('context.tokens')})`)
+      console.log(`  ${ansis.white(file.path)} (${file.tokens.toLocaleString()} ${t('context.tokens')})`);
     }
     if (largeFiles.length > 5) {
-      console.log(`  ${ansis.dim(`... and ${largeFiles.length - 5} more`)}`)
+      console.log(`  ${ansis.dim(`... and ${largeFiles.length - 5} more`)}`);
     }
-    console.log()
+    console.log();
 
-    totalSavings += largeFiles.reduce((sum, f) => sum + Math.floor(f.tokens * 0.3), 0)
+    totalSavings += largeFiles.reduce((sum, f) => sum + Math.floor(f.tokens * 0.3), 0);
   }
 
   if (binaryFiles.length > 0) {
-    console.log(ansis.yellow(`${t('context.binaryFiles')}: ${binaryFiles.length}\n`))
-    console.log(ansis.dim(`${t('context.binaryNote')}\n`))
-    totalSavings += binaryFiles.length * 200
+    console.log(ansis.yellow(`${t('context.binaryFiles')}: ${binaryFiles.length}\n`));
+    console.log(ansis.dim(`${t('context.binaryNote')}\n`));
+    totalSavings += binaryFiles.length * 200;
   }
 
   if (totalSavings > 0) {
-    console.log(ansis.green(`${t('context.estimatedSavings')}: ${ansis.bold(totalSavings.toLocaleString())} ${t('context.tokens')}\n`))
+    console.log(ansis.green(`${t('context.estimatedSavings')}: ${ansis.bold(totalSavings.toLocaleString())} ${t('context.tokens')}\n`));
   }
   else {
-    console.log(ansis.dim(`${t('context.noCompressionNeeded')}\n`))
+    console.log(ansis.dim(`${t('context.noCompressionNeeded')}\n`));
   }
 }
 
@@ -193,39 +193,39 @@ export async function compressContext(): Promise<void> {
  * Optimize context
  */
 export async function optimizeContext(): Promise<void> {
-  const t = getTranslation()
+  const t = getTranslation();
 
-  console.log(ansis.green.bold(`\n⚡ ${t('context.optimizing')}\n`))
+  console.log(ansis.green.bold(`\n⚡ ${t('context.optimizing')}\n`));
 
-  const analysis = analyzeDirectory(process.cwd())
+  const analysis = analyzeDirectory(process.cwd());
 
-  const suggestions: string[] = []
+  const suggestions: string[] = [];
 
   // Check for large files
-  const largeFiles = analysis.files.filter(f => f.tokens > 1000)
+  const largeFiles = analysis.files.filter(f => f.tokens > 1000);
   if (largeFiles.length > 0) {
-    suggestions.push(`${t('context.suggestionLargeFiles')}: ${largeFiles.map(f => f.path).join(', ')}`)
+    suggestions.push(`${t('context.suggestionLargeFiles')}: ${largeFiles.map(f => f.path).join(', ')}`);
   }
 
   // Check for potential duplicates
   if (analysis.files.length > 20) {
-    suggestions.push(`${t('context.suggestionManyFiles')}: ${analysis.files.length}`)
+    suggestions.push(`${t('context.suggestionManyFiles')}: ${analysis.files.length}`);
   }
 
   // Check if .claudeignore exists
   if (!existsSync(join(process.cwd(), '.claudeignore'))) {
-    suggestions.push(t('context.suggestionClaudeignore'))
+    suggestions.push(t('context.suggestionClaudeignore'));
   }
 
   if (suggestions.length === 0) {
-    console.log(ansis.green(`${t('context.optimized')}\n`))
+    console.log(ansis.green(`${t('context.optimized')}\n`));
   }
   else {
-    console.log(ansis.yellow(`${t('context.suggestions')}:\n`))
+    console.log(ansis.yellow(`${t('context.suggestions')}:\n`));
     for (const suggestion of suggestions) {
-      console.log(`  • ${suggestion}`)
+      console.log(`  • ${suggestion}`);
     }
-    console.log()
+    console.log();
   }
 }
 
@@ -233,45 +233,45 @@ export async function optimizeContext(): Promise<void> {
  * Analyze directory for context files
  */
 function analyzeDirectory(dir: string): ContextAnalysis {
-  const files: ContextFile[] = []
-  let totalTokens = 0
-  let totalSize = 0
+  const files: ContextFile[] = [];
+  let totalTokens = 0;
+  let totalSize = 0;
 
   try {
-    const entries = readdirSync(dir, { withFileTypes: true })
+    const entries = readdirSync(dir, { withFileTypes: true });
 
     for (const entry of entries) {
       if (entry.isDirectory()) {
         // Skip node_modules, .git, etc.
         if (['node_modules', '.git', 'dist', 'build', '.next', 'target'].includes(entry.name)) {
-          continue
+          continue;
         }
         // Recursively analyze subdirectories (limited depth)
-        continue
+        continue;
       }
 
-      const filePath = join(dir, entry.name)
-      const fileType = getFileType(entry.name)
+      const filePath = join(dir, entry.name);
+      const fileType = getFileType(entry.name);
 
       // Skip binary files and certain extensions
       if (fileType === 'binary') {
-        continue
+        continue;
       }
 
       try {
-        const stats = lstatSync(filePath)
-        const content = readFileSync(filePath, 'utf-8')
-        const tokens = estimateTokens(content)
+        const stats = lstatSync(filePath);
+        const content = readFileSync(filePath, 'utf-8');
+        const tokens = estimateTokens(content);
 
         files.push({
           path: filePath,
           size: stats.size,
           tokens,
           type: fileType,
-        })
+        });
 
-        totalTokens += tokens
-        totalSize += stats.size
+        totalTokens += tokens;
+        totalSize += stats.size;
       }
       catch {
         // Skip files that can't be read
@@ -282,21 +282,21 @@ function analyzeDirectory(dir: string): ContextAnalysis {
     // Directory not accessible
   }
 
-  const largestFiles = [...files].sort((a, b) => b.tokens - a.tokens)
+  const largestFiles = [...files].sort((a, b) => b.tokens - a.tokens);
 
   return {
     files,
     totalTokens,
     totalSize,
     largestFiles,
-  }
+  };
 }
 
 /**
  * Find context files in directory
  */
 function findContextFiles(dir: string): string[] {
-  const contextFiles: string[] = []
+  const contextFiles: string[] = [];
   const contextPatterns = [
     'CLAUDE.md',
     'README.md',
@@ -304,14 +304,14 @@ function findContextFiles(dir: string): string[] {
     'tsconfig.json',
     '.gitignore',
     '.claudeignore',
-  ]
+  ];
 
   try {
-    const entries = readdirSync(dir)
+    const entries = readdirSync(dir);
 
     for (const entry of entries) {
       if (contextPatterns.includes(entry)) {
-        contextFiles.push(join(dir, entry))
+        contextFiles.push(join(dir, entry));
       }
     }
   }
@@ -319,56 +319,56 @@ function findContextFiles(dir: string): string[] {
     // Directory not accessible
   }
 
-  return contextFiles
+  return contextFiles;
 }
 
 /**
  * Find duplicate files (by name)
  */
 function findDuplicates(files: ContextFile[]): ContextFile[] {
-  const seen = new Map<string, ContextFile[]>()
-  const duplicates: ContextFile[] = []
+  const seen = new Map<string, ContextFile[]>();
+  const duplicates: ContextFile[] = [];
 
   for (const file of files) {
-    const name = file.path.split('/').pop() || file.path
+    const name = file.path.split('/').pop() || file.path;
     if (!seen.has(name)) {
-      seen.set(name, [])
+      seen.set(name, []);
     }
-    seen.get(name)!.push(file)
+    seen.get(name)!.push(file);
   }
 
   for (const [, group] of seen) {
     if (group.length > 1) {
-      duplicates.push(...group.slice(1))
+      duplicates.push(...group.slice(1));
     }
   }
 
-  return duplicates
+  return duplicates;
 }
 
 /**
  * Get file type
  */
 function getFileType(filename: string): ContextFile['type'] {
-  const ext = filename.split('.').pop()?.toLowerCase()
+  const ext = filename.split('.').pop()?.toLowerCase();
 
   if (['ts', 'tsx', 'js', 'jsx', 'py', 'rs', 'go', 'java', 'c', 'cpp', 'h', 'hpp'].includes(ext || '')) {
-    return 'code'
+    return 'code';
   }
 
   if (['md', 'markdown', 'txt'].includes(ext || '')) {
-    return 'markdown'
+    return 'markdown';
   }
 
   if (['json', 'yaml', 'yml', 'toml', 'xml'].includes(ext || '')) {
-    return 'text'
+    return 'text';
   }
 
   if (['png', 'jpg', 'jpeg', 'gif', 'ico', 'pdf', 'zip', 'tar', 'gz'].includes(ext || '')) {
-    return 'binary'
+    return 'binary';
   }
 
-  return 'text'
+  return 'text';
 }
 
 /**
@@ -377,11 +377,11 @@ function getFileType(filename: string): ContextFile['type'] {
  */
 function estimateTokens(text: string): number {
   // Count Chinese characters
-  const chineseChars = (text.match(/[\u4E00-\u9FA5]/g) || []).length
+  const chineseChars = (text.match(/[\u4E00-\u9FA5]/g) || []).length;
   // Count non-Chinese characters
-  const nonChineseChars = text.length - chineseChars
+  const nonChineseChars = text.length - chineseChars;
 
-  return Math.ceil(chineseChars / 2 + nonChineseChars / 4)
+  return Math.ceil(chineseChars / 2 + nonChineseChars / 4);
 }
 
 /**
@@ -389,36 +389,36 @@ function estimateTokens(text: string): number {
  */
 function formatBytes(bytes: number): string {
   if (bytes === 0)
-    return '0 B'
+    return '0 B';
 
-  const k = 1024
-  const sizes = ['B', 'KB', 'MB', 'GB']
-  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
 
-  return `${Number.parseFloat((bytes / k ** i).toFixed(1))} ${sizes[i]}`
+  return `${Number.parseFloat((bytes / k ** i).toFixed(1))} ${sizes[i]}`;
 }
 
 /**
  * Main context command handler
  */
 export async function handleContextCommand(args: string[]): Promise<void> {
-  const [action, ..._rest] = args
+  const [action, ..._rest] = args;
 
   switch (action) {
     case 'analyze':
-      await analyzeContext()
-      break
+      await analyzeContext();
+      break;
     case 'status':
-      await showContextStatus()
-      break
+      await showContextStatus();
+      break;
     case 'compress':
-      await compressContext()
-      break
+      await compressContext();
+      break;
     case 'optimize':
-      await optimizeContext()
-      break
+      await optimizeContext();
+      break;
     default:
-      showContextHelp()
+      showContextHelp();
   }
 }
 
@@ -426,10 +426,10 @@ export async function handleContextCommand(args: string[]): Promise<void> {
  * Show context command help
  */
 function showContextHelp(): void {
-  console.log(ansis.green.bold('\n📝 Context Commands\n'))
-  console.log(ansis.white('  ccjk context analyze   ') + ansis.dim('Analyze context usage'))
-  console.log(ansis.white('  ccjk context status    ') + ansis.dim('Show context status'))
-  console.log(ansis.white('  ccjk context compress  ') + ansis.dim('Compress context'))
-  console.log(ansis.white('  ccjk context optimize   ') + ansis.dim('Optimize context'))
-  console.log()
+  console.log(ansis.green.bold('\n📝 Context Commands\n'));
+  console.log(ansis.white('  ccjk context analyze   ') + ansis.dim('Analyze context usage'));
+  console.log(ansis.white('  ccjk context status    ') + ansis.dim('Show context status'));
+  console.log(ansis.white('  ccjk context compress  ') + ansis.dim('Compress context'));
+  console.log(ansis.white('  ccjk context optimize   ') + ansis.dim('Optimize context'));
+  console.log();
 }

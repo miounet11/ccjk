@@ -3,41 +3,41 @@
  * Handles cross-device synchronization of sessions and summaries
  */
 
-import type { StorageManager } from './storage-manager'
-import type { SessionMeta } from './storage-types'
-import type { SyncQueueManager } from './sync-queue'
-import { Buffer } from 'node:buffer'
-import { createHash } from 'node:crypto'
-import { EventEmitter } from 'node:events'
-import * as os from 'node:os'
-import { promisify } from 'node:util'
-import { gunzip, gzip } from 'node:zlib'
-import { createStorageManager } from './storage-manager'
-import { createSyncQueueManager } from './sync-queue'
+import type { StorageManager } from './storage-manager';
+import type { SessionMeta } from './storage-types';
+import type { SyncQueueManager } from './sync-queue';
+import { Buffer } from 'node:buffer';
+import { createHash } from 'node:crypto';
+import { EventEmitter } from 'node:events';
+import * as os from 'node:os';
+import { promisify } from 'node:util';
+import { gunzip, gzip } from 'node:zlib';
+import { createStorageManager } from './storage-manager';
+import { createSyncQueueManager } from './sync-queue';
 
-const gzipAsync = promisify(gzip)
-const gunzipAsync = promisify(gunzip)
+const gzipAsync = promisify(gzip);
+const gunzipAsync = promisify(gunzip);
 
 /**
  * Cloud sync configuration options
  */
 export interface CloudSyncOptions {
   /** API endpoint for cloud service */
-  apiEndpoint: string
+  apiEndpoint: string;
   /** API key for authentication */
-  apiKey?: string
+  apiKey?: string;
   /** Sync interval in milliseconds (default: 5 minutes) */
-  syncInterval?: number
+  syncInterval?: number;
   /** Maximum retry attempts (default: 3) */
-  maxRetries?: number
+  maxRetries?: number;
   /** Conflict resolution strategy (default: 'local-wins') */
-  conflictStrategy?: 'local-wins' | 'remote-wins' | 'merge'
+  conflictStrategy?: 'local-wins' | 'remote-wins' | 'merge';
   /** Enable data compression (default: true) */
-  enableCompression?: boolean
+  enableCompression?: boolean;
   /** Storage manager instance */
-  storageManager?: StorageManager
+  storageManager?: StorageManager;
   /** Sync queue manager instance */
-  syncQueueManager?: SyncQueueManager
+  syncQueueManager?: SyncQueueManager;
 }
 
 /**
@@ -45,21 +45,21 @@ export interface CloudSyncOptions {
  */
 export interface SyncData {
   /** Unique identifier */
-  id: string
+  id: string;
   /** Data type */
-  type: 'session' | 'summary' | 'config'
+  type: 'session' | 'summary' | 'config';
   /** Actual data payload */
-  data: unknown
+  data: unknown;
   /** Version number for conflict resolution */
-  version: number
+  version: number;
   /** Last update timestamp */
-  updatedAt: number
+  updatedAt: number;
   /** Data checksum for integrity verification */
-  checksum: string
+  checksum: string;
   /** Device identifier */
-  deviceId?: string
+  deviceId?: string;
   /** Compression flag */
-  compressed?: boolean
+  compressed?: boolean;
 }
 
 /**
@@ -67,15 +67,15 @@ export interface SyncData {
  */
 export interface SyncResult {
   /** Number of items uploaded */
-  uploaded: number
+  uploaded: number;
   /** Number of items downloaded */
-  downloaded: number
+  downloaded: number;
   /** Number of conflicts encountered */
-  conflicts: number
+  conflicts: number;
   /** Error messages */
-  errors: string[]
+  errors: string[];
   /** Sync duration in milliseconds */
-  duration: number
+  duration: number;
 }
 
 /**
@@ -83,17 +83,17 @@ export interface SyncResult {
  */
 export interface SyncStatus {
   /** Whether sync service is running */
-  isRunning: boolean
+  isRunning: boolean;
   /** Last successful sync timestamp */
-  lastSync: number | null
+  lastSync: number | null;
   /** Number of pending uploads */
-  pendingUploads: number
+  pendingUploads: number;
   /** Number of pending downloads */
-  pendingDownloads: number
+  pendingDownloads: number;
   /** Recent error messages */
-  errors: string[]
+  errors: string[];
   /** Next scheduled sync time */
-  nextSync: number | null
+  nextSync: number | null;
 }
 
 /**
@@ -106,15 +106,15 @@ export type CloudSyncEventType
     | 'upload_success'
     | 'download_success'
     | 'conflict_detected'
-    | 'conflict_resolved'
+    | 'conflict_resolved';
 
 /**
  * Cloud sync event
  */
 export interface CloudSyncEvent {
-  type: CloudSyncEventType
-  timestamp: number
-  data?: any
+  type: CloudSyncEventType;
+  timestamp: number;
+  data?: any;
 }
 
 /**
@@ -126,25 +126,25 @@ const DEFAULT_CONFIG: Required<Omit<CloudSyncOptions, 'apiKey' | 'storageManager
   maxRetries: 3,
   conflictStrategy: 'local-wins',
   enableCompression: true,
-}
+};
 
 /**
  * Cloud synchronization manager
  * Handles bidirectional sync between local storage and cloud service
  */
 export class CloudSync extends EventEmitter {
-  private config: Required<CloudSyncOptions>
-  private storageManager: StorageManager
-  private syncQueueManager: SyncQueueManager
-  private syncTimer: NodeJS.Timeout | null = null
-  private isRunning = false
-  private lastSyncTime: number | null = null
-  private errors: string[] = []
-  private deviceId: string
-  private isSyncing = false
+  private config: Required<CloudSyncOptions>;
+  private storageManager: StorageManager;
+  private syncQueueManager: SyncQueueManager;
+  private syncTimer: NodeJS.Timeout | null = null;
+  private isRunning = false;
+  private lastSyncTime: number | null = null;
+  private errors: string[] = [];
+  private deviceId: string;
+  private isSyncing = false;
 
   constructor(options: CloudSyncOptions) {
-    super()
+    super();
 
     // Merge with defaults
     this.config = {
@@ -153,11 +153,11 @@ export class CloudSync extends EventEmitter {
       apiKey: options.apiKey || '',
       storageManager: options.storageManager || createStorageManager(),
       syncQueueManager: options.syncQueueManager || createSyncQueueManager(''),
-    }
+    };
 
-    this.storageManager = this.config.storageManager
-    this.syncQueueManager = this.config.syncQueueManager
-    this.deviceId = this.generateDeviceId()
+    this.storageManager = this.config.storageManager;
+    this.syncQueueManager = this.config.syncQueueManager;
+    this.deviceId = this.generateDeviceId();
   }
 
   /**
@@ -166,27 +166,27 @@ export class CloudSync extends EventEmitter {
    */
   async start(): Promise<void> {
     if (this.isRunning) {
-      return
+      return;
     }
 
-    this.isRunning = true
-    this.errors = []
+    this.isRunning = true;
+    this.errors = [];
 
     // Initialize managers
-    await this.storageManager.initialize()
-    await this.syncQueueManager.initialize()
+    await this.storageManager.initialize();
+    await this.syncQueueManager.initialize();
 
     // Perform initial sync
-    await this.syncNow()
+    await this.syncNow();
 
     // Schedule periodic sync
     this.syncTimer = setInterval(() => {
       this.syncNow().catch((error) => {
-        this.addError(`Periodic sync failed: ${error.message}`)
-      })
-    }, this.config.syncInterval)
+        this.addError(`Periodic sync failed: ${error.message}`);
+      });
+    }, this.config.syncInterval);
 
-    this.emitEvent('sync_started', { deviceId: this.deviceId })
+    this.emitEvent('sync_started', { deviceId: this.deviceId });
   }
 
   /**
@@ -195,20 +195,20 @@ export class CloudSync extends EventEmitter {
    */
   async stop(): Promise<void> {
     if (!this.isRunning) {
-      return
+      return;
     }
 
-    this.isRunning = false
+    this.isRunning = false;
 
     // Clear sync timer
     if (this.syncTimer) {
-      clearInterval(this.syncTimer)
-      this.syncTimer = null
+      clearInterval(this.syncTimer);
+      this.syncTimer = null;
     }
 
     // Wait for current sync to complete
     while (this.isSyncing) {
-      await this.sleep(100)
+      await this.sleep(100);
     }
   }
 
@@ -218,11 +218,11 @@ export class CloudSync extends EventEmitter {
    */
   async syncNow(): Promise<SyncResult> {
     if (this.isSyncing) {
-      throw new Error('Sync already in progress')
+      throw new Error('Sync already in progress');
     }
 
-    this.isSyncing = true
-    const startTime = Date.now()
+    this.isSyncing = true;
+    const startTime = Date.now();
 
     const result: SyncResult = {
       uploaded: 0,
@@ -230,37 +230,37 @@ export class CloudSync extends EventEmitter {
       conflicts: 0,
       errors: [],
       duration: 0,
-    }
+    };
 
     try {
       // Process upload queue
-      const uploadResult = await this.processUploadQueue()
-      result.uploaded = uploadResult.uploaded
-      result.errors.push(...uploadResult.errors)
+      const uploadResult = await this.processUploadQueue();
+      result.uploaded = uploadResult.uploaded;
+      result.errors.push(...uploadResult.errors);
 
       // Download remote changes
-      const downloadResult = await this.downloadRemoteChanges()
-      result.downloaded = downloadResult.downloaded
-      result.conflicts = downloadResult.conflicts
-      result.errors.push(...downloadResult.errors)
+      const downloadResult = await this.downloadRemoteChanges();
+      result.downloaded = downloadResult.downloaded;
+      result.conflicts = downloadResult.conflicts;
+      result.errors.push(...downloadResult.errors);
 
       // Update last sync time
-      this.lastSyncTime = Date.now()
+      this.lastSyncTime = Date.now();
 
-      this.emitEvent('sync_completed', result)
+      this.emitEvent('sync_completed', result);
     }
     catch (error: any) {
-      const errorMsg = `Sync failed: ${error.message}`
-      result.errors.push(errorMsg)
-      this.addError(errorMsg)
-      this.emitEvent('sync_failed', { error: errorMsg })
+      const errorMsg = `Sync failed: ${error.message}`;
+      result.errors.push(errorMsg);
+      this.addError(errorMsg);
+      this.emitEvent('sync_failed', { error: errorMsg });
     }
     finally {
-      result.duration = Date.now() - startTime
-      this.isSyncing = false
+      result.duration = Date.now() - startTime;
+      this.isSyncing = false;
     }
 
-    return result
+    return result;
   }
 
   /**
@@ -269,24 +269,24 @@ export class CloudSync extends EventEmitter {
    */
   async upload(data: SyncData): Promise<void> {
     // Generate checksum
-    const checksum = this.generateChecksum(data.data)
+    const checksum = this.generateChecksum(data.data);
     const syncData: SyncData = {
       ...data,
       checksum,
       deviceId: this.deviceId,
       updatedAt: Date.now(),
-    }
+    };
 
     // Compress data if enabled
     if (this.config.enableCompression) {
-      syncData.data = await this.compressData(syncData.data)
-      syncData.compressed = true
+      syncData.data = await this.compressData(syncData.data);
+      syncData.compressed = true;
     }
 
     // Upload with retry
-    await this.uploadWithRetry(syncData)
+    await this.uploadWithRetry(syncData);
 
-    this.emitEvent('upload_success', { id: syncData.id, type: syncData.type })
+    this.emitEvent('upload_success', { id: syncData.id, type: syncData.type });
   }
 
   /**
@@ -297,29 +297,29 @@ export class CloudSync extends EventEmitter {
     const response = await this.fetchWithRetry(`${this.config.apiEndpoint}/download`, {
       method: 'GET',
       headers: this.getHeaders(),
-    })
+    });
 
     if (!response.ok) {
-      throw new Error(`Download failed: ${response.statusText}`)
+      throw new Error(`Download failed: ${response.statusText}`);
     }
 
-    const remoteData = (await response.json()) as SyncData[]
+    const remoteData = (await response.json()) as SyncData[];
 
     // Decompress data if needed
     for (const item of remoteData) {
       if (item.compressed) {
-        item.data = await this.decompressData(item.data as Buffer)
-        item.compressed = false
+        item.data = await this.decompressData(item.data as Buffer);
+        item.compressed = false;
       }
 
       // Verify checksum
-      const checksum = this.generateChecksum(item.data)
+      const checksum = this.generateChecksum(item.data);
       if (checksum !== item.checksum) {
-        throw new Error(`Checksum mismatch for item ${item.id}`)
+        throw new Error(`Checksum mismatch for item ${item.id}`);
       }
     }
 
-    return remoteData
+    return remoteData;
   }
 
   /**
@@ -327,30 +327,30 @@ export class CloudSync extends EventEmitter {
    * Applies configured conflict resolution strategy
    */
   async resolveConflict(local: SyncData, remote: SyncData): Promise<SyncData> {
-    this.emitEvent('conflict_detected', { local, remote })
+    this.emitEvent('conflict_detected', { local, remote });
 
-    let resolved: SyncData
+    let resolved: SyncData;
 
     switch (this.config.conflictStrategy) {
       case 'local-wins':
-        resolved = local
-        break
+        resolved = local;
+        break;
 
       case 'remote-wins':
-        resolved = remote
-        break
+        resolved = remote;
+        break;
 
       case 'merge':
-        resolved = await this.mergeData(local, remote)
-        break
+        resolved = await this.mergeData(local, remote);
+        break;
 
       default:
-        resolved = local
+        resolved = local;
     }
 
-    this.emitEvent('conflict_resolved', { strategy: this.config.conflictStrategy, resolved })
+    this.emitEvent('conflict_resolved', { strategy: this.config.conflictStrategy, resolved });
 
-    return resolved
+    return resolved;
   }
 
   /**
@@ -366,7 +366,7 @@ export class CloudSync extends EventEmitter {
       nextSync: this.syncTimer && this.isRunning
         ? this.lastSyncTime ? this.lastSyncTime + this.config.syncInterval : Date.now() + this.config.syncInterval
         : null,
-    }
+    };
   }
 
   /**
@@ -376,14 +376,14 @@ export class CloudSync extends EventEmitter {
     const needsRestart = this.isRunning && (
       options.syncInterval !== undefined
       || options.apiEndpoint !== undefined
-    )
+    );
 
     // Update config
-    Object.assign(this.config, options)
+    Object.assign(this.config, options);
 
     // Restart if needed
     if (needsRestart) {
-      this.stop().then(() => this.start())
+      this.stop().then(() => this.start());
     }
   }
 
@@ -391,28 +391,28 @@ export class CloudSync extends EventEmitter {
    * Clear error history
    */
   clearErrors(): void {
-    this.errors = []
+    this.errors = [];
   }
 
   /**
    * Process upload queue
    * Uploads all pending items from sync queue
    */
-  private async processUploadQueue(): Promise<{ uploaded: number, errors: string[] }> {
-    const result = { uploaded: 0, errors: [] as string[] }
+  private async processUploadQueue(): Promise<{ uploaded: number; errors: string[] }> {
+    const result = { uploaded: 0, errors: [] as string[] };
 
     // Get pending items
-    const pendingItems = await this.syncQueueManager.listItems({ status: 'pending' })
+    const pendingItems = await this.syncQueueManager.listItems({ status: 'pending' });
 
     // Get retryable failed items
-    const retryableItems = await this.syncQueueManager.getRetryableItems()
+    const retryableItems = await this.syncQueueManager.getRetryableItems();
 
-    const allItems = [...pendingItems, ...retryableItems]
+    const allItems = [...pendingItems, ...retryableItems];
 
     for (const item of allItems) {
       try {
         // Mark as syncing
-        await this.syncQueueManager.markSyncing(item.id)
+        await this.syncQueueManager.markSyncing(item.id);
 
         // Convert to SyncData
         const syncData: SyncData = {
@@ -423,73 +423,73 @@ export class CloudSync extends EventEmitter {
           updatedAt: Date.now(),
           checksum: this.generateChecksum(item.data),
           deviceId: this.deviceId,
-        }
+        };
 
         // Upload
-        await this.upload(syncData)
+        await this.upload(syncData);
 
         // Mark as synced
-        await this.syncQueueManager.markSynced(item.id)
+        await this.syncQueueManager.markSynced(item.id);
 
-        result.uploaded++
+        result.uploaded++;
       }
       catch (error: any) {
-        const errorMsg = `Failed to upload item ${item.id}: ${error.message}`
-        result.errors.push(errorMsg)
+        const errorMsg = `Failed to upload item ${item.id}: ${error.message}`;
+        result.errors.push(errorMsg);
 
         // Mark as failed with retry
         await this.syncQueueManager.markFailed(
           item.id,
           errorMsg,
           this.calculateRetryDelay(item.retries),
-        )
+        );
       }
     }
 
-    return result
+    return result;
   }
 
   /**
    * Download remote changes
    * Fetches and applies remote updates
    */
-  private async downloadRemoteChanges(): Promise<{ downloaded: number, conflicts: number, errors: string[] }> {
-    const result = { downloaded: 0, conflicts: 0, errors: [] as string[] }
+  private async downloadRemoteChanges(): Promise<{ downloaded: number; conflicts: number; errors: string[] }> {
+    const result = { downloaded: 0, conflicts: 0, errors: [] as string[] };
 
     try {
-      const remoteData = await this.download()
+      const remoteData = await this.download();
 
       for (const remote of remoteData) {
         try {
           // Check if local version exists
-          const local = await this.getLocalData(remote.id, remote.type)
+          const local = await this.getLocalData(remote.id, remote.type);
 
           if (local) {
             // Check for conflicts
             if (local.version !== remote.version || local.updatedAt !== remote.updatedAt) {
-              result.conflicts++
-              const resolved = await this.resolveConflict(local, remote)
-              await this.saveLocalData(resolved)
+              result.conflicts++;
+              const resolved = await this.resolveConflict(local, remote);
+              await this.saveLocalData(resolved);
             }
           }
           else {
             // No local version, save remote
-            await this.saveLocalData(remote)
+            await this.saveLocalData(remote);
           }
 
-          result.downloaded++
-          this.emitEvent('download_success', { id: remote.id, type: remote.type })
+          result.downloaded++;
+          this.emitEvent('download_success', { id: remote.id, type: remote.type });
         }
         catch (error: any) {
-          result.errors.push(`Failed to process remote item ${remote.id}: ${error.message}`)
+          result.errors.push(`Failed to process remote item ${remote.id}: ${error.message}`);
         }
       }
     }
     catch (error: any) {
-      result.errors.push(`Failed to download remote changes: ${error.message}`)
+      result.errors.push(`Failed to download remote changes: ${error.message}`);
     }
 
-    return result
+    return result;
   }
 
   /**
@@ -501,23 +501,23 @@ export class CloudSync extends EventEmitter {
         method: 'POST',
         headers: this.getHeaders(),
         body: JSON.stringify(data),
-      })
+      });
 
       if (!response.ok) {
-        throw new Error(`Upload failed: ${response.statusText}`)
+        throw new Error(`Upload failed: ${response.statusText}`);
       }
     }
     catch (error: any) {
       if (attempt >= this.config.maxRetries) {
-        throw error
+        throw error;
       }
 
       // Calculate delay with exponential backoff
-      const delay = this.calculateRetryDelay(attempt)
-      await this.sleep(delay)
+      const delay = this.calculateRetryDelay(attempt);
+      await this.sleep(delay);
 
       // Retry
-      return this.uploadWithRetry(data, attempt + 1)
+      return this.uploadWithRetry(data, attempt + 1);
     }
   }
 
@@ -526,23 +526,23 @@ export class CloudSync extends EventEmitter {
    */
   private async fetchWithRetry(url: string, options: RequestInit, attempt = 1): Promise<Response> {
     try {
-      const response = await fetch(url, options)
+      const response = await fetch(url, options);
 
       if (!response.ok && this.isRetryableStatus(response.status)) {
-        throw new Error(`HTTP ${response.status}`)
+        throw new Error(`HTTP ${response.status}`);
       }
 
-      return response
+      return response;
     }
     catch (error: any) {
       if (attempt >= this.config.maxRetries) {
-        throw error
+        throw error;
       }
 
-      const delay = this.calculateRetryDelay(attempt)
-      await this.sleep(delay)
+      const delay = this.calculateRetryDelay(attempt);
+      await this.sleep(delay);
 
-      return this.fetchWithRetry(url, options, attempt + 1)
+      return this.fetchWithRetry(url, options, attempt + 1);
     }
   }
 
@@ -550,53 +550,53 @@ export class CloudSync extends EventEmitter {
    * Check if HTTP status is retryable
    */
   private isRetryableStatus(status: number): boolean {
-    return status === 429 || (status >= 500 && status < 600)
+    return status === 429 || (status >= 500 && status < 600);
   }
 
   /**
    * Calculate retry delay with exponential backoff
    */
   private calculateRetryDelay(attempt: number): number {
-    const baseDelay = 1000 // 1 second
-    const maxDelay = 60000 // 60 seconds
-    const delay = Math.min(baseDelay * 2 ** (attempt - 1), maxDelay)
+    const baseDelay = 1000; // 1 second
+    const maxDelay = 60000; // 60 seconds
+    const delay = Math.min(baseDelay * 2 ** (attempt - 1), maxDelay);
     // Add jitter to prevent thundering herd
-    return delay + Math.random() * 1000
+    return delay + Math.random() * 1000;
   }
 
   /**
    * Compress data using gzip
    */
   private async compressData(data: unknown): Promise<Buffer> {
-    const json = JSON.stringify(data)
-    return gzipAsync(Buffer.from(json, 'utf-8'))
+    const json = JSON.stringify(data);
+    return gzipAsync(Buffer.from(json, 'utf-8'));
   }
 
   /**
    * Decompress data using gzip
    */
   private async decompressData(data: Buffer): Promise<unknown> {
-    const decompressed = await gunzipAsync(data)
-    return JSON.parse(decompressed.toString('utf-8'))
+    const decompressed = await gunzipAsync(data);
+    return JSON.parse(decompressed.toString('utf-8'));
   }
 
   /**
    * Generate checksum for data integrity
    */
   private generateChecksum(data: unknown): string {
-    const json = JSON.stringify(data)
-    return createHash('sha256').update(json).digest('hex')
+    const json = JSON.stringify(data);
+    return createHash('sha256').update(json).digest('hex');
   }
 
   /**
    * Generate unique device identifier
    */
   private generateDeviceId(): string {
-    const hostname = os.hostname()
-    const platform = os.platform()
-    const arch = os.arch()
-    const data = `${hostname}-${platform}-${arch}-${Date.now()}`
-    return createHash('md5').update(data).digest('hex').substring(0, 16)
+    const hostname = os.hostname();
+    const platform = os.platform();
+    const arch = os.arch();
+    const data = `${hostname}-${platform}-${arch}-${Date.now()}`;
+    return createHash('md5').update(data).digest('hex').substring(0, 16);
   }
 
   /**
@@ -606,13 +606,13 @@ export class CloudSync extends EventEmitter {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       'X-Device-Id': this.deviceId,
-    }
+    };
 
     if (this.config.apiKey) {
-      headers.Authorization = `Bearer ${this.config.apiKey}`
+      headers.Authorization = `Bearer ${this.config.apiKey}`;
     }
 
-    return headers
+    return headers;
   }
 
   /**
@@ -621,9 +621,9 @@ export class CloudSync extends EventEmitter {
   private async getLocalData(id: string, type: SyncData['type']): Promise<SyncData | null> {
     try {
       if (type === 'session') {
-        const session = await this.storageManager.getSession(id)
+        const session = await this.storageManager.getSession(id);
         if (!session) {
-          return null
+          return null;
         }
 
         return {
@@ -634,13 +634,13 @@ export class CloudSync extends EventEmitter {
           updatedAt: new Date(session.meta.lastUpdated).getTime(),
           checksum: this.generateChecksum(session.meta),
           deviceId: this.deviceId,
-        }
+        };
       }
 
       if (type === 'summary') {
-        const summary = await this.storageManager.getSummary(id)
+        const summary = await this.storageManager.getSummary(id);
         if (!summary) {
-          return null
+          return null;
         }
 
         return {
@@ -651,13 +651,13 @@ export class CloudSync extends EventEmitter {
           updatedAt: Date.now(),
           checksum: this.generateChecksum(summary),
           deviceId: this.deviceId,
-        }
+        };
       }
 
-      return null
+      return null;
     }
     catch {
-      return null
+      return null;
     }
   }
 
@@ -666,17 +666,17 @@ export class CloudSync extends EventEmitter {
    */
   private async saveLocalData(syncData: SyncData): Promise<void> {
     if (syncData.type === 'session') {
-      const meta = syncData.data as SessionMeta
-      const session = await this.storageManager.getSession(meta.id, meta.projectHash)
+      const meta = syncData.data as SessionMeta;
+      const session = await this.storageManager.getSession(meta.id, meta.projectHash);
 
       if (session) {
-        session.meta = meta
-        await this.storageManager.updateSession(session)
+        session.meta = meta;
+        await this.storageManager.updateSession(session);
       }
     }
     else if (syncData.type === 'summary') {
-      const summary = syncData.data as string
-      await this.storageManager.saveSummary(syncData.id, summary)
+      const summary = syncData.data as string;
+      await this.storageManager.saveSummary(syncData.id, summary);
     }
   }
 
@@ -687,21 +687,21 @@ export class CloudSync extends EventEmitter {
   private async mergeData(local: SyncData, remote: SyncData): Promise<SyncData> {
     // Use the most recent version
     if (remote.updatedAt > local.updatedAt) {
-      return remote
+      return remote;
     }
 
-    return local
+    return local;
   }
 
   /**
    * Add error to history
    */
   private addError(error: string): void {
-    this.errors.push(error)
+    this.errors.push(error);
 
     // Keep only last 10 errors
     if (this.errors.length > 10) {
-      this.errors.shift()
+      this.errors.shift();
     }
   }
 
@@ -709,7 +709,7 @@ export class CloudSync extends EventEmitter {
    * Sleep for specified milliseconds
    */
   private sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms))
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
   /**
@@ -720,10 +720,10 @@ export class CloudSync extends EventEmitter {
       type,
       timestamp: Date.now(),
       data,
-    }
+    };
 
-    this.emit('sync_event', event)
-    this.emit(type, event)
+    this.emit('sync_event', event);
+    this.emit(type, event);
   }
 }
 
@@ -734,5 +734,5 @@ export class CloudSync extends EventEmitter {
  * @returns Cloud sync instance
  */
 export function createCloudSync(options: CloudSyncOptions): CloudSync {
-  return new CloudSync(options)
+  return new CloudSync(options);
 }

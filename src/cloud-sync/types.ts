@@ -16,7 +16,7 @@ export type CloudProvider
   = | 'github-gist' // GitHub Gist storage
     | 's3' // AWS S3 or compatible (MinIO, etc.)
     | 'webdav' // WebDAV servers (Nextcloud, etc.)
-    | 'custom' // Custom provider via adapter
+    | 'custom'; // Custom provider via adapter
 
 /**
  * Sync direction modes
@@ -24,7 +24,7 @@ export type CloudProvider
 export type SyncDirection
   = | 'push' // Local -> Remote only
     | 'pull' // Remote -> Local only
-    | 'bidirectional' // Two-way sync with conflict resolution
+    | 'bidirectional'; // Two-way sync with conflict resolution
 
 /**
  * Current sync status
@@ -33,7 +33,7 @@ export type SyncStatus
   = | 'idle' // No sync in progress
     | 'syncing' // Sync operation in progress
     | 'conflict' // Conflicts detected, awaiting resolution
-    | 'error' // Sync failed with error
+    | 'error'; // Sync failed with error
 
 /**
  * Types of changes that can occur
@@ -41,7 +41,7 @@ export type SyncStatus
 export type ChangeType
   = | 'create' // New item created
     | 'update' // Existing item modified
-    | 'delete' // Item deleted
+    | 'delete'; // Item deleted
 
 /**
  * Types of items that can be synced
@@ -51,7 +51,7 @@ export type SyncableItemType
     | 'workflows' // Workflow configurations
     | 'settings' // User settings
     | 'mcp-configs' // MCP server configurations
-    | 'memories' // AI memory entries
+    | 'memories'; // AI memory entries
 
 // ============================================================================
 // Configuration Types
@@ -62,16 +62,16 @@ export type SyncableItemType
  */
 export interface ProviderConfig {
   /** Provider type */
-  type: CloudProvider
+  type: CloudProvider;
 
   /** Provider-specific endpoint URL */
-  endpoint?: string
+  endpoint?: string;
 
   /** Authentication credentials */
-  credentials: ProviderCredentials
+  credentials: ProviderCredentials;
 
   /** Provider-specific options */
-  options?: Record<string, unknown>
+  options?: Record<string, unknown>;
 }
 
 /**
@@ -79,16 +79,16 @@ export interface ProviderConfig {
  */
 export interface ProviderCredentials {
   /** API token or access key */
-  token?: string
+  token?: string;
 
   /** Secret key (for S3-compatible) */
-  secretKey?: string
+  secretKey?: string;
 
   /** Username (for WebDAV) */
-  username?: string
+  username?: string;
 
   /** Password (for WebDAV) */
-  password?: string
+  password?: string;
 }
 
 /**
@@ -96,28 +96,28 @@ export interface ProviderCredentials {
  */
 export interface SyncConfig {
   /** Cloud provider configuration */
-  provider: ProviderConfig
+  provider: ProviderConfig;
 
   /** Sync direction mode */
-  direction: SyncDirection
+  direction: SyncDirection;
 
   /** Items to sync (empty = all) */
-  itemTypes: SyncableItemType[]
+  itemTypes: SyncableItemType[];
 
   /** Auto-sync interval in milliseconds (0 = disabled) */
-  autoSyncInterval: number
+  autoSyncInterval: number;
 
   /** Conflict resolution strategy */
-  conflictStrategy: ConflictStrategy
+  conflictStrategy: ConflictStrategy;
 
   /** Maximum retry attempts */
-  maxRetries: number
+  maxRetries: number;
 
   /** Base retry delay in milliseconds */
-  retryDelayMs: number
+  retryDelayMs: number;
 
   /** Enable verbose logging */
-  verbose: boolean
+  verbose: boolean;
 }
 
 /**
@@ -127,12 +127,12 @@ export type ConflictStrategy
   = | 'local-wins' // Local changes take precedence
     | 'remote-wins' // Remote changes take precedence
     | 'newest-wins' // Most recent change wins
-    | 'manual' // Require manual resolution
+    | 'manual'; // Require manual resolution
 
 /**
  * Alias for ConflictStrategy to maintain compatibility
  */
-export type ConflictResolutionStrategy = ConflictStrategy
+export type ConflictResolutionStrategy = ConflictStrategy;
 
 /**
  * Default sync configuration
@@ -149,7 +149,7 @@ export const DEFAULT_SYNC_CONFIG: SyncConfig = {
   maxRetries: 3,
   retryDelayMs: 1000,
   verbose: false,
-}
+};
 
 // ============================================================================
 // Syncable Item Types
@@ -160,72 +160,72 @@ export const DEFAULT_SYNC_CONFIG: SyncConfig = {
  */
 export interface SyncableItem {
   /** Unique item identifier */
-  id: string
+  id: string;
 
   /** Item type */
-  type: SyncableItemType
+  type: SyncableItemType;
 
   /** Item name/title */
-  name: string
+  name: string;
 
   /** Content hash for change detection */
-  contentHash: string
+  contentHash: string;
 
   /** Last modified timestamp (ISO 8601) */
-  lastModified: string
+  lastModified: string;
 
   /** Item version number */
-  version: number
+  version: number;
 
   /** Item content (serialized) */
-  content: string
+  content: string;
 
   /** Item metadata */
-  metadata?: Record<string, unknown>
+  metadata?: Record<string, unknown>;
 }
 
 /**
  * Skill item for sync
  */
 export interface SyncableSkill extends SyncableItem {
-  type: 'skills'
+  type: 'skills';
   metadata?: {
-    category?: string
-    tags?: string[]
-    author?: string
-  }
+    category?: string;
+    tags?: string[];
+    author?: string;
+  };
 }
 
 /**
  * Workflow item for sync
  */
 export interface SyncableWorkflow extends SyncableItem {
-  type: 'workflows'
+  type: 'workflows';
   metadata?: {
-    phase?: string
-    dependencies?: string[]
-  }
+    phase?: string;
+    dependencies?: string[];
+  };
 }
 
 /**
  * Settings item for sync
  */
 export interface SyncableSettings extends SyncableItem {
-  type: 'settings'
+  type: 'settings';
   metadata?: {
-    scope?: 'global' | 'project'
-  }
+    scope?: 'global' | 'project';
+  };
 }
 
 /**
  * MCP config item for sync
  */
 export interface SyncableMcpConfig extends SyncableItem {
-  type: 'mcp-configs'
+  type: 'mcp-configs';
   metadata?: {
-    serverName?: string
-    enabled?: boolean
-  }
+    serverName?: string;
+    enabled?: boolean;
+  };
 }
 
 // ============================================================================
@@ -237,19 +237,19 @@ export interface SyncableMcpConfig extends SyncableItem {
  */
 export interface Change {
   /** Change identifier */
-  id: string
+  id: string;
 
   /** Type of change */
-  type: ChangeType
+  type: ChangeType;
 
   /** Item that changed */
-  item: SyncableItem
+  item: SyncableItem;
 
   /** Timestamp of change (ISO 8601) */
-  timestamp: string
+  timestamp: string;
 
   /** Source of change */
-  source: 'local' | 'remote'
+  source: 'local' | 'remote';
 }
 
 /**
@@ -257,16 +257,16 @@ export interface Change {
  */
 export interface ChangeSet {
   /** Unique changeset identifier */
-  id: string
+  id: string;
 
   /** Changes in this set */
-  changes: Change[]
+  changes: Change[];
 
   /** Changeset creation timestamp */
-  createdAt: string
+  createdAt: string;
 
   /** Base sync state hash */
-  baseStateHash: string
+  baseStateHash: string;
 }
 
 /**
@@ -274,43 +274,43 @@ export interface ChangeSet {
  */
 export interface SyncConflict {
   /** Conflict identifier */
-  id: string
+  id: string;
 
   /** Item with conflict */
-  itemId: string
+  itemId: string;
 
   /** Item type */
-  itemType: SyncableItemType
+  itemType: SyncableItemType;
 
   /** Local version of the item */
-  localItem: SyncableItem
+  localItem: SyncableItem;
 
   /** Remote version of the item */
-  remoteItem: SyncableItem
+  remoteItem: SyncableItem;
 
   /** Local change */
-  localChange: Change
+  localChange: Change;
 
   /** Remote change */
-  remoteChange: Change
+  remoteChange: Change;
 
   /** Conflict detection timestamp */
-  detectedAt: string
+  detectedAt: string;
 
   /** Resolution status */
-  resolved: boolean
+  resolved: boolean;
 
   /** Resolution result (if resolved) */
-  resolution?: 'local' | 'remote' | 'merged'
+  resolution?: 'local' | 'remote' | 'merged';
 
   /** Whether the conflict can be auto-resolved */
-  autoResolvable?: boolean
+  autoResolvable?: boolean;
 
   /** Suggested resolution strategy */
-  suggestedStrategy?: ConflictResolutionStrategy
+  suggestedStrategy?: ConflictResolutionStrategy;
 
   /** Reason for the suggested strategy */
-  suggestionReason?: string
+  suggestionReason?: string;
 }
 
 // ============================================================================
@@ -322,31 +322,31 @@ export interface SyncConflict {
  */
 export interface SyncState {
   /** Current sync status */
-  status: SyncStatus
+  status: SyncStatus;
 
   /** Last successful sync timestamp */
-  lastSyncAt: string | null
+  lastSyncAt: string | null;
 
   /** Last sync error (if any) */
-  lastError: string | null
+  lastError: string | null;
 
   /** Current sync progress (0-100) */
-  progress: number
+  progress: number;
 
   /** Items currently being synced */
-  currentItems: string[]
+  currentItems: string[];
 
   /** Pending conflicts */
-  conflicts: SyncConflict[]
+  conflicts: SyncConflict[];
 
   /** Local state hash */
-  localStateHash: string
+  localStateHash: string;
 
   /** Remote state hash */
-  remoteStateHash: string | null
+  remoteStateHash: string | null;
 
   /** Sync statistics */
-  stats: SyncStats
+  stats: SyncStats;
 }
 
 /**
@@ -354,22 +354,22 @@ export interface SyncState {
  */
 export interface SyncStats {
   /** Total items synced */
-  totalSynced: number
+  totalSynced: number;
 
   /** Items pushed to remote */
-  pushed: number
+  pushed: number;
 
   /** Items pulled from remote */
-  pulled: number
+  pulled: number;
 
   /** Conflicts resolved */
-  conflictsResolved: number
+  conflictsResolved: number;
 
   /** Failed sync attempts */
-  failures: number
+  failures: number;
 
   /** Total sync duration in milliseconds */
-  totalDurationMs: number
+  totalDurationMs: number;
 }
 
 /**
@@ -392,7 +392,7 @@ export const INITIAL_SYNC_STATE: SyncState = {
     failures: 0,
     totalDurationMs: 0,
   },
-}
+};
 
 // ============================================================================
 // Sync Result Types
@@ -403,31 +403,31 @@ export const INITIAL_SYNC_STATE: SyncState = {
  */
 export interface SyncResult {
   /** Whether sync was successful */
-  success: boolean
+  success: boolean;
 
   /** Sync direction that was performed */
-  direction: SyncDirection
+  direction: SyncDirection;
 
   /** Items that were pushed */
-  pushed: SyncableItem[]
+  pushed: SyncableItem[];
 
   /** Items that were pulled */
-  pulled: SyncableItem[]
+  pulled: SyncableItem[];
 
   /** Conflicts that occurred */
-  conflicts: SyncConflict[]
+  conflicts: SyncConflict[];
 
   /** Errors that occurred */
-  errors: SyncError[]
+  errors: SyncError[];
 
   /** Sync duration in milliseconds */
-  durationMs: number
+  durationMs: number;
 
   /** Sync start timestamp */
-  startedAt: string
+  startedAt: string;
 
   /** Sync end timestamp */
-  completedAt: string
+  completedAt: string;
 }
 
 /**
@@ -435,16 +435,16 @@ export interface SyncResult {
  */
 export interface SyncError {
   /** Error code */
-  code: SyncErrorCode
+  code: SyncErrorCode;
 
   /** Error message */
-  message: string
+  message: string;
 
   /** Item that caused the error (if applicable) */
-  itemId?: string
+  itemId?: string;
 
   /** Original error */
-  cause?: Error
+  cause?: Error;
 }
 
 /**
@@ -458,7 +458,7 @@ export type SyncErrorCode
     | 'VALIDATION_ERROR' // Data validation failed
     | 'TIMEOUT_ERROR' // Operation timed out
     | 'QUOTA_ERROR' // Storage quota exceeded
-    | 'UNKNOWN_ERROR' // Unknown error
+    | 'UNKNOWN_ERROR'; // Unknown error
 
 // ============================================================================
 // Event Types
@@ -469,34 +469,34 @@ export type SyncErrorCode
  */
 export interface SyncEvents {
   /** Sync operation started */
-  'sync:start': (direction: SyncDirection, itemTypes: SyncableItemType[]) => void
+  'sync:start': (direction: SyncDirection, itemTypes: SyncableItemType[]) => void;
 
   /** Sync progress updated */
-  'sync:progress': (progress: number, currentItem: string) => void
+  'sync:progress': (progress: number, currentItem: string) => void;
 
   /** Sync operation completed */
-  'sync:complete': (result: SyncResult) => void
+  'sync:complete': (result: SyncResult) => void;
 
   /** Sync operation failed */
-  'sync:error': (error: SyncError) => void
+  'sync:error': (error: SyncError) => void;
 
   /** Conflict detected */
-  'sync:conflict': (conflict: SyncConflict) => void
+  'sync:conflict': (conflict: SyncConflict) => void;
 
   /** Conflict resolved */
-  'sync:conflict-resolved': (conflict: SyncConflict, resolution: 'local' | 'remote' | 'merged') => void
+  'sync:conflict-resolved': (conflict: SyncConflict, resolution: 'local' | 'remote' | 'merged') => void;
 
   /** Item pushed to remote */
-  'sync:pushed': (item: SyncableItem) => void
+  'sync:pushed': (item: SyncableItem) => void;
 
   /** Item pulled from remote */
-  'sync:pulled': (item: SyncableItem) => void
+  'sync:pulled': (item: SyncableItem) => void;
 
   /** Auto-sync triggered */
-  'sync:auto-triggered': () => void
+  'sync:auto-triggered': () => void;
 
   /** Retry attempt */
-  'sync:retry': (attempt: number, maxAttempts: number, error: SyncError) => void
+  'sync:retry': (attempt: number, maxAttempts: number, error: SyncError) => void;
 }
 
 // ============================================================================
@@ -510,50 +510,50 @@ export interface SyncEvents {
  */
 export interface CloudProviderAdapter {
   /** Provider type identifier */
-  readonly type: CloudProvider
+  readonly type: CloudProvider;
 
   /** Provider display name */
-  readonly name: string
+  readonly name: string;
 
   /**
    * Initialize the provider connection
    */
-  initialize: (config: ProviderConfig) => Promise<void>
+  initialize: (config: ProviderConfig) => Promise<void>;
 
   /**
    * Test provider connectivity
    */
-  testConnection: () => Promise<boolean>
+  testConnection: () => Promise<boolean>;
 
   /**
    * Fetch all items from remote
    */
-  fetchItems: (types?: SyncableItemType[]) => Promise<SyncableItem[]>
+  fetchItems: (types?: SyncableItemType[]) => Promise<SyncableItem[]>;
 
   /**
    * Fetch a single item by ID
    */
-  fetchItem: (id: string) => Promise<SyncableItem | null>
+  fetchItem: (id: string) => Promise<SyncableItem | null>;
 
   /**
    * Push items to remote
    */
-  pushItems: (items: SyncableItem[]) => Promise<void>
+  pushItems: (items: SyncableItem[]) => Promise<void>;
 
   /**
    * Delete items from remote
    */
-  deleteItems: (ids: string[]) => Promise<void>
+  deleteItems: (ids: string[]) => Promise<void>;
 
   /**
    * Get remote state hash for change detection
    */
-  getRemoteStateHash: () => Promise<string>
+  getRemoteStateHash: () => Promise<string>;
 
   /**
    * Cleanup and close connection
    */
-  dispose: () => Promise<void>
+  dispose: () => Promise<void>;
 }
 
 // ============================================================================
@@ -565,28 +565,28 @@ export interface CloudProviderAdapter {
  */
 export interface SyncQueueItem {
   /** Queue item ID */
-  id: string
+  id: string;
 
   /** Operation type */
-  operation: 'push' | 'pull' | 'delete'
+  operation: 'push' | 'pull' | 'delete';
 
   /** Item to sync */
-  item: SyncableItem
+  item: SyncableItem;
 
   /** Priority (lower = higher priority) */
-  priority: number
+  priority: number;
 
   /** Number of retry attempts */
-  retryCount: number
+  retryCount: number;
 
   /** Queued timestamp */
-  queuedAt: string
+  queuedAt: string;
 
   /** Last attempt timestamp */
-  lastAttemptAt?: string
+  lastAttemptAt?: string;
 
   /** Last error (if any) */
-  lastError?: SyncError
+  lastError?: SyncError;
 }
 
 /**
@@ -594,13 +594,13 @@ export interface SyncQueueItem {
  */
 export interface SyncQueueState {
   /** Items in queue */
-  items: SyncQueueItem[]
+  items: SyncQueueItem[];
 
   /** Whether queue is processing */
-  isProcessing: boolean
+  isProcessing: boolean;
 
   /** Current item being processed */
-  currentItem: SyncQueueItem | null
+  currentItem: SyncQueueItem | null;
 }
 
 // ============================================================================
@@ -612,22 +612,22 @@ export interface SyncQueueState {
  */
 export interface SyncPersistenceState {
   /** Persistence version for migration */
-  version: number
+  version: number;
 
   /** Sync configuration */
-  config: SyncConfig
+  config: SyncConfig;
 
   /** Current sync state */
-  state: SyncState
+  state: SyncState;
 
   /** Queue state */
-  queue: SyncQueueState
+  queue: SyncQueueState;
 
   /** Last updated timestamp */
-  lastUpdated: string
+  lastUpdated: string;
 }
 
 /**
  * Current persistence version
  */
-export const SYNC_PERSISTENCE_VERSION = 1
+export const SYNC_PERSISTENCE_VERSION = 1;

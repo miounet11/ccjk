@@ -8,15 +8,15 @@
  * @module services/local-notification
  */
 
-import { exec } from 'node:child_process'
-import * as fs from 'node:fs'
-import * as os from 'node:os'
-import * as path from 'node:path'
-import process from 'node:process'
-import { promisify } from 'node:util'
-import { writeFileAtomic } from '../utils/fs-operations'
+import { exec } from 'node:child_process';
+import * as fs from 'node:fs';
+import * as os from 'node:os';
+import * as path from 'node:path';
+import process from 'node:process';
+import { promisify } from 'node:util';
+import { writeFileAtomic } from '../utils/fs-operations';
 
-const execAsync = promisify(exec)
+const execAsync = promisify(exec);
 
 // ============================================================================
 // Types
@@ -27,17 +27,17 @@ const execAsync = promisify(exec)
  */
 export interface NotificationOptions {
   /** Notification title */
-  title: string
+  title: string;
   /** Notification body/message */
-  body: string
+  body: string;
   /** Whether to play a sound (default: true) */
-  sound?: boolean
+  sound?: boolean;
   /** Optional URL to open when notification is clicked */
-  url?: string
+  url?: string;
   /** Optional group identifier for notification grouping */
-  group?: string
+  group?: string;
   /** Optional icon URL (for Bark) */
-  icon?: string
+  icon?: string;
 }
 
 /**
@@ -45,15 +45,15 @@ export interface NotificationOptions {
  */
 export interface LocalNotificationConfig {
   /** macOS Shortcut name to run for local notifications */
-  shortcutName: string
+  shortcutName: string;
   /** Bark API URL (e.g., https://api.day.app/YOUR_KEY) */
-  barkUrl: string
+  barkUrl: string;
   /** Prefer local notification over Bark when screen is unlocked */
-  preferLocal: boolean
+  preferLocal: boolean;
   /** Enable smart notification (auto-detect screen lock status) */
-  smartNotify: boolean
+  smartNotify: boolean;
   /** Fallback to Bark if shortcut fails */
-  fallbackToBark: boolean
+  fallbackToBark: boolean;
 }
 
 /**
@@ -61,11 +61,11 @@ export interface LocalNotificationConfig {
  */
 export interface LocalNotificationResult {
   /** Whether notification was sent successfully */
-  success: boolean
+  success: boolean;
   /** Method used to send notification */
-  method: 'shortcut' | 'bark' | 'none'
+  method: 'shortcut' | 'bark' | 'none';
   /** Error message if failed */
-  error?: string
+  error?: string;
 }
 
 // ============================================================================
@@ -79,14 +79,14 @@ const DEFAULT_CONFIG: LocalNotificationConfig = {
   preferLocal: true,
   smartNotify: true,
   fallbackToBark: true,
-}
+};
 
 /** Config file path */
-const CONFIG_DIR = path.join(os.homedir(), '.ccjk')
-const CONFIG_FILE = path.join(CONFIG_DIR, 'notification-config.json')
+const CONFIG_DIR = path.join(os.homedir(), '.ccjk');
+const CONFIG_FILE = path.join(CONFIG_DIR, 'notification-config.json');
 
 /** Temp file for shortcut input */
-const TEMP_NOTIFICATION_FILE = '/tmp/ccjk-notification.json'
+const TEMP_NOTIFICATION_FILE = '/tmp/ccjk-notification.json';
 
 // ============================================================================
 // LocalNotificationService Class
@@ -100,10 +100,10 @@ const TEMP_NOTIFICATION_FILE = '/tmp/ccjk-notification.json'
  * notifications when the screen is locked.
  */
 export class LocalNotificationService {
-  private config: LocalNotificationConfig
+  private config: LocalNotificationConfig;
 
   constructor(config?: Partial<LocalNotificationConfig>) {
-    this.config = { ...DEFAULT_CONFIG, ...config }
+    this.config = { ...DEFAULT_CONFIG, ...config };
   }
 
   // ==========================================================================
@@ -120,7 +120,7 @@ export class LocalNotificationService {
   async isScreenLocked(): Promise<boolean> {
     // Only works on macOS
     if (process.platform !== 'darwin') {
-      return false
+      return false;
     }
 
     try {
@@ -132,17 +132,17 @@ if session_dict:
     print('true' if locked else 'false')
 else:
     print('false')
-`
+`;
       const { stdout } = await execAsync(`python3 -c "${pythonScript}"`, {
         timeout: 5000,
-      })
+      });
 
-      return stdout.trim().toLowerCase() === 'true'
+      return stdout.trim().toLowerCase() === 'true';
     }
     catch (error) {
       // If detection fails, assume screen is not locked
-      console.error('Failed to detect screen lock status:', error)
-      return false
+      console.error('Failed to detect screen lock status:', error);
+      return false;
     }
   }
 
@@ -165,7 +165,7 @@ else:
   ): Promise<void> {
     // Only works on macOS
     if (process.platform !== 'darwin') {
-      throw new Error('macOS Shortcuts are only available on macOS')
+      throw new Error('macOS Shortcuts are only available on macOS');
     }
 
     // Prepare notification data
@@ -176,22 +176,22 @@ else:
       url: options.url || '',
       group: options.group || 'ccjk',
       timestamp: new Date().toISOString(),
-    }
+    };
 
     // Write notification data to temp file
-    writeFileAtomic(TEMP_NOTIFICATION_FILE, JSON.stringify(notificationData, null, 2), 'utf-8')
+    writeFileAtomic(TEMP_NOTIFICATION_FILE, JSON.stringify(notificationData, null, 2), 'utf-8');
 
     try {
       // Run the shortcut with input file
       await execAsync(`shortcuts run "${shortcutName}" --input-path "${TEMP_NOTIFICATION_FILE}"`, {
         timeout: 30000, // 30 second timeout
-      })
+      });
     }
     finally {
       // Clean up temp file
       try {
         if (fs.existsSync(TEMP_NOTIFICATION_FILE)) {
-          fs.unlinkSync(TEMP_NOTIFICATION_FILE)
+          fs.unlinkSync(TEMP_NOTIFICATION_FILE);
         }
       }
       catch {
@@ -218,50 +218,50 @@ else:
     options: NotificationOptions,
   ): Promise<void> {
     if (!barkUrl) {
-      throw new Error('Bark URL is not configured')
+      throw new Error('Bark URL is not configured');
     }
 
     // Build Bark API URL
     // URL encode title and body
-    const encodedTitle = encodeURIComponent(options.title)
-    const encodedBody = encodeURIComponent(options.body)
+    const encodedTitle = encodeURIComponent(options.title);
+    const encodedBody = encodeURIComponent(options.body);
 
     // Build query parameters
-    const params = new URLSearchParams()
+    const params = new URLSearchParams();
 
     if (options.sound !== false) {
-      params.append('sound', 'default')
+      params.append('sound', 'default');
     }
 
     if (options.url) {
-      params.append('url', options.url)
+      params.append('url', options.url);
     }
 
     if (options.group) {
-      params.append('group', options.group)
+      params.append('group', options.group);
     }
 
     if (options.icon) {
-      params.append('icon', options.icon)
+      params.append('icon', options.icon);
     }
 
     // Construct full URL
-    const baseUrl = barkUrl.endsWith('/') ? barkUrl.slice(0, -1) : barkUrl
-    let fullUrl = `${baseUrl}/${encodedTitle}/${encodedBody}`
+    const baseUrl = barkUrl.endsWith('/') ? barkUrl.slice(0, -1) : barkUrl;
+    let fullUrl = `${baseUrl}/${encodedTitle}/${encodedBody}`;
 
-    const queryString = params.toString()
+    const queryString = params.toString();
     if (queryString) {
-      fullUrl += `?${queryString}`
+      fullUrl += `?${queryString}`;
     }
 
     // Send request using curl (more reliable than fetch in some environments)
     try {
       await execAsync(`curl -s -o /dev/null -w "%{http_code}" "${fullUrl}"`, {
         timeout: 10000,
-      })
+      });
     }
     catch (error) {
-      throw new Error(`Failed to send Bark notification: ${error}`)
+      throw new Error(`Failed to send Bark notification: ${error}`);
     }
   }
 
@@ -281,33 +281,33 @@ else:
    * @returns Notification result
    */
   async smartNotify(options: NotificationOptions): Promise<LocalNotificationResult> {
-    const isLocked = await this.isScreenLocked()
+    const isLocked = await this.isScreenLocked();
 
     // If screen is unlocked and we prefer local notifications
     if (!isLocked && this.config.preferLocal && this.config.shortcutName) {
       try {
-        await this.sendShortcutNotification(this.config.shortcutName, options)
+        await this.sendShortcutNotification(this.config.shortcutName, options);
         return {
           success: true,
           method: 'shortcut',
-        }
+        };
       }
       catch (error) {
         // If fallback is enabled and Bark is configured, try Bark
         if (this.config.fallbackToBark && this.config.barkUrl) {
           try {
-            await this.sendBarkNotification(this.config.barkUrl, options)
+            await this.sendBarkNotification(this.config.barkUrl, options);
             return {
               success: true,
               method: 'bark',
-            }
+            };
           }
           catch (barkError) {
             return {
               success: false,
               method: 'none',
               error: `Shortcut failed: ${error}. Bark also failed: ${barkError}`,
-            }
+            };
           }
         }
 
@@ -315,43 +315,43 @@ else:
           success: false,
           method: 'none',
           error: `Shortcut notification failed: ${error}`,
-        }
+        };
       }
     }
 
     // Screen is locked or we don't prefer local - use Bark
     if (this.config.barkUrl) {
       try {
-        await this.sendBarkNotification(this.config.barkUrl, options)
+        await this.sendBarkNotification(this.config.barkUrl, options);
         return {
           success: true,
           method: 'bark',
-        }
+        };
       }
       catch (error) {
         return {
           success: false,
           method: 'none',
           error: `Bark notification failed: ${error}`,
-        }
+        };
       }
     }
 
     // No Bark configured, try shortcut as last resort
     if (this.config.shortcutName) {
       try {
-        await this.sendShortcutNotification(this.config.shortcutName, options)
+        await this.sendShortcutNotification(this.config.shortcutName, options);
         return {
           success: true,
           method: 'shortcut',
-        }
+        };
       }
       catch (error) {
         return {
           success: false,
           method: 'none',
           error: `Shortcut notification failed: ${error}`,
-        }
+        };
       }
     }
 
@@ -359,7 +359,7 @@ else:
       success: false,
       method: 'none',
       error: 'No notification method configured',
-    }
+    };
   }
 
   // ==========================================================================
@@ -372,7 +372,7 @@ else:
    * @param config - Partial configuration to update
    */
   updateConfig(config: Partial<LocalNotificationConfig>): void {
-    this.config = { ...this.config, ...config }
+    this.config = { ...this.config, ...config };
   }
 
   /**
@@ -381,7 +381,7 @@ else:
    * @returns Current configuration
    */
   getConfig(): LocalNotificationConfig {
-    return { ...this.config }
+    return { ...this.config };
   }
 }
 
@@ -397,20 +397,20 @@ else:
 export async function loadLocalNotificationConfig(): Promise<LocalNotificationConfig> {
   try {
     if (!fs.existsSync(CONFIG_FILE)) {
-      return { ...DEFAULT_CONFIG }
+      return { ...DEFAULT_CONFIG };
     }
 
-    const content = fs.readFileSync(CONFIG_FILE, 'utf-8')
-    const config = JSON.parse(content) as Partial<LocalNotificationConfig>
+    const content = fs.readFileSync(CONFIG_FILE, 'utf-8');
+    const config = JSON.parse(content) as Partial<LocalNotificationConfig>;
 
     return {
       ...DEFAULT_CONFIG,
       ...config,
-    }
+    };
   }
   catch (error) {
-    console.error('Failed to load local notification config:', error)
-    return { ...DEFAULT_CONFIG }
+    console.error('Failed to load local notification config:', error);
+    return { ...DEFAULT_CONFIG };
   }
 }
 
@@ -425,18 +425,18 @@ export async function saveLocalNotificationConfig(
   try {
     // Ensure config directory exists
     if (!fs.existsSync(CONFIG_DIR)) {
-      fs.mkdirSync(CONFIG_DIR, { recursive: true })
+      fs.mkdirSync(CONFIG_DIR, { recursive: true });
     }
 
     // Load existing config and merge
-    const existingConfig = await loadLocalNotificationConfig()
-    const newConfig = { ...existingConfig, ...config }
+    const existingConfig = await loadLocalNotificationConfig();
+    const newConfig = { ...existingConfig, ...config };
 
     // Write config file with atomic write for safety
-    writeFileAtomic(CONFIG_FILE, JSON.stringify(newConfig, null, 2))
+    writeFileAtomic(CONFIG_FILE, JSON.stringify(newConfig, null, 2));
   }
   catch (error) {
-    throw new Error(`Failed to save local notification config: ${error}`)
+    throw new Error(`Failed to save local notification config: ${error}`);
   }
 }
 
@@ -444,14 +444,14 @@ export async function saveLocalNotificationConfig(
  * Reset local notification configuration to defaults
  */
 export async function resetLocalNotificationConfig(): Promise<void> {
-  await saveLocalNotificationConfig(DEFAULT_CONFIG)
+  await saveLocalNotificationConfig(DEFAULT_CONFIG);
 }
 
 // ============================================================================
 // Singleton Instance
 // ============================================================================
 
-let serviceInstance: LocalNotificationService | null = null
+let serviceInstance: LocalNotificationService | null = null;
 
 /**
  * Get or create the LocalNotificationService singleton instance
@@ -460,10 +460,10 @@ let serviceInstance: LocalNotificationService | null = null
  */
 export async function getLocalNotificationService(): Promise<LocalNotificationService> {
   if (!serviceInstance) {
-    const config = await loadLocalNotificationConfig()
-    serviceInstance = new LocalNotificationService(config)
+    const config = await loadLocalNotificationConfig();
+    serviceInstance = new LocalNotificationService(config);
   }
-  return serviceInstance
+  return serviceInstance;
 }
 
 /**
@@ -472,9 +472,9 @@ export async function getLocalNotificationService(): Promise<LocalNotificationSe
  * @returns LocalNotificationService instance
  */
 export async function initializeLocalNotificationService(): Promise<LocalNotificationService> {
-  const config = await loadLocalNotificationConfig()
-  serviceInstance = new LocalNotificationService(config)
-  return serviceInstance
+  const config = await loadLocalNotificationConfig();
+  serviceInstance = new LocalNotificationService(config);
+  return serviceInstance;
 }
 
 // ============================================================================
@@ -488,15 +488,15 @@ export async function initializeLocalNotificationService(): Promise<LocalNotific
  */
 export async function isShortcutsAvailable(): Promise<boolean> {
   if (process.platform !== 'darwin') {
-    return false
+    return false;
   }
 
   try {
-    await execAsync('which shortcuts', { timeout: 5000 })
-    return true
+    await execAsync('which shortcuts', { timeout: 5000 });
+    return true;
   }
   catch {
-    return false
+    return false;
   }
 }
 
@@ -507,18 +507,18 @@ export async function isShortcutsAvailable(): Promise<boolean> {
  */
 export async function listShortcuts(): Promise<string[]> {
   if (process.platform !== 'darwin') {
-    return []
+    return [];
   }
 
   try {
-    const { stdout } = await execAsync('shortcuts list', { timeout: 10000 })
+    const { stdout } = await execAsync('shortcuts list', { timeout: 10000 });
     return stdout
       .split('\n')
       .map(line => line.trim())
-      .filter(line => line.length > 0)
+      .filter(line => line.length > 0);
   }
   catch {
-    return []
+    return [];
   }
 }
 
@@ -530,15 +530,15 @@ export async function listShortcuts(): Promise<string[]> {
  */
 export function isValidBarkUrl(url: string): boolean {
   if (!url) {
-    return false
+    return false;
   }
 
   try {
-    const parsed = new URL(url)
-    return parsed.protocol === 'https:' || parsed.protocol === 'http:'
+    const parsed = new URL(url);
+    return parsed.protocol === 'https:' || parsed.protocol === 'http:';
   }
   catch {
-    return false
+    return false;
   }
 }
 
@@ -550,21 +550,21 @@ export function isValidBarkUrl(url: string): boolean {
  */
 export async function testBarkConnection(barkUrl: string): Promise<boolean> {
   if (!isValidBarkUrl(barkUrl)) {
-    return false
+    return false;
   }
 
   try {
-    const service = new LocalNotificationService({ barkUrl, preferLocal: false })
+    const service = new LocalNotificationService({ barkUrl, preferLocal: false });
     await service.sendBarkNotification(barkUrl, {
       title: 'CCJK Test',
       body: 'This is a test notification from CCJK.',
       sound: true,
       group: 'ccjk-test',
-    })
-    return true
+    });
+    return true;
   }
   catch {
-    return false
+    return false;
   }
 }
 
@@ -576,20 +576,20 @@ export async function testBarkConnection(barkUrl: string): Promise<boolean> {
  */
 export async function testShortcut(shortcutName: string): Promise<boolean> {
   if (process.platform !== 'darwin') {
-    return false
+    return false;
   }
 
   try {
-    const service = new LocalNotificationService({ shortcutName, preferLocal: true })
+    const service = new LocalNotificationService({ shortcutName, preferLocal: true });
     await service.sendShortcutNotification(shortcutName, {
       title: 'CCJK Test',
       body: 'This is a test notification from CCJK.',
       sound: true,
       group: 'ccjk-test',
-    })
-    return true
+    });
+    return true;
   }
   catch {
-    return false
+    return false;
   }
 }

@@ -32,26 +32,26 @@ export type LspServerId
     | 'terraform'
     | 'dockerfile'
     | 'eslint'
-    | 'tailwindcss'
+    | 'tailwindcss';
 
 /**
  * LSP server status
  */
-export type LspServerStatus = 'running' | 'stopped' | 'starting' | 'error' | 'not-installed'
+export type LspServerStatus = 'running' | 'stopped' | 'starting' | 'error' | 'not-installed';
 
 /**
  * LSP server transport type
  */
-export type LspTransport = 'stdio' | 'socket' | 'pipe'
+export type LspTransport = 'stdio' | 'socket' | 'pipe';
 
 /**
  * LSP position in a document
  */
 export interface LspPosition {
   /** Line position (0-based) */
-  line: number
+  line: number;
   /** Character offset (0-based) */
-  character: number
+  character: number;
 }
 
 /**
@@ -59,9 +59,9 @@ export interface LspPosition {
  */
 export interface LspRange {
   /** Start position */
-  start: LspPosition
+  start: LspPosition;
   /** End position */
-  end: LspPosition
+  end: LspPosition;
 }
 
 /**
@@ -69,9 +69,9 @@ export interface LspRange {
  */
 export interface LspLocation {
   /** Document URI */
-  uri: string
+  uri: string;
   /** Range in the document */
-  range: LspRange
+  range: LspRange;
 }
 
 /**
@@ -152,17 +152,17 @@ export enum LspDiagnosticSeverity {
  */
 export interface LspDiagnostic {
   /** Range where diagnostic applies */
-  range: LspRange
+  range: LspRange;
   /** Diagnostic severity */
-  severity?: LspDiagnosticSeverity
+  severity?: LspDiagnosticSeverity;
   /** Diagnostic code */
-  code?: string | number
+  code?: string | number;
   /** Diagnostic source */
-  source?: string
+  source?: string;
   /** Diagnostic message */
-  message: string
+  message: string;
   /** Related tags */
-  tags?: LspDiagnosticTag[]
+  tags?: LspDiagnosticTag[];
 }
 
 /**
@@ -178,9 +178,9 @@ export enum LspDiagnosticTag {
  */
 export interface LspHoverContent {
   /** Content kind (markdown, plaintext, etc.) */
-  kind: 'markdown' | 'plaintext' | 'snippet'
+  kind: 'markdown' | 'plaintext' | 'snippet';
   /** The actual content */
-  value: string
+  value: string;
 }
 
 /**
@@ -188,9 +188,9 @@ export interface LspHoverContent {
  */
 export interface LspHover {
   /** Hover content */
-  contents: LspHoverContent | LspHoverContent[] | string
+  contents: LspHoverContent | LspHoverContent[] | string;
   /** Range of the symbol */
-  range?: LspRange
+  range?: LspRange;
 }
 
 /**
@@ -198,33 +198,33 @@ export interface LspHover {
  */
 export interface LspCompletionItem {
   /** Label shown to user */
-  label: string
+  label: string;
   /** Item kind */
-  kind?: LspCompletionItemKind
+  kind?: LspCompletionItemKind;
   /** Detail information */
-  detail?: string
+  detail?: string;
   /** Documentation */
-  documentation?: string | { kind: string, value: string }
+  documentation?: string | { kind: string; value: string };
   /** Sort text */
-  sortText?: string
+  sortText?: string;
   /** Filter text */
-  filterText?: string
+  filterText?: string;
   /** Insert text */
-  insertText?: string
+  insertText?: string;
   /** Preselect this item */
-  preselect?: boolean
+  preselect?: boolean;
   /** Deprecated flag */
-  deprecated?: boolean
+  deprecated?: boolean;
   /** Text edit for insertion */
   textEdit?: {
-    range: LspRange
-    newText: string
-  }
+    range: LspRange;
+    newText: string;
+  };
   /** Additional edits */
   additionalTextEdits?: Array<{
-    range: LspRange
-    newText: string
-  }>
+    range: LspRange;
+    newText: string;
+  }>;
 }
 
 /**
@@ -232,9 +232,9 @@ export interface LspCompletionItem {
  */
 export interface LspCompletionList {
   /** Completion items */
-  items: LspCompletionItem[]
+  items: LspCompletionItem[];
   /** List is incomplete */
-  isIncomplete?: boolean
+  isIncomplete?: boolean;
 }
 
 /**
@@ -242,7 +242,7 @@ export interface LspCompletionList {
  */
 export interface LspTextDocumentIdentifier {
   /** Document URI */
-  uri: string
+  uri: string;
 }
 
 /**
@@ -250,9 +250,9 @@ export interface LspTextDocumentIdentifier {
  */
 export interface LspTextDocumentPositionParams {
   /** Document identifier */
-  textDocument: LspTextDocumentIdentifier
+  textDocument: LspTextDocumentIdentifier;
   /** Position in document */
-  position: LspPosition
+  position: LspPosition;
 }
 
 /**
@@ -262,8 +262,8 @@ export interface LspReferenceParams extends LspTextDocumentPositionParams {
   /** Context */
   context: {
     /** Include declaration */
-    includeDeclaration: boolean
-  }
+    includeDeclaration: boolean;
+  };
 }
 
 /**
@@ -271,42 +271,42 @@ export interface LspReferenceParams extends LspTextDocumentPositionParams {
  */
 export interface LspServerConfig {
   /** Server ID */
-  id: LspServerId
+  id: LspServerId;
   /** Display name */
-  name: string
+  name: string;
   /** Command to start the server */
-  command: string
+  command: string;
   /** Arguments for command */
-  args?: string[]
+  args?: string[];
   /** Environment variables */
-  env?: Record<string, string>
+  env?: Record<string, string>;
   /** Transport type */
-  transport?: LspTransport
+  transport?: LspTransport;
   /** Working directory */
-  cwd?: string
+  cwd?: string;
   /** Supported file extensions */
-  extensions?: string[]
+  extensions?: string[];
   /** Supported language IDs */
-  languageIds?: string[]
+  languageIds?: string[];
   /** Initialization options */
-  initializationOptions?: Record<string, any>
+  initializationOptions?: Record<string, any>;
   /** Required for server to work */
   requires?: {
     /** Required commands in PATH */
-    commands?: string[]
+    commands?: string[];
     /** Required files/directories */
-    files?: string[]
+    files?: string[];
     /** Required npm packages */
-    packages?: string[]
-  }
+    packages?: string[];
+  };
   /** Server is enabled by default */
-  enabled?: boolean
+  enabled?: boolean;
   /** Auto-start on file match */
-  autoStart?: boolean
+  autoStart?: boolean;
   /** Maximum server restarts */
-  maxRestarts?: number
+  maxRestarts?: number;
   /** Server startup timeout (ms) */
-  startupTimeout?: number
+  startupTimeout?: number;
 }
 
 /**
@@ -314,23 +314,23 @@ export interface LspServerConfig {
  */
 export interface LspServerState {
   /** Server ID */
-  id: LspServerId
+  id: LspServerId;
   /** Current status */
-  status: LspServerStatus
+  status: LspServerStatus;
   /** Process ID (if running) */
-  pid?: number
+  pid?: number;
   /** Server port (if socket transport) */
-  port?: number
+  port?: number;
   /** Start time */
-  startTime?: Date
+  startTime?: Date;
   /** Last error message */
-  error?: string
+  error?: string;
   /** Restart count */
-  restartCount: number
+  restartCount: number;
   /** Files being handled */
-  files: Set<string>
+  files: Set<string>;
   /** Server capabilities */
-  capabilities?: LspServerCapabilities
+  capabilities?: LspServerCapabilities;
 }
 
 /**
@@ -339,57 +339,57 @@ export interface LspServerState {
 export interface LspServerCapabilities {
   /** Text document sync */
   textDocumentSync?: number | {
-    openClose?: boolean
-    change?: number
-    willSave?: boolean
-    willSaveWaitUntil?: boolean
-    save?: boolean | { includeText: boolean }
-  }
+    openClose?: boolean;
+    change?: number;
+    willSave?: boolean;
+    willSaveWaitUntil?: boolean;
+    save?: boolean | { includeText: boolean };
+  };
   /** Completion provider */
   completionProvider?: {
-    resolveProvider?: boolean
-    triggerCharacters?: string[]
-  }
+    resolveProvider?: boolean;
+    triggerCharacters?: string[];
+  };
   /** Hover provider */
-  hoverProvider?: boolean
+  hoverProvider?: boolean;
   /** Signature help provider */
   signatureHelpProvider?: {
-    triggerCharacters?: string[]
-    retriggerCharacters?: string[]
-  }
+    triggerCharacters?: string[];
+    retriggerCharacters?: string[];
+  };
   /** Definition provider */
-  definitionProvider?: boolean
+  definitionProvider?: boolean;
   /** References provider */
-  referencesProvider?: boolean
+  referencesProvider?: boolean;
   /** Document highlight provider */
-  documentHighlightProvider?: boolean
+  documentHighlightProvider?: boolean;
   /** Document symbol provider */
-  documentSymbolProvider?: boolean
+  documentSymbolProvider?: boolean;
   /** Workspace symbol provider */
-  workspaceSymbolProvider?: boolean
+  workspaceSymbolProvider?: boolean;
   /** Code action provider */
-  codeActionProvider?: boolean | { codeActionKinds?: string[] }
+  codeActionProvider?: boolean | { codeActionKinds?: string[] };
   /** Code lens provider */
-  codeLensProvider?: { resolveProvider?: boolean }
+  codeLensProvider?: { resolveProvider?: boolean };
   /** Document formatting provider */
-  documentFormattingProvider?: boolean
+  documentFormattingProvider?: boolean;
   /** Document range formatting provider */
-  documentRangeFormattingProvider?: boolean
+  documentRangeFormattingProvider?: boolean;
   /** Document on type formatting provider */
   documentOnTypeFormattingProvider?: {
-    firstTriggerCharacter: string
-    moreTriggerCharacter?: string[]
-  }
+    firstTriggerCharacter: string;
+    moreTriggerCharacter?: string[];
+  };
   /** Rename provider */
-  renameProvider?: boolean | { prepareProvider: boolean }
+  renameProvider?: boolean | { prepareProvider: boolean };
   /** Document link provider */
-  documentLinkProvider?: { resolveProvider?: boolean }
+  documentLinkProvider?: { resolveProvider?: boolean };
   /** Execute command provider */
-  executeCommandProvider?: string[]
+  executeCommandProvider?: string[];
   /** Type definition provider */
-  typeDefinitionProvider?: boolean
+  typeDefinitionProvider?: boolean;
   /** Implementation provider */
-  implementationProvider?: boolean
+  implementationProvider?: boolean;
 }
 
 /**
@@ -397,13 +397,13 @@ export interface LspServerCapabilities {
  */
 export interface LspFeatureRequest<T = any> {
   /** Server ID */
-  serverId: LspServerId
+  serverId: LspServerId;
   /** Feature method */
-  method: string
+  method: string;
   /** Request params */
-  params: T
+  params: T;
   /** Request timeout (ms) */
-  timeout?: number
+  timeout?: number;
 }
 
 /**
@@ -411,11 +411,11 @@ export interface LspFeatureRequest<T = any> {
  */
 export interface LspFeatureResponse<T = any> {
   /** Response data */
-  data?: T
+  data?: T;
   /** Error message */
-  error?: string
+  error?: string;
   /** Error code */
-  code?: number
+  code?: number;
 }
 
 /**
@@ -423,21 +423,21 @@ export interface LspFeatureResponse<T = any> {
  */
 export interface LspManagerConfig {
   /** Maximum concurrent servers */
-  maxServers?: number
+  maxServers?: number;
   /** Default server startup timeout (ms) */
-  defaultStartupTimeout?: number
+  defaultStartupTimeout?: number;
   /** Default request timeout (ms) */
-  defaultRequestTimeout?: number
+  defaultRequestTimeout?: number;
   /** Enable server logging */
-  enableLogging?: boolean
+  enableLogging?: boolean;
   /** Log directory */
-  logDir?: string
+  logDir?: string;
   /** Auto-restart servers on error */
-  autoRestart?: boolean
+  autoRestart?: boolean;
   /** Maximum restart attempts */
-  maxRestartAttempts?: number
+  maxRestartAttempts?: number;
   /** Restart delay (ms) */
-  restartDelay?: number
+  restartDelay?: number;
 }
 
 /**
@@ -445,15 +445,15 @@ export interface LspManagerConfig {
  */
 export interface LspStatusInfo {
   /** Server states */
-  servers: Record<LspServerId, LspServerState>
+  servers: Record<LspServerId, LspServerState>;
   /** Total running servers */
-  runningCount: number
+  runningCount: number;
   /** Total stopped servers */
-  stoppedCount: number
+  stoppedCount: number;
   /** Servers with errors */
-  errorCount: number
+  errorCount: number;
   /** Not installed servers */
-  notInstalledCount: number
+  notInstalledCount: number;
 }
 
 /**
@@ -461,9 +461,9 @@ export interface LspStatusInfo {
  */
 export interface LspDiagnosticReport {
   /** File URI */
-  uri: string
+  uri: string;
   /** Diagnostics */
-  diagnostics: LspDiagnostic[]
+  diagnostics: LspDiagnostic[];
   /** Server that provided diagnostics */
-  serverId: LspServerId
+  serverId: LspServerId;
 }

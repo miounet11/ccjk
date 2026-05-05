@@ -5,19 +5,19 @@
  * Designed to run on first CCJK execution for zero-config experience.
  */
 
-import type { SupportedLang } from './types'
-import { existsSync } from 'node:fs'
-import { homedir } from 'node:os'
-import process from 'node:process'
-import { join } from 'pathe'
-import { installSuperpowers } from '../superpowers/installer'
-import { CORE_SKILLS } from './types'
+import type { SupportedLang } from './types';
+import { existsSync } from 'node:fs';
+import { homedir } from 'node:os';
+import process from 'node:process';
+import { join } from 'pathe';
+import { installSuperpowers } from '../superpowers/installer';
+import { CORE_SKILLS } from './types';
 
 /**
  * Get the Superpowers installation directory
  */
 function getSuperpowersDir(): string {
-  return join(homedir(), '.claude', 'plugins', 'superpowers')
+  return join(homedir(), '.claude', 'plugins', 'superpowers');
 }
 
 /**
@@ -26,8 +26,8 @@ function getSuperpowersDir(): string {
  * @returns True if Superpowers directory exists with skills folder
  */
 function isSuperpowersInstalled(): boolean {
-  const superpowersDir = getSuperpowersDir()
-  return existsSync(superpowersDir) && existsSync(join(superpowersDir, 'skills'))
+  const superpowersDir = getSuperpowersDir();
+  return existsSync(superpowersDir) && existsSync(join(superpowersDir, 'skills'));
 }
 
 /**
@@ -36,20 +36,20 @@ function isSuperpowersInstalled(): boolean {
  * @returns True if all core skills are present
  */
 function areCoreSkillsInstalled(): boolean {
-  const skillsDir = join(getSuperpowersDir(), 'skills')
+  const skillsDir = join(getSuperpowersDir(), 'skills');
 
   if (!existsSync(skillsDir)) {
-    return false
+    return false;
   }
 
   for (const skill of CORE_SKILLS) {
-    const skillPath = join(skillsDir, skill)
+    const skillPath = join(skillsDir, skill);
     if (!existsSync(skillPath) || !existsSync(join(skillPath, 'skill.json'))) {
-      return false
+      return false;
     }
   }
 
-  return true
+  return true;
 }
 
 /**
@@ -75,7 +75,7 @@ export async function autoInstallSuperpowers(
   try {
     // Check if already installed
     if (isSuperpowersInstalled() && areCoreSkillsInstalled()) {
-      return true
+      return true;
     }
 
     // Perform installation using existing installer
@@ -84,24 +84,24 @@ export async function autoInstallSuperpowers(
     const result = await installSuperpowers({
       lang,
       skipPrompt: true, // Skip user prompts for silent installation
-    })
+    });
 
     if (!result.success) {
       if (process.env.DEBUG) {
-        console.error('[CCJK Zero-Config] Installation failed:', result.error || result.message)
+        console.error('[CCJK Zero-Config] Installation failed:', result.error || result.message);
       }
-      return false
+      return false;
     }
 
     // Verify installation succeeded
-    return isSuperpowersInstalled() && areCoreSkillsInstalled()
+    return isSuperpowersInstalled() && areCoreSkillsInstalled();
   }
   catch (error) {
     // Silent fail - log error but don't interrupt user workflow
     if (process.env.DEBUG) {
-      console.error('[CCJK Zero-Config] Auto-install failed:', error)
+      console.error('[CCJK Zero-Config] Auto-install failed:', error);
     }
-    return false
+    return false;
   }
 }
 
@@ -111,7 +111,7 @@ export async function autoInstallSuperpowers(
  * @returns True if Superpowers needs to be installed
  */
 export function needsAutoInstall(): boolean {
-  return !isSuperpowersInstalled() || !areCoreSkillsInstalled()
+  return !isSuperpowersInstalled() || !areCoreSkillsInstalled();
 }
 
 /**
@@ -120,26 +120,26 @@ export function needsAutoInstall(): boolean {
  * @returns Object with detailed installation status
  */
 export function getInstallationStatus(): {
-  superpowersInstalled: boolean
-  coreSkillsInstalled: boolean
-  needsInstall: boolean
-  missingSkills: string[]
+  superpowersInstalled: boolean;
+  coreSkillsInstalled: boolean;
+  needsInstall: boolean;
+  missingSkills: string[];
 } {
-  const superpowersInstalled = isSuperpowersInstalled()
-  const skillsDir = join(getSuperpowersDir(), 'skills')
-  const missingSkills: string[] = []
+  const superpowersInstalled = isSuperpowersInstalled();
+  const skillsDir = join(getSuperpowersDir(), 'skills');
+  const missingSkills: string[] = [];
 
   if (superpowersInstalled && existsSync(skillsDir)) {
     for (const skill of CORE_SKILLS) {
-      const skillPath = join(skillsDir, skill)
+      const skillPath = join(skillsDir, skill);
       if (!existsSync(skillPath) || !existsSync(join(skillPath, 'skill.json'))) {
-        missingSkills.push(skill)
+        missingSkills.push(skill);
       }
     }
   }
   else if (!superpowersInstalled) {
     // If Superpowers not installed, all core skills are missing
-    missingSkills.push(...CORE_SKILLS)
+    missingSkills.push(...CORE_SKILLS);
   }
 
   return {
@@ -147,7 +147,7 @@ export function getInstallationStatus(): {
     coreSkillsInstalled: missingSkills.length === 0,
     needsInstall: !superpowersInstalled || missingSkills.length > 0,
     missingSkills,
-  }
+  };
 }
 
 /**
@@ -163,27 +163,27 @@ export async function reinstallForMissingSkills(
   lang: SupportedLang = 'zh-CN',
 ): Promise<boolean> {
   try {
-    const status = getInstallationStatus()
+    const status = getInstallationStatus();
 
     if (status.missingSkills.length === 0) {
-      return true
+      return true;
     }
 
     // If Superpowers is installed but skills are missing,
     // we need to update/pull latest changes
     if (status.superpowersInstalled) {
-      const { updateSuperpowers } = await import('../superpowers/installer')
-      const result = await updateSuperpowers()
-      return result.success
+      const { updateSuperpowers } = await import('../superpowers/installer');
+      const result = await updateSuperpowers();
+      return result.success;
     }
 
     // If Superpowers not installed, do full install
-    return autoInstallSuperpowers(lang)
+    return autoInstallSuperpowers(lang);
   }
   catch (error) {
     if (process.env.DEBUG) {
-      console.error('[CCJK Zero-Config] Reinstall failed:', error)
+      console.error('[CCJK Zero-Config] Reinstall failed:', error);
     }
-    return false
+    return false;
   }
 }

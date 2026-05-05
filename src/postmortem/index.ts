@@ -11,7 +11,7 @@
  */
 
 // Analyzer
-export { PostmortemAnalyzer } from './analyzer'
+export { PostmortemAnalyzer } from './analyzer';
 
 // Auto-Loader (启动时自动加载)
 export {
@@ -22,10 +22,10 @@ export {
   type PostmortemAutoLoadConfig,
   type PostmortemLoadResult,
   quickLoadPostmortem,
-} from './auto-loader'
+} from './auto-loader';
 
 // Manager
-export { getPostmortemManager, PostmortemManager } from './manager'
+export { getPostmortemManager, PostmortemManager } from './manager';
 
 // Types
 export type {
@@ -45,4 +45,4 @@ export type {
   PostmortemSeverity,
   PostmortemStatus,
   ReleaseSummary,
-} from './types'
+} from './types';

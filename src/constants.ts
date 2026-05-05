@@ -1,59 +1,59 @@
-import { homedir } from 'node:os'
-import { join } from 'pathe'
-import { i18n } from './i18n/index'
+import { homedir } from 'node:os';
+import { join } from 'pathe';
+import { i18n } from './i18n/index';
 
 // Claude Code configuration paths
-export const CLAUDE_DIR = join(homedir(), '.claude')
-export const SETTINGS_FILE = join(CLAUDE_DIR, 'settings.json')
-export const CLAUDE_MD_FILE = join(CLAUDE_DIR, 'CLAUDE.md')
-export const CLAUDE_AGENTS_DIR = join(CLAUDE_DIR, 'agents')
-export const ClAUDE_CONFIG_FILE = join(homedir(), '.claude.json')
-export const CLAUDE_VSC_CONFIG_FILE = join(CLAUDE_DIR, 'config.json')
+export const CLAUDE_DIR = join(homedir(), '.claude');
+export const SETTINGS_FILE = join(CLAUDE_DIR, 'settings.json');
+export const CLAUDE_MD_FILE = join(CLAUDE_DIR, 'CLAUDE.md');
+export const CLAUDE_AGENTS_DIR = join(CLAUDE_DIR, 'agents');
+export const ClAUDE_CONFIG_FILE = join(homedir(), '.claude.json');
+export const CLAUDE_VSC_CONFIG_FILE = join(CLAUDE_DIR, 'config.json');
 
 // Clavue configuration paths
-export const CLAVUE_DIR = join(homedir(), '.clavue')
-export const CLAVUE_SETTINGS_FILE = join(CLAVUE_DIR, 'settings.json')
-export const CLAVUE_CONFIG_FILE = join(CLAVUE_DIR, '.clavue.json')
-export const CLAVUE_CREDENTIALS_FILE = join(CLAVUE_DIR, '.credentials.json')
+export const CLAVUE_DIR = join(homedir(), '.clavue');
+export const CLAVUE_SETTINGS_FILE = join(CLAVUE_DIR, 'settings.json');
+export const CLAVUE_CONFIG_FILE = join(CLAVUE_DIR, '.clavue.json');
+export const CLAVUE_CREDENTIALS_FILE = join(CLAVUE_DIR, '.credentials.json');
 
 // Codex configuration paths
-export const CODEX_DIR = join(homedir(), '.codex')
-export const CODEX_CONFIG_FILE = join(CODEX_DIR, 'config.toml')
-export const CODEX_AUTH_FILE = join(CODEX_DIR, 'auth.json')
-export const CODEX_AGENTS_FILE = join(CODEX_DIR, 'AGENTS.md')
-export const CODEX_PROMPTS_DIR = join(CODEX_DIR, 'prompts')
+export const CODEX_DIR = join(homedir(), '.codex');
+export const CODEX_CONFIG_FILE = join(CODEX_DIR, 'config.toml');
+export const CODEX_AUTH_FILE = join(CODEX_DIR, 'auth.json');
+export const CODEX_AGENTS_FILE = join(CODEX_DIR, 'AGENTS.md');
+export const CODEX_PROMPTS_DIR = join(CODEX_DIR, 'prompts');
 
 // Aider configuration paths
-export const AIDER_DIR = join(homedir(), '.aider')
-export const AIDER_CONFIG_FILE = join(AIDER_DIR, '.aider.conf.yml')
-export const AIDER_ENV_FILE = join(AIDER_DIR, '.env')
+export const AIDER_DIR = join(homedir(), '.aider');
+export const AIDER_CONFIG_FILE = join(AIDER_DIR, '.aider.conf.yml');
+export const AIDER_ENV_FILE = join(AIDER_DIR, '.env');
 
 // Continue configuration paths
-export const CONTINUE_DIR = join(homedir(), '.continue')
-export const CONTINUE_CONFIG_FILE = join(CONTINUE_DIR, 'config.json')
+export const CONTINUE_DIR = join(homedir(), '.continue');
+export const CONTINUE_CONFIG_FILE = join(CONTINUE_DIR, 'config.json');
 
 // Cline configuration paths (VS Code extension stores in workspace)
-export const CLINE_DIR = join(homedir(), '.cline')
-export const CLINE_CONFIG_FILE = join(CLINE_DIR, 'config.json')
+export const CLINE_DIR = join(homedir(), '.cline');
+export const CLINE_CONFIG_FILE = join(CLINE_DIR, 'config.json');
 
 // Cursor CLI configuration paths
-export const CURSOR_DIR = join(homedir(), '.cursor')
-export const CURSOR_CONFIG_FILE = join(CURSOR_DIR, 'config.json')
+export const CURSOR_DIR = join(homedir(), '.cursor');
+export const CURSOR_CONFIG_FILE = join(CURSOR_DIR, 'config.json');
 
 // CCJK configuration paths
-export const CCJK_CONFIG_DIR = join(homedir(), '.ccjk')
-export const CCJK_CONFIG_FILE = join(CCJK_CONFIG_DIR, 'config.toml')
-export const STATE_FILE = join(CCJK_CONFIG_DIR, 'state.json')
-export const CCJK_PLUGINS_DIR = join(CCJK_CONFIG_DIR, 'plugins')
+export const CCJK_CONFIG_DIR = join(homedir(), '.ccjk');
+export const CCJK_CONFIG_FILE = join(CCJK_CONFIG_DIR, 'config.toml');
+export const STATE_FILE = join(CCJK_CONFIG_DIR, 'state.json');
+export const CCJK_PLUGINS_DIR = join(CCJK_CONFIG_DIR, 'plugins');
 /** Skills directory - uses ~/.claude/skills for Claude Code compatibility */
-export const CCJK_SKILLS_DIR = join(CLAUDE_DIR, 'skills')
-export const CCJK_GROUPS_DIR = join(CCJK_CONFIG_DIR, 'groups')
+export const CCJK_SKILLS_DIR = join(CLAUDE_DIR, 'skills');
+export const CCJK_GROUPS_DIR = join(CCJK_CONFIG_DIR, 'groups');
 
 // Cloud plugins configuration paths
-export const CCJK_CLOUD_PLUGINS_DIR = join(CCJK_CONFIG_DIR, 'cloud-plugins')
-export const CCJK_CLOUD_PLUGINS_CACHE_DIR = join(CCJK_CLOUD_PLUGINS_DIR, 'cache')
-export const CCJK_CLOUD_PLUGINS_CACHE_FILE = join(CCJK_CLOUD_PLUGINS_CACHE_DIR, 'plugins.json')
-export const CCJK_CLOUD_PLUGINS_INSTALLED_DIR = join(CCJK_CLOUD_PLUGINS_DIR, 'installed')
+export const CCJK_CLOUD_PLUGINS_DIR = join(CCJK_CONFIG_DIR, 'cloud-plugins');
+export const CCJK_CLOUD_PLUGINS_CACHE_DIR = join(CCJK_CLOUD_PLUGINS_DIR, 'cache');
+export const CCJK_CLOUD_PLUGINS_CACHE_FILE = join(CCJK_CLOUD_PLUGINS_CACHE_DIR, 'plugins.json');
+export const CCJK_CLOUD_PLUGINS_INSTALLED_DIR = join(CCJK_CLOUD_PLUGINS_DIR, 'installed');
 
 // ============================================================================
 // Cloud API Endpoints Configuration
@@ -92,7 +92,7 @@ export const CLOUD_ENDPOINTS = {
     BASE_URL: 'https://remote-api.claudehome.cn',
     API_VERSION: '/api/v1', // Remote API uses /api/v1 prefix
   },
-} as const
+} as const;
 
 /**
  * Get full API URL for a specific endpoint
@@ -107,8 +107,8 @@ export const CLOUD_ENDPOINTS = {
  * ```
  */
 export function getCloudApiUrl(endpoint: keyof typeof CLOUD_ENDPOINTS): string {
-  const config = CLOUD_ENDPOINTS[endpoint]
-  return `${config.BASE_URL}${config.API_VERSION}`
+  const config = CLOUD_ENDPOINTS[endpoint];
+  return `${config.BASE_URL}${config.API_VERSION}`;
 }
 
 /**
@@ -118,39 +118,39 @@ export function getCloudApiUrl(endpoint: keyof typeof CLOUD_ENDPOINTS): string {
  * @returns Base URL only
  */
 export function getCloudBaseUrl(endpoint: keyof typeof CLOUD_ENDPOINTS): string {
-  return CLOUD_ENDPOINTS[endpoint].BASE_URL
+  return CLOUD_ENDPOINTS[endpoint].BASE_URL;
 }
 
 // Legacy constants for backward compatibility (deprecated)
 /** @deprecated Use CLOUD_ENDPOINTS.PLUGINS instead */
-export const CCJK_CLOUD_API_URL = getCloudApiUrl('PLUGINS')
+export const CCJK_CLOUD_API_URL = getCloudApiUrl('PLUGINS');
 /** @deprecated Use getCloudApiUrl('PLUGINS') + '/plugins' instead */
-export const CCJK_CLOUD_PLUGINS_API = `${CCJK_CLOUD_API_URL}/plugins`
+export const CCJK_CLOUD_PLUGINS_API = `${CCJK_CLOUD_API_URL}/plugins`;
 
 // Cloud plugins cache configuration
-export const CLOUD_PLUGINS_CACHE_TTL = 24 * 60 * 60 * 1000 // 24 hours
-export const CLOUD_PLUGINS_MAX_CACHE_SIZE = 1000 // max plugins to cache
+export const CLOUD_PLUGINS_CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
+export const CLOUD_PLUGINS_MAX_CACHE_SIZE = 1000; // max plugins to cache
 
 // Legacy ZCF paths for migration support
-export const LEGACY_ZCF_CONFIG_DIR = join(homedir(), '.ufomiao', 'zcf')
-export const LEGACY_ZCF_CONFIG_FILE = join(LEGACY_ZCF_CONFIG_DIR, 'config.toml')
+export const LEGACY_ZCF_CONFIG_DIR = join(homedir(), '.ufomiao', 'zcf');
+export const LEGACY_ZCF_CONFIG_FILE = join(LEGACY_ZCF_CONFIG_DIR, 'config.toml');
 export const LEGACY_ZCF_CONFIG_FILES = [
   join(CLAUDE_DIR, '.zcf-config.json'),
   join(homedir(), '.zcf.json'),
   LEGACY_ZCF_CONFIG_FILE,
-]
+];
 
 // Aliases for backward compatibility (deprecated, use CCJK_* instead)
 /** @deprecated Use CCJK_CONFIG_DIR instead */
-export const ZCF_CONFIG_DIR = CCJK_CONFIG_DIR
+export const ZCF_CONFIG_DIR = CCJK_CONFIG_DIR;
 /** @deprecated Use CCJK_CONFIG_FILE instead */
-export const ZCF_CONFIG_FILE = CCJK_CONFIG_FILE
+export const ZCF_CONFIG_FILE = CCJK_CONFIG_FILE;
 
-export const CODE_TOOL_TYPES = ['claude-code', 'clavue', 'codex', 'aider', 'continue', 'cline', 'cursor'] as const
-export type CodeToolType = (typeof CODE_TOOL_TYPES)[number]
-export const DEFAULT_CODE_TOOL_TYPE: CodeToolType = 'clavue'
-export const CLAUDE_FAMILY_CODE_TOOL_TYPES = ['claude-code', 'clavue'] as const
-export type ClaudeFamilyCodeToolType = (typeof CLAUDE_FAMILY_CODE_TOOL_TYPES)[number]
+export const CODE_TOOL_TYPES = ['claude-code', 'clavue', 'codex', 'aider', 'continue', 'cline', 'cursor'] as const;
+export type CodeToolType = (typeof CODE_TOOL_TYPES)[number];
+export const DEFAULT_CODE_TOOL_TYPE: CodeToolType = 'clavue';
+export const CLAUDE_FAMILY_CODE_TOOL_TYPES = ['claude-code', 'clavue'] as const;
+export type ClaudeFamilyCodeToolType = (typeof CLAUDE_FAMILY_CODE_TOOL_TYPES)[number];
 
 export const CODE_TOOL_BANNERS: Record<CodeToolType, string> = {
   'claude-code': 'for Claude Code',
@@ -160,7 +160,7 @@ export const CODE_TOOL_BANNERS: Record<CodeToolType, string> = {
   'continue': 'for Continue',
   'cline': 'for Cline',
   'cursor': 'for Cursor CLI',
-}
+};
 
 // Short aliases for code tool types
 export const CODE_TOOL_ALIASES: Record<string, CodeToolType> = {
@@ -175,19 +175,19 @@ export const CODE_TOOL_ALIASES: Record<string, CodeToolType> = {
   ct: 'continue',
   cl: 'cline',
   cu: 'cursor',
-}
+};
 
 export interface CodeToolRuntimeInfo {
-  name: string
-  description: string
-  website: string
-  installCmd: string
-  configFormat: 'json' | 'toml' | 'yaml'
-  category: 'cli' | 'extension' | 'editor'
-  runtimeCommand: string
-  configBackend: 'claude-family' | 'tool-specific'
-  nativeSlashCommands?: string[]
-  managesProviderProfiles?: boolean
+  name: string;
+  description: string;
+  website: string;
+  installCmd: string;
+  configFormat: 'json' | 'toml' | 'yaml';
+  category: 'cli' | 'extension' | 'editor';
+  runtimeCommand: string;
+  configBackend: 'claude-family' | 'tool-specific';
+  nativeSlashCommands?: string[];
+  managesProviderProfiles?: boolean;
 }
 
 // Tool metadata for display and management
@@ -357,82 +357,82 @@ export const CODE_TOOL_INFO: Record<CodeToolType, CodeToolRuntimeInfo> = {
     runtimeCommand: 'cursor',
     configBackend: 'tool-specific',
   },
-}
+};
 
 export function isCodeToolType(value: any): value is CodeToolType {
-  return CODE_TOOL_TYPES.includes(value as CodeToolType)
+  return CODE_TOOL_TYPES.includes(value as CodeToolType);
 }
 
 export function isClaudeFamilyCodeTool(value: any): value is ClaudeFamilyCodeToolType {
-  return CLAUDE_FAMILY_CODE_TOOL_TYPES.includes(value as ClaudeFamilyCodeToolType)
+  return CLAUDE_FAMILY_CODE_TOOL_TYPES.includes(value as ClaudeFamilyCodeToolType);
 }
 
 export function getCodeToolRuntimeCommand(codeTool: CodeToolType): string {
-  return CODE_TOOL_INFO[codeTool].runtimeCommand
+  return CODE_TOOL_INFO[codeTool].runtimeCommand;
 }
 
 export function getCodeToolNativeSlashCommands(codeTool: CodeToolType): string[] {
-  return CODE_TOOL_INFO[codeTool].nativeSlashCommands || []
+  return CODE_TOOL_INFO[codeTool].nativeSlashCommands || [];
 }
 
 // API configuration constants
-export const API_DEFAULT_URL = 'https://api.anthropic.com'
-export const API_ENV_KEY = 'ANTHROPIC_API_KEY'
+export const API_DEFAULT_URL = 'https://api.anthropic.com';
+export const API_ENV_KEY = 'ANTHROPIC_API_KEY';
 
 // Default model names
 export const DEFAULT_MODELS = {
   SONNET: 'claude-3-5-sonnet-20241022',
   HAIKU: 'claude-haiku-4-5-20251001',
   OPUS: 'claude-3-opus-20250219',
-} as const
+} as const;
 
 export function resolveCodeToolType(value: unknown): CodeToolType {
   // First check if it's already a valid code tool type
   if (isCodeToolType(value)) {
-    return value
+    return value;
   }
 
   // Check if it's a short alias
   if (typeof value === 'string' && value in CODE_TOOL_ALIASES) {
-    return CODE_TOOL_ALIASES[value]
+    return CODE_TOOL_ALIASES[value];
   }
 
-  return DEFAULT_CODE_TOOL_TYPE
+  return DEFAULT_CODE_TOOL_TYPE;
 }
 
-export const SUPPORTED_LANGS = ['zh-CN', 'en'] as const
-export type SupportedLang = (typeof SUPPORTED_LANGS)[number]
+export const SUPPORTED_LANGS = ['zh-CN', 'en'] as const;
+export type SupportedLang = (typeof SUPPORTED_LANGS)[number];
 
 // Dynamic language labels using i18n
 // This will be replaced with a function that uses i18n to get labels
 export const LANG_LABELS = {
   'zh-CN': '简体中文',
   'en': 'English',
-} as const
+} as const;
 
 // AI output languages - labels are now retrieved via helper function
 export const AI_OUTPUT_LANGUAGES = {
   'zh-CN': { directive: 'Always respond in Chinese-simplified' },
   'en': { directive: 'Always respond in English' },
   'custom': { directive: '' },
-} as const
+} as const;
 
-export type AiOutputLanguage = keyof typeof AI_OUTPUT_LANGUAGES
+export type AiOutputLanguage = keyof typeof AI_OUTPUT_LANGUAGES;
 
 export function getAiOutputLanguageLabel(lang: AiOutputLanguage): string {
   // For built-in languages, use LANG_LABELS
   if (lang in LANG_LABELS) {
-    return LANG_LABELS[lang as SupportedLang]
+    return LANG_LABELS[lang as SupportedLang];
   }
 
   if (lang === 'custom' && i18n?.isInitialized) {
     try {
-      return i18n.t('language:labels.custom')
+      return i18n.t('language:labels.custom');
     }
     catch {
       // Fallback if translation fails
     }
   }
 
-  return lang
+  return lang;
 }

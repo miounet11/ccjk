@@ -1,12 +1,12 @@
-import ansis from 'ansis'
-import { ensureI18nInitialized, i18n } from '../i18n'
+import ansis from 'ansis';
+import { ensureI18nInitialized, i18n } from '../i18n';
 
 /**
  * Validate API Key format
  * @param apiKey - API Key to validate
  * @returns Validation result
  */
-export function validateApiKey(apiKey: string): { isValid: boolean, error?: string } {
+export function validateApiKey(apiKey: string): { isValid: boolean; error?: string } {
   // Empty check
   if (!apiKey || apiKey.trim() === '') {
     return {
@@ -14,10 +14,10 @@ export function validateApiKey(apiKey: string): { isValid: boolean, error?: stri
       // Note: This should use i18next, but due to sync constraint in inquirer validate,
       // we temporarily use a generic message. This will be fixed when we refactor to async validation.
       error: 'API key cannot be empty',
-    }
+    };
   }
 
-  return { isValid: true }
+  return { isValid: true };
 }
 
 /**
@@ -27,11 +27,11 @@ export function validateApiKey(apiKey: string): { isValid: boolean, error?: stri
  */
 export function formatApiKeyDisplay(apiKey: string): string {
   if (!apiKey || apiKey.length < 12) {
-    return apiKey
+    return apiKey;
   }
 
   // Show first 8 and last 4 characters
-  return `${apiKey.substring(0, 8)}...${apiKey.substring(apiKey.length - 4)}`
+  return `${apiKey.substring(0, 8)}...${apiKey.substring(apiKey.length - 4)}`;
 }
 
 /**
@@ -39,10 +39,10 @@ export function formatApiKeyDisplay(apiKey: string): string {
  * @param error - Error message
  */
 export async function showApiKeyError(error: string): Promise<void> {
-  ensureI18nInitialized()
+  ensureI18nInitialized();
 
-  console.log(ansis.red(`✗ ${error}`))
-  console.log(ansis.gray(i18n.t('api:apiKeyValidation.example')))
+  console.log(ansis.red(`✗ ${error}`));
+  console.log(ansis.gray(i18n.t('api:apiKeyValidation.example')));
 }
 
 /**
@@ -53,8 +53,8 @@ export async function showApiKeyError(error: string): Promise<void> {
 export function detectAuthType(apiKey: string): 'auth_token' | 'api_key' {
   // Claude API keys typically start with 'sk-ant-'
   if (apiKey.startsWith('sk-ant-')) {
-    return 'auth_token'
+    return 'auth_token';
   }
   // Default to api_key for other formats
-  return 'api_key'
+  return 'api_key';
 }

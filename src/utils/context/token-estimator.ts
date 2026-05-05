@@ -3,7 +3,7 @@
  * Estimates token count for text with Chinese character support
  */
 
-import type { TokenEstimation } from '../../types/context'
+import type { TokenEstimation } from '../../types/context';
 
 /**
  * Estimate tokens for given text
@@ -12,8 +12,8 @@ import type { TokenEstimation } from '../../types/context'
  * - Other characters: ~4 chars per token
  */
 export function estimateTokens(text: string): number {
-  const estimation = estimateTokensDetailed(text)
-  return estimation.total
+  const estimation = estimateTokensDetailed(text);
+  return estimation.total;
 }
 
 /**
@@ -21,27 +21,27 @@ export function estimateTokens(text: string): number {
  */
 export function estimateTokensDetailed(text: string): TokenEstimation {
   // Count Chinese characters (CJK Unified Ideographs)
-  const chineseChars = (text.match(/[\u4E00-\u9FA5]/g) || []).length
-  const otherChars = text.length - chineseChars
+  const chineseChars = (text.match(/[\u4E00-\u9FA5]/g) || []).length;
+  const otherChars = text.length - chineseChars;
 
   // Calculate tokens
-  const chineseTokens = Math.ceil(chineseChars / 1.5)
-  const otherTokens = Math.ceil(otherChars / 4)
-  const total = chineseTokens + otherTokens
+  const chineseTokens = Math.ceil(chineseChars / 1.5);
+  const otherTokens = Math.ceil(otherChars / 4);
+  const total = chineseTokens + otherTokens;
 
   return {
     total,
     chineseChars,
     otherChars,
-  }
+  };
 }
 
 /**
  * Estimate tokens for JSON object
  */
 export function estimateTokensForJSON(obj: any): number {
-  const jsonString = JSON.stringify(obj, null, 2)
-  return estimateTokens(jsonString)
+  const jsonString = JSON.stringify(obj, null, 2);
+  return estimateTokens(jsonString);
 }
 
 /**
@@ -51,7 +51,7 @@ export function calculateContextUsage(
   currentTokens: number,
   maxTokens: number,
 ): number {
-  return (currentTokens / maxTokens) * 100
+  return (currentTokens / maxTokens) * 100;
 }
 
 /**
@@ -62,8 +62,8 @@ export function isThresholdExceeded(
   maxTokens: number,
   threshold: number,
 ): boolean {
-  const usage = calculateContextUsage(currentTokens, maxTokens)
-  return usage >= threshold * 100
+  const usage = calculateContextUsage(currentTokens, maxTokens);
+  return usage >= threshold * 100;
 }
 
 /**
@@ -73,7 +73,7 @@ export function getRemainingTokens(
   currentTokens: number,
   maxTokens: number,
 ): number {
-  return Math.max(0, maxTokens - currentTokens)
+  return Math.max(0, maxTokens - currentTokens);
 }
 
 /**
@@ -81,10 +81,10 @@ export function getRemainingTokens(
  */
 export function formatTokenCount(tokens: number): string {
   if (tokens >= 1000000) {
-    return `${(tokens / 1000000).toFixed(1)}M`
+    return `${(tokens / 1000000).toFixed(1)}M`;
   }
   if (tokens >= 1000) {
-    return `${(tokens / 1000).toFixed(1)}K`
+    return `${(tokens / 1000).toFixed(1)}K`;
   }
-  return tokens.toString()
+  return tokens.toString();
 }

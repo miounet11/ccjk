@@ -5,18 +5,18 @@
  * These types support all config subcommands: api, switch, list, get, set.
  */
 
-import type { CodeToolType, SupportedLang } from '../../constants'
+import type { CodeToolType, SupportedLang } from '../../constants';
 
 /**
  * Common options for all config subcommands
  */
 export interface BaseConfigOptions {
   /** Display language (zh-CN, en) */
-  lang?: SupportedLang
+  lang?: SupportedLang;
   /** Output as JSON */
-  json?: boolean
+  json?: boolean;
   /** Code tool type for runtime-specific configuration files */
-  codeType?: CodeToolType
+  codeType?: CodeToolType;
 }
 
 /**
@@ -24,11 +24,11 @@ export interface BaseConfigOptions {
  */
 export interface ApiConfigOptions extends BaseConfigOptions {
   /** Code tool type (claude-code, clavue, codex) */
-  codeType?: CodeToolType
+  codeType?: CodeToolType;
   /** List available providers */
-  list?: boolean
+  list?: boolean;
   /** Show current API configuration */
-  show?: boolean
+  show?: boolean;
 }
 
 /**
@@ -36,21 +36,21 @@ export interface ApiConfigOptions extends BaseConfigOptions {
  */
 export interface ApiProviderConfig {
   /** Provider unique identifier */
-  id: string
+  id: string;
   /** Provider display name */
-  name: string
+  name: string;
   /** Base URL for API requests */
-  baseUrl: string
+  baseUrl: string;
   /** Authentication type */
-  authType: 'api_key' | 'auth_token' | 'oauth'
+  authType: 'api_key' | 'auth_token' | 'oauth';
   /** API key or token value */
-  apiKey?: string
+  apiKey?: string;
   /** Default models for this provider */
-  defaultModels?: string[]
+  defaultModels?: string[];
   /** Provider description */
-  description?: string
+  description?: string;
   /** Whether this is a cloud-provided provider */
-  isCloud?: boolean
+  isCloud?: boolean;
 }
 
 /**
@@ -58,9 +58,9 @@ export interface ApiProviderConfig {
  */
 export interface SwitchConfigOptions extends BaseConfigOptions {
   /** Code tool type (claude-code, clavue, codex) */
-  codeType?: CodeToolType
+  codeType?: CodeToolType;
   /** List available configurations */
-  list?: boolean
+  list?: boolean;
 }
 
 /**
@@ -68,17 +68,17 @@ export interface SwitchConfigOptions extends BaseConfigOptions {
  */
 export interface ConfigProfile {
   /** Profile unique identifier */
-  id: string
+  id: string;
   /** Profile display name */
-  name: string
+  name: string;
   /** Authentication type */
-  authType: 'api_key' | 'auth_token' | 'oauth' | 'ccr_proxy'
+  authType: 'api_key' | 'auth_token' | 'oauth' | 'ccr_proxy';
   /** Base URL */
-  baseUrl?: string
+  baseUrl?: string;
   /** Model configuration */
-  model?: string
+  model?: string;
   /** Whether this is the current profile */
-  isCurrent?: boolean
+  isCurrent?: boolean;
 }
 
 /**
@@ -86,9 +86,9 @@ export interface ConfigProfile {
  */
 export interface ListConfigOptions extends BaseConfigOptions {
   /** Configuration scope to list */
-  scope?: 'all' | 'ccjk' | 'claude' | 'state'
+  scope?: 'all' | 'ccjk' | 'claude' | 'state';
   /** Show detailed information */
-  verbose?: boolean
+  verbose?: boolean;
 }
 
 /**
@@ -96,7 +96,7 @@ export interface ListConfigOptions extends BaseConfigOptions {
  */
 export interface GetConfigOptions extends BaseConfigOptions {
   /** Show value source file */
-  showSource?: boolean
+  showSource?: boolean;
 }
 
 /**
@@ -104,11 +104,11 @@ export interface GetConfigOptions extends BaseConfigOptions {
  */
 export interface SetConfigOptions extends BaseConfigOptions {
   /** Configuration scope to set value in */
-  scope?: 'ccjk' | 'claude' | 'state' | 'auto'
+  scope?: 'ccjk' | 'claude' | 'state' | 'auto';
   /** Create backup before modification */
-  backup?: boolean
+  backup?: boolean;
   /** Value type (auto-detected by default) */
-  type?: 'string' | 'number' | 'boolean' | 'json'
+  type?: 'string' | 'number' | 'boolean' | 'json';
 }
 
 /**
@@ -116,13 +116,13 @@ export interface SetConfigOptions extends BaseConfigOptions {
  */
 export interface ConfigValueResult {
   /** The value */
-  value: unknown
+  value: unknown;
   /** Source configuration file */
-  source: 'ccjk' | 'claude' | 'clavue' | 'state'
+  source: 'ccjk' | 'claude' | 'clavue' | 'state';
   /** Full path to source file */
-  sourcePath: string
+  sourcePath: string;
   /** Dot notation path */
-  path: string
+  path: string;
 }
 
 /**
@@ -130,11 +130,11 @@ export interface ConfigValueResult {
  */
 export interface ConfigListResult {
   /** CCJK configuration (~/.ccjk/config.toml) */
-  ccjk?: Record<string, unknown> | null
+  ccjk?: Record<string, unknown> | null;
   /** Claude Code configuration (~/.claude/settings.json) */
-  claude?: Record<string, unknown> | null
+  claude?: Record<string, unknown> | null;
   /** Runtime state (~/.ccjk/state.json) */
-  state?: Record<string, unknown> | null
+  state?: Record<string, unknown> | null;
 }
 
 /**
@@ -142,15 +142,15 @@ export interface ConfigListResult {
  */
 export interface ConfigSetResult {
   /** Whether the operation succeeded */
-  success: boolean
+  success: boolean;
   /** Path that was set */
-  path: string
+  path: string;
   /** New value */
-  value: unknown
+  value: unknown;
   /** Backup path if created */
-  backupPath?: string
+  backupPath?: string;
   /** Error message if failed */
-  error?: string
+  error?: string;
 }
 
 /**
@@ -158,11 +158,11 @@ export interface ConfigSetResult {
  */
 export interface ConfigValueError {
   /** Path to the invalid value */
-  path: string
+  path: string;
   /** Error message */
-  message: string
+  message: string;
   /** Error code for i18n lookup */
-  code?: string
+  code?: string;
 }
 
 /**
@@ -170,9 +170,9 @@ export interface ConfigValueError {
  */
 export interface ParsedPath {
   /** Full path string */
-  full: string
+  full: string;
   /** Individual path segments */
-  segments: string[]
+  segments: string[];
   /** Determined scope (auto-detected) */
-  scope: 'ccjk' | 'claude' | 'state'
+  scope: 'ccjk' | 'claude' | 'state';
 }

@@ -3,122 +3,122 @@
  * Specialized agent for documentation search, knowledge integration, and solution comparison
  */
 
-import type { AgentCapability, AgentContext, AgentResult } from './base-agent'
-import { AgentState, BaseAgent } from './base-agent'
+import type { AgentCapability, AgentContext, AgentResult } from './base-agent';
+import { AgentState, BaseAgent } from './base-agent';
 
 export interface ResearchQuery {
-  query: string
-  scope: 'local' | 'web' | 'both'
-  depth: 'shallow' | 'medium' | 'deep'
-  filters?: ResearchFilter[]
+  query: string;
+  scope: 'local' | 'web' | 'both';
+  depth: 'shallow' | 'medium' | 'deep';
+  filters?: ResearchFilter[];
 }
 
 export interface ResearchFilter {
-  type: 'fileType' | 'dateRange' | 'author' | 'tag' | 'language'
-  value: string | string[]
+  type: 'fileType' | 'dateRange' | 'author' | 'tag' | 'language';
+  value: string | string[];
 }
 
 export interface ResearchResult {
-  sources: ResearchSource[]
-  summary: string
-  insights: ResearchInsight[]
-  recommendations: string[]
-  confidence: number
+  sources: ResearchSource[];
+  summary: string;
+  insights: ResearchInsight[];
+  recommendations: string[];
+  confidence: number;
 }
 
 export interface ResearchSource {
-  id: string
-  type: 'documentation' | 'code' | 'article' | 'discussion' | 'example'
-  title: string
-  url?: string
-  path?: string
-  content: string
-  relevance: number
-  metadata?: Record<string, unknown>
+  id: string;
+  type: 'documentation' | 'code' | 'article' | 'discussion' | 'example';
+  title: string;
+  url?: string;
+  path?: string;
+  content: string;
+  relevance: number;
+  metadata?: Record<string, unknown>;
 }
 
 export interface ResearchInsight {
-  category: 'pattern' | 'best-practice' | 'anti-pattern' | 'trend' | 'alternative'
-  description: string
-  evidence: string[]
-  confidence: number
+  category: 'pattern' | 'best-practice' | 'anti-pattern' | 'trend' | 'alternative';
+  description: string;
+  evidence: string[];
+  confidence: number;
 }
 
 export interface KnowledgeBase {
-  entries: KnowledgeEntry[]
-  relationships: KnowledgeRelationship[]
-  lastUpdated: number
+  entries: KnowledgeEntry[];
+  relationships: KnowledgeRelationship[];
+  lastUpdated: number;
 }
 
 export interface KnowledgeEntry {
-  id: string
-  topic: string
-  content: string
-  tags: string[]
-  sources: string[]
-  confidence: number
-  createdAt: number
-  updatedAt: number
+  id: string;
+  topic: string;
+  content: string;
+  tags: string[];
+  sources: string[];
+  confidence: number;
+  createdAt: number;
+  updatedAt: number;
 }
 
 export interface KnowledgeRelationship {
-  from: string
-  to: string
-  type: 'related' | 'depends-on' | 'alternative-to' | 'supersedes'
-  strength: number
+  from: string;
+  to: string;
+  type: 'related' | 'depends-on' | 'alternative-to' | 'supersedes';
+  strength: number;
 }
 
 export interface SolutionComparison {
-  solutions: Solution[]
-  criteria: ComparisonCriteria[]
-  matrix: ComparisonMatrix
-  recommendation: string
+  solutions: Solution[];
+  criteria: ComparisonCriteria[];
+  matrix: ComparisonMatrix;
+  recommendation: string;
 }
 
 export interface Solution {
-  id: string
-  name: string
-  description: string
-  pros: string[]
-  cons: string[]
-  complexity: 'low' | 'medium' | 'high'
-  maturity: 'experimental' | 'stable' | 'mature'
-  popularity: number
-  sources: string[]
+  id: string;
+  name: string;
+  description: string;
+  pros: string[];
+  cons: string[];
+  complexity: 'low' | 'medium' | 'high';
+  maturity: 'experimental' | 'stable' | 'mature';
+  popularity: number;
+  sources: string[];
 }
 
 export interface ComparisonCriteria {
-  name: string
-  weight: number
-  description: string
+  name: string;
+  weight: number;
+  description: string;
 }
 
 export interface ComparisonMatrix {
   [solutionId: string]: {
-    [criteriaName: string]: number
-  }
+    [criteriaName: string]: number;
+  };
 }
 
 export interface DocumentationIndex {
-  files: DocumentationFile[]
-  topics: Map<string, string[]>
-  searchIndex: Map<string, Set<string>>
+  files: DocumentationFile[];
+  topics: Map<string, string[]>;
+  searchIndex: Map<string, Set<string>>;
 }
 
 export interface DocumentationFile {
-  path: string
-  title: string
-  content: string
-  topics: string[]
-  lastModified: number
+  path: string;
+  title: string;
+  content: string;
+  topics: string[];
+  lastModified: number;
 }
 
 /**
  * Research Agent Implementation
  */
 export class ResearchAgent extends BaseAgent {
-  private knowledgeBase: KnowledgeBase
-  private searchCache: Map<string, ResearchResult> = new Map()
+  private knowledgeBase: KnowledgeBase;
+  private searchCache: Map<string, ResearchResult> = new Map();
 
   constructor(context: AgentContext) {
     const capabilities: AgentCapability[] = [
@@ -147,7 +147,7 @@ export class ResearchAgent extends BaseAgent {
         description: 'Index documentation for faster search',
         parameters: { paths: 'string[]', rebuild: 'boolean' },
       },
-    ]
+    ];
 
     super(
       {
@@ -159,38 +159,38 @@ export class ResearchAgent extends BaseAgent {
         verbose: true,
       },
       context,
-    )
+    );
 
     this.knowledgeBase = {
       entries: [],
       relationships: [],
       lastUpdated: Date.now(),
-    }
+    };
   }
 
   /**
    * Initialize research agent
    */
   async initialize(): Promise<void> {
-    this.setState(AgentState.THINKING)
-    this.log('Initializing Research Agent...')
+    this.setState(AgentState.THINKING);
+    this.log('Initializing Research Agent...');
 
     try {
       // Load knowledge base
-      await this.loadKnowledgeBase()
+      await this.loadKnowledgeBase();
 
       // Build documentation index
-      await this.buildDocumentationIndex()
+      await this.buildDocumentationIndex();
 
       // Initialize search tools
-      await this.initializeSearchTools()
+      await this.initializeSearchTools();
 
-      this.setState(AgentState.IDLE)
-      this.log('Research Agent initialized successfully')
+      this.setState(AgentState.IDLE);
+      this.log('Research Agent initialized successfully');
     }
     catch (error) {
-      this.setState(AgentState.ERROR)
-      throw error
+      this.setState(AgentState.ERROR);
+      throw error;
     }
   }
 
@@ -198,48 +198,48 @@ export class ResearchAgent extends BaseAgent {
    * Process research request
    */
   async process(message: string, metadata?: Record<string, unknown>): Promise<AgentResult<ResearchResult>> {
-    this.setState(AgentState.THINKING)
-    this.addMessage({ role: 'user', content: message, metadata })
+    this.setState(AgentState.THINKING);
+    this.addMessage({ role: 'user', content: message, metadata });
 
     try {
-      const action = metadata?.action as string || 'search'
+      const action = metadata?.action as string || 'search';
 
-      this.log(`Processing ${action} request: ${message}`)
+      this.log(`Processing ${action} request: ${message}`);
 
-      let result: ResearchResult
+      let result: ResearchResult;
 
       switch (action) {
         case 'search':
-          result = await this.searchDocumentation(message, metadata as unknown as ResearchQuery)
-          break
+          result = await this.searchDocumentation(message, metadata as unknown as ResearchQuery);
+          break;
         case 'integrate':
-          result = await this.integrateKnowledge(message, metadata?.sources as string[])
-          break
+          result = await this.integrateKnowledge(message, metadata?.sources as string[]);
+          break;
         case 'compare':
-          result = await this.compareSolutions(message, metadata?.solutions as string[])
-          break
+          result = await this.compareSolutions(message, metadata?.solutions as string[]);
+          break;
         case 'synthesize':
-          result = await this.synthesizeInsights(message, metadata?.sources as string[])
-          break
+          result = await this.synthesizeInsights(message, metadata?.sources as string[]);
+          break;
         default:
-          throw new Error(`Unknown action: ${action}`)
+          throw new Error(`Unknown action: ${action}`);
       }
 
-      this.setState(AgentState.COMPLETED)
+      this.setState(AgentState.COMPLETED);
       this.addMessage({
         role: 'agent',
         content: `Completed ${action} research`,
         metadata: { result },
-      })
+      });
 
       return {
         success: true,
         data: result,
         message: `Research ${action} completed successfully`,
-      }
+      };
     }
     catch (error) {
-      return await this.handleError(error instanceof Error ? error : new Error(String(error))) as AgentResult<ResearchResult>
+      return await this.handleError(error instanceof Error ? error : new Error(String(error))) as AgentResult<ResearchResult>;
     }
   }
 
@@ -247,54 +247,54 @@ export class ResearchAgent extends BaseAgent {
    * Search documentation
    */
   private async searchDocumentation(query: string, options?: ResearchQuery): Promise<ResearchResult> {
-    this.setState(AgentState.EXECUTING)
-    this.log(`Searching documentation for: ${query}`)
+    this.setState(AgentState.EXECUTING);
+    this.log(`Searching documentation for: ${query}`);
 
     // Check cache
-    const cacheKey = `${query}-${JSON.stringify(options)}`
-    const cached = this.searchCache.get(cacheKey)
+    const cacheKey = `${query}-${JSON.stringify(options)}`;
+    const cached = this.searchCache.get(cacheKey);
     if (cached) {
-      this.log('Returning cached result')
-      return cached
+      this.log('Returning cached result');
+      return cached;
     }
 
     return this.executeWithRetry(async () => {
-      const scope = options?.scope || 'both'
-      const depth = options?.depth || 'medium'
+      const scope = options?.scope || 'both';
+      const depth = options?.depth || 'medium';
 
-      const sources: ResearchSource[] = []
+      const sources: ResearchSource[] = [];
 
       // Search local documentation
       if (scope === 'local' || scope === 'both') {
-        const localSources = await this.searchLocalDocumentation(query, depth)
-        sources.push(...localSources)
+        const localSources = await this.searchLocalDocumentation(query, depth);
+        sources.push(...localSources);
       }
 
       // Search web resources
       if (scope === 'web' || scope === 'both') {
-        const webSources = await this.searchWebResources(query, depth)
-        sources.push(...webSources)
+        const webSources = await this.searchWebResources(query, depth);
+        sources.push(...webSources);
       }
 
       // Apply filters
       const filteredSources = options?.filters
         ? this.applyFilters(sources, options.filters)
-        : sources
+        : sources;
 
       // Sort by relevance
-      const sortedSources = filteredSources.sort((a, b) => b.relevance - a.relevance)
+      const sortedSources = filteredSources.sort((a, b) => b.relevance - a.relevance);
 
       // Generate insights
-      const insights = await this.generateInsights(sortedSources)
+      const insights = await this.generateInsights(sortedSources);
 
       // Create summary
-      const summary = await this.createSummary(sortedSources, insights)
+      const summary = await this.createSummary(sortedSources, insights);
 
       // Generate recommendations
-      const recommendations = await this.generateRecommendations(sortedSources, insights)
+      const recommendations = await this.generateRecommendations(sortedSources, insights);
 
       // Calculate confidence
-      const confidence = this.calculateConfidence(sortedSources, insights)
+      const confidence = this.calculateConfidence(sortedSources, insights);
 
       const result: ResearchResult = {
         sources: sortedSources,
@@ -302,43 +302,43 @@ export class ResearchAgent extends BaseAgent {
         insights,
         recommendations,
         confidence,
-      }
+      };
 
       // Cache result
-      this.searchCache.set(cacheKey, result)
+      this.searchCache.set(cacheKey, result);
 
-      return result
-    })
+      return result;
+    });
   }
 
   /**
    * Integrate knowledge from multiple sources
    */
   private async integrateKnowledge(topic: string, sources?: string[]): Promise<ResearchResult> {
-    this.setState(AgentState.EXECUTING)
-    this.log(`Integrating knowledge for topic: ${topic}`)
+    this.setState(AgentState.EXECUTING);
+    this.log(`Integrating knowledge for topic: ${topic}`);
 
     return this.executeWithRetry(async () => {
       // Gather information from sources
-      const researchSources = await this.gatherSources(topic, sources)
+      const researchSources = await this.gatherSources(topic, sources);
 
       // Extract key concepts
-      const concepts = await this.extractConcepts(researchSources)
+      const concepts = await this.extractConcepts(researchSources);
 
       // Build knowledge graph
-      const relationships = await this.buildKnowledgeGraph(concepts)
+      const relationships = await this.buildKnowledgeGraph(concepts);
 
       // Generate insights
-      const insights = await this.generateInsights(researchSources)
+      const insights = await this.generateInsights(researchSources);
 
       // Create integrated summary
-      const summary = await this.createIntegratedSummary(concepts, relationships)
+      const summary = await this.createIntegratedSummary(concepts, relationships);
 
       // Generate recommendations
-      const recommendations = await this.generateRecommendations(researchSources, insights)
+      const recommendations = await this.generateRecommendations(researchSources, insights);
 
       // Update knowledge base
-      await this.updateKnowledgeBase(topic, concepts, relationships)
+      await this.updateKnowledgeBase(topic, concepts, relationships);
 
       return {
         sources: researchSources,
@@ -346,44 +346,44 @@ export class ResearchAgent extends BaseAgent {
         insights,
         recommendations,
         confidence: this.calculateConfidence(researchSources, insights),
-      }
-    })
+      };
+    });
   }
 
   /**
    * Compare different solutions
    */
   private async compareSolutions(topic: string, solutionNames?: string[]): Promise<ResearchResult> {
-    this.setState(AgentState.EXECUTING)
-    this.log(`Comparing solutions for: ${topic}`)
+    this.setState(AgentState.EXECUTING);
+    this.log(`Comparing solutions for: ${topic}`);
 
     return this.executeWithRetry(async () => {
       // Research each solution
-      const solutions: Solution[] = []
-      const allSources: ResearchSource[] = []
+      const solutions: Solution[] = [];
+      const allSources: ResearchSource[] = [];
 
       for (const name of solutionNames || []) {
-        const solution = await this.researchSolution(name)
-        solutions.push(solution)
+        const solution = await this.researchSolution(name);
+        solutions.push(solution);
 
-        const sources = await this.gatherSources(name)
-        allSources.push(...sources)
+        const sources = await this.gatherSources(name);
+        allSources.push(...sources);
       }
 
       // Define comparison criteria
-      const criteria = await this.defineComparisonCriteria(topic)
+      const criteria = await this.defineComparisonCriteria(topic);
 
       // Build comparison matrix
-      const matrix = await this.buildComparisonMatrix(solutions, criteria)
+      const matrix = await this.buildComparisonMatrix(solutions, criteria);
 
       // Generate comparison insights
-      const insights = await this.generateComparisonInsights(solutions, matrix)
+      const insights = await this.generateComparisonInsights(solutions, matrix);
 
       // Create comparison summary
-      const summary = await this.createComparisonSummary(solutions, criteria, matrix)
+      const summary = await this.createComparisonSummary(solutions, criteria, matrix);
 
       // Generate recommendation
-      const recommendations = await this.generateSolutionRecommendation(solutions, matrix, criteria)
+      const recommendations = await this.generateSolutionRecommendation(solutions, matrix, criteria);
 
       return {
         sources: allSources,
@@ -391,32 +391,32 @@ export class ResearchAgent extends BaseAgent {
         insights,
         recommendations,
         confidence: this.calculateConfidence(allSources, insights),
-      }
-    })
+      };
+    });
   }
 
   /**
    * Synthesize insights from research
    */
   private async synthesizeInsights(topic: string, sources?: string[]): Promise<ResearchResult> {
-    this.setState(AgentState.EXECUTING)
-    this.log(`Synthesizing insights for: ${topic}`)
+    this.setState(AgentState.EXECUTING);
+    this.log(`Synthesizing insights for: ${topic}`);
 
     return this.executeWithRetry(async () => {
       // Gather all relevant sources
-      const researchSources = await this.gatherSources(topic, sources)
+      const researchSources = await this.gatherSources(topic, sources);
 
       // Extract patterns
-      const patterns = await this.extractPatterns(researchSources)
+      const patterns = await this.extractPatterns(researchSources);
 
       // Identify trends
-      const trends = await this.identifyTrends(researchSources)
+      const trends = await this.identifyTrends(researchSources);
 
       // Find best practices
-      const bestPractices = await this.findBestPractices(researchSources)
+      const bestPractices = await this.findBestPractices(researchSources);
 
       // Detect anti-patterns
-      const antiPatterns = await this.detectAntiPatterns(researchSources)
+      const antiPatterns = await this.detectAntiPatterns(researchSources);
 
       // Generate comprehensive insights
       const insights: ResearchInsight[] = [
@@ -424,13 +424,13 @@ export class ResearchAgent extends BaseAgent {
         ...trends,
         ...bestPractices,
         ...antiPatterns,
-      ]
+      ];
 
       // Create synthesis summary
-      const summary = await this.createSynthesisSummary(insights)
+      const summary = await this.createSynthesisSummary(insights);
 
       // Generate actionable recommendations
-      const recommendations = await this.generateActionableRecommendations(insights)
+      const recommendations = await this.generateActionableRecommendations(insights);
 
       return {
         sources: researchSources,
@@ -438,61 +438,61 @@ export class ResearchAgent extends BaseAgent {
         insights,
         recommendations,
         confidence: this.calculateConfidence(researchSources, insights),
-      }
-    })
+      };
+    });
   }
 
   /**
    * Search local documentation
    */
   private async searchLocalDocumentation(_query: string, depth: string): Promise<ResearchSource[]> {
-    this.log(`Searching local documentation with depth: ${depth}`)
+    this.log(`Searching local documentation with depth: ${depth}`);
     // Placeholder implementation
-    return []
+    return [];
   }
 
   /**
    * Search web resources
    */
   private async searchWebResources(_query: string, depth: string): Promise<ResearchSource[]> {
-    this.log(`Searching web resources with depth: ${depth}`)
+    this.log(`Searching web resources with depth: ${depth}`);
     // Placeholder implementation
-    return []
+    return [];
   }
 
   /**
    * Apply filters to sources
    */
   private applyFilters(sources: ResearchSource[], filters: ResearchFilter[]): ResearchSource[] {
-    this.log(`Applying ${filters.length} filters`)
+    this.log(`Applying ${filters.length} filters`);
     // Placeholder implementation
-    return sources
+    return sources;
   }
 
   /**
    * Generate insights from sources
    */
   private async generateInsights(sources: ResearchSource[]): Promise<ResearchInsight[]> {
-    this.log(`Generating insights from ${sources.length} sources`)
+    this.log(`Generating insights from ${sources.length} sources`);
     // Placeholder implementation
-    return []
+    return [];
   }
 
   /**
    * Create summary
    */
   private async createSummary(_sources: ResearchSource[], _insights: ResearchInsight[]): Promise<string> {
-    this.log('Creating summary')
-    return `Research summary generated`
+    this.log('Creating summary');
+    return `Research summary generated`;
   }
 
   /**
    * Generate recommendations
    */
   private async generateRecommendations(_sources: ResearchSource[], _insights: ResearchInsight[]): Promise<string[]> {
-    this.log('Generating recommendations')
+    this.log('Generating recommendations');
     // Placeholder implementation
-    return []
+    return [];
   }
 
   /**
@@ -500,64 +500,64 @@ export class ResearchAgent extends BaseAgent {
    */
   private calculateConfidence(sources: ResearchSource[], insights: ResearchInsight[]): number {
     if (sources.length === 0)
-      return 0
+      return 0;
 
-    const avgSourceRelevance = sources.reduce((sum, s) => sum + s.relevance, 0) / sources.length
+    const avgSourceRelevance = sources.reduce((sum, s) => sum + s.relevance, 0) / sources.length;
     const avgInsightConfidence = insights.length > 0
       ? insights.reduce((sum, i) => sum + i.confidence, 0) / insights.length
-      : 0
+      : 0;
 
-    return (avgSourceRelevance + avgInsightConfidence) / 2
+    return (avgSourceRelevance + avgInsightConfidence) / 2;
   }
 
   /**
    * Gather sources
    */
   private async gatherSources(topic: string, _sources?: string[]): Promise<ResearchSource[]> {
-    this.log(`Gathering sources for: ${topic}`)
+    this.log(`Gathering sources for: ${topic}`);
     // Placeholder implementation
-    return []
+    return [];
   }
 
   /**
    * Extract concepts
    */
   private async extractConcepts(_sources: ResearchSource[]): Promise<string[]> {
-    this.log('Extracting concepts')
+    this.log('Extracting concepts');
     // Placeholder implementation
-    return []
+    return [];
   }
 
   /**
    * Build knowledge graph
    */
   private async buildKnowledgeGraph(_concepts: string[]): Promise<KnowledgeRelationship[]> {
-    this.log('Building knowledge graph')
+    this.log('Building knowledge graph');
     // Placeholder implementation
-    return []
+    return [];
   }
 
   /**
    * Create integrated summary
    */
   private async createIntegratedSummary(concepts: string[], relationships: KnowledgeRelationship[]): Promise<string> {
-    this.log('Creating integrated summary')
-    return `Integrated summary of ${concepts.length} concepts with ${relationships.length} relationships`
+    this.log('Creating integrated summary');
+    return `Integrated summary of ${concepts.length} concepts with ${relationships.length} relationships`;
   }
 
   /**
    * Update knowledge base
    */
   private async updateKnowledgeBase(_topic: string, _concepts: string[], _relationships: KnowledgeRelationship[]): Promise<void> {
-    this.log('Updating knowledge base')
-    this.knowledgeBase.lastUpdated = Date.now()
+    this.log('Updating knowledge base');
+    this.knowledgeBase.lastUpdated = Date.now();
   }
 
   /**
    * Research solution
    */
   private async researchSolution(name: string): Promise<Solution> {
-    this.log(`Researching solution: ${name}`)
+    this.log(`Researching solution: ${name}`);
     // Placeholder implementation
     return {
       id: name,
@@ -569,111 +569,111 @@ export class ResearchAgent extends BaseAgent {
       maturity: 'stable',
       popularity: 0,
       sources: [],
-    }
+    };
   }
 
   /**
    * Define comparison criteria
    */
   private async defineComparisonCriteria(_topic: string): Promise<ComparisonCriteria[]> {
-    this.log('Defining comparison criteria')
+    this.log('Defining comparison criteria');
     // Placeholder implementation
-    return []
+    return [];
   }
 
   /**
    * Build comparison matrix
    */
   private async buildComparisonMatrix(_solutions: Solution[], _criteria: ComparisonCriteria[]): Promise<ComparisonMatrix> {
-    this.log('Building comparison matrix')
+    this.log('Building comparison matrix');
     // Placeholder implementation
-    return {}
+    return {};
   }
 
   /**
    * Generate comparison insights
    */
   private async generateComparisonInsights(_solutions: Solution[], _matrix: ComparisonMatrix): Promise<ResearchInsight[]> {
-    this.log('Generating comparison insights')
+    this.log('Generating comparison insights');
     // Placeholder implementation
-    return []
+    return [];
   }
 
   /**
    * Create comparison summary
    */
   private async createComparisonSummary(solutions: Solution[], criteria: ComparisonCriteria[], _matrix: ComparisonMatrix): Promise<string> {
-    this.log('Creating comparison summary')
-    return `Comparison of ${solutions.length} solutions across ${criteria.length} criteria`
+    this.log('Creating comparison summary');
+    return `Comparison of ${solutions.length} solutions across ${criteria.length} criteria`;
   }
 
   /**
    * Generate solution recommendation
    */
   private async generateSolutionRecommendation(_solutions: Solution[], _matrix: ComparisonMatrix, _criteria: ComparisonCriteria[]): Promise<string[]> {
-    this.log('Generating solution recommendation')
+    this.log('Generating solution recommendation');
     // Placeholder implementation
-    return []
+    return [];
   }
 
   /**
    * Extract patterns
    */
   private async extractPatterns(_sources: ResearchSource[]): Promise<ResearchInsight[]> {
-    this.log('Extracting patterns')
+    this.log('Extracting patterns');
     // Placeholder implementation
-    return []
+    return [];
   }
 
   /**
    * Identify trends
    */
   private async identifyTrends(_sources: ResearchSource[]): Promise<ResearchInsight[]> {
-    this.log('Identifying trends')
+    this.log('Identifying trends');
     // Placeholder implementation
-    return []
+    return [];
   }
 
   /**
    * Find best practices
    */
   private async findBestPractices(_sources: ResearchSource[]): Promise<ResearchInsight[]> {
-    this.log('Finding best practices')
+    this.log('Finding best practices');
     // Placeholder implementation
-    return []
+    return [];
   }
 
   /**
    * Detect anti-patterns
    */
   private async detectAntiPatterns(_sources: ResearchSource[]): Promise<ResearchInsight[]> {
-    this.log('Detecting anti-patterns')
+    this.log('Detecting anti-patterns');
     // Placeholder implementation
-    return []
+    return [];
   }
 
   /**
    * Create synthesis summary
    */
   private async createSynthesisSummary(insights: ResearchInsight[]): Promise<string> {
-    this.log('Creating synthesis summary')
-    return `Synthesis of ${insights.length} insights`
+    this.log('Creating synthesis summary');
+    return `Synthesis of ${insights.length} insights`;
   }
 
   /**
    * Generate actionable recommendations
    */
   private async generateActionableRecommendations(_insights: ResearchInsight[]): Promise<string[]> {
-    this.log('Generating actionable recommendations')
+    this.log('Generating actionable recommendations');
     // Placeholder implementation
-    return []
+    return [];
   }
 
   /**
    * Load knowledge base
    */
   private async loadKnowledgeBase(): Promise<void> {
-    this.log('Loading knowledge base...')
+    this.log('Loading knowledge base...');
     // Placeholder for loading persisted knowledge
   }
 
@@ -681,7 +681,7 @@ export class ResearchAgent extends BaseAgent {
    * Build documentation index
    */
   private async buildDocumentationIndex(): Promise<void> {
-    this.log('Building documentation index...')
+    this.log('Building documentation index...');
     // Documentation index is built on-demand during search operations
   }
 
@@ -689,7 +689,7 @@ export class ResearchAgent extends BaseAgent {
    * Initialize search tools
    */
   private async initializeSearchTools(): Promise<void> {
-    this.log('Initializing search tools...')
+    this.log('Initializing search tools...');
     // Placeholder for search tool initialization
   }
 
@@ -697,28 +697,28 @@ export class ResearchAgent extends BaseAgent {
    * Cleanup resources
    */
   async cleanup(): Promise<void> {
-    this.log('Cleaning up Research Agent resources...')
-    this.searchCache.clear()
-    this.setState(AgentState.IDLE)
+    this.log('Cleaning up Research Agent resources...');
+    this.searchCache.clear();
+    this.setState(AgentState.IDLE);
   }
 
   /**
    * Handle errors
    */
   override async handleError(error: Error): Promise<AgentResult> {
-    this.setState(AgentState.ERROR)
-    this.log(`Error: ${error.message}`, 'error')
+    this.setState(AgentState.ERROR);
+    this.log(`Error: ${error.message}`, 'error');
 
     this.addMessage({
       role: 'system',
       content: `Error occurred: ${error.message}`,
       metadata: { error: error.stack },
-    })
+    });
 
     return {
       success: false,
       error,
       message: `Research failed: ${error.message}`,
-    }
+    };
   }
 }

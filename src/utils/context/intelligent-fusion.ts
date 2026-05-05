@@ -13,25 +13,25 @@
  * - Zero-config operation
  */
 
-import type { FCSummary } from '../../types/context'
+import type { FCSummary } from '../../types/context';
 import type {
   CodePattern,
   CommandTemplate,
   DecisionRecord,
   LayeredMemoryManager,
   ProjectNode,
-} from './layered-memory'
+} from './layered-memory';
 import type {
   CompressedOutput,
   FileContext,
   MultiHeadCompressor,
   RawContext,
-} from './multi-head-compressor'
-import { readdir, stat } from 'node:fs/promises'
-import { join } from 'pathe'
-import { createLayeredMemoryManager } from './layered-memory'
-import { createMultiHeadCompressor } from './multi-head-compressor'
-import { estimateTokens } from './token-estimator'
+} from './multi-head-compressor';
+import { readdir, stat } from 'node:fs/promises';
+import { join } from 'pathe';
+import { createLayeredMemoryManager } from './layered-memory';
+import { createMultiHeadCompressor } from './multi-head-compressor';
+import { estimateTokens } from './token-estimator';
 
 // ============================================================================
 // Type Definitions
@@ -42,23 +42,23 @@ import { estimateTokens } from './token-estimator'
  */
 export interface FusionConfig {
   /** API key for Haiku (optional, uses env if not provided) */
-  apiKey?: string
+  apiKey?: string;
   /** Enable automatic project scanning */
-  autoScan?: boolean
+  autoScan?: boolean;
   /** Enable pattern learning */
-  learnPatterns?: boolean
+  learnPatterns?: boolean;
   /** Maximum depth for project scanning */
-  maxScanDepth?: number
+  maxScanDepth?: number;
   /** Directories to ignore during scanning */
-  ignoreDirs?: string[]
+  ignoreDirs?: string[];
   /** File extensions to track */
-  trackExtensions?: string[]
+  trackExtensions?: string[];
   /** Context threshold (0-1) to trigger compression */
-  compressionThreshold?: number
+  compressionThreshold?: number;
   /** Maximum context tokens */
-  maxContextTokens?: number
+  maxContextTokens?: number;
   /** Enable debug logging */
-  debug?: boolean
+  debug?: boolean;
 }
 
 /**
@@ -66,20 +66,20 @@ export interface FusionConfig {
  */
 export interface OptimizedContext {
   /** The optimized context string */
-  content: string
+  content: string;
   /** Token count */
-  tokens: number
+  tokens: number;
   /** Compression ratio achieved */
-  compressionRatio: number
+  compressionRatio: number;
   /** Source breakdown */
   sources: {
-    static: number
-    session: number
-    dynamic: number
-    compressed: number
-  }
+    static: number;
+    session: number;
+    dynamic: number;
+    compressed: number;
+  };
   /** Timestamp */
-  timestamp: Date
+  timestamp: Date;
 }
 
 /**
@@ -87,26 +87,26 @@ export interface OptimizedContext {
  */
 export interface OptimizationRequest {
   /** Current query/task */
-  query?: string
+  query?: string;
   /** Target token budget */
-  targetTokens?: number
+  targetTokens?: number;
   /** Include static knowledge */
-  includeStatic?: boolean
+  includeStatic?: boolean;
   /** Include session context */
-  includeSession?: boolean
+  includeSession?: boolean;
   /** Include dynamic context */
-  includeDynamic?: boolean
+  includeDynamic?: boolean;
   /** Force compression even if under threshold */
-  forceCompress?: boolean
+  forceCompress?: boolean;
 }
 
 /**
  * Learning event for pattern detection
  */
 export interface LearningEvent {
-  type: 'command' | 'file' | 'pattern' | 'decision'
-  data: Record<string, unknown>
-  timestamp: Date
+  type: 'command' | 'file' | 'pattern' | 'decision';
+  data: Record<string, unknown>;
+  timestamp: Date;
 }
 
 // ============================================================================
@@ -158,7 +158,7 @@ const DEFAULT_CONFIG: Required<FusionConfig> = {
   compressionThreshold: 0.8,
   maxContextTokens: 200000,
   debug: false,
-}
+};
 
 // ============================================================================
 // Intelligent Fusion Manager
@@ -171,28 +171,28 @@ const DEFAULT_CONFIG: Required<FusionConfig> = {
  * features into a single, easy-to-use interface.
  */
 export class IntelligentFusionManager {
-  private config: Required<FusionConfig>
-  private memoryManager: LayeredMemoryManager
-  private compressor: MultiHeadCompressor
-  private projectPath: string | null = null
-  private isScanning = false
-  private lastScanTime: Date | null = null
-  private learningQueue: LearningEvent[] = []
+  private config: Required<FusionConfig>;
+  private memoryManager: LayeredMemoryManager;
+  private compressor: MultiHeadCompressor;
+  private projectPath: string | null = null;
+  private isScanning = false;
+  private lastScanTime: Date | null = null;
+  private learningQueue: LearningEvent[] = [];
 
   constructor(config: FusionConfig = {}) {
-    this.config = { ...DEFAULT_CONFIG, ...config }
+    this.config = { ...DEFAULT_CONFIG, ...config };
 
     // Initialize subsystems
     this.memoryManager = createLayeredMemoryManager({
       maxRecentFCs: 50,
       maxActiveFiles: 20,
       maxDecisionHistory: 100,
-    })
+    });
 
     this.compressor = createMultiHeadCompressor({
       apiKey: this.config.apiKey,
       enableSemanticHead: true,
-    })
+    });
   }
 
   // ==========================================================================
@@ -203,18 +203,18 @@ export class IntelligentFusionManager {
    * Initialize with a project path
    */
   async initialize(projectPath: string): Promise<void> {
-    this.projectPath = projectPath
-    this.debug(`Initializing fusion manager for: ${projectPath}`)
+    this.projectPath = projectPath;
+    this.debug(`Initializing fusion manager for: ${projectPath}`);
 
     // Start session in memory manager
-    this.memoryManager.startSession(projectPath)
+    this.memoryManager.startSession(projectPath);
 
     // Auto-scan project structure if enabled
     if (this.config.autoScan) {
-      await this.scanProject()
+      await this.scanProject();
     }
 
-    this.debug('Fusion manager initialized')
+    this.debug('Fusion manager initialized');
   }
 
   /**
@@ -222,25 +222,25 @@ export class IntelligentFusionManager {
    */
   async scanProject(): Promise<ProjectNode | null> {
     if (!this.projectPath || this.isScanning) {
-      return null
+      return null;
     }
 
-    this.isScanning = true
-    this.debug('Starting project scan...')
+    this.isScanning = true;
+    this.debug('Starting project scan...');
 
     try {
-      const structure = await this.scanDirectory(this.projectPath, 0)
-      this.memoryManager.updateProjectStructure(structure)
-      this.lastScanTime = new Date()
-      this.debug(`Project scan complete: ${this.countNodes(structure)} nodes`)
-      return structure
+      const structure = await this.scanDirectory(this.projectPath, 0);
+      this.memoryManager.updateProjectStructure(structure);
+      this.lastScanTime = new Date();
+      this.debug(`Project scan complete: ${this.countNodes(structure)} nodes`);
+      return structure;
     }
     catch (error) {
-      this.debug(`Project scan failed: ${error}`)
-      return null
+      this.debug(`Project scan failed: ${error}`);
+      return null;
     }
     finally {
-      this.isScanning = false
+      this.isScanning = false;
     }
   }
 
@@ -248,38 +248,38 @@ export class IntelligentFusionManager {
    * Recursively scan directory
    */
   private async scanDirectory(dirPath: string, depth: number): Promise<ProjectNode> {
-    const name = dirPath.split('/').pop() || dirPath
+    const name = dirPath.split('/').pop() || dirPath;
 
     if (depth > this.config.maxScanDepth) {
-      return { path: dirPath, name, type: 'directory' }
+      return { path: dirPath, name, type: 'directory' };
     }
 
     try {
-      const entries = await readdir(dirPath, { withFileTypes: true })
-      const children: ProjectNode[] = []
+      const entries = await readdir(dirPath, { withFileTypes: true });
+      const children: ProjectNode[] = [];
 
       for (const entry of entries) {
         // Skip ignored directories
         if (entry.isDirectory() && this.config.ignoreDirs.includes(entry.name)) {
-          continue
+          continue;
         }
 
         // Skip hidden files/dirs (except specific ones)
         if (entry.name.startsWith('.') && !['src', '.github'].includes(entry.name)) {
-          continue
+          continue;
         }
 
-        const childPath = join(dirPath, entry.name)
+        const childPath = join(dirPath, entry.name);
 
         if (entry.isDirectory()) {
-          const childNode = await this.scanDirectory(childPath, depth + 1)
-          children.push(childNode)
+          const childNode = await this.scanDirectory(childPath, depth + 1);
+          children.push(childNode);
         }
         else if (entry.isFile()) {
-          const ext = this.getExtension(entry.name)
+          const ext = this.getExtension(entry.name);
           if (this.config.trackExtensions.includes(ext)) {
             try {
-              const stats = await stat(childPath)
+              const stats = await stat(childPath);
               children.push({
                 path: childPath,
                 name: entry.name,
@@ -289,7 +289,7 @@ export class IntelligentFusionManager {
                   size: stats.size,
                   lastModified: stats.mtimeMs,
                 },
-              })
+              });
             }
             catch {
               children.push({
@@ -297,7 +297,7 @@ export class IntelligentFusionManager {
                 name: entry.name,
                 type: 'file',
                 metadata: { extension: ext },
-              })
+              });
             }
           }
         }
@@ -309,13 +309,13 @@ export class IntelligentFusionManager {
         type: 'directory',
         children: children.sort((a, b) => {
           if (a.type === b.type)
-            return a.name.localeCompare(b.name)
-          return a.type === 'directory' ? -1 : 1
+            return a.name.localeCompare(b.name);
+          return a.type === 'directory' ? -1 : 1;
         }),
-      }
+      };
     }
     catch {
-      return { path: dirPath, name, type: 'directory' }
+      return { path: dirPath, name, type: 'directory' };
     }
   }
 
@@ -323,21 +323,21 @@ export class IntelligentFusionManager {
    * Get file extension
    */
   private getExtension(filename: string): string {
-    const lastDot = filename.lastIndexOf('.')
-    return lastDot > 0 ? filename.substring(lastDot) : ''
+    const lastDot = filename.lastIndexOf('.');
+    return lastDot > 0 ? filename.substring(lastDot) : '';
   }
 
   /**
    * Count nodes in project structure
    */
   private countNodes(node: ProjectNode): number {
-    let count = 1
+    let count = 1;
     if (node.children) {
       for (const child of node.children) {
-        count += this.countNodes(child)
+        count += this.countNodes(child);
       }
     }
-    return count
+    return count;
   }
 
   // ==========================================================================
@@ -348,11 +348,11 @@ export class IntelligentFusionManager {
    * Track a function call
    */
   trackFunctionCall(fc: FCSummary): void {
-    this.memoryManager.addFunctionCall(fc)
+    this.memoryManager.addFunctionCall(fc);
 
     // Learn patterns if enabled
     if (this.config.learnPatterns) {
-      this.learnFromFunctionCall(fc)
+      this.learnFromFunctionCall(fc);
     }
   }
 
@@ -360,7 +360,7 @@ export class IntelligentFusionManager {
    * Track file access
    */
   trackFileAccess(filePath: string, action: 'read' | 'write' | 'edit' | 'delete'): void {
-    this.memoryManager.markFileActive(filePath)
+    this.memoryManager.markFileActive(filePath);
 
     // Learn patterns if enabled
     if (this.config.learnPatterns) {
@@ -368,7 +368,7 @@ export class IntelligentFusionManager {
         type: 'file',
         data: { path: filePath, action },
         timestamp: new Date(),
-      })
+      });
     }
   }
 
@@ -382,8 +382,8 @@ export class IntelligentFusionManager {
       description,
       frequency: 1,
       lastUsed: new Date(),
-    }
-    this.memoryManager.addCommandTemplate(template)
+    };
+    this.memoryManager.addCommandTemplate(template);
   }
 
   /**
@@ -395,42 +395,42 @@ export class IntelligentFusionManager {
       decision,
       outcome: 'pending',
       tags,
-    })
+    });
   }
 
   /**
    * Resolve a tracked decision
    */
   resolveDecision(id: string, outcome: 'success' | 'failure'): void {
-    this.memoryManager.resolveDecision(id, outcome)
+    this.memoryManager.resolveDecision(id, outcome);
   }
 
   /**
    * Track error
    */
   trackError(type: string, message: string, file?: string, line?: number): void {
-    this.memoryManager.addError({ type, message, file, line })
+    this.memoryManager.addError({ type, message, file, line });
   }
 
   /**
    * Set current goal
    */
   setGoal(goal: string): void {
-    this.memoryManager.setCurrentGoal(goal)
+    this.memoryManager.setCurrentGoal(goal);
   }
 
   /**
    * Push task to stack
    */
   pushTask(task: string): void {
-    this.memoryManager.pushTask(task)
+    this.memoryManager.pushTask(task);
   }
 
   /**
    * Pop task from stack
    */
   popTask(): string | undefined {
-    return this.memoryManager.popTask()
+    return this.memoryManager.popTask();
   }
 
   // ==========================================================================
@@ -448,42 +448,42 @@ export class IntelligentFusionManager {
       includeSession = true,
       includeDynamic = true,
       forceCompress = false,
-    } = request
+    } = request;
 
-    this.debug(`Getting optimized context (target: ${targetTokens} tokens)`)
+    this.debug(`Getting optimized context (target: ${targetTokens} tokens)`);
 
     // Get layered memory context
-    const memoryContext = this.memoryManager.retrieveRelevantContext(query, targetTokens)
+    const memoryContext = this.memoryManager.retrieveRelevantContext(query, targetTokens);
 
     // Build parts based on request
-    const parts: string[] = []
-    const sources = { static: 0, session: 0, dynamic: 0, compressed: 0 }
+    const parts: string[] = [];
+    const sources = { static: 0, session: 0, dynamic: 0, compressed: 0 };
 
     if (includeStatic && memoryContext.staticSummary) {
-      parts.push(memoryContext.staticSummary)
-      sources.static = estimateTokens(memoryContext.staticSummary)
+      parts.push(memoryContext.staticSummary);
+      sources.static = estimateTokens(memoryContext.staticSummary);
     }
 
     if (includeSession && memoryContext.sessionSummary) {
-      parts.push(memoryContext.sessionSummary)
-      sources.session = estimateTokens(memoryContext.sessionSummary)
+      parts.push(memoryContext.sessionSummary);
+      sources.session = estimateTokens(memoryContext.sessionSummary);
     }
 
     if (includeDynamic && memoryContext.dynamicSummary) {
-      parts.push(memoryContext.dynamicSummary)
-      sources.dynamic = estimateTokens(memoryContext.dynamicSummary)
+      parts.push(memoryContext.dynamicSummary);
+      sources.dynamic = estimateTokens(memoryContext.dynamicSummary);
     }
 
-    const content = parts.join('\n\n')
-    const tokens = estimateTokens(content)
+    const content = parts.join('\n\n');
+    const tokens = estimateTokens(content);
 
     // Check if compression is needed
-    const needsCompression = forceCompress || tokens > targetTokens
+    const needsCompression = forceCompress || tokens > targetTokens;
 
     if (needsCompression) {
-      this.debug('Compression needed, running multi-head compressor')
-      const compressed = await this.compressContext()
-      sources.compressed = compressed.compressedTokens
+      this.debug('Compression needed, running multi-head compressor');
+      const compressed = await this.compressContext();
+      sources.compressed = compressed.compressedTokens;
 
       return {
         content: compressed.content,
@@ -491,7 +491,7 @@ export class IntelligentFusionManager {
         compressionRatio: compressed.compressionRatio,
         sources,
         timestamp: new Date(),
-      }
+      };
     }
 
     return {
@@ -500,7 +500,7 @@ export class IntelligentFusionManager {
       compressionRatio: 1.0,
       sources,
       timestamp: new Date(),
-    }
+    };
   }
 
   /**
@@ -508,23 +508,23 @@ export class IntelligentFusionManager {
    */
   async compressContext(): Promise<CompressedOutput> {
     // Build raw context from memory
-    const rawContext = this.buildRawContext()
+    const rawContext = this.buildRawContext();
 
     // Run compression
-    return this.compressor.compress(rawContext)
+    return this.compressor.compress(rawContext);
   }
 
   /**
    * Build raw context from memory manager
    */
   private buildRawContext(): RawContext {
-    const memory = this.memoryManager.getMemory()
+    const memory = this.memoryManager.getMemory();
 
     // Convert active files to FileContext
     const files: FileContext[] = Array.from(memory.session.activeFiles).map(path => ({
       path,
       action: 'read' as const,
-    }))
+    }));
 
     return {
       functionCalls: memory.session.recentFCs,
@@ -533,40 +533,40 @@ export class IntelligentFusionManager {
       assistantResponses: [],
       errors: memory.dynamic.errorContext.map(e => `[${e.type}] ${e.message}`),
       currentGoal: memory.session.currentGoal,
-    }
+    };
   }
 
   /**
    * Check if compression should be triggered
    */
   shouldCompress(): boolean {
-    const totalTokens = this.estimateCurrentTokens()
-    const threshold = this.config.compressionThreshold * this.config.maxContextTokens
+    const totalTokens = this.estimateCurrentTokens();
+    const threshold = this.config.compressionThreshold * this.config.maxContextTokens;
 
-    return totalTokens > threshold
+    return totalTokens > threshold;
   }
 
   /**
    * Estimate current token usage
    */
   estimateCurrentTokens(): number {
-    const memory = this.memoryManager.getMemory()
-    let total = 0
+    const memory = this.memoryManager.getMemory();
+    let total = 0;
 
     // Function calls
     for (const fc of memory.session.recentFCs) {
-      total += fc.tokens
+      total += fc.tokens;
     }
 
     // Active files (rough estimate)
-    total += memory.session.activeFiles.size * 50
+    total += memory.session.activeFiles.size * 50;
 
     // Dynamic context
-    total += memory.dynamic.errorContext.length * 30
-    total += memory.dynamic.pendingDecisions.length * 50
-    total += memory.dynamic.taskStack.length * 20
+    total += memory.dynamic.errorContext.length * 30;
+    total += memory.dynamic.pendingDecisions.length * 50;
+    total += memory.dynamic.taskStack.length * 20;
 
-    return total
+    return total;
   }
 
   // ==========================================================================
@@ -578,9 +578,9 @@ export class IntelligentFusionManager {
    */
   private learnFromFunctionCall(fc: FCSummary): void {
     // Detect code patterns
-    const patterns = this.detectPatterns(fc)
+    const patterns = this.detectPatterns(fc);
     for (const pattern of patterns) {
-      this.memoryManager.addCodePattern(pattern)
+      this.memoryManager.addCodePattern(pattern);
     }
   }
 
@@ -588,8 +588,8 @@ export class IntelligentFusionManager {
    * Detect patterns from function call
    */
   private detectPatterns(fc: FCSummary): CodePattern[] {
-    const patterns: CodePattern[] = []
-    const summary = fc.summary.toLowerCase()
+    const patterns: CodePattern[] = [];
+    const summary = fc.summary.toLowerCase();
 
     // Detect import patterns
     if (summary.includes('import') || summary.includes('require')) {
@@ -601,7 +601,7 @@ export class IntelligentFusionManager {
         category: 'import',
         frequency: 1,
         examples: [fc.summary],
-      })
+      });
     }
 
     // Detect export patterns
@@ -614,7 +614,7 @@ export class IntelligentFusionManager {
         category: 'export',
         frequency: 1,
         examples: [fc.summary],
-      })
+      });
     }
 
     // Detect function patterns
@@ -627,7 +627,7 @@ export class IntelligentFusionManager {
         category: 'function',
         frequency: 1,
         examples: [fc.summary],
-      })
+      });
     }
 
     // Detect test patterns
@@ -640,7 +640,7 @@ export class IntelligentFusionManager {
         category: 'test',
         frequency: 1,
         examples: [fc.summary],
-      })
+      });
     }
 
     // Detect config patterns
@@ -653,10 +653,10 @@ export class IntelligentFusionManager {
         category: 'config',
         frequency: 1,
         examples: [fc.summary],
-      })
+      });
     }
 
-    return patterns
+    return patterns;
   }
 
   /**
@@ -664,8 +664,8 @@ export class IntelligentFusionManager {
    */
   async processLearningQueue(): Promise<void> {
     while (this.learningQueue.length > 0) {
-      const event = this.learningQueue.shift()!
-      await this.processLearningEvent(event)
+      const event = this.learningQueue.shift()!;
+      await this.processLearningEvent(event);
     }
   }
 
@@ -675,25 +675,25 @@ export class IntelligentFusionManager {
   private async processLearningEvent(event: LearningEvent): Promise<void> {
     switch (event.type) {
       case 'file': {
-        const { path, action } = event.data as { path: string, action: string }
+        const { path, action } = event.data as { path: string; action: string };
         // Could analyze file content for patterns
-        this.debug(`Learning from file ${action}: ${path}`)
-        break
+        this.debug(`Learning from file ${action}: ${path}`);
+        break;
       }
       case 'command': {
-        const { command, description } = event.data as { command: string, description: string }
-        this.trackCommand(command, description)
-        break
+        const { command, description } = event.data as { command: string; description: string };
+        this.trackCommand(command, description);
+        break;
       }
       case 'pattern': {
-        const pattern = event.data as unknown as CodePattern
-        this.memoryManager.addCodePattern(pattern)
-        break
+        const pattern = event.data as unknown as CodePattern;
+        this.memoryManager.addCodePattern(pattern);
+        break;
       }
       case 'decision': {
-        const decision = event.data as Omit<DecisionRecord, 'id' | 'timestamp'>
-        this.memoryManager.addPendingDecision(decision)
-        break
+        const decision = event.data as Omit<DecisionRecord, 'id' | 'timestamp'>;
+        this.memoryManager.addPendingDecision(decision);
+        break;
       }
     }
   }
@@ -706,13 +706,13 @@ export class IntelligentFusionManager {
    * Hash string for ID generation
    */
   private hashString(str: string): string {
-    let hash = 0
+    let hash = 0;
     for (let i = 0; i < str.length; i++) {
-      const char = str.charCodeAt(i)
-      hash = ((hash << 5) - hash) + char
-      hash = hash & hash
+      const char = str.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash;
     }
-    return Math.abs(hash).toString(36)
+    return Math.abs(hash).toString(36);
   }
 
   /**
@@ -720,7 +720,7 @@ export class IntelligentFusionManager {
    */
   private debug(...args: unknown[]): void {
     if (this.config.debug) {
-      console.log('[IntelligentFusion]', ...args)
+      console.log('[IntelligentFusion]', ...args);
     }
   }
 
@@ -737,7 +737,7 @@ export class IntelligentFusionManager {
       projectPath: this.projectPath,
       lastScanTime: this.lastScanTime?.toISOString(),
       memory: this.memoryManager.export(),
-    }
+    };
   }
 
   /**
@@ -745,16 +745,16 @@ export class IntelligentFusionManager {
    */
   importState(state: Record<string, unknown>): void {
     if (state.config) {
-      this.config = { ...DEFAULT_CONFIG, ...state.config as FusionConfig }
+      this.config = { ...DEFAULT_CONFIG, ...state.config as FusionConfig };
     }
     if (state.projectPath) {
-      this.projectPath = state.projectPath as string
+      this.projectPath = state.projectPath as string;
     }
     if (state.lastScanTime) {
-      this.lastScanTime = new Date(state.lastScanTime as string)
+      this.lastScanTime = new Date(state.lastScanTime as string);
     }
     if (state.memory) {
-      this.memoryManager.import(state.memory as Record<string, unknown>)
+      this.memoryManager.import(state.memory as Record<string, unknown>);
     }
   }
 
@@ -762,35 +762,35 @@ export class IntelligentFusionManager {
    * Get memory manager (for advanced usage)
    */
   getMemoryManager(): LayeredMemoryManager {
-    return this.memoryManager
+    return this.memoryManager;
   }
 
   /**
    * Get compressor (for advanced usage)
    */
   getCompressor(): MultiHeadCompressor {
-    return this.compressor
+    return this.compressor;
   }
 
   /**
    * Clear all state
    */
   clear(): void {
-    this.memoryManager.clear()
-    this.projectPath = null
-    this.lastScanTime = null
-    this.learningQueue = []
+    this.memoryManager.clear();
+    this.projectPath = null;
+    this.lastScanTime = null;
+    this.learningQueue = [];
   }
 
   /**
    * Update configuration
    */
   updateConfig(config: Partial<FusionConfig>): void {
-    this.config = { ...this.config, ...config }
+    this.config = { ...this.config, ...config };
 
     // Update compressor if API key changed
     if (config.apiKey !== undefined) {
-      this.compressor.updateConfig({ apiKey: config.apiKey })
+      this.compressor.updateConfig({ apiKey: config.apiKey });
     }
   }
 
@@ -798,7 +798,7 @@ export class IntelligentFusionManager {
    * Get current configuration
    */
   getConfig(): Required<FusionConfig> {
-    return { ...this.config }
+    return { ...this.config };
   }
 }
 
@@ -808,22 +808,22 @@ export class IntelligentFusionManager {
 export function createIntelligentFusionManager(
   config?: FusionConfig,
 ): IntelligentFusionManager {
-  return new IntelligentFusionManager(config)
+  return new IntelligentFusionManager(config);
 }
 
 /**
  * Global fusion manager instance (singleton)
  */
-let globalFusionManager: IntelligentFusionManager | null = null
+let globalFusionManager: IntelligentFusionManager | null = null;
 
 /**
  * Get global fusion manager instance
  */
 export function getFusionManager(config?: FusionConfig): IntelligentFusionManager {
   if (!globalFusionManager) {
-    globalFusionManager = new IntelligentFusionManager(config)
+    globalFusionManager = new IntelligentFusionManager(config);
   }
-  return globalFusionManager
+  return globalFusionManager;
 }
 
 /**
@@ -831,7 +831,7 @@ export function getFusionManager(config?: FusionConfig): IntelligentFusionManage
  */
 export function resetFusionManager(): void {
   if (globalFusionManager) {
-    globalFusionManager.clear()
-    globalFusionManager = null
+    globalFusionManager.clear();
+    globalFusionManager = null;
   }
 }

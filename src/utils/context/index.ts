@@ -15,12 +15,12 @@ export type {
   SummarizationResponse,
   ThresholdLevel,
   TokenEstimation,
-} from '../../types/context'
-export * from './api-client'
+} from '../../types/context';
+export * from './api-client';
 // CLI Wrapper - Transparent proxy for Claude Code
-export * from './cli-wrapper'
+export * from './cli-wrapper';
 // Cloud Sync - Cross-device synchronization
-export * from './cloud-sync'
+export * from './cloud-sync';
 export {
   ConfigManager,
   createConfigManager,
@@ -30,9 +30,9 @@ export {
   loadConfig,
   resetConfig,
   saveConfig,
-} from './config-manager'
+} from './config-manager';
 // Context Manager - Main orchestrator
-export * from './context-manager'
+export * from './context-manager';
 
 // Intelligent Fusion Layer
 export {
@@ -40,20 +40,20 @@ export {
   getFusionManager,
   IntelligentFusionManager,
   resetFusionManager,
-} from './intelligent-fusion'
+} from './intelligent-fusion';
 
 export type {
   FusionConfig,
   LearningEvent,
   OptimizationRequest,
   OptimizedContext,
-} from './intelligent-fusion'
+} from './intelligent-fusion';
 
 // Advanced Context Compression (Engram-Inspired)
 export {
   createLayeredMemoryManager,
   LayeredMemoryManager,
-} from './layered-memory'
+} from './layered-memory';
 
 export type {
   CodePattern,
@@ -67,7 +67,7 @@ export type {
   RelevanceScore,
   SessionCache,
   StaticKnowledge,
-} from './layered-memory'
+} from './layered-memory';
 
 // MiroThinker Context Compressor (去肉留骨策略)
 export {
@@ -75,20 +75,20 @@ export {
   createMiroThinkerCompressor,
   generateCompressionReport,
   MiroThinkerCompressor,
-} from './miro-thinker'
+} from './miro-thinker';
 
 export type {
   CompressedConversation,
   ConversationMessage,
   MessageRole,
   MiroThinkerConfig,
-} from './miro-thinker'
+} from './miro-thinker';
 
 // Multi-Head Compressor (mHC-Inspired)
 export {
   createMultiHeadCompressor,
   MultiHeadCompressor,
-} from './multi-head-compressor'
+} from './multi-head-compressor';
 
 export type {
   CompressedOutput,
@@ -97,7 +97,7 @@ export type {
   FileContext,
   MultiHeadCompressorConfig,
   RawContext,
-} from './multi-head-compressor'
+} from './multi-head-compressor';
 
 export {
   extractProjectHashFromPath,
@@ -105,18 +105,18 @@ export {
   getProjectIdentity,
   isValidProjectHash,
   projectHashCache,
-} from './project-hash'
+} from './project-hash';
 
-export * from './session-manager'
+export * from './session-manager';
 
-export * from './shell-hook'
+export * from './shell-hook';
 
 // Local storage system exports
 export {
   createStorageManager,
   getStorageManager,
   StorageManager,
-} from './storage-manager'
+} from './storage-manager';
 
 // Storage type exports
 export type {
@@ -132,16 +132,16 @@ export type {
   StorageStats,
   SyncQueueItem,
   SyncStatus,
-} from './storage-types'
+} from './storage-types';
 
 // Re-export Session from storage-types (more complete definition)
-export type { Session } from './storage-types'
+export type { Session } from './storage-types';
 
-export * from './summarizer'
+export * from './summarizer';
 
 export {
   createSyncQueueManager,
   SyncQueueManager,
-} from './sync-queue'
+} from './sync-queue';
 
-export * from './token-estimator'
+export * from './token-estimator';

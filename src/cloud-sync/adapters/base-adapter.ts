@@ -1,4 +1,4 @@
-import type { Buffer } from 'node:buffer'
+import type { Buffer } from 'node:buffer';
 /**
  * Cloud Storage Base Adapter
  *
@@ -16,9 +16,9 @@ import type {
   ProviderConfig,
   RemoteItem,
   UploadResult,
-} from './types'
-import { createHash } from 'node:crypto'
-import { AdapterError } from './types'
+} from './types';
+import { createHash } from 'node:crypto';
+import { AdapterError } from './types';
 
 /**
  * Abstract base class for cloud storage adapters
@@ -30,32 +30,32 @@ export abstract class CloudAdapter<T extends ProviderConfig = ProviderConfig> {
   /**
    * The cloud provider type
    */
-  abstract readonly provider: CloudProvider
+  abstract readonly provider: CloudProvider;
 
   /**
    * Current configuration
    */
-  protected config: T | null = null
+  protected config: T | null = null;
 
   /**
    * Connection state
    */
-  protected connected: boolean = false
+  protected connected: boolean = false;
 
   /**
    * Progress callback for operations
    */
-  protected progressCallback: ProgressCallback | null = null
+  protected progressCallback: ProgressCallback | null = null;
 
   /**
    * Default timeout in milliseconds
    */
-  protected readonly defaultTimeout: number = 30000
+  protected readonly defaultTimeout: number = 30000;
 
   /**
    * Default maximum retry attempts
    */
-  protected readonly defaultMaxRetries: number = 3
+  protected readonly defaultMaxRetries: number = 3;
 
   // ===========================================================================
   // Abstract Methods - Must be implemented by subclasses
@@ -67,12 +67,12 @@ export abstract class CloudAdapter<T extends ProviderConfig = ProviderConfig> {
    * @param config - Provider-specific configuration
    * @throws AdapterError if connection fails
    */
-  abstract connect(config: T): Promise<void>
+  abstract connect(config: T): Promise<void>;
 
   /**
    * Disconnect from the cloud storage provider
    */
-  abstract disconnect(): Promise<void>
+  abstract disconnect(): Promise<void>;
 
   /**
    * Upload data to cloud storage
@@ -82,7 +82,7 @@ export abstract class CloudAdapter<T extends ProviderConfig = ProviderConfig> {
    * @param metadata - Optional metadata to attach
    * @returns Upload result with details
    */
-  abstract upload(key: string, data: Buffer, metadata?: Record<string, unknown>): Promise<UploadResult>
+  abstract upload(key: string, data: Buffer, metadata?: Record<string, unknown>): Promise<UploadResult>;
 
   /**
    * Download data from cloud storage
@@ -90,14 +90,14 @@ export abstract class CloudAdapter<T extends ProviderConfig = ProviderConfig> {
    * @param key - Key/path of the item to download
    * @returns Download result with data
    */
-  abstract download(key: string): Promise<DownloadResult>
+  abstract download(key: string): Promise<DownloadResult>;
 
   /**
    * Delete an item from cloud storage
    *
    * @param key - Key/path of the item to delete
    */
-  abstract delete(key: string): Promise<void>
+  abstract delete(key: string): Promise<void>;
 
   /**
    * List items in cloud storage
@@ -105,7 +105,7 @@ export abstract class CloudAdapter<T extends ProviderConfig = ProviderConfig> {
    * @param prefix - Optional prefix to filter items
    * @returns Array of remote items
    */
-  abstract list(prefix?: string): Promise<RemoteItem[]>
+  abstract list(prefix?: string): Promise<RemoteItem[]>;
 
   /**
    * Get metadata for an item
@@ -113,7 +113,7 @@ export abstract class CloudAdapter<T extends ProviderConfig = ProviderConfig> {
    * @param key - Key/path of the item
    * @returns Item metadata
    */
-  abstract getMetadata(key: string): Promise<ItemMetadata>
+  abstract getMetadata(key: string): Promise<ItemMetadata>;
 
   // ===========================================================================
   // Common Methods
@@ -123,14 +123,14 @@ export abstract class CloudAdapter<T extends ProviderConfig = ProviderConfig> {
    * Check if adapter is connected
    */
   isConnected(): boolean {
-    return this.connected
+    return this.connected;
   }
 
   /**
    * Get current configuration
    */
   getConfig(): T | null {
-    return this.config
+    return this.config;
   }
 
   /**
@@ -139,7 +139,7 @@ export abstract class CloudAdapter<T extends ProviderConfig = ProviderConfig> {
    * @param callback - Progress callback function
    */
   setProgressCallback(callback: ProgressCallback | null): void {
-    this.progressCallback = callback
+    this.progressCallback = callback;
   }
 
   /**
@@ -150,14 +150,14 @@ export abstract class CloudAdapter<T extends ProviderConfig = ProviderConfig> {
    */
   async exists(key: string): Promise<boolean> {
     try {
-      await this.getMetadata(key)
-      return true
+      await this.getMetadata(key);
+      return true;
     }
     catch (error) {
       if (error instanceof AdapterError && error.code === 'NOT_FOUND') {
-        return false
+        return false;
       }
-      throw error
+      throw error;
     }
   }
 
@@ -176,7 +176,7 @@ export abstract class CloudAdapter<T extends ProviderConfig = ProviderConfig> {
         'Adapter is not connected. Call connect() first.',
         'CONNECTION_FAILED',
         this.provider,
-      )
+      );
     }
   }
 
@@ -187,21 +187,21 @@ export abstract class CloudAdapter<T extends ProviderConfig = ProviderConfig> {
    * @returns Hex-encoded SHA-256 hash
    */
   protected calculateChecksum(data: Buffer): string {
-    return createHash('sha256').update(data).digest('hex')
+    return createHash('sha256').update(data).digest('hex');
   }
 
   /**
    * Get timeout value from config or default
    */
   protected getTimeout(): number {
-    return this.config?.timeout ?? this.defaultTimeout
+    return this.config?.timeout ?? this.defaultTimeout;
   }
 
   /**
    * Get max retries from config or default
    */
   protected getMaxRetries(): number {
-    return this.config?.maxRetries ?? this.defaultMaxRetries
+    return this.config?.maxRetries ?? this.defaultMaxRetries;
   }
 
   /**
@@ -225,7 +225,7 @@ export abstract class CloudAdapter<T extends ProviderConfig = ProviderConfig> {
         bytesTransferred,
         totalBytes,
         percentage: totalBytes ? Math.round((bytesTransferred / totalBytes) * 100) : undefined,
-      })
+      });
     }
   }
 
@@ -240,32 +240,32 @@ export abstract class CloudAdapter<T extends ProviderConfig = ProviderConfig> {
     operation: () => Promise<R>,
     retryableErrors: string[] = ['NETWORK_ERROR', 'TIMEOUT', 'RATE_LIMITED'],
   ): Promise<R> {
-    const maxRetries = this.getMaxRetries()
-    let lastError: Error | null = null
+    const maxRetries = this.getMaxRetries();
+    let lastError: Error | null = null;
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        return await operation()
+        return await operation();
       }
       catch (error) {
-        lastError = error instanceof Error ? error : new Error(String(error))
+        lastError = error instanceof Error ? error : new Error(String(error));
 
         const shouldRetry
           = error instanceof AdapterError
             && retryableErrors.includes(error.code)
-            && attempt < maxRetries
+            && attempt < maxRetries;
 
         if (!shouldRetry) {
-          throw error
+          throw error;
         }
 
         // Exponential backoff with jitter
-        const delay = Math.min(1000 * 2 ** (attempt - 1) + Math.random() * 1000, 30000)
-        await this.sleep(delay)
+        const delay = Math.min(1000 * 2 ** (attempt - 1) + Math.random() * 1000, 30000);
+        await this.sleep(delay);
       }
     }
 
-    throw lastError
+    throw lastError;
   }
 
   /**
@@ -279,16 +279,16 @@ export abstract class CloudAdapter<T extends ProviderConfig = ProviderConfig> {
     url: string,
     options: RequestInit = {},
   ): Promise<Response> {
-    const timeout = this.getTimeout()
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), timeout)
+    const timeout = this.getTimeout();
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
 
     try {
       const response = await fetch(url, {
         ...options,
         signal: controller.signal,
-      })
-      return response
+      });
+      return response;
     }
     catch (error) {
       if (error instanceof Error && error.name === 'AbortError') {
@@ -297,17 +297,17 @@ export abstract class CloudAdapter<T extends ProviderConfig = ProviderConfig> {
           'TIMEOUT',
           this.provider,
           error,
-        )
+        );
       }
       throw new AdapterError(
         `Network error: ${error instanceof Error ? error.message : String(error)}`,
         'NETWORK_ERROR',
         this.provider,
         error instanceof Error ? error : undefined,
-      )
+      );
     }
     finally {
-      clearTimeout(timeoutId)
+      clearTimeout(timeoutId);
     }
   }
 
@@ -317,14 +317,14 @@ export abstract class CloudAdapter<T extends ProviderConfig = ProviderConfig> {
    * @param ms - Milliseconds to sleep
    */
   protected sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms))
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
   /**
    * Get current ISO timestamp
    */
   protected getCurrentTimestamp(): string {
-    return new Date().toISOString()
+    return new Date().toISOString();
   }
 
   /**
@@ -338,6 +338,6 @@ export abstract class CloudAdapter<T extends ProviderConfig = ProviderConfig> {
       .replace(/\\/g, '/')
       .replace(/^\/+/, '')
       .replace(/\/+$/, '')
-      .replace(/\/+/g, '/')
+      .replace(/\/+/g, '/');
   }
 }

@@ -7,22 +7,25 @@
  * @module commands/quick-provider
  */
 
-import type { ProviderRegistry, QuickLaunchConfig, QuickLaunchOptions } from '../types/provider'
-import type { ClaudeSettings } from '../types/config'
-import type { CodeToolType } from '../constants'
-import ansis from 'ansis'
-import inquirer from 'inquirer'
-import ora from 'ora'
-import { getCodeToolRuntimeCommand, isCodeToolType, resolveCodeToolType } from '../constants'
-import { getProviderRegistry } from '../services/provider-registry'
-import { isValidApiUrl } from '../types/provider'
-import { readZcfConfig } from '../utils/ccjk-config'
-import { normalizeClaudeFamilySettings } from '../utils/claude-settings-normalizer'
-import { setMyclaudeProviderProfiles } from '../utils/claude-config'
-import { resolveClaudeFamilyModelSlots } from '../utils/claude-model-slots'
-import { configureApi, overwriteModelSettings } from '../utils/config'
-import { readJsonConfig, writeJsonConfig } from '../utils/json-config'
-import { resolveClaudeFamilySettingsTarget } from '../utils/runtime-settings'
+import type { CodeToolType } from '../constants';
+import type { ClaudeSettings } from '../types/config';
+import type { ProviderRegistry, QuickLaunchConfig, QuickLaunchOptions } from '../types/provider';
+import type { CodexProvider } from '../utils/code-tools/codex';
+import ansis from 'ansis';
+import inquirer from 'inquirer';
+import ora from 'ora';
+import { getCodeToolRuntimeCommand, isCodeToolType, resolveCodeToolType } from '../constants';
+import { getProviderRegistry } from '../services/provider-registry';
+import { isValidApiUrl } from '../types/provider';
+import { readZcfConfig } from '../utils/ccjk-config';
+import { setMyclaudeProviderProfiles } from '../utils/claude-config';
+import { resolveClaudeFamilyModelSlots } from '../utils/claude-model-slots';
+import { normalizeClaudeFamilySettings } from '../utils/claude-settings-normalizer';
+import { switchToProvider } from '../utils/code-tools/codex';
+import { addProviderToExisting } from '../utils/code-tools/codex-provider-manager';
+import { configureApi, overwriteModelSettings } from '../utils/config';
+import { readJsonConfig, writeJsonConfig } from '../utils/json-config';
+import { resolveClaudeFamilySettingsTarget } from '../utils/runtime-settings';
 
 // ============================================================================
 // Constants
@@ -130,7 +133,7 @@ const KNOWN_COMMANDS = new Set([
   'upgrade',
   'config-scan',
   'workspace',
-])
+]);
 
 // ============================================================================
 // Helper Functions
@@ -138,15 +141,19 @@ const KNOWN_COMMANDS = new Set([
 
 function resolveQuickProviderCodeTool(config: QuickLaunchConfig): CodeToolType {
   if (isCodeToolType(config.codeTool)) {
-    return config.codeTool === 'clavue' ? 'clavue' : 'claude-code'
+    return config.codeTool;
   }
 
-  const savedCodeTool = readZcfConfig()?.codeToolType
+  const savedCodeTool = readZcfConfig()?.codeToolType;
   if (isCodeToolType(savedCodeTool)) {
-    return savedCodeTool === 'clavue' ? 'clavue' : 'claude-code'
+    return savedCodeTool;
   }
 
-  return resolveCodeToolType(config.codeTool) === 'clavue' ? 'clavue' : 'claude-code'
+  return resolveCodeToolType(config.codeTool);
+}
+
+function sanitizeCodexProviderId(input: string): string {
+  return input.trim().toLowerCase().replace(/\./g, '-').replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '') || 'custom';
 }
 
 /**
@@ -154,10 +161,10 @@ function resolveQuickProviderCodeTool(config: QuickLaunchConfig): CodeToolType {
  */
 export function isKnownCommand(arg: string): boolean {
   if (!arg)
-    return true
+    return true;
   if (arg.startsWith('-'))
-    return true // Options are not shortcodes
-  return KNOWN_COMMANDS.has(arg.toLowerCase())
+    return true; // Options are not shortcodes
+  return KNOWN_COMMANDS.has(arg.toLowerCase());
 }
 
 /**
@@ -165,13 +172,13 @@ export function isKnownCommand(arg: string): boolean {
  */
 export function couldBeShortcode(arg: string): boolean {
   if (!arg)
-    return false
+    return false;
   if (arg.startsWith('-'))
-    return false
+    return false;
   if (isKnownCommand(arg))
-    return false
+    return false;
   // Basic format check (2-20 chars, alphanumeric with hyphens)
-  return /^[a-z0-9][a-z0-9-]{0,18}[a-z0-9]?$/i.test(arg)
+  return /^[a-z0-9][a-z0-9-]{0,18}[a-z0-9]?$/i.test(arg);
 }
 
 // ============================================================================
@@ -194,34 +201,34 @@ export async function quickProviderLaunch(
   shortcode: string,
   options: QuickLaunchOptions = {},
 ): Promise<boolean> {
-  const registry = getProviderRegistry()
-  const normalizedCode = shortcode.toLowerCase().trim()
+  const registry = getProviderRegistry();
+  const normalizedCode = shortcode.toLowerCase().trim();
 
-  console.log() // Empty line for spacing
+  console.log(); // Empty line for spacing
 
   // Show lookup spinner
   const spinner = ora({
     text: ansis.gray(`正在查询供应商 "${normalizedCode}"...`),
     color: 'cyan',
-  }).start()
+  }).start();
 
   try {
-    const provider = await registry.getProvider(normalizedCode)
-    spinner.stop()
+    const provider = await registry.getProvider(normalizedCode);
+    spinner.stop();
 
     if (provider) {
       // Provider found - show confirmation flow
-      return await handleExistingProvider(provider, options)
+      return await handleExistingProvider(provider, options);
     }
     else {
       // Provider not found - offer to create
-      return await handleNewProvider(normalizedCode, options)
+      return await handleNewProvider(normalizedCode, options);
     }
   }
   catch (error) {
-    spinner.fail(ansis.red('查询失败'))
-    console.error(ansis.gray(error instanceof Error ? error.message : '网络错误'))
-    return false
+    spinner.fail(ansis.red('查询失败'));
+    console.error(ansis.gray(error instanceof Error ? error.message : '网络错误'));
+    return false;
   }
 }
 
@@ -237,17 +244,17 @@ async function handleExistingProvider(
   options: QuickLaunchOptions,
 ): Promise<boolean> {
   // Display provider info
-  console.log(ansis.cyan.bold(`\n🚀 快速配置: ${provider.name}`))
-  console.log(ansis.gray('─'.repeat(40)))
-  console.log(`   ${ansis.yellow('短码:')} ${provider.shortcode}`)
-  console.log(`   ${ansis.yellow('API URL:')} ${provider.apiUrl}`)
+  console.log(ansis.cyan.bold(`\n🚀 快速配置: ${provider.name}`));
+  console.log(ansis.gray('─'.repeat(40)));
+  console.log(`   ${ansis.yellow('短码:')} ${provider.shortcode}`);
+  console.log(`   ${ansis.yellow('API URL:')} ${provider.apiUrl}`);
   if (provider.description) {
-    console.log(`   ${ansis.yellow('描述:')} ${provider.description}`)
+    console.log(`   ${ansis.yellow('描述:')} ${provider.description}`);
   }
   if (provider.verified) {
-    console.log(`   ${ansis.green('✓')} 官方验证`)
+    console.log(`   ${ansis.green('✓')} 官方验证`);
   }
-  console.log()
+  console.log();
 
   // Confirm usage
   const { confirmed } = await inquirer.prompt<{ confirmed: boolean }>([
@@ -257,23 +264,23 @@ async function handleExistingProvider(
       message: `是否使用 ${ansis.cyan(provider.name)} 作为 API 供应商?`,
       default: true,
     },
-  ])
+  ]);
 
   if (!confirmed) {
-    console.log(ansis.gray('\n已取消，进入主菜单...\n'))
-    return false // Fall through to main menu
+    console.log(ansis.gray('\n已取消，进入主菜单...\n'));
+    return false; // Fall through to main menu
   }
 
   // Configure API key and model
-  const config = await configureProvider(provider, options)
+  const config = await configureProvider(provider, options);
 
   if (config) {
-    await saveProviderConfig(config)
-    showSuccessMessage(config)
-    return true
+    await saveProviderConfig(config);
+    showSuccessMessage(config);
+    return true;
   }
 
-  return false
+  return false;
 }
 
 // ============================================================================
@@ -287,8 +294,8 @@ async function handleNewProvider(
   shortcode: string,
   options: QuickLaunchOptions,
 ): Promise<boolean> {
-  console.log(ansis.yellow(`\n⚠️  供应商 "${shortcode}" 尚未注册`))
-  console.log(ansis.gray('该短码在云端注册表中不存在\n'))
+  console.log(ansis.yellow(`\n⚠️  供应商 "${shortcode}" 尚未注册`));
+  console.log(ansis.gray('该短码在云端注册表中不存在\n'));
 
   const { createNew } = await inquirer.prompt<{ createNew: boolean }>([
     {
@@ -297,15 +304,15 @@ async function handleNewProvider(
       message: '是否创建该供应商?',
       default: false,
     },
-  ])
+  ]);
 
   if (!createNew) {
-    console.log(ansis.gray('\n已取消，进入主菜单...\n'))
-    return false
+    console.log(ansis.gray('\n已取消，进入主菜单...\n'));
+    return false;
   }
 
   // Collect provider info
-  const { name, apiUrl } = await inquirer.prompt<{ name: string, apiUrl: string }>([
+  const { name, apiUrl } = await inquirer.prompt<{ name: string; apiUrl: string }>([
     {
       type: 'input',
       name: 'name',
@@ -313,10 +320,10 @@ async function handleNewProvider(
       default: shortcode.toUpperCase(),
       validate: (value: string) => {
         if (!value.trim())
-          return '名称不能为空'
+          return '名称不能为空';
         if (value.length > 50)
-          return '名称过长（最多50字符）'
-        return true
+          return '名称过长（最多50字符）';
+        return true;
       },
     },
     {
@@ -325,39 +332,39 @@ async function handleNewProvider(
       message: 'API URL (如 https://api.example.com/v1):',
       validate: (value: string) => {
         if (!value.trim())
-          return 'URL 不能为空'
+          return 'URL 不能为空';
         if (!isValidApiUrl(value))
-          return '请输入有效的 URL（http:// 或 https://）'
-        return true
+          return '请输入有效的 URL（http:// 或 https://）';
+        return true;
       },
     },
-  ])
+  ]);
 
   // Create in cloud registry
-  const spinner = ora('正在注册供应商...').start()
+  const spinner = ora('正在注册供应商...').start();
 
   try {
-    const registry = getProviderRegistry()
+    const registry = getProviderRegistry();
     const result = await registry.createProvider({
       shortcode,
       name: name.trim(),
       apiUrl: apiUrl.trim(),
-    })
+    });
 
     if (result.success && result.data) {
-      spinner.succeed(ansis.green('供应商注册成功!'))
+      spinner.succeed(ansis.green('供应商注册成功!'));
 
       // Continue to configuration
-      const config = await configureProvider(result.data, options)
+      const config = await configureProvider(result.data, options);
       if (config) {
-        await saveProviderConfig(config)
-        showSuccessMessage(config)
-        return true
+        await saveProviderConfig(config);
+        showSuccessMessage(config);
+        return true;
       }
     }
     else {
-      spinner.fail(ansis.red('注册失败'))
-      console.error(ansis.gray(result.error?.message || '未知错误'))
+      spinner.fail(ansis.red('注册失败'));
+      console.error(ansis.gray(result.error?.message || '未知错误'));
 
       // Offer to continue with local config anyway
       const { continueLocal } = await inquirer.prompt<{ continueLocal: boolean }>([
@@ -367,7 +374,7 @@ async function handleNewProvider(
           message: '是否仍然使用此配置（仅本地）?',
           default: true,
         },
-      ])
+      ]);
 
       if (continueLocal) {
         const localProvider: ProviderRegistry = {
@@ -376,23 +383,23 @@ async function handleNewProvider(
           apiUrl: apiUrl.trim(),
           verified: false,
           createdAt: new Date().toISOString(),
-        }
+        };
 
-        const config = await configureProvider(localProvider, options)
+        const config = await configureProvider(localProvider, options);
         if (config) {
-          await saveProviderConfig(config)
-          showSuccessMessage(config)
-          return true
+          await saveProviderConfig(config);
+          showSuccessMessage(config);
+          return true;
         }
       }
     }
   }
   catch (error) {
-    spinner.fail(ansis.red('注册失败'))
-    console.error(ansis.gray(error instanceof Error ? error.message : '网络错误'))
+    spinner.fail(ansis.red('注册失败'));
+    console.error(ansis.gray(error instanceof Error ? error.message : '网络错误'));
   }
 
-  return false
+  return false;
 }
 
 // ============================================================================
@@ -406,8 +413,8 @@ async function configureProvider(
   provider: ProviderRegistry,
   _options: QuickLaunchOptions,
 ): Promise<QuickLaunchConfig | null> {
-  console.log(ansis.cyan('\n📝 配置 API 凭证'))
-  console.log(ansis.gray('─'.repeat(40)))
+  console.log(ansis.cyan('\n📝 配置 API 凭证'));
+  console.log(ansis.gray('─'.repeat(40)));
 
   // Get API key
   const { apiKey } = await inquirer.prompt<{ apiKey: string }>([
@@ -418,16 +425,16 @@ async function configureProvider(
       mask: '*',
       validate: (value: string) => {
         if (!value.trim())
-          return 'API Key 不能为空'
+          return 'API Key 不能为空';
         if (value.length < 10)
-          return 'API Key 格式不正确'
-        return true
+          return 'API Key 格式不正确';
+        return true;
       },
     },
-  ])
+  ]);
 
   // Select or input model
-  let model: string
+  let model: string;
 
   if (provider.models && provider.models.length > 0) {
     // Provider has recommended models - show selection
@@ -447,7 +454,7 @@ async function configureProvider(
           },
         ],
       },
-    ])
+    ]);
 
     if (modelChoice === '__custom__') {
       const { customModel } = await inquirer.prompt<{ customModel: string }>([
@@ -457,15 +464,15 @@ async function configureProvider(
           message: '输入模型名称:',
           validate: (value: string) => {
             if (!value.trim())
-              return '模型名称不能为空'
-            return true
+              return '模型名称不能为空';
+            return true;
           },
         },
-      ])
-      model = customModel
+      ]);
+      model = customModel;
     }
     else {
-      model = modelChoice
+      model = modelChoice;
     }
   }
   else {
@@ -478,12 +485,12 @@ async function configureProvider(
         default: 'gpt-4',
         validate: (value: string) => {
           if (!value.trim())
-            return '模型名称不能为空'
-          return true
+            return '模型名称不能为空';
+          return true;
         },
       },
-    ])
-    model = inputModel
+    ]);
+    model = inputModel;
   }
 
   return {
@@ -492,7 +499,7 @@ async function configureProvider(
     apiKey: apiKey.trim(),
     model: model.trim(),
     codeTool: _options.codeTool,
-  }
+  };
 }
 
 // ============================================================================
@@ -503,13 +510,13 @@ async function configureProvider(
  * Save provider configuration to Claude Code settings
  */
 async function saveProviderConfig(config: QuickLaunchConfig): Promise<void> {
-  const spinner = ora('正在保存配置...').start()
+  const spinner = ora('正在保存配置...').start();
 
   try {
-    const codeTool = resolveQuickProviderCodeTool(config)
+    const codeTool = resolveQuickProviderCodeTool(config);
 
     if (codeTool === 'clavue') {
-      const modelSlots = resolveClaudeFamilyModelSlots({ selectedModel: config.model })
+      const modelSlots = resolveClaudeFamilyModelSlots({ selectedModel: config.model });
       setMyclaudeProviderProfiles([
         {
           id: config.shortcode,
@@ -525,37 +532,60 @@ async function saveProviderConfig(config: QuickLaunchConfig): Promise<void> {
           defaultSonnetModel: modelSlots.sonnetModel,
           defaultOpusModel: modelSlots.opusModel,
         },
-      ], config.shortcode)
+      ], config.shortcode);
 
-      spinner.succeed(ansis.green('配置已保存'))
-      return
+      spinner.succeed(ansis.green('配置已保存'));
+      return;
+    }
+
+    if (codeTool === 'codex') {
+      const providerId = sanitizeCodexProviderId(config.shortcode || config.provider.name);
+      const tempEnvKey = `${providerId.toUpperCase().replace(/-/g, '_')}_API_KEY`;
+      const provider: CodexProvider = {
+        id: providerId,
+        name: config.provider.name,
+        baseUrl: config.provider.apiUrl,
+        wireApi: 'responses',
+        tempEnvKey,
+        requiresOpenaiAuth: false,
+        model: config.model,
+      };
+
+      const result = await addProviderToExisting(provider, config.apiKey, true);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to save Codex provider');
+      }
+      await switchToProvider(providerId);
+
+      spinner.succeed(ansis.green('配置已保存'));
+      return;
     }
 
     configureApi({
       url: config.provider.apiUrl,
       key: config.apiKey,
       authType: 'api_key',
-    }, codeTool)
+    }, codeTool);
 
-    const target = resolveClaudeFamilySettingsTarget(codeTool)
-    const settings = readJsonConfig<ClaudeSettings>(target.settingsFile) || {}
-    overwriteModelSettings(settings, { primaryModel: config.model }, 'override')
-    normalizeClaudeFamilySettings(settings)
-    writeJsonConfig(target.settingsFile, settings)
+    const target = resolveClaudeFamilySettingsTarget(codeTool);
+    const settings = readJsonConfig<ClaudeSettings>(target.settingsFile) || {};
+    overwriteModelSettings(settings, { primaryModel: config.model }, 'override');
+    normalizeClaudeFamilySettings(settings);
+    writeJsonConfig(target.settingsFile, settings);
 
-    spinner.succeed(ansis.green('配置已保存'))
+    spinner.succeed(ansis.green('配置已保存'));
   }
   catch (error) {
-    spinner.fail(ansis.red('保存失败'))
+    spinner.fail(ansis.red('保存失败'));
 
     // Fallback: show manual configuration instructions
-    console.log(ansis.yellow('\n请手动配置:'))
-    console.log(ansis.gray('─'.repeat(40)))
-    console.log(`${ansis.cyan('API URL:')} ${config.provider.apiUrl}`)
-    console.log(`${ansis.cyan('Model:')} ${config.model}`)
-    console.log(ansis.gray('\n运行 "ccjk api" 进行手动配置'))
+    console.log(ansis.yellow('\n请手动配置:'));
+    console.log(ansis.gray('─'.repeat(40)));
+    console.log(`${ansis.cyan('API URL:')} ${config.provider.apiUrl}`);
+    console.log(`${ansis.cyan('Model:')} ${config.model}`);
+    console.log(ansis.gray('\n运行 "ccjk api" 进行手动配置'));
 
-    throw error
+    throw error;
   }
 }
 
@@ -567,22 +597,24 @@ async function saveProviderConfig(config: QuickLaunchConfig): Promise<void> {
  * Show success message after configuration
  */
 function showSuccessMessage(config: QuickLaunchConfig): void {
-  const codeTool = resolveQuickProviderCodeTool(config)
-  const runtimeCommand = getCodeToolRuntimeCommand(codeTool)
+  const codeTool = resolveQuickProviderCodeTool(config);
+  const runtimeCommand = getCodeToolRuntimeCommand(codeTool);
   const runtimeName = codeTool === 'clavue'
     ? 'Clavue'
-    : 'Claude Code'
+    : codeTool === 'codex'
+      ? 'Codex'
+      : 'Claude Code';
 
-  console.log()
-  console.log(ansis.green.bold('✅ 配置完成!'))
-  console.log(ansis.gray('─'.repeat(40)))
-  console.log(`   ${ansis.yellow('供应商:')} ${config.provider.name}`)
-  console.log(`   ${ansis.yellow('API URL:')} ${config.provider.apiUrl}`)
-  console.log(`   ${ansis.yellow('模型:')} ${config.model}`)
-  console.log()
-  console.log(ansis.gray(`现在可以开始使用 ${runtimeName} 了`))
-  console.log(ansis.gray(`运行 "${runtimeCommand}" 启动对话`))
-  console.log()
+  console.log();
+  console.log(ansis.green.bold('✅ 配置完成!'));
+  console.log(ansis.gray('─'.repeat(40)));
+  console.log(`   ${ansis.yellow('供应商:')} ${config.provider.name}`);
+  console.log(`   ${ansis.yellow('API URL:')} ${config.provider.apiUrl}`);
+  console.log(`   ${ansis.yellow('模型:')} ${config.model}`);
+  console.log();
+  console.log(ansis.gray(`现在可以开始使用 ${runtimeName} 了`));
+  console.log(ansis.gray(`运行 "${runtimeCommand}" 启动对话`));
+  console.log();
 }
 
 // ============================================================================
@@ -594,4 +626,4 @@ export {
   handleExistingProvider,
   handleNewProvider,
   saveProviderConfig,
-}
+};

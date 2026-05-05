@@ -7,26 +7,26 @@
  * - Generate project-specific context based on detected patterns
  */
 
-import { existsSync, readdirSync, statSync } from 'node:fs'
-import { homedir } from 'node:os'
-import process from 'node:process'
-import { dirname, join } from 'pathe'
-import { readFile, writeFileAtomic } from './fs-operations'
+import { existsSync, readdirSync, statSync } from 'node:fs';
+import { homedir } from 'node:os';
+import process from 'node:process';
+import { dirname, join } from 'pathe';
+import { readFile, writeFileAtomic } from './fs-operations';
 
 // ============================================================================
 // Types
 // ============================================================================
 
 export interface ContextProjectInfo {
-  type: ContextProjectType
-  framework?: string
-  language: string
-  packageManager?: string
-  hasTests: boolean
-  hasDocker: boolean
-  hasCi: boolean
-  monorepo: boolean
-  detectedPatterns: string[]
+  type: ContextProjectType;
+  framework?: string;
+  language: string;
+  packageManager?: string;
+  hasTests: boolean;
+  hasDocker: boolean;
+  hasCi: boolean;
+  monorepo: boolean;
+  detectedPatterns: string[];
 }
 
 export type ContextProjectType
@@ -38,26 +38,26 @@ export type ContextProjectType
     | 'dotnet'
     | 'ruby'
     | 'php'
-    | 'unknown'
+    | 'unknown';
 
 export interface ContextRule {
-  id: string
-  name: string
-  nameZh: string
-  description: string
-  descriptionZh: string
-  content: string
-  contentZh: string
-  category: 'coding' | 'testing' | 'docs' | 'workflow' | 'security'
-  applicableTo: ContextProjectType[]
+  id: string;
+  name: string;
+  nameZh: string;
+  description: string;
+  descriptionZh: string;
+  content: string;
+  contentZh: string;
+  category: 'coding' | 'testing' | 'docs' | 'workflow' | 'security';
+  applicableTo: ContextProjectType[];
 }
 
 export interface ContextFile {
-  path: string
-  type: 'global' | 'project' | 'local'
-  exists: boolean
-  size?: number
-  lastModified?: Date
+  path: string;
+  type: 'global' | 'project' | 'local';
+  exists: boolean;
+  size?: number;
+  lastModified?: Date;
 }
 
 // ============================================================================
@@ -76,146 +76,146 @@ export function detectProjectContext(projectPath: string = process.cwd()): Conte
     hasCi: false,
     monorepo: false,
     detectedPatterns: [],
-  }
+  };
 
   if (!existsSync(projectPath)) {
-    return context
+    return context;
   }
 
-  const files = safeReadDir(projectPath)
+  const files = safeReadDir(projectPath);
 
   // Detect Node.js / JavaScript / TypeScript
   if (files.includes('package.json')) {
-    context.type = 'nodejs'
-    context.language = files.includes('tsconfig.json') ? 'typescript' : 'javascript'
-    context.detectedPatterns.push('package.json')
+    context.type = 'nodejs';
+    context.language = files.includes('tsconfig.json') ? 'typescript' : 'javascript';
+    context.detectedPatterns.push('package.json');
 
     // Detect package manager
     if (files.includes('pnpm-lock.yaml')) {
-      context.packageManager = 'pnpm'
+      context.packageManager = 'pnpm';
     }
     else if (files.includes('yarn.lock')) {
-      context.packageManager = 'yarn'
+      context.packageManager = 'yarn';
     }
     else if (files.includes('bun.lockb')) {
-      context.packageManager = 'bun'
+      context.packageManager = 'bun';
     }
     else if (files.includes('package-lock.json')) {
-      context.packageManager = 'npm'
+      context.packageManager = 'npm';
     }
 
     // Detect framework
-    const packageJson = readPackageJson(projectPath)
+    const packageJson = readPackageJson(projectPath);
     if (packageJson) {
-      context.framework = detectNodeFramework(packageJson)
+      context.framework = detectNodeFramework(packageJson);
     }
 
     // Detect monorepo
     if (files.includes('pnpm-workspace.yaml') || files.includes('lerna.json')) {
-      context.monorepo = true
-      context.detectedPatterns.push('monorepo')
+      context.monorepo = true;
+      context.detectedPatterns.push('monorepo');
     }
   }
 
   // Detect Python
   if (files.includes('pyproject.toml') || files.includes('setup.py') || files.includes('requirements.txt')) {
-    context.type = 'python'
-    context.language = 'python'
-    context.detectedPatterns.push(files.includes('pyproject.toml') ? 'pyproject.toml' : 'requirements.txt')
+    context.type = 'python';
+    context.language = 'python';
+    context.detectedPatterns.push(files.includes('pyproject.toml') ? 'pyproject.toml' : 'requirements.txt');
 
     // Detect package manager
     if (files.includes('poetry.lock')) {
-      context.packageManager = 'poetry'
+      context.packageManager = 'poetry';
     }
     else if (files.includes('Pipfile.lock')) {
-      context.packageManager = 'pipenv'
+      context.packageManager = 'pipenv';
     }
     else if (files.includes('uv.lock')) {
-      context.packageManager = 'uv'
+      context.packageManager = 'uv';
     }
 
     // Detect framework
-    context.framework = detectPythonFramework(projectPath)
+    context.framework = detectPythonFramework(projectPath);
   }
 
   // Detect Rust
   if (files.includes('Cargo.toml')) {
-    context.type = 'rust'
-    context.language = 'rust'
-    context.packageManager = 'cargo'
-    context.detectedPatterns.push('Cargo.toml')
+    context.type = 'rust';
+    context.language = 'rust';
+    context.packageManager = 'cargo';
+    context.detectedPatterns.push('Cargo.toml');
 
     // Detect workspace (monorepo)
-    const cargoContent = readFile(join(projectPath, 'Cargo.toml'))
+    const cargoContent = readFile(join(projectPath, 'Cargo.toml'));
     if (cargoContent?.includes('[workspace]')) {
-      context.monorepo = true
-      context.detectedPatterns.push('cargo-workspace')
+      context.monorepo = true;
+      context.detectedPatterns.push('cargo-workspace');
     }
   }
 
   // Detect Go
   if (files.includes('go.mod')) {
-    context.type = 'go'
-    context.language = 'go'
-    context.packageManager = 'go'
-    context.detectedPatterns.push('go.mod')
+    context.type = 'go';
+    context.language = 'go';
+    context.packageManager = 'go';
+    context.detectedPatterns.push('go.mod');
   }
 
   // Detect Java
   if (files.includes('pom.xml') || files.includes('build.gradle') || files.includes('build.gradle.kts')) {
-    context.type = 'java'
-    context.language = 'java'
-    context.packageManager = files.includes('pom.xml') ? 'maven' : 'gradle'
-    context.detectedPatterns.push(files.includes('pom.xml') ? 'pom.xml' : 'build.gradle')
+    context.type = 'java';
+    context.language = 'java';
+    context.packageManager = files.includes('pom.xml') ? 'maven' : 'gradle';
+    context.detectedPatterns.push(files.includes('pom.xml') ? 'pom.xml' : 'build.gradle');
   }
 
   // Detect .NET
   if (files.some(f => f.endsWith('.csproj') || f.endsWith('.fsproj') || f.endsWith('.sln'))) {
-    context.type = 'dotnet'
-    context.language = files.some(f => f.endsWith('.fsproj')) ? 'fsharp' : 'csharp'
-    context.packageManager = 'dotnet'
-    context.detectedPatterns.push('.NET project')
+    context.type = 'dotnet';
+    context.language = files.some(f => f.endsWith('.fsproj')) ? 'fsharp' : 'csharp';
+    context.packageManager = 'dotnet';
+    context.detectedPatterns.push('.NET project');
   }
 
   // Detect Ruby
   if (files.includes('Gemfile')) {
-    context.type = 'ruby'
-    context.language = 'ruby'
-    context.packageManager = 'bundler'
-    context.detectedPatterns.push('Gemfile')
+    context.type = 'ruby';
+    context.language = 'ruby';
+    context.packageManager = 'bundler';
+    context.detectedPatterns.push('Gemfile');
 
     // Detect Rails
     if (files.includes('config') && existsSync(join(projectPath, 'config', 'routes.rb'))) {
-      context.framework = 'rails'
+      context.framework = 'rails';
     }
   }
 
   // Detect PHP
   if (files.includes('composer.json')) {
-    context.type = 'php'
-    context.language = 'php'
-    context.packageManager = 'composer'
-    context.detectedPatterns.push('composer.json')
+    context.type = 'php';
+    context.language = 'php';
+    context.packageManager = 'composer';
+    context.detectedPatterns.push('composer.json');
 
     // Detect Laravel
     if (files.includes('artisan')) {
-      context.framework = 'laravel'
+      context.framework = 'laravel';
     }
   }
 
   // Common detections
-  context.hasDocker = files.includes('Dockerfile') || files.includes('docker-compose.yml') || files.includes('docker-compose.yaml')
-  context.hasCi = files.includes('.github') || files.includes('.gitlab-ci.yml') || files.includes('.circleci')
-  context.hasTests = files.includes('tests') || files.includes('test') || files.includes('__tests__') || files.includes('spec')
+  context.hasDocker = files.includes('Dockerfile') || files.includes('docker-compose.yml') || files.includes('docker-compose.yaml');
+  context.hasCi = files.includes('.github') || files.includes('.gitlab-ci.yml') || files.includes('.circleci');
+  context.hasTests = files.includes('tests') || files.includes('test') || files.includes('__tests__') || files.includes('spec');
 
   if (context.hasDocker)
-    context.detectedPatterns.push('docker')
+    context.detectedPatterns.push('docker');
   if (context.hasCi)
-    context.detectedPatterns.push('ci/cd')
+    context.detectedPatterns.push('ci/cd');
   if (context.hasTests)
-    context.detectedPatterns.push('tests')
+    context.detectedPatterns.push('tests');
 
-  return context
+  return context;
 }
 
 /**
@@ -223,10 +223,10 @@ export function detectProjectContext(projectPath: string = process.cwd()): Conte
  */
 function safeReadDir(dirPath: string): string[] {
   try {
-    return readdirSync(dirPath)
+    return readdirSync(dirPath);
   }
   catch {
-    return []
+    return [];
   }
 }
 
@@ -235,15 +235,15 @@ function safeReadDir(dirPath: string): string[] {
  */
 function readPackageJson(projectPath: string): Record<string, unknown> | null {
   try {
-    const content = readFile(join(projectPath, 'package.json'))
+    const content = readFile(join(projectPath, 'package.json'));
     if (content) {
-      return JSON.parse(content)
+      return JSON.parse(content);
     }
   }
   catch {
     // Ignore parse errors
   }
-  return null
+  return null;
 }
 
 /**
@@ -253,54 +253,54 @@ function detectNodeFramework(packageJson: Record<string, unknown>): string | und
   const deps = {
     ...(packageJson.dependencies as Record<string, string> || {}),
     ...(packageJson.devDependencies as Record<string, string> || {}),
-  }
+  };
 
   if (deps.next)
-    return 'nextjs'
+    return 'nextjs';
   if (deps.nuxt)
-    return 'nuxt'
+    return 'nuxt';
   if (deps['@angular/core'])
-    return 'angular'
+    return 'angular';
   if (deps.vue)
-    return 'vue'
+    return 'vue';
   if (deps.react)
-    return 'react'
+    return 'react';
   if (deps.svelte)
-    return 'svelte'
+    return 'svelte';
   if (deps.express)
-    return 'express'
+    return 'express';
   if (deps.fastify)
-    return 'fastify'
+    return 'fastify';
   if (deps.nestjs || deps['@nestjs/core'])
-    return 'nestjs'
+    return 'nestjs';
   if (deps.hono)
-    return 'hono'
+    return 'hono';
   if (deps.elysia)
-    return 'elysia'
+    return 'elysia';
 
-  return undefined
+  return undefined;
 }
 
 /**
  * Detect Python framework
  */
 function detectPythonFramework(projectPath: string): string | undefined {
-  const files = safeReadDir(projectPath)
+  const files = safeReadDir(projectPath);
 
   // Check for common framework indicators
   if (files.includes('manage.py'))
-    return 'django'
+    return 'django';
   if (files.includes('app.py') || files.includes('main.py')) {
-    const content = readFile(join(projectPath, files.includes('app.py') ? 'app.py' : 'main.py'))
+    const content = readFile(join(projectPath, files.includes('app.py') ? 'app.py' : 'main.py'));
     if (content) {
       if (content.includes('FastAPI'))
-        return 'fastapi'
+        return 'fastapi';
       if (content.includes('Flask'))
-        return 'flask'
+        return 'flask';
     }
   }
 
-  return undefined
+  return undefined;
 }
 
 // ============================================================================
@@ -480,7 +480,7 @@ export function getContextRules(): ContextRule[] {
       category: 'security',
       applicableTo: ['nodejs', 'python', 'rust', 'go', 'java', 'dotnet', 'ruby', 'php', 'unknown'],
     },
-  ]
+  ];
 }
 
 /**
@@ -489,7 +489,7 @@ export function getContextRules(): ContextRule[] {
 export function getApplicableRules(projectType: ContextProjectType): ContextRule[] {
   return getContextRules().filter(rule =>
     rule.applicableTo.includes(projectType) || rule.applicableTo.includes('unknown'),
-  )
+  );
 }
 
 // ============================================================================
@@ -500,63 +500,63 @@ export function getApplicableRules(projectType: ContextProjectType): ContextRule
  * Get all context file locations
  */
 export function getContextFiles(projectPath: string = process.cwd()): ContextFile[] {
-  const home = homedir()
-  const files: ContextFile[] = []
+  const home = homedir();
+  const files: ContextFile[] = [];
 
   // Global CLAUDE.md
-  const globalPath = join(home, '.claude', 'CLAUDE.md')
+  const globalPath = join(home, '.claude', 'CLAUDE.md');
   files.push({
     path: globalPath,
     type: 'global',
     exists: existsSync(globalPath),
     ...getFileStats(globalPath),
-  })
+  });
 
   // Project CLAUDE.md
-  const projectClaudeMd = join(projectPath, 'CLAUDE.md')
+  const projectClaudeMd = join(projectPath, 'CLAUDE.md');
   files.push({
     path: projectClaudeMd,
     type: 'project',
     exists: existsSync(projectClaudeMd),
     ...getFileStats(projectClaudeMd),
-  })
+  });
 
   // Local .claude/CLAUDE.md
-  const localPath = join(projectPath, '.claude', 'CLAUDE.md')
+  const localPath = join(projectPath, '.claude', 'CLAUDE.md');
   files.push({
     path: localPath,
     type: 'local',
     exists: existsSync(localPath),
     ...getFileStats(localPath),
-  })
+  });
 
-  return files
+  return files;
 }
 
 /**
  * Get file stats if file exists
  */
-function getFileStats(filePath: string): { size?: number, lastModified?: Date } {
+function getFileStats(filePath: string): { size?: number; lastModified?: Date } {
   try {
     if (existsSync(filePath)) {
-      const stats = statSync(filePath)
+      const stats = statSync(filePath);
       return {
         size: stats.size,
         lastModified: stats.mtime,
-      }
+      };
     }
   }
   catch {
     // Ignore errors
   }
-  return {}
+  return {};
 }
 
 /**
  * Read context file content
  */
 export function readContextFile(filePath: string): string | null {
-  return readFile(filePath)
+  return readFile(filePath);
 }
 
 /**
@@ -565,17 +565,17 @@ export function readContextFile(filePath: string): string | null {
 export async function writeContextFile(filePath: string, content: string): Promise<boolean> {
   try {
     // Ensure directory exists
-    const dir = dirname(filePath)
+    const dir = dirname(filePath);
     if (!existsSync(dir)) {
-      const { mkdirSync } = await import('node:fs')
-      mkdirSync(dir, { recursive: true })
+      const { mkdirSync } = await import('node:fs');
+      mkdirSync(dir, { recursive: true });
     }
 
-    await writeFileAtomic(filePath, content)
-    return true
+    await writeFileAtomic(filePath, content);
+    return true;
   }
   catch {
-    return false
+    return false;
   }
 }
 
@@ -591,72 +591,72 @@ export function generateContextContent(
   selectedRules: string[],
   lang: 'en' | 'zh-CN' = 'en',
 ): string {
-  const isZh = lang === 'zh-CN'
-  const rules = getContextRules().filter(r => selectedRules.includes(r.id))
+  const isZh = lang === 'zh-CN';
+  const rules = getContextRules().filter(r => selectedRules.includes(r.id));
 
-  const lines: string[] = []
+  const lines: string[] = [];
 
   // Header
-  lines.push(isZh ? '# 项目规则' : '# Project Rules')
-  lines.push('')
+  lines.push(isZh ? '# 项目规则' : '# Project Rules');
+  lines.push('');
 
   // Project info
-  lines.push(isZh ? '## 项目信息' : '## Project Information')
-  lines.push(`- ${isZh ? '类型' : 'Type'}: ${context.type}`)
-  lines.push(`- ${isZh ? '语言' : 'Language'}: ${context.language}`)
+  lines.push(isZh ? '## 项目信息' : '## Project Information');
+  lines.push(`- ${isZh ? '类型' : 'Type'}: ${context.type}`);
+  lines.push(`- ${isZh ? '语言' : 'Language'}: ${context.language}`);
   if (context.framework) {
-    lines.push(`- ${isZh ? '框架' : 'Framework'}: ${context.framework}`)
+    lines.push(`- ${isZh ? '框架' : 'Framework'}: ${context.framework}`);
   }
   if (context.packageManager) {
-    lines.push(`- ${isZh ? '包管理器' : 'Package Manager'}: ${context.packageManager}`)
+    lines.push(`- ${isZh ? '包管理器' : 'Package Manager'}: ${context.packageManager}`);
   }
-  lines.push('')
+  lines.push('');
 
   // Add selected rules
   for (const rule of rules) {
-    lines.push(isZh ? rule.contentZh : rule.content)
-    lines.push('')
+    lines.push(isZh ? rule.contentZh : rule.content);
+    lines.push('');
   }
 
   // Footer
-  lines.push('---')
+  lines.push('---');
   lines.push(isZh
     ? `*由 CCJK 自动生成于 ${new Date().toISOString().split('T')[0]}*`
-    : `*Auto-generated by CCJK on ${new Date().toISOString().split('T')[0]}*`)
+    : `*Auto-generated by CCJK on ${new Date().toISOString().split('T')[0]}*`);
 
-  return lines.join('\n')
+  return lines.join('\n');
 }
 
 /**
  * Get recommended rules based on project context
  */
 export function getRecommendedRules(context: ContextProjectInfo): string[] {
-  const recommended: string[] = []
+  const recommended: string[] = [];
 
   // Always recommend error handling and security
-  recommended.push('error-handling', 'security-basics')
+  recommended.push('error-handling', 'security-basics');
 
   // Recommend type annotations for typed languages
   if (['nodejs', 'python', 'rust', 'java', 'dotnet'].includes(context.type)) {
     if (context.language === 'typescript' || context.type === 'rust' || context.type === 'java') {
-      recommended.push('explicit-types')
+      recommended.push('explicit-types');
     }
   }
 
   // Recommend testing if project has tests
   if (context.hasTests) {
-    recommended.push('test-first', 'high-coverage')
+    recommended.push('test-first', 'high-coverage');
   }
 
   // Recommend conventional commits if has CI
   if (context.hasCi) {
-    recommended.push('conventional-commits', 'pr-guidelines')
+    recommended.push('conventional-commits', 'pr-guidelines');
   }
 
   // Recommend documentation
-  recommended.push('doc-comments')
+  recommended.push('doc-comments');
 
-  return recommended
+  return recommended;
 }
 
 /**
@@ -667,40 +667,40 @@ export function mergeContextContent(
   newRules: string[],
   lang: 'en' | 'zh-CN' = 'en',
 ): string {
-  const isZh = lang === 'zh-CN'
-  const rules = getContextRules().filter(r => newRules.includes(r.id))
+  const isZh = lang === 'zh-CN';
+  const rules = getContextRules().filter(r => newRules.includes(r.id));
 
   // Check if rules already exist
-  const existingRuleIds: string[] = []
+  const existingRuleIds: string[] = [];
   for (const rule of getContextRules()) {
-    const marker = isZh ? rule.contentZh.split('\n')[0] : rule.content.split('\n')[0]
+    const marker = isZh ? rule.contentZh.split('\n')[0] : rule.content.split('\n')[0];
     if (existingContent.includes(marker)) {
-      existingRuleIds.push(rule.id)
+      existingRuleIds.push(rule.id);
     }
   }
 
   // Filter out already existing rules
-  const newRulesToAdd = rules.filter(r => !existingRuleIds.includes(r.id))
+  const newRulesToAdd = rules.filter(r => !existingRuleIds.includes(r.id));
 
   if (newRulesToAdd.length === 0) {
-    return existingContent
+    return existingContent;
   }
 
   // Add new rules before the footer
-  const footerMarker = '---'
-  const footerIndex = existingContent.lastIndexOf(footerMarker)
+  const footerMarker = '---';
+  const footerIndex = existingContent.lastIndexOf(footerMarker);
 
-  let content = existingContent
-  const newContent = newRulesToAdd.map(r => isZh ? r.contentZh : r.content).join('\n\n')
+  let content = existingContent;
+  const newContent = newRulesToAdd.map(r => isZh ? r.contentZh : r.content).join('\n\n');
 
   if (footerIndex > 0) {
-    content = `${existingContent.slice(0, footerIndex) + newContent}\n\n${existingContent.slice(footerIndex)}`
+    content = `${existingContent.slice(0, footerIndex) + newContent}\n\n${existingContent.slice(footerIndex)}`;
   }
   else {
-    content = `${existingContent}\n\n${newContent}`
+    content = `${existingContent}\n\n${newContent}`;
   }
 
-  return content
+  return content;
 }
 
 // ============================================================================
@@ -711,7 +711,7 @@ export function mergeContextContent(
  * Get display name for project type
  */
 export function getProjectTypeLabel(type: ContextProjectType, lang: 'en' | 'zh-CN' = 'en'): string {
-  const labels: Record<ContextProjectType, { en: string, zh: string }> = {
+  const labels: Record<ContextProjectType, { en: string; zh: string }> = {
     nodejs: { en: 'Node.js', zh: 'Node.js' },
     python: { en: 'Python', zh: 'Python' },
     rust: { en: 'Rust', zh: 'Rust' },
@@ -721,22 +721,22 @@ export function getProjectTypeLabel(type: ContextProjectType, lang: 'en' | 'zh-C
     ruby: { en: 'Ruby', zh: 'Ruby' },
     php: { en: 'PHP', zh: 'PHP' },
     unknown: { en: 'Unknown', zh: '未知' },
-  }
+  };
 
-  return lang === 'zh-CN' ? labels[type].zh : labels[type].en
+  return lang === 'zh-CN' ? labels[type].zh : labels[type].en;
 }
 
 /**
  * Get context file type label
  */
 export function getContextFileTypeLabel(type: ContextFile['type'], lang: 'en' | 'zh-CN' = 'en'): string {
-  const labels: Record<ContextFile['type'], { en: string, zh: string }> = {
+  const labels: Record<ContextFile['type'], { en: string; zh: string }> = {
     global: { en: 'Global', zh: '全局' },
     project: { en: 'Project', zh: '项目' },
     local: { en: 'Local', zh: '本地' },
-  }
+  };
 
-  return lang === 'zh-CN' ? labels[type].zh : labels[type].en
+  return lang === 'zh-CN' ? labels[type].zh : labels[type].en;
 }
 
 /**
@@ -744,8 +744,8 @@ export function getContextFileTypeLabel(type: ContextFile['type'], lang: 'en' | 
  */
 export function formatFileSize(bytes: number): string {
   if (bytes < 1024)
-    return `${bytes} B`
+    return `${bytes} B`;
   if (bytes < 1024 * 1024)
-    return `${(bytes / 1024).toFixed(1)} KB`
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+    return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }

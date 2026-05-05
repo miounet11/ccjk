@@ -11,60 +11,60 @@
  * @module tests/integration/cloud-skills
  */
 
-import type { CloudApiResponse } from '../../src/services/cloud/api-client'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import type { CloudApiResponse } from '../../src/services/cloud/api-client';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   assertErrorResponse,
   assertSuccessResponse,
   createTestGateway,
   MockCloudServer,
-} from '../helpers/cloud-mock'
+} from '../helpers/cloud-mock';
 
 // Skills API types
 interface Skill {
-  id: string
-  name: string
-  description: string
-  version: string
-  author: string
-  tags: string[]
-  downloads: number
-  rating: number
+  id: string;
+  name: string;
+  description: string;
+  version: string;
+  author: string;
+  tags: string[];
+  downloads: number;
+  rating: number;
 }
 
 interface SkillsListResponse {
-  skills: Skill[]
-  total: number
-  page: number
-  pageSize: number
+  skills: Skill[];
+  total: number;
+  page: number;
+  pageSize: number;
 }
 
 interface SkillDownloadResponse {
-  skillId: string
-  content: string
-  version: string
+  skillId: string;
+  content: string;
+  version: string;
 }
 
 interface SkillUploadResponse {
-  skillId: string
-  success: boolean
-  message: string
+  skillId: string;
+  success: boolean;
+  message: string;
 }
 
 describe('cloud Skills Integration Tests', () => {
-  let mockServer: MockCloudServer
-  let gateway: any
+  let mockServer: MockCloudServer;
+  let gateway: any;
 
   beforeEach(() => {
-    mockServer = new MockCloudServer()
-    const testSetup = createTestGateway(mockServer)
-    gateway = testSetup.gateway
-  })
+    mockServer = new MockCloudServer();
+    const testSetup = createTestGateway(mockServer);
+    gateway = testSetup.gateway;
+  });
 
   afterEach(() => {
-    mockServer.reset()
-    vi.clearAllMocks()
-  })
+    mockServer.reset();
+    vi.clearAllMocks();
+  });
 
   // ==========================================================================
   // Test Suite 1: Skills List
@@ -94,7 +94,7 @@ describe('cloud Skills Integration Tests', () => {
           downloads: 2500,
           rating: 4.8,
         },
-      ]
+      ];
 
       const mockResponse: CloudApiResponse<SkillsListResponse> = {
         success: true,
@@ -104,8 +104,8 @@ describe('cloud Skills Integration Tests', () => {
           page: 1,
           pageSize: 10,
         },
-      }
-      mockServer.setResponse('skills.list', mockResponse)
+      };
+      mockServer.setResponse('skills.list', mockResponse);
 
       // Act
       const response = await gateway.request<SkillsListResponse>(
@@ -114,14 +114,14 @@ describe('cloud Skills Integration Tests', () => {
           method: 'GET',
           query: { page: 1, pageSize: 10 },
         },
-      )
+      );
 
       // Assert
-      assertSuccessResponse(response)
-      expect(response.data.skills).toHaveLength(2)
-      expect(response.data.total).toBe(2)
-      expect(response.data.skills[0].id).toBe('skill-1')
-    })
+      assertSuccessResponse(response);
+      expect(response.data.skills).toHaveLength(2);
+      expect(response.data.total).toBe(2);
+      expect(response.data.skills[0].id).toBe('skill-1');
+    });
 
     it('should handle empty skills list', async () => {
       // Arrange
@@ -133,8 +133,8 @@ describe('cloud Skills Integration Tests', () => {
           page: 1,
           pageSize: 10,
         },
-      }
-      mockServer.setResponse('skills.list', mockResponse)
+      };
+      mockServer.setResponse('skills.list', mockResponse);
 
       // Act
       const response = await gateway.request<SkillsListResponse>(
@@ -142,13 +142,13 @@ describe('cloud Skills Integration Tests', () => {
         {
           method: 'GET',
         },
-      )
+      );
 
       // Assert
-      assertSuccessResponse(response)
-      expect(response.data.skills).toHaveLength(0)
-      expect(response.data.total).toBe(0)
-    })
+      assertSuccessResponse(response);
+      expect(response.data.skills).toHaveLength(0);
+      expect(response.data.total).toBe(0);
+    });
 
     it('should handle authentication failure', async () => {
       // Arrange
@@ -156,8 +156,8 @@ describe('cloud Skills Integration Tests', () => {
         success: false,
         error: 'Authentication required',
         code: 'UNAUTHORIZED',
-      }
-      mockServer.setResponse('skills.list', mockResponse)
+      };
+      mockServer.setResponse('skills.list', mockResponse);
 
       // Act
       const response = await gateway.request<SkillsListResponse>(
@@ -165,12 +165,12 @@ describe('cloud Skills Integration Tests', () => {
         {
           method: 'GET',
         },
-      )
+      );
 
       // Assert
-      assertErrorResponse(response)
-      expect(response.code).toBe('UNAUTHORIZED')
-    })
+      assertErrorResponse(response);
+      expect(response.code).toBe('UNAUTHORIZED');
+    });
 
     it('should handle pagination correctly', async () => {
       // Arrange - Page 1
@@ -193,8 +193,8 @@ describe('cloud Skills Integration Tests', () => {
           page: 1,
           pageSize: 10,
         },
-      }
-      mockServer.setResponse('skills.list', page1Response)
+      };
+      mockServer.setResponse('skills.list', page1Response);
 
       // Act - Page 1
       const response1 = await gateway.request<SkillsListResponse>(
@@ -203,12 +203,12 @@ describe('cloud Skills Integration Tests', () => {
           method: 'GET',
           query: { page: 1, pageSize: 10 },
         },
-      )
+      );
 
       // Assert - Page 1
-      assertSuccessResponse(response1)
-      expect(response1.data.page).toBe(1)
-      expect(response1.data.total).toBe(25)
+      assertSuccessResponse(response1);
+      expect(response1.data.page).toBe(1);
+      expect(response1.data.total).toBe(25);
 
       // Arrange - Page 2
       const page2Response: CloudApiResponse<SkillsListResponse> = {
@@ -230,8 +230,8 @@ describe('cloud Skills Integration Tests', () => {
           page: 2,
           pageSize: 10,
         },
-      }
-      mockServer.setResponse('skills.list', page2Response)
+      };
+      mockServer.setResponse('skills.list', page2Response);
 
       // Act - Page 2
       const response2 = await gateway.request<SkillsListResponse>(
@@ -240,14 +240,14 @@ describe('cloud Skills Integration Tests', () => {
           method: 'GET',
           query: { page: 2, pageSize: 10 },
         },
-      )
+      );
 
       // Assert - Page 2
-      assertSuccessResponse(response2)
-      expect(response2.data.page).toBe(2)
-      expect(response2.data.skills[0].id).toBe('skill-11')
-    })
-  })
+      assertSuccessResponse(response2);
+      expect(response2.data.page).toBe(2);
+      expect(response2.data.skills[0].id).toBe('skill-11');
+    });
+  });
 
   // ==========================================================================
   // Test Suite 2: Skills Download
@@ -263,8 +263,8 @@ describe('cloud Skills Integration Tests', () => {
           content: '# Skill Content\n\nThis is the skill content.',
           version: '1.0.0',
         },
-      }
-      mockServer.setResponse('skills.download', mockResponse)
+      };
+      mockServer.setResponse('skills.download', mockResponse);
 
       // Act
       const response = await gateway.request<SkillDownloadResponse>(
@@ -273,14 +273,14 @@ describe('cloud Skills Integration Tests', () => {
           method: 'GET',
           query: { skillId: 'skill-1' },
         },
-      )
+      );
 
       // Assert
-      assertSuccessResponse(response)
-      expect(response.data.skillId).toBe('skill-1')
-      expect(response.data.content).toContain('Skill Content')
-      expect(response.data.version).toBe('1.0.0')
-    })
+      assertSuccessResponse(response);
+      expect(response.data.skillId).toBe('skill-1');
+      expect(response.data.content).toContain('Skill Content');
+      expect(response.data.version).toBe('1.0.0');
+    });
 
     it('should handle skill not found', async () => {
       // Arrange
@@ -288,8 +288,8 @@ describe('cloud Skills Integration Tests', () => {
         success: false,
         error: 'Skill not found',
         code: 'NOT_FOUND',
-      }
-      mockServer.setResponse('skills.download', mockResponse)
+      };
+      mockServer.setResponse('skills.download', mockResponse);
 
       // Act
       const response = await gateway.request<SkillDownloadResponse>(
@@ -298,22 +298,22 @@ describe('cloud Skills Integration Tests', () => {
           method: 'GET',
           query: { skillId: 'non-existent' },
         },
-      )
+      );
 
       // Assert
-      assertErrorResponse(response)
-      expect(response.code).toBe('NOT_FOUND')
-    })
+      assertErrorResponse(response);
+      expect(response.code).toBe('NOT_FOUND');
+    });
 
     it('should handle download timeout', async () => {
       // Arrange
-      mockServer.setLatency(10000)
+      mockServer.setLatency(10000);
       const mockResponse: CloudApiResponse<SkillDownloadResponse> = {
         success: false,
         error: 'Download timeout',
         code: 'TIMEOUT',
-      }
-      mockServer.setResponse('skills.download', mockResponse)
+      };
+      mockServer.setResponse('skills.download', mockResponse);
 
       // Act
       const response = await gateway.request<SkillDownloadResponse>(
@@ -323,12 +323,12 @@ describe('cloud Skills Integration Tests', () => {
           query: { skillId: 'skill-1' },
           timeout: 2000,
         },
-      )
+      );
 
       // Assert
-      assertErrorResponse(response)
-      expect(response.code).toBe('TIMEOUT')
-    })
+      assertErrorResponse(response);
+      expect(response.code).toBe('TIMEOUT');
+    });
 
     it('should handle corrupted skill content', async () => {
       // Arrange
@@ -336,8 +336,8 @@ describe('cloud Skills Integration Tests', () => {
         success: false,
         error: 'Skill content is corrupted',
         code: 'CORRUPTED_CONTENT',
-      }
-      mockServer.setResponse('skills.download', mockResponse)
+      };
+      mockServer.setResponse('skills.download', mockResponse);
 
       // Act
       const response = await gateway.request<SkillDownloadResponse>(
@@ -346,13 +346,13 @@ describe('cloud Skills Integration Tests', () => {
           method: 'GET',
           query: { skillId: 'corrupted-skill' },
         },
-      )
+      );
 
       // Assert
-      assertErrorResponse(response)
-      expect(response.code).toBe('CORRUPTED_CONTENT')
-    })
-  })
+      assertErrorResponse(response);
+      expect(response.code).toBe('CORRUPTED_CONTENT');
+    });
+  });
 
   // ==========================================================================
   // Test Suite 3: Skills Upload
@@ -368,8 +368,8 @@ describe('cloud Skills Integration Tests', () => {
           success: true,
           message: 'Skill uploaded successfully',
         },
-      }
-      mockServer.setResponse('skills.upload', mockResponse)
+      };
+      mockServer.setResponse('skills.upload', mockResponse);
 
       // Act
       const response = await gateway.request<SkillUploadResponse>(
@@ -384,13 +384,13 @@ describe('cloud Skills Integration Tests', () => {
             tags: ['new', 'test'],
           },
         },
-      )
+      );
 
       // Assert
-      assertSuccessResponse(response)
-      expect(response.data.success).toBe(true)
-      expect(response.data.skillId).toBe('new-skill-1')
-    })
+      assertSuccessResponse(response);
+      expect(response.data.success).toBe(true);
+      expect(response.data.skillId).toBe('new-skill-1');
+    });
 
     it('should handle validation errors', async () => {
       // Arrange
@@ -398,8 +398,8 @@ describe('cloud Skills Integration Tests', () => {
         success: false,
         error: 'Invalid skill format',
         code: 'VALIDATION_ERROR',
-      }
-      mockServer.setResponse('skills.upload', mockResponse)
+      };
+      mockServer.setResponse('skills.upload', mockResponse);
 
       // Act
       const response = await gateway.request<SkillUploadResponse>(
@@ -411,12 +411,12 @@ describe('cloud Skills Integration Tests', () => {
             content: '',
           },
         },
-      )
+      );
 
       // Assert
-      assertErrorResponse(response)
-      expect(response.code).toBe('VALIDATION_ERROR')
-    })
+      assertErrorResponse(response);
+      expect(response.code).toBe('VALIDATION_ERROR');
+    });
 
     it('should handle authentication failure', async () => {
       // Arrange
@@ -424,8 +424,8 @@ describe('cloud Skills Integration Tests', () => {
         success: false,
         error: 'Authentication required to upload skills',
         code: 'UNAUTHORIZED',
-      }
-      mockServer.setResponse('skills.upload', mockResponse)
+      };
+      mockServer.setResponse('skills.upload', mockResponse);
 
       // Act
       const response = await gateway.request<SkillUploadResponse>(
@@ -437,12 +437,12 @@ describe('cloud Skills Integration Tests', () => {
             content: 'Content',
           },
         },
-      )
+      );
 
       // Assert
-      assertErrorResponse(response)
-      expect(response.code).toBe('UNAUTHORIZED')
-    })
+      assertErrorResponse(response);
+      expect(response.code).toBe('UNAUTHORIZED');
+    });
 
     it('should handle duplicate skill names', async () => {
       // Arrange
@@ -450,8 +450,8 @@ describe('cloud Skills Integration Tests', () => {
         success: false,
         error: 'Skill with this name already exists',
         code: 'DUPLICATE_NAME',
-      }
-      mockServer.setResponse('skills.upload', mockResponse)
+      };
+      mockServer.setResponse('skills.upload', mockResponse);
 
       // Act
       const response = await gateway.request<SkillUploadResponse>(
@@ -463,13 +463,13 @@ describe('cloud Skills Integration Tests', () => {
             content: 'Content',
           },
         },
-      )
+      );
 
       // Assert
-      assertErrorResponse(response)
-      expect(response.code).toBe('DUPLICATE_NAME')
-    })
-  })
+      assertErrorResponse(response);
+      expect(response.code).toBe('DUPLICATE_NAME');
+    });
+  });
 
   // ==========================================================================
   // Test Suite 4: Skills Search and Filtering
@@ -497,8 +497,8 @@ describe('cloud Skills Integration Tests', () => {
           page: 1,
           pageSize: 10,
         },
-      }
-      mockServer.setResponse('skills.list', mockResponse)
+      };
+      mockServer.setResponse('skills.list', mockResponse);
 
       // Act
       const response = await gateway.request<SkillsListResponse>(
@@ -507,13 +507,13 @@ describe('cloud Skills Integration Tests', () => {
           method: 'GET',
           query: { search: 'typescript' },
         },
-      )
+      );
 
       // Assert
-      assertSuccessResponse(response)
-      expect(response.data.skills).toHaveLength(1)
-      expect(response.data.skills[0].name).toContain('TypeScript')
-    })
+      assertSuccessResponse(response);
+      expect(response.data.skills).toHaveLength(1);
+      expect(response.data.skills[0].name).toContain('TypeScript');
+    });
 
     it('should filter skills by tags', async () => {
       // Arrange
@@ -536,8 +536,8 @@ describe('cloud Skills Integration Tests', () => {
           page: 1,
           pageSize: 10,
         },
-      }
-      mockServer.setResponse('skills.list', mockResponse)
+      };
+      mockServer.setResponse('skills.list', mockResponse);
 
       // Act
       const response = await gateway.request<SkillsListResponse>(
@@ -546,13 +546,13 @@ describe('cloud Skills Integration Tests', () => {
           method: 'GET',
           query: { tags: 'react,patterns' },
         },
-      )
+      );
 
       // Assert
-      assertSuccessResponse(response)
-      expect(response.data.skills[0].tags).toContain('react')
-      expect(response.data.skills[0].tags).toContain('patterns')
-    })
+      assertSuccessResponse(response);
+      expect(response.data.skills[0].tags).toContain('react');
+      expect(response.data.skills[0].tags).toContain('patterns');
+    });
 
     it('should handle no results found', async () => {
       // Arrange
@@ -564,8 +564,8 @@ describe('cloud Skills Integration Tests', () => {
           page: 1,
           pageSize: 10,
         },
-      }
-      mockServer.setResponse('skills.list', mockResponse)
+      };
+      mockServer.setResponse('skills.list', mockResponse);
 
       // Act
       const response = await gateway.request<SkillsListResponse>(
@@ -574,12 +574,12 @@ describe('cloud Skills Integration Tests', () => {
           method: 'GET',
           query: { search: 'nonexistent-keyword' },
         },
-      )
+      );
 
       // Assert
-      assertSuccessResponse(response)
-      expect(response.data.skills).toHaveLength(0)
-      expect(response.data.total).toBe(0)
-    })
-  })
-})
+      assertSuccessResponse(response);
+      expect(response.data.skills).toHaveLength(0);
+      expect(response.data.total).toBe(0);
+    });
+  });
+});

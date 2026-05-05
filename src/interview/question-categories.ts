@@ -3,7 +3,7 @@ import type {
   InterviewCategoryId,
   InterviewQuestion,
   InterviewTemplate,
-} from './types'
+} from './types';
 
 /**
  * Project Foundation Questions
@@ -157,7 +157,7 @@ const projectFoundationQuestions: InterviewQuestion[] = [
     order: 3,
     required: true,
   },
-]
+];
 
 /**
  * Target Audience Questions
@@ -311,7 +311,7 @@ const targetAudienceQuestions: InterviewQuestion[] = [
     order: 3,
     required: true,
   },
-]
+];
 
 /**
  * Technical Implementation Questions
@@ -518,7 +518,7 @@ const technicalImplementationQuestions: InterviewQuestion[] = [
     order: 4,
     required: true,
   },
-]
+];
 
 /**
  * Features & Scope Questions
@@ -672,7 +672,7 @@ const featuresScopeQuestions: InterviewQuestion[] = [
     order: 3,
     required: false,
   },
-]
+];
 
 /**
  * UI/UX Questions
@@ -829,7 +829,7 @@ const uiUxQuestions: InterviewQuestion[] = [
     order: 3,
     required: false,
   },
-]
+];
 
 /**
  * Concerns Questions
@@ -985,7 +985,7 @@ const concernsQuestions: InterviewQuestion[] = [
     order: 3,
     required: true,
   },
-]
+];
 
 /**
  * Tradeoffs Questions
@@ -1118,7 +1118,7 @@ const tradeoffsQuestions: InterviewQuestion[] = [
     order: 3,
     required: true,
   },
-]
+];
 
 /**
  * Business Logic Questions
@@ -1216,7 +1216,7 @@ const businessLogicQuestions: InterviewQuestion[] = [
     order: 2,
     required: true,
   },
-]
+];
 
 /**
  * Security & Compliance Questions
@@ -1322,7 +1322,7 @@ const securityComplianceQuestions: InterviewQuestion[] = [
     order: 2,
     required: true,
   },
-]
+];
 
 /**
  * All interview categories with their questions
@@ -1454,7 +1454,7 @@ export const INTERVIEW_CATEGORIES: InterviewCategory[] = [
     order: 9,
     icon: '🔒',
   },
-]
+];
 
 /**
  * Predefined interview templates for common project types
@@ -1570,28 +1570,28 @@ export const INTERVIEW_TEMPLATES: InterviewTemplate[] = [
     defaultDepth: 'quick',
     estimatedQuestions: 10,
   },
-]
+];
 
 /**
  * Get all questions for a specific depth level
  */
 export function getQuestionsForDepth(depth: 'quick' | 'standard' | 'deep'): InterviewQuestion[] {
-  const allQuestions = INTERVIEW_CATEGORIES.flatMap(cat => cat.questions)
+  const allQuestions = INTERVIEW_CATEGORIES.flatMap(cat => cat.questions);
 
   switch (depth) {
     case 'quick':
       // Only required questions from first 3 categories
       return allQuestions
         .filter(q => q.required && ['project-foundation', 'technical-implementation', 'tradeoffs'].includes(q.category))
-        .slice(0, 10)
+        .slice(0, 10);
 
     case 'standard':
       // All required questions
-      return allQuestions.filter(q => q.required).slice(0, 25)
+      return allQuestions.filter(q => q.required).slice(0, 25);
 
     case 'deep':
       // All questions
-      return allQuestions
+      return allQuestions;
   }
 }
 
@@ -1599,22 +1599,22 @@ export function getQuestionsForDepth(depth: 'quick' | 'standard' | 'deep'): Inte
  * Get questions by category ID
  */
 export function getQuestionsByCategory(categoryId: InterviewCategoryId): InterviewQuestion[] {
-  const category = INTERVIEW_CATEGORIES.find(c => c.id === categoryId)
-  return category?.questions ?? []
+  const category = INTERVIEW_CATEGORIES.find(c => c.id === categoryId);
+  return category?.questions ?? [];
 }
 
 /**
  * Get category by ID
  */
 export function getCategoryById(categoryId: InterviewCategoryId): InterviewCategory | undefined {
-  return INTERVIEW_CATEGORIES.find(c => c.id === categoryId)
+  return INTERVIEW_CATEGORIES.find(c => c.id === categoryId);
 }
 
 /**
  * Get template by ID
  */
 export function getTemplateById(templateId: string): InterviewTemplate | undefined {
-  return INTERVIEW_TEMPLATES.find(t => t.id === templateId)
+  return INTERVIEW_TEMPLATES.find(t => t.id === templateId);
 }
 
 /**
@@ -1622,7 +1622,7 @@ export function getTemplateById(templateId: string): InterviewTemplate | undefin
  */
 export function calculateQuestionCount(categoryIds: InterviewCategoryId[]): number {
   return categoryIds.reduce((total, catId) => {
-    const category = getCategoryById(catId)
-    return total + (category?.questions.length ?? 0)
-  }, 0)
+    const category = getCategoryById(catId);
+    return total + (category?.questions.length ?? 0);
+  }, 0);
 }

@@ -13,37 +13,37 @@ import type {
   AgentFactory as AgentFactoryType,
   AgentMessage as AgentMessageType,
   AgentResult as AgentResultType,
-} from './base-agent'
-import process from 'node:process'
-import { AIMLAgent as AIMLAgentClass } from './ai-ml-agent'
-import { ArchitectureAgent as ArchitectureAgentClass } from './architecture-agent'
+} from './base-agent';
+import process from 'node:process';
+import { AIMLAgent as AIMLAgentClass } from './ai-ml-agent';
+import { ArchitectureAgent as ArchitectureAgentClass } from './architecture-agent';
 import {
   AgentRegistry as AgentRegistryClass,
   AgentState as AgentStateEnum,
   BaseAgent as BaseAgentClass,
-} from './base-agent'
-import { CodeAgent as CodeAgentClass } from './code-agent'
-import { DataAgent as DataAgentClass } from './data-agent'
-import { DevOpsAgent as DevOpsAgentClass } from './devops-agent'
-import { ExecutorAgent as ExecutorAgentClass } from './executor-agent'
-import { PerformanceAgent as PerformanceAgentClass } from './performance-agent'
-import { ResearchAgent as ResearchAgentClass } from './research-agent'
-import { SecurityAgent as SecurityAgentClass } from './security-agent'
-import { TestingAgent as TestingAgentClass } from './testing-agent'
+} from './base-agent';
+import { CodeAgent as CodeAgentClass } from './code-agent';
+import { DataAgent as DataAgentClass } from './data-agent';
+import { DevOpsAgent as DevOpsAgentClass } from './devops-agent';
+import { ExecutorAgent as ExecutorAgentClass } from './executor-agent';
+import { PerformanceAgent as PerformanceAgentClass } from './performance-agent';
+import { ResearchAgent as ResearchAgentClass } from './research-agent';
+import { SecurityAgent as SecurityAgentClass } from './security-agent';
+import { TestingAgent as TestingAgentClass } from './testing-agent';
 
 // Re-export Base Agent System
-export const AgentRegistry = AgentRegistryClass
-export const AgentState = AgentStateEnum
-export const BaseAgent = BaseAgentClass
-export type AgentCapability = AgentCapabilityType
-export type AgentConfig = AgentConfigType
-export type AgentContext = AgentContextType
-export type AgentFactory = AgentFactoryType
-export type AgentMessage = AgentMessageType
-export type AgentResult = AgentResultType
+export const AgentRegistry = AgentRegistryClass;
+export const AgentState = AgentStateEnum;
+export const BaseAgent = BaseAgentClass;
+export type AgentCapability = AgentCapabilityType;
+export type AgentConfig = AgentConfigType;
+export type AgentContext = AgentContextType;
+export type AgentFactory = AgentFactoryType;
+export type AgentMessage = AgentMessageType;
+export type AgentResult = AgentResultType;
 
 // Re-export Code Agent
-export const CodeAgent = CodeAgentClass
+export const CodeAgent = CodeAgentClass;
 
 export type {
   CodeAnalysisResult,
@@ -55,10 +55,10 @@ export type {
   PerformanceRecommendation,
   RefactoringPlan,
   RefactoringStep,
-} from './code-agent'
+} from './code-agent';
 
 // Re-export Executor Agent
-export const ExecutorAgent = ExecutorAgentClass
+export const ExecutorAgent = ExecutorAgentClass;
 
 export type {
   ActionResult,
@@ -74,10 +74,10 @@ export type {
   RollbackAction,
   ValidationResult,
   ValidationRule,
-} from './executor-agent'
+} from './executor-agent';
 
 // Re-export Research Agent
-export const ResearchAgent = ResearchAgentClass
+export const ResearchAgent = ResearchAgentClass;
 
 export type {
   ComparisonCriteria,
@@ -94,16 +94,16 @@ export type {
   ResearchSource,
   Solution,
   SolutionComparison,
-} from './research-agent'
+} from './research-agent';
 
 // Re-export World-Class Specialized Agents
-export const ArchitectureAgent = ArchitectureAgentClass
-export const PerformanceAgent = PerformanceAgentClass
-export const SecurityAgent = SecurityAgentClass
-export const TestingAgent = TestingAgentClass
-export const DevOpsAgent = DevOpsAgentClass
-export const DataAgent = DataAgentClass
-export const AIMLAgent = AIMLAgentClass
+export const ArchitectureAgent = ArchitectureAgentClass;
+export const PerformanceAgent = PerformanceAgentClass;
+export const SecurityAgent = SecurityAgentClass;
+export const TestingAgent = TestingAgentClass;
+export const DevOpsAgent = DevOpsAgentClass;
+export const DataAgent = DataAgentClass;
+export const AIMLAgent = AIMLAgentClass;
 
 /**
  * Agent Factory Implementation
@@ -113,49 +113,49 @@ export function createAgent(type: string, context: AgentContextType): BaseAgentC
   switch (type.toLowerCase()) {
     case 'code':
     case 'code-agent':
-      return new CodeAgentClass(context)
+      return new CodeAgentClass(context);
 
     case 'research':
     case 'research-agent':
-      return new ResearchAgentClass(context)
+      return new ResearchAgentClass(context);
 
     case 'executor':
     case 'executor-agent':
-      return new ExecutorAgentClass(context)
+      return new ExecutorAgentClass(context);
 
     // World-Class Specialized Agents
     case 'architecture':
     case 'architecture-agent':
-      return new ArchitectureAgentClass(context)
+      return new ArchitectureAgentClass(context);
 
     case 'performance':
     case 'performance-agent':
-      return new PerformanceAgentClass(context)
+      return new PerformanceAgentClass(context);
 
     case 'security':
     case 'security-agent':
-      return new SecurityAgentClass(context)
+      return new SecurityAgentClass(context);
 
     case 'testing':
     case 'testing-agent':
-      return new TestingAgentClass(context)
+      return new TestingAgentClass(context);
 
     case 'devops':
     case 'devops-agent':
-      return new DevOpsAgentClass(context)
+      return new DevOpsAgentClass(context);
 
     case 'data':
     case 'data-agent':
-      return new DataAgentClass(context)
+      return new DataAgentClass(context);
 
     case 'ai-ml':
     case 'ai-ml-agent':
     case 'aiml':
     case 'ml':
-      return new AIMLAgentClass(context)
+      return new AIMLAgentClass(context);
 
     default:
-      throw new Error(`Unknown agent type: ${type}`)
+      throw new Error(`Unknown agent type: ${type}`);
   }
 }
 
@@ -164,46 +164,46 @@ export function createAgent(type: string, context: AgentContextType): BaseAgentC
  * Manages multiple agents and coordinates their interactions
  */
 export class AgentManager {
-  private registry: AgentRegistryClass
-  private context: AgentContextType
+  private registry: AgentRegistryClass;
+  private context: AgentContextType;
 
   constructor(context: AgentContextType) {
-    this.registry = new AgentRegistryClass()
-    this.context = context
+    this.registry = new AgentRegistryClass();
+    this.context = context;
   }
 
   /**
    * Create and register an agent
    */
   async createAgent(type: string): Promise<BaseAgentClass> {
-    const agent = createAgent(type, this.context)
-    await agent.initialize()
-    this.registry.register(agent)
-    return agent
+    const agent = createAgent(type, this.context);
+    await agent.initialize();
+    this.registry.register(agent);
+    return agent;
   }
 
   /**
    * Get agent by name
    */
   getAgent(name: string): BaseAgentClass | undefined {
-    return this.registry.get(name)
+    return this.registry.get(name);
   }
 
   /**
    * Get all agents
    */
   getAllAgents(): BaseAgentClass[] {
-    return this.registry.getAll()
+    return this.registry.getAll();
   }
 
   /**
    * Remove agent
    */
   async removeAgent(name: string): Promise<void> {
-    const agent = this.registry.get(name)
+    const agent = this.registry.get(name);
     if (agent) {
-      await agent.cleanup()
-      this.registry.unregister(name)
+      await agent.cleanup();
+      this.registry.unregister(name);
     }
   }
 
@@ -211,23 +211,23 @@ export class AgentManager {
    * Cleanup all agents
    */
   async cleanup(): Promise<void> {
-    const agents = this.registry.getAll()
-    await Promise.all(agents.map(agent => agent.cleanup()))
-    this.registry.clear()
+    const agents = this.registry.getAll();
+    await Promise.all(agents.map(agent => agent.cleanup()));
+    this.registry.clear();
   }
 
   /**
    * Get agent count
    */
   getAgentCount(): number {
-    return this.registry.size()
+    return this.registry.size();
   }
 
   /**
    * Check if agent exists
    */
   hasAgent(name: string): boolean {
-    return this.registry.has(name)
+    return this.registry.has(name);
   }
 }
 
@@ -242,13 +242,13 @@ export function createDefaultContext(overrides?: Partial<AgentContextType>): Age
     environment: { ...process.env } as Record<string, string>,
     history: [],
     ...overrides,
-  }
+  };
 }
 
 /**
  * Agent System Version
  */
-export const AGENT_SYSTEM_VERSION = '1.0.0'
+export const AGENT_SYSTEM_VERSION = '1.0.0';
 
 /**
  * Available agent types
@@ -266,9 +266,9 @@ export const AGENT_TYPES = {
   DEVOPS: 'devops-agent',
   DATA: 'data-agent',
   AI_ML: 'ai-ml-agent',
-} as const
+} as const;
 
-export type AgentType = typeof AGENT_TYPES[keyof typeof AGENT_TYPES]
+export type AgentType = typeof AGENT_TYPES[keyof typeof AGENT_TYPES];
 
 /**
  * Agent Model Configuration
@@ -279,10 +279,10 @@ export type AgentType = typeof AGENT_TYPES[keyof typeof AGENT_TYPES]
  * haiku: Quick tasks, simple queries, fast responses
  */
 export interface AgentModelConfig {
-  type: AgentType
-  model: 'opus' | 'sonnet' | 'haiku'
-  description: string
-  capabilities: string[]
+  type: AgentType;
+  model: 'opus' | 'sonnet' | 'haiku';
+  description: string;
+  capabilities: string[];
 }
 
 export const AGENT_MODEL_CONFIG: Record<string, AgentModelConfig> = {
@@ -406,13 +406,13 @@ export const AGENT_MODEL_CONFIG: Record<string, AgentModelConfig> = {
       'automl',
     ],
   },
-}
+};
 
 /**
  * Get recommended agent for a specific task
  */
 export function getRecommendedAgent(task: string): AgentType {
-  const taskLower = task.toLowerCase()
+  const taskLower = task.toLowerCase();
 
   // Architecture tasks
   if (
@@ -421,7 +421,7 @@ export function getRecommendedAgent(task: string): AgentType {
     || taskLower.includes('scalability')
     || taskLower.includes('microservice')
   ) {
-    return AGENT_TYPES.ARCHITECTURE
+    return AGENT_TYPES.ARCHITECTURE;
   }
 
   // Security tasks
@@ -432,7 +432,7 @@ export function getRecommendedAgent(task: string): AgentType {
     || taskLower.includes('penetration')
     || taskLower.includes('compliance')
   ) {
-    return AGENT_TYPES.SECURITY
+    return AGENT_TYPES.SECURITY;
   }
 
   // Performance tasks
@@ -443,7 +443,7 @@ export function getRecommendedAgent(task: string): AgentType {
     || taskLower.includes('memory leak')
     || taskLower.includes('profil')
   ) {
-    return AGENT_TYPES.PERFORMANCE
+    return AGENT_TYPES.PERFORMANCE;
   }
 
   // Testing tasks
@@ -453,7 +453,7 @@ export function getRecommendedAgent(task: string): AgentType {
     || taskLower.includes('mutation')
     || taskLower.includes('fixture')
   ) {
-    return AGENT_TYPES.TESTING
+    return AGENT_TYPES.TESTING;
   }
 
   // DevOps tasks
@@ -465,7 +465,7 @@ export function getRecommendedAgent(task: string): AgentType {
     || taskLower.includes('deploy')
     || taskLower.includes('infrastructure')
   ) {
-    return AGENT_TYPES.DEVOPS
+    return AGENT_TYPES.DEVOPS;
   }
 
   // Data tasks
@@ -476,7 +476,7 @@ export function getRecommendedAgent(task: string): AgentType {
     || taskLower.includes('data quality')
     || taskLower.includes('warehouse')
   ) {
-    return AGENT_TYPES.DATA
+    return AGENT_TYPES.DATA;
   }
 
   // AI/ML tasks
@@ -488,7 +488,7 @@ export function getRecommendedAgent(task: string): AgentType {
     || taskLower.includes('automl')
     || taskLower.includes('feature engineering')
   ) {
-    return AGENT_TYPES.AI_ML
+    return AGENT_TYPES.AI_ML;
   }
 
   // Code tasks
@@ -497,7 +497,7 @@ export function getRecommendedAgent(task: string): AgentType {
     || taskLower.includes('refactor')
     || taskLower.includes('review')
   ) {
-    return AGENT_TYPES.CODE
+    return AGENT_TYPES.CODE;
   }
 
   // Research tasks
@@ -506,24 +506,24 @@ export function getRecommendedAgent(task: string): AgentType {
     || taskLower.includes('documentation')
     || taskLower.includes('search')
   ) {
-    return AGENT_TYPES.RESEARCH
+    return AGENT_TYPES.RESEARCH;
   }
 
   // Default to code agent
-  return AGENT_TYPES.CODE
+  return AGENT_TYPES.CODE;
 }
 
 /**
  * Get all agents that can handle a specific capability
  */
 export function getAgentsForCapability(capability: string): AgentType[] {
-  const agents: AgentType[] = []
+  const agents: AgentType[] = [];
 
   for (const [agentType, config] of Object.entries(AGENT_MODEL_CONFIG)) {
     if (config.capabilities.includes(capability)) {
-      agents.push(agentType as AgentType)
+      agents.push(agentType as AgentType);
     }
   }
 
-  return agents
+  return agents;
 }

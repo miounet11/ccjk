@@ -1,16 +1,16 @@
+import { useRouter } from 'expo-router';
 import { useEffect } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  FlatList,
-  TouchableOpacity,
   ActivityIndicator,
+  FlatList,
   RefreshControl,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import { useRouter } from 'expo-router';
-import { useSessionsStore } from '../src/store/sessions';
 import { useAuthStore } from '../src/store/auth';
+import { useSessionsStore } from '../src/store/sessions';
 
 export default function Sessions() {
   const router = useRouter();
@@ -40,10 +40,16 @@ export default function Sessions() {
         {item.active && <View style={styles.activeBadge} />}
       </View>
       <Text style={styles.sessionMachine}>
-        {item.machine.hostname} ({item.machine.platform})
+        {item.machine.hostname}
+        {' '}
+        (
+        {item.machine.platform}
+        )
       </Text>
       <Text style={styles.sessionTime}>
-        Last activity: {new Date(item.lastActivityAt).toLocaleString()}
+        Last activity:
+        {' '}
+        {new Date(item.lastActivityAt).toLocaleString()}
       </Text>
     </TouchableOpacity>
   );
@@ -60,31 +66,35 @@ export default function Sessions() {
         </TouchableOpacity>
       </View>
 
-      {isLoading && sessions.length === 0 ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#007AFF" />
-        </View>
-      ) : sessions.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>No active sessions</Text>
-          <Text style={styles.emptySubtext}>
-            Start coding on your desktop to see sessions here
-          </Text>
-        </View>
-      ) : (
-        <FlatList
-          data={sessions}
-          renderItem={renderSession}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.listContainer}
-          refreshControl={
-            <RefreshControl
-              refreshing={isLoading}
-              onRefresh={fetchSessions}
-            />
-          }
-        />
-      )}
+      {isLoading && sessions.length === 0
+        ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color="#007AFF" />
+            </View>
+          )
+        : sessions.length === 0
+          ? (
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptyText}>No active sessions</Text>
+                <Text style={styles.emptySubtext}>
+                  Start coding on your desktop to see sessions here
+                </Text>
+              </View>
+            )
+          : (
+              <FlatList
+                data={sessions}
+                renderItem={renderSession}
+                keyExtractor={item => item.id}
+                contentContainerStyle={styles.listContainer}
+                refreshControl={(
+                  <RefreshControl
+                    refreshing={isLoading}
+                    onRefresh={fetchSessions}
+                  />
+                )}
+              />
+            )}
     </View>
   );
 }

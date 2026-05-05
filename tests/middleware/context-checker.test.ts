@@ -2,14 +2,14 @@
  * Context Checker Middleware Tests
  */
 
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   checkContextBeforeExecution,
   ContextChecker,
   ensureContextAvailable,
   getContextChecker,
   resetContextChecker,
-} from '../../src/middleware/context-checker'
+} from '../../src/middleware/context-checker';
 
 // Mock the mcp-search module
 vi.mock('../../src/core/mcp-search', () => ({
@@ -21,25 +21,25 @@ vi.mock('../../src/core/mcp-search', () => ({
     shouldDefer: false,
     serviceBreakdown: [],
   })),
-}))
+}));
 
 describe('contextChecker', () => {
   beforeEach(() => {
-    resetContextChecker()
-    vi.clearAllMocks()
-  })
+    resetContextChecker();
+    vi.clearAllMocks();
+  });
 
   afterEach(() => {
-    resetContextChecker()
-  })
+    resetContextChecker();
+  });
 
   describe('contextChecker class', () => {
     it('should create instance with default options', () => {
-      const checker = new ContextChecker()
-      expect(checker).toBeDefined()
-      expect(checker.getCheckCount()).toBe(0)
-      expect(checker.getLastCheck()).toBeNull()
-    })
+      const checker = new ContextChecker();
+      expect(checker).toBeDefined();
+      expect(checker.getCheckCount()).toBe(0);
+      expect(checker.getLastCheck()).toBeNull();
+    });
 
     it('should create instance with custom options', () => {
       const checker = new ContextChecker({
@@ -48,62 +48,62 @@ describe('contextChecker', () => {
         highThreshold: 80,
         criticalThreshold: 90,
         verbose: true,
-      })
-      expect(checker).toBeDefined()
-    })
+      });
+      expect(checker).toBeDefined();
+    });
 
     it('should perform context check', async () => {
-      const checker = new ContextChecker()
-      const result = await checker.check()
+      const checker = new ContextChecker();
+      const result = await checker.check();
 
-      expect(result).toBeDefined()
-      expect(result.canProceed).toBe(true)
-      expect(result.level).toBe('none')
-      expect(result.usagePercent).toBe(25)
-      expect(checker.getCheckCount()).toBe(1)
-    })
+      expect(result).toBeDefined();
+      expect(result.canProceed).toBe(true);
+      expect(result.level).toBe('none');
+      expect(result.usagePercent).toBe(25);
+      expect(checker.getCheckCount()).toBe(1);
+    });
 
     it('should track check count', async () => {
-      const checker = new ContextChecker()
+      const checker = new ContextChecker();
 
-      await checker.check()
-      expect(checker.getCheckCount()).toBe(1)
+      await checker.check();
+      expect(checker.getCheckCount()).toBe(1);
 
-      await checker.check()
-      expect(checker.getCheckCount()).toBe(2)
+      await checker.check();
+      expect(checker.getCheckCount()).toBe(2);
 
-      await checker.check()
-      expect(checker.getCheckCount()).toBe(3)
-    })
+      await checker.check();
+      expect(checker.getCheckCount()).toBe(3);
+    });
 
     it('should store last check result', async () => {
-      const checker = new ContextChecker()
+      const checker = new ContextChecker();
 
-      expect(checker.getLastCheck()).toBeNull()
+      expect(checker.getLastCheck()).toBeNull();
 
-      await checker.check()
-      const lastCheck = checker.getLastCheck()
+      await checker.check();
+      const lastCheck = checker.getLastCheck();
 
-      expect(lastCheck).toBeDefined()
-      expect(lastCheck?.usagePercent).toBe(25)
-    })
+      expect(lastCheck).toBeDefined();
+      expect(lastCheck?.usagePercent).toBe(25);
+    });
 
     it('should reset state', async () => {
-      const checker = new ContextChecker()
+      const checker = new ContextChecker();
 
-      await checker.check()
-      expect(checker.getCheckCount()).toBe(1)
-      expect(checker.getLastCheck()).not.toBeNull()
+      await checker.check();
+      expect(checker.getCheckCount()).toBe(1);
+      expect(checker.getLastCheck()).not.toBeNull();
 
-      checker.reset()
-      expect(checker.getCheckCount()).toBe(0)
-      expect(checker.getLastCheck()).toBeNull()
-    })
-  })
+      checker.reset();
+      expect(checker.getCheckCount()).toBe(0);
+      expect(checker.getLastCheck()).toBeNull();
+    });
+  });
 
   describe('warning levels', () => {
     it('should return none level for low usage', async () => {
-      const { analyzeContextWindowUsage } = await import('../../src/core/mcp-search')
+      const { analyzeContextWindowUsage } = await import('../../src/core/mcp-search');
       vi.mocked(analyzeContextWindowUsage).mockReturnValue({
         contextWindow: 200000,
         toolDescriptionSize: 20000,
@@ -111,18 +111,18 @@ describe('contextChecker', () => {
         threshold: 30,
         shouldDefer: false,
         serviceBreakdown: [],
-      })
+      });
 
-      const checker = new ContextChecker()
-      const result = await checker.check()
+      const checker = new ContextChecker();
+      const result = await checker.check();
 
-      expect(result.level).toBe('none')
-      expect(result.canProceed).toBe(true)
-      expect(result.suggestion).toBeUndefined()
-    })
+      expect(result.level).toBe('none');
+      expect(result.canProceed).toBe(true);
+      expect(result.suggestion).toBeUndefined();
+    });
 
     it('should return low level for moderate usage', async () => {
-      const { analyzeContextWindowUsage } = await import('../../src/core/mcp-search')
+      const { analyzeContextWindowUsage } = await import('../../src/core/mcp-search');
       vi.mocked(analyzeContextWindowUsage).mockReturnValue({
         contextWindow: 200000,
         toolDescriptionSize: 110000,
@@ -130,17 +130,17 @@ describe('contextChecker', () => {
         threshold: 30,
         shouldDefer: false,
         serviceBreakdown: [],
-      })
+      });
 
-      const checker = new ContextChecker()
-      const result = await checker.check()
+      const checker = new ContextChecker();
+      const result = await checker.check();
 
-      expect(result.level).toBe('low')
-      expect(result.canProceed).toBe(true)
-    })
+      expect(result.level).toBe('low');
+      expect(result.canProceed).toBe(true);
+    });
 
     it('should return medium level for higher usage', async () => {
-      const { analyzeContextWindowUsage } = await import('../../src/core/mcp-search')
+      const { analyzeContextWindowUsage } = await import('../../src/core/mcp-search');
       vi.mocked(analyzeContextWindowUsage).mockReturnValue({
         contextWindow: 200000,
         toolDescriptionSize: 150000,
@@ -148,18 +148,18 @@ describe('contextChecker', () => {
         threshold: 30,
         shouldDefer: true,
         serviceBreakdown: [],
-      })
+      });
 
-      const checker = new ContextChecker()
-      const result = await checker.check()
+      const checker = new ContextChecker();
+      const result = await checker.check();
 
-      expect(result.level).toBe('medium')
-      expect(result.canProceed).toBe(true)
-      expect(result.suggestion).toContain('/compact')
-    })
+      expect(result.level).toBe('medium');
+      expect(result.canProceed).toBe(true);
+      expect(result.suggestion).toContain('/compact');
+    });
 
     it('should return high level for high usage', async () => {
-      const { analyzeContextWindowUsage } = await import('../../src/core/mcp-search')
+      const { analyzeContextWindowUsage } = await import('../../src/core/mcp-search');
       vi.mocked(analyzeContextWindowUsage).mockReturnValue({
         contextWindow: 200000,
         toolDescriptionSize: 180000,
@@ -167,18 +167,18 @@ describe('contextChecker', () => {
         threshold: 30,
         shouldDefer: true,
         serviceBreakdown: [],
-      })
+      });
 
-      const checker = new ContextChecker({ autoSaveState: false })
-      const result = await checker.check()
+      const checker = new ContextChecker({ autoSaveState: false });
+      const result = await checker.check();
 
-      expect(result.level).toBe('high')
-      expect(result.canProceed).toBe(true)
-      expect(result.suggestion).toContain('/compact')
-    })
+      expect(result.level).toBe('high');
+      expect(result.canProceed).toBe(true);
+      expect(result.suggestion).toContain('/compact');
+    });
 
     it('should return critical level and block for very high usage', async () => {
-      const { analyzeContextWindowUsage } = await import('../../src/core/mcp-search')
+      const { analyzeContextWindowUsage } = await import('../../src/core/mcp-search');
       vi.mocked(analyzeContextWindowUsage).mockReturnValue({
         contextWindow: 200000,
         toolDescriptionSize: 195000,
@@ -186,27 +186,27 @@ describe('contextChecker', () => {
         threshold: 30,
         shouldDefer: true,
         serviceBreakdown: [],
-      })
+      });
 
-      const checker = new ContextChecker({ autoSaveState: false })
-      const result = await checker.check()
+      const checker = new ContextChecker({ autoSaveState: false });
+      const result = await checker.check();
 
-      expect(result.level).toBe('critical')
-      expect(result.canProceed).toBe(false)
-      expect(result.suggestion).toContain('/compact')
-    })
-  })
+      expect(result.level).toBe('critical');
+      expect(result.canProceed).toBe(false);
+      expect(result.suggestion).toContain('/compact');
+    });
+  });
 
   describe('convenience functions', () => {
     it('should get or create global checker', () => {
-      const checker1 = getContextChecker()
-      const checker2 = getContextChecker()
+      const checker1 = getContextChecker();
+      const checker2 = getContextChecker();
 
-      expect(checker1).toBe(checker2)
-    })
+      expect(checker1).toBe(checker2);
+    });
 
     it('should check context before execution', async () => {
-      const { analyzeContextWindowUsage } = await import('../../src/core/mcp-search')
+      const { analyzeContextWindowUsage } = await import('../../src/core/mcp-search');
       vi.mocked(analyzeContextWindowUsage).mockReturnValue({
         contextWindow: 200000,
         toolDescriptionSize: 50000,
@@ -214,16 +214,16 @@ describe('contextChecker', () => {
         threshold: 30,
         shouldDefer: false,
         serviceBreakdown: [],
-      })
+      });
 
-      const result = await checkContextBeforeExecution()
+      const result = await checkContextBeforeExecution();
 
-      expect(result).toBeDefined()
-      expect(result.canProceed).toBe(true)
-    })
+      expect(result).toBeDefined();
+      expect(result.canProceed).toBe(true);
+    });
 
     it('should ensure context available (pass)', async () => {
-      const { analyzeContextWindowUsage } = await import('../../src/core/mcp-search')
+      const { analyzeContextWindowUsage } = await import('../../src/core/mcp-search');
       vi.mocked(analyzeContextWindowUsage).mockReturnValue({
         contextWindow: 200000,
         toolDescriptionSize: 50000,
@@ -231,13 +231,13 @@ describe('contextChecker', () => {
         threshold: 30,
         shouldDefer: false,
         serviceBreakdown: [],
-      })
+      });
 
-      await expect(ensureContextAvailable()).resolves.toBeUndefined()
-    })
+      await expect(ensureContextAvailable()).resolves.toBeUndefined();
+    });
 
     it('should ensure context available (throw on critical)', async () => {
-      const { analyzeContextWindowUsage } = await import('../../src/core/mcp-search')
+      const { analyzeContextWindowUsage } = await import('../../src/core/mcp-search');
       vi.mocked(analyzeContextWindowUsage).mockReturnValue({
         contextWindow: 200000,
         toolDescriptionSize: 195000,
@@ -245,28 +245,28 @@ describe('contextChecker', () => {
         threshold: 30,
         shouldDefer: true,
         serviceBreakdown: [],
-      })
+      });
 
-      resetContextChecker()
+      resetContextChecker();
 
-      await expect(ensureContextAvailable()).rejects.toThrow(/上下文使用率过高/)
-    })
+      await expect(ensureContextAvailable()).rejects.toThrow(/上下文使用率过高/);
+    });
 
     it('should reset global checker', async () => {
-      const checker = getContextChecker()
-      await checker.check()
-      expect(checker.getCheckCount()).toBe(1)
+      const checker = getContextChecker();
+      await checker.check();
+      expect(checker.getCheckCount()).toBe(1);
 
-      resetContextChecker()
+      resetContextChecker();
 
-      const newChecker = getContextChecker()
-      expect(newChecker.getCheckCount()).toBe(0)
-    })
-  })
+      const newChecker = getContextChecker();
+      expect(newChecker.getCheckCount()).toBe(0);
+    });
+  });
 
   describe('custom thresholds', () => {
     it('should respect custom thresholds', async () => {
-      const { analyzeContextWindowUsage } = await import('../../src/core/mcp-search')
+      const { analyzeContextWindowUsage } = await import('../../src/core/mcp-search');
       vi.mocked(analyzeContextWindowUsage).mockReturnValue({
         contextWindow: 200000,
         toolDescriptionSize: 90000,
@@ -274,17 +274,17 @@ describe('contextChecker', () => {
         threshold: 30,
         shouldDefer: false,
         serviceBreakdown: [],
-      })
+      });
 
       // With default thresholds (50%), 45% should be 'none'
-      const defaultChecker = new ContextChecker()
-      const defaultResult = await defaultChecker.check()
-      expect(defaultResult.level).toBe('none')
+      const defaultChecker = new ContextChecker();
+      const defaultResult = await defaultChecker.check();
+      expect(defaultResult.level).toBe('none');
 
       // With custom threshold (40%), 45% should be 'low'
-      const customChecker = new ContextChecker({ lowThreshold: 40 })
-      const customResult = await customChecker.check()
-      expect(customResult.level).toBe('low')
-    })
-  })
-})
+      const customChecker = new ContextChecker({ lowThreshold: 40 });
+      const customResult = await customChecker.check();
+      expect(customResult.level).toBe('low');
+    });
+  });
+});

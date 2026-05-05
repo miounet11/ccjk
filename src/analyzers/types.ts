@@ -4,49 +4,49 @@
 
 export interface ProjectAnalysis {
   /** Project root directory */
-  rootPath: string
+  rootPath: string;
   /** Detected project type (primary language/framework) */
-  projectType: string
+  projectType: string;
   /** All detected languages with confidence scores */
-  languages: LanguageDetection[]
+  languages: LanguageDetection[];
   /** Detected frameworks and libraries */
-  frameworks: FrameworkDetectionResult[]
+  frameworks: FrameworkDetectionResult[];
   /** Package manager used */
-  packageManager?: PackageManager
+  packageManager?: PackageManager;
   /** Build system detected */
-  buildSystem?: BuildSystem
+  buildSystem?: BuildSystem;
   /** Relative paths to important configuration files */
-  configFiles: string[]
+  configFiles: string[];
   /** Relative paths to important directories */
-  importantDirs: string[]
+  importantDirs: string[];
   /** Dependency analysis results */
-  dependencies?: DependencyAnalysis
+  dependencies?: DependencyAnalysis;
   /** Analysis metadata */
-  metadata: AnalysisMetadata
+  metadata: AnalysisMetadata;
 }
 
 export interface LanguageDetection {
   /** Language name (typescript, python, go, rust, etc.) */
-  language: string
+  language: string;
   /** Confidence score (0-1) */
-  confidence: number
+  confidence: number;
   /** Estimated number of files */
-  fileCount: number
+  fileCount: number;
   /** Primary indication reasons */
-  indicators: string[]
+  indicators: string[];
 }
 
 export interface FrameworkDetectionResult {
   /** Framework name */
-  name: string
+  name: string;
   /** Framework category (frontend, backend, mobile, desktop, etc.) */
-  category: string
+  category: string;
   /** Detected version if available */
-  version?: string
+  version?: string;
   /** Confidence score (0-1) */
-  confidence: number
+  confidence: number;
   /** Detection evidence */
-  evidence: string[]
+  evidence: string[];
 }
 
 export type PackageManager
@@ -63,7 +63,7 @@ export type PackageManager
     | 'mod'
     | 'gradle'
     | 'maven'
-    | 'unknown'
+    | 'unknown';
 
 export type BuildSystem
   = | 'webpack'
@@ -79,99 +79,99 @@ export type BuildSystem
     | 'make'
     | 'cmake'
     | 'bazel'
-    | 'unknown'
+    | 'unknown';
 
 export interface DependencyAnalysis {
   /** Direct dependencies */
-  direct: DependencyNode[]
+  direct: DependencyNode[];
   /** All transitive dependencies */
-  all: DependencyNode[]
+  all: DependencyNode[];
   /** Dependency graph (key = dependency name, value = array of dependents) */
-  graph: Map<string, DependencyNode[]>
+  graph: Map<string, DependencyNode[]>;
   /** Installation plan with optimal order */
-  installationPlan: InstallationPlan
+  installationPlan: InstallationPlan;
   /** Detected conflicts */
-  conflicts: DependencyConflict[]
+  conflicts: DependencyConflict[];
   /** Circular dependencies detected */
-  circularDeps: string[][]
+  circularDeps: string[][];
 }
 
 export interface DependencyNode {
   /** Package/dependency name */
-  name: string
+  name: string;
   /** Version requirement */
-  version: string
+  version: string;
   /** Type of dependency */
-  type: DependencyType
+  type: DependencyType;
   /** Whether this is a dev dependency */
-  isDev: boolean
+  isDev: boolean;
   /** Whether this is a peer dependency */
-  isPeer: boolean
+  isPeer: boolean;
   /** Whether this is an optional dependency */
-  isOptional: boolean
+  isOptional: boolean;
   /** Dependencies of this dependency */
-  dependencies?: DependencyNode[]
+  dependencies?: DependencyNode[];
 }
 
-export type DependencyType = 'runtime' | 'dev' | 'peer' | 'optional' | 'bundled'
+export type DependencyType = 'runtime' | 'dev' | 'peer' | 'optional' | 'bundled';
 
 export interface InstallationPlan {
   /** Ordered list of dependencies to install */
-  order: DependencyNode[]
+  order: DependencyNode[];
   /** Total number of dependencies */
-  total: number
+  total: number;
   /** Number that can be installed in parallel */
-  parallelizable: number
+  parallelizable: number;
   /** Installation commands for each package manager */
-  commands: InstallationCommands
+  commands: InstallationCommands;
 }
 
 export interface InstallationCommands {
   /** Command to install all dependencies */
-  installAll: string
+  installAll: string;
   /** Command to install a specific package */
-  installPackage: (name: string, version?: string) => string
+  installPackage: (name: string, version?: string) => string;
   /** Command to install dev dependencies */
-  installDev: string
+  installDev: string;
   /** Command to add a new dependency */
-  add: (name: string, isDev?: boolean) => string
+  add: (name: string, isDev?: boolean) => string;
 }
 
 export interface DependencyConflict {
   /** Package name with conflict */
-  package: string
+  package: string;
   /** Conflicting version requirements */
-  versions: string[]
+  versions: string[];
   /** Packages requiring these versions */
-  requiredBy: string[]
+  requiredBy: string[];
   /** Severity level */
-  severity: 'error' | 'warning' | 'info'
+  severity: 'error' | 'warning' | 'info';
 }
 
 export interface AnalysisMetadata {
   /** Analysis timestamp */
-  timestamp: Date
+  timestamp: Date;
   /** Analysis duration in milliseconds */
-  duration: number
+  duration: number;
   /** Number of files scanned */
-  filesScanned: number
+  filesScanned: number;
   /** Analysis confidence (0-1) */
-  confidence: number
+  confidence: number;
   /** Analysis version */
-  version: string
+  version: string;
 }
 
 export interface DetectorConfig {
   /** Minimum confidence threshold for language detection */
-  minConfidence: number
+  minConfidence: number;
   /** Whether to include node_modules in analysis */
-  includeNodeModules: boolean
+  includeNodeModules: boolean;
   /** Whether to analyze transitive dependencies */
-  analyzeTransitiveDeps: boolean
+  analyzeTransitiveDeps: boolean;
   /** Maximum number of files to scan */
-  maxFilesToScan: number
+  maxFilesToScan: number;
   /** Custom file patterns to include */
-  includePatterns: string[]
+  includePatterns: string[];
   /** File patterns to exclude */
-  excludePatterns: string[]
+  excludePatterns: string[];
 }

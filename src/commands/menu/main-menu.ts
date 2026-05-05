@@ -10,16 +10,16 @@
  * - expert: All available options including experimental features
  */
 
-import type { CodeToolType } from '../../constants'
-import type { RuntimeCapabilityDescriptor } from '../../code-tools/core/types'
-import type { MenuCategory, MenuItem } from './types'
-import { getRuntimeCapabilityDescriptor } from '../../code-tools'
+import type { RuntimeCapabilityDescriptor } from '../../code-tools/core/types';
+import type { CodeToolType } from '../../constants';
+import type { MenuCategory, MenuItem } from './types';
+import { getRuntimeCapabilityDescriptor } from '../../code-tools';
 
-const NON_CODEX_TOOLS: CodeToolType[] = ['claude-code', 'clavue', 'aider', 'continue', 'cline', 'cursor']
+const NON_CODEX_TOOLS: CodeToolType[] = ['claude-code', 'clavue', 'aider', 'continue', 'cline', 'cursor'];
 
-type MenuCapabilityRule = (descriptor: RuntimeCapabilityDescriptor) => boolean
+type MenuCapabilityRule = (descriptor: RuntimeCapabilityDescriptor) => boolean;
 
-const CLAUDE_FAMILY_SLASH_RULE: MenuCapabilityRule = descriptor => descriptor.native.slashCommands && descriptor.configBackend === 'claude-family'
+const CLAUDE_FAMILY_SLASH_RULE: MenuCapabilityRule = descriptor => descriptor.native.slashCommands && descriptor.configBackend === 'claude-family';
 
 const MENU_ITEM_CAPABILITY_RULES: Partial<Record<string, MenuCapabilityRule>> = {
   'diagnostics': descriptor => descriptor.managedByCcjk.doctor,
@@ -42,7 +42,7 @@ const MENU_ITEM_CAPABILITY_RULES: Partial<Record<string, MenuCapabilityRule>> = 
   'smart-guide': CLAUDE_FAMILY_SLASH_RULE,
   'workflows': CLAUDE_FAMILY_SLASH_RULE,
   'output-styles': CLAUDE_FAMILY_SLASH_RULE,
-}
+};
 
 /**
  * Quick Actions Category - Always visible first
@@ -124,7 +124,7 @@ export const quickActionsItems: MenuItem[] = [
     shortcut: 'n',
     supportedTools: NON_CODEX_TOOLS,
   },
-]
+];
 
 /**
  * Configuration Category - Core settings
@@ -194,7 +194,7 @@ export const configItems: MenuItem[] = [
     shortcut: 'x',
     supportedTools: NON_CODEX_TOOLS,
   },
-]
+];
 
 /**
  * Tools Category - External integrations
@@ -245,7 +245,7 @@ export const toolsItems: MenuItem[] = [
     shortcut: 'e',
     supportedTools: NON_CODEX_TOOLS,
   },
-]
+];
 
 /**
  * Cloud Services Category - Cloud-based features
@@ -284,7 +284,7 @@ export const cloudItems: MenuItem[] = [
     shortcut: 'h',
     supportedTools: NON_CODEX_TOOLS,
   },
-]
+];
 
 /**
  * Smart Features Category - CCJK intelligent features
@@ -312,7 +312,7 @@ export const smartFeaturesItems: MenuItem[] = [
     shortcut: 'g',
     supportedTools: NON_CODEX_TOOLS,
   },
-]
+];
 
 /**
  * CCJK Features Category - Workflow and skills management
@@ -340,7 +340,7 @@ export const ccjkFeaturesItems: MenuItem[] = [
     shortcut: 'o',
     supportedTools: NON_CODEX_TOOLS,
   },
-]
+];
 
 /**
  * System Category - System-level settings
@@ -391,7 +391,7 @@ export const systemItems: MenuItem[] = [
     confirmMessage: 'uninstall.confirm',
     supportedTools: NON_CODEX_TOOLS,
   },
-]
+];
 
 /**
  * All menu items grouped by category
@@ -404,7 +404,7 @@ export const menuItemsByCategory: Record<MenuCategory, MenuItem[]> = {
   extensions: [...smartFeaturesItems, ...ccjkFeaturesItems],
   advanced: [], // Reserved for experimental features
   system: systemItems,
-}
+};
 
 /**
  * Get visible menu items based on level
@@ -413,43 +413,43 @@ function isItemSupportedByCapabilities(
   item: MenuItem,
   codeTool: CodeToolType,
 ): boolean {
-  const descriptor = getRuntimeCapabilityDescriptor(codeTool)
+  const descriptor = getRuntimeCapabilityDescriptor(codeTool);
   if (!descriptor) {
-    return true
+    return true;
   }
 
-  const rule = MENU_ITEM_CAPABILITY_RULES[item.id]
-  return rule ? rule(descriptor) : true
+  const rule = MENU_ITEM_CAPABILITY_RULES[item.id];
+  return rule ? rule(descriptor) : true;
 }
 
 export function isItemSupportedForTool(
   item: MenuItem,
   codeTool: CodeToolType,
 ): boolean {
-  const toolSupported = !item.supportedTools || item.supportedTools.includes(codeTool)
+  const toolSupported = !item.supportedTools || item.supportedTools.includes(codeTool);
   if (!toolSupported) {
-    return false
+    return false;
   }
 
-  return isItemSupportedByCapabilities(item, codeTool)
+  return isItemSupportedByCapabilities(item, codeTool);
 }
 
 export function getVisibleItems(
   level: 'basic' | 'intermediate' | 'expert',
   codeTool: CodeToolType = 'claude-code',
 ): MenuItem[] {
-  const visible: MenuItem[] = []
-  const levels = level === 'basic' ? ['basic'] : level === 'intermediate' ? ['basic', 'intermediate'] : ['basic', 'intermediate', 'expert']
+  const visible: MenuItem[] = [];
+  const levels = level === 'basic' ? ['basic'] : level === 'intermediate' ? ['basic', 'intermediate'] : ['basic', 'intermediate', 'expert'];
 
   for (const items of Object.values(menuItemsByCategory)) {
     for (const item of items) {
       if (levels.includes(item.level) && isItemSupportedForTool(item, codeTool)) {
-        visible.push(item)
+        visible.push(item);
       }
     }
   }
 
-  return visible
+  return visible;
 }
 
 /**
@@ -460,10 +460,10 @@ export function getItemsByCategory(
   level: 'basic' | 'intermediate' | 'expert',
   codeTool: CodeToolType = 'claude-code',
 ): MenuItem[] {
-  const items = menuItemsByCategory[category] || []
-  const levels = level === 'basic' ? ['basic'] : level === 'intermediate' ? ['basic', 'intermediate'] : ['basic', 'intermediate', 'expert']
+  const items = menuItemsByCategory[category] || [];
+  const levels = level === 'basic' ? ['basic'] : level === 'intermediate' ? ['basic', 'intermediate'] : ['basic', 'intermediate', 'expert'];
 
-  return items.filter(item => levels.includes(item.level) && isItemSupportedForTool(item, codeTool))
+  return items.filter(item => levels.includes(item.level) && isItemSupportedForTool(item, codeTool));
 }
 
 /**
@@ -471,12 +471,12 @@ export function getItemsByCategory(
  */
 export function getItemById(id: string): MenuItem | undefined {
   for (const items of Object.values(menuItemsByCategory)) {
-    const item = items.find(i => i.id === id)
+    const item = items.find(i => i.id === id);
     if (item) {
-      return item
+      return item;
     }
   }
-  return undefined
+  return undefined;
 }
 
 /**
@@ -485,7 +485,7 @@ export function getItemById(id: string): MenuItem | undefined {
  */
 export const __testUtils = {
   isItemSupportedByCapabilities,
-}
+};
 
 export const legacyKeyToItemId: Record<string, string> = {
   // Quick Actions
@@ -522,4 +522,4 @@ export const legacyKeyToItemId: Record<string, string> = {
   '-': 'uninstall',
   '+': 'check-updates',
   'q': 'exit',
-}
+};

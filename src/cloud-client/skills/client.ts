@@ -7,8 +7,8 @@
  * @module cloud-client/skills/client
  */
 
-import type { CloudApiResponse } from '../../services/cloud/api-client'
-import type { CloudApiGateway } from '../gateway'
+import type { CloudApiResponse } from '../../services/cloud/api-client';
+import type { CloudApiGateway } from '../gateway';
 import type {
   SkillDeleteRequest,
   SkillDeleteResponse,
@@ -22,14 +22,14 @@ import type {
   SkillUpdateResponse,
   SkillUploadRequest,
   SkillUploadResponse,
-} from './types'
-import { CloudError, CloudErrorFactory } from '../errors'
+} from './types';
+import { CloudError, CloudErrorFactory } from '../errors';
 import {
   validateSkillDownloadResponse,
   validateSkillGetResponse,
   validateSkillListResponse,
   validateSkillUploadResponse,
-} from './types'
+} from './types';
 
 // ============================================================================
 // Skills API Client
@@ -67,10 +67,10 @@ import {
  * ```
  */
 export class SkillsApiClient {
-  private gateway: CloudApiGateway
+  private gateway: CloudApiGateway;
 
   constructor(gateway: CloudApiGateway) {
-    this.gateway = gateway
+    this.gateway = gateway;
   }
 
   // ==========================================================================
@@ -102,7 +102,7 @@ export class SkillsApiClient {
           method: 'GET',
           query: this.buildListQuery(request),
         },
-      )
+      );
 
       // Validate response
       if (response.success && response.data) {
@@ -110,19 +110,19 @@ export class SkillsApiClient {
           throw CloudErrorFactory.schemaMismatch(
             'Invalid skill list response format',
             { context: { request } },
-          )
+          );
         }
       }
 
-      return response
+      return response;
     }
     catch (error) {
       if (error instanceof CloudError) {
-        throw error
+        throw error;
       }
       throw CloudErrorFactory.unknown(error, {
         context: { operation: 'skills.list', request },
-      })
+      });
     }
   }
 
@@ -150,12 +150,12 @@ export class SkillsApiClient {
     try {
       // Validate request
       if (!request.skillId || request.skillId.trim() === '') {
-        throw CloudErrorFactory.validation('Skill ID is required')
+        throw CloudErrorFactory.validation('Skill ID is required');
       }
 
-      const query: Record<string, string> = {}
+      const query: Record<string, string> = {};
       if (request.version) {
-        query.version = request.version
+        query.version = request.version;
       }
 
       const response = await this.gateway.request<SkillGetResponse>(
@@ -167,7 +167,7 @@ export class SkillsApiClient {
             ...query,
           },
         },
-      )
+      );
 
       // Validate response
       if (response.success && response.data) {
@@ -175,19 +175,19 @@ export class SkillsApiClient {
           throw CloudErrorFactory.schemaMismatch(
             'Invalid skill get response format',
             { context: { request } },
-          )
+          );
         }
       }
 
-      return response
+      return response;
     }
     catch (error) {
       if (error instanceof CloudError) {
-        throw error
+        throw error;
       }
       throw CloudErrorFactory.unknown(error, {
         context: { operation: 'skills.get', request },
-      })
+      });
     }
   }
 
@@ -218,7 +218,7 @@ export class SkillsApiClient {
   ): Promise<CloudApiResponse<SkillUploadResponse>> {
     try {
       // Validate request
-      this.validateUploadRequest(request)
+      this.validateUploadRequest(request);
 
       const response = await this.gateway.request<SkillUploadResponse>(
         'skills.upload',
@@ -226,7 +226,7 @@ export class SkillsApiClient {
           method: 'POST',
           body: request,
         },
-      )
+      );
 
       // Validate response
       if (response.success && response.data) {
@@ -234,19 +234,19 @@ export class SkillsApiClient {
           throw CloudErrorFactory.schemaMismatch(
             'Invalid skill upload response format',
             { context: { request } },
-          )
+          );
         }
       }
 
-      return response
+      return response;
     }
     catch (error) {
       if (error instanceof CloudError) {
-        throw error
+        throw error;
       }
       throw CloudErrorFactory.unknown(error, {
         context: { operation: 'skills.upload', request },
-      })
+      });
     }
   }
 
@@ -274,14 +274,14 @@ export class SkillsApiClient {
     try {
       // Validate request
       if (!request.skillId || request.skillId.trim() === '') {
-        throw CloudErrorFactory.validation('Skill ID is required')
+        throw CloudErrorFactory.validation('Skill ID is required');
       }
 
       const query: Record<string, string> = {
         skillId: request.skillId,
-      }
+      };
       if (request.version) {
-        query.version = request.version
+        query.version = request.version;
       }
 
       const response = await this.gateway.request<SkillDownloadResponse>(
@@ -290,7 +290,7 @@ export class SkillsApiClient {
           method: 'GET',
           query,
         },
-      )
+      );
 
       // Validate response
       if (response.success && response.data) {
@@ -298,19 +298,19 @@ export class SkillsApiClient {
           throw CloudErrorFactory.schemaMismatch(
             'Invalid skill download response format',
             { context: { request } },
-          )
+          );
         }
       }
 
-      return response
+      return response;
     }
     catch (error) {
       if (error instanceof CloudError) {
-        throw error
+        throw error;
       }
       throw CloudErrorFactory.unknown(error, {
         context: { operation: 'skills.download', request },
-      })
+      });
     }
   }
 
@@ -339,7 +339,7 @@ export class SkillsApiClient {
     try {
       // Validate request
       if (!request.skillId || request.skillId.trim() === '') {
-        throw CloudErrorFactory.validation('Skill ID is required')
+        throw CloudErrorFactory.validation('Skill ID is required');
       }
 
       const response = await this.gateway.request<SkillUpdateResponse>(
@@ -348,17 +348,17 @@ export class SkillsApiClient {
           method: 'PUT',
           body: request,
         },
-      )
+      );
 
-      return response
+      return response;
     }
     catch (error) {
       if (error instanceof CloudError) {
-        throw error
+        throw error;
       }
       throw CloudErrorFactory.unknown(error, {
         context: { operation: 'skills.update', request },
-      })
+      });
     }
   }
 
@@ -385,7 +385,7 @@ export class SkillsApiClient {
     try {
       // Validate request
       if (!request.skillId || request.skillId.trim() === '') {
-        throw CloudErrorFactory.validation('Skill ID is required')
+        throw CloudErrorFactory.validation('Skill ID is required');
       }
 
       const response = await this.gateway.request<SkillDeleteResponse>(
@@ -396,17 +396,17 @@ export class SkillsApiClient {
             skillId: request.skillId,
           },
         },
-      )
+      );
 
-      return response
+      return response;
     }
     catch (error) {
       if (error instanceof CloudError) {
-        throw error
+        throw error;
       }
       throw CloudErrorFactory.unknown(error, {
         context: { operation: 'skills.delete', request },
-      })
+      });
     }
   }
 
@@ -418,58 +418,58 @@ export class SkillsApiClient {
    * Build query parameters for list request
    */
   private buildListQuery(request: SkillListRequest): Record<string, string | number | boolean> {
-    const query: Record<string, string | number | boolean> = {}
+    const query: Record<string, string | number | boolean> = {};
 
     if (request.privacy)
-      query.privacy = request.privacy
+      query.privacy = request.privacy;
     if (request.author)
-      query.author = request.author
+      query.author = request.author;
     if (request.tags && request.tags.length > 0)
-      query.tags = request.tags.join(',')
+      query.tags = request.tags.join(',');
     if (request.query)
-      query.query = request.query
+      query.query = request.query;
     if (request.page)
-      query.page = request.page
+      query.page = request.page;
     if (request.pageSize)
-      query.pageSize = request.pageSize
+      query.pageSize = request.pageSize;
     if (request.sortBy)
-      query.sortBy = request.sortBy
+      query.sortBy = request.sortBy;
     if (request.sortDir)
-      query.sortDir = request.sortDir
+      query.sortDir = request.sortDir;
 
-    return query
+    return query;
   }
 
   /**
    * Validate upload request
    */
   private validateUploadRequest(request: SkillUploadRequest): void {
-    const errors: string[] = []
+    const errors: string[] = [];
 
     if (!request.name || request.name.trim() === '')
-      errors.push('Skill name is required')
+      errors.push('Skill name is required');
 
     if (!request.version || request.version.trim() === '')
-      errors.push('Skill version is required')
+      errors.push('Skill version is required');
 
     if (!request.content || request.content.trim() === '')
-      errors.push('Skill content is required')
+      errors.push('Skill content is required');
 
     if (!request.metadata)
-      errors.push('Skill metadata is required')
+      errors.push('Skill metadata is required');
     else if (!request.metadata.author || request.metadata.author.trim() === '')
-      errors.push('Skill author is required')
+      errors.push('Skill author is required');
 
     if (!request.privacy)
-      errors.push('Skill privacy level is required')
+      errors.push('Skill privacy level is required');
 
     if (!request.checksum || request.checksum.trim() === '')
-      errors.push('Skill checksum is required')
+      errors.push('Skill checksum is required');
 
     if (errors.length > 0) {
       throw CloudErrorFactory.validation(
         `Invalid upload request: ${errors.join(', ')}`,
-      )
+      );
     }
   }
 }
@@ -491,5 +491,5 @@ export class SkillsApiClient {
  * ```
  */
 export function createSkillsClient(gateway: CloudApiGateway): SkillsApiClient {
-  return new SkillsApiClient(gateway)
+  return new SkillsApiClient(gateway);
 }

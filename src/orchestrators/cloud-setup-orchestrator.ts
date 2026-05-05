@@ -4,36 +4,36 @@
  * @module orchestrators/cloud-setup-orchestrator
  */
 
-import type { FrameworkDetectionResult, LanguageDetection, ProjectAnalysis } from '../analyzers/types'
-import type { CloudApiGateway } from '../cloud-client/gateway'
+import type { FrameworkDetectionResult, LanguageDetection, ProjectAnalysis } from '../analyzers/types';
+import type { CloudApiGateway } from '../cloud-client/gateway';
 import type {
   BatchTemplateResponse,
   ProjectAnalysisRequest,
   ProjectAnalysisResponse,
   Recommendation,
-} from '../cloud-client/types'
-import type { CcjkAgentsOptions } from '../commands/ccjk-agents'
-import type { CcjkHooksOptions } from '../commands/ccjk-hooks'
-import type { CcjkMcpOptions } from '../commands/ccjk-mcp'
-import type { CcjkSkillsOptions } from '../commands/ccjk-skills'
-import type { SupportedLang } from '../constants'
-import { createHash } from 'node:crypto'
-import { promises as fs, readFileSync } from 'node:fs'
-import { join } from 'node:path'
-import ansis from 'ansis'
-import consola from 'consola'
-import { analyzeProject } from '../analyzers'
-import { createDefaultGateway } from '../cloud-client/gateway'
-import { ccjkAgents } from '../commands/ccjk-agents'
-import { ccjkHooks } from '../commands/ccjk-hooks'
-import { ccjkMcp } from '../commands/ccjk-mcp'
-import { ccjkSkills } from '../commands/ccjk-skills'
-import { i18n } from '../i18n'
-import { extractString } from '../utils/i18n-helpers'
+} from '../cloud-client/types';
+import type { CcjkAgentsOptions } from '../commands/ccjk-agents';
+import type { CcjkHooksOptions } from '../commands/ccjk-hooks';
+import type { CcjkMcpOptions } from '../commands/ccjk-mcp';
+import type { CcjkSkillsOptions } from '../commands/ccjk-skills';
+import type { SupportedLang } from '../constants';
+import { createHash } from 'node:crypto';
+import { promises as fs, readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import ansis from 'ansis';
+import consola from 'consola';
+import { analyzeProject } from '../analyzers';
+import { createDefaultGateway } from '../cloud-client/gateway';
+import { ccjkAgents } from '../commands/ccjk-agents';
+import { ccjkHooks } from '../commands/ccjk-hooks';
+import { ccjkMcp } from '../commands/ccjk-mcp';
+import { ccjkSkills } from '../commands/ccjk-skills';
+import { i18n } from '../i18n';
+import { extractString } from '../utils/i18n-helpers';
 
 // Read package.json for version
-const packageJson = JSON.parse(readFileSync(join(process.cwd(), 'package.json'), 'utf-8'))
-const CCJK_VERSION = packageJson.version
+const packageJson = JSON.parse(readFileSync(join(process.cwd(), 'package.json'), 'utf-8'));
+const CCJK_VERSION = packageJson.version;
 
 // ============================================================================
 // Types
@@ -41,140 +41,140 @@ const CCJK_VERSION = packageJson.version
 
 export interface CloudSetupOptions {
   /** Language for UI */
-  lang?: SupportedLang
+  lang?: SupportedLang;
   /** Cloud strategy */
-  strategy?: 'cloud-smart' | 'cloud-conservative' | 'local-fallback'
+  strategy?: 'cloud-smart' | 'cloud-conservative' | 'local-fallback';
   /** Use cloud recommendations (default: true) */
-  useCloud?: boolean
+  useCloud?: boolean;
   /** Cloud endpoint */
-  cloudEndpoint?: string
+  cloudEndpoint?: string;
   /** Cache strategy */
-  cacheStrategy?: 'aggressive' | 'normal' | 'disabled'
+  cacheStrategy?: 'aggressive' | 'normal' | 'disabled';
   /** Show recommendation reasons */
-  showRecommendationReason?: boolean
+  showRecommendationReason?: boolean;
   /** Show confidence scores */
-  showConfidence?: boolean
+  showConfidence?: boolean;
   /** Show comparison with community */
-  showComparison?: boolean
+  showComparison?: boolean;
   /** Submit telemetry (default: true) */
-  submitTelemetry?: boolean
+  submitTelemetry?: boolean;
   /** Include feedback after installation */
-  includeFeedback?: boolean
+  includeFeedback?: boolean;
   /** Generate report */
-  generateReport?: boolean
+  generateReport?: boolean;
   /** Report format */
-  reportFormat?: 'markdown' | 'json' | 'html'
+  reportFormat?: 'markdown' | 'json' | 'html';
   /** Target directory */
-  targetDir?: string
+  targetDir?: string;
   /** Interactive mode */
-  interactive?: boolean
+  interactive?: boolean;
   /** Dry run mode */
-  dryRun?: boolean
+  dryRun?: boolean;
   /** Force mode */
-  force?: boolean
+  force?: boolean;
 }
 
 export interface CloudSetupResult {
   /** Success status */
-  success: boolean
+  success: boolean;
   /** Cloud request ID */
-  requestId: string
+  requestId: string;
   /** Cloud confidence score */
-  confidence: number
+  confidence: number;
   /** Installed resources */
   installed: {
-    skills: string[]
-    mcpServices: string[]
-    agents: string[]
-    hooks: string[]
-  }
+    skills: string[];
+    mcpServices: string[];
+    agents: string[];
+    hooks: string[];
+  };
   /** Skipped resources */
   skipped: {
-    skills: string[]
-    mcpServices: string[]
-    agents: string[]
-    hooks: string[]
-  }
+    skills: string[];
+    mcpServices: string[];
+    agents: string[];
+    hooks: string[];
+  };
   /** Failed resources */
   failed: {
-    skills: Array<{ id: string, error: string }>
-    mcpServices: Array<{ id: string, error: string }>
-    agents: Array<{ id: string, error: string }>
-    hooks: Array<{ id: string, error: string }>
-  }
+    skills: Array<{ id: string; error: string }>;
+    mcpServices: Array<{ id: string; error: string }>;
+    agents: Array<{ id: string; error: string }>;
+    hooks: Array<{ id: string; error: string }>;
+  };
   /** Duration in milliseconds */
-  duration: number
+  duration: number;
   /** Cloud insights */
-  insights?: CloudInsights
+  insights?: CloudInsights;
   /** Community comparison */
-  communityComparison?: CommunityComparison
+  communityComparison?: CommunityComparison;
   /** Report path */
-  reportPath?: string
+  reportPath?: string;
 }
 
 export interface CloudRecommendations {
   /** Recommendation source */
-  source: 'cloud' | 'local'
+  source: 'cloud' | 'local';
   /** Skills recommendations */
-  skills: Recommendation[]
+  skills: Recommendation[];
   /** MCP services recommendations */
-  mcpServices: Recommendation[]
+  mcpServices: Recommendation[];
   /** Agent recommendations */
-  agents: Recommendation[]
+  agents: Recommendation[];
   /** Hook recommendations */
-  hooks: Recommendation[]
+  hooks: Recommendation[];
   /** Overall confidence score */
-  confidence: number
+  confidence: number;
   /** Project fingerprint */
-  fingerprint: string
+  fingerprint: string;
   /** Cloud insights */
-  insights: CloudInsights
+  insights: CloudInsights;
 }
 
 export interface CloudInsights {
   /** Key insights */
-  insights: string[]
+  insights: string[];
   /** Productivity improvements */
   productivityImprovements: Array<{
-    resource: string
-    improvement: number // percentage
-    reason: string
-  }>
+    resource: string;
+    improvement: number; // percentage
+    reason: string;
+  }>;
   /** Next recommendations */
-  nextRecommendations: string[]
+  nextRecommendations: string[];
   /** Community stats */
   communityStats?: {
-    similarProjects: number
-    topInstallations: Array<{ id: string, percentage: number }>
-  }
+    similarProjects: number;
+    topInstallations: Array<{ id: string; percentage: number }>;
+  };
 }
 
 export interface CommunityComparison {
   /** Community size */
-  communitySize: number
+  communitySize: number;
   /** Top 10% configurations */
-  top10Config: string[]
+  top10Config: string[];
   /** Your configuration */
-  yourConfig: string[]
+  yourConfig: string[];
   /** Comparison score */
-  score: number // 0-100
+  score: number; // 0-100
   /** Suggestions */
-  suggestions: string[]
+  suggestions: string[];
 }
 
 export interface MergedRecommendations {
   /** Merged skills */
-  skills: Recommendation[]
+  skills: Recommendation[];
   /** Merged MCP services */
-  mcpServices: Recommendation[]
+  mcpServices: Recommendation[];
   /** Merged agents */
-  agents: Recommendation[]
+  agents: Recommendation[];
   /** Merged hooks */
-  hooks: Recommendation[]
+  hooks: Recommendation[];
   /** Source (cloud/local) */
-  source: 'cloud' | 'local'
+  source: 'cloud' | 'local';
   /** Confidence score */
-  confidence: number
+  confidence: number;
 }
 
 // ============================================================================
@@ -182,13 +182,13 @@ export interface MergedRecommendations {
 // ============================================================================
 
 export class CloudSetupOrchestrator {
-  private gateway: CloudApiGateway
-  private logger = consola.withTag('cloud-setup')
-  private startTime = Date.now()
+  private gateway: CloudApiGateway;
+  private logger = consola.withTag('cloud-setup');
+  private startTime = Date.now();
 
-  constructor(options: CloudSetupOptions = {}) {
+  constructor(_options: CloudSetupOptions = {}) {
     // Use unified gateway with automatic version negotiation
-    this.gateway = createDefaultGateway()
+    this.gateway = createDefaultGateway();
     // Note: cloudEndpoint option is now handled by CLOUD_ENDPOINTS in constants.ts
   }
 
@@ -196,22 +196,22 @@ export class CloudSetupOrchestrator {
    * Execute cloud-powered setup
    */
   async executeCloudSetup(options: CloudSetupOptions): Promise<CloudSetupResult> {
-    this.logger.info('Starting cloud-powered setup')
+    this.logger.info('Starting cloud-powered setup');
 
     try {
       // Step 1: Analyze project
-      const analysis = await this.analyzeProject(options)
+      const analysis = await this.analyzeProject(options);
 
       // Step 2: Get cloud recommendations
-      const recommendations = await this.getCloudRecommendations(analysis, options)
+      const recommendations = await this.getCloudRecommendations(analysis, options);
 
       // Step 3: Display recommendations with insights
       if (options.interactive !== false) {
-        await this.displayRecommendationInsights(recommendations, options)
+        await this.displayRecommendationInsights(recommendations, options);
       }
 
       // Step 4: Get user confirmation
-      const confirmed = await this.getUserConfirmation(recommendations, options)
+      const confirmed = await this.getUserConfirmation(recommendations, options);
       if (!confirmed) {
         return {
           success: false,
@@ -221,7 +221,7 @@ export class CloudSetupOrchestrator {
           skipped: { skills: [], mcpServices: [], agents: [], hooks: [] },
           failed: { skills: [], mcpServices: [], agents: [], hooks: [] },
           duration: Date.now() - this.startTime,
-        }
+        };
       }
 
       // Step 5: Batch download templates
@@ -231,29 +231,29 @@ export class CloudSetupOrchestrator {
             requestId: 'local-templates-skipped',
             templates: {},
             notFound: [],
-          }
+          };
 
       // Step 6: Execute installation (parallel)
-      const result = await this.executeInstallation(recommendations, templates, options)
+      const result = await this.executeInstallation(recommendations, templates, options);
 
       // Step 7: Upload telemetry (non-blocking - fire and forget)
       if (options.submitTelemetry !== false) {
         // Don't await - telemetry should never block setup completion
         this.uploadTelemetry(result).catch(() => {
           // Silent failure - already logged in uploadTelemetry
-        })
+        });
       }
 
       // Step 8: Generate report
       if (options.generateReport) {
-        result.reportPath = await this.generateReport(result, recommendations, options)
+        result.reportPath = await this.generateReport(result, recommendations, options);
       }
 
-      return result
+      return result;
     }
     catch (error) {
-      this.logger.error('Cloud setup failed:', error)
-      throw error
+      this.logger.error('Cloud setup failed:', error);
+      throw error;
     }
   }
 
@@ -262,58 +262,58 @@ export class CloudSetupOrchestrator {
    */
   private async analyzeProject(options: CloudSetupOptions): Promise<ProjectAnalysis> {
     if (options.interactive !== false) {
-      console.log(ansis.bold(`\n  ${i18n.t('cloud-setup:analyzingProject')}`))
+      console.log(ansis.bold(`\n  ${i18n.t('cloud-setup:analyzingProject')}`));
     }
 
     const analysis = await analyzeProject(options.targetDir || process.cwd(), {
       analyzeTransitiveDeps: true,
       // Use default maxFilesToScan of 10000 for better large project support
-    })
+    });
 
     // Generate project fingerprint
-    const _fingerprint = this.generateProjectFingerprint(analysis)
+    const _fingerprint = this.generateProjectFingerprint(analysis);
 
     if (options.interactive !== false) {
-      this.displayProjectInfo(analysis)
+      this.displayProjectInfo(analysis);
     }
 
-    return analysis
+    return analysis;
   }
 
   /**
    * Generate project fingerprint
    */
   private generateProjectFingerprint(analysis: ProjectAnalysis): string {
-    const hash = createHash('sha256')
+    const hash = createHash('sha256');
 
     // Hash key project characteristics - ensure all values are strings
-    const directDeps = analysis.dependencies?.direct || []
-    const depNames = directDeps.map(d => d.name).join(',')
-    const devDepNames = directDeps.filter(d => d.isDev).map(d => d.name).join(',')
-    const frameworkNames = analysis.frameworks?.map(f => f.name).join(',') || ''
-    const languageNames = analysis.languages?.map(l => l.language).join(',') || ''
+    const directDeps = analysis.dependencies?.direct || [];
+    const depNames = directDeps.map(d => d.name).join(',');
+    const devDepNames = directDeps.filter(d => d.isDev).map(d => d.name).join(',');
+    const frameworkNames = analysis.frameworks?.map(f => f.name).join(',') || '';
+    const languageNames = analysis.languages?.map(l => l.language).join(',') || '';
 
-    hash.update(depNames)
-    hash.update(devDepNames)
-    hash.update(analysis.projectType || '')
-    hash.update(frameworkNames)
-    hash.update(languageNames)
+    hash.update(depNames);
+    hash.update(devDepNames);
+    hash.update(analysis.projectType || '');
+    hash.update(frameworkNames);
+    hash.update(languageNames);
 
-    return hash.digest('hex')
+    return hash.digest('hex');
   }
 
   /**
    * Display project information
    */
   private displayProjectInfo(analysis: ProjectAnalysis): void {
-    console.log(`    ${ansis.dim(i18n.t('cloud-setup:projectType'))}: ${analysis.projectType}`)
+    console.log(`    ${ansis.dim(i18n.t('cloud-setup:projectType'))}: ${analysis.projectType}`);
 
     if (analysis.frameworks.length > 0) {
-      console.log(`    ${ansis.dim(i18n.t('cloud-setup:frameworks'))}: ${analysis.frameworks.map(f => f.name).join(', ')}`)
+      console.log(`    ${ansis.dim(i18n.t('cloud-setup:frameworks'))}: ${analysis.frameworks.map(f => f.name).join(', ')}`);
     }
 
     if (analysis.languages.length > 0) {
-      console.log(`    ${ansis.dim(i18n.t('cloud-setup:languages'))}: ${analysis.languages.map(l => l.language).join(', ')}`)
+      console.log(`    ${ansis.dim(i18n.t('cloud-setup:languages'))}: ${analysis.languages.map(l => l.language).join(', ')}`);
     }
   }
 
@@ -325,11 +325,11 @@ export class CloudSetupOrchestrator {
     options: CloudSetupOptions,
   ): Promise<CloudRecommendations> {
     if (options.useCloud === false) {
-      return this.getLocalRecommendations(analysis)
+      return this.getLocalRecommendations(analysis);
     }
 
     if (options.interactive !== false) {
-      console.log(`\n  ${ansis.bold(i18n.t('cloud-setup:gettingRecommendations'))}`)
+      console.log(`\n  ${ansis.bold(i18n.t('cloud-setup:gettingRecommendations'))}`);
     }
 
     // Prepare request - convert DependencyAnalysis to Record<string, string>
@@ -337,28 +337,28 @@ export class CloudSetupOrchestrator {
       projectRoot: options.targetDir || process.cwd(),
       language: options.lang,
       ccjkVersion: CCJK_VERSION,
-    }
+    };
 
     // Add dependencies if available
     if (analysis.dependencies?.direct && analysis.dependencies.direct.length > 0) {
-      const deps: Record<string, string> = {}
-      const devDeps: Record<string, string> = {}
+      const deps: Record<string, string> = {};
+      const devDeps: Record<string, string> = {};
 
       for (const dep of analysis.dependencies.direct) {
         if (dep.isDev) {
-          devDeps[dep.name] = dep.version || '*'
+          devDeps[dep.name] = dep.version || '*';
         }
         else {
-          deps[dep.name] = dep.version || '*'
+          deps[dep.name] = dep.version || '*';
         }
       }
 
       // Only add if non-empty
       if (Object.keys(deps).length > 0) {
-        request.dependencies = deps
+        request.dependencies = deps;
       }
       if (Object.keys(devDeps).length > 0) {
-        request.devDependencies = devDeps
+        request.devDependencies = devDeps;
       }
     }
 
@@ -374,17 +374,17 @@ export class CloudSetupOrchestrator {
           body: request,
           timeout: 10000, // 10s timeout for cloud analysis
         },
-      )
+      );
 
       if (!response.success || !response.data) {
-        this.logger.warn('Cloud API returned error:', response.error)
-        return this.getLocalRecommendations(analysis)
+        this.logger.warn('Cloud API returned error:', response.error);
+        return this.getLocalRecommendations(analysis);
       }
 
-      const data = response.data
+      const data = response.data;
 
       // Categorize recommendations
-      const fingerprint = this.generateProjectFingerprint(analysis)
+      const fingerprint = this.generateProjectFingerprint(analysis);
       const recommendations: CloudRecommendations = {
         source: 'cloud',
         skills: data.recommendations.filter((r: Recommendation) => r.category === 'skill'),
@@ -394,13 +394,13 @@ export class CloudSetupOrchestrator {
         confidence: this.calculateConfidence(data.recommendations),
         fingerprint,
         insights: this.extractInsights(data),
-      }
+      };
 
-      return recommendations
+      return recommendations;
     }
     catch (_error) {
-      this.logger.warn('Failed to get cloud recommendations, using local fallback')
-      return this.getLocalRecommendations(analysis)
+      this.logger.warn('Failed to get cloud recommendations, using local fallback');
+      return this.getLocalRecommendations(analysis);
     }
   }
 
@@ -409,17 +409,17 @@ export class CloudSetupOrchestrator {
    * Handles both Map<string, DependencyInfo> and DependencyNode[] formats
    */
   private hasDependency(analysis: ProjectAnalysis, name: string, isDev: boolean = false): boolean {
-    const deps = analysis.dependencies
+    const deps = analysis.dependencies;
     if (!deps)
-      return false
+      return false;
 
     // Handle DependencyNode[] format (from src/analyzers/types.ts)
     if (Array.isArray(deps.direct)) {
-      const nodeList = deps.direct as Array<{ name: string, isDev?: boolean }>
-      return nodeList.some(d => d.name === name && (isDev ? d.isDev : !d.isDev))
+      const nodeList = deps.direct as Array<{ name: string; isDev?: boolean }>;
+      return nodeList.some(d => d.name === name && (isDev ? d.isDev : !d.isDev));
     }
 
-    return false
+    return false;
   }
 
   /**
@@ -427,21 +427,21 @@ export class CloudSetupOrchestrator {
    */
   private hasFramework(analysis: ProjectAnalysis, name: string): boolean {
     if (!analysis.frameworks)
-      return false
+      return false;
 
     // Handle FrameworkDetectionResult[] format (from src/analyzers/types.ts)
     if (Array.isArray(analysis.frameworks) && analysis.frameworks.length > 0) {
-      const first = analysis.frameworks[0]
+      const first = analysis.frameworks[0];
       if (typeof first === 'object' && 'name' in first) {
-        return analysis.frameworks.some((f: FrameworkDetectionResult) => f.name?.toLowerCase() === name.toLowerCase())
+        return analysis.frameworks.some((f: FrameworkDetectionResult) => f.name?.toLowerCase() === name.toLowerCase());
       }
       // Handle string[] format (legacy or simplified)
       if (typeof first === 'string') {
-        return (analysis.frameworks as unknown as string[]).includes(name)
+        return (analysis.frameworks as unknown as string[]).includes(name);
       }
     }
 
-    return false
+    return false;
   }
 
   /**
@@ -449,28 +449,28 @@ export class CloudSetupOrchestrator {
    */
   private hasLanguage(analysis: ProjectAnalysis, name: string): boolean {
     if (!analysis.languages)
-      return false
+      return false;
 
     // Handle LanguageDetection[] format (from src/analyzers/types.ts)
     if (Array.isArray(analysis.languages) && analysis.languages.length > 0) {
-      const first = analysis.languages[0]
+      const first = analysis.languages[0];
       if (typeof first === 'object' && 'language' in first) {
-        return analysis.languages.some((l: LanguageDetection) => l.language?.toLowerCase() === name.toLowerCase())
+        return analysis.languages.some((l: LanguageDetection) => l.language?.toLowerCase() === name.toLowerCase());
       }
       // Handle string[] format (legacy or simplified)
       if (typeof first === 'string') {
-        return (analysis.languages as unknown as string[]).includes(name)
+        return (analysis.languages as unknown as string[]).includes(name);
       }
     }
 
-    return false
+    return false;
   }
 
   /**
    * Get local fallback recommendations
    */
   private getLocalRecommendations(analysis: ProjectAnalysis): CloudRecommendations {
-    const recommendations: Recommendation[] = []
+    const recommendations: Recommendation[] = [];
 
     // TypeScript projects - check dev dependencies or language detection
     if (this.hasDependency(analysis, 'typescript', true) || this.hasLanguage(analysis, 'typescript')) {
@@ -481,7 +481,7 @@ export class CloudSetupOrchestrator {
         category: 'skill',
         relevanceScore: 0.98,
         tags: ['typescript', 'type-checking'],
-      })
+      });
     }
 
     // React projects - check dependencies or framework detection
@@ -493,7 +493,7 @@ export class CloudSetupOrchestrator {
         category: 'skill',
         relevanceScore: 0.95,
         tags: ['react', 'hooks', 'frontend'],
-      })
+      });
     }
 
     // Next.js projects
@@ -505,7 +505,7 @@ export class CloudSetupOrchestrator {
         category: 'skill',
         relevanceScore: 0.92,
         tags: ['nextjs', 'ssr', 'performance'],
-      })
+      });
     }
 
     // Vue projects
@@ -517,7 +517,7 @@ export class CloudSetupOrchestrator {
         category: 'skill',
         relevanceScore: 0.95,
         tags: ['vue', 'composition-api', 'frontend'],
-      })
+      });
     }
 
     // Node.js backend projects
@@ -529,7 +529,7 @@ export class CloudSetupOrchestrator {
         category: 'skill',
         relevanceScore: 0.90,
         tags: ['nodejs', 'backend'],
-      })
+      });
     }
 
     // NestJS projects
@@ -541,7 +541,7 @@ export class CloudSetupOrchestrator {
         category: 'skill',
         relevanceScore: 0.92,
         tags: ['nestjs', 'backend', 'typescript'],
-      })
+      });
     }
 
     // Python projects
@@ -553,10 +553,10 @@ export class CloudSetupOrchestrator {
         category: 'skill',
         relevanceScore: 0.88,
         tags: ['python', 'backend'],
-      })
+      });
     }
 
-    const fingerprint = this.generateProjectFingerprint(analysis)
+    const fingerprint = this.generateProjectFingerprint(analysis);
     return {
       source: 'local',
       skills: recommendations.filter(r => r.category === 'skill'),
@@ -570,7 +570,7 @@ export class CloudSetupOrchestrator {
         productivityImprovements: [],
         nextRecommendations: [],
       },
-    }
+    };
   }
 
   /**
@@ -578,10 +578,10 @@ export class CloudSetupOrchestrator {
    */
   private calculateConfidence(recommendations: Recommendation[]): number {
     if (recommendations.length === 0)
-      return 0
+      return 0;
 
-    const avgScore = recommendations.reduce((sum, r) => sum + r.relevanceScore, 0) / recommendations.length
-    return Math.round(avgScore * 100)
+    const avgScore = recommendations.reduce((sum, r) => sum + r.relevanceScore, 0) / recommendations.length;
+    return Math.round(avgScore * 100);
   }
 
   /**
@@ -598,7 +598,7 @@ export class CloudSetupOrchestrator {
         similarProjects: 0,
         topInstallations: [],
       },
-    }
+    };
   }
 
   /**
@@ -609,72 +609,72 @@ export class CloudSetupOrchestrator {
     options: CloudSetupOptions,
   ): Promise<void> {
     if (options.interactive === false)
-      return
+      return;
 
-    console.log(`\n  ${ansis.bold(i18n.t('cloud-setup:cloudRecommendations'))} ${ansis.dim(`(${i18n.t('cloud-setup:confidence')} ${recommendations.confidence}%)`)}`)
-    console.log('')
+    console.log(`\n  ${ansis.bold(i18n.t('cloud-setup:cloudRecommendations'))} ${ansis.dim(`(${i18n.t('cloud-setup:confidence')} ${recommendations.confidence}%)`)}`);
+    console.log('');
 
     // Display skills
     if (recommendations.skills.length > 0) {
-      console.log(`  ${ansis.bold(i18n.t('cloud-setup:skills'))} (${recommendations.skills.length}):`)
+      console.log(`  ${ansis.bold(i18n.t('cloud-setup:skills'))} (${recommendations.skills.length}):`);
       for (const skill of recommendations.skills) {
-        const confidence = options.showConfidence ? ` [${Math.round(skill.relevanceScore * 100)}%]` : ''
-        const skillName = extractString(skill.name, skill.id, i18n.language as SupportedLang)
-        const skillDesc = extractString(skill.description, '', i18n.language as SupportedLang)
-        const reason = options.showRecommendationReason && skillDesc ? ` - ${skillDesc}` : ''
-        console.log(`    ${ansis.green('✓')} ${skillName}${ansis.dim(confidence)}${ansis.dim(reason)}`)
+        const confidence = options.showConfidence ? ` [${Math.round(skill.relevanceScore * 100)}%]` : '';
+        const skillName = extractString(skill.name, skill.id, i18n.language as SupportedLang);
+        const skillDesc = extractString(skill.description, '', i18n.language as SupportedLang);
+        const reason = options.showRecommendationReason && skillDesc ? ` - ${skillDesc}` : '';
+        console.log(`    ${ansis.green('✓')} ${skillName}${ansis.dim(confidence)}${ansis.dim(reason)}`);
       }
     }
 
     // Display MCP services
     if (recommendations.mcpServices.length > 0) {
-      console.log(`\n  ${ansis.bold(i18n.t('cloud-setup:mcpServices'))} (${recommendations.mcpServices.length}):`)
+      console.log(`\n  ${ansis.bold(i18n.t('cloud-setup:mcpServices'))} (${recommendations.mcpServices.length}):`);
       for (const service of recommendations.mcpServices) {
-        const confidence = options.showConfidence ? ` [${Math.round(service.relevanceScore * 100)}%]` : ''
-        const serviceName = extractString(service.name, service.id, i18n.language as SupportedLang)
-        const serviceDesc = extractString(service.description, '', i18n.language as SupportedLang)
-        const reason = options.showRecommendationReason && serviceDesc ? ` - ${serviceDesc}` : ''
-        console.log(`    ${ansis.green('✓')} ${serviceName}${ansis.dim(confidence)}${ansis.dim(reason)}`)
+        const confidence = options.showConfidence ? ` [${Math.round(service.relevanceScore * 100)}%]` : '';
+        const serviceName = extractString(service.name, service.id, i18n.language as SupportedLang);
+        const serviceDesc = extractString(service.description, '', i18n.language as SupportedLang);
+        const reason = options.showRecommendationReason && serviceDesc ? ` - ${serviceDesc}` : '';
+        console.log(`    ${ansis.green('✓')} ${serviceName}${ansis.dim(confidence)}${ansis.dim(reason)}`);
       }
     }
 
     // Display agents
     if (recommendations.agents.length > 0) {
-      console.log(`\n  ${ansis.bold(i18n.t('cloud-setup:agents'))} (${recommendations.agents.length}):`)
+      console.log(`\n  ${ansis.bold(i18n.t('cloud-setup:agents'))} (${recommendations.agents.length}):`);
       for (const agent of recommendations.agents) {
-        const confidence = options.showConfidence ? ` [${Math.round(agent.relevanceScore * 100)}%]` : ''
-        const agentName = extractString(agent.name, agent.id, i18n.language as SupportedLang)
-        const agentDesc = extractString(agent.description, '', i18n.language as SupportedLang)
-        const reason = options.showRecommendationReason && agentDesc ? ` - ${agentDesc}` : ''
-        console.log(`    ${ansis.green('✓')} ${agentName}${ansis.dim(confidence)}${ansis.dim(reason)}`)
+        const confidence = options.showConfidence ? ` [${Math.round(agent.relevanceScore * 100)}%]` : '';
+        const agentName = extractString(agent.name, agent.id, i18n.language as SupportedLang);
+        const agentDesc = extractString(agent.description, '', i18n.language as SupportedLang);
+        const reason = options.showRecommendationReason && agentDesc ? ` - ${agentDesc}` : '';
+        console.log(`    ${ansis.green('✓')} ${agentName}${ansis.dim(confidence)}${ansis.dim(reason)}`);
       }
     }
 
     // Display hooks
     if (recommendations.hooks.length > 0) {
-      console.log(`\n  ${ansis.bold(i18n.t('cloud-setup:hooks'))} (${recommendations.hooks.length}):`)
+      console.log(`\n  ${ansis.bold(i18n.t('cloud-setup:hooks'))} (${recommendations.hooks.length}):`);
       for (const hook of recommendations.hooks) {
-        const confidence = options.showConfidence ? ` [${Math.round(hook.relevanceScore * 100)}%]` : ''
-        const hookName = extractString(hook.name, hook.id, i18n.language as SupportedLang)
-        const hookDesc = extractString(hook.description, '', i18n.language as SupportedLang)
-        const reason = options.showRecommendationReason && hookDesc ? ` - ${hookDesc}` : ''
-        console.log(`    ${ansis.green('✓')} ${hookName}${ansis.dim(confidence)}${ansis.dim(reason)}`)
+        const confidence = options.showConfidence ? ` [${Math.round(hook.relevanceScore * 100)}%]` : '';
+        const hookName = extractString(hook.name, hook.id, i18n.language as SupportedLang);
+        const hookDesc = extractString(hook.description, '', i18n.language as SupportedLang);
+        const reason = options.showRecommendationReason && hookDesc ? ` - ${hookDesc}` : '';
+        console.log(`    ${ansis.green('✓')} ${hookName}${ansis.dim(confidence)}${ansis.dim(reason)}`);
       }
     }
 
     // Display insights
     if (recommendations.insights?.insights && recommendations.insights.insights.length > 0) {
-      console.log(`\n  ${ansis.bold(i18n.t('cloud-setup:insights'))}:`)
+      console.log(`\n  ${ansis.bold(i18n.t('cloud-setup:insights'))}:`);
       for (const insight of recommendations.insights.insights) {
-        console.log(`    ${ansis.cyan('💡')} ${insight}`)
+        console.log(`    ${ansis.cyan('💡')} ${insight}`);
       }
     }
 
     // Display productivity improvements
     if (recommendations.insights?.productivityImprovements && recommendations.insights.productivityImprovements.length > 0) {
-      console.log(`\n  ${ansis.bold(i18n.t('cloud-setup:productivityImprovements'))}:`)
+      console.log(`\n  ${ansis.bold(i18n.t('cloud-setup:productivityImprovements'))}:`);
       for (const improvement of recommendations.insights.productivityImprovements) {
-        console.log(`    ${ansis.green('↑')} ${improvement.resource}: +${improvement.improvement}% ${improvement.reason}`)
+        console.log(`    ${ansis.green('↑')} ${improvement.resource}: +${improvement.improvement}% ${improvement.reason}`);
       }
     }
   }
@@ -687,22 +687,22 @@ export class CloudSetupOrchestrator {
     options: CloudSetupOptions,
   ): Promise<boolean> {
     if (options.interactive === false)
-      return true
+      return true;
 
     const totalResources = recommendations.skills.length
       + recommendations.mcpServices.length
       + recommendations.agents.length
-      + recommendations.hooks.length
+      + recommendations.hooks.length;
 
     if (totalResources === 0) {
-      console.log(`\n  ${ansis.yellow(i18n.t('cloud-setup:noRecommendations'))}`)
-      return false
+      console.log(`\n  ${ansis.yellow(i18n.t('cloud-setup:noRecommendations'))}`);
+      return false;
     }
 
     try {
       // Dynamic import of inquirer
-      const inquirerModule = await import('inquirer')
-      const inquirer = inquirerModule.default || inquirerModule
+      const inquirerModule = await import('inquirer');
+      const inquirer = inquirerModule.default || inquirerModule;
 
       const { confirm } = await inquirer.prompt([
         {
@@ -711,14 +711,14 @@ export class CloudSetupOrchestrator {
           message: i18n.t('cloud-setup:installResources', { count: totalResources }),
           default: true,
         },
-      ])
+      ]);
 
-      return confirm
+      return confirm;
     }
     catch (error) {
-      this.logger.error('Failed to prompt user:', error)
+      this.logger.error('Failed to prompt user:', error);
       // Fallback to true if inquirer fails
-      return true
+      return true;
     }
   }
 
@@ -730,7 +730,7 @@ export class CloudSetupOrchestrator {
     options: CloudSetupOptions,
   ): Promise<BatchTemplateResponse> {
     if (options.interactive !== false) {
-      console.log(`\n  ${ansis.bold(i18n.t('cloud-setup:downloadingTemplates'))}`)
+      console.log(`\n  ${ansis.bold(i18n.t('cloud-setup:downloadingTemplates'))}`);
     }
 
     const allRecommendations = [
@@ -738,9 +738,9 @@ export class CloudSetupOrchestrator {
       ...recommendations.mcpServices,
       ...recommendations.agents,
       ...recommendations.hooks,
-    ]
+    ];
 
-    const templateIds = allRecommendations.map(r => r.id)
+    const templateIds = allRecommendations.map(r => r.id);
 
     try {
       // Use gateway for batch template download
@@ -754,23 +754,23 @@ export class CloudSetupOrchestrator {
           },
           timeout: 15000, // 15s timeout for template download
         },
-      )
+      );
 
       if (!response.success || !response.data) {
-        throw new Error(response.error || 'Template download failed')
+        throw new Error(response.error || 'Template download failed');
       }
 
-      const templates = response.data
+      const templates = response.data;
 
       if (options.interactive !== false) {
-        console.log(`    ${ansis.green('✓')} ${i18n.t('cloud-setup:templatesDownloaded', { count: Object.keys(templates.templates).length })}`)
+        console.log(`    ${ansis.green('✓')} ${i18n.t('cloud-setup:templatesDownloaded', { count: Object.keys(templates.templates).length })}`);
       }
 
-      return templates
+      return templates;
     }
     catch (error) {
       // Template downloads should not block local fallback or report generation flows.
-      this.logger.warn('Failed to download templates, continuing without templates:', error)
+      this.logger.warn('Failed to download templates, continuing without templates:', error);
       return {
         requestId: 'template-download-failed',
         templates: {},
@@ -780,7 +780,7 @@ export class CloudSetupOrchestrator {
           ...recommendations.agents.map(r => r.id),
           ...recommendations.hooks.map(r => r.id),
         ],
-      }
+      };
     }
   }
 
@@ -793,7 +793,7 @@ export class CloudSetupOrchestrator {
     options: CloudSetupOptions,
   ): Promise<CloudSetupResult> {
     if (options.interactive !== false) {
-      console.log(`\n  ${ansis.bold(i18n.t('cloud-setup:installingResources'))}`)
+      console.log(`\n  ${ansis.bold(i18n.t('cloud-setup:installingResources'))}`);
     }
 
     const result: CloudSetupResult = {
@@ -805,37 +805,37 @@ export class CloudSetupOrchestrator {
       failed: { skills: [], mcpServices: [], agents: [], hooks: [] },
       duration: 0,
       insights: recommendations.insights,
-    }
+    };
 
     // Install skills
     if (recommendations.skills.length > 0) {
-      await this.installSkills(recommendations.skills, result, options)
+      await this.installSkills(recommendations.skills, result, options);
     }
 
     // Install MCP services
     if (recommendations.mcpServices.length > 0) {
-      await this.installMcpServices(recommendations.mcpServices, result, options)
+      await this.installMcpServices(recommendations.mcpServices, result, options);
     }
 
     // Install agents
     if (recommendations.agents.length > 0) {
-      await this.installAgents(recommendations.agents, result, options)
+      await this.installAgents(recommendations.agents, result, options);
     }
 
     // Install hooks
     if (recommendations.hooks.length > 0) {
-      await this.installHooks(recommendations.hooks, result, options)
+      await this.installHooks(recommendations.hooks, result, options);
     }
 
     // Calculate duration (ensure at least 1ms for successful execution)
-    result.duration = Math.max(Date.now() - this.startTime, 1)
+    result.duration = Math.max(Date.now() - this.startTime, 1);
 
     // Display summary
     if (options.interactive !== false) {
-      this.displaySummary(result, options)
+      this.displaySummary(result, options);
     }
 
-    return result
+    return result;
   }
 
   /**
@@ -847,7 +847,7 @@ export class CloudSetupOrchestrator {
     options: CloudSetupOptions,
   ): Promise<void> {
     if (options.interactive !== false) {
-      console.log(`\n  [1/4] ${i18n.t('cloud-setup:installingSkills')}...`)
+      console.log(`\n  [1/4] ${i18n.t('cloud-setup:installingSkills')}...`);
     }
 
     const skillsOptions: CcjkSkillsOptions = {
@@ -856,24 +856,24 @@ export class CloudSetupOrchestrator {
       dryRun: options.dryRun,
       force: options.force,
       targetDir: options.targetDir,
-    }
+    };
 
     try {
       // Filter skills by ID
-      const skillIds = skills.map(s => s.id)
-      process.env.CCJK_SELECTED_SKILLS = JSON.stringify(skillIds)
+      const skillIds = skills.map(s => s.id);
+      process.env.CCJK_SELECTED_SKILLS = JSON.stringify(skillIds);
 
-      await ccjkSkills(skillsOptions)
+      await ccjkSkills(skillsOptions);
 
-      result.installed.skills = skillIds
+      result.installed.skills = skillIds;
 
       if (options.interactive !== false) {
-        console.log(`    ${ansis.green('✓')} ${skills.length}/${skills.length} (${((Date.now() - this.startTime) / 1000).toFixed(1)}s)`)
+        console.log(`    ${ansis.green('✓')} ${skills.length}/${skills.length} (${((Date.now() - this.startTime) / 1000).toFixed(1)}s)`);
       }
     }
     catch (error) {
-      this.logger.error('Skills installation failed:', error)
-      result.failed.skills = skills.map(s => ({ id: s.id, error: String(error) }))
+      this.logger.error('Skills installation failed:', error);
+      result.failed.skills = skills.map(s => ({ id: s.id, error: String(error) }));
     }
   }
 
@@ -886,7 +886,7 @@ export class CloudSetupOrchestrator {
     options: CloudSetupOptions,
   ): Promise<void> {
     if (options.interactive !== false) {
-      console.log(`\n  [2/4] ${i18n.t('cloud-setup:configuringMcpServices')}...`)
+      console.log(`\n  [2/4] ${i18n.t('cloud-setup:configuringMcpServices')}...`);
     }
 
     const mcpOptions: CcjkMcpOptions = {
@@ -895,19 +895,19 @@ export class CloudSetupOrchestrator {
       dryRun: options.dryRun,
       force: options.force,
       lang: options.lang,
-    }
+    };
 
     try {
-      await ccjkMcp(mcpOptions)
-      result.installed.mcpServices = services.map(s => s.id)
+      await ccjkMcp(mcpOptions);
+      result.installed.mcpServices = services.map(s => s.id);
 
       if (options.interactive !== false) {
-        console.log(`    ${ansis.green('✓')} ${services.length}/${services.length} (${((Date.now() - this.startTime) / 1000).toFixed(1)}s)`)
+        console.log(`    ${ansis.green('✓')} ${services.length}/${services.length} (${((Date.now() - this.startTime) / 1000).toFixed(1)}s)`);
       }
     }
     catch (error) {
-      this.logger.error('MCP services installation failed:', error)
-      result.failed.mcpServices = services.map(s => ({ id: s.id, error: String(error) }))
+      this.logger.error('MCP services installation failed:', error);
+      result.failed.mcpServices = services.map(s => ({ id: s.id, error: String(error) }));
     }
   }
 
@@ -920,7 +920,7 @@ export class CloudSetupOrchestrator {
     options: CloudSetupOptions,
   ): Promise<void> {
     if (options.interactive !== false) {
-      console.log(`\n  [3/4] ${i18n.t('cloud-setup:creatingAgents')}...`)
+      console.log(`\n  [3/4] ${i18n.t('cloud-setup:creatingAgents')}...`);
     }
 
     const agentOptions: CcjkAgentsOptions = {
@@ -928,19 +928,19 @@ export class CloudSetupOrchestrator {
       dryRun: options.dryRun,
       // Note: CcjkAgentsOptions doesn't support batch agent creation yet
       // We'll need to call ccjkAgents for each agent individually
-    }
+    };
 
     try {
-      await ccjkAgents(agentOptions)
-      result.installed.agents = agents.map(a => a.id)
+      await ccjkAgents(agentOptions);
+      result.installed.agents = agents.map(a => a.id);
 
       if (options.interactive !== false) {
-        console.log(`    ${ansis.green('✓')} ${agents.length}/${agents.length} (${((Date.now() - this.startTime) / 1000).toFixed(1)}s)`)
+        console.log(`    ${ansis.green('✓')} ${agents.length}/${agents.length} (${((Date.now() - this.startTime) / 1000).toFixed(1)}s)`);
       }
     }
     catch (error) {
-      this.logger.error('Agents installation failed:', error)
-      result.failed.agents = agents.map(a => ({ id: a.id, error: String(error) }))
+      this.logger.error('Agents installation failed:', error);
+      result.failed.agents = agents.map(a => ({ id: a.id, error: String(error) }));
     }
   }
 
@@ -953,26 +953,26 @@ export class CloudSetupOrchestrator {
     options: CloudSetupOptions,
   ): Promise<void> {
     if (options.interactive !== false) {
-      console.log(`\n  [4/4] ${i18n.t('cloud-setup:settingUpHooks')}...`)
+      console.log(`\n  [4/4] ${i18n.t('cloud-setup:settingUpHooks')}...`);
     }
 
     const hookOptions: CcjkHooksOptions = {
       dryRun: options.dryRun,
       // Note: CcjkHooksOptions doesn't have lang, interactive, hooks, or force properties
       // The ccjkHooks command will analyze and install hooks based on project analysis
-    }
+    };
 
     try {
-      await ccjkHooks(hookOptions)
-      result.installed.hooks = hooks.map(h => h.id)
+      await ccjkHooks(hookOptions);
+      result.installed.hooks = hooks.map(h => h.id);
 
       if (options.interactive !== false) {
-        console.log(`    ${ansis.green('✓')} ${hooks.length}/${hooks.length} (${((Date.now() - this.startTime) / 1000).toFixed(1)}s)`)
+        console.log(`    ${ansis.green('✓')} ${hooks.length}/${hooks.length} (${((Date.now() - this.startTime) / 1000).toFixed(1)}s)`);
       }
     }
     catch (error) {
-      this.logger.error('Hooks installation failed:', error)
-      result.failed.hooks = hooks.map(h => ({ id: h.id, error: String(error) }))
+      this.logger.error('Hooks installation failed:', error);
+      result.failed.hooks = hooks.map(h => ({ id: h.id, error: String(error) }));
     }
   }
 
@@ -980,35 +980,35 @@ export class CloudSetupOrchestrator {
    * Display summary
    */
   private displaySummary(result: CloudSetupResult, options: CloudSetupOptions): void {
-    console.log('')
-    console.log(ansis.green(`  ${i18n.t('cloud-setup:setupComplete')}`))
+    console.log('');
+    console.log(ansis.green(`  ${i18n.t('cloud-setup:setupComplete')}`));
 
     const totalInstalled
       = result.installed.skills.length
         + result.installed.mcpServices.length
         + result.installed.agents.length
-        + result.installed.hooks.length
+        + result.installed.hooks.length;
 
-    console.log(`  ${i18n.t('cloud-setup:installedResources', { count: totalInstalled, duration: (result.duration / 1000).toFixed(1) })}`)
+    console.log(`  ${i18n.t('cloud-setup:installedResources', { count: totalInstalled, duration: (result.duration / 1000).toFixed(1) })}`);
 
     // Display cloud feedback
     if (result.insights) {
-      console.log(`\n  ${ansis.bold(i18n.t('cloud-setup:cloudFeedback'))}`)
+      console.log(`\n  ${ansis.bold(i18n.t('cloud-setup:cloudFeedback'))}`);
       for (const insight of result.insights.insights) {
-        console.log(`    ${ansis.cyan('•')} ${insight}`)
+        console.log(`    ${ansis.cyan('•')} ${insight}`);
       }
     }
 
     // Display next steps
-    console.log(`\n  ${ansis.bold(i18n.t('cloud-setup:nextSteps'))}`)
-    console.log(`    ${ansis.dim('•')} ${i18n.t('cloud-setup:startCoding')}`)
+    console.log(`\n  ${ansis.bold(i18n.t('cloud-setup:nextSteps'))}`);
+    console.log(`    ${ansis.dim('•')} ${i18n.t('cloud-setup:startCoding')}`);
     if (options.showRecommendationReason) {
-      console.log(`    ${ansis.dim('•')} ${i18n.t('cloud-setup:viewRecommendations')}`)
+      console.log(`    ${ansis.dim('•')} ${i18n.t('cloud-setup:viewRecommendations')}`);
     }
-    console.log(`    ${ansis.dim('•')} ${i18n.t('cloud-setup:customizeSetup')}`)
+    console.log(`    ${ansis.dim('•')} ${i18n.t('cloud-setup:customizeSetup')}`);
 
     if (result.reportPath) {
-      console.log(`\n  ${ansis.dim(i18n.t('cloud-setup:reportGenerated', { path: result.reportPath }))}`)
+      console.log(`\n  ${ansis.dim(i18n.t('cloud-setup:reportGenerated', { path: result.reportPath }))}`);
     }
   }
 
@@ -1051,13 +1051,13 @@ export class CloudSetupOrchestrator {
         cacheHit: false,
         retryCount: 0,
       },
-    }
+    };
 
     // Non-blocking telemetry with retry budget (max 3 attempts, 5s timeout each)
     this.sendTelemetryWithRetry(telemetry, 3, 5000).catch((error) => {
       // Silent failure - only debug log, never shown to user
-      this.logger.debug('Telemetry upload failed after retries (non-blocking):', error)
-    })
+      this.logger.debug('Telemetry upload failed after retries (non-blocking):', error);
+    });
   }
 
   /**
@@ -1073,8 +1073,8 @@ export class CloudSetupOrchestrator {
       try {
         // Create timeout promise
         const timeoutPromise = new Promise<never>((_, reject) => {
-          setTimeout(() => reject(new Error('Telemetry timeout')), timeout)
-        })
+          setTimeout(() => reject(new Error('Telemetry timeout')), timeout);
+        });
 
         // Race between request and timeout
         const response = await Promise.race([
@@ -1084,31 +1084,31 @@ export class CloudSetupOrchestrator {
             timeout,
           }),
           timeoutPromise,
-        ])
+        ]);
 
         if (response.success) {
-          this.logger.debug(`Telemetry uploaded successfully (attempt ${attempt}/${maxAttempts})`)
-          return
+          this.logger.debug(`Telemetry uploaded successfully (attempt ${attempt}/${maxAttempts})`);
+          return;
         }
 
         // API returned error
-        throw new Error(response.error || 'Unknown telemetry error')
+        throw new Error(response.error || 'Unknown telemetry error');
       }
       catch (error) {
         this.logger.debug(
           `Telemetry attempt ${attempt}/${maxAttempts} failed:`,
           error instanceof Error ? error.message : error,
-        )
+        );
 
         // Don't retry on last attempt
         if (attempt === maxAttempts) {
-          this.logger.debug('Telemetry failed after all retry attempts - giving up silently')
-          return
+          this.logger.debug('Telemetry failed after all retry attempts - giving up silently');
+          return;
         }
 
         // Exponential backoff: 100ms, 200ms, 400ms
-        const delay = 100 * (2 ** (attempt - 1))
-        await new Promise(resolve => setTimeout(resolve, delay))
+        const delay = 100 * (2 ** (attempt - 1));
+        await new Promise(resolve => setTimeout(resolve, delay));
       }
     }
   }
@@ -1125,14 +1125,14 @@ export class CloudSetupOrchestrator {
       ? 'json'
       : options.reportFormat === 'html'
         ? 'html'
-        : 'md'
+        : 'md';
 
     const reportPath = join(
       process.cwd(),
       `ccjk-setup-report-${new Date().toISOString().replace(/[:.]/g, '-')}.${reportExtension}`,
-    )
+    );
 
-    let content = ''
+    let content = '';
 
     if (options.reportFormat === 'json') {
       content = JSON.stringify({
@@ -1140,60 +1140,60 @@ export class CloudSetupOrchestrator {
         result,
         recommendations,
         options,
-      }, null, 2)
+      }, null, 2);
     }
     else {
       // Markdown format
-      content = `# CCJK Setup Report (Cloud-Enhanced)\n\n`
-      content += `**Date**: ${new Date().toLocaleString()}\n`
-      content += `**Strategy**: ${options.strategy || 'cloud-smart'}\n`
-      content += `**Cloud Confidence**: ${result.confidence}%\n`
-      content += `**Duration**: ${(result.duration / 1000).toFixed(1)}s\n\n`
+      content = `# CCJK Setup Report (Cloud-Enhanced)\n\n`;
+      content += `**Date**: ${new Date().toLocaleString()}\n`;
+      content += `**Strategy**: ${options.strategy || 'cloud-smart'}\n`;
+      content += `**Cloud Confidence**: ${result.confidence}%\n`;
+      content += `**Duration**: ${(result.duration / 1000).toFixed(1)}s\n\n`;
 
-      content += `## Installed Resources (${Object.values(result.installed).flat().length})\n\n`
+      content += `## Installed Resources (${Object.values(result.installed).flat().length})\n\n`;
 
       if (result.installed.skills.length > 0) {
-        content += `### Skills (${result.installed.skills.length})\n`
+        content += `### Skills (${result.installed.skills.length})\n`;
         for (const skill of result.installed.skills) {
-          content += `- ${skill}\n`
+          content += `- ${skill}\n`;
         }
-        content += '\n'
+        content += '\n';
       }
 
       if (result.installed.mcpServices.length > 0) {
-        content += `### MCP Services (${result.installed.mcpServices.length})\n`
+        content += `### MCP Services (${result.installed.mcpServices.length})\n`;
         for (const service of result.installed.mcpServices) {
-          content += `- ${service}\n`
+          content += `- ${service}\n`;
         }
-        content += '\n'
+        content += '\n';
       }
 
       if (result.installed.agents.length > 0) {
-        content += `### Agents (${result.installed.agents.length})\n`
+        content += `### Agents (${result.installed.agents.length})\n`;
         for (const agent of result.installed.agents) {
-          content += `- ${agent}\n`
+          content += `- ${agent}\n`;
         }
-        content += '\n'
+        content += '\n';
       }
 
       if (result.installed.hooks.length > 0) {
-        content += `### Hooks (${result.installed.hooks.length})\n`
+        content += `### Hooks (${result.installed.hooks.length})\n`;
         for (const hook of result.installed.hooks) {
-          content += `- ${hook}\n`
+          content += `- ${hook}\n`;
         }
-        content += '\n'
+        content += '\n';
       }
 
       if (result.insights?.nextRecommendations && result.insights.nextRecommendations.length > 0) {
-        content += `## Next Recommendations\n\n`
+        content += `## Next Recommendations\n\n`;
         for (const rec of result.insights.nextRecommendations) {
-          content += `- ${rec}\n`
+          content += `- ${rec}\n`;
         }
       }
     }
 
-    await fs.writeFile(reportPath, content, 'utf-8')
-    return reportPath
+    await fs.writeFile(reportPath, content, 'utf-8');
+    return reportPath;
   }
 
   /**
@@ -1202,18 +1202,18 @@ export class CloudSetupOrchestrator {
   async executeWithFallback(options: CloudSetupOptions): Promise<CloudSetupResult> {
     try {
       // Try cloud first
-      return await this.executeCloudSetup(options)
+      return await this.executeCloudSetup(options);
     }
     catch (error: any) {
       if (error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED') {
-        console.warn(ansis.yellow(`\n  ${i18n.t('cloud-setup:cloudUnavailable')}`))
-        console.warn(`  ${i18n.t('cloud-setup:fallingBackToLocal')}`)
+        console.warn(ansis.yellow(`\n  ${i18n.t('cloud-setup:cloudUnavailable')}`));
+        console.warn(`  ${i18n.t('cloud-setup:fallingBackToLocal')}`);
 
         // Fall back to local setup
-        options.useCloud = false
-        return await this.executeCloudSetup(options)
+        options.useCloud = false;
+        return await this.executeCloudSetup(options);
       }
-      throw error
+      throw error;
     }
   }
 }

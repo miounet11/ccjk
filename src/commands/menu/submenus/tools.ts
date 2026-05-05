@@ -8,8 +8,8 @@
  * - Superpowers (skills system)
  */
 
-import type { MenuDefinition, MenuItem } from '../types'
-import { runCcrMenuFeature, runCcusageFeature, runCometixMenuFeature } from '../../../utils/tools'
+import type { MenuDefinition, MenuItem } from '../types';
+import { runCcrMenuFeature, runCcusageFeature, runCometixMenuFeature } from '../../../utils/tools';
 
 /**
  * Tools submenu items
@@ -25,7 +25,7 @@ export const toolsMenuItems: MenuItem[] = [
     icon: '🔀',
     shortcut: '1',
     handler: async () => {
-      await runCcrMenuFeature()
+      await runCcrMenuFeature();
     },
   },
   {
@@ -38,7 +38,7 @@ export const toolsMenuItems: MenuItem[] = [
     icon: '📊',
     shortcut: '2',
     handler: async () => {
-      await runCcusageFeature()
+      await runCcusageFeature();
     },
   },
   {
@@ -51,7 +51,7 @@ export const toolsMenuItems: MenuItem[] = [
     icon: '📈',
     shortcut: '3',
     handler: async () => {
-      await runCometixMenuFeature()
+      await runCometixMenuFeature();
     },
   },
   {
@@ -65,11 +65,11 @@ export const toolsMenuItems: MenuItem[] = [
     shortcut: '4',
     handler: async () => {
       // Delegate to superpowers submenu
-      const { showSuperpowersMenu } = await import('./cloud')
-      await showSuperpowersMenu()
+      const { showSuperpowersMenu } = await import('./cloud');
+      await showSuperpowersMenu();
     },
   },
-]
+];
 
 /**
  * Get tools menu definition
@@ -81,5 +81,5 @@ export function getToolsMenu(): MenuDefinition {
     items: toolsMenuItems,
     showCategories: false,
     maxVisible: 8,
-  }
+  };
 }

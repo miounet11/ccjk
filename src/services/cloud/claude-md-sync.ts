@@ -7,25 +7,25 @@
  * @module services/cloud/claude-md-sync
  */
 
-import { existsSync, readFileSync } from 'node:fs'
-import { homedir } from 'node:os'
-import process from 'node:process'
-import { join } from 'pathe'
-import { writeFileAtomic } from '../../utils/fs-operations'
-import { CLOUD_ENDPOINTS } from '../../constants'
+import { existsSync, readFileSync } from 'node:fs';
+import { homedir } from 'node:os';
+import process from 'node:process';
+import { join } from 'pathe';
+import { CLOUD_ENDPOINTS } from '../../constants';
+import { writeFileAtomic } from '../../utils/fs-operations';
 
 // ============================================================================
 // Constants
 // ============================================================================
 
-const CLOUD_API_BASE_URL = CLOUD_ENDPOINTS.MAIN.BASE_URL
-const DEFAULT_TIMEOUT = 30000 // 30 seconds
-const TEMPLATES_FILE = join(process.cwd(), 'src', 'data', 'claude-md-templates.json')
-const CACHE_DIR = join(homedir(), '.ccjk', 'claude-md-cache')
+const CLOUD_API_BASE_URL = CLOUD_ENDPOINTS.MAIN.BASE_URL;
+const DEFAULT_TIMEOUT = 30000; // 30 seconds
+const TEMPLATES_FILE = join(process.cwd(), 'src', 'data', 'claude-md-templates.json');
+const CACHE_DIR = join(homedir(), '.ccjk', 'claude-md-cache');
 /** Cache file path for templates */
-export const CACHE_FILE = join(CACHE_DIR, 'templates-cache.json')
+export const CACHE_FILE = join(CACHE_DIR, 'templates-cache.json');
 /** Cache TTL in milliseconds (24 hours) */
-export const CACHE_TTL = 24 * 60 * 60 * 1000 // 24 hours
+export const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
 
 // ============================================================================
 // Types
@@ -36,27 +36,27 @@ export const CACHE_TTL = 24 * 60 * 60 * 1000 // 24 hours
  */
 export interface CloudClaudeMd {
   /** Unique identifier */
-  id: string
+  id: string;
   /** Configuration name */
-  name: string
+  name: string;
   /** Project type */
-  projectType: string
+  projectType: string;
   /** CLAUDE.md content */
-  content: string
+  content: string;
   /** Metadata */
   metadata: {
-    author: string
-    description: string
-    tags: string[]
-    createdAt: string
-    updatedAt: string
-    usageCount: number
-    rating: number
-  }
+    author: string;
+    description: string;
+    tags: string[];
+    createdAt: string;
+    updatedAt: string;
+    usageCount: number;
+    rating: number;
+  };
   /** Privacy level */
-  privacy: 'private' | 'team' | 'public'
+  privacy: 'private' | 'team' | 'public';
   /** Whether this is a template */
-  template: boolean
+  template: boolean;
 }
 
 /**
@@ -64,19 +64,19 @@ export interface CloudClaudeMd {
  */
 export interface ClaudeMdTemplate {
   /** Template ID */
-  id: string
+  id: string;
   /** Template name */
-  name: string
+  name: string;
   /** Category */
-  category: string
+  category: string;
   /** Description */
-  description: string
+  description: string;
   /** Template content */
-  content: string
+  content: string;
   /** Replaceable variables */
-  variables: string[]
+  variables: string[];
   /** Tags for searching */
-  tags?: string[]
+  tags?: string[];
 }
 
 /**
@@ -84,11 +84,11 @@ export interface ClaudeMdTemplate {
  */
 export interface TemplateCategory {
   /** Category ID */
-  id: string
+  id: string;
   /** Category name */
-  name: string
+  name: string;
   /** Description */
-  description: string
+  description: string;
 }
 
 /**
@@ -96,11 +96,11 @@ export interface TemplateCategory {
  */
 export interface ListTemplatesOptions {
   /** Filter by category */
-  category?: string
+  category?: string;
   /** Search keyword */
-  keyword?: string
+  keyword?: string;
   /** Tags to filter */
-  tags?: string[]
+  tags?: string[];
 }
 
 /**
@@ -108,13 +108,13 @@ export interface ListTemplatesOptions {
  */
 export interface ApplyTemplateResult {
   /** Success status */
-  success: boolean
+  success: boolean;
   /** Generated content */
-  content?: string
+  content?: string;
   /** File path if written */
-  filePath?: string
+  filePath?: string;
   /** Error message */
-  error?: string
+  error?: string;
 }
 
 /**
@@ -122,11 +122,11 @@ export interface ApplyTemplateResult {
  */
 export interface UploadResult {
   /** Success status */
-  success: boolean
+  success: boolean;
   /** Cloud config ID */
-  id?: string
+  id?: string;
   /** Error message */
-  error?: string
+  error?: string;
 }
 
 /**
@@ -134,13 +134,13 @@ export interface UploadResult {
  */
 export interface DownloadResult {
   /** Success status */
-  success: boolean
+  success: boolean;
   /** Downloaded content */
-  content?: string
+  content?: string;
   /** File path if written */
-  filePath?: string
+  filePath?: string;
   /** Error message */
-  error?: string
+  error?: string;
 }
 
 /**
@@ -148,13 +148,13 @@ export interface DownloadResult {
  */
 export interface VersionInfo {
   /** Version ID */
-  id: string
+  id: string;
   /** Timestamp */
-  timestamp: string
+  timestamp: string;
   /** Commit message */
-  message: string
+  message: string;
   /** Content snapshot */
-  content: string
+  content: string;
 }
 
 /**
@@ -162,27 +162,27 @@ export interface VersionInfo {
  */
 export interface ParsedClaudeMd {
   /** Document title */
-  title?: string
+  title?: string;
   /** Last updated timestamp */
-  lastUpdated?: string
+  lastUpdated?: string;
   /** Sections */
   sections: Array<{
-    heading: string
-    level: number
-    content: string
-  }>
+    heading: string;
+    level: number;
+    content: string;
+  }>;
   /** Raw content */
-  raw: string
+  raw: string;
 }
 
 /**
  * Cloud API response
  */
 export interface CloudApiResponse<T = unknown> {
-  success: boolean
-  data?: T
-  error?: string
-  code?: string
+  success: boolean;
+  data?: T;
+  error?: string;
+  code?: string;
 }
 
 // ============================================================================
@@ -216,8 +216,8 @@ export interface CloudApiResponse<T = unknown> {
  * ```
  */
 export class ClaudeMdSyncService {
-  private baseUrl: string
-  private deviceToken: string | null = null
+  private baseUrl: string;
+  private deviceToken: string | null = null;
 
   /**
    * Create a new ClaudeMdSyncService instance
@@ -225,8 +225,8 @@ export class ClaudeMdSyncService {
    * @param baseUrl - Cloud API base URL
    */
   constructor(baseUrl: string = CLOUD_API_BASE_URL) {
-    this.baseUrl = baseUrl
-    this.loadDeviceToken()
+    this.baseUrl = baseUrl;
+    this.loadDeviceToken();
   }
 
   // ==========================================================================
@@ -241,36 +241,36 @@ export class ClaudeMdSyncService {
    */
   async listTemplates(options: ListTemplatesOptions = {}): Promise<ClaudeMdTemplate[]> {
     try {
-      const data = this.loadTemplatesData()
-      let templates = data.templates
+      const data = this.loadTemplatesData();
+      let templates = data.templates;
 
       // Filter by category
       if (options.category) {
-        templates = templates.filter(t => t.category === options.category)
+        templates = templates.filter(t => t.category === options.category);
       }
 
       // Filter by keyword
       if (options.keyword) {
-        const keyword = options.keyword.toLowerCase()
+        const keyword = options.keyword.toLowerCase();
         templates = templates.filter(t =>
           t.name.toLowerCase().includes(keyword)
           || t.description.toLowerCase().includes(keyword)
           || t.tags?.some(tag => tag.toLowerCase().includes(keyword)),
-        )
+        );
       }
 
       // Filter by tags
       if (options.tags && options.tags.length > 0) {
         templates = templates.filter(t =>
           options.tags!.some(tag => t.tags?.includes(tag)),
-        )
+        );
       }
 
-      return templates
+      return templates;
     }
     catch (error) {
-      console.error('Failed to list templates:', error)
-      return []
+      console.error('Failed to list templates:', error);
+      return [];
     }
   }
 
@@ -281,12 +281,12 @@ export class ClaudeMdSyncService {
    */
   async listCategories(): Promise<TemplateCategory[]> {
     try {
-      const data = this.loadTemplatesData()
-      return data.categories || []
+      const data = this.loadTemplatesData();
+      return data.categories || [];
     }
     catch (error) {
-      console.error('Failed to list categories:', error)
-      return []
+      console.error('Failed to list categories:', error);
+      return [];
     }
   }
 
@@ -297,7 +297,7 @@ export class ClaudeMdSyncService {
    * @returns Matching templates
    */
   async searchTemplates(keyword: string): Promise<ClaudeMdTemplate[]> {
-    return this.listTemplates({ keyword })
+    return this.listTemplates({ keyword });
   }
 
   /**
@@ -308,12 +308,12 @@ export class ClaudeMdSyncService {
    */
   async getTemplate(templateId: string): Promise<ClaudeMdTemplate | null> {
     try {
-      const data = this.loadTemplatesData()
-      return data.templates.find(t => t.id === templateId) || null
+      const data = this.loadTemplatesData();
+      return data.templates.find(t => t.id === templateId) || null;
     }
     catch (error) {
-      console.error('Failed to get template:', error)
-      return null
+      console.error('Failed to get template:', error);
+      return null;
     }
   }
 
@@ -333,12 +333,12 @@ export class ClaudeMdSyncService {
     variables: Record<string, string> = {},
   ): Promise<ApplyTemplateResult> {
     try {
-      const template = await this.getTemplate(templateId)
+      const template = await this.getTemplate(templateId);
       if (!template) {
         return {
           success: false,
           error: `Template not found: ${templateId}`,
-        }
+        };
       }
 
       // Add default variables
@@ -350,25 +350,25 @@ export class ClaudeMdSyncService {
         PORT: '3000',
         TECH_STACK: 'Technology stack',
         ...variables,
-      }
+      };
 
       // Replace variables in content
-      let content = template.content
+      let content = template.content;
       for (const [key, value] of Object.entries(allVariables)) {
-        const regex = new RegExp(`\\{\\{${key}\\}\\}`, 'g')
-        content = content.replace(regex, value)
+        const regex = new RegExp(`\\{\\{${key}\\}\\}`, 'g');
+        content = content.replace(regex, value);
       }
 
       return {
         success: true,
         content,
-      }
+      };
     }
     catch (error) {
       return {
         success: false,
         error: error instanceof Error ? error.message : String(error),
-      }
+      };
     }
   }
 
@@ -386,26 +386,26 @@ export class ClaudeMdSyncService {
     variables: Record<string, string> = {},
   ): Promise<ApplyTemplateResult> {
     try {
-      const result = await this.applyTemplate(templateId, variables)
+      const result = await this.applyTemplate(templateId, variables);
       if (!result.success || !result.content) {
-        return result
+        return result;
       }
 
       // Write to CLAUDE.md file
-      const filePath = join(projectPath, 'CLAUDE.md')
-      writeFileAtomic(filePath, result.content, 'utf-8')
+      const filePath = join(projectPath, 'CLAUDE.md');
+      writeFileAtomic(filePath, result.content, 'utf-8');
 
       return {
         success: true,
         content: result.content,
         filePath,
-      }
+      };
     }
     catch (error) {
       return {
         success: false,
         error: error instanceof Error ? error.message : String(error),
-      }
+      };
     }
   }
 
@@ -428,11 +428,11 @@ export class ClaudeMdSyncService {
   async uploadClaudeMd(
     filePath: string,
     metadata: {
-      name: string
-      projectType: string
-      privacy: 'private' | 'team' | 'public'
-      description?: string
-      tags?: string[]
+      name: string;
+      projectType: string;
+      privacy: 'private' | 'team' | 'public';
+      description?: string;
+      tags?: string[];
     },
   ): Promise<UploadResult> {
     try {
@@ -441,10 +441,10 @@ export class ClaudeMdSyncService {
         return {
           success: false,
           error: `File not found: ${filePath}`,
-        }
+        };
       }
 
-      const content = readFileSync(filePath, 'utf-8')
+      const content = readFileSync(filePath, 'utf-8');
 
       // Upload to cloud
       const response = await this.request<{ id: string }>('/claude-md/upload', {
@@ -457,25 +457,25 @@ export class ClaudeMdSyncService {
           description: metadata.description || '',
           tags: metadata.tags || [],
         }),
-      })
+      });
 
       if (response.success && response.data) {
         return {
           success: true,
           id: response.data.id,
-        }
+        };
       }
 
       return {
         success: false,
         error: response.error || 'Upload failed',
-      }
+      };
     }
     catch (error) {
       return {
         success: false,
         error: error instanceof Error ? error.message : String(error),
-      }
+      };
     }
   }
 
@@ -494,30 +494,30 @@ export class ClaudeMdSyncService {
       const response = await this.request<{ content: string }>(
         `/claude-md/download/${configId}`,
         { method: 'GET' },
-      )
+      );
 
       if (!response.success || !response.data) {
         return {
           success: false,
           error: response.error || 'Download failed',
-        }
+        };
       }
 
       // Write to file
-      const filePath = join(projectPath, 'CLAUDE.md')
-      writeFileAtomic(filePath, response.data.content, 'utf-8')
+      const filePath = join(projectPath, 'CLAUDE.md');
+      writeFileAtomic(filePath, response.data.content, 'utf-8');
 
       return {
         success: true,
         content: response.data.content,
         filePath,
-      }
+      };
     }
     catch (error) {
       return {
         success: false,
         error: error instanceof Error ? error.message : String(error),
-      }
+      };
     }
   }
 
@@ -531,17 +531,17 @@ export class ClaudeMdSyncService {
       const response = await this.request<{ configs: CloudClaudeMd[] }>(
         '/claude-md/list',
         { method: 'GET' },
-      )
+      );
 
       if (response.success && response.data) {
-        return response.data.configs
+        return response.data.configs;
       }
 
-      return []
+      return [];
     }
     catch (error) {
-      console.error('Failed to list cloud configs:', error)
-      return []
+      console.error('Failed to list cloud configs:', error);
+      return [];
     }
   }
 
@@ -551,22 +551,22 @@ export class ClaudeMdSyncService {
    * @param configId - Config ID to delete
    * @returns Success status
    */
-  async deleteCloudConfig(configId: string): Promise<{ success: boolean, error?: string }> {
+  async deleteCloudConfig(configId: string): Promise<{ success: boolean; error?: string }> {
     try {
       const response = await this.request(`/claude-md/delete/${configId}`, {
         method: 'DELETE',
-      })
+      });
 
       return {
         success: response.success,
         error: response.error,
-      }
+      };
     }
     catch (error) {
       return {
         success: false,
         error: error instanceof Error ? error.message : String(error),
-      }
+      };
     }
   }
 
@@ -581,32 +581,32 @@ export class ClaudeMdSyncService {
    * @returns Parsed structure
    */
   parseClaudeMd(content: string): ParsedClaudeMd {
-    const lines = content.split('\n')
-    const sections: ParsedClaudeMd['sections'] = []
-    let title: string | undefined
-    let lastUpdated: string | undefined
+    const lines = content.split('\n');
+    const sections: ParsedClaudeMd['sections'] = [];
+    let title: string | undefined;
+    let lastUpdated: string | undefined;
 
-    let currentSection: { heading: string, level: number, content: string } | null = null
+    let currentSection: { heading: string; level: number; content: string } | null = null;
 
     for (const line of lines) {
       // Extract title (first # heading)
       if (!title && line.startsWith('# ')) {
-        title = line.substring(2).trim()
-        continue
+        title = line.substring(2).trim();
+        continue;
       }
 
       // Extract last updated
       if (line.includes('**Last Updated**:')) {
-        lastUpdated = line.split('**Last Updated**:')[1]?.trim()
-        continue
+        lastUpdated = line.split('**Last Updated**:')[1]?.trim();
+        continue;
       }
 
       // Detect section headings
-      const headingMatch = line.match(/^(#{1,6})\s+(\S.*)$/)
+      const headingMatch = line.match(/^(#{1,6})\s+(\S.*)$/);
       if (headingMatch) {
         // Save previous section
         if (currentSection) {
-          sections.push(currentSection)
+          sections.push(currentSection);
         }
 
         // Start new section
@@ -614,17 +614,17 @@ export class ClaudeMdSyncService {
           heading: headingMatch[2].trim(),
           level: headingMatch[1].length,
           content: '',
-        }
+        };
       }
       else if (currentSection) {
         // Add content to current section
-        currentSection.content += `${line}\n`
+        currentSection.content += `${line}\n`;
       }
     }
 
     // Save last section
     if (currentSection) {
-      sections.push(currentSection)
+      sections.push(currentSection);
     }
 
     return {
@@ -632,7 +632,7 @@ export class ClaudeMdSyncService {
       lastUpdated,
       sections,
       raw: content,
-    }
+    };
   }
 
   /**
@@ -643,37 +643,37 @@ export class ClaudeMdSyncService {
    * @returns Merged content
    */
   mergeClaudeMd(baseContent: string, updateContent: string): string {
-    const base = this.parseClaudeMd(baseContent)
-    const update = this.parseClaudeMd(updateContent)
+    const base = this.parseClaudeMd(baseContent);
+    const update = this.parseClaudeMd(updateContent);
 
     // Use update title if available
-    const title = update.title || base.title || 'Project'
+    const title = update.title || base.title || 'Project';
 
     // Merge sections
-    const sectionMap = new Map<string, { heading: string, level: number, content: string }>()
+    const sectionMap = new Map<string, { heading: string; level: number; content: string }>();
 
     // Add base sections
     for (const section of base.sections) {
-      sectionMap.set(section.heading, section)
+      sectionMap.set(section.heading, section);
     }
 
     // Add/update with update sections
     for (const section of update.sections) {
-      sectionMap.set(section.heading, section)
+      sectionMap.set(section.heading, section);
     }
 
     // Build merged content
-    let merged = `# ${title}\n\n`
-    merged += `**Last Updated**: ${new Date().toISOString().split('T')[0]}\n\n`
+    let merged = `# ${title}\n\n`;
+    merged += `**Last Updated**: ${new Date().toISOString().split('T')[0]}\n\n`;
 
     for (const section of sectionMap.values()) {
-      const headingPrefix = '#'.repeat(section.level)
-      merged += `${headingPrefix} ${section.heading}\n\n`
-      merged += section.content.trim()
-      merged += '\n\n'
+      const headingPrefix = '#'.repeat(section.level);
+      merged += `${headingPrefix} ${section.heading}\n\n`;
+      merged += section.content.trim();
+      merged += '\n\n';
     }
 
-    return merged.trim()
+    return merged.trim();
   }
 
   // ==========================================================================
@@ -690,7 +690,7 @@ export class ClaudeMdSyncService {
   async saveVersion(
     configId: string,
     message: string,
-  ): Promise<{ success: boolean, versionId?: string, error?: string }> {
+  ): Promise<{ success: boolean; versionId?: string; error?: string }> {
     try {
       const response = await this.request<{ versionId: string }>(
         `/claude-md/version/${configId}`,
@@ -698,25 +698,25 @@ export class ClaudeMdSyncService {
           method: 'POST',
           body: JSON.stringify({ message }),
         },
-      )
+      );
 
       if (response.success && response.data) {
         return {
           success: true,
           versionId: response.data.versionId,
-        }
+        };
       }
 
       return {
         success: false,
         error: response.error || 'Failed to save version',
-      }
+      };
     }
     catch (error) {
       return {
         success: false,
         error: error instanceof Error ? error.message : String(error),
-      }
+      };
     }
   }
 
@@ -731,17 +731,17 @@ export class ClaudeMdSyncService {
       const response = await this.request<{ versions: VersionInfo[] }>(
         `/claude-md/versions/${configId}`,
         { method: 'GET' },
-      )
+      );
 
       if (response.success && response.data) {
-        return response.data.versions
+        return response.data.versions;
       }
 
-      return []
+      return [];
     }
     catch (error) {
-      console.error('Failed to list versions:', error)
-      return []
+      console.error('Failed to list versions:', error);
+      return [];
     }
   }
 
@@ -755,23 +755,23 @@ export class ClaudeMdSyncService {
   async rollbackToVersion(
     configId: string,
     versionId: string,
-  ): Promise<{ success: boolean, error?: string }> {
+  ): Promise<{ success: boolean; error?: string }> {
     try {
       const response = await this.request(
         `/claude-md/rollback/${configId}/${versionId}`,
         { method: 'POST' },
-      )
+      );
 
       return {
         success: response.success,
         error: response.error,
-      }
+      };
     }
     catch (error) {
       return {
         success: false,
         error: error instanceof Error ? error.message : String(error),
-      }
+      };
     }
   }
 
@@ -782,14 +782,14 @@ export class ClaudeMdSyncService {
   /**
    * Load templates data from file
    */
-  private loadTemplatesData(): { templates: ClaudeMdTemplate[], categories: TemplateCategory[] } {
+  private loadTemplatesData(): { templates: ClaudeMdTemplate[]; categories: TemplateCategory[] } {
     try {
-      const content = readFileSync(TEMPLATES_FILE, 'utf-8')
-      return JSON.parse(content)
+      const content = readFileSync(TEMPLATES_FILE, 'utf-8');
+      return JSON.parse(content);
     }
     catch (error) {
-      console.error('Failed to load templates data:', error)
-      return { templates: [], categories: [] }
+      console.error('Failed to load templates data:', error);
+      return { templates: [], categories: [] };
     }
   }
 
@@ -798,14 +798,14 @@ export class ClaudeMdSyncService {
    */
   private loadDeviceToken(): void {
     try {
-      const tokenFile = join(homedir(), '.ccjk', 'cloud-token.json')
+      const tokenFile = join(homedir(), '.ccjk', 'cloud-token.json');
       if (existsSync(tokenFile)) {
-        const data = JSON.parse(readFileSync(tokenFile, 'utf-8'))
-        this.deviceToken = data.deviceToken
+        const data = JSON.parse(readFileSync(tokenFile, 'utf-8'));
+        this.deviceToken = data.deviceToken;
       }
     }
     catch {
-      this.deviceToken = null
+      this.deviceToken = null;
     }
   }
 
@@ -815,24 +815,24 @@ export class ClaudeMdSyncService {
   private async request<T>(
     path: string,
     options: {
-      method: string
-      body?: string
-      timeout?: number
+      method: string;
+      body?: string;
+      timeout?: number;
     },
   ): Promise<CloudApiResponse<T>> {
-    const url = `${this.baseUrl}${path}`
-    const timeout = options.timeout || DEFAULT_TIMEOUT
+    const url = `${this.baseUrl}${path}`;
+    const timeout = options.timeout || DEFAULT_TIMEOUT;
 
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), timeout)
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
 
     try {
       const headers: Record<string, string> = {
         'Content-Type': 'application/json',
-      }
+      };
 
       if (this.deviceToken) {
-        headers['X-Device-Token'] = this.deviceToken
+        headers['X-Device-Token'] = this.deviceToken;
       }
 
       const response = await fetch(url, {
@@ -840,24 +840,24 @@ export class ClaudeMdSyncService {
         headers,
         body: options.body,
         signal: controller.signal,
-      })
+      });
 
-      clearTimeout(timeoutId)
+      clearTimeout(timeoutId);
 
-      const data = await response.json() as CloudApiResponse<T>
+      const data = await response.json() as CloudApiResponse<T>;
 
       if (!response.ok) {
         return {
           success: false,
           error: data.error || `HTTP ${response.status}: ${response.statusText}`,
           code: data.code || `HTTP_${response.status}`,
-        }
+        };
       }
 
-      return data
+      return data;
     }
     catch (error) {
-      clearTimeout(timeoutId)
+      clearTimeout(timeoutId);
 
       if (error instanceof Error) {
         if (error.name === 'AbortError') {
@@ -865,20 +865,20 @@ export class ClaudeMdSyncService {
             success: false,
             error: 'Request timeout',
             code: 'TIMEOUT',
-          }
+          };
         }
         return {
           success: false,
           error: error.message,
           code: 'NETWORK_ERROR',
-        }
+        };
       }
 
       return {
         success: false,
         error: String(error),
         code: 'UNKNOWN_ERROR',
-      }
+      };
     }
   }
 }
@@ -887,23 +887,23 @@ export class ClaudeMdSyncService {
 // Singleton Instance
 // ============================================================================
 
-let syncServiceInstance: ClaudeMdSyncService | null = null
+let syncServiceInstance: ClaudeMdSyncService | null = null;
 
 /**
  * Get singleton ClaudeMdSyncService instance
  */
 export function getClaudeMdSyncService(): ClaudeMdSyncService {
   if (!syncServiceInstance) {
-    syncServiceInstance = new ClaudeMdSyncService()
+    syncServiceInstance = new ClaudeMdSyncService();
   }
-  return syncServiceInstance
+  return syncServiceInstance;
 }
 
 /**
  * Reset singleton instance (for testing)
  */
 export function resetClaudeMdSyncService(): void {
-  syncServiceInstance = null
+  syncServiceInstance = null;
 }
 
 // ============================================================================
@@ -914,8 +914,8 @@ export function resetClaudeMdSyncService(): void {
  * List available templates
  */
 export async function listTemplates(options?: ListTemplatesOptions): Promise<ClaudeMdTemplate[]> {
-  const service = getClaudeMdSyncService()
-  return service.listTemplates(options)
+  const service = getClaudeMdSyncService();
+  return service.listTemplates(options);
 }
 
 /**
@@ -926,8 +926,8 @@ export async function applyTemplate(
   projectPath: string,
   variables?: Record<string, string>,
 ): Promise<ApplyTemplateResult> {
-  const service = getClaudeMdSyncService()
-  return service.applyTemplateToProject(templateId, projectPath, variables)
+  const service = getClaudeMdSyncService();
+  return service.applyTemplateToProject(templateId, projectPath, variables);
 }
 
 /**
@@ -936,15 +936,15 @@ export async function applyTemplate(
 export async function uploadClaudeMd(
   filePath: string,
   metadata: {
-    name: string
-    projectType: string
-    privacy: 'private' | 'team' | 'public'
-    description?: string
-    tags?: string[]
+    name: string;
+    projectType: string;
+    privacy: 'private' | 'team' | 'public';
+    description?: string;
+    tags?: string[];
   },
 ): Promise<UploadResult> {
-  const service = getClaudeMdSyncService()
-  return service.uploadClaudeMd(filePath, metadata)
+  const service = getClaudeMdSyncService();
+  return service.uploadClaudeMd(filePath, metadata);
 }
 
 /**
@@ -954,6 +954,6 @@ export async function downloadClaudeMd(
   configId: string,
   projectPath: string,
 ): Promise<DownloadResult> {
-  const service = getClaudeMdSyncService()
-  return service.downloadClaudeMd(configId, projectPath)
+  const service = getClaudeMdSyncService();
+  return service.downloadClaudeMd(configId, projectPath);
 }

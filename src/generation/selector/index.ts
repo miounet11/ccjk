@@ -1,1 +1,1 @@
-export * from './template-selector'
+export * from './template-selector';

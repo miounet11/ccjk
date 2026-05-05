@@ -22,7 +22,7 @@ export type {
   AgentValidationResult,
   CloudAgent,
   InstalledAgent,
-} from '../types/agent'
+} from '../types/agent';
 
 // Cloud Notification Service
 export {
@@ -36,7 +36,7 @@ export {
   sendNotification,
   unbindDevice,
   waitForReply,
-} from './cloud-notification'
+} from './cloud-notification';
 
 export type {
   BindRequest,
@@ -46,7 +46,7 @@ export type {
   CloudTokenStorage,
   NotifyOptions,
   NotifyResponse,
-} from './cloud-notification'
+} from './cloud-notification';
 
 // Cloud Agents Sync Service
 export {
@@ -63,7 +63,7 @@ export {
   searchAgents,
   syncAgents,
   uninstallAgent,
-} from './cloud/agents-sync'
+} from './cloud/agents-sync';
 
 // Cloud Auto Bootstrap Service (Silent, Zero-Config)
 export {
@@ -80,14 +80,14 @@ export {
   saveCloudState,
   sync,
   updateCloudState,
-} from './cloud/auto-bootstrap'
+} from './cloud/auto-bootstrap';
 
 export type {
   CloudState,
   DeviceInfo,
   HandshakeResponse,
   SilentUpgradeResult,
-} from './cloud/auto-bootstrap'
+} from './cloud/auto-bootstrap';
 
 // Silent Updater Service (Auto-upgrade all tools)
 export {
@@ -99,7 +99,7 @@ export {
   readUpgradeLog,
   shouldCheckForUpgrades,
   upgradeAll,
-} from './cloud/silent-updater'
+} from './cloud/silent-updater';
 
 export type {
   BatchUpgradeResult,
@@ -107,9 +107,41 @@ export type {
   UpgradableTool,
   UpgradeLogEntry,
   UpgradeResult,
-} from './cloud/silent-updater'
+} from './cloud/silent-updater';
 
 // Context Management Service
+
+export {
+  getResearchLoopReport,
+  getResearchLoopSessionStatus,
+  getResearchLoopStatus,
+  resumeResearchLoop,
+  runResearchRound,
+  startResearchLoop,
+  stopResearchLoop,
+} from './research-loop';
+
+export type {
+  ResearchLoopCliOverrides,
+  ResearchLoopReport,
+  ResearchLoopRoundRecord,
+  ResearchLoopSessionMetadata,
+  ResearchLoopStatus,
+  ResearchLoopStatusValue,
+  ResearchLoopStopReason,
+} from './research-loop';
+
+export {
+  DEFAULT_RESEARCH_PROGRAM_PATH,
+  initResearchProgram,
+  parseResearchProgram,
+  readResearchProgram,
+} from './research-program';
+
+export type {
+  ResearchProgram,
+  ResearchProgramObjective,
+} from './research-program';
 
 export {
   getBestResearchResult,
@@ -119,7 +151,7 @@ export {
   listResearchResults,
   listResearchSessions,
   runResearchExperiment,
-} from './research-runner'
+} from './research-runner';
 
 export type {
   ResearchPhase,
@@ -130,36 +162,4 @@ export type {
   ResearchSessionStatus,
   ResearchSessionSummary,
   ResearchVerdict,
-} from './research-runner'
-
-export {
-  DEFAULT_RESEARCH_PROGRAM_PATH,
-  initResearchProgram,
-  parseResearchProgram,
-  readResearchProgram,
-} from './research-program'
-
-export type {
-  ResearchProgram,
-  ResearchProgramObjective,
-} from './research-program'
-
-export {
-  getResearchLoopReport,
-  getResearchLoopSessionStatus,
-  getResearchLoopStatus,
-  resumeResearchLoop,
-  runResearchRound,
-  startResearchLoop,
-  stopResearchLoop,
-} from './research-loop'
-
-export type {
-  ResearchLoopCliOverrides,
-  ResearchLoopReport,
-  ResearchLoopRoundRecord,
-  ResearchLoopSessionMetadata,
-  ResearchLoopStatus,
-  ResearchLoopStatusValue,
-  ResearchLoopStopReason,
-} from './research-loop'
+} from './research-runner';

@@ -1,5 +1,5 @@
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { useState } from 'react';
+import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 interface PermissionCardProps {
   requestId: string;
@@ -37,7 +37,7 @@ export function PermissionCard({
             setResponded(true);
           },
         },
-      ]
+      ],
     );
   };
 
@@ -58,7 +58,7 @@ export function PermissionCard({
             setResponded(true);
           },
         },
-      ]
+      ],
     );
   };
 

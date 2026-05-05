@@ -6,8 +6,8 @@
  * @module context/health-alerts-examples
  */
 
-import { join } from 'pathe'
-import { AlertSeverity, HealthAlertsManager, runStartupHealthCheck } from './health-alerts'
+import { join } from 'pathe';
+import { AlertSeverity, HealthAlertsManager, runStartupHealthCheck } from './health-alerts';
 
 /**
  * Example 1: Run health check on CLI startup
@@ -18,7 +18,7 @@ export async function example1_StartupCheck() {
     '.ccjk',
     'context',
     'contexts.db',
-  )
+  );
 
   // Run startup health check (displays alerts automatically)
   const alerts = await runStartupHealthCheck(dbPath, {
@@ -26,9 +26,9 @@ export async function example1_StartupCheck() {
     walThresholdMB: 10, // Alert if WAL > 10MB
     diskUtilizationThreshold: 70, // Alert if utilization < 70%
     backupAgeThresholdDays: 7, // Alert if backup > 7 days old
-  })
+  });
 
-  console.log(`Found ${alerts.length} alerts`)
+  console.log(`Found ${alerts.length} alerts`);
 }
 
 /**
@@ -40,29 +40,29 @@ export async function example2_ManualCheck() {
     '.ccjk',
     'context',
     'contexts.db',
-  )
+  );
 
   const manager = new HealthAlertsManager(dbPath, {
     walThresholdMB: 5, // More aggressive threshold
     diskUtilizationThreshold: 80, // Higher threshold
     backupAgeThresholdDays: 3, // More frequent backups
     enableHistory: true, // Log to history
-  })
+  });
 
   try {
-    const alerts = await manager.checkHealth()
+    const alerts = await manager.checkHealth();
 
     // Filter by severity
-    const critical = alerts.filter(a => a.severity === AlertSeverity.CRITICAL)
-    const warnings = alerts.filter(a => a.severity === AlertSeverity.WARNING)
+    const critical = alerts.filter(a => a.severity === AlertSeverity.CRITICAL);
+    const warnings = alerts.filter(a => a.severity === AlertSeverity.WARNING);
 
-    console.log(`Critical: ${critical.length}, Warnings: ${warnings.length}`)
+    console.log(`Critical: ${critical.length}, Warnings: ${warnings.length}`);
 
     // Display alerts
-    manager.displayAlerts(alerts)
+    manager.displayAlerts(alerts);
   }
   finally {
-    manager.close()
+    manager.close();
   }
 }
 
@@ -75,27 +75,27 @@ export async function example3_AlertHistory() {
     '.ccjk',
     'context',
     'contexts.db',
-  )
+  );
 
-  const manager = new HealthAlertsManager(dbPath)
+  const manager = new HealthAlertsManager(dbPath);
 
   try {
     // Get recent history
-    const history = await manager.getHistory(10)
-    console.log(`Found ${history.length} historical entries`)
+    const history = await manager.getHistory(10);
+    console.log(`Found ${history.length} historical entries`);
 
     // Get summary statistics
-    const summary = await manager.getSummary()
-    console.log('Summary:', summary)
+    const summary = await manager.getSummary();
+    console.log('Summary:', summary);
 
     // Mark latest entry as resolved
     if (history.length > 0 && !history[0].resolved) {
-      await manager.markResolved(history[0].timestamp)
-      console.log('Marked latest alert as resolved')
+      await manager.markResolved(history[0].timestamp);
+      console.log('Marked latest alert as resolved');
     }
   }
   finally {
-    manager.close()
+    manager.close();
   }
 }
 
@@ -108,17 +108,17 @@ export async function example4_SilentMode() {
     '.ccjk',
     'context',
     'contexts.db',
-  )
+  );
 
   // Run in silent mode (no output)
-  const alerts = await runStartupHealthCheck(dbPath, { silent: true })
+  const alerts = await runStartupHealthCheck(dbPath, { silent: true });
 
   // Process alerts programmatically
-  const hasCritical = alerts.some(a => a.severity === AlertSeverity.CRITICAL)
+  const hasCritical = alerts.some(a => a.severity === AlertSeverity.CRITICAL);
 
   if (hasCritical) {
     // Exit with error code for CI/CD
-    process.exit(1)
+    process.exit(1);
   }
 }
 
@@ -131,36 +131,36 @@ export async function example5_CustomProcessing() {
     '.ccjk',
     'context',
     'contexts.db',
-  )
+  );
 
-  const manager = new HealthAlertsManager(dbPath)
+  const manager = new HealthAlertsManager(dbPath);
 
   try {
-    const alerts = await manager.checkHealth()
+    const alerts = await manager.checkHealth();
 
     // Group by category
     const byCategory = alerts.reduce((acc, alert) => {
       if (!acc[alert.category]) {
-        acc[alert.category] = []
+        acc[alert.category] = [];
       }
-      acc[alert.category].push(alert)
-      return acc
-    }, {} as Record<string, typeof alerts>)
+      acc[alert.category].push(alert);
+      return acc;
+    }, {} as Record<string, typeof alerts>);
 
     // Process each category
     for (const [category, categoryAlerts] of Object.entries(byCategory)) {
-      console.log(`\n${category.toUpperCase()}: ${categoryAlerts.length} alerts`)
+      console.log(`\n${category.toUpperCase()}: ${categoryAlerts.length} alerts`);
 
       for (const alert of categoryAlerts) {
-        console.log(`  [${alert.severity}] ${alert.message}`)
+        console.log(`  [${alert.severity}] ${alert.message}`);
         if (alert.action) {
-          console.log(`    → ${alert.action}`)
+          console.log(`    → ${alert.action}`);
         }
       }
     }
   }
   finally {
-    manager.close()
+    manager.close();
   }
 }
 
@@ -173,13 +173,13 @@ export async function example6_MonitoringIntegration() {
     '.ccjk',
     'context',
     'contexts.db',
-  )
+  );
 
-  const manager = new HealthAlertsManager(dbPath)
+  const manager = new HealthAlertsManager(dbPath);
 
   try {
-    const alerts = await manager.checkHealth()
-    const summary = await manager.getSummary()
+    const alerts = await manager.checkHealth();
+    const summary = await manager.getSummary();
 
     // Format for monitoring system (e.g., Prometheus, Datadog)
     const metrics = {
@@ -190,10 +190,10 @@ export async function example6_MonitoringIntegration() {
       database_health_alerts_info: summary.infoCount,
       database_health_alerts_unresolved: summary.unresolvedCount,
       database_health_status: alerts.some(a => a.severity === AlertSeverity.CRITICAL) ? 'critical' : 'ok',
-    }
+    };
 
     // Send to monitoring system
-    console.log('Metrics:', JSON.stringify(metrics, null, 2))
+    console.log('Metrics:', JSON.stringify(metrics, null, 2));
 
     // Could send to external service:
     // await fetch('https://monitoring.example.com/metrics', {
@@ -202,7 +202,7 @@ export async function example6_MonitoringIntegration() {
     // })
   }
   finally {
-    manager.close()
+    manager.close();
   }
 }
 
@@ -215,66 +215,66 @@ export async function example7_AutomatedRecovery() {
     '.ccjk',
     'context',
     'contexts.db',
-  )
+  );
 
-  const manager = new HealthAlertsManager(dbPath)
+  const manager = new HealthAlertsManager(dbPath);
 
   try {
-    const alerts = await manager.checkHealth()
+    const alerts = await manager.checkHealth();
 
     // Auto-fix common issues
     for (const alert of alerts) {
       if (alert.category === 'wal' && alert.severity === AlertSeverity.WARNING) {
-        console.log('Auto-fixing: Checkpointing WAL...')
-        const { DatabaseHealthMonitor } = await import('./health-check')
-        const monitor = new DatabaseHealthMonitor(dbPath)
-        await monitor.checkpoint('RESTART')
-        monitor.close()
+        console.log('Auto-fixing: Checkpointing WAL...');
+        const { DatabaseHealthMonitor } = await import('./health-check');
+        const monitor = new DatabaseHealthMonitor(dbPath);
+        await monitor.checkpoint('RESTART');
+        monitor.close();
       }
 
       if (alert.category === 'disk' && alert.severity === AlertSeverity.WARNING) {
-        console.log('Auto-fixing: Running VACUUM...')
-        const { DatabaseHealthMonitor } = await import('./health-check')
-        const monitor = new DatabaseHealthMonitor(dbPath)
-        const db = (monitor as any).db
-        db.prepare('VACUUM').run()
-        monitor.close()
+        console.log('Auto-fixing: Running VACUUM...');
+        const { DatabaseHealthMonitor } = await import('./health-check');
+        const monitor = new DatabaseHealthMonitor(dbPath);
+        const db = (monitor as any).db;
+        db.prepare('VACUUM').run();
+        monitor.close();
       }
 
       if (alert.category === 'backup' && alert.severity === AlertSeverity.WARNING) {
-        console.log('Auto-fixing: Creating backup...')
-        const { DatabaseHealthMonitor } = await import('./health-check')
-        const monitor = new DatabaseHealthMonitor(dbPath)
-        await monitor.backup('auto')
-        monitor.close()
+        console.log('Auto-fixing: Creating backup...');
+        const { DatabaseHealthMonitor } = await import('./health-check');
+        const monitor = new DatabaseHealthMonitor(dbPath);
+        await monitor.backup('auto');
+        monitor.close();
       }
     }
 
     // Re-check after fixes
-    const newAlerts = await manager.checkHealth()
-    console.log(`Alerts reduced from ${alerts.length} to ${newAlerts.length}`)
+    const newAlerts = await manager.checkHealth();
+    console.log(`Alerts reduced from ${alerts.length} to ${newAlerts.length}`);
   }
   finally {
-    manager.close()
+    manager.close();
   }
 }
 
 // Run examples if executed directly
 if (require.main === module) {
   (async () => {
-    console.log('\n=== Example 1: Startup Check ===')
-    await example1_StartupCheck()
+    console.log('\n=== Example 1: Startup Check ===');
+    await example1_StartupCheck();
 
-    console.log('\n=== Example 2: Manual Check ===')
-    await example2_ManualCheck()
+    console.log('\n=== Example 2: Manual Check ===');
+    await example2_ManualCheck();
 
-    console.log('\n=== Example 3: Alert History ===')
-    await example3_AlertHistory()
+    console.log('\n=== Example 3: Alert History ===');
+    await example3_AlertHistory();
 
-    console.log('\n=== Example 5: Custom Processing ===')
-    await example5_CustomProcessing()
+    console.log('\n=== Example 5: Custom Processing ===');
+    await example5_CustomProcessing();
 
-    console.log('\n=== Example 6: Monitoring Integration ===')
-    await example6_MonitoringIntegration()
-  })()
+    console.log('\n=== Example 6: Monitoring Integration ===');
+    await example6_MonitoringIntegration();
+  })();
 }

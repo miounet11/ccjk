@@ -8,35 +8,35 @@
  * preventing unnecessary token overhead from unused services.
  */
 
-import { chmodSync, existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs'
-import { homedir } from 'node:os'
-import { dirname, join } from 'pathe'
-import { normalizeClaudeFamilySettings } from './claude-settings-normalizer'
-import { readMcpConfig } from './claude-config'
+import { chmodSync, existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
+import { homedir } from 'node:os';
+import { dirname, join } from 'pathe';
+import { readMcpConfig } from './claude-config';
+import { normalizeClaudeFamilySettings } from './claude-settings-normalizer';
 
 // ==================== Constants ====================
 
-const CCJK_DIR = join(homedir(), '.ccjk')
-const GATEKEEPER_CONFIG_FILE = join(CCJK_DIR, 'mcp-gatekeeper.json')
-const HOOKS_DIR = join(homedir(), '.claude', 'hooks')
-const HOOK_SCRIPT_FILE = join(HOOKS_DIR, 'mcp-gatekeeper.sh')
-const SETTINGS_FILE = join(homedir(), '.claude', 'settings.json')
+const CCJK_DIR = join(homedir(), '.ccjk');
+const GATEKEEPER_CONFIG_FILE = join(CCJK_DIR, 'mcp-gatekeeper.json');
+const HOOKS_DIR = join(homedir(), '.claude', 'hooks');
+const HOOK_SCRIPT_FILE = join(HOOKS_DIR, 'mcp-gatekeeper.sh');
+const SETTINGS_FILE = join(homedir(), '.claude', 'settings.json');
 
 /** Services with heavy tool counts that should default to on-demand */
-const ON_DEMAND_SERVICES = new Set(['Playwright', 'serena'])
+const ON_DEMAND_SERVICES = new Set(['Playwright', 'serena']);
 
 // ==================== Types ====================
 
-export type ServiceMode = 'always' | 'on-demand'
+export type ServiceMode = 'always' | 'on-demand';
 
 export interface ServiceGateConfig {
-  enabled: boolean
-  mode: ServiceMode
+  enabled: boolean;
+  mode: ServiceMode;
 }
 
 export interface GatekeeperConfig {
-  enabled: boolean
-  services: Record<string, ServiceGateConfig>
+  enabled: boolean;
+  services: Record<string, ServiceGateConfig>;
 }
 
 // ==================== Config Management ====================
@@ -47,12 +47,12 @@ export interface GatekeeperConfig {
 export function readGatekeeperConfig(): GatekeeperConfig | null {
   try {
     if (!existsSync(GATEKEEPER_CONFIG_FILE))
-      return null
-    const content = readFileSync(GATEKEEPER_CONFIG_FILE, 'utf-8')
-    return JSON.parse(content)
+      return null;
+    const content = readFileSync(GATEKEEPER_CONFIG_FILE, 'utf-8');
+    return JSON.parse(content);
   }
   catch {
-    return null
+    return null;
   }
 }
 
@@ -60,29 +60,29 @@ export function readGatekeeperConfig(): GatekeeperConfig | null {
  * Write gatekeeper configuration
  */
 export function writeGatekeeperConfig(config: GatekeeperConfig): void {
-  const dir = dirname(GATEKEEPER_CONFIG_FILE)
+  const dir = dirname(GATEKEEPER_CONFIG_FILE);
   if (!existsSync(dir)) {
-    mkdirSync(dir, { recursive: true })
+    mkdirSync(dir, { recursive: true });
   }
-  writeFileSync(GATEKEEPER_CONFIG_FILE, JSON.stringify(config, null, 2), 'utf-8')
+  writeFileSync(GATEKEEPER_CONFIG_FILE, JSON.stringify(config, null, 2), 'utf-8');
 }
 
 /**
  * Get default gatekeeper config based on installed MCP services
  */
 export function getDefaultGatekeeperConfig(): GatekeeperConfig {
-  const mcpConfig = readMcpConfig()
-  const servers = mcpConfig?.mcpServers || {}
-  const services: Record<string, ServiceGateConfig> = {}
+  const mcpConfig = readMcpConfig();
+  const servers = mcpConfig?.mcpServers || {};
+  const services: Record<string, ServiceGateConfig> = {};
 
   for (const id of Object.keys(servers)) {
     services[id] = {
       enabled: !ON_DEMAND_SERVICES.has(id),
       mode: ON_DEMAND_SERVICES.has(id) ? 'on-demand' : 'always',
-    }
+    };
   }
 
-  return { enabled: true, services }
+  return { enabled: true, services };
 }
 
 /**
@@ -90,23 +90,23 @@ export function getDefaultGatekeeperConfig(): GatekeeperConfig {
  * Adds new services, removes stale ones, preserves user settings for existing.
  */
 export function syncGatekeeperFromMcp(): GatekeeperConfig {
-  const existing = readGatekeeperConfig()
-  const mcpConfig = readMcpConfig()
-  const installedIds = new Set(Object.keys(mcpConfig?.mcpServers || {}))
+  const existing = readGatekeeperConfig();
+  const mcpConfig = readMcpConfig();
+  const installedIds = new Set(Object.keys(mcpConfig?.mcpServers || {}));
 
-  const services: Record<string, ServiceGateConfig> = {}
+  const services: Record<string, ServiceGateConfig> = {};
 
   for (const id of installedIds) {
     if (existing?.services[id]) {
       // Preserve user's existing setting
-      services[id] = existing.services[id]
+      services[id] = existing.services[id];
     }
     else {
       // New service — use smart default
       services[id] = {
         enabled: !ON_DEMAND_SERVICES.has(id),
         mode: ON_DEMAND_SERVICES.has(id) ? 'on-demand' : 'always',
-      }
+      };
     }
   }
   // Stale services (in gatekeeper but not in MCP) are dropped
@@ -114,10 +114,10 @@ export function syncGatekeeperFromMcp(): GatekeeperConfig {
   const config: GatekeeperConfig = {
     enabled: existing?.enabled ?? true,
     services,
-  }
+  };
 
-  writeGatekeeperConfig(config)
-  return config
+  writeGatekeeperConfig(config);
+  return config;
 }
 
 // ==================== Service Control ====================
@@ -126,35 +126,35 @@ export function syncGatekeeperFromMcp(): GatekeeperConfig {
  * Enable a specific MCP service in the gatekeeper
  */
 export function enableService(serviceId: string): boolean {
-  const config = readGatekeeperConfig() || getDefaultGatekeeperConfig()
+  const config = readGatekeeperConfig() || getDefaultGatekeeperConfig();
   if (!config.services[serviceId]) {
-    return false
+    return false;
   }
-  config.services[serviceId].enabled = true
-  writeGatekeeperConfig(config)
-  return true
+  config.services[serviceId].enabled = true;
+  writeGatekeeperConfig(config);
+  return true;
 }
 
 /**
  * Disable a specific MCP service in the gatekeeper
  */
 export function disableService(serviceId: string): boolean {
-  const config = readGatekeeperConfig() || getDefaultGatekeeperConfig()
+  const config = readGatekeeperConfig() || getDefaultGatekeeperConfig();
   if (!config.services[serviceId]) {
-    return false
+    return false;
   }
-  config.services[serviceId].enabled = false
-  writeGatekeeperConfig(config)
-  return true
+  config.services[serviceId].enabled = false;
+  writeGatekeeperConfig(config);
+  return true;
 }
 
 /**
  * Toggle the entire gatekeeper on/off
  */
 export function toggleGatekeeper(enabled: boolean): void {
-  const config = readGatekeeperConfig() || getDefaultGatekeeperConfig()
-  config.enabled = enabled
-  writeGatekeeperConfig(config)
+  const config = readGatekeeperConfig() || getDefaultGatekeeperConfig();
+  config.enabled = enabled;
+  writeGatekeeperConfig(config);
 }
 
 // ==================== Hook Script ====================
@@ -231,7 +231,7 @@ try {
 ' "$TOOL_INPUT" 2>/dev/null
 
 exit $?
-`
+`;
 }
 
 /**
@@ -239,12 +239,12 @@ exit $?
  */
 export function installHookScript(): void {
   if (!existsSync(HOOKS_DIR)) {
-    mkdirSync(HOOKS_DIR, { recursive: true })
+    mkdirSync(HOOKS_DIR, { recursive: true });
   }
 
-  const script = generateHookScript()
-  writeFileSync(HOOK_SCRIPT_FILE, script, 'utf-8')
-  chmodSync(HOOK_SCRIPT_FILE, 0o755)
+  const script = generateHookScript();
+  writeFileSync(HOOK_SCRIPT_FILE, script, 'utf-8');
+  chmodSync(HOOK_SCRIPT_FILE, 0o755);
 }
 
 /**
@@ -252,11 +252,11 @@ export function installHookScript(): void {
  * Adds a PreToolUse hook that matches all MCP tool calls.
  */
 export function registerHookInSettings(): void {
-  let settings: Record<string, unknown> = {}
+  let settings: Record<string, unknown> = {};
 
   if (existsSync(SETTINGS_FILE)) {
     try {
-      settings = JSON.parse(readFileSync(SETTINGS_FILE, 'utf-8'))
+      settings = JSON.parse(readFileSync(SETTINGS_FILE, 'utf-8'));
     }
     catch {
       // If settings is corrupt, start fresh
@@ -265,10 +265,10 @@ export function registerHookInSettings(): void {
 
   // Initialize hooks if not present
   if (!settings.hooks || typeof settings.hooks !== 'object') {
-    settings.hooks = {}
+    settings.hooks = {};
   }
 
-  const hooks = settings.hooks as Record<string, unknown[]>
+  const hooks = settings.hooks as Record<string, unknown[]>;
 
   // Define the gatekeeper hook entry
   const gatekeeperHook = {
@@ -277,34 +277,34 @@ export function registerHookInSettings(): void {
       type: 'command',
       command: HOOK_SCRIPT_FILE,
     }],
-  }
+  };
 
   // Check if gatekeeper hook already registered in PreToolUse
   if (!hooks.PreToolUse) {
-    hooks.PreToolUse = []
+    hooks.PreToolUse = [];
   }
 
-  const preToolUse = hooks.PreToolUse as Array<{ matcher?: string, hooks?: unknown[] }>
+  const preToolUse = hooks.PreToolUse as Array<{ matcher?: string; hooks?: unknown[] }>;
   const existingIdx = preToolUse.findIndex(
     h => h.hooks?.some((hh: any) => typeof hh === 'object' && hh.command?.includes('mcp-gatekeeper')),
-  )
+  );
 
   if (existingIdx >= 0) {
     // Update existing hook
-    preToolUse[existingIdx] = gatekeeperHook
+    preToolUse[existingIdx] = gatekeeperHook;
   }
   else {
     // Add new hook
-    preToolUse.push(gatekeeperHook)
+    preToolUse.push(gatekeeperHook);
   }
 
   // Write settings back
-  const dir = dirname(SETTINGS_FILE)
+  const dir = dirname(SETTINGS_FILE);
   if (!existsSync(dir)) {
-    mkdirSync(dir, { recursive: true })
+    mkdirSync(dir, { recursive: true });
   }
-  normalizeClaudeFamilySettings(settings)
-  writeFileSync(SETTINGS_FILE, JSON.stringify(settings, null, 2), 'utf-8')
+  normalizeClaudeFamilySettings(settings);
+  writeFileSync(SETTINGS_FILE, JSON.stringify(settings, null, 2), 'utf-8');
 }
 
 /**
@@ -312,29 +312,29 @@ export function registerHookInSettings(): void {
  */
 export function unregisterHookFromSettings(): void {
   if (!existsSync(SETTINGS_FILE))
-    return
+    return;
 
   try {
-    const settings = JSON.parse(readFileSync(SETTINGS_FILE, 'utf-8'))
-    const hooks = settings.hooks as Record<string, unknown[]> | undefined
+    const settings = JSON.parse(readFileSync(SETTINGS_FILE, 'utf-8'));
+    const hooks = settings.hooks as Record<string, unknown[]> | undefined;
     if (!hooks?.PreToolUse)
-      return
+      return;
 
-    const preToolUse = hooks.PreToolUse as Array<{ matcher?: string, hooks?: unknown[] }>
+    const preToolUse = hooks.PreToolUse as Array<{ matcher?: string; hooks?: unknown[] }>;
     hooks.PreToolUse = preToolUse.filter(
       h => !h.hooks?.some((hh: any) => typeof hh === 'object' && hh.command?.includes('mcp-gatekeeper')),
-    )
+    );
 
     // Clean up empty hooks object
     if (hooks.PreToolUse.length === 0) {
-      delete hooks.PreToolUse
+      delete hooks.PreToolUse;
     }
     if (Object.keys(hooks).length === 0) {
-      settings.hooks = {}
+      settings.hooks = {};
     }
 
-    normalizeClaudeFamilySettings(settings)
-    writeFileSync(SETTINGS_FILE, JSON.stringify(settings, null, 2), 'utf-8')
+    normalizeClaudeFamilySettings(settings);
+    writeFileSync(SETTINGS_FILE, JSON.stringify(settings, null, 2), 'utf-8');
   }
   catch {
     // Silently fail
@@ -351,26 +351,26 @@ export function unregisterHookFromSettings(): void {
  */
 export function installGatekeeper(): GatekeeperConfig {
   // Sync config with installed MCP services
-  const config = syncGatekeeperFromMcp()
+  const config = syncGatekeeperFromMcp();
 
   // Install hook script
-  installHookScript()
+  installHookScript();
 
   // Register in settings.json
-  registerHookInSettings()
+  registerHookInSettings();
 
-  return config
+  return config;
 }
 
 /**
  * Uninstall the gatekeeper system
  */
 export function uninstallGatekeeper(): void {
-  unregisterHookFromSettings()
+  unregisterHookFromSettings();
 
   // Optionally remove hook script (keep config for re-enable)
   if (existsSync(HOOK_SCRIPT_FILE)) {
-    unlinkSync(HOOK_SCRIPT_FILE)
+    unlinkSync(HOOK_SCRIPT_FILE);
   }
 }
 
@@ -380,15 +380,15 @@ export function uninstallGatekeeper(): void {
  * Get gatekeeper status summary
  */
 export function getGatekeeperStatus(): {
-  installed: boolean
-  enabled: boolean
-  services: Array<{ id: string, enabled: boolean, mode: ServiceMode }>
+  installed: boolean;
+  enabled: boolean;
+  services: Array<{ id: string; enabled: boolean; mode: ServiceMode }>;
 } {
-  const config = readGatekeeperConfig()
-  const hookExists = existsSync(HOOK_SCRIPT_FILE)
+  const config = readGatekeeperConfig();
+  const hookExists = existsSync(HOOK_SCRIPT_FILE);
 
   if (!config) {
-    return { installed: hookExists, enabled: false, services: [] }
+    return { installed: hookExists, enabled: false, services: [] };
   }
 
   return {
@@ -399,5 +399,5 @@ export function getGatekeeperStatus(): {
       enabled: svc.enabled,
       mode: svc.mode,
     })),
-  }
+  };
 }

@@ -3,46 +3,46 @@
  * Handles migration from legacy configurations to new schema
  */
 
-import type { ClaudeSettings, FileSuggestionConfig, ThinkingConfig } from '../types/config'
-import { SETTINGS_FILE } from '../constants'
-import { normalizeClaudeFamilySettings } from '../utils/claude-settings-normalizer'
-import { exists } from '../utils/fs-operations'
-import { readJsonConfig, writeJsonConfig } from '../utils/json-config'
-import { deepMerge } from '../utils/object-utils'
+import type { ClaudeSettings, FileSuggestionConfig, ThinkingConfig } from '../types/config';
+import { SETTINGS_FILE } from '../constants';
+import { normalizeClaudeFamilySettings } from '../utils/claude-settings-normalizer';
+import { exists } from '../utils/fs-operations';
+import { readJsonConfig, writeJsonConfig } from '../utils/json-config';
+import { deepMerge } from '../utils/object-utils';
 
 /**
  * Migration version for tracking
  */
-export const MIGRATION_VERSION = '3.8.0'
+export const MIGRATION_VERSION = '3.8.0';
 
 /**
  * Legacy configuration interface for migration
  */
 interface LegacyClaudeSettings {
-  model?: string
+  model?: string;
   env?: {
-    ANTHROPIC_API_KEY?: string
-    ANTHROPIC_AUTH_TOKEN?: string
-    ANTHROPIC_BASE_URL?: string
-    [key: string]: string | undefined
-  }
+    ANTHROPIC_API_KEY?: string;
+    ANTHROPIC_AUTH_TOKEN?: string;
+    ANTHROPIC_BASE_URL?: string;
+    [key: string]: string | undefined;
+  };
   permissions?: {
-    allow?: string[]
-  }
+    allow?: string[];
+  };
   chat?: {
-    alwaysApprove?: string[]
-  }
+    alwaysApprove?: string[];
+  };
   experimental?: {
-    [key: string]: any
-  }
+    [key: string]: any;
+  };
   statusLine?: {
-    type: 'command'
-    command: string
-    padding?: number
-  }
-  outputStyle?: string
-  mcpServers?: Record<string, any>
-  [key: string]: any
+    type: 'command';
+    command: string;
+    padding?: number;
+  };
+  outputStyle?: string;
+  mcpServers?: Record<string, any>;
+  [key: string]: any;
 }
 
 /**
@@ -95,54 +95,54 @@ export const DEFAULT_SETTINGS_V2: Partial<ClaudeSettings> = {
 
   // Browser automation - default false for security
   allowBrowser: false,
-}
+};
 
 /**
  * Validate configuration schema
  * Returns validation errors if any
  */
 export function validateConfig(config: ClaudeSettings): string[] {
-  const errors: string[] = []
+  const errors: string[] = [];
 
   // Validate model if set
   if (config.model !== undefined && (typeof config.model !== 'string' || !config.model.trim())) {
-    errors.push(`Invalid model: ${config.model}`)
+    errors.push(`Invalid model: ${config.model}`);
   }
 
   // Validate thinking budget
   if (config.thinking?.budgetTokens !== undefined) {
     if (typeof config.thinking.budgetTokens !== 'number' || config.thinking.budgetTokens < 0) {
-      errors.push('thinking.budgetTokens must be a positive number')
+      errors.push('thinking.budgetTokens must be a positive number');
     }
   }
 
   // Validate auto.mcp
   if (config.auto?.mcp !== undefined) {
     if (typeof config.auto.mcp !== 'number' || config.auto.mcp < 0) {
-      errors.push('auto.mcp must be a positive number')
+      errors.push('auto.mcp must be a positive number');
     }
   }
 
   // Validate index.maxFiles
   if (config.index?.maxFiles !== undefined) {
     if (typeof config.index.maxFiles !== 'number' || config.index.maxFiles < 0) {
-      errors.push('index.maxFiles must be a positive number')
+      errors.push('index.maxFiles must be a positive number');
     }
   }
 
   // Validate index.maxFileSize
   if (config.index?.maxFileSize !== undefined) {
     if (typeof config.index.maxFileSize !== 'number' || config.index.maxFileSize < 0) {
-      errors.push('index.maxFileSize must be a positive number')
+      errors.push('index.maxFileSize must be a positive number');
     }
   }
 
   // Validate disallowedTools is an array
   if (config.disallowedTools && !Array.isArray(config.disallowedTools)) {
-    errors.push('disallowedTools must be an array')
+    errors.push('disallowedTools must be an array');
   }
 
-  return errors
+  return errors;
 }
 
 /**
@@ -150,80 +150,80 @@ export function validateConfig(config: ClaudeSettings): string[] {
  * Preserves user settings while adding new defaults
  */
 export function migrateConfig(legacy: LegacyClaudeSettings): ClaudeSettings {
-  const migrated: ClaudeSettings = { ...legacy }
+  const migrated: ClaudeSettings = { ...legacy };
 
   // Ensure permissions.deny exists (new in 2.0)
   if (migrated.permissions && !migrated.permissions.deny) {
-    migrated.permissions.deny = []
+    migrated.permissions.deny = [];
   }
 
   // Add new fields with defaults if not present
   if (migrated.language === undefined) {
-    migrated.language = DEFAULT_SETTINGS_V2.language
+    migrated.language = DEFAULT_SETTINGS_V2.language;
   }
 
   if (migrated.plansDirectory === undefined) {
-    migrated.plansDirectory = DEFAULT_SETTINGS_V2.plansDirectory
+    migrated.plansDirectory = DEFAULT_SETTINGS_V2.plansDirectory;
   }
 
   if (migrated.showTurnDuration === undefined) {
-    migrated.showTurnDuration = DEFAULT_SETTINGS_V2.showTurnDuration
+    migrated.showTurnDuration = DEFAULT_SETTINGS_V2.showTurnDuration;
   }
 
   if (migrated.respectGitignore === undefined) {
-    migrated.respectGitignore = DEFAULT_SETTINGS_V2.respectGitignore
+    migrated.respectGitignore = DEFAULT_SETTINGS_V2.respectGitignore;
   }
 
   if (migrated.auto === undefined) {
-    migrated.auto = { ...DEFAULT_SETTINGS_V2.auto }
+    migrated.auto = { ...DEFAULT_SETTINGS_V2.auto };
   }
 
   if (migrated.agent === undefined) {
-    migrated.agent = DEFAULT_SETTINGS_V2.agent
+    migrated.agent = DEFAULT_SETTINGS_V2.agent;
   }
 
   if (migrated.thinking === undefined) {
-    migrated.thinking = { ...DEFAULT_SETTINGS_V2.thinking as ThinkingConfig }
+    migrated.thinking = { ...DEFAULT_SETTINGS_V2.thinking as ThinkingConfig };
   }
 
   if (migrated.fileSuggestion === undefined) {
-    migrated.fileSuggestion = { ...DEFAULT_SETTINGS_V2.fileSuggestion as FileSuggestionConfig }
+    migrated.fileSuggestion = { ...DEFAULT_SETTINGS_V2.fileSuggestion as FileSuggestionConfig };
   }
 
   if (migrated.allowUnsandboxedCommands === undefined) {
-    migrated.allowUnsandboxedCommands = DEFAULT_SETTINGS_V2.allowUnsandboxedCommands
+    migrated.allowUnsandboxedCommands = DEFAULT_SETTINGS_V2.allowUnsandboxedCommands;
   }
 
   if (migrated.disallowedTools === undefined) {
-    migrated.disallowedTools = [...(DEFAULT_SETTINGS_V2.disallowedTools || [])]
+    migrated.disallowedTools = [...(DEFAULT_SETTINGS_V2.disallowedTools || [])];
   }
 
   if (migrated.attribution === undefined) {
-    migrated.attribution = DEFAULT_SETTINGS_V2.attribution
+    migrated.attribution = DEFAULT_SETTINGS_V2.attribution;
   }
 
   if (migrated.index === undefined) {
-    migrated.index = { ...DEFAULT_SETTINGS_V2.index }
+    migrated.index = { ...DEFAULT_SETTINGS_V2.index };
   }
 
   if (migrated.allowBrowser === undefined) {
-    migrated.allowBrowser = DEFAULT_SETTINGS_V2.allowBrowser
+    migrated.allowBrowser = DEFAULT_SETTINGS_V2.allowBrowser;
   }
 
   // ── Silent migrations (each MUST be idempotent) ─────────────────────────
 
   // v9.11: Ensure file tool permissions exist — without these Claude Code blocks all file ops
-  const FILE_TOOL_PERMISSIONS = ['Read(*)', 'Write(*)', 'Edit(*)', 'NotebookEdit(*)']
+  const FILE_TOOL_PERMISSIONS = ['Read(*)', 'Write(*)', 'Edit(*)', 'NotebookEdit(*)'];
   if (migrated.permissions?.allow) {
-    const missing = FILE_TOOL_PERMISSIONS.filter(p => !migrated.permissions!.allow!.includes(p))
+    const missing = FILE_TOOL_PERMISSIONS.filter(p => !migrated.permissions!.allow!.includes(p));
     if (missing.length > 0) {
-      migrated.permissions.allow = [...migrated.permissions.allow, ...missing]
+      migrated.permissions.allow = [...migrated.permissions.allow, ...missing];
     }
   }
 
   // ── Add future silent migrations above this line ────────────────────────
 
-  return migrated
+  return migrated;
 }
 
 /**
@@ -231,25 +231,25 @@ export function migrateConfig(legacy: LegacyClaudeSettings): ClaudeSettings {
  * Returns migrated config with validation status
  */
 export function readMigratedConfig(): {
-  config: ClaudeSettings | null
-  wasMigrated: boolean
-  validationErrors: string[]
+  config: ClaudeSettings | null;
+  wasMigrated: boolean;
+  validationErrors: string[];
 } {
   if (!exists(SETTINGS_FILE)) {
     return {
       config: null,
       wasMigrated: false,
       validationErrors: [],
-    }
+    };
   }
 
-  const config = readJsonConfig<ClaudeSettings>(SETTINGS_FILE)
+  const config = readJsonConfig<ClaudeSettings>(SETTINGS_FILE);
   if (!config) {
     return {
       config: null,
       wasMigrated: false,
       validationErrors: [],
-    }
+    };
   }
 
   // Check if migration is needed
@@ -269,16 +269,16 @@ export function readMigratedConfig(): {
     || config.allowBrowser === undefined
     || (config.permissions && config.permissions.deny === undefined)
     || (config.permissions?.allow && !config.permissions.allow.includes('Write(*)'))
-  )
+  );
 
-  const migrated = needsMigration ? migrateConfig(config) : config
-  const validationErrors = validateConfig(migrated)
+  const migrated = needsMigration ? migrateConfig(config) : config;
+  const validationErrors = validateConfig(migrated);
 
   return {
     config: migrated,
     wasMigrated: needsMigration ?? false,
     validationErrors,
-  }
+  };
 }
 
 /**
@@ -286,7 +286,7 @@ export function readMigratedConfig(): {
  * Useful for creating new configurations or ensuring all fields exist
  */
 export function injectDefaults(config: Partial<ClaudeSettings>): ClaudeSettings {
-  return deepMerge(DEFAULT_SETTINGS_V2, config) as ClaudeSettings
+  return deepMerge(DEFAULT_SETTINGS_V2, config) as ClaudeSettings;
 }
 
 /**
@@ -294,32 +294,32 @@ export function injectDefaults(config: Partial<ClaudeSettings>): ClaudeSettings 
  * Automatically migrates before saving if needed
  */
 export function saveConfigWithMigration(config: ClaudeSettings): {
-  success: boolean
-  validationErrors: string[]
+  success: boolean;
+  validationErrors: string[];
 } {
-  const validationErrors = validateConfig(config)
+  const validationErrors = validateConfig(config);
 
   if (validationErrors.length > 0) {
     return {
       success: false,
       validationErrors,
-    }
+    };
   }
 
   try {
-    normalizeClaudeFamilySettings(config as Record<string, any>)
-    writeJsonConfig(SETTINGS_FILE, config)
+    normalizeClaudeFamilySettings(config as Record<string, any>);
+    writeJsonConfig(SETTINGS_FILE, config);
     return {
       success: true,
       validationErrors: [],
-    }
+    };
   }
   catch (error) {
-    validationErrors.push(`Failed to save config: ${error}`)
+    validationErrors.push(`Failed to save config: ${error}`);
     return {
       success: false,
       validationErrors,
-    }
+    };
   }
 }
 
@@ -328,35 +328,35 @@ export function saveConfigWithMigration(config: ClaudeSettings): {
  * Returns migration result
  */
 export function runMigration(): {
-  success: boolean
-  wasMigrated: boolean
-  validationErrors: string[]
-  backupPath?: string
+  success: boolean;
+  wasMigrated: boolean;
+  validationErrors: string[];
+  backupPath?: string;
 } {
   if (!exists(SETTINGS_FILE)) {
-    return { success: false, wasMigrated: false, validationErrors: ['No configuration file found'] }
+    return { success: false, wasMigrated: false, validationErrors: ['No configuration file found'] };
   }
 
-  const config = readJsonConfig<ClaudeSettings>(SETTINGS_FILE)
+  const config = readJsonConfig<ClaudeSettings>(SETTINGS_FILE);
   if (!config) {
-    return { success: false, wasMigrated: false, validationErrors: ['Failed to parse settings'] }
+    return { success: false, wasMigrated: false, validationErrors: ['Failed to parse settings'] };
   }
 
   // Always run migrateConfig — it's idempotent
-  const migrated = migrateConfig(config)
+  const migrated = migrateConfig(config);
 
   // Compare: if nothing changed, skip write
   if (JSON.stringify(config) === JSON.stringify(migrated)) {
-    return { success: true, wasMigrated: false, validationErrors: [] }
+    return { success: true, wasMigrated: false, validationErrors: [] };
   }
 
   // Something changed — save silently
-  const result = saveConfigWithMigration(migrated)
+  const result = saveConfigWithMigration(migrated);
   return {
     success: result.success,
     wasMigrated: true,
     validationErrors: result.validationErrors,
-  }
+  };
 }
 
 /**
@@ -364,12 +364,12 @@ export function runMigration(): {
  */
 export function needsMigration(): boolean {
   if (!exists(SETTINGS_FILE)) {
-    return false
+    return false;
   }
 
-  const config = readJsonConfig<ClaudeSettings>(SETTINGS_FILE)
+  const config = readJsonConfig<ClaudeSettings>(SETTINGS_FILE);
   if (!config) {
-    return false
+    return false;
   }
 
   const needsMigration = (
@@ -388,21 +388,21 @@ export function needsMigration(): boolean {
     || config.allowBrowser === undefined
     || Boolean(config.permissions && config.permissions.deny === undefined)
     || Boolean(config.permissions?.allow && !config.permissions.allow.includes('Write(*)'))
-  )
-  return needsMigration
+  );
+  return needsMigration;
 }
 
 /**
  * Get migration version info
  */
 export function getMigrationInfo(): {
-  version: string
-  needsMigration: boolean
-  configExists: boolean
+  version: string;
+  needsMigration: boolean;
+  configExists: boolean;
 } {
   return {
     version: MIGRATION_VERSION,
     needsMigration: needsMigration(),
     configExists: exists(SETTINGS_FILE),
-  }
+  };
 }

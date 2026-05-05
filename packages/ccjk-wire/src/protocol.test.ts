@@ -1,8 +1,8 @@
-import { describe, it, expect } from 'vitest';
-import { createEnvelope, createEncryptedContent } from './protocol';
 import { isCuid } from '@paralleldrive/cuid2';
+import { describe, expect, it } from 'vitest';
+import { createEncryptedContent, createEnvelope } from './protocol';
 
-describe('Protocol', () => {
+describe('protocol', () => {
   describe('createEnvelope', () => {
     it('should create valid envelope with required fields', () => {
       const envelope = createEnvelope('user', 'session-123', {

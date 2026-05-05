@@ -1,11 +1,11 @@
 /**
  * Skill & MCP Recommendation Matcher
  */
-import type { McpRecommendation, ProjectProfile, SkillRecommendation } from './types'
+import type { McpRecommendation, ProjectProfile, SkillRecommendation } from './types';
 
 const SKILL_RULES: Array<{
-  tags: string[]
-  skill: Omit<SkillRecommendation, 'matchScore'>
+  tags: string[];
+  skill: Omit<SkillRecommendation, 'matchScore'>;
 }> = [
   {
     tags: ['typescript', 'javascript', 'python', 'go', 'rust', 'ruby', 'java'],
@@ -63,11 +63,11 @@ const SKILL_RULES: Array<{
     tags: ['nextjs', 'nuxt', 'astro', 'fullstack'],
     skill: { id: 'fullstack-debug', name: 'Fullstack Debugger', description: 'Debug across client/server boundary', reason: 'Fullstack framework detected', category: 'debug' },
   },
-]
+];
 
 const MCP_RULES: Array<{
-  tags: string[]
-  mcp: Omit<McpRecommendation, 'matchScore'>
+  tags: string[];
+  mcp: Omit<McpRecommendation, 'matchScore'>;
 }> = [
   {
     tags: ['typescript', 'javascript', 'python', 'go', 'rust', 'ruby', 'java'],
@@ -85,65 +85,65 @@ const MCP_RULES: Array<{
     tags: ['typescript', 'javascript', 'python', 'go', 'rust'],
     mcp: { id: 'mcp-search', name: 'Web Search', description: 'Search for docs and solutions', reason: 'Quick access to online resources' },
   },
-]
+];
 
 export function matchSkills(profile: ProjectProfile): SkillRecommendation[] {
-  const results: SkillRecommendation[] = []
-  const seen = new Set<string>()
+  const results: SkillRecommendation[] = [];
+  const seen = new Set<string>();
 
   for (const rule of SKILL_RULES) {
     if (seen.has(rule.skill.id))
-      continue
-    const matchingTags = rule.tags.filter(t => profile.tags.includes(t))
+      continue;
+    const matchingTags = rule.tags.filter(t => profile.tags.includes(t));
     if (matchingTags.length === 0)
-      continue
+      continue;
 
-    const matchScore = Math.min(100, Math.round((matchingTags.length / rule.tags.length) * 100) + 20)
-    results.push({ ...rule.skill, matchScore })
-    seen.add(rule.skill.id)
+    const matchScore = Math.min(100, Math.round((matchingTags.length / rule.tags.length) * 100) + 20);
+    results.push({ ...rule.skill, matchScore });
+    seen.add(rule.skill.id);
   }
 
-  results.sort((a, b) => b.matchScore - a.matchScore)
-  return results
+  results.sort((a, b) => b.matchScore - a.matchScore);
+  return results;
 }
 
 export function matchMcpServices(profile: ProjectProfile): McpRecommendation[] {
-  const results: McpRecommendation[] = []
-  const seen = new Set<string>()
+  const results: McpRecommendation[] = [];
+  const seen = new Set<string>();
 
   for (const rule of MCP_RULES) {
     if (seen.has(rule.mcp.id))
-      continue
-    const matchingTags = rule.tags.filter(t => profile.tags.includes(t))
+      continue;
+    const matchingTags = rule.tags.filter(t => profile.tags.includes(t));
     if (matchingTags.length === 0)
-      continue
+      continue;
 
-    const matchScore = Math.min(100, Math.round((matchingTags.length / rule.tags.length) * 100) + 20)
-    results.push({ ...rule.mcp, matchScore })
-    seen.add(rule.mcp.id)
+    const matchScore = Math.min(100, Math.round((matchingTags.length / rule.tags.length) * 100) + 20);
+    results.push({ ...rule.mcp, matchScore });
+    seen.add(rule.mcp.id);
   }
 
-  results.sort((a, b) => b.matchScore - a.matchScore)
-  return results
+  results.sort((a, b) => b.matchScore - a.matchScore);
+  return results;
 }
 
 export function getRecommendations(profile: ProjectProfile): {
-  skills: SkillRecommendation[]
-  mcpServices: McpRecommendation[]
-  summary: string
+  skills: SkillRecommendation[];
+  mcpServices: McpRecommendation[];
+  summary: string;
 } {
-  const skills = matchSkills(profile)
-  const mcpServices = matchMcpServices(profile)
+  const skills = matchSkills(profile);
+  const mcpServices = matchMcpServices(profile);
 
-  const parts: string[] = []
+  const parts: string[] = [];
   if (profile.language !== 'unknown')
-    parts.push(profile.language)
-  parts.push(...profile.frameworks.slice(0, 3))
-  const stackDesc = parts.join(' + ') || 'your project'
+    parts.push(profile.language);
+  parts.push(...profile.frameworks.slice(0, 3));
+  const stackDesc = parts.join(' + ') || 'your project';
 
   return {
     skills,
     mcpServices,
     summary: `Found ${skills.length} skills and ${mcpServices.length} MCP services for ${stackDesc}`,
-  }
+  };
 }

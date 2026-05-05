@@ -9,17 +9,17 @@
  * - ondemand: Loaded when needed, auto-released after idle
  * - scenario: Loaded for specific scenarios, longer idle timeout
  */
-export type McpTier = 'core' | 'ondemand' | 'scenario'
+export type McpTier = 'core' | 'ondemand' | 'scenario';
 
 /**
  * Configuration for each tier level
  */
 export interface McpTierConfig {
-  tier: McpTier
-  autoStart: boolean
-  idleTimeout?: number // seconds, undefined = never timeout
-  maxConcurrent?: number
-  description: string
+  tier: McpTier;
+  autoStart: boolean;
+  idleTimeout?: number; // seconds, undefined = never timeout
+  maxConcurrent?: number;
+  description: string;
 }
 
 /**
@@ -44,7 +44,7 @@ export const MCP_TIER_DEFAULTS: Record<McpTier, McpTierConfig> = {
     idleTimeout: 600, // 10 minutes
     description: 'Loaded for specific scenarios',
   },
-}
+};
 
 /**
  * Service to tier mapping
@@ -65,14 +65,14 @@ export const MCP_SERVICE_TIERS: Record<string, McpTier> = {
   'sqlite': 'scenario',
   'spec-workflow': 'scenario',
   'serena': 'scenario',
-}
+};
 
 /**
  * Get tier configuration for a specific service
  */
 export function getMcpTierConfig(serviceId: string): McpTierConfig {
-  const tier = MCP_SERVICE_TIERS[serviceId] || 'ondemand'
-  return MCP_TIER_DEFAULTS[tier]
+  const tier = MCP_SERVICE_TIERS[serviceId] || 'ondemand';
+  return MCP_TIER_DEFAULTS[tier];
 }
 
 /**
@@ -81,21 +81,21 @@ export function getMcpTierConfig(serviceId: string): McpTierConfig {
 export function getServicesByTier(tier: McpTier): string[] {
   return Object.entries(MCP_SERVICE_TIERS)
     .filter(([_, t]) => t === tier)
-    .map(([id]) => id)
+    .map(([id]) => id);
 }
 
 /**
  * Check if a service is in the core tier
  */
 export function isCoreService(serviceId: string): boolean {
-  return MCP_SERVICE_TIERS[serviceId] === 'core'
+  return MCP_SERVICE_TIERS[serviceId] === 'core';
 }
 
 /**
  * Get recommended services for minimal setup
  */
 export function getMinimalServices(): string[] {
-  return getServicesByTier('core')
+  return getServicesByTier('core');
 }
 
 /**
@@ -112,4 +112,4 @@ export const MCP_PERFORMANCE_THRESHOLDS = {
   estimatedMemoryPerService: 50,
   /** Estimated CPU overhead per service (%) */
   estimatedCpuPerService: 5,
-}
+};

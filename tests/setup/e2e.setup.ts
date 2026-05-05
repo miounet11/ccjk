@@ -3,52 +3,52 @@
  * Sets up full application environment for end-to-end testing
  */
 
-import { resolve } from 'pathe'
-import { afterAll, afterEach, beforeAll, beforeEach } from 'vitest'
+import { resolve } from 'pathe';
+import { afterAll, afterEach, beforeAll, beforeEach } from 'vitest';
 
 // Global test setup for E2E tests
 beforeAll(async () => {
-  console.log('🚀 Setting up E2E test environment...')
+  console.log('🚀 Setting up E2E test environment...');
 
   // Ensure all services are running
-  await waitForAllServices()
+  await waitForAllServices();
 
   // Setup test application instance
-  await setupTestApplication()
+  await setupTestApplication();
 
   // Setup test data
-  await setupTestData()
+  await setupTestData();
 
   // Setup test environment
-  await setupTestEnvironment()
+  await setupTestEnvironment();
 
-  console.log('✅ E2E test environment ready')
-})
+  console.log('✅ E2E test environment ready');
+});
 
 afterAll(async () => {
-  console.log('🧹 Cleaning up E2E test environment...')
+  console.log('🧹 Cleaning up E2E test environment...');
 
   // Cleanup test application
-  await cleanupTestApplication()
+  await cleanupTestApplication();
 
   // Cleanup test data
-  await cleanupTestData()
+  await cleanupTestData();
 
   // Cleanup test environment
-  await cleanupTestEnvironment()
+  await cleanupTestEnvironment();
 
-  console.log('✅ E2E test cleanup complete')
-})
+  console.log('✅ E2E test cleanup complete');
+});
 
 beforeEach(async () => {
   // Reset application state before each test
-  await resetApplicationState()
-})
+  await resetApplicationState();
+});
 
 afterEach(async () => {
   // Cleanup after each test
-  await cleanupTestArtifacts()
-})
+  await cleanupTestArtifacts();
+});
 
 /**
  * Wait for all required services to be ready
@@ -58,29 +58,29 @@ async function waitForAllServices(): Promise<void> {
     { name: 'PostgreSQL', check: checkPostgresService },
     { name: 'Redis', check: checkRedisService },
     { name: 'Elasticsearch', check: checkElasticsearchService },
-  ]
+  ];
 
-  console.log('⏳ Waiting for services to be ready...')
+  console.log('⏳ Waiting for services to be ready...');
 
   for (const service of services) {
-    let attempts = 0
-    const maxAttempts = 60 // Longer timeout for E2E
+    let attempts = 0;
+    const maxAttempts = 60; // Longer timeout for E2E
 
     while (attempts < maxAttempts) {
       try {
-        await service.check()
-        console.log(`✅ ${service.name} is ready`)
-        break
+        await service.check();
+        console.log(`✅ ${service.name} is ready`);
+        break;
       }
       catch (_error) {
-        attempts++
+        attempts++;
         if (attempts === maxAttempts) {
-          throw new Error(`❌ ${service.name} failed to start after ${maxAttempts} attempts`)
+          throw new Error(`❌ ${service.name} failed to start after ${maxAttempts} attempts`);
         }
         if (attempts % 10 === 0) {
-          console.log(`⏳ Still waiting for ${service.name}... (${attempts}/${maxAttempts})`)
+          console.log(`⏳ Still waiting for ${service.name}... (${attempts}/${maxAttempts})`);
         }
-        await new Promise(resolve => setTimeout(resolve, 2000))
+        await new Promise(resolve => setTimeout(resolve, 2000));
       }
     }
   }
@@ -90,75 +90,75 @@ async function waitForAllServices(): Promise<void> {
  * Check PostgreSQL service
  */
 async function checkPostgresService(): Promise<void> {
-  const dbUrl = process.env.DATABASE_URL || 'postgresql://ccjk_user:ccjk_password@localhost:5433/ccjk_test'
+  const dbUrl = process.env.DATABASE_URL || 'postgresql://ccjk_user:ccjk_password@localhost:5433/ccjk_test';
 
   // This would use actual database connection
   // For now, simulate the check
   if (!dbUrl.includes('ccjk_test')) {
-    throw new Error('E2E test database not configured')
+    throw new Error('E2E test database not configured');
   }
 
   // Simulate connection attempt
-  await new Promise(resolve => setTimeout(resolve, 100))
+  await new Promise(resolve => setTimeout(resolve, 100));
 }
 
 /**
  * Check Redis service
  */
 async function checkRedisService(): Promise<void> {
-  const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379/15'
+  const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379/15';
 
   // This would use actual Redis connection
   // For now, simulate the check
   if (!redisUrl.includes('6379')) {
-    throw new Error('E2E Redis not configured')
+    throw new Error('E2E Redis not configured');
   }
 
   // Simulate connection attempt
-  await new Promise(resolve => setTimeout(resolve, 100))
+  await new Promise(resolve => setTimeout(resolve, 100));
 }
 
 /**
  * Check Elasticsearch service
  */
 async function checkElasticsearchService(): Promise<void> {
-  const esUrl = process.env.ELASTICSEARCH_URL || 'http://localhost:9200'
+  const esUrl = process.env.ELASTICSEARCH_URL || 'http://localhost:9200';
 
   // This would use actual Elasticsearch health check
   // For now, simulate the check
   if (!esUrl.includes('9200')) {
-    throw new Error('E2E Elasticsearch not configured')
+    throw new Error('E2E Elasticsearch not configured');
   }
 
   // Simulate health check
-  await new Promise(resolve => setTimeout(resolve, 100))
+  await new Promise(resolve => setTimeout(resolve, 100));
 }
 
 /**
  * Setup test application instance
  */
 async function setupTestApplication(): Promise<void> {
-  console.log('🚀 Setting up test application...')
+  console.log('🚀 Setting up test application...');
 
   // This would start the actual CCJK application in test mode
   // For now, we'll simulate the setup
 
   // Set test environment variables
-  process.env.NODE_ENV = 'test'
-  process.env.E2E_TEST = 'true'
-  process.env.LOG_LEVEL = 'error'
+  process.env.NODE_ENV = 'test';
+  process.env.E2E_TEST = 'true';
+  process.env.LOG_LEVEL = 'error';
 
   // Simulate application startup
-  await new Promise(resolve => setTimeout(resolve, 1000))
+  await new Promise(resolve => setTimeout(resolve, 1000));
 
-  console.log('✅ Test application setup complete')
+  console.log('✅ Test application setup complete');
 }
 
 /**
  * Setup test data
  */
 async function setupTestData(): Promise<void> {
-  console.log('📊 Setting up test data...')
+  console.log('📊 Setting up test data...');
 
   // This would create test users, configurations, etc.
   // For now, we'll simulate the setup
@@ -172,19 +172,19 @@ async function setupTestData(): Promise<void> {
       { id: 'test-config-1', name: 'Test Config 1' },
       { id: 'test-config-2', name: 'Test Config 2' },
     ],
-  }
+  };
 
   // Simulate data creation
-  await new Promise(resolve => setTimeout(resolve, 500))
+  await new Promise(resolve => setTimeout(resolve, 500));
 
-  console.log('✅ Test data setup complete')
+  console.log('✅ Test data setup complete');
 }
 
 /**
  * Setup test environment
  */
 async function setupTestEnvironment(): Promise<void> {
-  console.log('🌍 Setting up test environment...')
+  console.log('🌍 Setting up test environment...');
 
   // Create test directories
   const _testDirs = [
@@ -192,12 +192,12 @@ async function setupTestEnvironment(): Promise<void> {
     resolve(process.cwd(), 'tmp/e2e/configs'),
     resolve(process.cwd(), 'tmp/e2e/logs'),
     resolve(process.cwd(), 'tmp/e2e/cache'),
-  ]
+  ];
 
   // This would create actual directories
   // For now, we'll simulate the setup
 
-  console.log('✅ Test environment setup complete')
+  console.log('✅ Test environment setup complete');
 }
 
 /**
@@ -208,7 +208,7 @@ async function resetApplicationState(): Promise<void> {
   // This would be implemented with actual state reset logic
 
   // Simulate state reset
-  await new Promise(resolve => setTimeout(resolve, 100))
+  await new Promise(resolve => setTimeout(resolve, 100));
 }
 
 /**
@@ -219,49 +219,49 @@ async function cleanupTestArtifacts(): Promise<void> {
   // This would be implemented with actual cleanup logic
 
   // Simulate cleanup
-  await new Promise(resolve => setTimeout(resolve, 100))
+  await new Promise(resolve => setTimeout(resolve, 100));
 }
 
 /**
  * Cleanup test application
  */
 async function cleanupTestApplication(): Promise<void> {
-  console.log('🚀 Cleaning up test application...')
+  console.log('🚀 Cleaning up test application...');
 
   // This would stop the test application instance
   // For now, we'll simulate the cleanup
 
-  await new Promise(resolve => setTimeout(resolve, 500))
+  await new Promise(resolve => setTimeout(resolve, 500));
 
-  console.log('✅ Test application cleanup complete')
+  console.log('✅ Test application cleanup complete');
 }
 
 /**
  * Cleanup test data
  */
 async function cleanupTestData(): Promise<void> {
-  console.log('📊 Cleaning up test data...')
+  console.log('📊 Cleaning up test data...');
 
   // This would remove all test data from databases
   // For now, we'll simulate the cleanup
 
-  await new Promise(resolve => setTimeout(resolve, 500))
+  await new Promise(resolve => setTimeout(resolve, 500));
 
-  console.log('✅ Test data cleanup complete')
+  console.log('✅ Test data cleanup complete');
 }
 
 /**
  * Cleanup test environment
  */
 async function cleanupTestEnvironment(): Promise<void> {
-  console.log('🌍 Cleaning up test environment...')
+  console.log('🌍 Cleaning up test environment...');
 
   // This would remove test directories and files
   // For now, we'll simulate the cleanup
 
-  await new Promise(resolve => setTimeout(resolve, 200))
+  await new Promise(resolve => setTimeout(resolve, 200));
 
-  console.log('✅ Test environment cleanup complete')
+  console.log('✅ Test environment cleanup complete');
 }
 
 // Test utilities for E2E tests
@@ -270,14 +270,14 @@ export const E2ETestUtils = {
    * Wait for a condition to be true
    */
   async waitFor(condition: () => boolean | Promise<boolean>, timeout = 30000): Promise<void> {
-    const start = Date.now()
+    const start = Date.now();
     while (Date.now() - start < timeout) {
       if (await condition()) {
-        return
+        return;
       }
-      await new Promise(resolve => setTimeout(resolve, 100))
+      await new Promise(resolve => setTimeout(resolve, 100));
     }
-    throw new Error(`Condition not met within ${timeout}ms`)
+    throw new Error(`Condition not met within ${timeout}ms`);
   },
 
   /**
@@ -285,8 +285,8 @@ export const E2ETestUtils = {
    */
   async simulateUserInput(input: string): Promise<void> {
     // This would simulate actual user input
-    console.log(`📝 Simulating user input: ${input}`)
-    await new Promise(resolve => setTimeout(resolve, 100))
+    console.log(`📝 Simulating user input: ${input}`);
+    await new Promise(resolve => setTimeout(resolve, 100));
   },
 
   /**
@@ -294,7 +294,7 @@ export const E2ETestUtils = {
    */
   async captureOutput(): Promise<string> {
     // This would capture actual application output
-    return 'Simulated application output'
+    return 'Simulated application output';
   },
 
   /**
@@ -302,7 +302,7 @@ export const E2ETestUtils = {
    */
   async fileExists(_path: string): Promise<boolean> {
     // This would check actual file existence
-    return true
+    return true;
   },
 
   /**
@@ -310,9 +310,9 @@ export const E2ETestUtils = {
    */
   async readFile(path: string): Promise<string> {
     // This would read actual file content
-    return `Simulated content of ${path}`
+    return `Simulated content of ${path}`;
   },
-}
+};
 
 // Export utilities for use in E2E tests
 export {
@@ -326,4 +326,4 @@ export {
   setupTestData,
   setupTestEnvironment,
   waitForAllServices,
-}
+};

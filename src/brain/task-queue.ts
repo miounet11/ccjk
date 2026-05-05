@@ -3,163 +3,163 @@
  * Supports task prioritization, automatic retries, and timeout management
  */
 
-export type TaskPriority = 'low' | 'normal' | 'high' | 'critical'
+export type TaskPriority = 'low' | 'normal' | 'high' | 'critical';
 
 export interface TaskOptions {
   /**
    * Task priority level (default: 'normal')
    */
-  priority?: TaskPriority
+  priority?: TaskPriority;
 
   /**
    * Maximum execution time in milliseconds (default: 30000)
    */
-  timeout?: number
+  timeout?: number;
 
   /**
    * Maximum number of retry attempts (default: 0)
    */
-  maxRetries?: number
+  maxRetries?: number;
 
   /**
    * Delay between retries in milliseconds (default: 1000)
    */
-  retryDelay?: number
+  retryDelay?: number;
 
   /**
    * Exponential backoff multiplier for retry delay (default: 1)
    */
-  retryBackoff?: number
+  retryBackoff?: number;
 
   /**
    * Task metadata for tracking and debugging
    */
-  metadata?: Record<string, unknown>
+  metadata?: Record<string, unknown>;
 }
 
 export interface Task<T = unknown> {
   /**
    * Unique task identifier
    */
-  id: string
+  id: string;
 
   /**
    * Task execution function
    */
-  execute: () => Promise<T>
+  execute: () => Promise<T>;
 
   /**
    * Task options
    */
-  options: Required<TaskOptions>
+  options: Required<TaskOptions>;
 
   /**
    * Task creation timestamp
    */
-  createdAt: number
+  createdAt: number;
 
   /**
    * Number of retry attempts made
    */
-  retryCount: number
+  retryCount: number;
 
   /**
    * Task status
    */
-  status: 'pending' | 'running' | 'completed' | 'failed' | 'timeout'
+  status: 'pending' | 'running' | 'completed' | 'failed' | 'timeout';
 
   /**
    * Promise resolve function
    */
-  resolve: (value: T) => void
+  resolve: (value: T) => void;
 
   /**
    * Promise reject function
    */
-  reject: (error: Error) => void
+  reject: (error: Error) => void;
 }
 
 export interface TaskQueueStats {
   /**
    * Total tasks added to queue
    */
-  totalTasks: number
+  totalTasks: number;
 
   /**
    * Tasks currently pending
    */
-  pendingTasks: number
+  pendingTasks: number;
 
   /**
    * Tasks currently running
    */
-  runningTasks: number
+  runningTasks: number;
 
   /**
    * Successfully completed tasks
    */
-  completedTasks: number
+  completedTasks: number;
 
   /**
    * Failed tasks
    */
-  failedTasks: number
+  failedTasks: number;
 
   /**
    * Timed out tasks
    */
-  timeoutTasks: number
+  timeoutTasks: number;
 
   /**
    * Average task execution time in milliseconds
    */
-  averageExecutionTime: number
+  averageExecutionTime: number;
 
   /**
    * Queue creation timestamp
    */
-  createdAt: number
+  createdAt: number;
 }
 
 export interface TaskQueueOptions {
   /**
    * Maximum number of concurrent tasks (default: Infinity)
    */
-  concurrency?: number
+  concurrency?: number;
 
   /**
    * Default task timeout in milliseconds (default: 30000)
    */
-  defaultTimeout?: number
+  defaultTimeout?: number;
 
   /**
    * Default maximum retries (default: 0)
    */
-  defaultMaxRetries?: number
+  defaultMaxRetries?: number;
 
   /**
    * Default retry delay in milliseconds (default: 1000)
    */
-  defaultRetryDelay?: number
+  defaultRetryDelay?: number;
 
   /**
    * Enable automatic queue processing (default: true)
    */
-  autoStart?: boolean
+  autoStart?: boolean;
 }
 
 /**
  * Priority-based task queue with timeout and retry support
  */
 export class TaskQueue {
-  private queue: Task[] = []
-  private runningTasks = new Set<string>()
-  private stats: TaskQueueStats
-  private options: Required<TaskQueueOptions>
-  private taskIdCounter = 0
-  private executionTimes: number[] = []
-  private processing = false
-  private paused = false
+  private queue: Task[] = [];
+  private runningTasks = new Set<string>();
+  private stats: TaskQueueStats;
+  private options: Required<TaskQueueOptions>;
+  private taskIdCounter = 0;
+  private executionTimes: number[] = [];
+  private processing = false;
+  private paused = false;
 
   constructor(options: TaskQueueOptions = {}) {
     this.options = {
@@ -168,7 +168,7 @@ export class TaskQueue {
       defaultMaxRetries: options.defaultMaxRetries ?? 0,
       defaultRetryDelay: options.defaultRetryDelay ?? 1000,
       autoStart: options.autoStart ?? true,
-    }
+    };
 
     this.stats = {
       totalTasks: 0,
@@ -179,10 +179,10 @@ export class TaskQueue {
       timeoutTasks: 0,
       averageExecutionTime: 0,
       createdAt: Date.now(),
-    }
+    };
 
     if (this.options.autoStart) {
-      this.start()
+      this.start();
     }
   }
 
@@ -207,55 +207,55 @@ export class TaskQueue {
         status: 'pending',
         resolve,
         reject,
-      }
+      };
 
-      this.queue.push(task as Task<unknown>)
-      this.stats.totalTasks++
-      this.stats.pendingTasks++
+      this.queue.push(task as Task<unknown>);
+      this.stats.totalTasks++;
+      this.stats.pendingTasks++;
 
       // Sort queue by priority
-      this.sortQueue()
+      this.sortQueue();
 
       // Trigger processing if not paused
       if (!this.paused) {
-        this.processQueue()
+        this.processQueue();
       }
-    })
+    });
   }
 
   /**
    * Start queue processing
    */
   start(): void {
-    this.paused = false
-    this.processQueue()
+    this.paused = false;
+    this.processQueue();
   }
 
   /**
    * Pause queue processing
    */
   pause(): void {
-    this.paused = true
+    this.paused = true;
   }
 
   /**
    * Resume queue processing
    */
   resume(): void {
-    this.start()
+    this.start();
   }
 
   /**
    * Clear all pending tasks
    */
   clear(): void {
-    const pendingTasks = this.queue.filter(task => task.status === 'pending')
+    const pendingTasks = this.queue.filter(task => task.status === 'pending');
     pendingTasks.forEach((task) => {
-      task.status = 'failed'
-      task.reject(new Error('Task cancelled: queue cleared'))
-    })
-    this.queue = this.queue.filter(task => task.status === 'running')
-    this.stats.pendingTasks = 0
+      task.status = 'failed';
+      task.reject(new Error('Task cancelled: queue cleared'));
+    });
+    this.queue = this.queue.filter(task => task.status === 'running');
+    this.stats.pendingTasks = 0;
   }
 
   /**
@@ -263,7 +263,7 @@ export class TaskQueue {
    */
   async drain(): Promise<void> {
     while (this.queue.length > 0 || this.runningTasks.size > 0) {
-      await new Promise(resolve => setTimeout(resolve, 100))
+      await new Promise(resolve => setTimeout(resolve, 100));
     }
   }
 
@@ -271,28 +271,28 @@ export class TaskQueue {
    * Get queue statistics
    */
   getStats(): TaskQueueStats {
-    return { ...this.stats }
+    return { ...this.stats };
   }
 
   /**
    * Get current queue size
    */
   size(): number {
-    return this.queue.length
+    return this.queue.length;
   }
 
   /**
    * Check if queue is empty
    */
   isEmpty(): boolean {
-    return this.queue.length === 0 && this.runningTasks.size === 0
+    return this.queue.length === 0 && this.runningTasks.size === 0;
   }
 
   /**
    * Check if queue is paused
    */
   isPaused(): boolean {
-    return this.paused
+    return this.paused;
   }
 
   /**
@@ -300,102 +300,102 @@ export class TaskQueue {
    */
   private async processQueue(): Promise<void> {
     if (this.processing || this.paused) {
-      return
+      return;
     }
 
-    this.processing = true
+    this.processing = true;
 
     while (!this.paused && this.queue.length > 0 && this.runningTasks.size < this.options.concurrency) {
-      const task = this.queue.find(t => t.status === 'pending')
+      const task = this.queue.find(t => t.status === 'pending');
       if (!task) {
-        break
+        break;
       }
 
-      task.status = 'running'
-      this.stats.pendingTasks--
-      this.stats.runningTasks++
-      this.runningTasks.add(task.id)
+      task.status = 'running';
+      this.stats.pendingTasks--;
+      this.stats.runningTasks++;
+      this.runningTasks.add(task.id);
 
       // Execute task without blocking queue processing
       this.executeTask(task).catch(() => {
         // Error already handled in executeTask
-      })
+      });
     }
 
-    this.processing = false
+    this.processing = false;
   }
 
   /**
    * Execute a single task with timeout and retry support
    */
   private async executeTask<T>(task: Task<T>): Promise<void> {
-    const startTime = Date.now()
+    const startTime = Date.now();
 
     try {
       // Create timeout promise
       const timeoutPromise = new Promise<never>((_, reject) => {
         setTimeout(() => {
-          reject(new Error(`Task timeout after ${task.options.timeout}ms`))
-        }, task.options.timeout)
-      })
+          reject(new Error(`Task timeout after ${task.options.timeout}ms`));
+        }, task.options.timeout);
+      });
 
       // Race between task execution and timeout
       const result = await Promise.race([
         task.execute(),
         timeoutPromise,
-      ])
+      ]);
 
       // Task completed successfully
-      const executionTime = Date.now() - startTime
-      this.recordExecutionTime(executionTime)
+      const executionTime = Date.now() - startTime;
+      this.recordExecutionTime(executionTime);
 
-      task.status = 'completed'
-      this.stats.completedTasks++
-      task.resolve(result)
+      task.status = 'completed';
+      this.stats.completedTasks++;
+      task.resolve(result);
     }
     catch (error) {
       // Check if it's a timeout error
-      const isTimeout = error instanceof Error && error.message.includes('timeout')
+      const isTimeout = error instanceof Error && error.message.includes('timeout');
 
       if (isTimeout) {
-        task.status = 'timeout'
-        this.stats.timeoutTasks++
+        task.status = 'timeout';
+        this.stats.timeoutTasks++;
       }
 
       // Retry logic
       if (task.retryCount < task.options.maxRetries) {
-        task.retryCount++
-        task.status = 'pending'
+        task.retryCount++;
+        task.status = 'pending';
 
         // Calculate retry delay with exponential backoff
-        const delay = task.options.retryDelay * task.options.retryBackoff ** (task.retryCount - 1)
+        const delay = task.options.retryDelay * task.options.retryBackoff ** (task.retryCount - 1);
 
         // Schedule retry
         setTimeout(() => {
-          this.stats.pendingTasks++
-          this.sortQueue()
-          this.processQueue()
-        }, delay)
+          this.stats.pendingTasks++;
+          this.sortQueue();
+          this.processQueue();
+        }, delay);
       }
       else {
         // Max retries reached or no retries configured
-        task.status = 'failed'
-        this.stats.failedTasks++
-        task.reject(error instanceof Error ? error : new Error(String(error)))
+        task.status = 'failed';
+        this.stats.failedTasks++;
+        task.reject(error instanceof Error ? error : new Error(String(error)));
       }
     }
     finally {
       // Clean up running task
-      this.runningTasks.delete(task.id)
-      this.stats.runningTasks--
+      this.runningTasks.delete(task.id);
+      this.stats.runningTasks--;
 
       // Remove completed/failed tasks from queue
       if (task.status === 'completed' || task.status === 'failed' || task.status === 'timeout') {
-        this.queue = this.queue.filter(t => t.id !== task.id)
+        this.queue = this.queue.filter(t => t.id !== task.id);
       }
 
       // Continue processing queue
-      this.processQueue()
+      this.processQueue();
     }
   }
 
@@ -408,40 +408,40 @@ export class TaskQueue {
       high: 1,
       normal: 2,
       low: 3,
-    }
+    };
 
     this.queue.sort((a, b) => {
       // First sort by priority
-      const priorityDiff = priorityOrder[a.options.priority] - priorityOrder[b.options.priority]
+      const priorityDiff = priorityOrder[a.options.priority] - priorityOrder[b.options.priority];
       if (priorityDiff !== 0) {
-        return priorityDiff
+        return priorityDiff;
       }
 
       // Then by creation time (FIFO for same priority)
-      return a.createdAt - b.createdAt
-    })
+      return a.createdAt - b.createdAt;
+    });
   }
 
   /**
    * Generate unique task ID
    */
   private generateTaskId(): string {
-    return `task_${++this.taskIdCounter}_${Date.now()}`
+    return `task_${++this.taskIdCounter}_${Date.now()}`;
   }
 
   /**
    * Record task execution time for statistics
    */
   private recordExecutionTime(time: number): void {
-    this.executionTimes.push(time)
+    this.executionTimes.push(time);
 
     // Keep only last 100 execution times for average calculation
     if (this.executionTimes.length > 100) {
-      this.executionTimes.shift()
+      this.executionTimes.shift();
     }
 
     // Calculate average
-    const sum = this.executionTimes.reduce((acc, t) => acc + t, 0)
-    this.stats.averageExecutionTime = sum / this.executionTimes.length
+    const sum = this.executionTimes.reduce((acc, t) => acc + t, 0);
+    this.stats.averageExecutionTime = sum / this.executionTimes.length;
   }
 }

@@ -14,9 +14,9 @@ import type {
   BindResponse,
   CloudReply,
   NotifyResponse,
-} from '../../src/services/cloud-notification'
-import type { CloudApiResponse } from '../../src/services/cloud/api-client'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+} from '../../src/services/cloud-notification';
+import type { CloudApiResponse } from '../../src/services/cloud/api-client';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   assertErrorResponse,
   assertSuccessResponse,
@@ -25,22 +25,22 @@ import {
   createMockNotifyResponse,
   createTestGateway,
   MockCloudServer,
-} from '../helpers/cloud-mock'
+} from '../helpers/cloud-mock';
 
 describe('cloud Notifications Integration Tests', () => {
-  let mockServer: MockCloudServer
-  let gateway: any
+  let mockServer: MockCloudServer;
+  let gateway: any;
 
   beforeEach(() => {
-    mockServer = new MockCloudServer()
-    const testSetup = createTestGateway(mockServer)
-    gateway = testSetup.gateway
-  })
+    mockServer = new MockCloudServer();
+    const testSetup = createTestGateway(mockServer);
+    gateway = testSetup.gateway;
+  });
 
   afterEach(() => {
-    mockServer.reset()
-    vi.clearAllMocks()
-  })
+    mockServer.reset();
+    vi.clearAllMocks();
+  });
 
   // ==========================================================================
   // Test Suite 1: Device Binding
@@ -49,15 +49,15 @@ describe('cloud Notifications Integration Tests', () => {
   describe('device Binding', () => {
     it('should successfully bind device with valid code', async () => {
       // Arrange
-      const bindCode = 'ABC123'
+      const bindCode = 'ABC123';
       const mockResponse: CloudApiResponse<BindResponse> = {
         success: true,
         data: createMockBindResponse({
           deviceToken: 'test-token-123',
           deviceId: 'device-456',
         }),
-      }
-      mockServer.setResponse('notifications.bind', mockResponse)
+      };
+      mockServer.setResponse('notifications.bind', mockResponse);
 
       // Act
       const response = await gateway.request<BindResponse>(
@@ -74,14 +74,14 @@ describe('cloud Notifications Integration Tests', () => {
             },
           },
         },
-      )
+      );
 
       // Assert
-      assertSuccessResponse(response)
-      expect(response.data.success).toBe(true)
-      expect(response.data.deviceToken).toBe('test-token-123')
-      expect(response.data.deviceId).toBe('device-456')
-    })
+      assertSuccessResponse(response);
+      expect(response.data.success).toBe(true);
+      expect(response.data.deviceToken).toBe('test-token-123');
+      expect(response.data.deviceId).toBe('device-456');
+    });
 
     it('should handle invalid binding code', async () => {
       // Arrange
@@ -89,8 +89,8 @@ describe('cloud Notifications Integration Tests', () => {
         success: false,
         error: 'Invalid or expired binding code',
         code: 'INVALID_CODE',
-      }
-      mockServer.setResponse('notifications.bind', mockResponse)
+      };
+      mockServer.setResponse('notifications.bind', mockResponse);
 
       // Act
       const response = await gateway.request<BindResponse>(
@@ -99,12 +99,12 @@ describe('cloud Notifications Integration Tests', () => {
           method: 'POST',
           body: { code: 'INVALID' },
         },
-      )
+      );
 
       // Assert
-      assertErrorResponse(response)
-      expect(response.code).toBe('INVALID_CODE')
-    })
+      assertErrorResponse(response);
+      expect(response.code).toBe('INVALID_CODE');
+    });
 
     it('should handle expired binding code', async () => {
       // Arrange
@@ -112,8 +112,8 @@ describe('cloud Notifications Integration Tests', () => {
         success: false,
         error: 'Binding code has expired',
         code: 'CODE_EXPIRED',
-      }
-      mockServer.setResponse('notifications.bind', mockResponse)
+      };
+      mockServer.setResponse('notifications.bind', mockResponse);
 
       // Act
       const response = await gateway.request<BindResponse>(
@@ -122,22 +122,22 @@ describe('cloud Notifications Integration Tests', () => {
           method: 'POST',
           body: { code: 'EXPIRED123' },
         },
-      )
+      );
 
       // Assert
-      assertErrorResponse(response)
-      expect(response.code).toBe('CODE_EXPIRED')
-    })
+      assertErrorResponse(response);
+      expect(response.code).toBe('CODE_EXPIRED');
+    });
 
     it('should handle network timeout during binding', async () => {
       // Arrange
-      mockServer.setLatency(10000)
+      mockServer.setLatency(10000);
       const mockResponse: CloudApiResponse<BindResponse> = {
         success: false,
         error: 'Request timeout',
         code: 'TIMEOUT',
-      }
-      mockServer.setResponse('notifications.bind', mockResponse)
+      };
+      mockServer.setResponse('notifications.bind', mockResponse);
 
       // Act
       const response = await gateway.request<BindResponse>(
@@ -147,13 +147,13 @@ describe('cloud Notifications Integration Tests', () => {
           body: { code: 'ABC123' },
           timeout: 2000,
         },
-      )
+      );
 
       // Assert
-      assertErrorResponse(response)
-      expect(response.code).toBe('TIMEOUT')
-    })
-  })
+      assertErrorResponse(response);
+      expect(response.code).toBe('TIMEOUT');
+    });
+  });
 
   // ==========================================================================
   // Test Suite 2: Notification Sending
@@ -167,8 +167,8 @@ describe('cloud Notifications Integration Tests', () => {
         data: createMockNotifyResponse({
           notificationId: 'notif-123',
         }),
-      }
-      mockServer.setResponse('notifications.send', mockResponse)
+      };
+      mockServer.setResponse('notifications.send', mockResponse);
 
       // Act
       const response = await gateway.request<NotifyResponse>(
@@ -181,13 +181,13 @@ describe('cloud Notifications Integration Tests', () => {
             type: 'info',
           },
         },
-      )
+      );
 
       // Assert
-      assertSuccessResponse(response)
-      expect(response.data.success).toBe(true)
-      expect(response.data.notificationId).toBe('notif-123')
-    })
+      assertSuccessResponse(response);
+      expect(response.data.success).toBe(true);
+      expect(response.data.notificationId).toBe('notif-123');
+    });
 
     it('should handle authentication failure', async () => {
       // Arrange
@@ -195,8 +195,8 @@ describe('cloud Notifications Integration Tests', () => {
         success: false,
         error: 'Device not authenticated',
         code: 'UNAUTHORIZED',
-      }
-      mockServer.setResponse('notifications.send', mockResponse)
+      };
+      mockServer.setResponse('notifications.send', mockResponse);
 
       // Act
       const response = await gateway.request<NotifyResponse>(
@@ -208,12 +208,12 @@ describe('cloud Notifications Integration Tests', () => {
             body: 'Test',
           },
         },
-      )
+      );
 
       // Assert
-      assertErrorResponse(response)
-      expect(response.code).toBe('UNAUTHORIZED')
-    })
+      assertErrorResponse(response);
+      expect(response.code).toBe('UNAUTHORIZED');
+    });
 
     it('should handle notification send failure', async () => {
       // Arrange
@@ -221,8 +221,8 @@ describe('cloud Notifications Integration Tests', () => {
         success: false,
         error: 'Failed to deliver notification',
         code: 'DELIVERY_FAILED',
-      }
-      mockServer.setResponse('notifications.send', mockResponse)
+      };
+      mockServer.setResponse('notifications.send', mockResponse);
 
       // Act
       const response = await gateway.request<NotifyResponse>(
@@ -234,22 +234,22 @@ describe('cloud Notifications Integration Tests', () => {
             body: 'Test',
           },
         },
-      )
+      );
 
       // Assert
-      assertErrorResponse(response)
-      expect(response.code).toBe('DELIVERY_FAILED')
-    })
+      assertErrorResponse(response);
+      expect(response.code).toBe('DELIVERY_FAILED');
+    });
 
     it('should handle timeout during notification send', async () => {
       // Arrange
-      mockServer.setLatency(5000)
+      mockServer.setLatency(5000);
       const mockResponse: CloudApiResponse<NotifyResponse> = {
         success: false,
         error: 'Request timeout',
         code: 'TIMEOUT',
-      }
-      mockServer.setResponse('notifications.send', mockResponse)
+      };
+      mockServer.setResponse('notifications.send', mockResponse);
 
       // Act
       const response = await gateway.request<NotifyResponse>(
@@ -259,13 +259,13 @@ describe('cloud Notifications Integration Tests', () => {
           body: { title: 'Test', body: 'Test' },
           timeout: 1000,
         },
-      )
+      );
 
       // Assert
-      assertErrorResponse(response)
-      expect(response.code).toBe('TIMEOUT')
-    })
-  })
+      assertErrorResponse(response);
+      expect(response.code).toBe('TIMEOUT');
+    });
+  });
 
   // ==========================================================================
   // Test Suite 3: Reply Polling
@@ -282,8 +282,8 @@ describe('cloud Notifications Integration Tests', () => {
             notificationId: 'notif-123',
           }),
         },
-      }
-      mockServer.setResponse('notifications.poll', mockResponse)
+      };
+      mockServer.setResponse('notifications.poll', mockResponse);
 
       // Act
       const response = await gateway.request<{ reply: CloudReply }>(
@@ -292,21 +292,21 @@ describe('cloud Notifications Integration Tests', () => {
           method: 'GET',
           query: { timeout: 30000 },
         },
-      )
+      );
 
       // Assert
-      assertSuccessResponse(response)
-      expect(response.data.reply.content).toBe('User replied: Yes')
-      expect(response.data.reply.notificationId).toBe('notif-123')
-    })
+      assertSuccessResponse(response);
+      expect(response.data.reply.content).toBe('User replied: Yes');
+      expect(response.data.reply.notificationId).toBe('notif-123');
+    });
 
     it('should handle no reply within timeout', async () => {
       // Arrange
       const mockResponse: CloudApiResponse<{ reply: null }> = {
         success: true,
         data: { reply: null },
-      }
-      mockServer.setResponse('notifications.poll', mockResponse)
+      };
+      mockServer.setResponse('notifications.poll', mockResponse);
 
       // Act
       const response = await gateway.request<{ reply: CloudReply | null }>(
@@ -315,12 +315,12 @@ describe('cloud Notifications Integration Tests', () => {
           method: 'GET',
           query: { timeout: 5000 },
         },
-      )
+      );
 
       // Assert
-      assertSuccessResponse(response)
-      expect(response.data.reply).toBeNull()
-    })
+      assertSuccessResponse(response);
+      expect(response.data.reply).toBeNull();
+    });
 
     it('should handle authentication failure during polling', async () => {
       // Arrange
@@ -328,8 +328,8 @@ describe('cloud Notifications Integration Tests', () => {
         success: false,
         error: 'Device not authenticated',
         code: 'UNAUTHORIZED',
-      }
-      mockServer.setResponse('notifications.poll', mockResponse)
+      };
+      mockServer.setResponse('notifications.poll', mockResponse);
 
       // Act
       const response = await gateway.request<{ reply: CloudReply }>(
@@ -337,22 +337,22 @@ describe('cloud Notifications Integration Tests', () => {
         {
           method: 'GET',
         },
-      )
+      );
 
       // Assert
-      assertErrorResponse(response)
-      expect(response.code).toBe('UNAUTHORIZED')
-    })
+      assertErrorResponse(response);
+      expect(response.code).toBe('UNAUTHORIZED');
+    });
 
     it('should handle long-polling timeout', async () => {
       // Arrange
-      mockServer.setLatency(3000) // 3 second delay
+      mockServer.setLatency(3000); // 3 second delay
       const mockResponse: CloudApiResponse<{ reply: CloudReply }> = {
         success: false,
         error: 'Polling timeout',
         code: 'TIMEOUT',
-      }
-      mockServer.setResponse('notifications.poll', mockResponse)
+      };
+      mockServer.setResponse('notifications.poll', mockResponse);
 
       // Act
       const response = await gateway.request<{ reply: CloudReply }>(
@@ -361,13 +361,13 @@ describe('cloud Notifications Integration Tests', () => {
           method: 'GET',
           timeout: 2000, // 2 second timeout
         },
-      )
+      );
 
       // Assert
-      assertErrorResponse(response)
-      expect(response.code).toBe('TIMEOUT')
-    }, 10000) // 10 second test timeout
-  })
+      assertErrorResponse(response);
+      expect(response.code).toBe('TIMEOUT');
+    }, 10000); // 10 second test timeout
+  });
 
   // ==========================================================================
   // Test Suite 4: Complete Notification Flow
@@ -379,8 +379,8 @@ describe('cloud Notifications Integration Tests', () => {
       const bindResponse: CloudApiResponse<BindResponse> = {
         success: true,
         data: createMockBindResponse(),
-      }
-      mockServer.setResponse('notifications.bind', bindResponse)
+      };
+      mockServer.setResponse('notifications.bind', bindResponse);
 
       const bind = await gateway.request<BindResponse>(
         'notifications.bind',
@@ -388,15 +388,15 @@ describe('cloud Notifications Integration Tests', () => {
           method: 'POST',
           body: { code: 'ABC123' },
         },
-      )
-      assertSuccessResponse(bind)
+      );
+      assertSuccessResponse(bind);
 
       // Step 2: Send notification
       const notifyResponse: CloudApiResponse<NotifyResponse> = {
         success: true,
         data: createMockNotifyResponse(),
-      }
-      mockServer.setResponse('notifications.send', notifyResponse)
+      };
+      mockServer.setResponse('notifications.send', notifyResponse);
 
       const notify = await gateway.request<NotifyResponse>(
         'notifications.send',
@@ -404,29 +404,29 @@ describe('cloud Notifications Integration Tests', () => {
           method: 'POST',
           body: { title: 'Test', body: 'Test' },
         },
-      )
-      assertSuccessResponse(notify)
+      );
+      assertSuccessResponse(notify);
 
       // Step 3: Poll for reply
       const pollResponse: CloudApiResponse<{ reply: CloudReply }> = {
         success: true,
         data: { reply: createMockCloudReply() },
-      }
-      mockServer.setResponse('notifications.poll', pollResponse)
+      };
+      mockServer.setResponse('notifications.poll', pollResponse);
 
       const poll = await gateway.request<{ reply: CloudReply }>(
         'notifications.poll',
         {
           method: 'GET',
         },
-      )
-      assertSuccessResponse(poll)
+      );
+      assertSuccessResponse(poll);
 
       // Assert complete flow
-      expect(bind.data.deviceToken).toBeDefined()
-      expect(notify.data.notificationId).toBeDefined()
-      expect(poll.data.reply.content).toBeDefined()
-    })
+      expect(bind.data.deviceToken).toBeDefined();
+      expect(notify.data.notificationId).toBeDefined();
+      expect(poll.data.reply.content).toBeDefined();
+    });
 
     it('should handle failure at bind step', async () => {
       // Arrange
@@ -434,8 +434,8 @@ describe('cloud Notifications Integration Tests', () => {
         success: false,
         error: 'Invalid code',
         code: 'INVALID_CODE',
-      }
-      mockServer.setResponse('notifications.bind', mockResponse)
+      };
+      mockServer.setResponse('notifications.bind', mockResponse);
 
       // Act
       const response = await gateway.request<BindResponse>(
@@ -444,20 +444,20 @@ describe('cloud Notifications Integration Tests', () => {
           method: 'POST',
           body: { code: 'INVALID' },
         },
-      )
+      );
 
       // Assert - Flow should stop at bind step
-      assertErrorResponse(response)
-      expect(response.code).toBe('INVALID_CODE')
-    })
+      assertErrorResponse(response);
+      expect(response.code).toBe('INVALID_CODE');
+    });
 
     it('should handle failure at notify step', async () => {
       // Step 1: Successful bind
       const bindResponse: CloudApiResponse<BindResponse> = {
         success: true,
         data: createMockBindResponse(),
-      }
-      mockServer.setResponse('notifications.bind', bindResponse)
+      };
+      mockServer.setResponse('notifications.bind', bindResponse);
 
       const bind = await gateway.request<BindResponse>(
         'notifications.bind',
@@ -465,16 +465,16 @@ describe('cloud Notifications Integration Tests', () => {
           method: 'POST',
           body: { code: 'ABC123' },
         },
-      )
-      assertSuccessResponse(bind)
+      );
+      assertSuccessResponse(bind);
 
       // Step 2: Failed notify
       const notifyResponse: CloudApiResponse<NotifyResponse> = {
         success: false,
         error: 'Delivery failed',
         code: 'DELIVERY_FAILED',
-      }
-      mockServer.setResponse('notifications.send', notifyResponse)
+      };
+      mockServer.setResponse('notifications.send', notifyResponse);
 
       const notify = await gateway.request<NotifyResponse>(
         'notifications.send',
@@ -482,11 +482,11 @@ describe('cloud Notifications Integration Tests', () => {
           method: 'POST',
           body: { title: 'Test', body: 'Test' },
         },
-      )
+      );
 
       // Assert - Flow should stop at notify step
-      assertErrorResponse(notify)
-      expect(notify.code).toBe('DELIVERY_FAILED')
-    })
-  })
-})
+      assertErrorResponse(notify);
+      expect(notify.code).toBe('DELIVERY_FAILED');
+    });
+  });
+});

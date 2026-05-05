@@ -8,14 +8,14 @@
  * - Interactive mode requires stdio: 'inherit' for proper TTY handling
  */
 
-import type { ConfigManager } from './config-manager'
-import type { SessionManager } from './session-manager'
-import { spawn } from 'node:child_process'
-import process from 'node:process'
-import { createInterface } from 'node:readline'
-import { createConfigManager } from './config-manager'
-import { createSessionManager } from './session-manager'
-import { estimateTokens } from './token-estimator'
+import type { ConfigManager } from './config-manager';
+import type { SessionManager } from './session-manager';
+import { spawn } from 'node:child_process';
+import process from 'node:process';
+import { createInterface } from 'node:readline';
+import { createConfigManager } from './config-manager';
+import { createSessionManager } from './session-manager';
+import { estimateTokens } from './token-estimator';
 
 /**
  * Arguments that should always pass through directly without wrapping
@@ -29,13 +29,13 @@ const PASSTHROUGH_ARGS = [
   '--mcp-list',
   '--mcp-debug',
   'update', // claude update command
-]
+];
 
 /**
  * Check if args contain any passthrough arguments
  */
 function shouldPassthrough(args: string[]): boolean {
-  return args.some(arg => PASSTHROUGH_ARGS.includes(arg))
+  return args.some(arg => PASSTHROUGH_ARGS.includes(arg));
 }
 
 /**
@@ -43,25 +43,25 @@ function shouldPassthrough(args: string[]): boolean {
  */
 export interface CLIWrapperOptions {
   /** Session ID to resume */
-  sessionId?: string
+  sessionId?: string;
   /** Disable compression */
-  disableCompression?: boolean
+  disableCompression?: boolean;
   /** Custom config path */
-  configPath?: string
+  configPath?: string;
   /** Verbose logging */
-  verbose?: boolean
+  verbose?: boolean;
   /** Project path for session */
-  projectPath?: string
+  projectPath?: string;
 }
 
 /**
  * Intercepted message structure
  */
 export interface InterceptedMessage {
-  role: 'user' | 'assistant'
-  content: string
-  timestamp: number
-  tokens?: number
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: number;
+  tokens?: number;
 }
 
 /**
@@ -69,11 +69,11 @@ export interface InterceptedMessage {
  */
 export interface CompressionStrategy {
   /** Token threshold percentage (0-1) */
-  tokenThreshold: number
+  tokenThreshold: number;
   /** Idle time in milliseconds */
-  idleTimeout: number
+  idleTimeout: number;
   /** Manual trigger command */
-  manualCommand: string
+  manualCommand: string;
 }
 
 /**
@@ -83,22 +83,22 @@ const DEFAULT_COMPRESSION_STRATEGY: CompressionStrategy = {
   tokenThreshold: 0.8, // 80%
   idleTimeout: 300000, // 5 minutes
   manualCommand: '/compress',
-}
+};
 
 /**
  * CLI Wrapper class
  * Transparently proxies Claude Code CLI with context compression
  */
 export class CLIWrapper {
-  private sessionManager: SessionManager
-  private configManager: ConfigManager
-  private options: Required<CLIWrapperOptions>
-  private compressionStrategy: CompressionStrategy
-  private claudeProcess: ReturnType<typeof spawn> | null = null
-  private messageBuffer: InterceptedMessage[] = []
-  private lastActivityTime: number = Date.now()
-  private idleCheckInterval: NodeJS.Timeout | null = null
-  private isShuttingDown = false
+  private sessionManager: SessionManager;
+  private configManager: ConfigManager;
+  private options: Required<CLIWrapperOptions>;
+  private compressionStrategy: CompressionStrategy;
+  private claudeProcess: ReturnType<typeof spawn> | null = null;
+  private messageBuffer: InterceptedMessage[] = [];
+  private lastActivityTime: number = Date.now();
+  private idleCheckInterval: NodeJS.Timeout | null = null;
+  private isShuttingDown = false;
 
   constructor(options: CLIWrapperOptions = {}) {
     // Initialize options with defaults
@@ -108,15 +108,15 @@ export class CLIWrapper {
       configPath: options.configPath || '',
       verbose: options.verbose || false,
       projectPath: options.projectPath || process.cwd(),
-    }
+    };
 
     // Initialize managers
-    this.configManager = createConfigManager(this.options.configPath || undefined)
-    this.sessionManager = createSessionManager()
-    this.compressionStrategy = DEFAULT_COMPRESSION_STRATEGY
+    this.configManager = createConfigManager(this.options.configPath || undefined);
+    this.sessionManager = createSessionManager();
+    this.compressionStrategy = DEFAULT_COMPRESSION_STRATEGY;
 
     // Setup signal handlers
-    this.setupSignalHandlers()
+    this.setupSignalHandlers();
   }
 
   /**
@@ -127,34 +127,34 @@ export class CLIWrapper {
       // COMPATIBILITY: Always pass through special commands directly
       // This ensures --help, --version, update, etc. work without interference
       if (shouldPassthrough(args)) {
-        this.log(`Passthrough mode for args: ${args.join(' ')}`)
-        return this.runDirectly(args)
+        this.log(`Passthrough mode for args: ${args.join(' ')}`);
+        return this.runDirectly(args);
       }
 
       // Load configuration
-      await this.configManager.load()
-      const config = await this.configManager.get()
+      await this.configManager.load();
+      const config = await this.configManager.get();
 
       // Check if compression is enabled
       if (!config.enabled || this.options.disableCompression) {
-        this.log('Context compression disabled, running Claude Code directly')
-        return this.runDirectly(args)
+        this.log('Context compression disabled, running Claude Code directly');
+        return this.runDirectly(args);
       }
 
       // Create or resume session
-      await this.initializeSession()
+      await this.initializeSession();
 
       // Start Claude Code process
-      await this.startClaudeProcess(args)
+      await this.startClaudeProcess(args);
 
       // Start idle check
-      this.startIdleCheck()
+      this.startIdleCheck();
 
-      this.log('CLI wrapper started successfully')
+      this.log('CLI wrapper started successfully');
     }
     catch (error) {
-      console.error('Failed to start CLI wrapper:', error)
-      throw error
+      console.error('Failed to start CLI wrapper:', error);
+      throw error;
     }
   }
 
@@ -164,21 +164,21 @@ export class CLIWrapper {
   private async initializeSession(): Promise<void> {
     if (this.options.sessionId) {
       // Resume existing session
-      const session = this.sessionManager.getSession(this.options.sessionId)
+      const session = this.sessionManager.getSession(this.options.sessionId);
       if (!session) {
-        throw new Error(`Session not found: ${this.options.sessionId}`)
+        throw new Error(`Session not found: ${this.options.sessionId}`);
       }
-      this.log(`Resumed session: ${this.options.sessionId}`)
+      this.log(`Resumed session: ${this.options.sessionId}`);
     }
     else {
       // Create new session
-      const session = this.sessionManager.createSession(this.options.projectPath)
-      this.options.sessionId = session.id
-      this.log(`Created new session: ${session.id}`)
+      const session = this.sessionManager.createSession(this.options.projectPath);
+      this.options.sessionId = session.id;
+      this.log(`Created new session: ${session.id}`);
     }
 
     // Setup session event listeners
-    this.setupSessionListeners()
+    this.setupSessionListeners();
   }
 
   /**
@@ -186,19 +186,19 @@ export class CLIWrapper {
    */
   private setupSessionListeners(): void {
     this.sessionManager.on('threshold_warning', (event) => {
-      this.log(`⚠️  Context usage: ${event.data.usage.toFixed(1)}%`)
-      this.log(`   Remaining tokens: ${event.data.remaining}`)
-    })
+      this.log(`⚠️  Context usage: ${event.data.usage.toFixed(1)}%`);
+      this.log(`   Remaining tokens: ${event.data.remaining}`);
+    });
 
     this.sessionManager.on('threshold_critical', async (event) => {
-      this.log(`🔴 Critical: Context usage at ${event.data.usage.toFixed(1)}%`)
-      this.log('   Triggering compression...')
-      await this.triggerCompression()
-    })
+      this.log(`🔴 Critical: Context usage at ${event.data.usage.toFixed(1)}%`);
+      this.log('   Triggering compression...');
+      await this.triggerCompression();
+    });
 
     this.sessionManager.on('fc_summarized', (event) => {
-      this.log(`✓ Summarized: ${event.data.summary.fcName}`)
-    })
+      this.log(`✓ Summarized: ${event.data.summary.fcName}`);
+    });
   }
 
   /**
@@ -210,11 +210,11 @@ export class CLIWrapper {
       this.claudeProcess = spawn('claude', args, {
         stdio: ['pipe', 'pipe', 'pipe'],
         env: process.env,
-      })
+      });
 
       if (!this.claudeProcess.stdin || !this.claudeProcess.stdout || !this.claudeProcess.stderr) {
-        reject(new Error('Failed to create Claude Code process streams'))
-        return
+        reject(new Error('Failed to create Claude Code process streams'));
+        return;
       }
 
       // Setup stdin proxy (user input -> Claude)
@@ -222,60 +222,60 @@ export class CLIWrapper {
         input: process.stdin,
         output: process.stdout,
         terminal: false,
-      })
+      });
 
       stdinInterface.on('line', async (line) => {
-        await this.interceptInput(line)
-      })
+        await this.interceptInput(line);
+      });
 
       // Setup stdout proxy (Claude output -> user)
       const stdoutInterface = createInterface({
         input: this.claudeProcess.stdout,
         terminal: false,
-      })
+      });
 
       stdoutInterface.on('line', async (line) => {
-        await this.interceptOutput(line)
-      })
+        await this.interceptOutput(line);
+      });
 
       // Setup stderr proxy (Claude errors -> user)
       const stderrInterface = createInterface({
         input: this.claudeProcess.stderr,
         terminal: false,
-      })
+      });
 
       stderrInterface.on('line', (line) => {
-        console.error(line)
-      })
+        console.error(line);
+      });
 
       // Handle process events
       this.claudeProcess.on('error', (error) => {
-        reject(error)
-      })
+        reject(error);
+      });
 
       this.claudeProcess.on('spawn', () => {
-        resolve()
-      })
+        resolve();
+      });
 
       this.claudeProcess.on('exit', (code, signal) => {
         if (!this.isShuttingDown) {
-          this.log(`Claude Code exited with code ${code}, signal ${signal}`)
-          this.shutdown()
+          this.log(`Claude Code exited with code ${code}, signal ${signal}`);
+          this.shutdown();
         }
-      })
-    })
+      });
+    });
   }
 
   /**
    * Intercept and process user input
    */
   async interceptInput(input: string): Promise<string> {
-    this.lastActivityTime = Date.now()
+    this.lastActivityTime = Date.now();
 
     // Check for manual compression command
     if (input.trim() === this.compressionStrategy.manualCommand) {
-      await this.triggerCompression()
-      return '' // Don't forward to Claude
+      await this.triggerCompression();
+      return ''; // Don't forward to Claude
     }
 
     // Record message
@@ -284,22 +284,22 @@ export class CLIWrapper {
       content: input,
       timestamp: Date.now(),
       tokens: estimateTokens(input),
-    }
-    this.messageBuffer.push(message)
+    };
+    this.messageBuffer.push(message);
 
     // Forward to Claude Code
     if (this.claudeProcess?.stdin) {
-      this.claudeProcess.stdin.write(`${input}\n`)
+      this.claudeProcess.stdin.write(`${input}\n`);
     }
 
-    return input
+    return input;
   }
 
   /**
    * Intercept and process Claude output
    */
   async interceptOutput(output: string): Promise<string> {
-    this.lastActivityTime = Date.now()
+    this.lastActivityTime = Date.now();
 
     // Record message
     const message: InterceptedMessage = {
@@ -307,18 +307,18 @@ export class CLIWrapper {
       content: output,
       timestamp: Date.now(),
       tokens: estimateTokens(output),
-    }
-    this.messageBuffer.push(message)
+    };
+    this.messageBuffer.push(message);
 
     // Check if we need to compress
     if (this.shouldTriggerCompression()) {
-      await this.triggerCompression()
+      await this.triggerCompression();
     }
 
     // Forward to user
-    console.log(output)
+    console.log(output);
 
-    return output
+    return output;
   }
 
   /**
@@ -326,11 +326,11 @@ export class CLIWrapper {
    */
   private shouldTriggerCompression(): boolean {
     if (this.options.disableCompression) {
-      return false
+      return false;
     }
 
     // Check token threshold
-    return this.sessionManager.isThresholdExceeded()
+    return this.sessionManager.isThresholdExceeded();
   }
 
   /**
@@ -338,13 +338,13 @@ export class CLIWrapper {
    */
   private startIdleCheck(): void {
     this.idleCheckInterval = setInterval(() => {
-      const idleTime = Date.now() - this.lastActivityTime
+      const idleTime = Date.now() - this.lastActivityTime;
 
       if (idleTime >= this.compressionStrategy.idleTimeout) {
-        this.log('Idle timeout reached, triggering compression')
-        this.triggerCompression()
+        this.log('Idle timeout reached, triggering compression');
+        this.triggerCompression();
       }
-    }, 60000) // Check every minute
+    }, 60000); // Check every minute
   }
 
   /**
@@ -352,11 +352,11 @@ export class CLIWrapper {
    */
   async triggerCompression(): Promise<void> {
     if (this.options.disableCompression) {
-      return
+      return;
     }
 
     try {
-      this.log('🔄 Starting context compression...')
+      this.log('🔄 Starting context compression...');
 
       // Process buffered messages
       for (const message of this.messageBuffer) {
@@ -366,23 +366,23 @@ export class CLIWrapper {
             'assistant_response',
             { timestamp: message.timestamp },
             message.content,
-          )
+          );
         }
       }
 
       // Clear buffer
-      this.messageBuffer = []
+      this.messageBuffer = [];
 
       // Generate session summary
-      const summary = this.sessionManager.generateSessionSummary()
+      const summary = this.sessionManager.generateSessionSummary();
 
       // Inject summary into Claude context
-      await this.injectSummary(summary)
+      await this.injectSummary(summary);
 
-      this.log('✓ Context compression completed')
+      this.log('✓ Context compression completed');
     }
     catch (error) {
-      console.error('Failed to compress context:', error)
+      console.error('Failed to compress context:', error);
     }
   }
 
@@ -391,16 +391,16 @@ export class CLIWrapper {
    */
   private async injectSummary(summary: string): Promise<void> {
     if (!this.claudeProcess?.stdin) {
-      return
+      return;
     }
 
     // Format summary as a system message
-    const injectionMessage = `\n--- Context Summary ---\n${summary}\n--- End Summary ---\n`
+    const injectionMessage = `\n--- Context Summary ---\n${summary}\n--- End Summary ---\n`;
 
     // Write to Claude stdin
-    this.claudeProcess.stdin.write(injectionMessage)
+    this.claudeProcess.stdin.write(injectionMessage);
 
-    this.log('Injected summary into context')
+    this.log('Injected summary into context');
   }
 
   /**
@@ -418,33 +418,33 @@ export class CLIWrapper {
       const claudeProcess = spawn('claude', args, {
         stdio: 'inherit',
         env: process.env,
-      })
+      });
 
       claudeProcess.on('error', (error) => {
         // Provide helpful error message if claude is not found
         if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
-          console.error('Error: Claude Code CLI not found.')
-          console.error('Please install it first: npm install -g @anthropic-ai/claude-code')
+          console.error('Error: Claude Code CLI not found.');
+          console.error('Please install it first: npm install -g @anthropic-ai/claude-code');
         }
-        reject(error)
-      })
+        reject(error);
+      });
 
       claudeProcess.on('exit', (code, signal) => {
         // Forward the exit code/signal properly
         if (signal) {
           // Process was killed by signal, exit with appropriate code
-          process.exit(128 + (signal === 'SIGINT' ? 2 : signal === 'SIGTERM' ? 15 : 1))
+          process.exit(128 + (signal === 'SIGINT' ? 2 : signal === 'SIGTERM' ? 15 : 1));
         }
         else if (code === 0 || code === null) {
-          resolve()
+          resolve();
         }
         else {
           // Don't reject with error, just exit with same code
           // This preserves the original exit behavior
-          process.exit(code)
+          process.exit(code);
         }
-      })
-    })
+      });
+    });
   }
 
   /**
@@ -452,41 +452,41 @@ export class CLIWrapper {
    */
   async shutdown(): Promise<void> {
     if (this.isShuttingDown) {
-      return
+      return;
     }
 
-    this.isShuttingDown = true
-    this.log('Shutting down CLI wrapper...')
+    this.isShuttingDown = true;
+    this.log('Shutting down CLI wrapper...');
 
     try {
       // Stop idle check
       if (this.idleCheckInterval) {
-        clearInterval(this.idleCheckInterval)
-        this.idleCheckInterval = null
+        clearInterval(this.idleCheckInterval);
+        this.idleCheckInterval = null;
       }
 
       // Complete session
       if (this.options.sessionId) {
-        this.sessionManager.completeSession()
-        this.log(`Session completed: ${this.options.sessionId}`)
+        this.sessionManager.completeSession();
+        this.log(`Session completed: ${this.options.sessionId}`);
       }
 
       // Kill Claude process if still running
       if (this.claudeProcess && !this.claudeProcess.killed) {
-        this.claudeProcess.kill('SIGTERM')
+        this.claudeProcess.kill('SIGTERM');
 
         // Force kill after timeout
         setTimeout(() => {
           if (this.claudeProcess && !this.claudeProcess.killed) {
-            this.claudeProcess.kill('SIGKILL')
+            this.claudeProcess.kill('SIGKILL');
           }
-        }, 5000)
+        }, 5000);
       }
 
-      this.log('CLI wrapper shut down successfully')
+      this.log('CLI wrapper shut down successfully');
     }
     catch (error) {
-      console.error('Error during shutdown:', error)
+      console.error('Error during shutdown:', error);
     }
   }
 
@@ -494,15 +494,15 @@ export class CLIWrapper {
    * Setup signal handlers for graceful shutdown
    */
   private setupSignalHandlers(): void {
-    const signals: NodeJS.Signals[] = ['SIGINT', 'SIGTERM', 'SIGQUIT']
+    const signals: NodeJS.Signals[] = ['SIGINT', 'SIGTERM', 'SIGQUIT'];
 
     for (const signal of signals) {
       process.on(signal, () => {
-        this.log(`Received ${signal}, shutting down...`)
+        this.log(`Received ${signal}, shutting down...`);
         this.shutdown().then(() => {
-          process.exit(0)
-        })
-      })
+          process.exit(0);
+        });
+      });
     }
   }
 
@@ -511,7 +511,7 @@ export class CLIWrapper {
    */
   private log(message: string): void {
     if (this.options.verbose) {
-      console.error(`[CLI Wrapper] ${message}`)
+      console.error(`[CLI Wrapper] ${message}`);
     }
   }
 
@@ -519,21 +519,21 @@ export class CLIWrapper {
    * Get current session
    */
   getCurrentSession(): ReturnType<SessionManager['getCurrentSession']> {
-    return this.sessionManager.getCurrentSession()
+    return this.sessionManager.getCurrentSession();
   }
 
   /**
    * Get session manager
    */
   getSessionManager(): SessionManager {
-    return this.sessionManager
+    return this.sessionManager;
   }
 
   /**
    * Get config manager
    */
   getConfigManager(): ConfigManager {
-    return this.configManager
+    return this.configManager;
   }
 
   /**
@@ -543,14 +543,14 @@ export class CLIWrapper {
     this.compressionStrategy = {
       ...this.compressionStrategy,
       ...strategy,
-    }
+    };
   }
 
   /**
    * Get compression strategy
    */
   getCompressionStrategy(): CompressionStrategy {
-    return { ...this.compressionStrategy }
+    return { ...this.compressionStrategy };
   }
 }
 
@@ -558,7 +558,7 @@ export class CLIWrapper {
  * Create CLI wrapper instance
  */
 export function createCLIWrapper(options?: CLIWrapperOptions): CLIWrapper {
-  return new CLIWrapper(options)
+  return new CLIWrapper(options);
 }
 
 /**
@@ -568,6 +568,6 @@ export async function runWithWrapper(
   args: string[] = [],
   options?: CLIWrapperOptions,
 ): Promise<void> {
-  const wrapper = createCLIWrapper(options)
-  await wrapper.start(args)
+  const wrapper = createCLIWrapper(options);
+  await wrapper.start(args);
 }

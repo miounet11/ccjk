@@ -7,19 +7,19 @@
  * @module commands/workflows
  */
 
-import type { SupportedLang } from '../constants.js'
-import type { SubagentWorkflowOptions } from './subagent-workflow.js'
+import type { SupportedLang } from '../constants.js';
+import type { SubagentWorkflowOptions } from './subagent-workflow.js';
 import {
   controlWorkflow,
   createNewWorkflow,
   listAllWorkflows as listWorkflowsImpl,
   showWorkflowDetails,
 
-} from './subagent-workflow.js'
+} from './subagent-workflow.js';
 
 export interface WorkflowsOptions {
-  lang?: SupportedLang
-  format?: 'table' | 'json' | 'minimal'
+  lang?: SupportedLang;
+  format?: 'table' | 'json' | 'minimal';
 }
 
 /**
@@ -29,8 +29,8 @@ export async function listWorkflowsQuick(options: WorkflowsOptions = {}): Promis
   const opts: SubagentWorkflowOptions = {
     lang: options.lang,
     format: options.format,
-  }
-  await listWorkflowsImpl(opts)
+  };
+  await listWorkflowsImpl(opts);
 }
 
 /**
@@ -44,7 +44,7 @@ export async function showWorkflowStatus(
     lang: options.lang,
     workflowId,
     format: options.format,
-  })
+  });
 }
 
 /**
@@ -54,7 +54,7 @@ export async function createWorkflow(options: WorkflowsOptions = {}): Promise<st
   return createNewWorkflow({
     lang: options.lang,
     format: options.format,
-  })
+  });
 }
 
 /**
@@ -66,7 +66,7 @@ export async function controlWorkflowAction(
   _options: WorkflowsOptions = {},
 ): Promise<void> {
   // controlWorkflow uses interactive prompts, so we just call it directly
-  await controlWorkflow()
+  await controlWorkflow();
 }
 
 /**
@@ -78,21 +78,21 @@ export async function runWorkflowsCommand(
 ): Promise<void> {
   switch (action) {
     case 'list':
-      await listWorkflowsQuick(options)
-      break
+      await listWorkflowsQuick(options);
+      break;
     case 'status':
       if (options.workflowId) {
-        await showWorkflowStatus(options.workflowId, options)
+        await showWorkflowStatus(options.workflowId, options);
       }
-      break
+      break;
     case 'create':
-      await createWorkflow(options)
-      break
+      await createWorkflow(options);
+      break;
     case 'pause':
     case 'resume':
       if (options.workflowId) {
-        await controlWorkflowAction(action, options.workflowId, options)
+        await controlWorkflowAction(action, options.workflowId, options);
       }
-      break
+      break;
   }
 }

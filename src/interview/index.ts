@@ -16,7 +16,7 @@ export {
   createInterviewEngine,
   getInterviewEngine,
   InterviewEngine,
-} from './engine'
+} from './engine';
 
 // Question categories
 export {
@@ -27,13 +27,13 @@ export {
   getTemplateById,
   INTERVIEW_CATEGORIES,
   INTERVIEW_TEMPLATES,
-} from './question-categories'
+} from './question-categories';
 
 // Spec generator
 export {
   createSpecGenerator,
   SpecGenerator,
-} from './spec-generator'
+} from './spec-generator';
 
 // Type exports
 export type {
@@ -59,4 +59,4 @@ export type {
   SpecEdgeCase,
   SpecOpenQuestion,
   SpecSection,
-} from './types'
+} from './types';

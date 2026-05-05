@@ -12,156 +12,156 @@
  * Model: opus (requires deep reasoning for ML architecture)
  */
 
-import type { AgentCapability, AgentContext, AgentResult } from './base-agent.js'
-import { AgentState, BaseAgent } from './base-agent.js'
+import type { AgentCapability, AgentContext, AgentResult } from './base-agent.js';
+import { AgentState, BaseAgent } from './base-agent.js';
 
 interface MLPipeline {
-  name: string
-  problem: 'classification' | 'regression' | 'clustering' | 'nlp' | 'computer-vision' | 'time-series' | 'recommendation'
-  stages: MLStage[]
-  dataPreprocessing: DataPreprocessing
-  featureEngineering: FeatureEngineering
-  modelSelection: ModelSelection
-  training: TrainingConfig
-  evaluation: EvaluationConfig
-  deployment: DeploymentConfig
+  name: string;
+  problem: 'classification' | 'regression' | 'clustering' | 'nlp' | 'computer-vision' | 'time-series' | 'recommendation';
+  stages: MLStage[];
+  dataPreprocessing: DataPreprocessing;
+  featureEngineering: FeatureEngineering;
+  modelSelection: ModelSelection;
+  training: TrainingConfig;
+  evaluation: EvaluationConfig;
+  deployment: DeploymentConfig;
 }
 
 interface MLStage {
-  name: string
-  type: 'data-collection' | 'preprocessing' | 'feature-engineering' | 'training' | 'evaluation' | 'deployment'
-  steps: any[]
-  artifacts: string[]
+  name: string;
+  type: 'data-collection' | 'preprocessing' | 'feature-engineering' | 'training' | 'evaluation' | 'deployment';
+  steps: any[];
+  artifacts: string[];
 }
 
 interface DataPreprocessing {
   cleaning: {
-    missingValues: 'drop' | 'impute' | 'forward-fill' | 'backward-fill'
-    outliers: 'remove' | 'cap' | 'transform' | 'keep'
-    duplicates: 'remove' | 'keep'
-  }
+    missingValues: 'drop' | 'impute' | 'forward-fill' | 'backward-fill';
+    outliers: 'remove' | 'cap' | 'transform' | 'keep';
+    duplicates: 'remove' | 'keep';
+  };
   transformation: {
-    scaling: 'standard' | 'minmax' | 'robust' | 'none'
-    encoding: 'onehot' | 'label' | 'target' | 'ordinal'
-    normalization: boolean
-  }
+    scaling: 'standard' | 'minmax' | 'robust' | 'none';
+    encoding: 'onehot' | 'label' | 'target' | 'ordinal';
+    normalization: boolean;
+  };
   splitting: {
-    train: number
-    validation: number
-    test: number
-    strategy: 'random' | 'stratified' | 'time-series'
-  }
+    train: number;
+    validation: number;
+    test: number;
+    strategy: 'random' | 'stratified' | 'time-series';
+  };
 }
 
 interface FeatureEngineering {
   selection: {
-    method: 'correlation' | 'mutual-info' | 'rfe' | 'lasso' | 'tree-based'
-    threshold: number
-  }
+    method: 'correlation' | 'mutual-info' | 'rfe' | 'lasso' | 'tree-based';
+    threshold: number;
+  };
   extraction: {
-    pca?: { components: number }
-    autoencoder?: { layers: number[] }
-    embeddings?: { dimension: number }
-  }
+    pca?: { components: number };
+    autoencoder?: { layers: number[] };
+    embeddings?: { dimension: number };
+  };
   creation: {
-    polynomial?: { degree: number }
-    interactions?: boolean
-    domain?: string[]
-  }
+    polynomial?: { degree: number };
+    interactions?: boolean;
+    domain?: string[];
+  };
 }
 
 interface ModelSelection {
-  candidates: ModelCandidate[]
+  candidates: ModelCandidate[];
   selectionCriteria: {
-    metric: string
-    threshold: number
-    constraints: any
-  }
+    metric: string;
+    threshold: number;
+    constraints: any;
+  };
   ensemble?: {
-    method: 'voting' | 'stacking' | 'bagging' | 'boosting'
-    models: string[]
-  }
+    method: 'voting' | 'stacking' | 'bagging' | 'boosting';
+    models: string[];
+  };
 }
 
 interface ModelCandidate {
-  name: string
-  type: string
-  hyperparameters: Record<string, any>
-  pros: string[]
-  cons: string[]
-  complexity: 'low' | 'medium' | 'high'
-  interpretability: 'high' | 'medium' | 'low'
+  name: string;
+  type: string;
+  hyperparameters: Record<string, any>;
+  pros: string[];
+  cons: string[];
+  complexity: 'low' | 'medium' | 'high';
+  interpretability: 'high' | 'medium' | 'low';
 }
 
 interface TrainingConfig {
-  optimizer: string
-  learningRate: number | 'auto'
-  batchSize: number
-  epochs: number
+  optimizer: string;
+  learningRate: number | 'auto';
+  batchSize: number;
+  epochs: number;
   earlyStop: {
-    enabled: boolean
-    patience: number
-    metric: string
-  }
+    enabled: boolean;
+    patience: number;
+    metric: string;
+  };
   regularization: {
-    l1?: number
-    l2?: number
-    dropout?: number
-  }
-  augmentation?: any
+    l1?: number;
+    l2?: number;
+    dropout?: number;
+  };
+  augmentation?: any;
 }
 
 interface EvaluationConfig {
-  metrics: string[]
+  metrics: string[];
   crossValidation: {
-    folds: number
-    strategy: 'kfold' | 'stratified' | 'time-series'
-  }
+    folds: number;
+    strategy: 'kfold' | 'stratified' | 'time-series';
+  };
   benchmarks: {
-    baseline: any
-    stateOfArt?: any
-  }
+    baseline: any;
+    stateOfArt?: any;
+  };
 }
 
 interface DeploymentConfig {
-  platform: 'cloud' | 'edge' | 'mobile' | 'server'
+  platform: 'cloud' | 'edge' | 'mobile' | 'server';
   serving: {
-    type: 'batch' | 'realtime' | 'streaming'
-    framework: string
-    optimization: string[]
-  }
+    type: 'batch' | 'realtime' | 'streaming';
+    framework: string;
+    optimization: string[];
+  };
   monitoring: {
-    metrics: string[]
-    drift: boolean
+    metrics: string[];
+    drift: boolean;
     retraining: {
-      trigger: string
-      frequency: string
-    }
-  }
+      trigger: string;
+      frequency: string;
+    };
+  };
 }
 
 interface ModelEvaluation {
-  model: string
-  metrics: Record<string, number>
-  confusionMatrix?: number[][]
-  featureImportance?: { feature: string, importance: number }[]
+  model: string;
+  metrics: Record<string, number>;
+  confusionMatrix?: number[][];
+  featureImportance?: { feature: string; importance: number }[];
   predictions: {
-    sample: any[]
-    actual: any[]
-    predicted: any[]
-  }
+    sample: any[];
+    actual: any[];
+    predicted: any[];
+  };
   performance: {
-    latency: number
-    throughput: number
-    memory: number
-  }
-  recommendations: string[]
+    latency: number;
+    throughput: number;
+    memory: number;
+  };
+  recommendations: string[];
 }
 
 export class AIMLAgent extends BaseAgent {
-  private modelRegistry: Map<string, any> = new Map()
-  private experimentHistory: any[] = []
-  private bestPractices: Map<string, any> = new Map()
+  private modelRegistry: Map<string, any> = new Map();
+  private experimentHistory: any[] = [];
+  private bestPractices: Map<string, any> = new Map();
 
   constructor(context: AgentContext) {
     const capabilities: AgentCapability[] = [
@@ -236,7 +236,7 @@ export class AIMLAgent extends BaseAgent {
           budget: 'number',
         },
       },
-    ]
+    ];
 
     super(
       {
@@ -248,101 +248,101 @@ export class AIMLAgent extends BaseAgent {
         verbose: true,
       },
       context,
-    )
+    );
   }
 
   async initialize(): Promise<void> {
-    this.log('Initializing AI/ML Agent with opus model...')
-    await this.loadModelRegistry()
-    await this.loadBestPractices()
-    this.log('AI/ML Agent ready for world-class machine learning')
+    this.log('Initializing AI/ML Agent with opus model...');
+    await this.loadModelRegistry();
+    await this.loadBestPractices();
+    this.log('AI/ML Agent ready for world-class machine learning');
   }
 
   async process(message: string, metadata?: Record<string, unknown>): Promise<AgentResult> {
-    this.setState(AgentState.THINKING)
-    this.addMessage({ role: 'user', content: message, metadata })
+    this.setState(AgentState.THINKING);
+    this.addMessage({ role: 'user', content: message, metadata });
 
     try {
-      const action = metadata?.action as string || 'design-ml-pipeline'
-      const parameters = metadata?.parameters as any || {}
+      const action = metadata?.action as string || 'design-ml-pipeline';
+      const parameters = metadata?.parameters as any || {};
 
-      this.log(`Processing ${action} request`)
+      this.log(`Processing ${action} request`);
 
-      let result: any
+      let result: any;
 
       switch (action) {
         case 'design-ml-pipeline':
-          result = await this.designMLPipeline(parameters)
-          break
+          result = await this.designMLPipeline(parameters);
+          break;
         case 'select-model':
-          result = await this.selectModel(parameters)
-          break
+          result = await this.selectModel(parameters);
+          break;
         case 'feature-engineering':
-          result = await this.designFeatureEngineering(parameters)
-          break
+          result = await this.designFeatureEngineering(parameters);
+          break;
         case 'hyperparameter-tuning':
-          result = await this.designHyperparameterTuning(parameters)
-          break
+          result = await this.designHyperparameterTuning(parameters);
+          break;
         case 'evaluate-model':
-          result = await this.evaluateModel(parameters)
-          break
+          result = await this.evaluateModel(parameters);
+          break;
         case 'optimize-model':
-          result = await this.optimizeModel(parameters)
-          break
+          result = await this.optimizeModel(parameters);
+          break;
         case 'mlops-setup':
-          result = await this.setupMLOps(parameters)
-          break
+          result = await this.setupMLOps(parameters);
+          break;
         case 'automl':
-          result = await this.runAutoML(parameters)
-          break
+          result = await this.runAutoML(parameters);
+          break;
         default:
-          throw new Error(`Unknown action: ${action}`)
+          throw new Error(`Unknown action: ${action}`);
       }
 
-      this.setState(AgentState.COMPLETED)
+      this.setState(AgentState.COMPLETED);
       return {
         success: true,
         data: result,
         message: `Successfully completed ${action}`,
-      }
+      };
     }
     catch (error) {
-      this.setState(AgentState.ERROR)
-      const err = error instanceof Error ? error : new Error(String(error))
+      this.setState(AgentState.ERROR);
+      const err = error instanceof Error ? error : new Error(String(error));
       return {
         success: false,
         error: err,
         message: `Failed to process request: ${err.message}`,
-      }
+      };
     }
   }
 
   async cleanup(): Promise<void> {
-    this.modelRegistry.clear()
-    this.log('AI/ML Agent cleanup completed')
+    this.modelRegistry.clear();
+    this.log('AI/ML Agent cleanup completed');
   }
 
   override async handleError(error: Error): Promise<AgentResult> {
-    this.log(`AI/ML Agent error: ${error.message}`, 'error')
+    this.log(`AI/ML Agent error: ${error.message}`, 'error');
 
     if (error.message.includes('training')) {
-      this.log('Training error - checking data quality and model configuration')
+      this.log('Training error - checking data quality and model configuration');
     }
 
     return {
       success: false,
       error,
       message: `AI/ML Agent error: ${error.message}`,
-    }
+    };
   }
 
   /**
    * Design end-to-end ML pipeline
    */
   private async designMLPipeline(params: any): Promise<MLPipeline> {
-    this.log('Designing ML pipeline...')
+    this.log('Designing ML pipeline...');
 
-    const { problem, data, constraints = {} } = params
+    const { problem, data, constraints = {} } = params;
 
     const pipeline: MLPipeline = {
       name: `${problem}-pipeline`,
@@ -371,21 +371,21 @@ export class AIMLAgent extends BaseAgent {
       training: await this.designTrainingConfig(problem, constraints),
       evaluation: await this.designEvaluationConfig(problem),
       deployment: await this.designDeploymentConfig(constraints),
-    }
+    };
 
     // Design pipeline stages
-    pipeline.stages = await this.designPipelineStages(pipeline)
+    pipeline.stages = await this.designPipelineStages(pipeline);
 
-    return pipeline
+    return pipeline;
   }
 
   /**
    * Select optimal ML model
    */
   private async selectModel(params: any): Promise<ModelSelection> {
-    this.log('Selecting optimal ML model...')
+    this.log('Selecting optimal ML model...');
 
-    const { problem, data, requirements = {} } = params
+    const { problem, data, requirements = {} } = params;
 
     const selection: ModelSelection = {
       candidates: [],
@@ -394,26 +394,26 @@ export class AIMLAgent extends BaseAgent {
         threshold: requirements.threshold || 0.8,
         constraints: requirements,
       },
-    }
+    };
 
     // Get candidate models for problem type
-    selection.candidates = await this.getCandidateModels(problem, data, requirements)
+    selection.candidates = await this.getCandidateModels(problem, data, requirements);
 
     // Consider ensemble if appropriate
     if (requirements.ensemble !== false) {
-      selection.ensemble = await this.designEnsemble(selection.candidates, problem)
+      selection.ensemble = await this.designEnsemble(selection.candidates, problem);
     }
 
-    return selection
+    return selection;
   }
 
   /**
    * Design feature engineering strategy
    */
   private async designFeatureEngineering(params: any): Promise<FeatureEngineering> {
-    this.log('Designing feature engineering strategy...')
+    this.log('Designing feature engineering strategy...');
 
-    const { data, _target, domain } = params
+    const { data, _target, domain } = params;
 
     return {
       selection: {
@@ -422,16 +422,16 @@ export class AIMLAgent extends BaseAgent {
       },
       extraction: await this.designFeatureExtraction(data, domain),
       creation: await this.designFeatureCreation(data, domain),
-    }
+    };
   }
 
   /**
    * Design hyperparameter tuning strategy
    */
   private async designHyperparameterTuning(params: any): Promise<any> {
-    this.log('Designing hyperparameter tuning strategy...')
+    this.log('Designing hyperparameter tuning strategy...');
 
-    const { model, searchSpace, budget = 100 } = params
+    const { model, searchSpace, budget = 100 } = params;
 
     return {
       method: this.selectTuningMethod(budget),
@@ -447,16 +447,16 @@ export class AIMLAgent extends BaseAgent {
         patience: 10,
         minImprovement: 0.001,
       },
-    }
+    };
   }
 
   /**
    * Evaluate model comprehensively
    */
   private async evaluateModel(params: any): Promise<ModelEvaluation> {
-    this.log('Evaluating model...')
+    this.log('Evaluating model...');
 
-    const { model, data, metrics = [] } = params
+    const { model, data, metrics = [] } = params;
 
     const evaluation: ModelEvaluation = {
       model,
@@ -472,37 +472,37 @@ export class AIMLAgent extends BaseAgent {
         memory: 0,
       },
       recommendations: [],
-    }
+    };
 
     // Calculate metrics
     for (const metric of metrics) {
-      evaluation.metrics[metric] = await this.calculateMetric(model, data, metric)
+      evaluation.metrics[metric] = await this.calculateMetric(model, data, metric);
     }
 
     // Generate confusion matrix for classification
     if (this.isClassificationProblem(model)) {
-      evaluation.confusionMatrix = await this.generateConfusionMatrix(model, data)
+      evaluation.confusionMatrix = await this.generateConfusionMatrix(model, data);
     }
 
     // Calculate feature importance
-    evaluation.featureImportance = await this.calculateFeatureImportance(model, data)
+    evaluation.featureImportance = await this.calculateFeatureImportance(model, data);
 
     // Measure performance
-    evaluation.performance = await this.measurePerformance(model, data)
+    evaluation.performance = await this.measurePerformance(model, data);
 
     // Generate recommendations
-    evaluation.recommendations = await this.generateModelRecommendations(evaluation)
+    evaluation.recommendations = await this.generateModelRecommendations(evaluation);
 
-    return evaluation
+    return evaluation;
   }
 
   /**
    * Optimize model for deployment
    */
   private async optimizeModel(params: any): Promise<any> {
-    this.log('Optimizing model for deployment...')
+    this.log('Optimizing model for deployment...');
 
-    const { model, target, constraints = {} } = params
+    const { model, target, constraints = {} } = params;
 
     return {
       quantization: await this.applyQuantization(model, target),
@@ -510,16 +510,16 @@ export class AIMLAgent extends BaseAgent {
       distillation: await this.applyDistillation(model, constraints),
       compilation: await this.compileModel(model, target),
       benchmarks: await this.benchmarkOptimizations(model, target),
-    }
+    };
   }
 
   /**
    * Setup MLOps infrastructure
    */
   private async setupMLOps(params: any): Promise<any> {
-    this.log('Setting up MLOps infrastructure...')
+    this.log('Setting up MLOps infrastructure...');
 
-    const { platform = 'cloud', requirements = {} } = params
+    const { platform = 'cloud', requirements = {} } = params;
 
     return {
       experimentTracking: await this.setupExperimentTracking(platform),
@@ -528,16 +528,16 @@ export class AIMLAgent extends BaseAgent {
       monitoring: await this.setupModelMonitoring(platform),
       cicd: await this.setupMLCICD(platform),
       governance: await this.setupMLGovernance(requirements),
-    }
+    };
   }
 
   /**
    * Run AutoML pipeline
    */
   private async runAutoML(params: any): Promise<any> {
-    this.log('Running AutoML pipeline...')
+    this.log('Running AutoML pipeline...');
 
-    const { problem, data, budget = 3600 } = params
+    const { problem, data, budget = 3600 } = params;
 
     return {
       dataAnalysis: await this.analyzeDataAutoML(data),
@@ -547,7 +547,7 @@ export class AIMLAgent extends BaseAgent {
       ensembling: await this.autoEnsemble(problem, data),
       bestModel: await this.selectBestModel(problem, data),
       report: await this.generateAutoMLReport(problem, data),
-    }
+    };
   }
 
   // Helper methods
@@ -560,7 +560,7 @@ export class AIMLAgent extends BaseAgent {
       'gradient-boosting',
       'svm',
       'neural-network',
-    ])
+    ]);
 
     this.modelRegistry.set('regression', [
       'linear-regression',
@@ -569,7 +569,7 @@ export class AIMLAgent extends BaseAgent {
       'random-forest',
       'gradient-boosting',
       'neural-network',
-    ])
+    ]);
 
     this.modelRegistry.set('nlp', [
       'transformer',
@@ -577,7 +577,7 @@ export class AIMLAgent extends BaseAgent {
       'gpt',
       'lstm',
       'cnn',
-    ])
+    ]);
   }
 
   private async loadBestPractices(): Promise<void> {
@@ -585,13 +585,13 @@ export class AIMLAgent extends BaseAgent {
       'Handle missing values before splitting',
       'Scale features after splitting',
       'Use stratified splitting for imbalanced data',
-    ])
+    ]);
 
     this.bestPractices.set('model-training', [
       'Use early stopping to prevent overfitting',
       'Monitor validation metrics',
       'Save checkpoints regularly',
-    ])
+    ]);
   }
 
   private selectPrimaryMetric(problem: string): string {
@@ -601,12 +601,12 @@ export class AIMLAgent extends BaseAgent {
       'clustering': 'silhouette',
       'nlp': 'perplexity',
       'computer-vision': 'accuracy',
-    }
-    return metrics[problem] || 'accuracy'
+    };
+    return metrics[problem] || 'accuracy';
   }
 
   private async getCandidateModels(problem: string, _data: any, _requirements: any): Promise<ModelCandidate[]> {
-    const models = this.modelRegistry.get(problem) || []
+    const models = this.modelRegistry.get(problem) || [];
     return models.map((model: string) => ({
       name: model,
       type: problem,
@@ -615,55 +615,55 @@ export class AIMLAgent extends BaseAgent {
       cons: [],
       complexity: 'medium' as const,
       interpretability: 'medium' as const,
-    }))
+    }));
   }
 
   private async designEnsemble(candidates: ModelCandidate[], _problem: string): Promise<any> {
     return {
       method: 'stacking',
       models: candidates.slice(0, 3).map(c => c.name),
-    }
+    };
   }
 
   private async designFeatureExtraction(_data: any, _domain: string): Promise<any> {
     return {
       pca: { components: 10 },
-    }
+    };
   }
 
   private async designFeatureCreation(_data: any, _domain: string): Promise<any> {
     return {
       polynomial: { degree: 2 },
       interactions: true,
-    }
+    };
   }
 
   private selectTuningMethod(budget: number): string {
     if (budget < 50)
-      return 'random-search'
+      return 'random-search';
     if (budget < 200)
-      return 'bayesian-optimization'
-    return 'hyperband'
+      return 'bayesian-optimization';
+    return 'hyperband';
   }
 
   private async defineSearchSpace(model: string, searchSpace: any): Promise<any> {
-    return searchSpace || {}
+    return searchSpace || {};
   }
 
   private async calculateMetric(_model: string, _data: any, _metric: string): Promise<number> {
-    return 0.85
+    return 0.85;
   }
 
   private isClassificationProblem(_model: string): boolean {
-    return true
+    return true;
   }
 
   private async generateConfusionMatrix(_model: string, _data: any): Promise<number[][]> {
-    return [[100, 10], [5, 85]]
+    return [[100, 10], [5, 85]];
   }
 
   private async calculateFeatureImportance(_model: string, _data: any): Promise<any[]> {
-    return []
+    return [];
   }
 
   private async measurePerformance(_model: string, _data: any): Promise<any> {
@@ -671,83 +671,83 @@ export class AIMLAgent extends BaseAgent {
       latency: 10,
       throughput: 1000,
       memory: 512,
-    }
+    };
   }
 
   private async generateModelRecommendations(_evaluation: ModelEvaluation): Promise<string[]> {
-    return ['Consider ensemble methods', 'Add more training data']
+    return ['Consider ensemble methods', 'Add more training data'];
   }
 
   private async applyQuantization(_model: string, _target: string): Promise<any> {
-    return {}
+    return {};
   }
 
   private async applyPruning(_model: string, _constraints: any): Promise<any> {
-    return {}
+    return {};
   }
 
   private async applyDistillation(_model: string, _constraints: any): Promise<any> {
-    return {}
+    return {};
   }
 
   private async compileModel(_model: string, _target: string): Promise<any> {
-    return {}
+    return {};
   }
 
   private async benchmarkOptimizations(_model: string, _target: string): Promise<any> {
-    return {}
+    return {};
   }
 
   private async setupExperimentTracking(_platform: string): Promise<any> {
-    return {}
+    return {};
   }
 
   private async setupModelRegistry(_platform: string): Promise<any> {
-    return {}
+    return {};
   }
 
   private async setupMLPipeline(_platform: string, _requirements: any): Promise<any> {
-    return {}
+    return {};
   }
 
   private async setupModelMonitoring(_platform: string): Promise<any> {
-    return {}
+    return {};
   }
 
   private async setupMLCICD(_platform: string): Promise<any> {
-    return {}
+    return {};
   }
 
   private async setupMLGovernance(_requirements: any): Promise<any> {
-    return {}
+    return {};
   }
 
   private async analyzeDataAutoML(_data: any): Promise<any> {
-    return {}
+    return {};
   }
 
   private async autoFeatureEngineering(_data: any, _problem: string): Promise<any> {
-    return {}
+    return {};
   }
 
   private async autoModelSelection(_problem: string, _data: any, _budget: number): Promise<any> {
-    return {}
+    return {};
   }
 
   private async autoHyperparameterTuning(_problem: string, _data: any, _budget: number): Promise<any> {
-    return {}
+    return {};
   }
 
   private async autoEnsemble(_problem: string, _data: any): Promise<any> {
-    return {}
+    return {};
   }
 
   private async selectBestModel(_problem: string, _data: any): Promise<any> {
-    return {}
+    return {};
   }
 
   private async generateAutoMLReport(_problem: string, _data: any): Promise<any> {
-    return {}
+    return {};
   }
 
   private async designTrainingConfig(_problem: string, _constraints: any): Promise<TrainingConfig> {
@@ -765,7 +765,7 @@ export class AIMLAgent extends BaseAgent {
         l2: 0.01,
         dropout: 0.2,
       },
-    }
+    };
   }
 
   private async designEvaluationConfig(_problem: string): Promise<EvaluationConfig> {
@@ -778,7 +778,7 @@ export class AIMLAgent extends BaseAgent {
       benchmarks: {
         baseline: {},
       },
-    }
+    };
   }
 
   private async designDeploymentConfig(_constraints: any): Promise<DeploymentConfig> {
@@ -797,7 +797,7 @@ export class AIMLAgent extends BaseAgent {
           frequency: 'weekly',
         },
       },
-    }
+    };
   }
 
   private async designPipelineStages(_pipeline: MLPipeline): Promise<MLStage[]> {
@@ -832,6 +832,6 @@ export class AIMLAgent extends BaseAgent {
         steps: [],
         artifacts: ['deployed_model'],
       },
-    ]
+    ];
   }
 }

@@ -3,53 +3,53 @@
  * Provides fault detection, recovery strategies, degradation handling, and alerting
  */
 
-import type { HealthMonitor } from './health-monitor'
-import type { MetricsCollector } from './metrics'
-import type { AgentMetrics } from './orchestrator-types'
-import type { RecoveryAction, RecoveryStrategy, SelfHealingConfig } from './types'
+import type { HealthMonitor } from './health-monitor';
+import type { MetricsCollector } from './metrics';
+import type { AgentMetrics } from './orchestrator-types';
+import type { RecoveryAction, RecoveryStrategy, SelfHealingConfig } from './types';
 
 export interface FaultDetectionResult {
-  agentId: string
-  faultType: 'timeout' | 'high_error_rate' | 'resource_exhaustion' | 'performance_degradation' | 'crash'
-  severity: 'low' | 'medium' | 'high' | 'critical'
-  description: string
-  metrics?: AgentMetrics
-  timestamp: number
+  agentId: string;
+  faultType: 'timeout' | 'high_error_rate' | 'resource_exhaustion' | 'performance_degradation' | 'crash';
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  description: string;
+  metrics?: AgentMetrics;
+  timestamp: number;
 }
 
 export interface RecoveryAttempt {
-  agentId: string
-  action: RecoveryAction
-  timestamp: number
-  success: boolean
-  error?: string
+  agentId: string;
+  action: RecoveryAction;
+  timestamp: number;
+  success: boolean;
+  error?: string;
 }
 
 export interface AlertNotification {
-  agentId: string
-  level: 'info' | 'warning' | 'error' | 'critical'
-  message: string
-  timestamp: number
-  metadata?: Record<string, any>
+  agentId: string;
+  level: 'info' | 'warning' | 'error' | 'critical';
+  message: string;
+  timestamp: number;
+  metadata?: Record<string, any>;
 }
 
-export type AlertHandler = (notification: AlertNotification) => void | Promise<void>
+export type AlertHandler = (notification: AlertNotification) => void | Promise<void>;
 
 export class SelfHealingSystem {
-  private config: SelfHealingConfig
-  private healthMonitor: HealthMonitor
-  private metricsCollector: MetricsCollector
-  private recoveryAttempts: Map<string, RecoveryAttempt[]> = new Map()
-  private alertHandlers: Set<AlertHandler> = new Set()
-  private degradationMode: Map<string, boolean> = new Map()
+  private config: SelfHealingConfig;
+  private healthMonitor: HealthMonitor;
+  private metricsCollector: MetricsCollector;
+  private recoveryAttempts: Map<string, RecoveryAttempt[]> = new Map();
+  private alertHandlers: Set<AlertHandler> = new Set();
+  private degradationMode: Map<string, boolean> = new Map();
 
   constructor(
     healthMonitor: HealthMonitor,
     metricsCollector: MetricsCollector,
     config: Partial<SelfHealingConfig> = {},
   ) {
-    this.healthMonitor = healthMonitor
-    this.metricsCollector = metricsCollector
+    this.healthMonitor = healthMonitor;
+    this.metricsCollector = metricsCollector;
 
     this.config = {
       enabled: config.enabled ?? true,
@@ -60,19 +60,19 @@ export class SelfHealingSystem {
       strategies: config.strategies ?? [],
       autoRecover: config.autoRecover ?? true,
       maxRecoveryAttempts: config.maxRecoveryAttempts ?? 3,
-    }
+    };
 
     // Subscribe to health status changes
-    this.setupHealthMonitoring()
+    this.setupHealthMonitoring();
   }
 
   /**
    * Detect faults in agent
    */
   detectFaults(agentId: string): FaultDetectionResult[] {
-    const faults: FaultDetectionResult[] = []
-    const healthStatus = this.healthMonitor.getHealthStatus(agentId)
-    const metrics = this.metricsCollector.getAgentMetrics(agentId)
+    const faults: FaultDetectionResult[] = [];
+    const healthStatus = this.healthMonitor.getHealthStatus(agentId);
+    const metrics = this.metricsCollector.getAgentMetrics(agentId);
 
     // Check for timeout
     if (healthStatus.status === 'dead') {
@@ -82,11 +82,11 @@ export class SelfHealingSystem {
         severity: 'critical',
         description: `Agent has not responded for ${Math.round(healthStatus.timeSinceLastHeartbeat / 1000)}s`,
         timestamp: Date.now(),
-      })
+      });
     }
 
     // Check for high error rate (using successRate: 0-1)
-    const errorRate = 1 - metrics.successRate
+    const errorRate = 1 - metrics.successRate;
     if (errorRate > this.config.errorRateThreshold) {
       faults.push({
         agentId,
@@ -94,7 +94,7 @@ export class SelfHealingSystem {
         severity: errorRate > 0.5 ? 'critical' : 'high',
         description: `High error rate: ${(errorRate * 100).toFixed(1)}%`,
         timestamp: Date.now(),
-      })
+      });
     }
 
     // Check for slow performance
@@ -105,7 +105,7 @@ export class SelfHealingSystem {
         severity: 'medium',
         description: `Slow performance - Avg duration: ${(metrics.avgTaskDuration / 1000).toFixed(1)}s`,
         timestamp: Date.now(),
-      })
+      });
     }
 
     // Check for performance degradation
@@ -116,10 +116,10 @@ export class SelfHealingSystem {
         severity: 'medium',
         description: 'Agent performance is degraded',
         timestamp: Date.now(),
-      })
+      });
     }
 
-    return faults
+    return faults;
   }
 
   /**
@@ -127,43 +127,43 @@ export class SelfHealingSystem {
    */
   async recover(agentId: string, strategy?: RecoveryStrategy): Promise<boolean> {
     if (!this.config.autoRecover) {
-      return false
+      return false;
     }
 
-    const attempts = this.recoveryAttempts.get(agentId) ?? []
+    const attempts = this.recoveryAttempts.get(agentId) ?? [];
     if (attempts.length >= this.config.maxRecoveryAttempts) {
       await this.sendAlert({
         agentId,
         level: 'critical',
         message: `Max recovery attempts (${this.config.maxRecoveryAttempts}) reached for agent ${agentId}`,
         timestamp: Date.now(),
-      })
-      return false
+      });
+      return false;
     }
 
-    const faults = this.detectFaults(agentId)
+    const faults = this.detectFaults(agentId);
     if (faults.length === 0) {
-      return true // No faults detected
+      return true; // No faults detected
     }
 
     // Determine recovery strategy
-    const recoveryStrategy = strategy ?? this.determineRecoveryStrategy(faults)
+    const recoveryStrategy = strategy ?? this.determineRecoveryStrategy(faults);
 
     // Execute recovery actions
     for (const action of recoveryStrategy.actions) {
-      const success = await this.executeRecoveryAction(agentId, action)
+      const success = await this.executeRecoveryAction(agentId, action);
 
       const attempt: RecoveryAttempt = {
         agentId,
         action,
         timestamp: Date.now(),
         success,
-      }
+      };
 
       if (!this.recoveryAttempts.has(agentId)) {
-        this.recoveryAttempts.set(agentId, [])
+        this.recoveryAttempts.set(agentId, []);
       }
-      this.recoveryAttempts.get(agentId)!.push(attempt)
+      this.recoveryAttempts.get(agentId)!.push(attempt);
 
       if (!success) {
         await this.sendAlert({
@@ -171,7 +171,7 @@ export class SelfHealingSystem {
           level: 'error',
           message: `Recovery action '${action}' failed for agent ${agentId}`,
           timestamp: Date.now(),
-        })
+        });
       }
       else {
         await this.sendAlert({
@@ -179,13 +179,13 @@ export class SelfHealingSystem {
           level: 'info',
           message: `Recovery action '${action}' succeeded for agent ${agentId}`,
           timestamp: Date.now(),
-        })
+        });
       }
     }
 
     // Verify recovery
-    const stillFaulty = this.detectFaults(agentId).length > 0
-    return !stillFaulty
+    const stillFaulty = this.detectFaults(agentId).length > 0;
+    return !stillFaulty;
   }
 
   /**
@@ -193,50 +193,50 @@ export class SelfHealingSystem {
    */
   enableDegradation(agentId: string): void {
     if (!this.config.enabled) {
-      return
+      return;
     }
 
-    this.degradationMode.set(agentId, true)
+    this.degradationMode.set(agentId, true);
 
     this.sendAlert({
       agentId,
       level: 'warning',
       message: `Degradation mode enabled for agent ${agentId}`,
       timestamp: Date.now(),
-    }).catch(console.error)
+    }).catch(console.error);
   }
 
   /**
    * Disable degradation mode for agent
    */
   disableDegradation(agentId: string): void {
-    this.degradationMode.delete(agentId)
+    this.degradationMode.delete(agentId);
 
     this.sendAlert({
       agentId,
       level: 'info',
       message: `Degradation mode disabled for agent ${agentId}`,
       timestamp: Date.now(),
-    }).catch(console.error)
+    }).catch(console.error);
   }
 
   /**
    * Check if agent is in degradation mode
    */
   isInDegradationMode(agentId: string): boolean {
-    return this.degradationMode.get(agentId) ?? false
+    return this.degradationMode.get(agentId) ?? false;
   }
 
   /**
    * Register alert handler
    */
   onAlert(handler: AlertHandler): () => void {
-    this.alertHandlers.add(handler)
+    this.alertHandlers.add(handler);
 
     // Return unsubscribe function
     return () => {
-      this.alertHandlers.delete(handler)
-    }
+      this.alertHandlers.delete(handler);
+    };
   }
 
   /**
@@ -244,12 +244,12 @@ export class SelfHealingSystem {
    */
   async sendAlert(notification: AlertNotification): Promise<void> {
     // Check alert threshold
-    const levels = ['info', 'warning', 'error', 'critical']
-    const notificationLevel = levels.indexOf(notification.level)
-    const thresholdLevel = levels.indexOf('warning') // Default threshold
+    const levels = ['info', 'warning', 'error', 'critical'];
+    const notificationLevel = levels.indexOf(notification.level);
+    const thresholdLevel = levels.indexOf('warning'); // Default threshold
 
     if (notificationLevel < thresholdLevel) {
-      return // Below threshold
+      return; // Below threshold
     }
 
     // Notify all handlers
@@ -257,41 +257,41 @@ export class SelfHealingSystem {
       Promise.resolve(handler(notification)).catch(error =>
         console.error('Error in alert handler:', error),
       ),
-    )
+    );
 
-    await Promise.all(promises)
+    await Promise.all(promises);
   }
 
   /**
    * Get recovery history for agent
    */
   getRecoveryHistory(agentId: string): RecoveryAttempt[] {
-    return this.recoveryAttempts.get(agentId) ?? []
+    return this.recoveryAttempts.get(agentId) ?? [];
   }
 
   /**
    * Clear recovery history for agent
    */
   clearRecoveryHistory(agentId: string): void {
-    this.recoveryAttempts.delete(agentId)
+    this.recoveryAttempts.delete(agentId);
   }
 
   /**
    * Get system status
    */
   getSystemStatus(): {
-    totalAgents: number
-    healthyAgents: number
-    degradedAgents: number
-    faultyAgents: number
-    recoveryAttempts: number
+    totalAgents: number;
+    healthyAgents: number;
+    degradedAgents: number;
+    faultyAgents: number;
+    recoveryAttempts: number;
   } {
-    const allAgents = this.metricsCollector.getAllAgents()
-    const healthStats = this.healthMonitor.getStatistics()
+    const allAgents = this.metricsCollector.getAllAgents();
+    const healthStats = this.healthMonitor.getStatistics();
 
-    let totalRecoveryAttempts = 0
+    let totalRecoveryAttempts = 0;
     for (const attempts of this.recoveryAttempts.values()) {
-      totalRecoveryAttempts += attempts.length
+      totalRecoveryAttempts += attempts.length;
     }
 
     return {
@@ -300,7 +300,7 @@ export class SelfHealingSystem {
       degradedAgents: healthStats.degradedAgents,
       faultyAgents: healthStats.unhealthyAgents + healthStats.deadAgents,
       recoveryAttempts: totalRecoveryAttempts,
-    }
+    };
   }
 
   /**
@@ -309,55 +309,55 @@ export class SelfHealingSystem {
   private setupHealthMonitoring(): void {
     // Monitor all agents
     const checkAllAgents = (): void => {
-      const allAgents = this.metricsCollector.getAllAgents()
+      const allAgents = this.metricsCollector.getAllAgents();
 
       for (const agentId of allAgents) {
-        const faults = this.detectFaults(agentId)
+        const faults = this.detectFaults(agentId);
 
         if (faults.length > 0) {
           // Attempt recovery
           this.recover(agentId).catch(error =>
             console.error(`Recovery failed for agent ${agentId}:`, error),
-          )
+          );
 
           // Enable degradation if needed
-          const criticalFaults = faults.filter(f => f.severity === 'critical')
+          const criticalFaults = faults.filter(f => f.severity === 'critical');
           if (criticalFaults.length > 0 && !this.isInDegradationMode(agentId)) {
-            this.enableDegradation(agentId)
+            this.enableDegradation(agentId);
           }
         }
         else if (this.isInDegradationMode(agentId)) {
           // Disable degradation if recovered
-          this.disableDegradation(agentId)
+          this.disableDegradation(agentId);
         }
       }
-    }
+    };
 
     // Check periodically
-    setInterval(checkAllAgents, 5000) // Every 5 seconds
+    setInterval(checkAllAgents, 5000); // Every 5 seconds
   }
 
   /**
    * Determine recovery strategy based on faults
    */
   private determineRecoveryStrategy(faults: FaultDetectionResult[]): RecoveryStrategy {
-    const actions: RecoveryAction[] = []
+    const actions: RecoveryAction[] = [];
 
     // Prioritize by severity
-    const criticalFaults = faults.filter(f => f.severity === 'critical')
-    const highFaults = faults.filter(f => f.severity === 'high')
+    const criticalFaults = faults.filter(f => f.severity === 'critical');
+    const highFaults = faults.filter(f => f.severity === 'high');
 
     if (criticalFaults.some(f => f.faultType === 'timeout' || f.faultType === 'crash')) {
-      actions.push('restart')
+      actions.push('restart');
     }
     else if (highFaults.some(f => f.faultType === 'resource_exhaustion')) {
-      actions.push('throttle', 'restart')
+      actions.push('throttle', 'restart');
     }
     else if (highFaults.some(f => f.faultType === 'high_error_rate')) {
-      actions.push('retry', 'restart')
+      actions.push('retry', 'restart');
     }
     else {
-      actions.push('retry')
+      actions.push('retry');
     }
 
     return {
@@ -368,7 +368,7 @@ export class SelfHealingSystem {
       initialDelay: 1000,
       maxDelay: 30000,
       conditions: {},
-    }
+    };
   }
 
   /**
@@ -379,61 +379,61 @@ export class SelfHealingSystem {
       switch (action) {
         case 'restart':
           // Placeholder for restart logic
-          console.log(`[SelfHealing] Restarting agent ${agentId}`)
-          await this.simulateDelay(1000)
-          return true
+          console.log(`[SelfHealing] Restarting agent ${agentId}`);
+          await this.simulateDelay(1000);
+          return true;
 
         case 'retry':
           // Placeholder for retry logic
-          console.log(`[SelfHealing] Retrying for agent ${agentId}`)
-          this.clearRecoveryHistory(agentId)
-          await this.simulateDelay(500)
-          return true
+          console.log(`[SelfHealing] Retrying for agent ${agentId}`);
+          this.clearRecoveryHistory(agentId);
+          await this.simulateDelay(500);
+          return true;
 
         case 'skip':
           // Placeholder for skip logic
-          console.log(`[SelfHealing] Skipping for agent ${agentId}`)
-          await this.simulateDelay(100)
-          return true
+          console.log(`[SelfHealing] Skipping for agent ${agentId}`);
+          await this.simulateDelay(100);
+          return true;
 
         case 'escalate':
           // Placeholder for escalate logic
-          console.log(`[SelfHealing] Escalating for agent ${agentId}`)
-          await this.simulateDelay(300)
-          return true
+          console.log(`[SelfHealing] Escalating for agent ${agentId}`);
+          await this.simulateDelay(300);
+          return true;
 
         case 'rollback':
           // Placeholder for rollback logic
-          console.log(`[SelfHealing] Rolling back for agent ${agentId}`)
-          await this.simulateDelay(1000)
-          return true
+          console.log(`[SelfHealing] Rolling back for agent ${agentId}`);
+          await this.simulateDelay(1000);
+          return true;
 
         case 'throttle':
           // Placeholder for throttle logic
-          console.log(`[SelfHealing] Throttling agent ${agentId}`)
-          await this.simulateDelay(500)
-          return true
+          console.log(`[SelfHealing] Throttling agent ${agentId}`);
+          await this.simulateDelay(500);
+          return true;
 
         case 'scale_down':
           // Placeholder for scale down logic
-          console.log(`[SelfHealing] Scaling down agent ${agentId}`)
-          await this.simulateDelay(2000)
-          return true
+          console.log(`[SelfHealing] Scaling down agent ${agentId}`);
+          await this.simulateDelay(2000);
+          return true;
 
         case 'notify':
           // Placeholder for notify logic
-          console.log(`[SelfHealing] Notifying about agent ${agentId}`)
-          await this.simulateDelay(100)
-          return true
+          console.log(`[SelfHealing] Notifying about agent ${agentId}`);
+          await this.simulateDelay(100);
+          return true;
 
         default:
-          console.warn(`[SelfHealing] Unknown recovery action: ${action}`)
-          return false
+          console.warn(`[SelfHealing] Unknown recovery action: ${action}`);
+          return false;
       }
     }
     catch (error) {
-      console.error(`[SelfHealing] Error executing recovery action ${action}:`, error)
-      return false
+      console.error(`[SelfHealing] Error executing recovery action ${action}:`, error);
+      return false;
     }
   }
 
@@ -441,7 +441,7 @@ export class SelfHealingSystem {
    * Simulate delay (for placeholder actions)
    */
   private async simulateDelay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms))
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 }
 
@@ -453,5 +453,5 @@ export function createSelfHealingSystem(
   metricsCollector: MetricsCollector,
   config?: Partial<SelfHealingConfig>,
 ): SelfHealingSystem {
-  return new SelfHealingSystem(healthMonitor, metricsCollector, config)
+  return new SelfHealingSystem(healthMonitor, metricsCollector, config);
 }

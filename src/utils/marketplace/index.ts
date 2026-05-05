@@ -19,7 +19,7 @@ export {
   getUniqueDependencies,
   isVersionCompatible,
   resolveDependencies,
-} from './dependency-resolver.js'
+} from './dependency-resolver.js';
 
 // Installer exports
 export {
@@ -32,7 +32,7 @@ export {
   isPackageInstalled,
   uninstallPackage,
   updatePackage,
-} from './installer.js'
+} from './installer.js';
 
 // Registry exports
 export {
@@ -48,4 +48,4 @@ export {
   searchPackages,
   showMarketplaceMenu,
   writeCacheRegistry,
-} from './registry.js'
+} from './registry.js';

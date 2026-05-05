@@ -17,8 +17,8 @@ export {
   getRecommendedConfig,
   isFeatureAvailable,
   validateConfig,
-} from './adapter'
-export type { Feature } from './adapter'
+} from './adapter';
+export type { Feature } from './adapter';
 
 export {
   autoAdaptConfig,
@@ -28,8 +28,8 @@ export {
   generateUpgradeRecommendation,
   isStableVersion,
   isSupportedVersion,
-} from './compatibility'
-export type { CompatibilityReport, UpgradeRecommendation } from './compatibility'
+} from './compatibility';
+export type { CompatibilityReport, UpgradeRecommendation } from './compatibility';
 
 export {
   clearCache,
@@ -38,5 +38,5 @@ export {
   getVersionHistory,
   hasVersionChanged,
   isVersionAtLeast,
-} from './tracker'
-export type { VersionHistory, VersionInfo } from './tracker'
+} from './tracker';
+export type { VersionHistory, VersionInfo } from './tracker';

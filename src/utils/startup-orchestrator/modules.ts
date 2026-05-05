@@ -3,7 +3,7 @@
  * Defines all capability enhancement modules for startup orchestration
  */
 
-import type { ModuleResult, StartupModule } from './types'
+import type { ModuleResult, StartupModule } from './types';
 
 /**
  * Version Sync Module
@@ -15,7 +15,7 @@ export function createVersionSyncModule(): StartupModule {
     dependencies: [],
     canSkip: true,
     async execute(): Promise<ModuleResult> {
-      const startTime = Date.now()
+      const startTime = Date.now();
 
       try {
         // TODO: Import and execute version sync logic
@@ -36,17 +36,17 @@ export function createVersionSyncModule(): StartupModule {
               },
             ],
           },
-        }
+        };
       }
       catch (error) {
         return {
           status: 'failed',
           duration: Date.now() - startTime,
           error: error instanceof Error ? error.message : String(error),
-        }
+        };
       }
     },
-  }
+  };
 }
 
 /**
@@ -59,7 +59,7 @@ export function createConfigGuardianModule(): StartupModule {
     dependencies: ['version-sync'],
     canSkip: false,
     async execute(): Promise<ModuleResult> {
-      const startTime = Date.now()
+      const startTime = Date.now();
 
       try {
         // TODO: Import and execute config guardian logic
@@ -81,17 +81,17 @@ export function createConfigGuardianModule(): StartupModule {
             ],
             config: {}, // Validated config
           },
-        }
+        };
       }
       catch (error) {
         return {
           status: 'failed',
           duration: Date.now() - startTime,
           error: error instanceof Error ? error.message : String(error),
-        }
+        };
       }
     },
-  }
+  };
 }
 
 /**
@@ -104,7 +104,7 @@ export function createToolRouterModule(): StartupModule {
     dependencies: [],
     canSkip: true,
     async execute(): Promise<ModuleResult> {
-      const startTime = Date.now()
+      const startTime = Date.now();
 
       try {
         // TODO: Import and execute tool router logic
@@ -125,17 +125,17 @@ export function createToolRouterModule(): StartupModule {
               },
             ],
           },
-        }
+        };
       }
       catch (error) {
         return {
           status: 'failed',
           duration: Date.now() - startTime,
           error: error instanceof Error ? error.message : String(error),
-        }
+        };
       }
     },
-  }
+  };
 }
 
 /**
@@ -148,12 +148,12 @@ export function createZeroConfigModule(): StartupModule {
     dependencies: ['config-guardian'],
     canSkip: true,
     async execute(): Promise<ModuleResult> {
-      const startTime = Date.now()
+      const startTime = Date.now();
 
       try {
         // 执行零配置激活逻辑
-        const zeroConfig = await import('../zero-config')
-        const status = await zeroConfig.activateSuperpowers('zh-CN')
+        const zeroConfig = await import('../zero-config');
+        const status = await zeroConfig.activateSuperpowers('zh-CN');
 
         return {
           status: 'success',
@@ -177,17 +177,17 @@ export function createZeroConfigModule(): StartupModule {
               },
             ],
           },
-        }
+        };
       }
       catch (error) {
         return {
           status: 'failed',
           duration: Date.now() - startTime,
           error: error instanceof Error ? error.message : String(error),
-        }
+        };
       }
     },
-  }
+  };
 }
 
 /**
@@ -200,7 +200,7 @@ export function createCapabilityDiscoveryModule(): StartupModule {
     dependencies: ['version-sync', 'config-guardian', 'tool-router', 'zero-config'],
     canSkip: true,
     async execute(): Promise<ModuleResult> {
-      const startTime = Date.now()
+      const startTime = Date.now();
 
       try {
         // TODO: Import and execute capability discovery logic
@@ -221,28 +221,28 @@ export function createCapabilityDiscoveryModule(): StartupModule {
               },
             ],
           },
-        }
+        };
       }
       catch (error) {
         return {
           status: 'failed',
           duration: Date.now() - startTime,
           error: error instanceof Error ? error.message : String(error),
-        }
+        };
       }
     },
-  }
+  };
 }
 
 /**
  * Register all default modules to an orchestrator
  */
 export function registerDefaultModules(orchestrator: { registerModule: (module: StartupModule) => unknown }): void {
-  orchestrator.registerModule(createVersionSyncModule())
-  orchestrator.registerModule(createConfigGuardianModule())
-  orchestrator.registerModule(createToolRouterModule())
-  orchestrator.registerModule(createZeroConfigModule())
-  orchestrator.registerModule(createCapabilityDiscoveryModule())
+  orchestrator.registerModule(createVersionSyncModule());
+  orchestrator.registerModule(createConfigGuardianModule());
+  orchestrator.registerModule(createToolRouterModule());
+  orchestrator.registerModule(createZeroConfigModule());
+  orchestrator.registerModule(createCapabilityDiscoveryModule());
 }
 
 /**
@@ -255,5 +255,5 @@ export function getDefaultModules(): StartupModule[] {
     createToolRouterModule(),
     createZeroConfigModule(),
     createCapabilityDiscoveryModule(),
-  ]
+  ];
 }

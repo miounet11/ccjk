@@ -1,5 +1,5 @@
-import Fastify from 'fastify';
 import type { DaemonState } from './types';
+import Fastify from 'fastify';
 
 /**
  * Local control server for daemon management
@@ -53,7 +53,8 @@ export function createControlServer(getState: () => DaemonState): ControlServer 
       try {
         await fastify.listen({ port: CONTROL_PORT, host: '127.0.0.1' });
         console.log(`Control server listening on http://127.0.0.1:${CONTROL_PORT}`);
-      } catch (error) {
+      }
+      catch (error) {
         console.error('Failed to start control server:', error);
         throw error;
       }
@@ -63,7 +64,7 @@ export function createControlServer(getState: () => DaemonState): ControlServer 
       await fastify.close();
     },
 
-    updateState(state: Partial<DaemonState>) {
+    updateState(_state: Partial<DaemonState>) {
       // State is managed externally via getState callback
     },
   };

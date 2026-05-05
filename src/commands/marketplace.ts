@@ -12,9 +12,9 @@
  * @module commands/marketplace
  */
 
-import type { CAC } from 'cac'
-import ansis from 'ansis'
-import { i18n } from '../i18n/index.js'
+import type { CAC } from 'cac';
+import ansis from 'ansis';
+import { i18n } from '../i18n/index.js';
 import {
   checkForUpdates,
   getInstalledPackages,
@@ -22,16 +22,16 @@ import {
   isPackageInstalled,
   uninstallPackage,
   updatePackage,
-} from '../utils/marketplace/installer.js'
+} from '../utils/marketplace/installer.js';
 import {
   getPackage,
   searchPackages,
-} from '../utils/marketplace/registry.js'
+} from '../utils/marketplace/registry.js';
 
 interface MarketplaceOptions {
-  lang?: string
-  force?: boolean
-  skipVerification?: boolean
+  lang?: string;
+  force?: boolean;
+  skipVerification?: boolean;
 }
 
 /**
@@ -39,37 +39,37 @@ interface MarketplaceOptions {
  */
 async function searchCommand(query: string, _options: MarketplaceOptions): Promise<void> {
   try {
-    console.log(ansis.green(i18n.t('marketplace:searching', { query })))
+    console.log(ansis.green(i18n.t('marketplace:searching', { query })));
 
-    const results = await searchPackages({ query })
+    const results = await searchPackages({ query });
 
     if (results.packages.length === 0) {
-      console.log(ansis.yellow(i18n.t('marketplace:noResults')))
-      return
+      console.log(ansis.yellow(i18n.t('marketplace:noResults')));
+      return;
     }
 
-    console.log(ansis.green(i18n.t('marketplace:searchResults', { count: results.packages.length })))
-    console.log()
+    console.log(ansis.green(i18n.t('marketplace:searchResults', { count: results.packages.length })));
+    console.log();
 
     for (const pkg of results.packages) {
-      const installed = await isPackageInstalled(pkg.name)
-      const installedMark = installed ? ansis.green('✓') : ansis.gray('○')
+      const installed = await isPackageInstalled(pkg.name);
+      const installedMark = installed ? ansis.green('✓') : ansis.gray('○');
 
-      console.log(`${installedMark} ${ansis.bold(pkg.name)} ${ansis.gray(`v${pkg.version}`)}`)
-      console.log(`  ${pkg.description.en || Object.values(pkg.description)[0]}`)
-      console.log(`  ${ansis.gray(i18n.t('marketplace:packageInfo.category'))}: ${pkg.category}`)
+      console.log(`${installedMark} ${ansis.bold(pkg.name)} ${ansis.gray(`v${pkg.version}`)}`);
+      console.log(`  ${pkg.description.en || Object.values(pkg.description)[0]}`);
+      console.log(`  ${ansis.gray(i18n.t('marketplace:packageInfo.category'))}: ${pkg.category}`);
 
       if (pkg.verified === 'verified') {
-        console.log(`  ${ansis.green('✓')} ${i18n.t('marketplace:packageInfo.verified')}`)
+        console.log(`  ${ansis.green('✓')} ${i18n.t('marketplace:packageInfo.verified')}`);
       }
 
-      console.log()
+      console.log();
     }
   }
   catch (err) {
-    console.error(ansis.red(i18n.t('marketplace:searchFailed')))
-    console.error(err)
-    throw err
+    console.error(ansis.red(i18n.t('marketplace:searchFailed')));
+    console.error(err);
+    throw err;
   }
 }
 
@@ -80,43 +80,43 @@ async function installCommand(packageName: string, options: MarketplaceOptions):
   try {
     // Check if already installed
     if (await isPackageInstalled(packageName)) {
-      console.log(ansis.yellow(`Package '${packageName}' is already installed`))
-      return
+      console.log(ansis.yellow(`Package '${packageName}' is already installed`));
+      return;
     }
 
     // Get package info
-    const pkg = await getPackage(packageName)
+    const pkg = await getPackage(packageName);
     if (!pkg) {
-      console.error(ansis.red(i18n.t('marketplace:packageNotFound', { name: packageName })))
-      throw new Error(`Package not found: ${packageName}`)
+      console.error(ansis.red(i18n.t('marketplace:packageNotFound', { name: packageName })));
+      throw new Error(`Package not found: ${packageName}`);
     }
 
-    console.log(ansis.green(i18n.t('marketplace:installing', { name: packageName })))
+    console.log(ansis.green(i18n.t('marketplace:installing', { name: packageName })));
 
     // Install the package
     const result = await installPackage(packageName, {
       force: options.force,
       skipVerification: options.skipVerification,
-    })
+    });
 
     if (result.success) {
-      console.log(ansis.green(i18n.t('marketplace:installSuccess', { name: packageName })))
+      console.log(ansis.green(i18n.t('marketplace:installSuccess', { name: packageName })));
       if (result.installedPath) {
-        console.log(ansis.gray(`${i18n.t('marketplace:installedAt')}: ${result.installedPath}`))
+        console.log(ansis.gray(`${i18n.t('marketplace:installedAt')}: ${result.installedPath}`));
       }
     }
     else {
-      console.error(ansis.red(i18n.t('marketplace:installFailed', { name: packageName })))
+      console.error(ansis.red(i18n.t('marketplace:installFailed', { name: packageName })));
       if (result.error) {
-        console.error(ansis.red(i18n.t('marketplace:errors.installError', { error: result.error })))
+        console.error(ansis.red(i18n.t('marketplace:errors.installError', { error: result.error })));
       }
-      throw new Error(`Install failed: ${packageName}`)
+      throw new Error(`Install failed: ${packageName}`);
     }
   }
   catch (err) {
-    console.error(ansis.red(i18n.t('marketplace:installFailed', { name: packageName })))
-    console.error(err)
-    throw err
+    console.error(ansis.red(i18n.t('marketplace:installFailed', { name: packageName })));
+    console.error(err);
+    throw err;
   }
 }
 
@@ -127,32 +127,32 @@ async function uninstallCommand(packageName: string, options: MarketplaceOptions
   try {
     // Check if installed
     if (!await isPackageInstalled(packageName)) {
-      console.error(ansis.red(i18n.t('marketplace:packageNotInstalled', { name: packageName })))
-      throw new Error(`Package not installed: ${packageName}`)
+      console.error(ansis.red(i18n.t('marketplace:packageNotInstalled', { name: packageName })));
+      throw new Error(`Package not installed: ${packageName}`);
     }
 
-    console.log(ansis.green(i18n.t('marketplace:uninstalling', { name: packageName })))
+    console.log(ansis.green(i18n.t('marketplace:uninstalling', { name: packageName })));
 
     // Uninstall the package
     const result = await uninstallPackage(packageName, {
       force: options.force,
-    })
+    });
 
     if (result.success) {
-      console.log(ansis.green(i18n.t('marketplace:uninstallSuccess', { name: packageName })))
+      console.log(ansis.green(i18n.t('marketplace:uninstallSuccess', { name: packageName })));
     }
     else {
-      console.error(ansis.red(i18n.t('marketplace:uninstallFailed', { name: packageName })))
+      console.error(ansis.red(i18n.t('marketplace:uninstallFailed', { name: packageName })));
       if (result.error) {
-        console.error(ansis.red(i18n.t('marketplace:errors.uninstallError', { error: result.error })))
+        console.error(ansis.red(i18n.t('marketplace:errors.uninstallError', { error: result.error })));
       }
-      throw new Error(`Uninstall failed: ${packageName}`)
+      throw new Error(`Uninstall failed: ${packageName}`);
     }
   }
   catch (err) {
-    console.error(ansis.red(i18n.t('marketplace:uninstallFailed', { name: packageName })))
-    console.error(err)
-    throw err
+    console.error(ansis.red(i18n.t('marketplace:uninstallFailed', { name: packageName })));
+    console.error(err);
+    throw err;
   }
 }
 
@@ -163,47 +163,47 @@ async function updateCommand(packageName?: string, _options?: MarketplaceOptions
   try {
     if (packageName) {
       // Update specific package
-      console.log(ansis.green(i18n.t('marketplace:updating', { name: packageName })))
+      console.log(ansis.green(i18n.t('marketplace:updating', { name: packageName })));
 
-      const result = await updatePackage(packageName)
+      const result = await updatePackage(packageName);
 
       if (result.success) {
-        console.log(ansis.green(i18n.t('marketplace:updateSuccess', { name: packageName })))
+        console.log(ansis.green(i18n.t('marketplace:updateSuccess', { name: packageName })));
       }
       else {
-        console.error(ansis.red(i18n.t('marketplace:updateFailed', { name: packageName })))
+        console.error(ansis.red(i18n.t('marketplace:updateFailed', { name: packageName })));
         if (result.error) {
-          console.error(ansis.red(result.error))
+          console.error(ansis.red(result.error));
         }
-        throw new Error(`Update failed: ${packageName}`)
+        throw new Error(`Update failed: ${packageName}`);
       }
     }
     else {
       // Check for updates for all packages
-      console.log(ansis.green(i18n.t('marketplace:checkingUpdates')))
+      console.log(ansis.green(i18n.t('marketplace:checkingUpdates')));
 
-      const updates = await checkForUpdates()
+      const updates = await checkForUpdates();
 
       if (updates.length === 0) {
-        console.log(ansis.green(i18n.t('marketplace:noUpdates')))
-        return
+        console.log(ansis.green(i18n.t('marketplace:noUpdates')));
+        return;
       }
 
-      console.log(ansis.yellow(i18n.t('marketplace:updatesAvailable', { count: updates.length })))
-      console.log()
+      console.log(ansis.yellow(i18n.t('marketplace:updatesAvailable', { count: updates.length })));
+      console.log();
 
       for (const update of updates) {
-        console.log(`  ${ansis.bold(update.id)}: ${ansis.gray(update.currentVersion)} → ${ansis.green(update.latestVersion)}`)
+        console.log(`  ${ansis.bold(update.id)}: ${ansis.gray(update.currentVersion)} → ${ansis.green(update.latestVersion)}`);
       }
 
-      console.log()
-      console.log(ansis.gray(i18n.t('marketplace:updateHint')))
+      console.log();
+      console.log(ansis.gray(i18n.t('marketplace:updateHint')));
     }
   }
   catch (err) {
-    console.error(ansis.red(i18n.t('marketplace:updateCheckFailed')))
-    console.error(err)
-    throw err
+    console.error(ansis.red(i18n.t('marketplace:updateCheckFailed')));
+    console.error(err);
+    throw err;
   }
 }
 
@@ -212,28 +212,28 @@ async function updateCommand(packageName?: string, _options?: MarketplaceOptions
  */
 async function listCommand(_options: MarketplaceOptions): Promise<void> {
   try {
-    const installedList = await getInstalledPackages()
+    const installedList = await getInstalledPackages();
 
     if (installedList.length === 0) {
-      console.log(ansis.yellow(i18n.t('marketplace:noInstalled')))
-      return
+      console.log(ansis.yellow(i18n.t('marketplace:noInstalled')));
+      return;
     }
 
-    console.log(ansis.green(i18n.t('marketplace:installedPackages', { count: installedList.length })))
-    console.log()
+    console.log(ansis.green(i18n.t('marketplace:installedPackages', { count: installedList.length })));
+    console.log();
 
     for (const installed of installedList) {
-      const pkg = installed.package
-      console.log(`${ansis.green('✓')} ${ansis.bold(pkg.name)} ${ansis.gray(`v${pkg.version}`)}`)
-      console.log(`  ${pkg.description.en || Object.values(pkg.description)[0]}`)
-      console.log(`  ${ansis.gray(i18n.t('marketplace:packageInfo.category'))}: ${pkg.category}`)
-      console.log()
+      const pkg = installed.package;
+      console.log(`${ansis.green('✓')} ${ansis.bold(pkg.name)} ${ansis.gray(`v${pkg.version}`)}`);
+      console.log(`  ${pkg.description.en || Object.values(pkg.description)[0]}`);
+      console.log(`  ${ansis.gray(i18n.t('marketplace:packageInfo.category'))}: ${pkg.category}`);
+      console.log();
     }
   }
   catch (err) {
-    console.error(ansis.red(i18n.t('marketplace:listFailed')))
-    console.error(err)
-    throw err
+    console.error(ansis.red(i18n.t('marketplace:listFailed')));
+    console.error(err);
+    throw err;
   }
 }
 
@@ -242,62 +242,62 @@ async function listCommand(_options: MarketplaceOptions): Promise<void> {
  */
 async function infoCommand(packageName: string, _options: MarketplaceOptions): Promise<void> {
   try {
-    const pkg = await getPackage(packageName)
+    const pkg = await getPackage(packageName);
 
     if (!pkg) {
-      console.error(ansis.red(i18n.t('marketplace:packageNotFound', { name: packageName })))
-      throw new Error(`Package not found: ${packageName}`)
+      console.error(ansis.red(i18n.t('marketplace:packageNotFound', { name: packageName })));
+      throw new Error(`Package not found: ${packageName}`);
     }
 
-    const installed = await isPackageInstalled(packageName)
+    const installed = await isPackageInstalled(packageName);
 
-    console.log()
-    console.log(ansis.bold.cyan(pkg.name))
-    console.log(ansis.gray('─'.repeat(50)))
-    console.log()
+    console.log();
+    console.log(ansis.bold.cyan(pkg.name));
+    console.log(ansis.gray('─'.repeat(50)));
+    console.log();
 
-    console.log(`${ansis.bold(i18n.t('marketplace:packageInfo.description'))}: ${pkg.description.en || Object.values(pkg.description)[0]}`)
-    console.log(`${ansis.bold(i18n.t('marketplace:packageInfo.version'))}: ${pkg.version}`)
-    console.log(`${ansis.bold(i18n.t('marketplace:packageInfo.category'))}: ${pkg.category}`)
+    console.log(`${ansis.bold(i18n.t('marketplace:packageInfo.description'))}: ${pkg.description.en || Object.values(pkg.description)[0]}`);
+    console.log(`${ansis.bold(i18n.t('marketplace:packageInfo.version'))}: ${pkg.version}`);
+    console.log(`${ansis.bold(i18n.t('marketplace:packageInfo.category'))}: ${pkg.category}`);
 
     if (pkg.author) {
-      console.log(`${ansis.bold(i18n.t('marketplace:packageInfo.author'))}: ${pkg.author}`)
+      console.log(`${ansis.bold(i18n.t('marketplace:packageInfo.author'))}: ${pkg.author}`);
     }
 
     if (pkg.license) {
-      console.log(`${ansis.bold(i18n.t('marketplace:packageInfo.license'))}: ${pkg.license}`)
+      console.log(`${ansis.bold(i18n.t('marketplace:packageInfo.license'))}: ${pkg.license}`);
     }
 
     if (pkg.repository) {
-      console.log(`${ansis.bold(i18n.t('marketplace:packageInfo.repository'))}: ${pkg.repository}`)
+      console.log(`${ansis.bold(i18n.t('marketplace:packageInfo.repository'))}: ${pkg.repository}`);
     }
 
     if (pkg.downloads !== undefined) {
-      console.log(`${ansis.bold(i18n.t('marketplace:packageInfo.downloads'))}: ${pkg.downloads.toLocaleString()}`)
+      console.log(`${ansis.bold(i18n.t('marketplace:packageInfo.downloads'))}: ${pkg.downloads.toLocaleString()}`);
     }
 
     if (pkg.rating !== undefined) {
-      const stars = '★'.repeat(Math.round(pkg.rating))
-      const emptyStars = '☆'.repeat(5 - Math.round(pkg.rating))
-      console.log(`${ansis.bold(i18n.t('marketplace:packageInfo.rating'))}: ${ansis.yellow(stars)}${ansis.gray(emptyStars)} (${pkg.rating}/5)`)
+      const stars = '★'.repeat(Math.round(pkg.rating));
+      const emptyStars = '☆'.repeat(5 - Math.round(pkg.rating));
+      console.log(`${ansis.bold(i18n.t('marketplace:packageInfo.rating'))}: ${ansis.yellow(stars)}${ansis.gray(emptyStars)} (${pkg.rating}/5)`);
     }
 
     if (pkg.keywords && pkg.keywords.length > 0) {
-      console.log(`${ansis.bold(i18n.t('marketplace:packageInfo.keywords'))}: ${pkg.keywords.join(', ')}`)
+      console.log(`${ansis.bold(i18n.t('marketplace:packageInfo.keywords'))}: ${pkg.keywords.join(', ')}`);
     }
 
     if (pkg.verified === 'verified') {
-      console.log(`${ansis.green('✓')} ${i18n.t('marketplace:packageInfo.verified')}`)
+      console.log(`${ansis.green('✓')} ${i18n.t('marketplace:packageInfo.verified')}`);
     }
 
-    console.log()
-    console.log(`${ansis.bold('Status')}: ${installed ? ansis.green('Installed') : ansis.gray('Not installed')}`)
-    console.log()
+    console.log();
+    console.log(`${ansis.bold('Status')}: ${installed ? ansis.green('Installed') : ansis.gray('Not installed')}`);
+    console.log();
   }
   catch (err) {
-    console.error(ansis.red(i18n.t('marketplace:infoFailed')))
-    console.error(err)
-    throw err
+    console.error(ansis.red(i18n.t('marketplace:infoFailed')));
+    console.error(err);
+    throw err;
   }
 }
 
@@ -317,8 +317,8 @@ export async function registerMarketplaceCommands(
     .alias('mp:search')
     .option('--lang, -l <lang>', i18n.t('marketplace:options.lang'))
     .action(await withLanguageResolution(async (query: string, options: MarketplaceOptions) => {
-      await searchCommand(query, options)
-    }))
+      await searchCommand(query, options);
+    }));
 
   // Install command
   cli
@@ -328,8 +328,8 @@ export async function registerMarketplaceCommands(
     .option('--force, -f', i18n.t('marketplace:options.force'))
     .option('--skip-verification', i18n.t('marketplace:options.skipVerification'))
     .action(await withLanguageResolution(async (packageName: string, options: MarketplaceOptions) => {
-      await installCommand(packageName, options)
-    }))
+      await installCommand(packageName, options);
+    }));
 
   // Uninstall command
   cli
@@ -338,8 +338,8 @@ export async function registerMarketplaceCommands(
     .option('--lang, -l <lang>', i18n.t('marketplace:options.lang'))
     .option('--force, -f', i18n.t('marketplace:options.force'))
     .action(await withLanguageResolution(async (packageName: string, options: MarketplaceOptions) => {
-      await uninstallCommand(packageName, options)
-    }))
+      await uninstallCommand(packageName, options);
+    }));
 
   // Update command
   cli
@@ -347,8 +347,8 @@ export async function registerMarketplaceCommands(
     .alias('mp:update')
     .option('--lang, -l <lang>', i18n.t('marketplace:options.lang'))
     .action(await withLanguageResolution(async (packageName: string | undefined, options: MarketplaceOptions) => {
-      await updateCommand(packageName, options)
-    }))
+      await updateCommand(packageName, options);
+    }));
 
   // List command
   cli
@@ -357,8 +357,8 @@ export async function registerMarketplaceCommands(
     .alias('mp:ls')
     .option('--lang, -l <lang>', i18n.t('marketplace:options.lang'))
     .action(await withLanguageResolution(async (options: MarketplaceOptions) => {
-      await listCommand(options)
-    }))
+      await listCommand(options);
+    }));
 
   // Info command
   cli
@@ -366,67 +366,67 @@ export async function registerMarketplaceCommands(
     .alias('mp:info')
     .option('--lang, -l <lang>', i18n.t('marketplace:options.lang'))
     .action(await withLanguageResolution(async (packageName: string, options: MarketplaceOptions) => {
-      await infoCommand(packageName, options)
-    }))
+      await infoCommand(packageName, options);
+    }));
 }
 
 /**
  * Marketplace menu - unified entry point for cloud plugins command
  */
 export async function marketplaceMenu(action?: string, options?: MarketplaceOptions): Promise<void> {
-  const opts = options || {}
+  const opts = options || {};
 
   if (!action) {
     // Show interactive menu
-    console.log(ansis.green('\n🛒 Marketplace Commands:\n'))
-    console.log('  ccjk cloud plugins search <query>  - Search packages')
-    console.log('  ccjk cloud plugins install <pkg>   - Install package')
-    console.log('  ccjk cloud plugins uninstall <pkg> - Uninstall package')
-    console.log('  ccjk cloud plugins update [pkg]    - Update packages')
-    console.log('  ccjk cloud plugins list            - List installed')
-    console.log('  ccjk cloud plugins info <pkg>      - Package details\n')
-    return
+    console.log(ansis.green('\n🛒 Marketplace Commands:\n'));
+    console.log('  ccjk cloud plugins search <query>  - Search packages');
+    console.log('  ccjk cloud plugins install <pkg>   - Install package');
+    console.log('  ccjk cloud plugins uninstall <pkg> - Uninstall package');
+    console.log('  ccjk cloud plugins update [pkg]    - Update packages');
+    console.log('  ccjk cloud plugins list            - List installed');
+    console.log('  ccjk cloud plugins info <pkg>      - Package details\n');
+    return;
   }
 
   // Route to appropriate command
-  const args = action.split(' ')
-  const cmd = args[0]
-  const param = args.slice(1).join(' ')
+  const args = action.split(' ');
+  const cmd = args[0];
+  const param = args.slice(1).join(' ');
 
   switch (cmd) {
     case 'search':
       if (param)
-        await searchCommand(param, opts)
+        await searchCommand(param, opts);
       else
-        console.log(ansis.yellow('Usage: ccjk cloud plugins search <query>'))
-      break
+        console.log(ansis.yellow('Usage: ccjk cloud plugins search <query>'));
+      break;
     case 'install':
       if (param)
-        await installCommand(param, opts)
+        await installCommand(param, opts);
       else
-        console.log(ansis.yellow('Usage: ccjk cloud plugins install <package>'))
-      break
+        console.log(ansis.yellow('Usage: ccjk cloud plugins install <package>'));
+      break;
     case 'uninstall':
       if (param)
-        await uninstallCommand(param, opts)
+        await uninstallCommand(param, opts);
       else
-        console.log(ansis.yellow('Usage: ccjk cloud plugins uninstall <package>'))
-      break
+        console.log(ansis.yellow('Usage: ccjk cloud plugins uninstall <package>'));
+      break;
     case 'update':
-      await updateCommand(param || undefined, opts)
-      break
+      await updateCommand(param || undefined, opts);
+      break;
     case 'list':
     case 'ls':
-      await listCommand(opts)
-      break
+      await listCommand(opts);
+      break;
     case 'info':
       if (param)
-        await infoCommand(param, opts)
+        await infoCommand(param, opts);
       else
-        console.log(ansis.yellow('Usage: ccjk cloud plugins info <package>'))
-      break
+        console.log(ansis.yellow('Usage: ccjk cloud plugins info <package>'));
+      break;
     default:
-      console.log(ansis.yellow(`Unknown action: ${cmd}`))
-      await marketplaceMenu(undefined, opts)
+      console.log(ansis.yellow(`Unknown action: ${cmd}`));
+      await marketplaceMenu(undefined, opts);
   }
 }

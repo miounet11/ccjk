@@ -3,15 +3,15 @@
  * Verifies that compression preserves key information
  */
 
-import { SemanticCompression } from '../compression/algorithms/semantic-compression'
+import { SemanticCompression } from '../compression/algorithms/semantic-compression';
 
 describe('compression Quality', () => {
   describe('rule-based Compression', () => {
-    let compressor: SemanticCompression
+    let compressor: SemanticCompression;
 
     beforeEach(() => {
-      compressor = new SemanticCompression(0.5) // Balanced aggressiveness
-    })
+      compressor = new SemanticCompression(0.5); // Balanced aggressiveness
+    });
 
     it('should preserve code structure', () => {
       const code = `
@@ -24,18 +24,18 @@ function processOrder(order: Order): void {
   order.total = total;
   order.status = 'processed';
 }
-      `.trim()
+      `.trim();
 
-      const _result = compressor.compress(code)
+      const _result = compressor.compress(code);
 
       // Should preserve function names
-      expect(result.compressed).toContain('calculateTotal')
-      expect(result.compressed).toContain('processOrder')
+      expect(result.compressed).toContain('calculateTotal');
+      expect(result.compressed).toContain('processOrder');
 
       // Should preserve key logic
-      expect(result.compressed).toContain('reduce')
-      expect(result.compressed).toContain('total')
-    })
+      expect(result.compressed).toContain('reduce');
+      expect(result.compressed).toContain('total');
+    });
 
     it('should preserve key decisions', () => {
       const context = `
@@ -47,14 +47,14 @@ Assistant: I recommend using GraphQL because:
 3. Real-time updates are required
 
 Decision: Use GraphQL with Apollo Server
-      `.trim()
+      `.trim();
 
-      const _result = compressor.compress(context)
+      const _result = compressor.compress(context);
 
       // Should preserve the decision
-      expect(result.compressed.toLowerCase()).toContain('graphql')
-      expect(result.compressed.toLowerCase()).toContain('apollo')
-    })
+      expect(result.compressed.toLowerCase()).toContain('graphql');
+      expect(result.compressed.toLowerCase()).toContain('apollo');
+    });
 
     it('should preserve error messages', () => {
       const context = `
@@ -65,14 +65,14 @@ Stack trace:
 
 Cause: Connection timeout after 5000ms
 Solution: Increase timeout or check network
-      `.trim()
+      `.trim();
 
-      const _result = compressor.compress(context)
+      const _result = compressor.compress(context);
 
       // Should preserve error type and solution
-      expect(result.compressed.toLowerCase()).toMatch(/error|cannot/)
-      expect(result.compressed.toLowerCase()).toMatch(/timeout|network/)
-    })
+      expect(result.compressed.toLowerCase()).toMatch(/error|cannot/);
+      expect(result.compressed.toLowerCase()).toMatch(/timeout|network/);
+    });
 
     it('should preserve file paths', () => {
       const context = `
@@ -83,33 +83,33 @@ Modified files:
 
 Created files:
 - src/hooks/useAuth.ts
-      `.trim()
+      `.trim();
 
-      const _result = compressor.compress(context)
+      const _result = compressor.compress(context);
 
       // Should preserve at least some file paths
-      const hasFilePath = /\w+\.tsx?/.test(result.compressed)
-      expect(hasFilePath).toBe(true)
-    })
+      const hasFilePath = /\w+\.tsx?/.test(result.compressed);
+      expect(hasFilePath).toBe(true);
+    });
 
     it('should remove redundant whitespace', () => {
-      const text = 'Hello    world\n\n\n\nTest    content'
-      const _result = compressor.compress(text)
+      const text = 'Hello    world\n\n\n\nTest    content';
+      const _result = compressor.compress(text);
 
       // Should not have multiple spaces
-      expect(result.compressed).not.toMatch(/  +/)
+      expect(result.compressed).not.toMatch(/  +/);
       // Should not have more than 2 consecutive newlines
-      expect(result.compressed).not.toMatch(/\n{3,}/)
-    })
+      expect(result.compressed).not.toMatch(/\n{3,}/);
+    });
 
     it('should compress common phrases', () => {
-      const text = 'In order to complete the task, we need to verify the implementation.'
-      const _result = compressor.compress(text)
+      const text = 'In order to complete the task, we need to verify the implementation.';
+      const _result = compressor.compress(text);
 
       // Should compress "in order to" to "to"
-      expect(result.compressed.toLowerCase()).not.toContain('in order to')
-      expect(result.compressed.toLowerCase()).toContain('to')
-    })
+      expect(result.compressed.toLowerCase()).not.toContain('in order to');
+      expect(result.compressed.toLowerCase()).toContain('to');
+    });
 
     it('should achieve measurable compression', () => {
       const text = `
@@ -121,35 +121,35 @@ The function should handle various scenarios.
 The function should handle various scenarios.
 In order to complete this task, we need to verify the implementation.
 Due to the fact that we have redundant content, compression is needed.
-      `.trim()
+      `.trim();
 
-      const _result = compressor.compress(text)
+      const _result = compressor.compress(text);
 
       // Should achieve some compression (even if small)
-      const compressionRatio = (result.originalSize - result.compressedSize) / result.originalSize
-      expect(compressionRatio).toBeGreaterThan(0)
+      const compressionRatio = (result.originalSize - result.compressedSize) / result.originalSize;
+      expect(compressionRatio).toBeGreaterThan(0);
 
       // Should not be too aggressive (preserve at least 30% of content)
-      expect(compressionRatio).toBeLessThan(0.7)
-    })
+      expect(compressionRatio).toBeLessThan(0.7);
+    });
 
     it('should handle empty text', () => {
-      const _result = compressor.compress('')
+      const _result = compressor.compress('');
 
-      expect(result.compressed).toBe('')
-      expect(result.originalSize).toBe(0)
-      expect(result.compressedSize).toBe(0)
-    })
+      expect(result.compressed).toBe('');
+      expect(result.originalSize).toBe(0);
+      expect(result.compressedSize).toBe(0);
+    });
 
     it('should handle very short text', () => {
-      const text = 'Hello'
-      const _result = compressor.compress(text)
+      const text = 'Hello';
+      const _result = compressor.compress(text);
 
       // Should not break short text
-      expect(result.compressed).toBeTruthy()
-      expect(result.compressed.length).toBeGreaterThan(0)
-    })
-  })
+      expect(result.compressed).toBeTruthy();
+      expect(result.compressed.length).toBeGreaterThan(0);
+    });
+  });
 
   describe('aggressiveness Levels', () => {
     it('conservative should preserve more content', () => {
@@ -159,17 +159,17 @@ We need to verify the compression functionality works correctly.
 The function should handle various scenarios and edge cases.
 In order to complete this task, we need proper implementation.
 Due to the fact that we have verbose content, compression helps.
-      `.trim()
+      `.trim();
 
-      const conservative = new SemanticCompression(0.2)
-      const aggressive = new SemanticCompression(0.8)
+      const conservative = new SemanticCompression(0.2);
+      const aggressive = new SemanticCompression(0.8);
 
-      const conservativeResult = conservative.compress(text)
-      const aggressiveResult = aggressive.compress(text)
+      const conservativeResult = conservative.compress(text);
+      const aggressiveResult = aggressive.compress(text);
 
       // Conservative should preserve more (or at least equal)
-      expect(conservativeResult.compressedSize).toBeGreaterThanOrEqual(aggressiveResult.compressedSize)
-    })
+      expect(conservativeResult.compressedSize).toBeGreaterThanOrEqual(aggressiveResult.compressedSize);
+    });
 
     it('aggressive should achieve higher compression', () => {
       const text = `
@@ -178,45 +178,45 @@ function example() {
   const parameter = 'value';
   return variable + parameter;
 }
-      `.trim()
+      `.trim();
 
-      const conservative = new SemanticCompression(0.2)
-      const aggressive = new SemanticCompression(0.8)
+      const conservative = new SemanticCompression(0.2);
+      const aggressive = new SemanticCompression(0.8);
 
-      const conservativeResult = conservative.compress(text)
-      const aggressiveResult = aggressive.compress(text)
+      const conservativeResult = conservative.compress(text);
+      const aggressiveResult = aggressive.compress(text);
 
       // Aggressive should compress more
-      const conservativeRatio = (conservativeResult.originalSize - conservativeResult.compressedSize) / conservativeResult.originalSize
-      const aggressiveRatio = (aggressiveResult.originalSize - aggressiveResult.compressedSize) / aggressiveResult.originalSize
+      const conservativeRatio = (conservativeResult.originalSize - conservativeResult.compressedSize) / conservativeResult.originalSize;
+      const aggressiveRatio = (aggressiveResult.originalSize - aggressiveResult.compressedSize) / aggressiveResult.originalSize;
 
-      expect(aggressiveRatio).toBeGreaterThan(conservativeRatio)
-    })
-  })
+      expect(aggressiveRatio).toBeGreaterThan(conservativeRatio);
+    });
+  });
 
   describe('decompression', () => {
     it('should decompress rule-based compression', () => {
-      const text = 'This is a test with function and parameter values.'
-      const compressor = new SemanticCompression(0.5)
+      const text = 'This is a test with function and parameter values.';
+      const compressor = new SemanticCompression(0.5);
 
-      const compressed = compressor.compress(text)
-      const decompressed = compressor.decompress(compressed.compressed)
+      const compressed = compressor.compress(text);
+      const decompressed = compressor.decompress(compressed.compressed);
 
-      expect(decompressed.success).toBe(true)
-      expect(decompressed.decompressed).toBeTruthy()
-    })
+      expect(decompressed.success).toBe(true);
+      expect(decompressed.decompressed).toBeTruthy();
+    });
 
     it('should handle LLM-compressed content gracefully', () => {
-      const compressor = new SemanticCompression(0.5)
-      const llmCompressed = 'LLM-based compression applied: Summary of content'
+      const compressor = new SemanticCompression(0.5);
+      const llmCompressed = 'LLM-based compression applied: Summary of content';
 
-      const _result = compressor.decompress(llmCompressed)
+      const _result = compressor.decompress(llmCompressed);
 
       // Should not fail, but return as-is
-      expect(result.success).toBe(true)
-      expect(result.decompressed).toBe(llmCompressed)
-    })
-  })
+      expect(result.success).toBe(true);
+      expect(result.decompressed).toBe(llmCompressed);
+    });
+  });
 
   describe('lLM-based Compression', () => {
     it('should use LLM compression when API client is provided', async () => {
@@ -225,17 +225,17 @@ function example() {
         sendMessage: jest.fn().mockResolvedValue('Compressed summary of the content'),
         updateConfig: jest.fn(),
         getConfig: jest.fn(),
-      }
+      };
 
-      const compressor = new SemanticCompression(0.5, mockApiClient as any)
-      const text = 'This is a long text that should be compressed using LLM-based summarization.'
+      const compressor = new SemanticCompression(0.5, mockApiClient as any);
+      const text = 'This is a long text that should be compressed using LLM-based summarization.';
 
-      const _result = await compressor.compressAsync(text)
+      const _result = await compressor.compressAsync(text);
 
-      expect(mockApiClient.sendMessage).toHaveBeenCalled()
-      expect(result.compressed).toBeTruthy()
-      expect(result.compressedSize).toBeLessThan(result.originalSize)
-    })
+      expect(mockApiClient.sendMessage).toHaveBeenCalled();
+      expect(result.compressed).toBeTruthy();
+      expect(result.compressedSize).toBeLessThan(result.originalSize);
+    });
 
     it('should fall back to rule-based compression when API fails', async () => {
       // Mock API client that fails
@@ -243,66 +243,66 @@ function example() {
         sendMessage: jest.fn().mockRejectedValue(new Error('API error')),
         updateConfig: jest.fn(),
         getConfig: jest.fn(),
-      }
+      };
 
-      const compressor = new SemanticCompression(0.5, mockApiClient as any)
-      const text = 'This is a test text for fallback compression.'
+      const compressor = new SemanticCompression(0.5, mockApiClient as any);
+      const text = 'This is a test text for fallback compression.';
 
-      const _result = await compressor.compressAsync(text)
+      const _result = await compressor.compressAsync(text);
 
       // Should still return a result (fallback to rule-based)
-      expect(result.compressed).toBeTruthy()
-      expect(result.compressedSize).toBeGreaterThan(0)
-    })
+      expect(result.compressed).toBeTruthy();
+      expect(result.compressedSize).toBeGreaterThan(0);
+    });
 
     it('should use rule-based compression for small texts', async () => {
       const mockApiClient = {
         sendMessage: jest.fn().mockResolvedValue('Compressed'),
         updateConfig: jest.fn(),
         getConfig: jest.fn(),
-      }
+      };
 
-      const compressor = new SemanticCompression(0.5, mockApiClient as any)
-      const text = 'Short text' // Less than 500 chars
+      const compressor = new SemanticCompression(0.5, mockApiClient as any);
+      const text = 'Short text'; // Less than 500 chars
 
-      const _result = await compressor.compressAsync(text)
+      const _result = await compressor.compressAsync(text);
 
       // Should not call API for small texts
-      expect(mockApiClient.sendMessage).not.toHaveBeenCalled()
-    })
-  })
+      expect(mockApiClient.sendMessage).not.toHaveBeenCalled();
+    });
+  });
 
   describe('information Preservation', () => {
     it('should preserve numbers and metrics', () => {
-      const text = 'The API response time is 250ms with 99.9% uptime and 1000 requests per second.'
-      const compressor = new SemanticCompression(0.5)
+      const text = 'The API response time is 250ms with 99.9% uptime and 1000 requests per second.';
+      const compressor = new SemanticCompression(0.5);
 
-      const _result = compressor.compress(text)
+      const _result = compressor.compress(text);
 
       // Should preserve key numbers
-      expect(result.compressed).toMatch(/250|99\.9|1000/)
-    })
+      expect(result.compressed).toMatch(/250|99\.9|1000/);
+    });
 
     it('should preserve technical terms', () => {
-      const text = 'Configure the PostgreSQL database with Redis cache and Elasticsearch indexing.'
-      const compressor = new SemanticCompression(0.5)
+      const text = 'Configure the PostgreSQL database with Redis cache and Elasticsearch indexing.';
+      const compressor = new SemanticCompression(0.5);
 
-      const _result = compressor.compress(text)
+      const _result = compressor.compress(text);
 
       // Should preserve technology names
-      const hasTechTerms = /postgres|redis|elasticsearch/i.test(result.compressed)
-      expect(hasTechTerms).toBe(true)
-    })
+      const hasTechTerms = /postgres|redis|elasticsearch/i.test(result.compressed);
+      expect(hasTechTerms).toBe(true);
+    });
 
     it('should preserve URLs and paths', () => {
-      const text = 'Visit https://example.com/api/v1/users for documentation at /docs/api.md'
-      const compressor = new SemanticCompression(0.5)
+      const text = 'Visit https://example.com/api/v1/users for documentation at /docs/api.md';
+      const compressor = new SemanticCompression(0.5);
 
-      const _result = compressor.compress(text)
+      const _result = compressor.compress(text);
 
       // Should preserve URL structure
-      const hasUrl = /https?:\/\/|\w+\.com|\/\w+/.test(result.compressed)
-      expect(hasUrl).toBe(true)
-    })
-  })
-})
+      const hasUrl = /https?:\/\/|\w+\.com|\/\w+/.test(result.compressed);
+      expect(hasUrl).toBe(true);
+    });
+  });
+});

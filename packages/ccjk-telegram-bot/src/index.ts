@@ -47,7 +47,8 @@ async function main() {
 
   try {
     await bot.start();
-  } catch (error) {
+  }
+  catch (error) {
     console.error(chalk.red('❌ Failed to start bot:'), error);
     process.exit(1);
   }

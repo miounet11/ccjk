@@ -20,19 +20,19 @@ import type {
   IntentMatch,
   IntentRule,
   ProjectType,
-} from '../types'
-import { existsSync } from 'node:fs'
-import { join } from 'pathe'
-import { x } from 'tinyexec'
+} from '../types';
+import { existsSync } from 'node:fs';
+import { join } from 'pathe';
+import { x } from 'tinyexec';
 
 // ============================================================================
 // Constants
 // ============================================================================
 
-const DEFAULT_MIN_CONFIDENCE = 0.6
-const PATTERN_WEIGHT = 0.4
-const KEYWORD_WEIGHT = 0.3
-const CONTEXT_WEIGHT = 0.3
+const DEFAULT_MIN_CONFIDENCE = 0.6;
+const PATTERN_WEIGHT = 0.4;
+const KEYWORD_WEIGHT = 0.3;
+const CONTEXT_WEIGHT = 0.3;
 
 // ============================================================================
 // Intent Engine Class
@@ -44,9 +44,9 @@ const CONTEXT_WEIGHT = 0.3
  * Analyzes user input and context to detect intent and match plugins
  */
 export class IntentEngine {
-  private rules: Map<string, IntentRule> = new Map()
-  private contextCache: Map<string, { value: boolean, timestamp: number }> = new Map()
-  private cacheTTL = 5000 // 5 seconds
+  private rules: Map<string, IntentRule> = new Map();
+  private contextCache: Map<string, { value: boolean; timestamp: number }> = new Map();
+  private cacheTTL = 5000; // 5 seconds
 
   constructor() {
     // Initialize with empty rules, will be populated by plugin manager
@@ -60,7 +60,7 @@ export class IntentEngine {
    * Register an intent rule
    */
   registerRule(rule: IntentRule): void {
-    this.rules.set(rule.id, rule)
+    this.rules.set(rule.id, rule);
   }
 
   /**
@@ -68,7 +68,7 @@ export class IntentEngine {
    */
   registerRules(rules: IntentRule[]): void {
     for (const rule of rules) {
-      this.registerRule(rule)
+      this.registerRule(rule);
     }
   }
 
@@ -76,7 +76,7 @@ export class IntentEngine {
    * Unregister an intent rule
    */
   unregisterRule(ruleId: string): void {
-    this.rules.delete(ruleId)
+    this.rules.delete(ruleId);
   }
 
   /**
@@ -85,7 +85,7 @@ export class IntentEngine {
   unregisterPluginRules(pluginId: string): void {
     for (const [id, rule] of this.rules) {
       if (rule.pluginId === pluginId) {
-        this.rules.delete(id)
+        this.rules.delete(id);
       }
     }
   }
@@ -94,7 +94,7 @@ export class IntentEngine {
    * Get all registered rules
    */
   getRules(): IntentRule[] {
-    return Array.from(this.rules.values())
+    return Array.from(this.rules.values());
   }
 
   // ==========================================================================
@@ -110,46 +110,46 @@ export class IntentEngine {
    */
   async detect(userInput: string, cwd: string): Promise<IntentMatch[]> {
     // Build detection context
-    const context = await this.buildContext(userInput, cwd)
+    const context = await this.buildContext(userInput, cwd);
 
     // Match against all rules
-    const matches: IntentMatch[] = []
+    const matches: IntentMatch[] = [];
 
     for (const rule of this.rules.values()) {
-      const match = this.matchRule(rule, context)
+      const match = this.matchRule(rule, context);
       if (match && match.confidence >= (rule.minConfidence ?? DEFAULT_MIN_CONFIDENCE)) {
-        matches.push(match)
+        matches.push(match);
       }
     }
 
     // Sort by confidence (descending) then priority (descending)
     matches.sort((a, b) => {
-      const confDiff = b.confidence - a.confidence
+      const confDiff = b.confidence - a.confidence;
       if (Math.abs(confDiff) > 0.1) {
-        return confDiff
+        return confDiff;
       }
-      const ruleA = this.rules.get(a.intentId)
-      const ruleB = this.rules.get(b.intentId)
-      return (ruleB?.priority ?? 0) - (ruleA?.priority ?? 0)
-    })
+      const ruleA = this.rules.get(a.intentId);
+      const ruleB = this.rules.get(b.intentId);
+      return (ruleB?.priority ?? 0) - (ruleA?.priority ?? 0);
+    });
 
-    return matches
+    return matches;
   }
 
   /**
    * Get the best matching intent
    */
   async detectBest(userInput: string, cwd: string): Promise<IntentMatch | null> {
-    const matches = await this.detect(userInput, cwd)
-    return matches.length > 0 ? matches[0] : null
+    const matches = await this.detect(userInput, cwd);
+    return matches.length > 0 ? matches[0] : null;
   }
 
   /**
    * Check if any intent should auto-execute
    */
   async detectAutoExecute(userInput: string, cwd: string): Promise<IntentMatch | null> {
-    const matches = await this.detect(userInput, cwd)
-    return matches.find(m => m.autoExecute && m.confidence >= 0.8) ?? null
+    const matches = await this.detect(userInput, cwd);
+    return matches.find(m => m.autoExecute && m.confidence >= 0.8) ?? null;
   }
 
   // ==========================================================================
@@ -164,7 +164,7 @@ export class IntentEngine {
       this.detectGitStatus(cwd),
       this.detectProjectType(cwd),
       this.detectActiveSignals(cwd),
-    ])
+    ]);
 
     return {
       userInput,
@@ -172,40 +172,40 @@ export class IntentEngine {
       gitStatus,
       projectType,
       activeSignals,
-    }
+    };
   }
 
   /**
    * Detect git status
    */
   async detectGitStatus(cwd: string): Promise<GitStatus> {
-    const isRepo = existsSync(join(cwd, '.git'))
+    const isRepo = existsSync(join(cwd, '.git'));
 
     if (!isRepo) {
-      return { isRepo: false, hasChanges: false, hasStaged: false }
+      return { isRepo: false, hasChanges: false, hasStaged: false };
     }
 
     try {
       // Check for changes
-      const statusResult = await x('git', ['status', '--porcelain'], { nodeOptions: { cwd } })
-      const hasChanges = statusResult.stdout.trim().length > 0
+      const statusResult = await x('git', ['status', '--porcelain'], { nodeOptions: { cwd } });
+      const hasChanges = statusResult.stdout.trim().length > 0;
 
       // Check for staged changes
-      const stagedResult = await x('git', ['diff', '--cached', '--name-only'], { nodeOptions: { cwd } })
-      const hasStaged = stagedResult.stdout.trim().length > 0
+      const stagedResult = await x('git', ['diff', '--cached', '--name-only'], { nodeOptions: { cwd } });
+      const hasStaged = stagedResult.stdout.trim().length > 0;
 
       // Get current branch
-      const branchResult = await x('git', ['branch', '--show-current'], { nodeOptions: { cwd } })
-      const branch = branchResult.stdout.trim()
+      const branchResult = await x('git', ['branch', '--show-current'], { nodeOptions: { cwd } });
+      const branch = branchResult.stdout.trim();
 
       // Get remote
-      const remoteResult = await x('git', ['remote', 'get-url', 'origin'], { nodeOptions: { cwd } })
-      const remote = remoteResult.stdout.trim() || undefined
+      const remoteResult = await x('git', ['remote', 'get-url', 'origin'], { nodeOptions: { cwd } });
+      const remote = remoteResult.stdout.trim() || undefined;
 
-      return { isRepo, hasChanges, hasStaged, branch, remote }
+      return { isRepo, hasChanges, hasStaged, branch, remote };
     }
     catch {
-      return { isRepo, hasChanges: false, hasStaged: false }
+      return { isRepo, hasChanges: false, hasStaged: false };
     }
   }
 
@@ -215,17 +215,17 @@ export class IntentEngine {
   async detectProjectType(cwd: string): Promise<ProjectType> {
     // Check for specific framework files
     if (existsSync(join(cwd, 'next.config.js')) || existsSync(join(cwd, 'next.config.mjs')) || existsSync(join(cwd, 'next.config.ts'))) {
-      return 'nextjs'
+      return 'nextjs';
     }
 
     if (existsSync(join(cwd, 'vue.config.js')) || existsSync(join(cwd, 'vite.config.ts'))) {
       // Check if it's Vue
-      const pkgPath = join(cwd, 'package.json')
+      const pkgPath = join(cwd, 'package.json');
       if (existsSync(pkgPath)) {
         try {
-          const pkg = await import(pkgPath)
+          const pkg = await import(pkgPath);
           if (pkg.dependencies?.vue || pkg.devDependencies?.vue) {
-            return 'vue'
+            return 'vue';
           }
         }
         catch {
@@ -235,12 +235,12 @@ export class IntentEngine {
     }
 
     // Check package.json for React
-    const pkgPath = join(cwd, 'package.json')
+    const pkgPath = join(cwd, 'package.json');
     if (existsSync(pkgPath)) {
       try {
-        const pkg = await import(pkgPath)
+        const pkg = await import(pkgPath);
         if (pkg.dependencies?.react || pkg.devDependencies?.react) {
-          return 'react'
+          return 'react';
         }
       }
       catch {
@@ -250,69 +250,69 @@ export class IntentEngine {
 
     // Check for TypeScript
     if (existsSync(join(cwd, 'tsconfig.json'))) {
-      return 'typescript'
+      return 'typescript';
     }
 
     // Check for Node.js
     if (existsSync(join(cwd, 'package.json'))) {
-      return 'nodejs'
+      return 'nodejs';
     }
 
     // Check for Python
     if (existsSync(join(cwd, 'requirements.txt')) || existsSync(join(cwd, 'pyproject.toml'))) {
-      return 'python'
+      return 'python';
     }
 
     // Check for Rust
     if (existsSync(join(cwd, 'Cargo.toml'))) {
-      return 'rust'
+      return 'rust';
     }
 
     // Check for Go
     if (existsSync(join(cwd, 'go.mod'))) {
-      return 'go'
+      return 'go';
     }
 
-    return 'unknown'
+    return 'unknown';
   }
 
   /**
    * Detect active context signals
    */
   async detectActiveSignals(cwd: string): Promise<ContextSignal[]> {
-    const signals: ContextSignal[] = []
+    const signals: ContextSignal[] = [];
 
     // Git signals
-    const gitStatus = await this.detectGitStatus(cwd)
+    const gitStatus = await this.detectGitStatus(cwd);
     if (gitStatus.isRepo) {
-      signals.push('git_is_repo')
+      signals.push('git_is_repo');
       if (gitStatus.hasChanges)
-        signals.push('git_has_changes')
+        signals.push('git_has_changes');
       if (gitStatus.hasStaged)
-        signals.push('git_has_staged')
+        signals.push('git_has_staged');
       if (gitStatus.remote)
-        signals.push('git_has_remote')
+        signals.push('git_has_remote');
     }
 
     // Project signals
     if (existsSync(join(cwd, 'package.json')))
-      signals.push('has_package_json')
+      signals.push('has_package_json');
     if (existsSync(join(cwd, 'tsconfig.json')))
-      signals.push('has_tsconfig')
+      signals.push('has_tsconfig');
     if (existsSync(join(cwd, 'Dockerfile')) || existsSync(join(cwd, 'docker-compose.yml')))
-      signals.push('has_dockerfile')
+      signals.push('has_dockerfile');
 
     // Test signals
     if (existsSync(join(cwd, 'tests')) || existsSync(join(cwd, '__tests__')) || existsSync(join(cwd, 'test'))) {
-      signals.push('has_tests')
+      signals.push('has_tests');
     }
 
     // Directory signals
     if (cwd.includes('/src') || existsSync(join(cwd, 'src'))) {
-      signals.push('in_src_directory')
+      signals.push('in_src_directory');
     }
 
-    return signals
+    return signals;
   }
 
   // ==========================================================================
@@ -323,58 +323,58 @@ export class IntentEngine {
    * Match a single rule against context
    */
   private matchRule(rule: IntentRule, context: DetectionContext): IntentMatch | null {
-    const matchedPatterns: string[] = []
-    const matchedSignals: ContextSignal[] = []
+    const matchedPatterns: string[] = [];
+    const matchedSignals: ContextSignal[] = [];
 
     // Pattern matching
-    let patternScore = 0
+    let patternScore = 0;
     for (const pattern of rule.patterns) {
       try {
-        const regex = new RegExp(pattern, 'i')
+        const regex = new RegExp(pattern, 'i');
         if (regex.test(context.userInput)) {
-          matchedPatterns.push(pattern)
-          patternScore += 1 / rule.patterns.length
+          matchedPatterns.push(pattern);
+          patternScore += 1 / rule.patterns.length;
         }
       }
       catch {
         // Invalid regex, try simple includes
         if (context.userInput.toLowerCase().includes(pattern.toLowerCase())) {
-          matchedPatterns.push(pattern)
-          patternScore += 1 / rule.patterns.length
+          matchedPatterns.push(pattern);
+          patternScore += 1 / rule.patterns.length;
         }
       }
     }
 
     // Keyword matching
-    let keywordScore = 0
-    const inputLower = context.userInput.toLowerCase()
+    let keywordScore = 0;
+    const inputLower = context.userInput.toLowerCase();
     for (const keyword of rule.keywords) {
       if (inputLower.includes(keyword.toLowerCase())) {
-        keywordScore += 1 / rule.keywords.length
+        keywordScore += 1 / rule.keywords.length;
       }
     }
 
     // Context signal matching
-    let contextScore = 0
+    let contextScore = 0;
     if (rule.contextSignals.length > 0) {
       for (const signal of rule.contextSignals) {
         if (context.activeSignals.includes(signal)) {
-          matchedSignals.push(signal)
-          contextScore += 1 / rule.contextSignals.length
+          matchedSignals.push(signal);
+          contextScore += 1 / rule.contextSignals.length;
         }
       }
     }
     else {
       // No context signals required, give full score
-      contextScore = 1
+      contextScore = 1;
     }
 
     // File pattern matching (bonus)
-    let fileBonus = 0
+    let fileBonus = 0;
     if (rule.filePatterns && rule.filePatterns.length > 0) {
       for (const pattern of rule.filePatterns) {
         if (existsSync(join(context.cwd, pattern))) {
-          fileBonus += 0.1
+          fileBonus += 0.1;
         }
       }
     }
@@ -383,11 +383,11 @@ export class IntentEngine {
     const confidence = Math.min(1, (patternScore * PATTERN_WEIGHT)
       + (keywordScore * KEYWORD_WEIGHT)
       + (contextScore * CONTEXT_WEIGHT)
-      + fileBonus)
+      + fileBonus);
 
     // Must have at least some pattern or keyword match
     if (patternScore === 0 && keywordScore === 0) {
-      return null
+      return null;
     }
 
     return {
@@ -398,7 +398,7 @@ export class IntentEngine {
       matchedSignals,
       suggestedAction: rule.name,
       autoExecute: rule.autoExecute && confidence >= 0.8,
-    }
+    };
   }
 
   // ==========================================================================
@@ -409,7 +409,7 @@ export class IntentEngine {
    * Clear context cache
    */
   clearCache(): void {
-    this.contextCache.clear()
+    this.contextCache.clear();
   }
 
   /**
@@ -419,14 +419,14 @@ export class IntentEngine {
     key: string,
     compute: () => Promise<T>,
   ): Promise<T> {
-    const cached = this.contextCache.get(key)
+    const cached = this.contextCache.get(key);
     if (cached && Date.now() - cached.timestamp < this.cacheTTL) {
-      return cached.value as T
+      return cached.value as T;
     }
 
-    const value = await compute()
-    this.contextCache.set(key, { value: value as boolean, timestamp: Date.now() })
-    return value
+    const value = await compute();
+    this.contextCache.set(key, { value: value as boolean, timestamp: Date.now() });
+    return value;
   }
 }
 
@@ -571,29 +571,29 @@ export const DEFAULT_INTENT_RULES: IntentRule[] = [
     pluginId: 'code-simplifier',
     autoExecute: false,
   },
-]
+];
 
 // ============================================================================
 // Singleton Instance
 // ============================================================================
 
-let engineInstance: IntentEngine | null = null
+let engineInstance: IntentEngine | null = null;
 
 /**
  * Get the singleton IntentEngine instance
  */
 export function getIntentEngine(): IntentEngine {
   if (!engineInstance) {
-    engineInstance = new IntentEngine()
+    engineInstance = new IntentEngine();
     // Register default rules
-    engineInstance.registerRules(DEFAULT_INTENT_RULES)
+    engineInstance.registerRules(DEFAULT_INTENT_RULES);
   }
-  return engineInstance
+  return engineInstance;
 }
 
 /**
  * Reset the engine instance (for testing)
  */
 export function resetIntentEngine(): void {
-  engineInstance = null
+  engineInstance = null;
 }

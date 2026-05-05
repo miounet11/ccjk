@@ -15,20 +15,20 @@
  * @module cloud-plugins/recommendation-engine
  */
 
-import type { SupportedLang } from '../constants'
-import type { LocalPluginCache } from './cache'
-import type { CloudRecommendationClient } from './cloud-client'
+import type { SupportedLang } from '../constants';
+import type { LocalPluginCache } from './cache';
+import type { CloudRecommendationClient } from './cloud-client';
 import type {
   CloudPlugin,
   PluginCategory,
   PluginRecommendation,
   RecommendationContext,
   RecommendationResult,
-} from './types'
-import { existsSync, readdirSync, readFileSync } from 'node:fs'
-import process from 'node:process'
-import { join } from 'pathe'
-import { detectProject } from '../utils/auto-config/detector'
+} from './types';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import process from 'node:process';
+import { join } from 'pathe';
+import { detectProject } from '../utils/auto-config/detector';
 
 /**
  * Project detector interface
@@ -36,15 +36,15 @@ import { detectProject } from '../utils/auto-config/detector'
  */
 interface ProjectDetector {
   /** Project type identifier */
-  type: string
+  type: string;
   /** Detection function */
-  detect: (files: string[], pkg?: any) => boolean
+  detect: (files: string[], pkg?: any) => boolean;
   /** Recommended plugin categories for this project type */
-  recommendedCategories: PluginCategory[]
+  recommendedCategories: PluginCategory[];
   /** Recommended tags for this project type */
-  recommendedTags: string[]
+  recommendedTags: string[];
   /** Detection priority (higher = checked first) */
-  priority?: number
+  priority?: number;
 }
 
 /**
@@ -113,13 +113,13 @@ const PROJECT_DETECTORS: ProjectDetector[] = [
           || pkg?.dependencies?.fastify
           || pkg?.dependencies?.['@nestjs/core']
           || pkg?.dependencies?.koa
-          || pkg?.dependencies?.hono
+          || pkg?.dependencies?.hono;
       const noFrontendFramework
         = !pkg?.dependencies?.react
           && !pkg?.dependencies?.vue
           && !pkg?.dependencies?.next
-          && !pkg?.dependencies?.nuxt
-      return hasBackendFramework && noFrontendFramework
+          && !pkg?.dependencies?.nuxt;
+      return hasBackendFramework && noFrontendFramework;
     },
     recommendedCategories: ['dev', 'testing', 'devops', 'security'],
     recommendedTags: ['nodejs', 'backend', 'api', 'server'],
@@ -191,7 +191,7 @@ const PROJECT_DETECTORS: ProjectDetector[] = [
     recommendedTags: ['typescript', 'types', 'tooling'],
     priority: 4,
   },
-]
+];
 
 /**
  * Recommendation Engine
@@ -199,8 +199,8 @@ const PROJECT_DETECTORS: ProjectDetector[] = [
  * Main class for generating intelligent plugin recommendations
  */
 export class RecommendationEngine {
-  private cloudClient: CloudRecommendationClient
-  private cache: LocalPluginCache
+  private cloudClient: CloudRecommendationClient;
+  private cache: LocalPluginCache;
 
   /**
    * Create a new recommendation engine
@@ -209,8 +209,8 @@ export class RecommendationEngine {
    * @param cache - Local plugin cache
    */
   constructor(cloudClient: CloudRecommendationClient, cache: LocalPluginCache) {
-    this.cloudClient = cloudClient
-    this.cache = cache
+    this.cloudClient = cloudClient;
+    this.cache = cache;
   }
 
   /**
@@ -223,11 +223,11 @@ export class RecommendationEngine {
    * @returns Recommendation result with scored plugins
    */
   async getRecommendations(projectPath?: string): Promise<RecommendationResult> {
-    const context = await this.detectProjectContext(projectPath || process.cwd())
+    const context = await this.detectProjectContext(projectPath || process.cwd());
 
     // Try cloud recommendations first
-    let recommendations: PluginRecommendation[] = []
-    let source: 'cloud' | 'local' | 'hybrid' = 'local'
+    let recommendations: PluginRecommendation[] = [];
+    let source: 'cloud' | 'local' | 'hybrid' = 'local';
 
     try {
       // Try to get cloud recommendations
@@ -236,7 +236,7 @@ export class RecommendationEngine {
         language: context.language as 'zh-CN' | 'en' | undefined,
         installedPlugins: context.existingPlugins,
         limit: 20,
-      })
+      });
       if (cloudResult.success && cloudResult.data) {
         // Convert cloud result to PluginRecommendation format
         recommendations = cloudResult.data.plugins.map(plugin => ({
@@ -250,37 +250,37 @@ export class RecommendationEngine {
           matchingTags: [],
           matchingCategories: [],
           isInstalled: context.existingPlugins?.includes(plugin.id) || false,
-        }))
-        source = 'cloud'
+        }));
+        source = 'cloud';
       }
     }
     catch {
       // Fall back to local recommendations
-      console.warn('Cloud recommendations unavailable, using local cache')
+      console.warn('Cloud recommendations unavailable, using local cache');
     }
 
     // If cloud failed or unavailable, use local recommendations
     if (recommendations.length === 0) {
-      const localResult = this.getLocalRecommendations(context)
-      recommendations = localResult.recommendations
-      source = 'local'
+      const localResult = this.getLocalRecommendations(context);
+      recommendations = localResult.recommendations;
+      source = 'local';
     }
 
     // Merge with local recommendations for hybrid approach
     if (source === 'cloud') {
-      const localResult = this.getLocalRecommendations(context)
+      const localResult = this.getLocalRecommendations(context);
       recommendations = this.mergeRecommendations(
         { recommendations, context, totalEvaluated: 0, source: 'cloud', timestamp: '' },
         localResult,
-      ).recommendations
-      source = 'hybrid'
+      ).recommendations;
+      source = 'hybrid';
     }
 
     // Filter out already installed plugins
-    recommendations = this.filterInstalledPlugins(recommendations)
+    recommendations = this.filterInstalledPlugins(recommendations);
 
     // Sort by score (descending)
-    recommendations.sort((a, b) => b.score - a.score)
+    recommendations.sort((a, b) => b.score - a.score);
 
     return {
       recommendations,
@@ -288,7 +288,7 @@ export class RecommendationEngine {
       totalEvaluated: recommendations.length,
       source,
       timestamp: new Date().toISOString(),
-    }
+    };
   }
 
   /**
@@ -302,17 +302,17 @@ export class RecommendationEngine {
    */
   async detectProjectContext(projectPath: string): Promise<RecommendationContext> {
     // Use existing detector from auto-config
-    const projectInfo = detectProject(projectPath)
+    const projectInfo = detectProject(projectPath);
 
     // Get list of files in project root
-    const files = existsSync(projectPath) ? readdirSync(projectPath) : []
+    const files = existsSync(projectPath) ? readdirSync(projectPath) : [];
 
     // Read package.json if exists
-    let packageJson: any
+    let packageJson: any;
     try {
-      const pkgPath = join(projectPath, 'package.json')
+      const pkgPath = join(projectPath, 'package.json');
       if (existsSync(pkgPath)) {
-        packageJson = JSON.parse(readFileSync(pkgPath, 'utf-8'))
+        packageJson = JSON.parse(readFileSync(pkgPath, 'utf-8'));
       }
     }
     catch {
@@ -320,27 +320,27 @@ export class RecommendationEngine {
     }
 
     // Detect project type using detectors
-    let detectedType: string | undefined
-    const recommendedCategories: PluginCategory[] = []
-    const recommendedTags: string[] = []
+    let detectedType: string | undefined;
+    const recommendedCategories: PluginCategory[] = [];
+    const recommendedTags: string[] = [];
 
     // Sort detectors by priority
     const sortedDetectors = [...PROJECT_DETECTORS].sort(
       (a, b) => (b.priority || 0) - (a.priority || 0),
-    )
+    );
 
     for (const detector of sortedDetectors) {
       if (detector.detect(files, packageJson)) {
         if (!detectedType) {
-          detectedType = detector.type
+          detectedType = detector.type;
         }
-        recommendedCategories.push(...detector.recommendedCategories)
-        recommendedTags.push(...detector.recommendedTags)
+        recommendedCategories.push(...detector.recommendedCategories);
+        recommendedTags.push(...detector.recommendedTags);
       }
     }
 
     // Get installed plugins (from cache metadata)
-    const existingPlugins: string[] = []
+    const existingPlugins: string[] = [];
 
     return {
       projectType: detectedType || projectInfo.type,
@@ -358,7 +358,7 @@ export class RecommendationEngine {
       recommendedCategories: [...new Set(recommendedCategories)],
       recommendedTags: [...new Set(recommendedTags)],
       existingPlugins,
-    }
+    };
   }
 
   /**
@@ -371,18 +371,18 @@ export class RecommendationEngine {
    * @returns Local recommendation result
    */
   getLocalRecommendations(context: RecommendationContext): RecommendationResult {
-    const allPlugins = this.cache.getCachedPlugins()
-    const recommendations: PluginRecommendation[] = []
+    const allPlugins = this.cache.getCachedPlugins();
+    const recommendations: PluginRecommendation[] = [];
 
     for (const plugin of allPlugins) {
-      const score = this.calculateRelevanceScore(plugin, context)
+      const score = this.calculateRelevanceScore(plugin, context);
 
       // Only include plugins with score > 0
       if (score > 0) {
-        const matchingTags = this.getMatchingTags(plugin, context)
-        const matchingCategories = this.getMatchingCategories(plugin, context)
-        const confidence = this.calculateConfidence(score, matchingTags.length, matchingCategories.length)
-        const isInstalled = context.existingPlugins?.includes(plugin.id) || false
+        const matchingTags = this.getMatchingTags(plugin, context);
+        const matchingCategories = this.getMatchingCategories(plugin, context);
+        const confidence = this.calculateConfidence(score, matchingTags.length, matchingCategories.length);
+        const isInstalled = context.existingPlugins?.includes(plugin.id) || false;
 
         recommendations.push({
           plugin,
@@ -392,7 +392,7 @@ export class RecommendationEngine {
           matchingTags,
           matchingCategories,
           isInstalled,
-        })
+        });
       }
     }
 
@@ -402,7 +402,7 @@ export class RecommendationEngine {
       totalEvaluated: allPlugins.length,
       source: 'local',
       timestamp: new Date().toISOString(),
-    }
+    };
   }
 
   /**
@@ -419,26 +419,26 @@ export class RecommendationEngine {
     cloud: RecommendationResult,
     local: RecommendationResult,
   ): RecommendationResult {
-    const merged = new Map<string, PluginRecommendation>()
+    const merged = new Map<string, PluginRecommendation>();
 
     // Add cloud recommendations
     for (const rec of cloud.recommendations) {
-      merged.set(rec.plugin.id, rec)
+      merged.set(rec.plugin.id, rec);
     }
 
     // Merge with local recommendations
     for (const rec of local.recommendations) {
-      const existing = merged.get(rec.plugin.id)
+      const existing = merged.get(rec.plugin.id);
       if (existing) {
         // Average the scores and take max confidence
-        existing.score = Math.round((existing.score + rec.score) / 2)
-        existing.confidence = Math.max(existing.confidence, rec.confidence)
+        existing.score = Math.round((existing.score + rec.score) / 2);
+        existing.confidence = Math.max(existing.confidence, rec.confidence);
         // Merge matching tags and categories
-        existing.matchingTags = [...new Set([...existing.matchingTags, ...rec.matchingTags])]
-        existing.matchingCategories = [...new Set([...existing.matchingCategories, ...rec.matchingCategories])]
+        existing.matchingTags = [...new Set([...existing.matchingTags, ...rec.matchingTags])];
+        existing.matchingCategories = [...new Set([...existing.matchingCategories, ...rec.matchingCategories])];
       }
       else {
-        merged.set(rec.plugin.id, rec)
+        merged.set(rec.plugin.id, rec);
       }
     }
 
@@ -448,7 +448,7 @@ export class RecommendationEngine {
       totalEvaluated: cloud.totalEvaluated + local.totalEvaluated,
       source: 'hybrid',
       timestamp: new Date().toISOString(),
-    }
+    };
   }
 
   /**
@@ -458,7 +458,7 @@ export class RecommendationEngine {
    * @returns Filtered recommendations (non-installed only)
    */
   filterInstalledPlugins(recommendations: PluginRecommendation[]): PluginRecommendation[] {
-    return recommendations.filter(rec => !rec.isInstalled)
+    return recommendations.filter(rec => !rec.isInstalled);
   }
 
   /**
@@ -475,38 +475,38 @@ export class RecommendationEngine {
    * @returns Relevance score (0-100)
    */
   calculateRelevanceScore(plugin: CloudPlugin, context: RecommendationContext): number {
-    let score = 0
+    let score = 0;
 
     // Category match (40 points max)
     if (context.recommendedCategories?.includes(plugin.category)) {
-      score += 40
+      score += 40;
     }
 
     // Tag match (30 points max, 5 per tag)
-    const matchingTags = this.getMatchingTags(plugin, context)
-    score += Math.min(matchingTags.length * 5, 30)
+    const matchingTags = this.getMatchingTags(plugin, context);
+    score += Math.min(matchingTags.length * 5, 30);
 
     // Framework match (20 points max, 10 per framework)
     if (context.frameworks) {
       for (const framework of context.frameworks) {
         if (plugin.tags.some(tag => tag.toLowerCase().includes(framework.toLowerCase()))) {
-          score += 10
+          score += 10;
         }
       }
-      score = Math.min(score, 60) // Cap at 60 after framework bonus
+      score = Math.min(score, 60); // Cap at 60 after framework bonus
     }
 
     // Language match (10 points max)
     if (context.languages) {
       for (const lang of context.languages) {
         if (plugin.tags.some(tag => tag.toLowerCase().includes(lang.toLowerCase()))) {
-          score += 10
-          break
+          score += 10;
+          break;
         }
       }
     }
 
-    return Math.min(score, 100)
+    return Math.min(score, 100);
   }
 
   /**
@@ -517,10 +517,10 @@ export class RecommendationEngine {
    * @returns Array of matching tags
    */
   private getMatchingTags(plugin: CloudPlugin, context: RecommendationContext): string[] {
-    const contextTags = context.recommendedTags || []
+    const contextTags = context.recommendedTags || [];
     return plugin.tags.filter(tag =>
       contextTags.some(ctag => ctag.toLowerCase() === tag.toLowerCase()),
-    )
+    );
   }
 
   /**
@@ -531,8 +531,8 @@ export class RecommendationEngine {
    * @returns Array of matching categories
    */
   private getMatchingCategories(plugin: CloudPlugin, context: RecommendationContext): PluginCategory[] {
-    const contextCategories = context.recommendedCategories || []
-    return contextCategories.includes(plugin.category) ? [plugin.category] : []
+    const contextCategories = context.recommendedCategories || [];
+    return contextCategories.includes(plugin.category) ? [plugin.category] : [];
   }
 
   /**
@@ -554,18 +554,18 @@ export class RecommendationEngine {
     matchingCategoriesCount: number,
   ): number {
     // Base confidence from score
-    let confidence = score / 100
+    let confidence = score / 100;
 
     // Boost for multiple matching signals
-    const signalCount = matchingTagsCount + matchingCategoriesCount
+    const signalCount = matchingTagsCount + matchingCategoriesCount;
     if (signalCount >= 3) {
-      confidence += 0.1
+      confidence += 0.1;
     }
     if (signalCount >= 5) {
-      confidence += 0.1
+      confidence += 0.1;
     }
 
-    return Math.min(confidence, 1.0)
+    return Math.min(confidence, 1.0);
   }
 
   /**
@@ -588,49 +588,49 @@ export class RecommendationEngine {
     const reasons: Record<SupportedLang, string> = {
       'en': '',
       'zh-CN': '',
-    }
+    };
 
     // Build reason parts
-    const reasonParts: { 'en': string[], 'zh-CN': string[] } = { 'en': [], 'zh-CN': [] }
+    const reasonParts: { 'en': string[]; 'zh-CN': string[] } = { 'en': [], 'zh-CN': [] };
 
     // Project type match
     if (context.projectType) {
-      reasonParts.en.push(`Recommended for ${context.projectType} projects`)
-      reasonParts['zh-CN'].push(`推荐用于 ${context.projectType} 项目`)
+      reasonParts.en.push(`Recommended for ${context.projectType} projects`);
+      reasonParts['zh-CN'].push(`推荐用于 ${context.projectType} 项目`);
     }
 
     // Category match
     if (matchingCategories.length > 0) {
-      const categoryNames = matchingCategories.join(', ')
-      reasonParts.en.push(`Matches ${categoryNames} category`)
-      reasonParts['zh-CN'].push(`匹配 ${categoryNames} 类别`)
+      const categoryNames = matchingCategories.join(', ');
+      reasonParts.en.push(`Matches ${categoryNames} category`);
+      reasonParts['zh-CN'].push(`匹配 ${categoryNames} 类别`);
     }
 
     // Tag match
     if (matchingTags.length > 0) {
-      const tagList = matchingTags.slice(0, 3).join(', ')
-      reasonParts.en.push(`Relevant tags: ${tagList}`)
-      reasonParts['zh-CN'].push(`相关标签: ${tagList}`)
+      const tagList = matchingTags.slice(0, 3).join(', ');
+      reasonParts.en.push(`Relevant tags: ${tagList}`);
+      reasonParts['zh-CN'].push(`相关标签: ${tagList}`);
     }
 
     // Framework match
     if (context.frameworks && context.frameworks.length > 0) {
-      const frameworks = context.frameworks.slice(0, 2).join(', ')
-      reasonParts.en.push(`Works with ${frameworks}`)
-      reasonParts['zh-CN'].push(`适用于 ${frameworks}`)
+      const frameworks = context.frameworks.slice(0, 2).join(', ');
+      reasonParts.en.push(`Works with ${frameworks}`);
+      reasonParts['zh-CN'].push(`适用于 ${frameworks}`);
     }
 
     // Combine reason parts
-    reasons.en = reasonParts.en.join('. ')
-    reasons['zh-CN'] = reasonParts['zh-CN'].join('。')
+    reasons.en = reasonParts.en.join('. ');
+    reasons['zh-CN'] = reasonParts['zh-CN'].join('。');
 
     // Fallback if no specific reasons
     if (!reasons.en) {
-      reasons.en = 'General purpose plugin for your project'
-      reasons['zh-CN'] = '适用于您项目的通用插件'
+      reasons.en = 'General purpose plugin for your project';
+      reasons['zh-CN'] = '适用于您项目的通用插件';
     }
 
-    return reasons
+    return reasons;
   }
 
   /**
@@ -640,10 +640,10 @@ export class RecommendationEngine {
    * @returns Matching plugins
    */
   getTagBasedRecommendations(tags: string[]): CloudPlugin[] {
-    const allPlugins = this.cache.getCachedPlugins()
+    const allPlugins = this.cache.getCachedPlugins();
     return allPlugins.filter(plugin =>
       tags.some(tag => plugin.tags.includes(tag)),
-    )
+    );
   }
 
   /**
@@ -653,8 +653,8 @@ export class RecommendationEngine {
    * @returns Matching plugins
    */
   getCategoryBasedRecommendations(category: PluginCategory): CloudPlugin[] {
-    const allPlugins = this.cache.getCachedPlugins()
+    const allPlugins = this.cache.getCachedPlugins();
 
-    return allPlugins.filter(plugin => plugin.category === category)
+    return allPlugins.filter(plugin => plugin.category === category);
   }
 }

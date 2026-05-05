@@ -6,12 +6,12 @@
  * and atomic file operations.
  */
 
-import type { CacheStats, CloudPlugin, CloudPluginCache } from './types'
-import { Buffer } from 'node:buffer'
-import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, unlinkSync } from 'node:fs'
-import { homedir } from 'node:os'
-import { join } from 'pathe'
-import { writeFileAtomic } from '../utils/fs-operations'
+import type { CacheStats, CloudPlugin, CloudPluginCache } from './types';
+import { Buffer } from 'node:buffer';
+import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, unlinkSync } from 'node:fs';
+import { homedir } from 'node:os';
+import { join } from 'pathe';
+import { writeFileAtomic } from '../utils/fs-operations';
 
 // ============================================================================
 // Constants
@@ -29,12 +29,12 @@ export const CACHE_CONFIG = {
   VERSION: '1.0.0',
   /** Maximum size for individual plugin content (5MB) */
   MAX_CONTENT_SIZE: 5 * 1024 * 1024,
-} as const
+} as const;
 
 /**
  * Cache directory paths
  */
-const CACHE_BASE_DIR = join(homedir(), '.ccjk', 'cloud-plugins', 'cache')
+const CACHE_BASE_DIR = join(homedir(), '.ccjk', 'cloud-plugins', 'cache');
 
 // ============================================================================
 // Local Plugin Cache Class
@@ -47,15 +47,15 @@ const CACHE_BASE_DIR = join(homedir(), '.ccjk', 'cloud-plugins', 'cache')
  * Provides thread-safe operations with atomic writes and proper error handling.
  */
 export class LocalPluginCache {
-  private cacheDir: string
-  private cacheFile: string
-  private contentDir: string
-  private cache: CloudPluginCache | null = null
+  private cacheDir: string;
+  private cacheFile: string;
+  private contentDir: string;
+  private cache: CloudPluginCache | null = null;
 
   constructor(cacheDir?: string) {
-    this.cacheDir = cacheDir || CACHE_BASE_DIR
-    this.cacheFile = join(this.cacheDir, 'metadata.json')
-    this.contentDir = join(this.cacheDir, 'contents')
+    this.cacheDir = cacheDir || CACHE_BASE_DIR;
+    this.cacheFile = join(this.cacheDir, 'metadata.json');
+    this.contentDir = join(this.cacheDir, 'contents');
   }
 
   // ==========================================================================
@@ -68,14 +68,14 @@ export class LocalPluginCache {
   ensureCacheDir(): void {
     try {
       if (!existsSync(this.cacheDir)) {
-        mkdirSync(this.cacheDir, { recursive: true })
+        mkdirSync(this.cacheDir, { recursive: true });
       }
       if (!existsSync(this.contentDir)) {
-        mkdirSync(this.contentDir, { recursive: true })
+        mkdirSync(this.contentDir, { recursive: true });
       }
     }
     catch (error) {
-      throw new Error(`Failed to create cache directory: ${error instanceof Error ? error.message : String(error)}`)
+      throw new Error(`Failed to create cache directory: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
@@ -91,30 +91,30 @@ export class LocalPluginCache {
   loadCache(): CloudPluginCache | null {
     try {
       if (!existsSync(this.cacheFile)) {
-        return null
+        return null;
       }
 
-      const content = readFileSync(this.cacheFile, 'utf-8')
-      const cache = JSON.parse(content) as CloudPluginCache
+      const content = readFileSync(this.cacheFile, 'utf-8');
+      const cache = JSON.parse(content) as CloudPluginCache;
 
       // Validate cache structure
       if (!this.isValidCache(cache)) {
-        console.warn('[LocalPluginCache] Invalid cache structure, ignoring')
-        return null
+        console.warn('[LocalPluginCache] Invalid cache structure, ignoring');
+        return null;
       }
 
       // Check version compatibility
       if (cache.version !== CACHE_CONFIG.VERSION) {
-        console.warn(`[LocalPluginCache] Cache version mismatch (${cache.version} vs ${CACHE_CONFIG.VERSION}), ignoring`)
-        return null
+        console.warn(`[LocalPluginCache] Cache version mismatch (${cache.version} vs ${CACHE_CONFIG.VERSION}), ignoring`);
+        return null;
       }
 
-      this.cache = cache
-      return cache
+      this.cache = cache;
+      return cache;
     }
     catch (error) {
-      console.error('[LocalPluginCache] Failed to load cache:', error)
-      return null
+      console.error('[LocalPluginCache] Failed to load cache:', error);
+      return null;
     }
   }
 
@@ -127,28 +127,28 @@ export class LocalPluginCache {
    */
   saveCache(cache: CloudPluginCache): void {
     try {
-      this.ensureCacheDir()
+      this.ensureCacheDir();
 
       // Validate before saving
       if (!this.isValidCache(cache)) {
-        throw new Error('Invalid cache structure')
+        throw new Error('Invalid cache structure');
       }
 
       // Enforce size limits
       if (cache.plugins.length > CACHE_CONFIG.MAX_PLUGINS) {
-        console.warn(`[LocalPluginCache] Cache exceeds max plugins (${cache.plugins.length}), truncating`)
-        cache.plugins = cache.plugins.slice(0, CACHE_CONFIG.MAX_PLUGINS)
-        cache.totalPlugins = cache.plugins.length
+        console.warn(`[LocalPluginCache] Cache exceeds max plugins (${cache.plugins.length}), truncating`);
+        cache.plugins = cache.plugins.slice(0, CACHE_CONFIG.MAX_PLUGINS);
+        cache.totalPlugins = cache.plugins.length;
       }
 
       // Atomic write using shared utility
-      const content = JSON.stringify(cache, null, 2)
-      writeFileAtomic(this.cacheFile, content, 'utf-8')
+      const content = JSON.stringify(cache, null, 2);
+      writeFileAtomic(this.cacheFile, content, 'utf-8');
 
-      this.cache = cache
+      this.cache = cache;
     }
     catch (error) {
-      throw new Error(`Failed to save cache: ${error instanceof Error ? error.message : String(error)}`)
+      throw new Error(`Failed to save cache: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
@@ -159,9 +159,9 @@ export class LocalPluginCache {
    */
   getCachedPlugins(): CloudPlugin[] {
     if (!this.cache) {
-      this.cache = this.loadCache()
+      this.cache = this.loadCache();
     }
-    return this.cache?.plugins || []
+    return this.cache?.plugins || [];
   }
 
   /**
@@ -171,8 +171,8 @@ export class LocalPluginCache {
    * @returns Plugin or undefined if not found
    */
   getCachedPlugin(id: string): CloudPlugin | undefined {
-    const plugins = this.getCachedPlugins()
-    return plugins.find(p => p.id === id)
+    const plugins = this.getCachedPlugins();
+    return plugins.find(p => p.id === id);
   }
 
   /**
@@ -181,8 +181,8 @@ export class LocalPluginCache {
    * @param plugins - New plugin list
    */
   updateCache(plugins: CloudPlugin[]): void {
-    const now = new Date().toISOString()
-    const expiresAt = new Date(Date.now() + CACHE_CONFIG.TTL).toISOString()
+    const now = new Date().toISOString();
+    const expiresAt = new Date(Date.now() + CACHE_CONFIG.TTL).toISOString();
 
     const cache: CloudPluginCache = {
       version: CACHE_CONFIG.VERSION,
@@ -191,9 +191,9 @@ export class LocalPluginCache {
       expiresAt,
       lastUpdated: now,
       totalPlugins: plugins.length,
-    }
+    };
 
-    this.saveCache(cache)
+    this.saveCache(cache);
   }
 
   // ==========================================================================
@@ -207,17 +207,17 @@ export class LocalPluginCache {
    */
   isCacheExpired(): boolean {
     if (!this.cache) {
-      this.cache = this.loadCache()
+      this.cache = this.loadCache();
     }
 
     if (!this.cache) {
-      return true
+      return true;
     }
 
-    const expiresAt = new Date(this.cache.expiresAt).getTime()
-    const now = Date.now()
+    const expiresAt = new Date(this.cache.expiresAt).getTime();
+    const now = Date.now();
 
-    return now >= expiresAt
+    return now >= expiresAt;
   }
 
   /**
@@ -227,24 +227,24 @@ export class LocalPluginCache {
     try {
       // Remove metadata file
       if (existsSync(this.cacheFile)) {
-        unlinkSync(this.cacheFile)
+        unlinkSync(this.cacheFile);
       }
 
       // Remove all cached content files
       if (existsSync(this.contentDir)) {
-        const files = readdirSync(this.contentDir)
+        const files = readdirSync(this.contentDir);
         for (const file of files) {
-          const filePath = join(this.contentDir, file)
+          const filePath = join(this.contentDir, file);
           if (existsSync(filePath)) {
-            unlinkSync(filePath)
+            unlinkSync(filePath);
           }
         }
       }
 
-      this.cache = null
+      this.cache = null;
     }
     catch (error) {
-      throw new Error(`Failed to clear cache: ${error instanceof Error ? error.message : String(error)}`)
+      throw new Error(`Failed to clear cache: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
@@ -261,25 +261,25 @@ export class LocalPluginCache {
    */
   cachePluginContent(pluginId: string, content: string): string {
     try {
-      this.ensureCacheDir()
+      this.ensureCacheDir();
 
       // Validate content size
-      const contentSize = Buffer.byteLength(content, 'utf-8')
+      const contentSize = Buffer.byteLength(content, 'utf-8');
       if (contentSize > CACHE_CONFIG.MAX_CONTENT_SIZE) {
-        throw new Error(`Content size (${contentSize} bytes) exceeds maximum (${CACHE_CONFIG.MAX_CONTENT_SIZE} bytes)`)
+        throw new Error(`Content size (${contentSize} bytes) exceeds maximum (${CACHE_CONFIG.MAX_CONTENT_SIZE} bytes)`);
       }
 
       // Sanitize plugin ID for filename
-      const safeId = this.sanitizeFilename(pluginId)
-      const contentPath = join(this.contentDir, `${safeId}.txt`)
+      const safeId = this.sanitizeFilename(pluginId);
+      const contentPath = join(this.contentDir, `${safeId}.txt`);
 
       // Atomic write using shared utility
-      writeFileAtomic(contentPath, content, 'utf-8')
+      writeFileAtomic(contentPath, content, 'utf-8');
 
-      return contentPath
+      return contentPath;
     }
     catch (error) {
-      throw new Error(`Failed to cache plugin content: ${error instanceof Error ? error.message : String(error)}`)
+      throw new Error(`Failed to cache plugin content: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
@@ -291,18 +291,18 @@ export class LocalPluginCache {
    */
   getPluginContent(pluginId: string): string | null {
     try {
-      const safeId = this.sanitizeFilename(pluginId)
-      const contentPath = join(this.contentDir, `${safeId}.txt`)
+      const safeId = this.sanitizeFilename(pluginId);
+      const contentPath = join(this.contentDir, `${safeId}.txt`);
 
       if (!existsSync(contentPath)) {
-        return null
+        return null;
       }
 
-      return readFileSync(contentPath, 'utf-8')
+      return readFileSync(contentPath, 'utf-8');
     }
     catch (error) {
-      console.error(`[LocalPluginCache] Failed to read plugin content: ${error}`)
-      return null
+      console.error(`[LocalPluginCache] Failed to read plugin content: ${error}`);
+      return null;
     }
   }
 
@@ -314,19 +314,19 @@ export class LocalPluginCache {
    */
   removePluginContent(pluginId: string): boolean {
     try {
-      const safeId = this.sanitizeFilename(pluginId)
-      const contentPath = join(this.contentDir, `${safeId}.txt`)
+      const safeId = this.sanitizeFilename(pluginId);
+      const contentPath = join(this.contentDir, `${safeId}.txt`);
 
       if (existsSync(contentPath)) {
-        unlinkSync(contentPath)
-        return true
+        unlinkSync(contentPath);
+        return true;
       }
 
-      return false
+      return false;
     }
     catch (error) {
-      console.error(`[LocalPluginCache] Failed to remove plugin content: ${error}`)
-      return false
+      console.error(`[LocalPluginCache] Failed to remove plugin content: ${error}`);
+      return false;
     }
   }
 
@@ -341,38 +341,38 @@ export class LocalPluginCache {
    */
   getCacheStats(): CacheStats {
     if (!this.cache) {
-      this.cache = this.loadCache()
+      this.cache = this.loadCache();
     }
 
-    const totalPlugins = this.cache?.totalPlugins || 0
-    const lastUpdated = this.cache?.lastUpdated || null
-    const expiresAt = this.cache?.expiresAt || null
-    const isExpired = this.isCacheExpired()
+    const totalPlugins = this.cache?.totalPlugins || 0;
+    const lastUpdated = this.cache?.lastUpdated || null;
+    const expiresAt = this.cache?.expiresAt || null;
+    const isExpired = this.isCacheExpired();
 
     // Calculate cache size
-    let cacheSize = 0
-    let cachedContents = 0
+    let cacheSize = 0;
+    let cachedContents = 0;
 
     try {
       // Add metadata file size
       if (existsSync(this.cacheFile)) {
-        cacheSize += statSync(this.cacheFile).size
+        cacheSize += statSync(this.cacheFile).size;
       }
 
       // Add content files size
       if (existsSync(this.contentDir)) {
-        const files = readdirSync(this.contentDir)
+        const files = readdirSync(this.contentDir);
         for (const file of files) {
-          const filePath = join(this.contentDir, file)
+          const filePath = join(this.contentDir, file);
           if (existsSync(filePath)) {
-            cacheSize += statSync(filePath).size
-            cachedContents++
+            cacheSize += statSync(filePath).size;
+            cachedContents++;
           }
         }
       }
     }
     catch (error) {
-      console.error('[LocalPluginCache] Failed to calculate cache size:', error)
+      console.error('[LocalPluginCache] Failed to calculate cache size:', error);
     }
 
     return {
@@ -382,7 +382,7 @@ export class LocalPluginCache {
       expiresAt,
       isExpired,
       cachedContents,
-    }
+    };
   }
 
   // ==========================================================================
@@ -405,7 +405,7 @@ export class LocalPluginCache {
       && typeof cache.expiresAt === 'string'
       && typeof cache.lastUpdated === 'string'
       && typeof cache.totalPlugins === 'number'
-    )
+    );
   }
 
   /**
@@ -419,7 +419,7 @@ export class LocalPluginCache {
     return filename
       .replace(/[/\\]/g, '_')
       .replace(/[^\w.-]/g, '_')
-      .substring(0, 255) // Limit filename length
+      .substring(0, 255); // Limit filename length
   }
 }
 
@@ -430,13 +430,13 @@ export class LocalPluginCache {
 /**
  * Get the default cache instance
  */
-let defaultCacheInstance: LocalPluginCache | null = null
+let defaultCacheInstance: LocalPluginCache | null = null;
 
 export function getDefaultCache(): LocalPluginCache {
   if (!defaultCacheInstance) {
-    defaultCacheInstance = new LocalPluginCache()
+    defaultCacheInstance = new LocalPluginCache();
   }
-  return defaultCacheInstance
+  return defaultCacheInstance;
 }
 
 /**
@@ -445,8 +445,8 @@ export function getDefaultCache(): LocalPluginCache {
  * @returns Array of cached plugins
  */
 export function loadCachedPlugins(): CloudPlugin[] {
-  const cache = getDefaultCache()
-  return cache.getCachedPlugins()
+  const cache = getDefaultCache();
+  return cache.getCachedPlugins();
 }
 
 /**
@@ -455,8 +455,8 @@ export function loadCachedPlugins(): CloudPlugin[] {
  * @param plugins - New plugin list
  */
 export function updatePluginCache(plugins: CloudPlugin[]): void {
-  const cache = getDefaultCache()
-  cache.updateCache(plugins)
+  const cache = getDefaultCache();
+  cache.updateCache(plugins);
 }
 
 /**
@@ -465,16 +465,16 @@ export function updatePluginCache(plugins: CloudPlugin[]): void {
  * @returns True if cache is expired
  */
 export function isCacheExpired(): boolean {
-  const cache = getDefaultCache()
-  return cache.isCacheExpired()
+  const cache = getDefaultCache();
+  return cache.isCacheExpired();
 }
 
 /**
  * Clear plugin cache
  */
 export function clearPluginCache(): void {
-  const cache = getDefaultCache()
-  cache.clearCache()
+  const cache = getDefaultCache();
+  cache.clearCache();
 }
 
 /**
@@ -483,6 +483,6 @@ export function clearPluginCache(): void {
  * @returns Cache statistics
  */
 export function getCacheStats(): CacheStats {
-  const cache = getDefaultCache()
-  return cache.getCacheStats()
+  const cache = getDefaultCache();
+  return cache.getCacheStats();
 }

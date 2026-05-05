@@ -7,9 +7,9 @@
  * @module cloud-client/gateway
  */
 
-import type { CloudApiResponse } from '../services/cloud/api-client'
-import { CLOUD_ENDPOINTS } from '../constants'
-import { CloudApiClient } from '../services/cloud/api-client'
+import type { CloudApiResponse } from '../services/cloud/api-client';
+import { CLOUD_ENDPOINTS } from '../constants';
+import { CloudApiClient } from '../services/cloud/api-client';
 
 // ============================================================================
 // Types
@@ -33,7 +33,7 @@ export type ApiRoute
     | 'skills.download'
     | 'notifications.bind'
     | 'notifications.send'
-    | 'notifications.poll'
+    | 'notifications.poll';
 
 /**
  * Route version mapping
@@ -41,21 +41,21 @@ export type ApiRoute
  * Maps semantic routes to actual API paths for different versions
  */
 interface RouteVersionMap {
-  v1: string
-  v8?: string // Optional v8 fallback
+  v1: string;
+  v8?: string; // Optional v8 fallback
 }
 
 /**
  * Gateway request options
  */
 export interface GatewayRequestOptions {
-  method: 'GET' | 'POST' | 'PUT' | 'DELETE'
-  body?: unknown
-  query?: Record<string, string | number | boolean>
-  authToken?: string
-  timeout?: number
+  method: 'GET' | 'POST' | 'PUT' | 'DELETE';
+  body?: unknown;
+  query?: Record<string, string | number | boolean>;
+  authToken?: string;
+  timeout?: number;
   /** Prefer specific API version (default: auto-negotiate) */
-  preferVersion?: 'v1' | 'v8'
+  preferVersion?: 'v1' | 'v8';
 }
 
 /**
@@ -63,11 +63,11 @@ export interface GatewayRequestOptions {
  */
 export interface GatewayConfig {
   /** Default timeout for requests */
-  timeout?: number
+  timeout?: number;
   /** Authentication token */
-  authToken?: string
+  authToken?: string;
   /** Enable automatic version fallback */
-  enableVersionFallback?: boolean
+  enableVersionFallback?: boolean;
 }
 
 // ============================================================================
@@ -135,7 +135,7 @@ const ROUTE_MAP: Record<ApiRoute, RouteVersionMap> = {
   'notifications.poll': {
     v1: '/api/v1/reply/poll',
   },
-}
+};
 
 // ============================================================================
 // CloudApiGateway Class
@@ -161,36 +161,36 @@ const ROUTE_MAP: Record<ApiRoute, RouteVersionMap> = {
  * ```
  */
 export class CloudApiGateway {
-  private mainClient: CloudApiClient
-  private pluginsClient: CloudApiClient
-  private remoteClient: CloudApiClient
-  private config: Required<GatewayConfig>
+  private mainClient: CloudApiClient;
+  private pluginsClient: CloudApiClient;
+  private remoteClient: CloudApiClient;
+  private config: Required<GatewayConfig>;
 
   constructor(config: GatewayConfig = {}) {
     this.config = {
       timeout: config.timeout || 30000,
       authToken: config.authToken || '',
       enableVersionFallback: config.enableVersionFallback ?? true,
-    }
+    };
 
     // Initialize clients for each endpoint
     this.mainClient = new CloudApiClient({
       baseUrl: CLOUD_ENDPOINTS.MAIN.BASE_URL,
       timeout: this.config.timeout,
       authToken: this.config.authToken,
-    })
+    });
 
     this.pluginsClient = new CloudApiClient({
       baseUrl: CLOUD_ENDPOINTS.PLUGINS.BASE_URL,
       timeout: this.config.timeout,
       authToken: this.config.authToken,
-    })
+    });
 
     this.remoteClient = new CloudApiClient({
       baseUrl: CLOUD_ENDPOINTS.REMOTE.BASE_URL,
       timeout: this.config.timeout,
       authToken: this.config.authToken,
-    })
+    });
   }
 
   /**
@@ -204,21 +204,21 @@ export class CloudApiGateway {
     route: ApiRoute,
     options: GatewayRequestOptions,
   ): Promise<CloudApiResponse<T>> {
-    const routeConfig = ROUTE_MAP[route]
+    const routeConfig = ROUTE_MAP[route];
     if (!routeConfig) {
       return {
         success: false,
         error: `Unknown route: ${route}`,
         code: 'INVALID_ROUTE',
-      }
+      };
     }
 
     // Determine which client to use based on route
-    const client = this.getClientForRoute(route)
+    const client = this.getClientForRoute(route);
 
     // Determine API version to use
-    const version = options.preferVersion || 'v1'
-    const path = this.resolvePath(routeConfig, version)
+    const version = options.preferVersion || 'v1';
+    const path = this.resolvePath(routeConfig, version);
 
     // Make request
     const response = await client.request<T>(path, {
@@ -227,7 +227,7 @@ export class CloudApiGateway {
       query: options.query,
       authToken: options.authToken || this.config.authToken,
       timeout: options.timeout || this.config.timeout,
-    })
+    });
 
     // If v1 fails and v8 fallback is available, try v8
     if (
@@ -236,34 +236,34 @@ export class CloudApiGateway {
       && routeConfig.v8
       && this.config.enableVersionFallback
     ) {
-      const v8Path = routeConfig.v8
+      const v8Path = routeConfig.v8;
       return client.request<T>(v8Path, {
         method: options.method,
         body: options.body,
         query: options.query,
         authToken: options.authToken || this.config.authToken,
         timeout: options.timeout || this.config.timeout,
-      })
+      });
     }
 
-    return response
+    return response;
   }
 
   /**
    * Set authentication token for all clients
    */
   setAuthToken(token: string): void {
-    this.config.authToken = token
-    this.mainClient.setAuthToken(token)
-    this.pluginsClient.setAuthToken(token)
-    this.remoteClient.setAuthToken(token)
+    this.config.authToken = token;
+    this.mainClient.setAuthToken(token);
+    this.pluginsClient.setAuthToken(token);
+    this.remoteClient.setAuthToken(token);
   }
 
   /**
    * Get current configuration
    */
   getConfig(): GatewayConfig {
-    return { ...this.config }
+    return { ...this.config };
   }
 
   // ==========================================================================
@@ -275,22 +275,22 @@ export class CloudApiGateway {
    */
   private getClientForRoute(route: ApiRoute): CloudApiClient {
     if (route.startsWith('plugins.')) {
-      return this.pluginsClient
+      return this.pluginsClient;
     }
     if (route.startsWith('notifications.')) {
-      return this.remoteClient
+      return this.remoteClient;
     }
     if (route.startsWith('skills.')) {
-      return this.pluginsClient
+      return this.pluginsClient;
     }
-    return this.mainClient
+    return this.mainClient;
   }
 
   /**
    * Resolve path for specific version
    */
   private resolvePath(routeConfig: RouteVersionMap, version: 'v1' | 'v8'): string {
-    return version === 'v8' && routeConfig.v8 ? routeConfig.v8 : routeConfig.v1
+    return version === 'v8' && routeConfig.v8 ? routeConfig.v8 : routeConfig.v1;
   }
 }
 
@@ -305,7 +305,7 @@ export class CloudApiGateway {
  * @returns CloudApiGateway instance
  */
 export function createGateway(config?: GatewayConfig): CloudApiGateway {
-  return new CloudApiGateway(config)
+  return new CloudApiGateway(config);
 }
 
 /**
@@ -315,5 +315,5 @@ export function createDefaultGateway(): CloudApiGateway {
   return new CloudApiGateway({
     timeout: 30000,
     enableVersionFallback: true,
-  })
+  });
 }

@@ -1,21 +1,21 @@
-import type { CodeToolType, SupportedLang } from '../constants'
-import type { UninstallItem } from '../utils/uninstaller'
-import ansis from 'ansis'
-import inquirer from 'inquirer'
-import { DEFAULT_CODE_TOOL_TYPE, isCodeToolType } from '../constants'
-import { ensureI18nInitialized, i18n, resolveSupportedLanguage } from '../i18n'
-import { readZcfConfig } from '../utils/ccjk-config'
-import { resolveCodeType } from '../utils/code-type-resolver'
-import { handleExitPromptError, handleGeneralError } from '../utils/error-handler'
-import { addNumbersToChoices } from '../utils/prompt-helpers'
-import { promptBoolean } from '../utils/toggle-prompt'
-import { ZcfUninstaller } from '../utils/uninstaller'
+import type { CodeToolType, SupportedLang } from '../constants';
+import type { UninstallItem } from '../utils/uninstaller';
+import ansis from 'ansis';
+import inquirer from 'inquirer';
+import { DEFAULT_CODE_TOOL_TYPE, isCodeToolType } from '../constants';
+import { ensureI18nInitialized, i18n, resolveSupportedLanguage } from '../i18n';
+import { readZcfConfig } from '../utils/ccjk-config';
+import { resolveCodeType } from '../utils/code-type-resolver';
+import { handleExitPromptError, handleGeneralError } from '../utils/error-handler';
+import { addNumbersToChoices } from '../utils/prompt-helpers';
+import { promptBoolean } from '../utils/toggle-prompt';
+import { ZcfUninstaller } from '../utils/uninstaller';
 
 export interface UninstallOptions {
-  lang?: SupportedLang
-  codeType?: CodeToolType | string
-  mode?: 'complete' | 'custom' | 'interactive'
-  items?: UninstallItem[] | string // Can be array or comma-separated string from CLI
+  lang?: SupportedLang;
+  codeType?: CodeToolType | string;
+  mode?: 'complete' | 'custom' | 'interactive';
+  items?: UninstallItem[] | string; // Can be array or comma-separated string from CLI
 }
 
 /**
@@ -25,74 +25,74 @@ export interface UninstallOptions {
 export async function uninstall(options: UninstallOptions = {}): Promise<void> {
   try {
     // Initialize i18n system
-    ensureI18nInitialized()
+    ensureI18nInitialized();
 
     // Determine code tool type (from option or config)
-    let codeType: CodeToolType
+    let codeType: CodeToolType;
     if (options.codeType) {
       try {
-        codeType = await resolveCodeType(options.codeType)
+        codeType = await resolveCodeType(options.codeType);
       }
       catch (error) {
-        const errorMessage = error instanceof Error ? error.message : String(error)
-        console.error(ansis.red(`${i18n.t('errors:generalError')} ${errorMessage}`))
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        console.error(ansis.red(`${i18n.t('errors:generalError')} ${errorMessage}`));
         // Fallback to config
-        const config = readZcfConfig()
+        const config = readZcfConfig();
         codeType = config?.codeToolType && isCodeToolType(config.codeToolType)
           ? config.codeToolType
-          : DEFAULT_CODE_TOOL_TYPE
+          : DEFAULT_CODE_TOOL_TYPE;
       }
     }
     else {
       // Read from config
-      const config = readZcfConfig()
+      const config = readZcfConfig();
       codeType = config?.codeToolType && isCodeToolType(config.codeToolType)
         ? config.codeToolType
-        : DEFAULT_CODE_TOOL_TYPE
+        : DEFAULT_CODE_TOOL_TYPE;
     }
 
-    const lang = resolveSupportedLanguage(options.lang)
+    const lang = resolveSupportedLanguage(options.lang);
     if (lang !== i18n.language) {
-      await i18n.changeLanguage(lang)
+      await i18n.changeLanguage(lang);
     }
 
     // Initialize uninstaller
-    const uninstaller = new ZcfUninstaller(lang)
+    const uninstaller = new ZcfUninstaller(lang);
 
     // For Codex, use Codex-specific uninstaller
     if (codeType === 'codex') {
-      const { runCodexUninstall } = await import('../utils/code-tools/codex')
-      await runCodexUninstall()
-      return
+      const { runCodexUninstall } = await import('../utils/code-tools/codex');
+      await runCodexUninstall();
+      return;
     }
 
     // For Claude Code, continue with existing logic
     // Handle non-interactive mode
     if (options.mode && options.mode !== 'interactive') {
       if (options.mode === 'complete') {
-        await executeCompleteUninstall(uninstaller)
-        return
+        await executeCompleteUninstall(uninstaller);
+        return;
       }
       else if (options.mode === 'custom' && options.items) {
         // Handle CLI items (can be string or array)
-        let items: UninstallItem[]
+        let items: UninstallItem[];
         if (typeof options.items === 'string') {
-          items = options.items.split(',').map(item => item.trim() as UninstallItem)
+          items = options.items.split(',').map(item => item.trim() as UninstallItem);
         }
         else {
-          items = options.items
+          items = options.items;
         }
-        await executeCustomUninstall(uninstaller, items)
-        return
+        await executeCustomUninstall(uninstaller, items);
+        return;
       }
     }
 
     // Interactive mode - show main choice menu
-    await showInteractiveUninstall(uninstaller)
+    await showInteractiveUninstall(uninstaller);
   }
   catch (error) {
     if (!handleExitPromptError(error)) {
-      handleGeneralError(error)
+      handleGeneralError(error);
     }
   }
 }
@@ -101,8 +101,8 @@ export async function uninstall(options: UninstallOptions = {}): Promise<void> {
  * Show interactive uninstall menu
  */
 async function showInteractiveUninstall(uninstaller: ZcfUninstaller): Promise<void> {
-  console.log(ansis.green.bold(i18n.t('uninstall:title')))
-  console.log('')
+  console.log(ansis.green.bold(i18n.t('uninstall:title')));
+  console.log('');
 
   // Main choice: complete vs custom
   const { mainChoice } = await inquirer.prompt<{ mainChoice: 'complete' | 'custom' }>({
@@ -121,18 +121,18 @@ async function showInteractiveUninstall(uninstaller: ZcfUninstaller): Promise<vo
         short: i18n.t('uninstall:customUninstall'),
       },
     ]),
-  })
+  });
 
   if (!mainChoice) {
-    console.log(ansis.yellow(i18n.t('common:cancelled')))
-    return
+    console.log(ansis.yellow(i18n.t('common:cancelled')));
+    return;
   }
 
   if (mainChoice === 'complete') {
-    await executeCompleteUninstall(uninstaller)
+    await executeCompleteUninstall(uninstaller);
   }
   else {
-    await showCustomUninstallMenu(uninstaller)
+    await showCustomUninstallMenu(uninstaller);
   }
 }
 
@@ -140,8 +140,8 @@ async function showInteractiveUninstall(uninstaller: ZcfUninstaller): Promise<vo
  * Show custom uninstall menu with multi-select options
  */
 async function showCustomUninstallMenu(uninstaller: ZcfUninstaller): Promise<void> {
-  console.log('')
-  console.log(ansis.green(i18n.t('uninstall:selectCustomItems')))
+  console.log('');
+  console.log(ansis.green(i18n.t('uninstall:selectCustomItems')));
 
   const { customItems } = await inquirer.prompt<{ customItems: UninstallItem[] }>({
     type: 'checkbox',
@@ -195,144 +195,144 @@ async function showCustomUninstallMenu(uninstaller: ZcfUninstaller): Promise<voi
     ],
     validate: (answers: readonly unknown[]) => {
       if (answers.length === 0) {
-        return i18n.t('uninstall:selectAtLeastOne')
+        return i18n.t('uninstall:selectAtLeastOne');
       }
-      return true
+      return true;
     },
-  })
+  });
 
   if (!customItems || customItems.length === 0) {
-    console.log(ansis.yellow(i18n.t('common:cancelled')))
-    return
+    console.log(ansis.yellow(i18n.t('common:cancelled')));
+    return;
   }
 
-  await executeCustomUninstall(uninstaller, customItems)
+  await executeCustomUninstall(uninstaller, customItems);
 }
 
 /**
  * Execute complete uninstall
  */
 async function executeCompleteUninstall(uninstaller: ZcfUninstaller): Promise<void> {
-  console.log('')
-  console.log(ansis.red.bold(i18n.t('uninstall:executingComplete')))
-  console.log(ansis.yellow(i18n.t('uninstall:completeWarning')))
+  console.log('');
+  console.log(ansis.red.bold(i18n.t('uninstall:executingComplete')));
+  console.log(ansis.yellow(i18n.t('uninstall:completeWarning')));
 
   // Final confirmation
   const confirm = await promptBoolean({
     message: i18n.t('uninstall:confirmComplete'),
     defaultValue: false,
-  })
+  });
 
   if (!confirm) {
-    console.log(ansis.yellow(i18n.t('common:cancelled')))
-    return
+    console.log(ansis.yellow(i18n.t('common:cancelled')));
+    return;
   }
 
-  console.log('')
-  console.log(ansis.green(i18n.t('uninstall:processingComplete')))
+  console.log('');
+  console.log(ansis.green(i18n.t('uninstall:processingComplete')));
 
-  const result = await uninstaller.completeUninstall()
-  displayUninstallResult('complete', [result])
+  const result = await uninstaller.completeUninstall();
+  displayUninstallResult('complete', [result]);
 }
 
 /**
  * Execute custom uninstall
  */
 async function executeCustomUninstall(uninstaller: ZcfUninstaller, items: UninstallItem[]): Promise<void> {
-  console.log('')
-  console.log(ansis.green(i18n.t('uninstall:executingCustom')))
+  console.log('');
+  console.log(ansis.green(i18n.t('uninstall:executingCustom')));
 
   // Show selected items
-  console.log(ansis.gray(i18n.t('uninstall:selectedItems')))
+  console.log(ansis.gray(i18n.t('uninstall:selectedItems')));
   items.forEach((item) => {
-    console.log(`  • ${i18n.t(`uninstall:${item}`)}`)
-  })
+    console.log(`  • ${i18n.t(`uninstall:${item}`)}`);
+  });
 
   // Final confirmation
   const confirm = await promptBoolean({
     message: i18n.t('uninstall:confirmCustom'),
     defaultValue: false,
-  })
+  });
 
   if (!confirm) {
-    console.log(ansis.yellow(i18n.t('common:cancelled')))
-    return
+    console.log(ansis.yellow(i18n.t('common:cancelled')));
+    return;
   }
 
-  console.log('')
-  console.log(ansis.green(i18n.t('uninstall:processingCustom')))
+  console.log('');
+  console.log(ansis.green(i18n.t('uninstall:processingCustom')));
 
-  const results = await uninstaller.customUninstall(items)
-  displayUninstallResult('custom', results)
+  const results = await uninstaller.customUninstall(items);
+  displayUninstallResult('custom', results);
 }
 
 /**
  * Display uninstall results with proper formatting
  */
 function displayUninstallResult(mode: 'complete' | 'custom', results: any[]): void {
-  console.log('')
-  console.log(ansis.green('─'.repeat(50)))
+  console.log('');
+  console.log(ansis.green('─'.repeat(50)));
 
-  let totalSuccess = 0
-  let totalErrors = 0
-  let totalWarnings = 0
+  let totalSuccess = 0;
+  let totalErrors = 0;
+  let totalWarnings = 0;
 
   results.forEach((result) => {
     if (result.success) {
-      totalSuccess++
+      totalSuccess++;
     }
 
     // Display moved to trash items
     if (result.removed && result.removed.length > 0) {
-      console.log(ansis.green(`🗑️ ${i18n.t('uninstall:movedToTrash')}:`))
+      console.log(ansis.green(`🗑️ ${i18n.t('uninstall:movedToTrash')}:`));
       result.removed.forEach((item: string) => {
-        console.log(ansis.gray(`  • ${item}`))
-      })
+        console.log(ansis.gray(`  • ${item}`));
+      });
     }
 
     // Display removed config items
     if (result.removedConfigs && result.removedConfigs.length > 0) {
-      console.log(ansis.green(`✔ ${i18n.t('uninstall:removedConfigs')}:`))
+      console.log(ansis.green(`✔ ${i18n.t('uninstall:removedConfigs')}:`));
       result.removedConfigs.forEach((item: string) => {
-        console.log(ansis.gray(`  • ${item}`))
-      })
+        console.log(ansis.gray(`  • ${item}`));
+      });
     }
 
     // Display errors
     if (result.errors && result.errors.length > 0) {
-      totalErrors += result.errors.length
-      console.log(ansis.red(`✖ ${i18n.t('uninstall:errors')}:`))
+      totalErrors += result.errors.length;
+      console.log(ansis.red(`✖ ${i18n.t('uninstall:errors')}:`));
       result.errors.forEach((error: string) => {
-        console.log(ansis.red(`  • ${error}`))
-      })
+        console.log(ansis.red(`  • ${error}`));
+      });
     }
 
     // Display warnings
     if (result.warnings && result.warnings.length > 0) {
-      totalWarnings += result.warnings.length
-      console.log(ansis.yellow(`⚠ ${i18n.t('uninstall:warnings')}:`))
+      totalWarnings += result.warnings.length;
+      console.log(ansis.yellow(`⚠ ${i18n.t('uninstall:warnings')}:`));
       result.warnings.forEach((warning: string) => {
-        console.log(ansis.yellow(`  • ${warning}`))
-      })
+        console.log(ansis.yellow(`  • ${warning}`));
+      });
     }
-  })
+  });
 
   // Calculate counts for summary
   const totalRemovedFiles = results.reduce((count, result) =>
-    count + (result.removed?.length || 0), 0)
+    count + (result.removed?.length || 0), 0);
   const totalRemovedConfigs = results.reduce((count, result) =>
-    count + (result.removedConfigs?.length || 0), 0)
+    count + (result.removedConfigs?.length || 0), 0);
 
   // Summary
-  console.log('')
-  console.log(ansis.green('─'.repeat(50)))
+  console.log('');
+  console.log(ansis.green('─'.repeat(50)));
 
   if (mode === 'complete') {
     if (totalErrors === 0) {
-      console.log(ansis.green.bold(`✔ ${i18n.t('uninstall:completeSuccess')}`))
+      console.log(ansis.green.bold(`✔ ${i18n.t('uninstall:completeSuccess')}`));
     }
     else {
-      console.log(ansis.yellow.bold(`⚠ ${i18n.t('uninstall:completePartialSuccess')}`))
+      console.log(ansis.yellow.bold(`⚠ ${i18n.t('uninstall:completePartialSuccess')}`));
     }
   }
   else {
@@ -341,30 +341,30 @@ function displayUninstallResult(mode: 'complete' | 'custom', results: any[]): vo
       console.log(ansis.green.bold(`✔ ${i18n.t('uninstall:customSuccessBoth', {
         fileCount: totalRemovedFiles,
         configCount: totalRemovedConfigs,
-      })}`))
+      })}`));
     }
     else if (totalRemovedFiles > 0) {
       console.log(ansis.green.bold(`✔ ${i18n.t('uninstall:customSuccessFiles', {
         count: totalRemovedFiles,
-      })}`))
+      })}`));
     }
     else if (totalRemovedConfigs > 0) {
       console.log(ansis.green.bold(`✔ ${i18n.t('uninstall:customSuccessConfigs', {
         count: totalRemovedConfigs,
-      })}`))
+      })}`));
     }
     else {
-      console.log(ansis.green.bold(`✔ ${i18n.t('uninstall:customSuccess', { count: totalSuccess })}`))
+      console.log(ansis.green.bold(`✔ ${i18n.t('uninstall:customSuccess', { count: totalSuccess })}`));
     }
 
     if (totalErrors > 0) {
-      console.log(ansis.red(`✖ ${i18n.t('uninstall:errorsCount', { count: totalErrors })}`))
+      console.log(ansis.red(`✖ ${i18n.t('uninstall:errorsCount', { count: totalErrors })}`));
     }
 
     if (totalWarnings > 0) {
-      console.log(ansis.yellow(`⚠ ${i18n.t('uninstall:warningsCount', { count: totalWarnings })}`))
+      console.log(ansis.yellow(`⚠ ${i18n.t('uninstall:warningsCount', { count: totalWarnings })}`));
     }
   }
 
-  console.log('')
+  console.log('');
 }

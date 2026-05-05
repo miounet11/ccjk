@@ -5,7 +5,7 @@
  * and actionable recommendations.
  */
 
-import type { MetricsCollector } from './metrics-collector'
+import type { MetricsCollector } from './metrics-collector';
 import type {
   AgentStats,
   AnomalyDetection,
@@ -18,8 +18,8 @@ import type {
   ReportConfig,
   ReportTimeRange,
   TrendAnalysis,
-} from './types'
-import { getMetricsCollector } from './metrics-collector'
+} from './types';
+import { getMetricsCollector } from './metrics-collector';
 
 // ============================================================================
 // Default Configuration
@@ -35,7 +35,7 @@ const DEFAULT_REPORT_CONFIG: ReportConfig = {
   includeAgents: true,
   includeTrends: true,
   includeAnomalies: true,
-}
+};
 
 // ============================================================================
 // Time Range Utilities
@@ -44,26 +44,26 @@ const DEFAULT_REPORT_CONFIG: ReportConfig = {
 /**
  * Get time range boundaries
  */
-function getTimeRangeBoundaries(range: ReportTimeRange, custom?: { start?: number, end?: number }): { start: number, end: number } {
-  const now = Date.now()
-  const end = custom?.end || now
+function getTimeRangeBoundaries(range: ReportTimeRange, custom?: { start?: number; end?: number }): { start: number; end: number } {
+  const now = Date.now();
+  const end = custom?.end || now;
 
   switch (range) {
     case 'hourly':
-      return { start: end - 60 * 60 * 1000, end }
+      return { start: end - 60 * 60 * 1000, end };
     case 'daily':
-      return { start: end - 24 * 60 * 60 * 1000, end }
+      return { start: end - 24 * 60 * 60 * 1000, end };
     case 'weekly':
-      return { start: end - 7 * 24 * 60 * 60 * 1000, end }
+      return { start: end - 7 * 24 * 60 * 60 * 1000, end };
     case 'monthly':
-      return { start: end - 30 * 24 * 60 * 60 * 1000, end }
+      return { start: end - 30 * 24 * 60 * 60 * 1000, end };
     case 'custom':
       return {
         start: custom?.start || end - 24 * 60 * 60 * 1000,
         end,
-      }
+      };
     default:
-      return { start: end - 24 * 60 * 60 * 1000, end }
+      return { start: end - 24 * 60 * 60 * 1000, end };
   }
 }
 
@@ -72,12 +72,12 @@ function getTimeRangeBoundaries(range: ReportTimeRange, custom?: { start?: numbe
  */
 function _formatTimeRange(range: ReportTimeRange): string {
   switch (range) {
-    case 'hourly': return 'Last Hour'
-    case 'daily': return 'Last 24 Hours'
-    case 'weekly': return 'Last 7 Days'
-    case 'monthly': return 'Last 30 Days'
-    case 'custom': return 'Custom Range'
-    default: return 'Unknown'
+    case 'hourly': return 'Last Hour';
+    case 'daily': return 'Last 24 Hours';
+    case 'weekly': return 'Last 7 Days';
+    case 'monthly': return 'Last 30 Days';
+    case 'custom': return 'Custom Range';
+    default: return 'Unknown';
   }
 }
 
@@ -98,39 +98,39 @@ function analyzeTrend(
       direction: 'stable',
       changePercent: 0,
       significance: 'low',
-    }
+    };
   }
 
   // Split into two halves and compare averages
-  const midpoint = Math.floor(values.length / 2)
-  const firstHalf = values.slice(0, midpoint)
-  const secondHalf = values.slice(midpoint)
+  const midpoint = Math.floor(values.length / 2);
+  const firstHalf = values.slice(0, midpoint);
+  const secondHalf = values.slice(midpoint);
 
-  const firstAvg = firstHalf.reduce((a, b) => a + b, 0) / firstHalf.length
-  const secondAvg = secondHalf.reduce((a, b) => a + b, 0) / secondHalf.length
+  const firstAvg = firstHalf.reduce((a, b) => a + b, 0) / firstHalf.length;
+  const secondAvg = secondHalf.reduce((a, b) => a + b, 0) / secondHalf.length;
 
   const changePercent = firstAvg !== 0
     ? ((secondAvg - firstAvg) / firstAvg) * 100
-    : secondAvg > 0 ? 100 : 0
+    : secondAvg > 0 ? 100 : 0;
 
   // Determine direction
-  let direction: 'up' | 'down' | 'stable' = 'stable'
+  let direction: 'up' | 'down' | 'stable' = 'stable';
   if (changePercent > 5)
-    direction = 'up'
+    direction = 'up';
   else if (changePercent < -5)
-    direction = 'down'
+    direction = 'down';
 
   // Determine significance
-  let significance: 'low' | 'medium' | 'high' = 'low'
-  const absChange = Math.abs(changePercent)
+  let significance: 'low' | 'medium' | 'high' = 'low';
+  const absChange = Math.abs(changePercent);
   if (absChange > 50)
-    significance = 'high'
+    significance = 'high';
   else if (absChange > 20)
-    significance = 'medium'
+    significance = 'medium';
 
   // Simple linear prediction
-  const slope = (secondAvg - firstAvg) / midpoint
-  const prediction = secondAvg + slope * midpoint
+  const slope = (secondAvg - firstAvg) / midpoint;
+  const prediction = secondAvg + slope * midpoint;
 
   return {
     metric: metricName,
@@ -138,7 +138,7 @@ function analyzeTrend(
     changePercent,
     significance,
     prediction: prediction > 0 ? prediction : undefined,
-  }
+  };
 }
 
 // ============================================================================
@@ -149,34 +149,34 @@ function analyzeTrend(
  * Detect anomalies using statistical methods
  */
 function _detectAnomalies(
-  values: { timestamp: number, value: number }[],
+  values: { timestamp: number; value: number }[],
   metricName: string,
 ): AnomalyDetection[] {
   if (values.length < 10)
-    return []
+    return [];
 
-  const anomalies: AnomalyDetection[] = []
-  const numericValues = values.map(v => v.value)
+  const anomalies: AnomalyDetection[] = [];
+  const numericValues = values.map(v => v.value);
 
   // Calculate mean and standard deviation
-  const mean = numericValues.reduce((a, b) => a + b, 0) / numericValues.length
-  const squaredDiffs = numericValues.map(v => (v - mean) ** 2)
-  const variance = squaredDiffs.reduce((a, b) => a + b, 0) / numericValues.length
-  const stdDev = Math.sqrt(variance)
+  const mean = numericValues.reduce((a, b) => a + b, 0) / numericValues.length;
+  const squaredDiffs = numericValues.map(v => (v - mean) ** 2);
+  const variance = squaredDiffs.reduce((a, b) => a + b, 0) / numericValues.length;
+  const stdDev = Math.sqrt(variance);
 
   // Detect values outside 2 standard deviations
   for (const point of values) {
-    const deviation = Math.abs(point.value - mean)
-    const zScore = stdDev > 0 ? deviation / stdDev : 0
+    const deviation = Math.abs(point.value - mean);
+    const zScore = stdDev > 0 ? deviation / stdDev : 0;
 
     if (zScore > 2) {
-      let severity: 'low' | 'medium' | 'high' | 'critical' = 'low'
+      let severity: 'low' | 'medium' | 'high' | 'critical' = 'low';
       if (zScore > 4)
-        severity = 'critical'
+        severity = 'critical';
       else if (zScore > 3)
-        severity = 'high'
+        severity = 'high';
       else if (zScore > 2.5)
-        severity = 'medium'
+        severity = 'medium';
 
       anomalies.push({
         metric: metricName,
@@ -186,11 +186,11 @@ function _detectAnomalies(
         deviation: zScore,
         severity,
         description: `${metricName} value ${point.value.toFixed(2)} is ${zScore.toFixed(1)} standard deviations from mean (${mean.toFixed(2)})`,
-      })
+      });
     }
   }
 
-  return anomalies
+  return anomalies;
 }
 
 // ============================================================================
@@ -208,91 +208,91 @@ function generateRecommendations(
   memory: MemoryStats,
   agents: AgentStats[],
 ): string[] {
-  const recommendations: string[] = []
+  const recommendations: string[] = [];
 
   // Command recommendations
-  const slowCommands = commands.filter(c => c.avgDuration > 5000)
+  const slowCommands = commands.filter(c => c.avgDuration > 5000);
   if (slowCommands.length > 0) {
     recommendations.push(
       `Consider optimizing slow commands: ${slowCommands.map(c => c.command).join(', ')} (avg > 5s)`,
-    )
+    );
   }
 
-  const failingCommands = commands.filter(c => c.failureCount / c.totalExecutions > 0.1)
+  const failingCommands = commands.filter(c => c.failureCount / c.totalExecutions > 0.1);
   if (failingCommands.length > 0) {
     recommendations.push(
       `Investigate high failure rate commands: ${failingCommands.map(c => c.command).join(', ')} (>10% failure)`,
-    )
+    );
   }
 
   // API recommendations
-  const slowApis = api.filter(a => a.avgLatency > 3000)
+  const slowApis = api.filter(a => a.avgLatency > 3000);
   if (slowApis.length > 0) {
     recommendations.push(
       `API latency is high for: ${slowApis.map(a => a.provider).join(', ')} (avg > 3s). Consider caching or optimization.`,
-    )
+    );
   }
 
-  const highErrorApis = api.filter(a => a.errorRate > 0.05)
+  const highErrorApis = api.filter(a => a.errorRate > 0.05);
   if (highErrorApis.length > 0) {
     recommendations.push(
       `High API error rate for: ${highErrorApis.map(a => a.provider).join(', ')} (>5%). Check API health and credentials.`,
-    )
+    );
   }
 
   // Cache recommendations
   if (cache.hitRate < 0.5 && cache.totalOperations > 100) {
     recommendations.push(
       `Cache hit rate is low (${(cache.hitRate * 100).toFixed(1)}%). Consider reviewing cache strategy and TTL settings.`,
-    )
+    );
   }
 
   if (cache.evictions > cache.totalOperations * 0.2) {
     recommendations.push(
       `High cache eviction rate. Consider increasing cache size or adjusting eviction policy.`,
-    )
+    );
   }
 
   // Error recommendations
   if (errors.errorsBySeverity.critical > 0) {
     recommendations.push(
       `Critical errors detected (${errors.errorsBySeverity.critical}). Immediate investigation required.`,
-    )
+    );
   }
 
   if (errors.errorRate > 1) {
     recommendations.push(
       `Error rate is high (${errors.errorRate.toFixed(2)}/min). Review error logs and implement error handling.`,
-    )
+    );
   }
 
   // Memory recommendations
   if (memory.current.heapUsedPercent > 0.8) {
     recommendations.push(
       `Memory usage is high (${(memory.current.heapUsedPercent * 100).toFixed(1)}%). Consider memory optimization or increasing heap size.`,
-    )
+    );
   }
 
   if (memory.trend === 'increasing') {
     recommendations.push(
       `Memory usage is trending upward. Monitor for potential memory leaks.`,
-    )
+    );
   }
 
   // Agent recommendations
-  const lowSuccessAgents = agents.filter(a => a.successRate < 0.8)
+  const lowSuccessAgents = agents.filter(a => a.successRate < 0.8);
   if (lowSuccessAgents.length > 0) {
     recommendations.push(
       `Low success rate for agents: ${lowSuccessAgents.map(a => a.agentName).join(', ')} (<80%). Review agent configurations.`,
-    )
+    );
   }
 
   // General recommendations
   if (recommendations.length === 0) {
-    recommendations.push('System is performing well. No immediate optimizations needed.')
+    recommendations.push('System is performing well. No immediate optimizations needed.');
   }
 
-  return recommendations
+  return recommendations;
 }
 
 // ============================================================================
@@ -300,60 +300,60 @@ function generateRecommendations(
 // ============================================================================
 
 export class PerformanceReporter {
-  private collector: MetricsCollector
-  private config: ReportConfig
+  private collector: MetricsCollector;
+  private config: ReportConfig;
 
   constructor(config: Partial<ReportConfig> = {}, collector?: MetricsCollector) {
-    this.config = { ...DEFAULT_REPORT_CONFIG, ...config }
-    this.collector = collector || getMetricsCollector()
+    this.config = { ...DEFAULT_REPORT_CONFIG, ...config };
+    this.collector = collector || getMetricsCollector();
   }
 
   /**
    * Generate a performance report
    */
   generateReport(config?: Partial<ReportConfig>): PerformanceReport {
-    const reportConfig = { ...this.config, ...config }
+    const reportConfig = { ...this.config, ...config };
     const { start, end } = getTimeRangeBoundaries(
       reportConfig.timeRange,
       { start: reportConfig.startTime, end: reportConfig.endTime },
-    )
+    );
 
     // Collect metrics
-    const commands = reportConfig.includeCommands ? this.collector.getCommandStats() : []
-    const api = reportConfig.includeApi ? this.collector.getApiStats() : []
-    const cache = reportConfig.includeCache ? this.collector.getCacheStats() : { totalOperations: 0, hits: 0, misses: 0, hitRate: 0, avgLatency: 0, totalSize: 0, itemCount: 0, evictions: 0 }
-    const errors = reportConfig.includeErrors ? this.collector.getErrorStats() : { totalErrors: 0, errorsByType: {}, errorsBySeverity: { low: 0, medium: 0, high: 0, critical: 0 }, errorRate: 0, recentErrors: [] }
-    const memory = reportConfig.includeMemory ? this.collector.getMemoryStats() : this.getEmptyMemoryStats()
-    const agents = reportConfig.includeAgents ? this.collector.getAgentStats() : []
+    const commands = reportConfig.includeCommands ? this.collector.getCommandStats() : [];
+    const api = reportConfig.includeApi ? this.collector.getApiStats() : [];
+    const cache = reportConfig.includeCache ? this.collector.getCacheStats() : { totalOperations: 0, hits: 0, misses: 0, hitRate: 0, avgLatency: 0, totalSize: 0, itemCount: 0, evictions: 0 };
+    const errors = reportConfig.includeErrors ? this.collector.getErrorStats() : { totalErrors: 0, errorsByType: {}, errorsBySeverity: { low: 0, medium: 0, high: 0, critical: 0 }, errorRate: 0, recentErrors: [] };
+    const memory = reportConfig.includeMemory ? this.collector.getMemoryStats() : this.getEmptyMemoryStats();
+    const agents = reportConfig.includeAgents ? this.collector.getAgentStats() : [];
 
     // Calculate summary
-    const totalCommands = commands.reduce((sum, c) => sum + c.totalExecutions, 0)
+    const totalCommands = commands.reduce((sum, c) => sum + c.totalExecutions, 0);
     const avgCommandDuration = commands.length > 0
       ? commands.reduce((sum, c) => sum + c.avgDuration * c.totalExecutions, 0) / totalCommands
-      : 0
+      : 0;
 
-    const totalApiCalls = api.reduce((sum, a) => sum + a.totalCalls, 0)
+    const totalApiCalls = api.reduce((sum, a) => sum + a.totalCalls, 0);
     const avgApiLatency = api.length > 0
       ? api.reduce((sum, a) => sum + a.avgLatency * a.totalCalls, 0) / totalApiCalls
-      : 0
+      : 0;
 
     // Generate trends
-    const trends: TrendAnalysis[] = []
+    const trends: TrendAnalysis[] = [];
     if (reportConfig.includeTrends) {
       // Command duration trend
       if (commands.length > 0) {
-        const durations = commands.map(c => c.avgDuration)
-        trends.push(analyzeTrend(durations, 'command.avgDuration'))
+        const durations = commands.map(c => c.avgDuration);
+        trends.push(analyzeTrend(durations, 'command.avgDuration'));
       }
 
       // API latency trend
       if (api.length > 0) {
-        const latencies = api.map(a => a.avgLatency)
-        trends.push(analyzeTrend(latencies, 'api.avgLatency'))
+        const latencies = api.map(a => a.avgLatency);
+        trends.push(analyzeTrend(latencies, 'api.avgLatency'));
       }
 
       // Error rate trend
-      trends.push(analyzeTrend([errors.errorRate], 'error.rate'))
+      trends.push(analyzeTrend([errors.errorRate], 'error.rate'));
 
       // Memory trend
       trends.push({
@@ -361,11 +361,11 @@ export class PerformanceReporter {
         direction: memory.trend === 'increasing' ? 'up' : memory.trend === 'decreasing' ? 'down' : 'stable',
         changePercent: 0,
         significance: memory.trend === 'increasing' ? 'medium' : 'low',
-      })
+      });
     }
 
     // Detect anomalies
-    const anomalies: AnomalyDetection[] = []
+    const anomalies: AnomalyDetection[] = [];
     if (reportConfig.includeAnomalies) {
       // Command anomalies
       for (const cmd of commands) {
@@ -378,7 +378,7 @@ export class PerformanceReporter {
             deviation: (cmd.avgDuration - cmd.p95Duration) / cmd.p95Duration,
             severity: 'medium',
             description: `Command ${cmd.command} average duration exceeds p95`,
-          })
+          });
         }
       }
 
@@ -393,13 +393,13 @@ export class PerformanceReporter {
             deviation: a.errorRate / 0.01,
             severity: a.errorRate > 0.5 ? 'critical' : a.errorRate > 0.2 ? 'high' : 'medium',
             description: `API ${a.provider} has high error rate (${(a.errorRate * 100).toFixed(1)}%)`,
-          })
+          });
         }
       }
     }
 
     // Generate recommendations
-    const recommendations = generateRecommendations(commands, api, cache, errors, memory, agents)
+    const recommendations = generateRecommendations(commands, api, cache, errors, memory, agents);
 
     return {
       id: `report_${Date.now()}`,
@@ -422,124 +422,124 @@ export class PerformanceReporter {
       trends,
       anomalies,
       recommendations,
-    }
+    };
   }
 
   /**
    * Generate a daily report
    */
   generateDailyReport(): PerformanceReport {
-    return this.generateReport({ timeRange: 'daily' })
+    return this.generateReport({ timeRange: 'daily' });
   }
 
   /**
    * Generate a weekly report
    */
   generateWeeklyReport(): PerformanceReport {
-    return this.generateReport({ timeRange: 'weekly' })
+    return this.generateReport({ timeRange: 'weekly' });
   }
 
   /**
    * Generate a monthly report
    */
   generateMonthlyReport(): PerformanceReport {
-    return this.generateReport({ timeRange: 'monthly' })
+    return this.generateReport({ timeRange: 'monthly' });
   }
 
   /**
    * Format report as text
    */
   formatReportAsText(report: PerformanceReport): string {
-    const lines: string[] = []
-    const separator = '═'.repeat(60)
-    const thinSeparator = '─'.repeat(60)
+    const lines: string[] = [];
+    const separator = '═'.repeat(60);
+    const thinSeparator = '─'.repeat(60);
 
     // Header
-    lines.push(separator)
-    lines.push('  CCJK Performance Report')
-    lines.push(`  Generated: ${new Date(report.generatedAt).toLocaleString()}`)
-    lines.push(`  Period: ${new Date(report.timeRange.start).toLocaleDateString()} - ${new Date(report.timeRange.end).toLocaleDateString()}`)
-    lines.push(separator)
-    lines.push('')
+    lines.push(separator);
+    lines.push('  CCJK Performance Report');
+    lines.push(`  Generated: ${new Date(report.generatedAt).toLocaleString()}`);
+    lines.push(`  Period: ${new Date(report.timeRange.start).toLocaleDateString()} - ${new Date(report.timeRange.end).toLocaleDateString()}`);
+    lines.push(separator);
+    lines.push('');
 
     // Summary
-    lines.push('  SUMMARY')
-    lines.push(thinSeparator)
-    lines.push(`  Total Commands: ${report.summary.totalCommands}`)
-    lines.push(`  Avg Command Duration: ${report.summary.avgCommandDuration.toFixed(0)}ms`)
-    lines.push(`  Total API Calls: ${report.summary.totalApiCalls}`)
-    lines.push(`  Avg API Latency: ${report.summary.avgApiLatency.toFixed(0)}ms`)
-    lines.push(`  Cache Hit Rate: ${(report.summary.cacheHitRate * 100).toFixed(1)}%`)
-    lines.push(`  Error Rate: ${report.summary.errorRate.toFixed(2)}/min`)
-    lines.push(`  Memory Usage: ${(report.summary.memoryUsage * 100).toFixed(1)}%`)
-    lines.push('')
+    lines.push('  SUMMARY');
+    lines.push(thinSeparator);
+    lines.push(`  Total Commands: ${report.summary.totalCommands}`);
+    lines.push(`  Avg Command Duration: ${report.summary.avgCommandDuration.toFixed(0)}ms`);
+    lines.push(`  Total API Calls: ${report.summary.totalApiCalls}`);
+    lines.push(`  Avg API Latency: ${report.summary.avgApiLatency.toFixed(0)}ms`);
+    lines.push(`  Cache Hit Rate: ${(report.summary.cacheHitRate * 100).toFixed(1)}%`);
+    lines.push(`  Error Rate: ${report.summary.errorRate.toFixed(2)}/min`);
+    lines.push(`  Memory Usage: ${(report.summary.memoryUsage * 100).toFixed(1)}%`);
+    lines.push('');
 
     // Commands
     if (report.commands.length > 0) {
-      lines.push('  COMMAND STATISTICS')
-      lines.push(thinSeparator)
+      lines.push('  COMMAND STATISTICS');
+      lines.push(thinSeparator);
       for (const cmd of report.commands.slice(0, 10)) {
         const successRate = cmd.totalExecutions > 0
           ? (cmd.successCount / cmd.totalExecutions * 100).toFixed(1)
-          : '0'
-        lines.push(`  ${cmd.command}`)
-        lines.push(`    Executions: ${cmd.totalExecutions} | Success: ${successRate}% | Avg: ${cmd.avgDuration.toFixed(0)}ms`)
+          : '0';
+        lines.push(`  ${cmd.command}`);
+        lines.push(`    Executions: ${cmd.totalExecutions} | Success: ${successRate}% | Avg: ${cmd.avgDuration.toFixed(0)}ms`);
       }
-      lines.push('')
+      lines.push('');
     }
 
     // API
     if (report.api.length > 0) {
-      lines.push('  API PERFORMANCE')
-      lines.push(thinSeparator)
+      lines.push('  API PERFORMANCE');
+      lines.push(thinSeparator);
       for (const api of report.api) {
-        lines.push(`  ${api.provider}`)
-        lines.push(`    Calls: ${api.totalCalls} | Latency: ${api.avgLatency.toFixed(0)}ms | Errors: ${(api.errorRate * 100).toFixed(1)}%`)
+        lines.push(`  ${api.provider}`);
+        lines.push(`    Calls: ${api.totalCalls} | Latency: ${api.avgLatency.toFixed(0)}ms | Errors: ${(api.errorRate * 100).toFixed(1)}%`);
       }
-      lines.push('')
+      lines.push('');
     }
 
     // Trends
     if (report.trends.length > 0) {
-      lines.push('  TRENDS')
-      lines.push(thinSeparator)
+      lines.push('  TRENDS');
+      lines.push(thinSeparator);
       for (const trend of report.trends) {
-        const arrow = trend.direction === 'up' ? '↑' : trend.direction === 'down' ? '↓' : '→'
-        lines.push(`  ${trend.metric}: ${arrow} ${trend.changePercent.toFixed(1)}% (${trend.significance})`)
+        const arrow = trend.direction === 'up' ? '↑' : trend.direction === 'down' ? '↓' : '→';
+        lines.push(`  ${trend.metric}: ${arrow} ${trend.changePercent.toFixed(1)}% (${trend.significance})`);
       }
-      lines.push('')
+      lines.push('');
     }
 
     // Anomalies
     if (report.anomalies.length > 0) {
-      lines.push('  ANOMALIES DETECTED')
-      lines.push(thinSeparator)
+      lines.push('  ANOMALIES DETECTED');
+      lines.push(thinSeparator);
       for (const anomaly of report.anomalies.slice(0, 5)) {
-        lines.push(`  [${anomaly.severity.toUpperCase()}] ${anomaly.description}`)
+        lines.push(`  [${anomaly.severity.toUpperCase()}] ${anomaly.description}`);
       }
-      lines.push('')
+      lines.push('');
     }
 
     // Recommendations
     if (report.recommendations.length > 0) {
-      lines.push('  RECOMMENDATIONS')
-      lines.push(thinSeparator)
+      lines.push('  RECOMMENDATIONS');
+      lines.push(thinSeparator);
       for (const rec of report.recommendations) {
-        lines.push(`  • ${rec}`)
+        lines.push(`  • ${rec}`);
       }
-      lines.push('')
+      lines.push('');
     }
 
-    lines.push(separator)
+    lines.push(separator);
 
-    return lines.join('\n')
+    return lines.join('\n');
   }
 
   /**
    * Format report as JSON
    */
   formatReportAsJson(report: PerformanceReport): string {
-    return JSON.stringify(report, null, 2)
+    return JSON.stringify(report, null, 2);
   }
 
   /**
@@ -685,7 +685,7 @@ export class PerformanceReporter {
     </div>
   </div>
 </body>
-</html>`
+</html>`;
   }
 
   /**
@@ -700,13 +700,13 @@ export class PerformanceReporter {
       arrayBuffers: 0,
       rss: 0,
       heapUsedPercent: 0,
-    }
+    };
     return {
       current: emptySnapshot,
       peak: emptySnapshot,
       average: { heapUsed: 0, heapTotal: 0, rss: 0 },
       trend: 'stable',
-    }
+    };
   }
 }
 
@@ -718,13 +718,13 @@ export class PerformanceReporter {
  * Create a new reporter instance
  */
 export function createReporter(config?: Partial<ReportConfig>): PerformanceReporter {
-  return new PerformanceReporter(config)
+  return new PerformanceReporter(config);
 }
 
 /**
  * Generate a quick report
  */
 export function generateQuickReport(timeRange: ReportTimeRange = 'daily'): PerformanceReport {
-  const reporter = new PerformanceReporter({ timeRange })
-  return reporter.generateReport()
+  const reporter = new PerformanceReporter({ timeRange });
+  return reporter.generateReport();
 }

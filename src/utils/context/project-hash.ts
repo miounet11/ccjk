@@ -3,23 +3,23 @@
  * Uses project path and git remote (if available) for uniqueness
  */
 
-import { createHash } from 'node:crypto'
-import { existsSync } from 'node:fs'
-import { join, normalize } from 'pathe'
-import { exec } from 'tinyexec'
+import { createHash } from 'node:crypto';
+import { existsSync } from 'node:fs';
+import { join, normalize } from 'pathe';
+import { exec } from 'tinyexec';
 
 /**
  * Project identification data
  */
 export interface ProjectIdentity {
   /** Absolute normalized project path */
-  path: string
+  path: string;
   /** Git remote URL if available */
-  gitRemote?: string
+  gitRemote?: string;
   /** Git branch if available */
-  gitBranch?: string
+  gitBranch?: string;
   /** Project hash */
-  hash: string
+  hash: string;
 }
 
 /**
@@ -32,31 +32,31 @@ export interface ProjectIdentity {
 export async function generateProjectHash(projectPath: string): Promise<ProjectIdentity> {
   // Normalize path for consistency across platforms
   // Remove trailing slashes for consistency
-  let normalizedPath = normalize(projectPath)
-  normalizedPath = normalizedPath.replace(/[/\\]+$/, '')
+  let normalizedPath = normalize(projectPath);
+  normalizedPath = normalizedPath.replace(/[/\\]+$/, '');
 
   // Try to get git information
-  const gitInfo = await getGitInfo(normalizedPath)
+  const gitInfo = await getGitInfo(normalizedPath);
 
   // Create hash input
   const hashInput = [
     normalizedPath,
     gitInfo.remote || '',
     gitInfo.branch || '',
-  ].join('|')
+  ].join('|');
 
   // Generate SHA-256 hash and take first 16 characters
   const hash = createHash('sha256')
     .update(hashInput)
     .digest('hex')
-    .substring(0, 16)
+    .substring(0, 16);
 
   return {
     path: normalizedPath,
     gitRemote: gitInfo.remote,
     gitBranch: gitInfo.branch,
     hash,
-  }
+  };
 }
 
 /**
@@ -65,43 +65,43 @@ export async function generateProjectHash(projectPath: string): Promise<ProjectI
  * @param projectPath - Project directory path
  * @returns Git remote and branch information
  */
-async function getGitInfo(projectPath: string): Promise<{ remote?: string, branch?: string }> {
+async function getGitInfo(projectPath: string): Promise<{ remote?: string; branch?: string }> {
   try {
     // Check if .git directory exists
-    const gitDir = join(projectPath, '.git')
+    const gitDir = join(projectPath, '.git');
     if (!existsSync(gitDir)) {
-      return {}
+      return {};
     }
 
     // Get git remote URL
-    let remote: string | undefined
+    let remote: string | undefined;
     try {
       const remoteResult = await exec('git', ['remote', 'get-url', 'origin'], {
         nodeOptions: { cwd: projectPath },
-      })
-      remote = remoteResult.stdout?.trim()
+      });
+      remote = remoteResult.stdout?.trim();
     }
     catch {
       // No remote configured, continue
     }
 
     // Get current branch
-    let branch: string | undefined
+    let branch: string | undefined;
     try {
       const branchResult = await exec('git', ['rev-parse', '--abbrev-ref', 'HEAD'], {
         nodeOptions: { cwd: projectPath },
-      })
-      branch = branchResult.stdout?.trim()
+      });
+      branch = branchResult.stdout?.trim();
     }
     catch {
       // Failed to get branch, continue
     }
 
-    return { remote, branch }
+    return { remote, branch };
   }
   catch {
     // Git not available or other error
-    return {}
+    return {};
   }
 }
 
@@ -112,7 +112,7 @@ async function getGitInfo(projectPath: string): Promise<{ remote?: string, branc
  * @returns True if hash is valid format
  */
 export function isValidProjectHash(hash: string): boolean {
-  return /^[a-f0-9]{16}$/.test(hash)
+  return /^[a-f0-9]{16}$/.test(hash);
 }
 
 /**
@@ -122,15 +122,15 @@ export function isValidProjectHash(hash: string): boolean {
  * @returns Project hash or null if not found
  */
 export function extractProjectHashFromPath(sessionPath: string): string | null {
-  const parts = sessionPath.split(/[/\\]/)
-  const sessionsIndex = parts.indexOf('sessions')
+  const parts = sessionPath.split(/[/\\]/);
+  const sessionsIndex = parts.indexOf('sessions');
 
   if (sessionsIndex === -1 || sessionsIndex >= parts.length - 1) {
-    return null
+    return null;
   }
 
-  const hash = parts[sessionsIndex + 1]
-  return isValidProjectHash(hash) ? hash : null
+  const hash = parts[sessionsIndex + 1];
+  return isValidProjectHash(hash) ? hash : null;
 }
 
 /**
@@ -138,9 +138,9 @@ export function extractProjectHashFromPath(sessionPath: string): string | null {
  * Caches results to avoid repeated git operations
  */
 class ProjectHashCache {
-  private cache = new Map<string, ProjectIdentity>()
-  private cacheTimeout = 5 * 60 * 1000 // 5 minutes
-  private timestamps = new Map<string, number>()
+  private cache = new Map<string, ProjectIdentity>();
+  private cacheTimeout = 5 * 60 * 1000; // 5 minutes
+  private timestamps = new Map<string, number>();
 
   /**
    * Get or generate project identity
@@ -150,27 +150,27 @@ class ProjectHashCache {
    * @returns Project identity
    */
   async get(projectPath: string, forceRefresh = false): Promise<ProjectIdentity> {
-    let normalizedPath = normalize(projectPath)
-    normalizedPath = normalizedPath.replace(/[/\\]+$/, '')
-    const now = Date.now()
-    const timestamp = this.timestamps.get(normalizedPath)
+    let normalizedPath = normalize(projectPath);
+    normalizedPath = normalizedPath.replace(/[/\\]+$/, '');
+    const now = Date.now();
+    const timestamp = this.timestamps.get(normalizedPath);
 
     // Check cache validity
     if (!forceRefresh && timestamp && (now - timestamp) < this.cacheTimeout) {
-      const cached = this.cache.get(normalizedPath)
+      const cached = this.cache.get(normalizedPath);
       if (cached) {
-        return cached
+        return cached;
       }
     }
 
     // Generate new identity
-    const identity = await generateProjectHash(normalizedPath)
+    const identity = await generateProjectHash(normalizedPath);
 
     // Update cache
-    this.cache.set(normalizedPath, identity)
-    this.timestamps.set(normalizedPath, now)
+    this.cache.set(normalizedPath, identity);
+    this.timestamps.set(normalizedPath, now);
 
-    return identity
+    return identity;
   }
 
   /**
@@ -180,31 +180,31 @@ class ProjectHashCache {
    */
   clear(projectPath?: string): void {
     if (projectPath) {
-      let normalizedPath = normalize(projectPath)
-      normalizedPath = normalizedPath.replace(/[/\\]+$/, '')
-      this.cache.delete(normalizedPath)
-      this.timestamps.delete(normalizedPath)
+      let normalizedPath = normalize(projectPath);
+      normalizedPath = normalizedPath.replace(/[/\\]+$/, '');
+      this.cache.delete(normalizedPath);
+      this.timestamps.delete(normalizedPath);
     }
     else {
-      this.cache.clear()
-      this.timestamps.clear()
+      this.cache.clear();
+      this.timestamps.clear();
     }
   }
 
   /**
    * Get cache statistics
    */
-  getStats(): { size: number, oldestEntry?: number } {
-    const timestamps = Array.from(this.timestamps.values())
+  getStats(): { size: number; oldestEntry?: number } {
+    const timestamps = Array.from(this.timestamps.values());
     return {
       size: this.cache.size,
       oldestEntry: timestamps.length > 0 ? Math.min(...timestamps) : undefined,
-    }
+    };
   }
 }
 
 // Export singleton cache instance
-export const projectHashCache = new ProjectHashCache()
+export const projectHashCache = new ProjectHashCache();
 
 /**
  * Get project identity with caching
@@ -217,5 +217,5 @@ export async function getProjectIdentity(
   projectPath: string,
   forceRefresh = false,
 ): Promise<ProjectIdentity> {
-  return projectHashCache.get(projectPath, forceRefresh)
+  return projectHashCache.get(projectPath, forceRefresh);
 }

@@ -12,8 +12,8 @@ import type {
   HookContext,
   HookExecutionOptions,
   HookResult,
-} from './types.js'
-import { HookError, HookTimeoutError } from './types.js'
+} from './types.js';
+import { HookError, HookTimeoutError } from './types.js';
 
 /**
  * Hook Executor
@@ -21,10 +21,10 @@ import { HookError, HookTimeoutError } from './types.js'
  * Executes hooks with proper error handling and timeout management.
  */
 export class HookExecutor {
-  private defaultTimeout: number
+  private defaultTimeout: number;
 
   constructor(options?: { defaultTimeout?: number }) {
-    this.defaultTimeout = options?.defaultTimeout ?? 30000
+    this.defaultTimeout = options?.defaultTimeout ?? 30000;
   }
 
   /**
@@ -40,8 +40,8 @@ export class HookExecutor {
     context: HookContext,
     options?: HookExecutionOptions,
   ): Promise<HookResult> {
-    const startTime = Date.now()
-    const timeout = options?.timeout ?? hook.action.timeout ?? this.defaultTimeout
+    const startTime = Date.now();
+    const timeout = options?.timeout ?? hook.action.timeout ?? this.defaultTimeout;
 
     // Check if hook is enabled
     if (!hook.enabled && options?.skipDisabled !== false) {
@@ -50,19 +50,19 @@ export class HookExecutor {
         status: 'skipped',
         durationMs: 0,
         continueChain: true,
-      }
+      };
     }
 
     // Check condition
     if (hook.condition) {
-      const conditionMet = await this.checkCondition(hook.condition, context)
+      const conditionMet = await this.checkCondition(hook.condition, context);
       if (!conditionMet) {
         return {
           success: true,
           status: 'skipped',
           durationMs: Date.now() - startTime,
           continueChain: true,
-        }
+        };
       }
     }
 
@@ -72,7 +72,7 @@ export class HookExecutor {
         hook,
         context,
         timeout,
-      )
+      );
 
       return {
         success: true,
@@ -81,10 +81,10 @@ export class HookExecutor {
         output: result?.output,
         continueChain: result?.continueChain ?? true,
         modifiedContext: result?.modifiedContext,
-      }
+      };
     }
     catch (error) {
-      const durationMs = Date.now() - startTime
+      const durationMs = Date.now() - startTime;
 
       if (error instanceof HookTimeoutError) {
         return {
@@ -93,7 +93,7 @@ export class HookExecutor {
           durationMs,
           error: error.message,
           continueChain: hook.action.continueOnError ?? true,
-        }
+        };
       }
 
       return {
@@ -102,7 +102,7 @@ export class HookExecutor {
         durationMs,
         error: error instanceof Error ? error.message : String(error),
         continueChain: hook.action.continueOnError ?? true,
-      }
+      };
     }
   }
 
@@ -119,17 +119,17 @@ export class HookExecutor {
     context: HookContext,
     options?: HookExecutionOptions,
   ): Promise<HookChainResult> {
-    const startTime = Date.now()
-    const results: HookChainResult['results'] = []
-    let currentContext = { ...context }
-    let executedCount = 0
-    let skippedCount = 0
-    let failedCount = 0
+    const startTime = Date.now();
+    const results: HookChainResult['results'] = [];
+    let currentContext = { ...context };
+    let executedCount = 0;
+    let skippedCount = 0;
+    let failedCount = 0;
 
     // Sort by priority (higher first)
     const sortedHooks = [...hooks].sort((a, b) =>
       (b.priority ?? 5) - (a.priority ?? 5),
-    )
+    );
 
     if (options?.parallel) {
       // Parallel execution
@@ -137,48 +137,48 @@ export class HookExecutor {
         sortedHooks,
         currentContext,
         options,
-      )
+      );
 
       for (const { hookId, result } of parallelResults) {
-        results.push({ hookId, result })
+        results.push({ hookId, result });
         if (result.status === 'skipped') {
-          skippedCount++
+          skippedCount++;
         }
         else if (!result.success) {
-          failedCount++
+          failedCount++;
         }
         else {
-          executedCount++
+          executedCount++;
         }
       }
     }
     else {
       // Sequential execution
       for (const hook of sortedHooks) {
-        const result = await this.execute(hook, currentContext, options)
-        results.push({ hookId: hook.id, result })
+        const result = await this.execute(hook, currentContext, options);
+        results.push({ hookId: hook.id, result });
 
         if (result.status === 'skipped') {
-          skippedCount++
+          skippedCount++;
         }
         else if (!result.success) {
-          failedCount++
+          failedCount++;
           if (options?.stopOnError) {
-            break
+            break;
           }
         }
         else {
-          executedCount++
+          executedCount++;
         }
 
         // Apply context modifications
         if (result.modifiedContext) {
-          currentContext = { ...currentContext, ...result.modifiedContext }
+          currentContext = { ...currentContext, ...result.modifiedContext };
         }
 
         // Check if chain should continue
         if (!result.continueChain) {
-          break
+          break;
         }
       }
     }
@@ -191,7 +191,7 @@ export class HookExecutor {
       skippedCount,
       failedCount,
       finalContext: currentContext,
-    }
+    };
   }
 
   /**
@@ -206,23 +206,23 @@ export class HookExecutor {
     hooks: Hook[],
     context: HookContext,
     options?: HookExecutionOptions,
-  ): Promise<Array<{ hookId: string, result: HookResult }>> {
-    const maxParallel = options?.maxParallel ?? 5
-    const results: Array<{ hookId: string, result: HookResult }> = []
+  ): Promise<Array<{ hookId: string; result: HookResult }>> {
+    const maxParallel = options?.maxParallel ?? 5;
+    const results: Array<{ hookId: string; result: HookResult }> = [];
 
     // Process in batches
     for (let i = 0; i < hooks.length; i += maxParallel) {
-      const batch = hooks.slice(i, i + maxParallel)
+      const batch = hooks.slice(i, i + maxParallel);
       const batchResults = await Promise.all(
         batch.map(async (hook) => {
-          const result = await this.execute(hook, context, options)
-          return { hookId: hook.id, result }
+          const result = await this.execute(hook, context, options);
+          return { hookId: hook.id, result };
         }),
-      )
-      results.push(...batchResults)
+      );
+      results.push(...batchResults);
     }
 
-    return results
+    return results;
   }
 
   /**
@@ -240,24 +240,24 @@ export class HookExecutor {
   ): Promise<HookResult | void> {
     return new Promise((resolve, reject) => {
       const timeoutId = setTimeout(() => {
-        reject(new HookTimeoutError(hook.id, timeout, context))
-      }, timeout)
+        reject(new HookTimeoutError(hook.id, timeout, context));
+      }, timeout);
 
       Promise.resolve(hook.action.execute(context))
         .then((result) => {
-          clearTimeout(timeoutId)
-          resolve(result)
+          clearTimeout(timeoutId);
+          resolve(result);
         })
         .catch((error) => {
-          clearTimeout(timeoutId)
+          clearTimeout(timeoutId);
           reject(new HookError(
             error instanceof Error ? error.message : String(error),
             hook.id,
             context,
             error instanceof Error ? error : undefined,
-          ))
-        })
-    })
+          ));
+        });
+    });
   }
 
   /**
@@ -272,16 +272,16 @@ export class HookExecutor {
     context: HookContext,
   ): Promise<boolean> {
     if (!condition)
-      return true
+      return true;
 
     // Check tool condition
     if (condition.tool && context.tool) {
       if (condition.tool instanceof RegExp) {
         if (!condition.tool.test(context.tool))
-          return false
+          return false;
       }
       else if (condition.tool !== context.tool) {
-        return false
+        return false;
       }
     }
 
@@ -289,10 +289,10 @@ export class HookExecutor {
     if (condition.skillId && context.skillId) {
       if (condition.skillId instanceof RegExp) {
         if (!condition.skillId.test(context.skillId))
-          return false
+          return false;
       }
       else if (condition.skillId !== context.skillId) {
-        return false
+        return false;
       }
     }
 
@@ -300,10 +300,10 @@ export class HookExecutor {
     if (condition.workflowId && context.workflowId) {
       if (condition.workflowId instanceof RegExp) {
         if (!condition.workflowId.test(context.workflowId))
-          return false
+          return false;
       }
       else if (condition.workflowId !== context.workflowId) {
-        return false
+        return false;
       }
     }
 
@@ -311,21 +311,21 @@ export class HookExecutor {
     if (condition.configKey && context.configKey) {
       if (condition.configKey instanceof RegExp) {
         if (!condition.configKey.test(context.configKey))
-          return false
+          return false;
       }
       else if (condition.configKey !== context.configKey) {
-        return false
+        return false;
       }
     }
 
     // Check custom condition
     if (condition.custom) {
-      const customResult = await Promise.resolve(condition.custom(context))
+      const customResult = await Promise.resolve(condition.custom(context));
       if (!customResult)
-        return false
+        return false;
     }
 
-    return true
+    return true;
   }
 }
 
@@ -337,5 +337,5 @@ export class HookExecutor {
  * @returns New hook executor instance
  */
 export function createHookExecutor(options?: { defaultTimeout?: number }): HookExecutor {
-  return new HookExecutor(options)
+  return new HookExecutor(options);
 }

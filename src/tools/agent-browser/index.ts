@@ -8,7 +8,7 @@ export {
   checkAgentBrowserInstalled,
   installAgentBrowser,
   uninstallAgentBrowser,
-} from '../../utils/agent-browser/installer'
+} from '../../utils/agent-browser/installer';
 
 // 导出命令
 export {
@@ -17,18 +17,18 @@ export {
   configureBrowser,
   startBrowserSession,
   stopBrowserSession,
-} from './commands'
+} from './commands';
 
 // 导出会话管理
 export {
   AgentBrowserSession,
   createSession,
   quickBrowse,
-} from './session'
+} from './session';
 
 // 导出类型
 export type {
   ElementRef,
   SessionOptions,
   SnapshotOptions,
-} from './session'
+} from './session';

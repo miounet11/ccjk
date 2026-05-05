@@ -6,20 +6,20 @@
 /**
  * Resource type enumeration
  */
-export type ResourceType = 'Provider' | 'Model' | 'Tool' | 'Command' | 'API'
+export type ResourceType = 'Provider' | 'Model' | 'Tool' | 'Command' | 'API';
 
 /**
  * Parsed rule structure
  */
 export interface ParsedRule {
   /** Resource type (Provider, Model, Tool, etc.) */
-  resourceType: ResourceType
+  resourceType: ResourceType;
   /** Resource identifier (e.g., "302ai", "claude-opus") */
-  resourceId: string
+  resourceId: string;
   /** Action (e.g., "read", "write", "admin", "*") */
-  action: string
+  action: string;
   /** Original rule string */
-  original: string
+  original: string;
 }
 
 /**
@@ -27,11 +27,11 @@ export interface ParsedRule {
  */
 export interface RuleValidationResult {
   /** Whether the rule is valid */
-  valid: boolean
+  valid: boolean;
   /** Error message if invalid */
-  error?: string
+  error?: string;
   /** Parsed rule if valid */
-  parsed?: ParsedRule
+  parsed?: ParsedRule;
 }
 
 /**
@@ -52,21 +52,21 @@ export interface RuleValidationResult {
  */
 export function parseRule(rule: string): ParsedRule | null {
   // Trim whitespace
-  const trimmed = rule.trim()
+  const trimmed = rule.trim();
 
   // Match pattern: ResourceType(resourceId:action)
-  const match = trimmed.match(/^(\w+)\(([^:)]+):([^)]+)\)$/)
+  const match = trimmed.match(/^(\w+)\(([^:)]+):([^)]+)\)$/);
 
   if (!match) {
-    return null
+    return null;
   }
 
-  const [, resourceType, resourceId, action] = match
+  const [, resourceType, resourceId, action] = match;
 
   // Validate resource type
-  const validResourceTypes: ResourceType[] = ['Provider', 'Model', 'Tool', 'Command', 'API']
+  const validResourceTypes: ResourceType[] = ['Provider', 'Model', 'Tool', 'Command', 'API'];
   if (!validResourceTypes.includes(resourceType as ResourceType)) {
-    return null
+    return null;
   }
 
   return {
@@ -74,7 +74,7 @@ export function parseRule(rule: string): ParsedRule | null {
     resourceId: resourceId.trim(),
     action: action.trim(),
     original: trimmed,
-  }
+  };
 }
 
 /**
@@ -88,17 +88,17 @@ export function validateRule(rule: string): RuleValidationResult {
     return {
       valid: false,
       error: 'Rule cannot be empty',
-    }
+    };
   }
 
   // Try to parse the rule
-  const parsed = parseRule(rule)
+  const parsed = parseRule(rule);
 
   if (!parsed) {
     return {
       valid: false,
       error: 'Invalid rule format. Expected: ResourceType(resourceId:action)',
-    }
+    };
   }
 
   // Validate resource ID
@@ -106,7 +106,7 @@ export function validateRule(rule: string): RuleValidationResult {
     return {
       valid: false,
       error: 'Resource ID cannot be empty',
-    }
+    };
   }
 
   // Validate action
@@ -114,7 +114,7 @@ export function validateRule(rule: string): RuleValidationResult {
     return {
       valid: false,
       error: 'Action cannot be empty',
-    }
+    };
   }
 
   // Check for invalid characters in resource ID
@@ -122,7 +122,7 @@ export function validateRule(rule: string): RuleValidationResult {
     return {
       valid: false,
       error: 'Resource ID contains invalid characters. Only alphanumeric, -, _, *, ? are allowed',
-    }
+    };
   }
 
   // Check for invalid characters in action
@@ -130,13 +130,13 @@ export function validateRule(rule: string): RuleValidationResult {
     return {
       valid: false,
       error: 'Action contains invalid characters. Only alphanumeric, -, _, *, ? are allowed',
-    }
+    };
   }
 
   return {
     valid: true,
     parsed,
-  }
+  };
 }
 
 /**
@@ -145,7 +145,7 @@ export function validateRule(rule: string): RuleValidationResult {
  * @returns Formatted rule string
  */
 export function formatRule(parsed: ParsedRule): string {
-  return `${parsed.resourceType}(${parsed.resourceId}:${parsed.action})`
+  return `${parsed.resourceType}(${parsed.resourceId}:${parsed.action})`;
 }
 
 /**
@@ -155,51 +155,51 @@ export function formatRule(parsed: ParsedRule): string {
  * @returns True if rule matches target
  */
 export function matchRule(rule: string | ParsedRule, target: string): boolean {
-  const parsed = typeof rule === 'string' ? parseRule(rule) : rule
+  const parsed = typeof rule === 'string' ? parseRule(rule) : rule;
 
   if (!parsed) {
-    return false
+    return false;
   }
 
   // Parse target
-  const targetMatch = target.match(/^(\w+)\(([^)]+)\):(\w+)$/)
+  const targetMatch = target.match(/^(\w+)\(([^)]+)\):(\w+)$/);
   if (!targetMatch) {
-    return false
+    return false;
   }
 
-  const [, targetResourceType, targetResourceId, targetAction] = targetMatch
+  const [, targetResourceType, targetResourceId, targetAction] = targetMatch;
 
   // Check resource type
   if (parsed.resourceType !== targetResourceType) {
-    return false
+    return false;
   }
 
   // Check resource ID with wildcard support
   const resourceIdPattern = parsed.resourceId
     .replace(/[.+^${}()|[\]\\]/g, '\\$&')
     .replace(/\*/g, '.*')
-    .replace(/\?/g, '.')
+    .replace(/\?/g, '.');
 
-  const resourceIdRegex = new RegExp(`^${resourceIdPattern}$`, 'i')
+  const resourceIdRegex = new RegExp(`^${resourceIdPattern}$`, 'i');
   if (!resourceIdRegex.test(targetResourceId)) {
-    return false
+    return false;
   }
 
   // Check action with wildcard support
   const actionPattern = parsed.action
     .replace(/[.+^${}()|[\]\\]/g, '\\$&')
     .replace(/\*/g, '.*')
-    .replace(/\?/g, '.')
+    .replace(/\?/g, '.');
 
-  const actionRegex = new RegExp(`^${actionPattern}$`, 'i')
-  return actionRegex.test(targetAction)
+  const actionRegex = new RegExp(`^${actionPattern}$`, 'i');
+  return actionRegex.test(targetAction);
 }
 
 /**
  * Get common rule examples
  * @returns Array of example rules with descriptions
  */
-export function getRuleExamples(): Array<{ rule: string, description: string }> {
+export function getRuleExamples(): Array<{ rule: string; description: string }> {
   return [
     {
       rule: 'Provider(*:*)',
@@ -237,7 +237,7 @@ export function getRuleExamples(): Array<{ rule: string, description: string }> 
       rule: 'API(anthropic:call)',
       description: 'Allow/deny call action on anthropic API',
     },
-  ]
+  ];
 }
 
 /**
@@ -246,7 +246,7 @@ export function getRuleExamples(): Array<{ rule: string, description: string }> 
  * @returns Array of suggested rules
  */
 export function suggestRules(partial: string): string[] {
-  const suggestions: string[] = []
+  const suggestions: string[] = [];
 
   // If empty, suggest resource types
   if (!partial || partial.trim().length === 0) {
@@ -256,20 +256,20 @@ export function suggestRules(partial: string): string[] {
       'Tool(',
       'Command(',
       'API(',
-    ]
+    ];
   }
 
-  const trimmed = partial.trim()
+  const trimmed = partial.trim();
 
   // If just resource type, suggest common patterns
   if (trimmed.match(/^\w+\($/)) {
-    const resourceType = trimmed.slice(0, -1)
+    const resourceType = trimmed.slice(0, -1);
     return [
       `${resourceType}(*:*)`,
       `${resourceType}(*:read)`,
       `${resourceType}(*:write)`,
       `${resourceType}(*:admin)`,
-    ]
+    ];
   }
 
   // If resource type and ID, suggest actions
@@ -280,10 +280,10 @@ export function suggestRules(partial: string): string[] {
       `${trimmed}write)`,
       `${trimmed}admin)`,
       `${trimmed}execute)`,
-    ]
+    ];
   }
 
-  return suggestions
+  return suggestions;
 }
 
 /**
@@ -297,7 +297,7 @@ export function normalizeRule(rule: string): string {
     .replace(/\s+/g, '') // Remove all whitespace
     .replace(/\(\s*/g, '(') // Remove space after (
     .replace(/\s*\)/g, ')') // Remove space before )
-    .replace(/:\s*/g, ':') // Remove space after :
+    .replace(/:\s*/g, ':'); // Remove space after :
 }
 
 /**
@@ -306,13 +306,13 @@ export function normalizeRule(rule: string): string {
  * @returns True if rule is a wildcard
  */
 export function isWildcardRule(rule: string | ParsedRule): boolean {
-  const parsed = typeof rule === 'string' ? parseRule(rule) : rule
+  const parsed = typeof rule === 'string' ? parseRule(rule) : rule;
 
   if (!parsed) {
-    return false
+    return false;
   }
 
-  return parsed.resourceId === '*' && parsed.action === '*'
+  return parsed.resourceId === '*' && parsed.action === '*';
 }
 
 /**
@@ -322,35 +322,35 @@ export function isWildcardRule(rule: string | ParsedRule): boolean {
  * @returns Specificity score
  */
 export function getRuleSpecificity(rule: string | ParsedRule): number {
-  const parsed = typeof rule === 'string' ? parseRule(rule) : rule
+  const parsed = typeof rule === 'string' ? parseRule(rule) : rule;
 
   if (!parsed) {
-    return 0
+    return 0;
   }
 
-  let score = 0
+  let score = 0;
 
   // Resource ID specificity
   if (parsed.resourceId === '*') {
-    score += 1
+    score += 1;
   }
   else if (parsed.resourceId.includes('*') || parsed.resourceId.includes('?')) {
-    score += 5
+    score += 5;
   }
   else {
-    score += 10
+    score += 10;
   }
 
   // Action specificity
   if (parsed.action === '*') {
-    score += 1
+    score += 1;
   }
   else if (parsed.action.includes('*') || parsed.action.includes('?')) {
-    score += 5
+    score += 5;
   }
   else {
-    score += 10
+    score += 10;
   }
 
-  return score
+  return score;
 }

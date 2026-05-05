@@ -1,4 +1,4 @@
-import type { Buffer } from 'node:buffer'
+import type { Buffer } from 'node:buffer';
 /**
  * Cloud Storage Adapter Type Definitions
  *
@@ -10,80 +10,80 @@ import type { Buffer } from 'node:buffer'
 /**
  * Supported cloud storage providers
  */
-export type CloudProvider = 'github-gist' | 'webdav' | 'local'
+export type CloudProvider = 'github-gist' | 'webdav' | 'local';
 
 /**
  * Base provider configuration
  */
 export interface BaseProviderConfig {
   /** Provider type */
-  provider: CloudProvider
+  provider: CloudProvider;
   /** Connection timeout in milliseconds */
-  timeout?: number
+  timeout?: number;
   /** Maximum retry attempts */
-  maxRetries?: number
+  maxRetries?: number;
 }
 
 /**
  * GitHub Gist provider configuration
  */
 export interface GitHubGistConfig extends BaseProviderConfig {
-  provider: 'github-gist'
+  provider: 'github-gist';
   /** GitHub personal access token */
-  token: string
+  token: string;
   /** Whether to create private gists (default: true) */
-  isPrivate?: boolean
+  isPrivate?: boolean;
   /** GitHub API base URL (for enterprise) */
-  apiBaseUrl?: string
+  apiBaseUrl?: string;
 }
 
 /**
  * WebDAV provider configuration
  */
 export interface WebDAVConfig extends BaseProviderConfig {
-  provider: 'webdav'
+  provider: 'webdav';
   /** WebDAV server URL */
-  serverUrl: string
+  serverUrl: string;
   /** Username for authentication */
-  username: string
+  username: string;
   /** Password for authentication */
-  password: string
+  password: string;
   /** Base path on the server */
-  basePath?: string
+  basePath?: string;
 }
 
 /**
  * Local file system provider configuration
  */
 export interface LocalConfig extends BaseProviderConfig {
-  provider: 'local'
+  provider: 'local';
   /** Base directory for storage */
-  baseDir: string
+  baseDir: string;
 }
 
 /**
  * Union type for all provider configurations
  */
-export type ProviderConfig = GitHubGistConfig | WebDAVConfig | LocalConfig
+export type ProviderConfig = GitHubGistConfig | WebDAVConfig | LocalConfig;
 
 /**
  * Upload operation result
  */
 export interface UploadResult {
   /** Whether upload succeeded */
-  success: boolean
+  success: boolean;
   /** Remote key/path of the uploaded item */
-  key: string
+  key: string;
   /** Size in bytes */
-  size: number
+  size: number;
   /** Content checksum (SHA-256) */
-  checksum: string
+  checksum: string;
   /** Upload timestamp (ISO 8601) */
-  uploadedAt: string
+  uploadedAt: string;
   /** Provider-specific metadata */
-  providerMetadata?: Record<string, unknown>
+  providerMetadata?: Record<string, unknown>;
   /** Error message if failed */
-  error?: string
+  error?: string;
 }
 
 /**
@@ -91,19 +91,19 @@ export interface UploadResult {
  */
 export interface DownloadResult {
   /** Whether download succeeded */
-  success: boolean
+  success: boolean;
   /** Downloaded data */
-  data: Buffer
+  data: Buffer;
   /** Size in bytes */
-  size: number
+  size: number;
   /** Content checksum (SHA-256) */
-  checksum: string
+  checksum: string;
   /** Last modified timestamp (ISO 8601) */
-  lastModified: string
+  lastModified: string;
   /** Item metadata */
-  metadata?: ItemMetadata
+  metadata?: ItemMetadata;
   /** Error message if failed */
-  error?: string
+  error?: string;
 }
 
 /**
@@ -111,19 +111,19 @@ export interface DownloadResult {
  */
 export interface RemoteItem {
   /** Item key/path */
-  key: string
+  key: string;
   /** Item name */
-  name: string
+  name: string;
   /** Size in bytes */
-  size: number
+  size: number;
   /** Whether item is a directory */
-  isDirectory: boolean
+  isDirectory: boolean;
   /** Last modified timestamp (ISO 8601) */
-  lastModified: string
+  lastModified: string;
   /** Content checksum (if available) */
-  checksum?: string
+  checksum?: string;
   /** Item metadata */
-  metadata?: ItemMetadata
+  metadata?: ItemMetadata;
 }
 
 /**
@@ -131,36 +131,36 @@ export interface RemoteItem {
  */
 export interface ItemMetadata {
   /** Content type/MIME type */
-  contentType?: string
+  contentType?: string;
   /** Custom metadata */
-  custom?: Record<string, unknown>
+  custom?: Record<string, unknown>;
   /** Creation timestamp (ISO 8601) */
-  createdAt?: string
+  createdAt?: string;
   /** Last modified timestamp (ISO 8601) */
-  updatedAt?: string
+  updatedAt?: string;
   /** ETag for caching */
-  etag?: string
+  etag?: string;
 }
 
 /**
  * Progress callback for upload/download operations
  */
-export type ProgressCallback = (progress: ProgressInfo) => void
+export type ProgressCallback = (progress: ProgressInfo) => void;
 
 /**
  * Progress information
  */
 export interface ProgressInfo {
   /** Operation type */
-  operation: 'upload' | 'download'
+  operation: 'upload' | 'download';
   /** Item key/path */
-  key: string
+  key: string;
   /** Bytes transferred */
-  bytesTransferred: number
+  bytesTransferred: number;
   /** Total bytes (if known) */
-  totalBytes?: number
+  totalBytes?: number;
   /** Progress percentage (0-100) */
-  percentage?: number
+  percentage?: number;
 }
 
 /**
@@ -176,7 +176,7 @@ export type AdapterErrorCode
     | 'NETWORK_ERROR'
     | 'TIMEOUT'
     | 'INVALID_CONFIG'
-    | 'UNKNOWN_ERROR'
+    | 'UNKNOWN_ERROR';
 
 /**
  * Adapter error class
@@ -188,7 +188,7 @@ export class AdapterError extends Error {
     public readonly provider: CloudProvider,
     public readonly cause?: Error,
   ) {
-    super(message)
-    this.name = 'AdapterError'
+    super(message);
+    this.name = 'AdapterError';
   }
 }

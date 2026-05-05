@@ -8,7 +8,7 @@
  */
 
 // Array utilities
-export * as array from './array'
+export * as array from './array';
 
 // Array
 export {
@@ -20,10 +20,10 @@ export {
   shuffle,
   union,
   unique,
-} from './array/operations'
+} from './array/operations';
 
 // Async utilities
-export * as async from './async'
+export * as async from './async';
 
 // Async
 export {
@@ -37,7 +37,7 @@ export {
   throttle,
   timeout,
   waitFor,
-} from './async/helpers'
+} from './async/helpers';
 
 // Capability discovery utilities
 export {
@@ -52,10 +52,10 @@ export {
   getCapability,
   scanCapabilities,
   type WelcomeOptions,
-} from './capability-discovery'
+} from './capability-discovery';
 
 // Command execution utilities
-export * as command from './command'
+export * as command from './command';
 
 // Command
 export {
@@ -64,18 +64,18 @@ export {
   executeCommandStream,
   getCommandPath,
   getCommandVersion,
-} from './command/executor'
+} from './command/executor';
 
 // Configuration utilities
-export * as config from './config'
+export * as config from './config';
 
 // Config
-export { ConfigManager, createConfigManager } from './config/manager'
+export { ConfigManager, createConfigManager } from './config/manager';
 
-export { ConfigValidator, createValidator, validators } from './config/validator'
+export { ConfigValidator, createValidator, validators } from './config/validator';
 
 // Error utilities
-export * as error from './error'
+export * as error from './error';
 
 /**
  * Re-export commonly used utilities for convenience
@@ -95,9 +95,9 @@ export {
   UnauthorizedError,
   ValidationError,
   wrapError,
-} from './error/errors'
+} from './error/errors';
 // File system utilities
-export * as fs from './file-system'
+export * as fs from './file-system';
 
 // File System
 export {
@@ -115,9 +115,9 @@ export {
   readJSON,
   writeFile,
   writeJSON,
-} from './file-system/operations'
+} from './file-system/operations';
 // I18n helpers for cloud API multilingual data
-export * as i18nHelpers from './i18n-helpers'
+export * as i18nHelpers from './i18n-helpers';
 
 export {
   extractDisplayName,
@@ -125,16 +125,16 @@ export {
   type MultilingualString,
   normalizeRecommendation,
   normalizeRecommendations,
-} from './i18n-helpers'
+} from './i18n-helpers';
 
 // Logger utilities
-export * as loggerUtils from './logger'
+export * as loggerUtils from './logger';
 
 // Logger
-export { createLogger, Logger, logger } from './logger/logger'
+export { createLogger, Logger, logger } from './logger/logger';
 
 // Object utilities
-export * as object from './object'
+export * as object from './object';
 
 // Object
 export {
@@ -147,10 +147,10 @@ export {
   pick,
   set,
   unflatten,
-} from './object/operations'
+} from './object/operations';
 
 // Platform utilities
-export * as platform from './platform'
+export * as platform from './platform';
 
 // Platform
 export {
@@ -161,7 +161,7 @@ export {
   isMacOS,
   isUnix,
   isWindows,
-} from './platform/detection'
+} from './platform/detection';
 
 export {
   getCacheDir,
@@ -169,7 +169,7 @@ export {
   getDataDir,
   getHomeDir,
   getTempDir,
-} from './platform/paths'
+} from './platform/paths';
 
 // Stream processor utilities (v3.8+)
 export {
@@ -185,10 +185,10 @@ export {
   streamJSON,
   type StreamProcessorOptions,
   streamWriteJSON,
-} from './stream-processor'
+} from './stream-processor';
 
 // String utilities
-export * as string from './string'
+export * as string from './string';
 
 // String
 export {
@@ -200,10 +200,10 @@ export {
   snakeCase,
   template,
   truncate,
-} from './string/formatters'
+} from './string/formatters';
 
 // Validation utilities
-export * as validation from './validation'
+export * as validation from './validation';
 
 // Validation
 export {
@@ -217,4 +217,4 @@ export {
   isObject,
   isString,
   isURL,
-} from './validation/validators'
+} from './validation/validators';

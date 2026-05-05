@@ -1,17 +1,17 @@
-import type { ProjectProfile } from './types'
+import type { ProjectProfile } from './types';
 /**
  * Project Analyzer
  *
  * Detects project type, frameworks, tools from the current working directory.
  * Fast, synchronous file checks - no network calls.
  */
-import { existsSync, readFileSync } from 'node:fs'
-import process from 'node:process'
-import { join } from 'pathe'
-import { SETTINGS_FILE } from '../constants'
+import { existsSync, readFileSync } from 'node:fs';
+import process from 'node:process';
+import { join } from 'pathe';
+import { SETTINGS_FILE } from '../constants';
 
 export function analyzeProject(root?: string): ProjectProfile {
-  const cwd = root || process.cwd()
+  const cwd = root || process.cwd();
 
   const profile: ProjectProfile = {
     language: 'unknown',
@@ -23,189 +23,189 @@ export function analyzeProject(root?: string): ProjectProfile {
     hasClaudeMd: false,
     isMonorepo: false,
     tags: [],
-  }
+  };
 
   // Detect package.json
-  const pkgPath = join(cwd, 'package.json')
-  let pkg: Record<string, any> | null = null
+  const pkgPath = join(cwd, 'package.json');
+  let pkg: Record<string, any> | null = null;
   if (existsSync(pkgPath)) {
     try {
-      pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'))
-      profile.projectName = pkg?.name
+      pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'));
+      profile.projectName = pkg?.name;
     }
     catch { /* ignore */ }
   }
 
-  profile.language = detectLanguage(cwd, pkg)
-  profile.packageManager = detectPackageManager(cwd)
-  profile.frameworks = detectFrameworks(cwd, pkg)
-  profile.testFramework = detectTestFramework(cwd, pkg)
-  profile.buildTool = detectBuildTool(cwd, pkg)
+  profile.language = detectLanguage(cwd, pkg);
+  profile.packageManager = detectPackageManager(cwd);
+  profile.frameworks = detectFrameworks(cwd, pkg);
+  profile.testFramework = detectTestFramework(cwd, pkg);
+  profile.buildTool = detectBuildTool(cwd, pkg);
 
   profile.hasCI = existsSync(join(cwd, '.github/workflows'))
     || existsSync(join(cwd, '.gitlab-ci.yml'))
     || existsSync(join(cwd, '.circleci'))
-    || existsSync(join(cwd, 'Jenkinsfile'))
+    || existsSync(join(cwd, 'Jenkinsfile'));
 
   profile.hasDocker = existsSync(join(cwd, 'Dockerfile'))
     || existsSync(join(cwd, 'docker-compose.yml'))
-    || existsSync(join(cwd, 'docker-compose.yaml'))
+    || existsSync(join(cwd, 'docker-compose.yaml'));
 
-  profile.hasMCP = checkMcpConfigured()
-  profile.hasClaudeMd = existsSync(join(cwd, 'CLAUDE.md'))
+  profile.hasMCP = checkMcpConfigured();
+  profile.hasClaudeMd = existsSync(join(cwd, 'CLAUDE.md'));
 
   profile.isMonorepo = existsSync(join(cwd, 'pnpm-workspace.yaml'))
     || existsSync(join(cwd, 'lerna.json'))
-    || (pkg?.workspaces != null)
+    || (pkg?.workspaces != null);
 
-  profile.tags = generateTags(profile)
-  return profile
+  profile.tags = generateTags(profile);
+  return profile;
 }
 
 function detectLanguage(cwd: string, pkg: Record<string, any> | null): string {
   if (existsSync(join(cwd, 'tsconfig.json')) || pkg?.devDependencies?.typescript)
-    return 'typescript'
+    return 'typescript';
   if (existsSync(join(cwd, 'pyproject.toml')) || existsSync(join(cwd, 'setup.py')))
-    return 'python'
+    return 'python';
   if (existsSync(join(cwd, 'go.mod')))
-    return 'go'
+    return 'go';
   if (existsSync(join(cwd, 'Cargo.toml')))
-    return 'rust'
+    return 'rust';
   if (existsSync(join(cwd, 'Gemfile')))
-    return 'ruby'
+    return 'ruby';
   if (existsSync(join(cwd, 'pom.xml')) || existsSync(join(cwd, 'build.gradle')))
-    return 'java'
+    return 'java';
   if (existsSync(join(cwd, 'Package.swift')))
-    return 'swift'
+    return 'swift';
   if (pkg)
-    return 'javascript'
-  return 'unknown'
+    return 'javascript';
+  return 'unknown';
 }
 
 function detectPackageManager(cwd: string): ProjectProfile['packageManager'] {
   if (existsSync(join(cwd, 'pnpm-lock.yaml')) || existsSync(join(cwd, 'pnpm-workspace.yaml')))
-    return 'pnpm'
+    return 'pnpm';
   if (existsSync(join(cwd, 'yarn.lock')))
-    return 'yarn'
+    return 'yarn';
   if (existsSync(join(cwd, 'bun.lockb')) || existsSync(join(cwd, 'bun.lock')))
-    return 'bun'
+    return 'bun';
   if (existsSync(join(cwd, 'package-lock.json')))
-    return 'npm'
-  return 'unknown'
+    return 'npm';
+  return 'unknown';
 }
 
 function detectFrameworks(_cwd: string, pkg: Record<string, any> | null): string[] {
-  const frameworks: string[] = []
-  const allDeps = { ...pkg?.dependencies, ...pkg?.devDependencies }
+  const frameworks: string[] = [];
+  const allDeps = { ...pkg?.dependencies, ...pkg?.devDependencies };
 
   if (allDeps?.react || allDeps?.['react-dom'])
-    frameworks.push('react')
+    frameworks.push('react');
   if (allDeps?.vue)
-    frameworks.push('vue')
+    frameworks.push('vue');
   if (allDeps?.svelte)
-    frameworks.push('svelte')
+    frameworks.push('svelte');
   if (allDeps?.angular || allDeps?.['@angular/core'])
-    frameworks.push('angular')
+    frameworks.push('angular');
   if (allDeps?.next)
-    frameworks.push('nextjs')
+    frameworks.push('nextjs');
   if (allDeps?.nuxt)
-    frameworks.push('nuxt')
+    frameworks.push('nuxt');
   if (allDeps?.astro)
-    frameworks.push('astro')
+    frameworks.push('astro');
   if (allDeps?.express)
-    frameworks.push('express')
+    frameworks.push('express');
   if (allDeps?.fastify)
-    frameworks.push('fastify')
+    frameworks.push('fastify');
   if (allDeps?.koa)
-    frameworks.push('koa')
+    frameworks.push('koa');
   if (allDeps?.hono)
-    frameworks.push('hono')
+    frameworks.push('hono');
   if (allDeps?.['@nestjs/core'])
-    frameworks.push('nestjs')
+    frameworks.push('nestjs');
   if (allDeps?.electron)
-    frameworks.push('electron')
+    frameworks.push('electron');
   if (allDeps?.['@tauri-apps/api'])
-    frameworks.push('tauri')
+    frameworks.push('tauri');
   if (allDeps?.['react-native'])
-    frameworks.push('react-native')
+    frameworks.push('react-native');
   if (allDeps?.cac || allDeps?.commander || allDeps?.yargs)
-    frameworks.push('cli')
+    frameworks.push('cli');
 
-  return frameworks
+  return frameworks;
 }
 
 function detectTestFramework(cwd: string, pkg: Record<string, any> | null): string | undefined {
-  const allDeps = { ...pkg?.dependencies, ...pkg?.devDependencies }
+  const allDeps = { ...pkg?.dependencies, ...pkg?.devDependencies };
   if (allDeps?.vitest || existsSync(join(cwd, 'vitest.config.ts')))
-    return 'vitest'
+    return 'vitest';
   if (allDeps?.jest || existsSync(join(cwd, 'jest.config.js')))
-    return 'jest'
+    return 'jest';
   if (allDeps?.mocha)
-    return 'mocha'
+    return 'mocha';
   if (allDeps?.playwright || allDeps?.['@playwright/test'])
-    return 'playwright'
+    return 'playwright';
   if (allDeps?.cypress)
-    return 'cypress'
+    return 'cypress';
   if (existsSync(join(cwd, 'pytest.ini')) || existsSync(join(cwd, 'conftest.py')))
-    return 'pytest'
-  return undefined
+    return 'pytest';
+  return undefined;
 }
 
 function detectBuildTool(cwd: string, pkg: Record<string, any> | null): string | undefined {
-  const allDeps = { ...pkg?.dependencies, ...pkg?.devDependencies }
+  const allDeps = { ...pkg?.dependencies, ...pkg?.devDependencies };
   if (allDeps?.vite || existsSync(join(cwd, 'vite.config.ts')))
-    return 'vite'
+    return 'vite';
   if (allDeps?.webpack)
-    return 'webpack'
+    return 'webpack';
   if (allDeps?.esbuild)
-    return 'esbuild'
+    return 'esbuild';
   if (allDeps?.unbuild)
-    return 'unbuild'
+    return 'unbuild';
   if (allDeps?.rollup)
-    return 'rollup'
+    return 'rollup';
   if (allDeps?.turbo || existsSync(join(cwd, 'turbo.json')))
-    return 'turbo'
-  return undefined
+    return 'turbo';
+  return undefined;
 }
 
 function checkMcpConfigured(): boolean {
   try {
     if (!existsSync(SETTINGS_FILE))
-      return false
-    const settings = JSON.parse(readFileSync(SETTINGS_FILE, 'utf-8'))
-    return Object.keys(settings.mcpServers || {}).length > 0
+      return false;
+    const settings = JSON.parse(readFileSync(SETTINGS_FILE, 'utf-8'));
+    return Object.keys(settings.mcpServers || {}).length > 0;
   }
   catch {
-    return false
+    return false;
   }
 }
 
 function generateTags(profile: ProjectProfile): string[] {
-  const tags: string[] = []
+  const tags: string[] = [];
 
-  tags.push(profile.language)
-  tags.push(...profile.frameworks)
+  tags.push(profile.language);
+  tags.push(...profile.frameworks);
   if (profile.testFramework)
-    tags.push(profile.testFramework)
+    tags.push(profile.testFramework);
   if (profile.buildTool)
-    tags.push(profile.buildTool)
+    tags.push(profile.buildTool);
   if (profile.packageManager !== 'unknown')
-    tags.push(profile.packageManager)
+    tags.push(profile.packageManager);
   if (profile.hasCI)
-    tags.push('ci')
+    tags.push('ci');
   if (profile.hasDocker)
-    tags.push('docker')
+    tags.push('docker');
   if (profile.isMonorepo)
-    tags.push('monorepo')
+    tags.push('monorepo');
 
   if (profile.frameworks.some(f => ['react', 'vue', 'svelte', 'angular'].includes(f)))
-    tags.push('frontend')
+    tags.push('frontend');
   if (profile.frameworks.some(f => ['express', 'fastify', 'koa', 'nestjs', 'hono'].includes(f)))
-    tags.push('backend')
+    tags.push('backend');
   if (profile.frameworks.some(f => ['nextjs', 'nuxt', 'astro'].includes(f)))
-    tags.push('fullstack')
+    tags.push('fullstack');
   if (profile.frameworks.includes('cli'))
-    tags.push('cli-tool')
+    tags.push('cli-tool');
 
-  return [...new Set(tags)]
+  return [...new Set(tags)];
 }

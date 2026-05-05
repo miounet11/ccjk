@@ -1,5 +1,5 @@
-import { logger } from './logger';
 import type { DaemonManager } from './manager';
+import { logger } from './logger';
 
 /**
  * Device switcher for seamless control handoff
@@ -37,7 +37,8 @@ export class DeviceSwitcher {
    * Switch to remote control
    */
   async switchToRemote(): Promise<void> {
-    if (this.currentDevice === 'remote') return;
+    if (this.currentDevice === 'remote')
+      return;
 
     logger.info('Switching to remote control');
     this.currentDevice = 'remote';
@@ -58,7 +59,8 @@ export class DeviceSwitcher {
    * Switch to local control
    */
   async switchToLocal(): Promise<void> {
-    if (this.currentDevice === 'local') return;
+    if (this.currentDevice === 'local')
+      return;
 
     logger.info('Switching to local control');
     this.currentDevice = 'local';

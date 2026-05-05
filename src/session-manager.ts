@@ -8,46 +8,46 @@
  * - Session persistence and restoration
  */
 
-import type { CodeToolType } from './constants'
-import { existsSync } from 'node:fs'
-import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises'
-import { homedir } from 'node:os'
-import { join } from 'pathe'
+import type { CodeToolType } from './constants';
+import { existsSync } from 'node:fs';
+import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
+import { homedir } from 'node:os';
+import { join } from 'pathe';
 
 // ============================================================================
 // Types and Interfaces
 // ============================================================================
 
 export interface SessionHistoryEntry {
-  timestamp: Date
-  role: 'user' | 'assistant' | 'system'
-  content: string
-  tokens?: number
+  timestamp: Date;
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+  tokens?: number;
 }
 
 export interface Session {
-  id: string
-  name?: string
-  provider?: string
-  apiKey?: string
-  apiUrl?: string
-  model?: string
-  codeType?: CodeToolType
-  createdAt: Date
-  lastUsedAt: Date
-  history: SessionHistoryEntry[]
-  metadata?: Record<string, any>
+  id: string;
+  name?: string;
+  provider?: string;
+  apiKey?: string;
+  apiUrl?: string;
+  model?: string;
+  codeType?: CodeToolType;
+  createdAt: Date;
+  lastUsedAt: Date;
+  history: SessionHistoryEntry[];
+  metadata?: Record<string, any>;
 }
 
 export interface SessionListOptions {
-  sortBy?: 'name' | 'createdAt' | 'lastUsedAt'
-  order?: 'asc' | 'desc'
-  limit?: number
+  sortBy?: 'name' | 'createdAt' | 'lastUsedAt';
+  order?: 'asc' | 'desc';
+  limit?: number;
 }
 
 export interface SessionManagerOptions {
-  sessionsDir?: string
-  autoCleanupDays?: number
+  sessionsDir?: string;
+  autoCleanupDays?: number;
 }
 
 // ============================================================================
@@ -55,12 +55,12 @@ export interface SessionManagerOptions {
 // ============================================================================
 
 export class SessionManager {
-  private sessionsDir: string
-  private autoCleanupDays: number
+  private sessionsDir: string;
+  private autoCleanupDays: number;
 
   constructor(options: SessionManagerOptions = {}) {
-    this.sessionsDir = options.sessionsDir || join(homedir(), '.ccjk', 'sessions')
-    this.autoCleanupDays = options.autoCleanupDays || 30
+    this.sessionsDir = options.sessionsDir || join(homedir(), '.ccjk', 'sessions');
+    this.autoCleanupDays = options.autoCleanupDays || 30;
   }
 
   /**
@@ -68,7 +68,7 @@ export class SessionManager {
    */
   private async ensureSessionsDir(): Promise<void> {
     if (!existsSync(this.sessionsDir)) {
-      await mkdir(this.sessionsDir, { recursive: true })
+      await mkdir(this.sessionsDir, { recursive: true });
     }
   }
 
@@ -76,14 +76,14 @@ export class SessionManager {
    * Generate unique session ID
    */
   private generateSessionId(): string {
-    return `session-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
+    return `session-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
   }
 
   /**
    * Get session file path
    */
   private getSessionPath(sessionId: string): string {
-    return join(this.sessionsDir, `${sessionId}.json`)
+    return join(this.sessionsDir, `${sessionId}.json`);
   }
 
   /**
@@ -94,13 +94,13 @@ export class SessionManager {
     provider?: string,
     apiKey?: string,
     options?: {
-      apiUrl?: string
-      model?: string
-      codeType?: CodeToolType
-      metadata?: Record<string, any>
+      apiUrl?: string;
+      model?: string;
+      codeType?: CodeToolType;
+      metadata?: Record<string, any>;
     },
   ): Promise<Session> {
-    await this.ensureSessionsDir()
+    await this.ensureSessionsDir();
 
     const session: Session = {
       id: this.generateSessionId(),
@@ -114,19 +114,19 @@ export class SessionManager {
       lastUsedAt: new Date(),
       history: [],
       metadata: options?.metadata,
-    }
+    };
 
-    await this.saveSession(session)
-    return session
+    await this.saveSession(session);
+    return session;
   }
 
   /**
    * Save session to storage
    */
   async saveSession(session: Session): Promise<void> {
-    await this.ensureSessionsDir()
+    await this.ensureSessionsDir();
 
-    const sessionPath = this.getSessionPath(session.id)
+    const sessionPath = this.getSessionPath(session.id);
     const sessionData = {
       ...session,
       createdAt: session.createdAt.toISOString(),
@@ -135,35 +135,35 @@ export class SessionManager {
         ...entry,
         timestamp: entry.timestamp.toISOString(),
       })),
-    }
+    };
 
-    await writeFile(sessionPath, JSON.stringify(sessionData, null, 2), 'utf-8')
+    await writeFile(sessionPath, JSON.stringify(sessionData, null, 2), 'utf-8');
   }
 
   /**
    * Load session by ID or name
    */
   async loadSession(nameOrId: string): Promise<Session | null> {
-    await this.ensureSessionsDir()
+    await this.ensureSessionsDir();
 
     // Try to load by ID first
-    let sessionPath = this.getSessionPath(nameOrId)
+    let sessionPath = this.getSessionPath(nameOrId);
 
     if (!existsSync(sessionPath)) {
       // Try to find by name
-      const sessions = await this.listSessions()
-      const found = sessions.find(s => s.name === nameOrId)
+      const sessions = await this.listSessions();
+      const found = sessions.find(s => s.name === nameOrId);
 
       if (!found) {
-        return null
+        return null;
       }
 
-      sessionPath = this.getSessionPath(found.id)
+      sessionPath = this.getSessionPath(found.id);
     }
 
     try {
-      const content = await readFile(sessionPath, 'utf-8')
-      const data = JSON.parse(content)
+      const content = await readFile(sessionPath, 'utf-8');
+      const data = JSON.parse(content);
 
       return {
         ...data,
@@ -173,11 +173,11 @@ export class SessionManager {
           ...entry,
           timestamp: new Date(entry.timestamp),
         })),
-      }
+      };
     }
     catch (error) {
-      console.error(`Failed to load session ${nameOrId}:`, error)
-      return null
+      console.error(`Failed to load session ${nameOrId}:`, error);
+      return null;
     }
   }
 
@@ -185,18 +185,18 @@ export class SessionManager {
    * List all sessions
    */
   async listSessions(options: SessionListOptions = {}): Promise<Session[]> {
-    await this.ensureSessionsDir()
+    await this.ensureSessionsDir();
 
     try {
-      const files = await readdir(this.sessionsDir)
-      const sessionFiles = files.filter(f => f.endsWith('.json'))
+      const files = await readdir(this.sessionsDir);
+      const sessionFiles = files.filter(f => f.endsWith('.json'));
 
-      const sessions: Session[] = []
+      const sessions: Session[] = [];
       for (const file of sessionFiles) {
-        const sessionPath = join(this.sessionsDir, file)
+        const sessionPath = join(this.sessionsDir, file);
         try {
-          const content = await readFile(sessionPath, 'utf-8')
-          const data = JSON.parse(content)
+          const content = await readFile(sessionPath, 'utf-8');
+          const data = JSON.parse(content);
 
           sessions.push({
             ...data,
@@ -206,43 +206,43 @@ export class SessionManager {
               ...entry,
               timestamp: new Date(entry.timestamp),
             })),
-          })
+          });
         }
         catch (error) {
-          console.error(`Failed to load session file ${file}:`, error)
+          console.error(`Failed to load session file ${file}:`, error);
         }
       }
 
       // Sort sessions
-      const sortBy = options.sortBy || 'lastUsedAt'
-      const order = options.order || 'desc'
+      const sortBy = options.sortBy || 'lastUsedAt';
+      const order = options.order || 'desc';
 
       sessions.sort((a, b) => {
-        let comparison = 0
+        let comparison = 0;
 
         if (sortBy === 'name') {
-          comparison = (a.name || a.id).localeCompare(b.name || b.id)
+          comparison = (a.name || a.id).localeCompare(b.name || b.id);
         }
         else if (sortBy === 'createdAt') {
-          comparison = a.createdAt.getTime() - b.createdAt.getTime()
+          comparison = a.createdAt.getTime() - b.createdAt.getTime();
         }
         else if (sortBy === 'lastUsedAt') {
-          comparison = a.lastUsedAt.getTime() - b.lastUsedAt.getTime()
+          comparison = a.lastUsedAt.getTime() - b.lastUsedAt.getTime();
         }
 
-        return order === 'asc' ? comparison : -comparison
-      })
+        return order === 'asc' ? comparison : -comparison;
+      });
 
       // Apply limit
       if (options.limit && options.limit > 0) {
-        return sessions.slice(0, options.limit)
+        return sessions.slice(0, options.limit);
       }
 
-      return sessions
+      return sessions;
     }
     catch (error) {
-      console.error('Failed to list sessions:', error)
-      return []
+      console.error('Failed to list sessions:', error);
+      return [];
     }
   }
 
@@ -250,22 +250,22 @@ export class SessionManager {
    * Delete session by ID or name
    */
   async deleteSession(nameOrId: string): Promise<boolean> {
-    const session = await this.loadSession(nameOrId)
+    const session = await this.loadSession(nameOrId);
 
     if (!session) {
-      return false
+      return false;
     }
 
-    const sessionPath = this.getSessionPath(session.id)
+    const sessionPath = this.getSessionPath(session.id);
 
     try {
-      const fs = await import('node:fs/promises')
-      await fs.unlink(sessionPath)
-      return true
+      const fs = await import('node:fs/promises');
+      await fs.unlink(sessionPath);
+      return true;
     }
     catch (error) {
-      console.error(`Failed to delete session ${nameOrId}:`, error)
-      return false
+      console.error(`Failed to delete session ${nameOrId}:`, error);
+      return false;
     }
   }
 
@@ -273,17 +273,17 @@ export class SessionManager {
    * Rename session
    */
   async renameSession(oldName: string, newName: string): Promise<boolean> {
-    const session = await this.loadSession(oldName)
+    const session = await this.loadSession(oldName);
 
     if (!session) {
-      return false
+      return false;
     }
 
-    session.name = newName
-    session.lastUsedAt = new Date()
+    session.name = newName;
+    session.lastUsedAt = new Date();
 
-    await this.saveSession(session)
-    return true
+    await this.saveSession(session);
+    return true;
   }
 
   /**
@@ -295,10 +295,10 @@ export class SessionManager {
     content: string,
     tokens?: number,
   ): Promise<boolean> {
-    const session = await this.loadSession(sessionId)
+    const session = await this.loadSession(sessionId);
 
     if (!session) {
-      return false
+      return false;
     }
 
     session.history.push({
@@ -306,11 +306,11 @@ export class SessionManager {
       role,
       content,
       tokens,
-    })
+    });
 
-    session.lastUsedAt = new Date()
-    await this.saveSession(session)
-    return true
+    session.lastUsedAt = new Date();
+    await this.saveSession(session);
+    return true;
   }
 
   /**
@@ -320,63 +320,63 @@ export class SessionManager {
     sessionId: string,
     updates: Partial<Omit<Session, 'id' | 'createdAt' | 'history'>>,
   ): Promise<boolean> {
-    const session = await this.loadSession(sessionId)
+    const session = await this.loadSession(sessionId);
 
     if (!session) {
-      return false
+      return false;
     }
 
-    Object.assign(session, updates)
-    session.lastUsedAt = new Date()
+    Object.assign(session, updates);
+    session.lastUsedAt = new Date();
 
-    await this.saveSession(session)
-    return true
+    await this.saveSession(session);
+    return true;
   }
 
   /**
    * Clean up old sessions (older than autoCleanupDays)
    */
   async cleanupOldSessions(): Promise<number> {
-    const sessions = await this.listSessions()
-    const cutoffDate = new Date()
-    cutoffDate.setDate(cutoffDate.getDate() - this.autoCleanupDays)
+    const sessions = await this.listSessions();
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - this.autoCleanupDays);
 
-    let deletedCount = 0
+    let deletedCount = 0;
 
     for (const session of sessions) {
       if (session.lastUsedAt < cutoffDate) {
-        const deleted = await this.deleteSession(session.id)
+        const deleted = await this.deleteSession(session.id);
         if (deleted) {
-          deletedCount++
+          deletedCount++;
         }
       }
     }
 
-    return deletedCount
+    return deletedCount;
   }
 
   /**
    * Get session statistics
    */
   async getStatistics(): Promise<{
-    totalSessions: number
-    totalHistoryEntries: number
-    oldestSession?: Date
-    newestSession?: Date
-    mostRecentlyUsed?: Date
+    totalSessions: number;
+    totalHistoryEntries: number;
+    oldestSession?: Date;
+    newestSession?: Date;
+    mostRecentlyUsed?: Date;
   }> {
-    const sessions = await this.listSessions()
+    const sessions = await this.listSessions();
 
     if (sessions.length === 0) {
       return {
         totalSessions: 0,
         totalHistoryEntries: 0,
-      }
+      };
     }
 
-    const totalHistoryEntries = sessions.reduce((sum, s) => sum + s.history.length, 0)
-    const sortedByCreated = [...sessions].sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
-    const sortedByUsed = [...sessions].sort((a, b) => b.lastUsedAt.getTime() - a.lastUsedAt.getTime())
+    const totalHistoryEntries = sessions.reduce((sum, s) => sum + s.history.length, 0);
+    const sortedByCreated = [...sessions].sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+    const sortedByUsed = [...sessions].sort((a, b) => b.lastUsedAt.getTime() - a.lastUsedAt.getTime());
 
     return {
       totalSessions: sessions.length,
@@ -384,20 +384,20 @@ export class SessionManager {
       oldestSession: sortedByCreated[0]?.createdAt,
       newestSession: sortedByCreated[sortedByCreated.length - 1]?.createdAt,
       mostRecentlyUsed: sortedByUsed[0]?.lastUsedAt,
-    }
+    };
   }
 
   /**
    * Export session to JSON
    */
   async exportSession(sessionId: string): Promise<string | null> {
-    const session = await this.loadSession(sessionId)
+    const session = await this.loadSession(sessionId);
 
     if (!session) {
-      return null
+      return null;
     }
 
-    return JSON.stringify(session, null, 2)
+    return JSON.stringify(session, null, 2);
   }
 
   /**
@@ -405,7 +405,7 @@ export class SessionManager {
    */
   async importSession(jsonData: string): Promise<Session | null> {
     try {
-      const data = JSON.parse(jsonData)
+      const data = JSON.parse(jsonData);
 
       // Generate new ID to avoid conflicts
       const session: Session = {
@@ -417,14 +417,14 @@ export class SessionManager {
           ...entry,
           timestamp: new Date(entry.timestamp),
         })),
-      }
+      };
 
-      await this.saveSession(session)
-      return session
+      await this.saveSession(session);
+      return session;
     }
     catch (error) {
-      console.error('Failed to import session:', error)
-      return null
+      console.error('Failed to import session:', error);
+      return null;
     }
   }
 }
@@ -433,21 +433,21 @@ export class SessionManager {
 // Singleton Instance
 // ============================================================================
 
-let sessionManagerInstance: SessionManager | null = null
+let sessionManagerInstance: SessionManager | null = null;
 
 /**
  * Get singleton session manager instance
  */
 export function getSessionManager(options?: SessionManagerOptions): SessionManager {
   if (!sessionManagerInstance) {
-    sessionManagerInstance = new SessionManager(options)
+    sessionManagerInstance = new SessionManager(options);
   }
-  return sessionManagerInstance
+  return sessionManagerInstance;
 }
 
 /**
  * Reset singleton instance (mainly for testing)
  */
 export function resetSessionManager(): void {
-  sessionManagerInstance = null
+  sessionManagerInstance = null;
 }

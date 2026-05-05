@@ -1,30 +1,42 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const getApiProvidersAsync = vi.fn()
-const getClaudeApiConfig = vi.fn()
-const setClaudeApiConfig = vi.fn()
-const setMyclaudeProviderProfiles = vi.fn()
-const readClavueConfig = vi.fn()
-const readJsonConfig = vi.fn()
-const ensureI18nInitialized = vi.fn()
+const getApiProvidersAsync = vi.fn();
+const getClaudeApiConfig = vi.fn();
+const setClaudeApiConfig = vi.fn();
+const setMyclaudeProviderProfiles = vi.fn();
+const readClavueConfig = vi.fn();
+const readJsonConfig = vi.fn();
+const readCodexConfig = vi.fn();
+const addProviderToExisting = vi.fn();
+const switchToProvider = vi.fn();
+const ensureI18nInitialized = vi.fn();
 
 vi.mock('../../src/config/api-providers', () => ({
   getApiProvidersAsync,
-}))
+}));
 
 vi.mock('../../src/config/unified/claude-config', () => ({
   getApiConfig: getClaudeApiConfig,
   setApiConfig: setClaudeApiConfig,
-}))
+}));
 
 vi.mock('../../src/utils/claude-config', () => ({
   readClavueConfig,
   setMyclaudeProviderProfiles,
-}))
+}));
 
 vi.mock('../../src/utils/json-config', () => ({
   readJsonConfig,
-}))
+}));
+
+vi.mock('../../src/utils/code-tools/codex', () => ({
+  readCodexConfig,
+  switchToProvider,
+}));
+
+vi.mock('../../src/utils/code-tools/codex-provider-manager', () => ({
+  addProviderToExisting,
+}));
 
 vi.mock('../../src/i18n', () => ({
   ensureI18nInitialized,
@@ -32,7 +44,7 @@ vi.mock('../../src/i18n', () => ({
     language: 'en',
     t: vi.fn((key: string) => key),
   },
-}))
+}));
 
 vi.mock('ansis', () => ({
   default: {
@@ -45,7 +57,7 @@ vi.mock('ansis', () => ({
     red: (value: string) => value,
     yellow: (value: string) => value,
   },
-}))
+}));
 
 const glmProvider = {
   id: 'glm',
@@ -56,7 +68,7 @@ const glmProvider = {
     authType: 'auth_token',
     defaultModels: ['glm-4.6', 'glm-4.5-air', 'glm-4.6', 'glm-z1-air'],
   },
-}
+};
 
 const exactProvider = {
   id: 'exact',
@@ -72,24 +84,38 @@ const exactProvider = {
       'Claude-Opus-4.6',
     ],
   },
-}
+};
+
+const codexProvider = {
+  id: '302.ai',
+  name: '302 AI',
+  supportedCodeTools: ['codex'],
+  codex: {
+    baseUrl: 'https://api.302.ai/v1',
+    wireApi: 'responses',
+    defaultModel: 'gpt-5.3-codex-spark',
+  },
+};
 
 describe('config api command', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
-    getApiProvidersAsync.mockResolvedValue([glmProvider])
-    getClaudeApiConfig.mockReturnValue(null)
-    readClavueConfig.mockReturnValue(null)
-    readJsonConfig.mockReturnValue(null)
-  })
+    vi.clearAllMocks();
+    getApiProvidersAsync.mockResolvedValue([glmProvider]);
+    getClaudeApiConfig.mockReturnValue(null);
+    readClavueConfig.mockReturnValue(null);
+    readJsonConfig.mockReturnValue(null);
+    readCodexConfig.mockReturnValue(null);
+    addProviderToExisting.mockResolvedValue({ success: true });
+    switchToProvider.mockResolvedValue(true);
+  });
 
   it('writes Clavue custom API provider profiles with model routing slots', async () => {
-    const { apiCommand } = await import('../../src/commands/config/api')
-    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+    const { apiCommand } = await import('../../src/commands/config/api');
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
-    await apiCommand(['glm', 'sk-test'], { codeType: 'clavue' })
+    await apiCommand(['glm', 'sk-test'], { codeType: 'clavue' });
 
-    expect(setClaudeApiConfig).not.toHaveBeenCalled()
+    expect(setClaudeApiConfig).not.toHaveBeenCalled();
     expect(setMyclaudeProviderProfiles).toHaveBeenCalledWith([
       expect.objectContaining({
         id: 'glm',
@@ -102,19 +128,19 @@ describe('config api command', () => {
         defaultSonnetModel: 'glm-4.6',
         defaultOpusModel: 'glm-z1-air',
       }),
-    ], 'glm')
+    ], 'glm');
 
-    const output = logSpy.mock.calls.flat().join('\n')
-    expect(output).toContain('Clavue')
-    expect(output).not.toContain('use Claude Code with the configured provider')
-    logSpy.mockRestore()
-  })
+    const output = logSpy.mock.calls.flat().join('\n');
+    expect(output).toContain('Clavue');
+    expect(output).not.toContain('use Claude Code with the configured provider');
+    logSpy.mockRestore();
+  });
 
   it('keeps Clavue provider default model slots as exact IDs without fuzzy matching', async () => {
-    getApiProvidersAsync.mockResolvedValue([exactProvider])
-    const { apiCommand } = await import('../../src/commands/config/api')
+    getApiProvidersAsync.mockResolvedValue([exactProvider]);
+    const { apiCommand } = await import('../../src/commands/config/api');
 
-    await apiCommand(['exact', 'sk-test'], { codeType: 'clavue' })
+    await apiCommand(['exact', 'sk-test'], { codeType: 'clavue' });
 
     expect(setMyclaudeProviderProfiles).toHaveBeenCalledWith([
       expect.objectContaining({
@@ -125,12 +151,32 @@ describe('config api command', () => {
         defaultSonnetModel: 'MiniMax-M2',
         defaultOpusModel: 'Claude-Opus-4.6',
       }),
-    ], 'exact')
-  })
+    ], 'exact');
+  });
+
+  it('writes Codex provider config and switches active provider', async () => {
+    getApiProvidersAsync.mockResolvedValue([codexProvider]);
+    const { apiCommand } = await import('../../src/commands/config/api');
+
+    await apiCommand(['302.ai', 'sk-302'], { codeType: 'codex' });
+
+    expect(addProviderToExisting).toHaveBeenCalledWith(expect.objectContaining({
+      id: '302-ai',
+      name: '302 AI',
+      baseUrl: 'https://api.302.ai/v1',
+      wireApi: 'responses',
+      tempEnvKey: '302_AI_API_KEY',
+      requiresOpenaiAuth: false,
+      model: 'gpt-5.3-codex-spark',
+    }), 'sk-302', true);
+    expect(switchToProvider).toHaveBeenCalledWith('302-ai');
+    expect(setClaudeApiConfig).not.toHaveBeenCalled();
+    expect(setMyclaudeProviderProfiles).not.toHaveBeenCalled();
+  });
 
   it('shows Clavue current API from native provider profile credentials', async () => {
-    const { apiCommand } = await import('../../src/commands/config/api')
-    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+    const { apiCommand } = await import('../../src/commands/config/api');
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
     readClavueConfig.mockReturnValue({
       clavueActiveProviderProfileId: 'ccjk-glm',
@@ -143,7 +189,7 @@ describe('config api command', () => {
           authType: 'auth_token',
         },
       ],
-    })
+    });
     readJsonConfig.mockReturnValue({
       providerProfiles: {
         'ccjk-glm': {
@@ -151,19 +197,19 @@ describe('config api command', () => {
           authType: 'auth_token',
         },
       },
-    })
+    });
 
-    await apiCommand([], { codeType: 'clavue', show: true })
+    await apiCommand([], { codeType: 'clavue', show: true });
 
-    const output = logSpy.mock.calls.flat().join('\n')
-    expect(output).toContain('Base URL:')
-    expect(output).toContain('https://open.bigmodel.cn/api/anthropic')
-    expect(output).toContain('Auth Type:')
-    expect(output).toContain('auth_token')
-    expect(output).toContain('sk-t...1234')
-    expect(output).toContain('Provider:')
-    expect(output).toContain('GLM')
+    const output = logSpy.mock.calls.flat().join('\n');
+    expect(output).toContain('Base URL:');
+    expect(output).toContain('https://open.bigmodel.cn/api/anthropic');
+    expect(output).toContain('Auth Type:');
+    expect(output).toContain('auth_token');
+    expect(output).toContain('sk-t...1234');
+    expect(output).toContain('Provider:');
+    expect(output).toContain('GLM');
 
-    logSpy.mockRestore()
-  })
-})
+    logSpy.mockRestore();
+  });
+});

@@ -4,11 +4,11 @@
  * Demonstrates how to use the multi-agent orchestration system
  */
 
-import type { Task } from '../types/agent.js'
-import { MultiAgentOrchestrator } from './multi-agent-orchestrator.js'
+import type { Task } from '../types/agent.js';
+import { MultiAgentOrchestrator } from './multi-agent-orchestrator.js';
 
 async function example() {
-  const orchestrator = new MultiAgentOrchestrator()
+  const orchestrator = new MultiAgentOrchestrator();
 
   // Example 1: Simple task
   const simpleTasks: Task[] = [{
@@ -17,12 +17,12 @@ async function example() {
     complexity: 3,
     priority: 5,
     requiredCapabilities: ['typescript', 'cli-architecture'],
-  }]
+  }];
 
-  console.log('Executing simple task...')
-  const simpleResult = orchestrator.orchestrate(simpleTasks)
-  console.log('Simple task result:', simpleResult)
-  console.log('Stats:', orchestrator.getStats(simpleResult))
+  console.log('Executing simple task...');
+  const simpleResult = orchestrator.orchestrate(simpleTasks);
+  console.log('Simple task result:', simpleResult);
+  console.log('Stats:', orchestrator.getStats(simpleResult));
 
   // Example 2: Medium complexity task
   const mediumTasks: Task[] = [{
@@ -31,12 +31,12 @@ async function example() {
     complexity: 5,
     priority: 8,
     requiredCapabilities: ['typescript', 'internationalization', 'i18next'],
-  }]
+  }];
 
-  console.log('\nExecuting medium task...')
-  const mediumResult = orchestrator.orchestrate(mediumTasks)
-  console.log('Medium task result:', mediumResult)
-  console.log('Stats:', orchestrator.getStats(mediumResult))
+  console.log('\nExecuting medium task...');
+  const mediumResult = orchestrator.orchestrate(mediumTasks);
+  console.log('Medium task result:', mediumResult);
+  console.log('Stats:', orchestrator.getStats(mediumResult));
 
   // Example 3: Complex task with multiple phases
   const complexTasks: Task[] = [
@@ -61,17 +61,17 @@ async function example() {
       priority: 5,
       requiredCapabilities: ['testing', 'vitest'],
     },
-  ]
+  ];
 
-  console.log('\nExecuting complex tasks...')
-  const complexResult = orchestrator.orchestrate(complexTasks)
-  console.log('Complex task result:', complexResult)
-  console.log('Stats:', orchestrator.getStats(complexResult))
+  console.log('\nExecuting complex tasks...');
+  const complexResult = orchestrator.orchestrate(complexTasks);
+  console.log('Complex task result:', complexResult);
+  console.log('Stats:', orchestrator.getStats(complexResult));
 }
 
 // Run example if executed directly
 if (typeof process !== 'undefined' && process.argv[1] && process.argv[1].includes('example')) {
-  example().catch(console.error)
+  example().catch(console.error);
 }
 
-export { example }
+export { example };

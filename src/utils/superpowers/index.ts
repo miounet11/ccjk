@@ -13,13 +13,13 @@ export {
   syncSkillsFromCloud,
   uploadSkillToCloud,
   writeCloudSyncConfig,
-} from './cloud-sync'
+} from './cloud-sync';
 
 export type {
   CloudSyncOptions,
   CloudSyncResult,
   SkillUpdate,
-} from './cloud-sync'
+} from './cloud-sync';
 
 export {
   checkSuperpowersInstalled,
@@ -30,10 +30,10 @@ export {
   installSuperpowersViaGit,
   uninstallSuperpowers,
   updateSuperpowers,
-} from './installer'
+} from './installer';
 
 export type {
   SuperpowersInstallOptions,
   SuperpowersInstallResult,
   SuperpowersStatus,
-} from './installer'
+} from './installer';

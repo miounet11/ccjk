@@ -4,10 +4,10 @@
  * Interactive menu for managing CLAUDE.md context files
  */
 
-import type { ContextFile, ContextProjectInfo, ContextRule } from '../utils/context-manager'
-import ansis from 'ansis'
-import inquirer from 'inquirer'
-import { i18n } from '../i18n'
+import type { ContextFile, ContextProjectInfo, ContextRule } from '../utils/context-manager';
+import ansis from 'ansis';
+import inquirer from 'inquirer';
+import { i18n } from '../i18n';
 import {
   detectProjectContext,
   formatFileSize,
@@ -20,7 +20,7 @@ import {
   mergeContextContent,
   readContextFile,
   writeContextFile,
-} from '../utils/context-manager'
+} from '../utils/context-manager';
 
 // ============================================================================
 // Main Menu
@@ -30,14 +30,14 @@ import {
  * Show context management menu
  */
 export async function showContextMenu(): Promise<void> {
-  const lang = i18n.language as 'en' | 'zh-CN'
-  const isZh = lang === 'zh-CN'
+  const lang = i18n.language as 'en' | 'zh-CN';
+  const isZh = lang === 'zh-CN';
 
-  console.log(ansis.green.bold(`\n📋 ${isZh ? '上下文管理' : 'Context Management'}\n`))
+  console.log(ansis.green.bold(`\n📋 ${isZh ? '上下文管理' : 'Context Management'}\n`));
 
   // Detect project context
-  const context = detectProjectContext()
-  displayProjectInfo(context, lang)
+  const context = detectProjectContext();
+  displayProjectInfo(context, lang);
 
   // Show menu options
   const { action } = await inquirer.prompt<{ action: string }>([
@@ -68,28 +68,28 @@ export async function showContextMenu(): Promise<void> {
         },
       ],
     },
-  ])
+  ]);
 
   switch (action) {
     case 'view':
-      await viewContextFiles(lang)
-      break
+      await viewContextFiles(lang);
+      break;
     case 'generate':
-      await generateContextRules(context, lang)
-      break
+      await generateContextRules(context, lang);
+      break;
     case 'add':
-      await addRulesToContext(context, lang)
-      break
+      await addRulesToContext(context, lang);
+      break;
     case 'browse':
-      await browseRules(context, lang)
-      break
+      await browseRules(context, lang);
+      break;
     case 'back':
-      return
+      return;
   }
 
   // Show menu again unless user chose to go back
   if (action !== 'back') {
-    await showContextMenu()
+    await showContextMenu();
   }
 }
 
@@ -101,61 +101,61 @@ export async function showContextMenu(): Promise<void> {
  * Display detected project information
  */
 function displayProjectInfo(context: ContextProjectInfo, lang: 'en' | 'zh-CN'): void {
-  const isZh = lang === 'zh-CN'
+  const isZh = lang === 'zh-CN';
 
-  console.log(ansis.dim('─'.repeat(50)))
-  console.log(ansis.bold(isZh ? '检测到的项目信息：' : 'Detected Project Info:'))
+  console.log(ansis.dim('─'.repeat(50)));
+  console.log(ansis.bold(isZh ? '检测到的项目信息：' : 'Detected Project Info:'));
 
-  const typeLabel = getProjectTypeLabel(context.type, lang)
-  console.log(`  ${isZh ? '类型' : 'Type'}: ${ansis.green(typeLabel)}`)
-  console.log(`  ${isZh ? '语言' : 'Language'}: ${ansis.green(context.language)}`)
+  const typeLabel = getProjectTypeLabel(context.type, lang);
+  console.log(`  ${isZh ? '类型' : 'Type'}: ${ansis.green(typeLabel)}`);
+  console.log(`  ${isZh ? '语言' : 'Language'}: ${ansis.green(context.language)}`);
 
   if (context.framework) {
-    console.log(`  ${isZh ? '框架' : 'Framework'}: ${ansis.green(context.framework)}`)
+    console.log(`  ${isZh ? '框架' : 'Framework'}: ${ansis.green(context.framework)}`);
   }
 
   if (context.packageManager) {
-    console.log(`  ${isZh ? '包管理器' : 'Package Manager'}: ${ansis.green(context.packageManager)}`)
+    console.log(`  ${isZh ? '包管理器' : 'Package Manager'}: ${ansis.green(context.packageManager)}`);
   }
 
-  const features: string[] = []
+  const features: string[] = [];
   if (context.hasTests)
-    features.push(isZh ? '测试' : 'Tests')
+    features.push(isZh ? '测试' : 'Tests');
   if (context.hasDocker)
-    features.push('Docker')
+    features.push('Docker');
   if (context.hasCi)
-    features.push('CI/CD')
+    features.push('CI/CD');
   if (context.monorepo)
-    features.push('Monorepo')
+    features.push('Monorepo');
 
   if (features.length > 0) {
-    console.log(`  ${isZh ? '特性' : 'Features'}: ${ansis.green(features.join(', '))}`)
+    console.log(`  ${isZh ? '特性' : 'Features'}: ${ansis.green(features.join(', '))}`);
   }
 
-  console.log(ansis.dim('─'.repeat(50)))
-  console.log('')
+  console.log(ansis.dim('─'.repeat(50)));
+  console.log('');
 }
 
 /**
  * Display context file information
  */
 function displayContextFile(file: ContextFile, lang: 'en' | 'zh-CN'): void {
-  const isZh = lang === 'zh-CN'
-  const typeLabel = getContextFileTypeLabel(file.type, lang)
-  const statusIcon = file.exists ? ansis.green('✓') : ansis.dim('○')
+  const isZh = lang === 'zh-CN';
+  const typeLabel = getContextFileTypeLabel(file.type, lang);
+  const statusIcon = file.exists ? ansis.green('✓') : ansis.dim('○');
 
-  console.log(`  ${statusIcon} ${ansis.bold(typeLabel)}`)
-  console.log(`     ${ansis.dim(file.path)}`)
+  console.log(`  ${statusIcon} ${ansis.bold(typeLabel)}`);
+  console.log(`     ${ansis.dim(file.path)}`);
 
   if (file.exists && file.size !== undefined) {
-    const sizeStr = formatFileSize(file.size)
+    const sizeStr = formatFileSize(file.size);
     const dateStr = file.lastModified
       ? file.lastModified.toLocaleDateString()
-      : isZh ? '未知' : 'Unknown'
-    console.log(`     ${ansis.dim(`${sizeStr} | ${isZh ? '修改于' : 'Modified'}: ${dateStr}`)}`)
+      : isZh ? '未知' : 'Unknown';
+    console.log(`     ${ansis.dim(`${sizeStr} | ${isZh ? '修改于' : 'Modified'}: ${dateStr}`)}`);
   }
   else if (!file.exists) {
-    console.log(`     ${ansis.dim(isZh ? '(不存在)' : '(not exists)')}`)
+    console.log(`     ${ansis.dim(isZh ? '(不存在)' : '(not exists)')}`);
   }
 }
 
@@ -167,18 +167,18 @@ function displayContextFile(file: ContextFile, lang: 'en' | 'zh-CN'): void {
  * View all context files
  */
 async function viewContextFiles(lang: 'en' | 'zh-CN'): Promise<void> {
-  const isZh = lang === 'zh-CN'
-  const files = getContextFiles()
+  const isZh = lang === 'zh-CN';
+  const files = getContextFiles();
 
-  console.log(ansis.green.bold(`\n📁 ${isZh ? '上下文文件' : 'Context Files'}\n`))
+  console.log(ansis.green.bold(`\n📁 ${isZh ? '上下文文件' : 'Context Files'}\n`));
 
   for (const file of files) {
-    displayContextFile(file, lang)
-    console.log('')
+    displayContextFile(file, lang);
+    console.log('');
   }
 
   // Ask if user wants to view content of any file
-  const existingFiles = files.filter(f => f.exists)
+  const existingFiles = files.filter(f => f.exists);
 
   if (existingFiles.length > 0) {
     const { viewFile } = await inquirer.prompt<{ viewFile: string }>([
@@ -197,17 +197,17 @@ async function viewContextFiles(lang: 'en' | 'zh-CN'): Promise<void> {
           },
         ],
       },
-    ])
+    ]);
 
     if (viewFile !== 'skip') {
-      const content = readContextFile(viewFile)
+      const content = readContextFile(viewFile);
       if (content) {
-        console.log(ansis.dim(`\n${'─'.repeat(50)}`))
-        console.log(content)
-        console.log(ansis.dim(`${'─'.repeat(50)}\n`))
+        console.log(ansis.dim(`\n${'─'.repeat(50)}`));
+        console.log(content);
+        console.log(ansis.dim(`${'─'.repeat(50)}\n`));
       }
       else {
-        console.log(ansis.yellow(isZh ? '无法读取文件内容' : 'Unable to read file content'))
+        console.log(ansis.yellow(isZh ? '无法读取文件内容' : 'Unable to read file content'));
       }
     }
   }
@@ -221,13 +221,13 @@ async function viewContextFiles(lang: 'en' | 'zh-CN'): Promise<void> {
  * Auto-generate context rules based on project detection
  */
 async function generateContextRules(context: ContextProjectInfo, lang: 'en' | 'zh-CN'): Promise<void> {
-  const isZh = lang === 'zh-CN'
+  const isZh = lang === 'zh-CN';
 
-  console.log(ansis.green.bold(`\n✨ ${isZh ? '自动生成规则' : 'Auto-generate Rules'}\n`))
+  console.log(ansis.green.bold(`\n✨ ${isZh ? '自动生成规则' : 'Auto-generate Rules'}\n`));
 
   // Get recommended rules
-  const recommendedIds = getRecommendedRules(context)
-  const applicableRules = getApplicableRules(context.type)
+  const recommendedIds = getRecommendedRules(context);
+  const applicableRules = getApplicableRules(context.type);
 
   // Let user select rules with recommended ones pre-selected
   const { selectedRules } = await inquirer.prompt<{ selectedRules: string[] }>([
@@ -241,11 +241,11 @@ async function generateContextRules(context: ContextProjectInfo, lang: 'en' | 'z
         checked: recommendedIds.includes(rule.id),
       })),
     },
-  ])
+  ]);
 
   if (selectedRules.length === 0) {
-    console.log(ansis.yellow(isZh ? '未选择任何规则' : 'No rules selected'))
-    return
+    console.log(ansis.yellow(isZh ? '未选择任何规则' : 'No rules selected'));
+    return;
   }
 
   // Ask where to save
@@ -270,15 +270,15 @@ async function generateContextRules(context: ContextProjectInfo, lang: 'en' | 'z
       ],
       default: 'project',
     },
-  ])
+  ]);
 
   // Get target file path
-  const files = getContextFiles()
-  const targetFile = files.find(f => f.type === location)
+  const files = getContextFiles();
+  const targetFile = files.find(f => f.type === location);
 
   if (!targetFile) {
-    console.log(ansis.red(isZh ? '无法确定目标路径' : 'Unable to determine target path'))
-    return
+    console.log(ansis.red(isZh ? '无法确定目标路径' : 'Unable to determine target path'));
+    return;
   }
 
   // Check if file exists
@@ -303,38 +303,38 @@ async function generateContextRules(context: ContextProjectInfo, lang: 'en' | 'z
           },
         ],
       },
-    ])
+    ]);
 
     if (overwrite === 'cancel') {
-      return
+      return;
     }
 
     if (overwrite === 'merge') {
-      const existingContent = readContextFile(targetFile.path)
+      const existingContent = readContextFile(targetFile.path);
       if (existingContent) {
-        const mergedContent = mergeContextContent(existingContent, selectedRules, lang)
-        const success = await writeContextFile(targetFile.path, mergedContent)
+        const mergedContent = mergeContextContent(existingContent, selectedRules, lang);
+        const success = await writeContextFile(targetFile.path, mergedContent);
 
         if (success) {
-          console.log(ansis.green(`\n✅ ${isZh ? '规则已合并到' : 'Rules merged to'}: ${targetFile.path}`))
+          console.log(ansis.green(`\n✅ ${isZh ? '规则已合并到' : 'Rules merged to'}: ${targetFile.path}`));
         }
         else {
-          console.log(ansis.red(`\n❌ ${isZh ? '写入失败' : 'Write failed'}`))
+          console.log(ansis.red(`\n❌ ${isZh ? '写入失败' : 'Write failed'}`));
         }
-        return
+        return;
       }
     }
   }
 
   // Generate new content
-  const content = generateContextContent(context, selectedRules, lang)
-  const success = await writeContextFile(targetFile.path, content)
+  const content = generateContextContent(context, selectedRules, lang);
+  const success = await writeContextFile(targetFile.path, content);
 
   if (success) {
-    console.log(ansis.green(`\n✅ ${isZh ? '已生成' : 'Generated'}: ${targetFile.path}`))
+    console.log(ansis.green(`\n✅ ${isZh ? '已生成' : 'Generated'}: ${targetFile.path}`));
   }
   else {
-    console.log(ansis.red(`\n❌ ${isZh ? '写入失败' : 'Write failed'}`))
+    console.log(ansis.red(`\n❌ ${isZh ? '写入失败' : 'Write failed'}`));
   }
 }
 
@@ -346,11 +346,11 @@ async function generateContextRules(context: ContextProjectInfo, lang: 'en' | 'z
  * Add specific rules to context file
  */
 async function addRulesToContext(context: ContextProjectInfo, lang: 'en' | 'zh-CN'): Promise<void> {
-  const isZh = lang === 'zh-CN'
+  const isZh = lang === 'zh-CN';
 
-  console.log(ansis.green.bold(`\n📝 ${isZh ? '添加规则' : 'Add Rules'}\n`))
+  console.log(ansis.green.bold(`\n📝 ${isZh ? '添加规则' : 'Add Rules'}\n`));
 
-  const applicableRules = getApplicableRules(context.type)
+  const applicableRules = getApplicableRules(context.type);
 
   // Let user select rules
   const { selectedRules } = await inquirer.prompt<{ selectedRules: string[] }>([
@@ -363,18 +363,18 @@ async function addRulesToContext(context: ContextProjectInfo, lang: 'en' | 'zh-C
         value: rule.id,
       })),
     },
-  ])
+  ]);
 
   if (selectedRules.length === 0) {
-    console.log(ansis.yellow(isZh ? '未选择任何规则' : 'No rules selected'))
-    return
+    console.log(ansis.yellow(isZh ? '未选择任何规则' : 'No rules selected'));
+    return;
   }
 
   // Ask where to save
-  const files = getContextFiles()
-  const existingFiles = files.filter(f => f.exists)
+  const files = getContextFiles();
+  const existingFiles = files.filter(f => f.exists);
 
-  let targetPath: string
+  let targetPath: string;
 
   if (existingFiles.length > 0) {
     const { target } = await inquirer.prompt<{ target: string }>([
@@ -393,7 +393,7 @@ async function addRulesToContext(context: ContextProjectInfo, lang: 'en' | 'zh-C
           },
         ],
       },
-    ])
+    ]);
 
     if (target === 'new') {
       const { location } = await inquirer.prompt<{ location: 'project' | 'local' | 'global' }>([
@@ -407,11 +407,11 @@ async function addRulesToContext(context: ContextProjectInfo, lang: 'en' | 'zh-C
             { name: `${isZh ? '全局目录' : 'Global directory'} (~/.claude/CLAUDE.md)`, value: 'global' },
           ],
         },
-      ])
-      targetPath = files.find(f => f.type === location)?.path || ''
+      ]);
+      targetPath = files.find(f => f.type === location)?.path || '';
     }
     else {
-      targetPath = target
+      targetPath = target;
     }
   }
   else {
@@ -427,33 +427,33 @@ async function addRulesToContext(context: ContextProjectInfo, lang: 'en' | 'zh-C
           { name: `${isZh ? '全局目录' : 'Global directory'} (~/.claude/CLAUDE.md)`, value: 'global' },
         ],
       },
-    ])
-    targetPath = files.find(f => f.type === location)?.path || ''
+    ]);
+    targetPath = files.find(f => f.type === location)?.path || '';
   }
 
   if (!targetPath) {
-    console.log(ansis.red(isZh ? '无法确定目标路径' : 'Unable to determine target path'))
-    return
+    console.log(ansis.red(isZh ? '无法确定目标路径' : 'Unable to determine target path'));
+    return;
   }
 
   // Read existing content or create new
-  const existingContent = readContextFile(targetPath)
+  const existingContent = readContextFile(targetPath);
 
-  let finalContent: string
+  let finalContent: string;
   if (existingContent) {
-    finalContent = mergeContextContent(existingContent, selectedRules, lang)
+    finalContent = mergeContextContent(existingContent, selectedRules, lang);
   }
   else {
-    finalContent = generateContextContent(context, selectedRules, lang)
+    finalContent = generateContextContent(context, selectedRules, lang);
   }
 
-  const success = await writeContextFile(targetPath, finalContent)
+  const success = await writeContextFile(targetPath, finalContent);
 
   if (success) {
-    console.log(ansis.green(`\n✅ ${isZh ? '规则已添加到' : 'Rules added to'}: ${targetPath}`))
+    console.log(ansis.green(`\n✅ ${isZh ? '规则已添加到' : 'Rules added to'}: ${targetPath}`));
   }
   else {
-    console.log(ansis.red(`\n❌ ${isZh ? '写入失败' : 'Write failed'}`))
+    console.log(ansis.red(`\n❌ ${isZh ? '写入失败' : 'Write failed'}`));
   }
 }
 
@@ -465,42 +465,42 @@ async function addRulesToContext(context: ContextProjectInfo, lang: 'en' | 'zh-C
  * Browse all available rules
  */
 async function browseRules(context: ContextProjectInfo, lang: 'en' | 'zh-CN'): Promise<void> {
-  const isZh = lang === 'zh-CN'
+  const isZh = lang === 'zh-CN';
 
-  console.log(ansis.green.bold(`\n📖 ${isZh ? '可用规则' : 'Available Rules'}\n`))
+  console.log(ansis.green.bold(`\n📖 ${isZh ? '可用规则' : 'Available Rules'}\n`));
 
-  const applicableRules = getApplicableRules(context.type)
+  const applicableRules = getApplicableRules(context.type);
 
   // Group by category
-  const categories: Record<string, ContextRule[]> = {}
+  const categories: Record<string, ContextRule[]> = {};
   for (const rule of applicableRules) {
     if (!categories[rule.category]) {
-      categories[rule.category] = []
+      categories[rule.category] = [];
     }
-    categories[rule.category].push(rule)
+    categories[rule.category].push(rule);
   }
 
-  const categoryLabels: Record<string, { en: string, zh: string }> = {
+  const categoryLabels: Record<string, { en: string; zh: string }> = {
     coding: { en: 'Coding Style', zh: '编码风格' },
     testing: { en: 'Testing', zh: '测试' },
     docs: { en: 'Documentation', zh: '文档' },
     workflow: { en: 'Workflow', zh: '工作流' },
     security: { en: 'Security', zh: '安全' },
-  }
+  };
 
   for (const [category, rules] of Object.entries(categories)) {
-    const label = isZh ? categoryLabels[category]?.zh : categoryLabels[category]?.en
-    console.log(ansis.bold(`\n${label || category}:`))
+    const label = isZh ? categoryLabels[category]?.zh : categoryLabels[category]?.en;
+    console.log(ansis.bold(`\n${label || category}:`));
 
     for (const rule of rules) {
-      const name = isZh ? rule.nameZh : rule.name
-      const desc = isZh ? rule.descriptionZh : rule.description
-      console.log(`  ${ansis.green('•')} ${ansis.bold(name)}`)
-      console.log(`    ${ansis.dim(desc)}`)
+      const name = isZh ? rule.nameZh : rule.name;
+      const desc = isZh ? rule.descriptionZh : rule.description;
+      console.log(`  ${ansis.green('•')} ${ansis.bold(name)}`);
+      console.log(`    ${ansis.dim(desc)}`);
     }
   }
 
-  console.log('')
+  console.log('');
 
   // Ask if user wants to view rule details
   const { viewRule } = await inquirer.prompt<{ viewRule: string }>([
@@ -519,17 +519,17 @@ async function browseRules(context: ContextProjectInfo, lang: 'en' | 'zh-CN'): P
         },
       ],
     },
-  ])
+  ]);
 
   if (viewRule !== 'skip') {
-    const rule = applicableRules.find(r => r.id === viewRule)
+    const rule = applicableRules.find(r => r.id === viewRule);
     if (rule) {
-      console.log(ansis.dim(`\n${'─'.repeat(50)}`))
-      console.log(ansis.bold(isZh ? rule.nameZh : rule.name))
-      console.log(ansis.dim(isZh ? rule.descriptionZh : rule.description))
-      console.log('')
-      console.log(isZh ? rule.contentZh : rule.content)
-      console.log(ansis.dim(`${'─'.repeat(50)}\n`))
+      console.log(ansis.dim(`\n${'─'.repeat(50)}`));
+      console.log(ansis.bold(isZh ? rule.nameZh : rule.name));
+      console.log(ansis.dim(isZh ? rule.descriptionZh : rule.description));
+      console.log('');
+      console.log(isZh ? rule.contentZh : rule.content);
+      console.log(ansis.dim(`${'─'.repeat(50)}\n`));
     }
   }
 }

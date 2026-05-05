@@ -8,9 +8,9 @@
  * - Input validation
  */
 
-import type { MenuInput, MenuItem, MenuSection } from '../types'
-import inquirer from 'inquirer'
-import { i18n } from '../../../i18n/index'
+import type { MenuInput, MenuItem, MenuSection } from '../types';
+import inquirer from 'inquirer';
+import { i18n } from '../../../i18n/index';
 
 /**
  * Valid menu input characters
@@ -55,16 +55,16 @@ const VALID_SHORTCUTS = new Set([
   '+',
   '-',
   '?',
-])
+]);
 
-const DEFAULT_GLOBAL_COMMANDS = ['0', 'q', 'b', 'back', 'm', 'more']
+const DEFAULT_GLOBAL_COMMANDS = ['0', 'q', 'b', 'back', 'm', 'more'];
 
 /**
  * Parse and validate menu input
  */
 export function parseMenuInput(raw: string): MenuInput {
-  const trimmed = raw.trim()
-  const normalized = trimmed.toLowerCase()
+  const trimmed = raw.trim();
+  const normalized = trimmed.toLowerCase();
 
   return {
     raw: trimmed,
@@ -72,7 +72,7 @@ export function parseMenuInput(raw: string): MenuInput {
     isShortcut: trimmed.length === 1 && VALID_SHORTCUTS.has(normalized),
     isNumber: /^\d+$/.test(trimmed),
     number: /^\d+$/.test(trimmed) ? Number.parseInt(trimmed, 10) : undefined,
-  }
+  };
 }
 
 /**
@@ -85,42 +85,42 @@ export function validateMenuInput(
   allowedCommands: string[] = DEFAULT_GLOBAL_COMMANDS,
 ): string | true {
   if (allowedCommands.includes(input.normalized)) {
-    return true
+    return true;
   }
 
   // Check for exit command
   if (allowedCommands.includes('q') && (input.normalized === 'q' || input.normalized === 'quit')) {
-    return true
+    return true;
   }
 
   // Check for back command
   if (allowedCommands.includes('0') && (input.normalized === '0' || input.normalized === 'b' || input.normalized === 'back')) {
-    return true
+    return true;
   }
 
   // Check for more command
   if (allowedCommands.includes('m') && (input.normalized === 'm' || input.normalized === 'more')) {
-    return true
+    return true;
   }
 
   // Check numeric input
   if (input.isNumber) {
     if (input.number! < 0 || input.number! > itemCount) {
-      return i18n.t('common:invalidChoice', 'Invalid choice')
+      return i18n.t('common:invalidChoice', 'Invalid choice');
     }
-    return true
+    return true;
   }
 
   // Check shortcut input
   if (input.isShortcut) {
-    const hasShortcut = items.some(item => item.shortcut === input.normalized)
+    const hasShortcut = items.some(item => item.shortcut === input.normalized);
     if (!hasShortcut) {
-      return i18n.t('common:invalidChoice', 'Invalid choice')
+      return i18n.t('common:invalidChoice', 'Invalid choice');
     }
-    return true
+    return true;
   }
 
-  return i18n.t('common:invalidChoice', 'Invalid choice')
+  return i18n.t('common:invalidChoice', 'Invalid choice');
 }
 
 /**
@@ -132,12 +132,12 @@ export async function promptMenuSelection(
   message?: string,
   allowedCommands: string[] = DEFAULT_GLOBAL_COMMANDS,
 ): Promise<string> {
-  const promptMessage = message || i18n.t('common:enterChoice', 'Enter your choice')
+  const promptMessage = message || i18n.t('common:enterChoice', 'Enter your choice');
 
   // Build validation regex
-  const _validShortcuts = items.map(i => i.shortcut).filter(Boolean).join('')
-  const _validNumbers = Array.from({ length: itemCount + 1 }, (_, i) => i.toString()).join('')
-  const _validChars = [...new Set([...allowedCommands, ..._validShortcuts, ..._validNumbers])].join('')
+  const _validShortcuts = items.map(i => i.shortcut).filter(Boolean).join('');
+  const _validNumbers = Array.from({ length: itemCount + 1 }, (_, i) => i.toString()).join('');
+  const _validChars = [...new Set([...allowedCommands, ..._validShortcuts, ..._validNumbers])].join('');
 
   const { choice } = await inquirer.prompt<{ choice: string }>({
     type: 'input',
@@ -145,16 +145,16 @@ export async function promptMenuSelection(
     message: promptMessage,
     validate: (value: string) => {
       if (!value || value.trim() === '') {
-        return i18n.t('common:invalidChoice', 'Please enter a choice')
+        return i18n.t('common:invalidChoice', 'Please enter a choice');
       }
 
-      const input = parseMenuInput(value)
-      const result = validateMenuInput(input, itemCount, items, allowedCommands)
-      return result
+      const input = parseMenuInput(value);
+      const result = validateMenuInput(input, itemCount, items, allowedCommands);
+      return result;
     },
-  })
+  });
 
-  return choice
+  return choice;
 }
 
 /**
@@ -166,15 +166,15 @@ export function findItemByInput(
 ): MenuItem | undefined {
   // Try numeric selection first
   if (input.isNumber && input.number! > 0) {
-    let current = 1
+    let current = 1;
     for (const section of sections) {
       if (section.collapsed)
-        continue
+        continue;
       for (const item of section.items) {
         if (current === input.number) {
-          return item
+          return item;
         }
-        current++
+        current++;
       }
     }
   }
@@ -184,62 +184,62 @@ export function findItemByInput(
     for (const section of sections) {
       for (const item of section.items) {
         if (item.shortcut === input.normalized) {
-          return item
+          return item;
         }
       }
     }
   }
 
-  return undefined
+  return undefined;
 }
 
 /**
  * Check if input is a back command
  */
 export function isBackCommand(input: MenuInput): boolean {
-  return input.normalized === '0' || input.normalized === 'b' || input.normalized === 'back'
+  return input.normalized === '0' || input.normalized === 'b' || input.normalized === 'back';
 }
 
 /**
  * Check if input is an exit command
  */
 export function isExitCommand(input: MenuInput): boolean {
-  return input.normalized === 'q' || input.normalized === 'quit' || input.normalized === 'exit'
+  return input.normalized === 'q' || input.normalized === 'quit' || input.normalized === 'exit';
 }
 
 /**
  * Check if input is a more command (show more features)
  */
 export function isMoreCommand(input: MenuInput): boolean {
-  return input.normalized === 'm' || input.normalized === 'more'
+  return input.normalized === 'm' || input.normalized === 'more';
 }
 
 /**
  * Check if input is a help command
  */
 export function isHelpCommand(input: MenuInput): boolean {
-  return input.normalized === '?' || input.normalized === 'h' || input.normalized === 'help'
+  return input.normalized === '?' || input.normalized === 'h' || input.normalized === 'help';
 }
 
 /**
  * Get all valid shortcuts from items
  */
 export function getAllShortcuts(items: MenuItem[]): string[] {
-  return items.map(item => item.shortcut).filter(Boolean) as string[]
+  return items.map(item => item.shortcut).filter(Boolean) as string[];
 }
 
 /**
  * Display input hints
  */
 export function getInputHints(items: MenuItem[]): string {
-  const shortcuts = getAllShortcuts(items)
-  const hints: string[] = []
+  const shortcuts = getAllShortcuts(items);
+  const hints: string[] = [];
 
   if (shortcuts.length > 0) {
-    hints.push(`Shortcuts: ${shortcuts.slice(0, 5).join(', ')}${shortcuts.length > 5 ? '...' : ''}`)
+    hints.push(`Shortcuts: ${shortcuts.slice(0, 5).join(', ')}${shortcuts.length > 5 ? '...' : ''}`);
   }
 
-  hints.push('0 = Back, Q = Quit')
+  hints.push('0 = Back, Q = Quit');
 
-  return hints.join(' | ')
+  return hints.join(' | ');
 }

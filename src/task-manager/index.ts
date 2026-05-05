@@ -6,10 +6,10 @@
  * @module task-manager
  */
 
-export { TaskDependencyTracker } from './dependency-tracker'
-export { TaskManager } from './task-manager'
-export { TaskScheduler } from './task-scheduler'
-export { TaskStorage } from './task-storage'
+export { TaskDependencyTracker } from './dependency-tracker';
+export { TaskManager } from './task-manager';
+export { TaskScheduler } from './task-scheduler';
+export { TaskStorage } from './task-storage';
 
 export type {
   CreateTaskOptions,
@@ -23,4 +23,4 @@ export type {
   TaskStats,
   TaskStatus,
   UpdateTaskOptions,
-} from './types'
+} from './types';

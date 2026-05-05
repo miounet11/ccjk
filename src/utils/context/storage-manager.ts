@@ -12,31 +12,31 @@ import type {
   SessionListOptions,
   SessionMeta,
   StorageStats,
-} from './storage-types'
-import { createReadStream, existsSync, readFileSync } from 'node:fs'
-import { mkdir, readdir, readFile, rename, stat, unlink, writeFile } from 'node:fs/promises'
-import { homedir, tmpdir } from 'node:os'
-import { createInterface } from 'node:readline'
-import { fileURLToPath } from 'node:url'
-import { dirname, join } from 'pathe'
-import { getProjectIdentity } from './project-hash'
+} from './storage-types';
+import { createReadStream, existsSync, readFileSync } from 'node:fs';
+import { mkdir, readdir, readFile, rename, stat, unlink, writeFile } from 'node:fs/promises';
+import { homedir, tmpdir } from 'node:os';
+import { createInterface } from 'node:readline';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'pathe';
+import { getProjectIdentity } from './project-hash';
 
 // ESM compatible __dirname
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 /**
  * Storage manager class
  * Provides atomic operations for session and log management
  */
 export class StorageManager {
-  private baseDir: string
-  private sessionsDir: string
-  private initialized = false
+  private baseDir: string;
+  private sessionsDir: string;
+  private initialized = false;
 
   constructor(baseDir?: string) {
-    this.baseDir = baseDir || join(homedir(), '.ccjk', 'context')
-    this.sessionsDir = join(this.baseDir, 'sessions')
+    this.baseDir = baseDir || join(homedir(), '.ccjk', 'context');
+    this.sessionsDir = join(this.baseDir, 'sessions');
   }
 
   /**
@@ -44,14 +44,14 @@ export class StorageManager {
    */
   async initialize(): Promise<void> {
     if (this.initialized) {
-      return
+      return;
     }
 
     // Create base directories
-    await mkdir(this.baseDir, { recursive: true })
-    await mkdir(this.sessionsDir, { recursive: true })
+    await mkdir(this.baseDir, { recursive: true });
+    await mkdir(this.sessionsDir, { recursive: true });
 
-    this.initialized = true
+    this.initialized = true;
   }
 
   /**
@@ -62,19 +62,19 @@ export class StorageManager {
    * @returns Created session
    */
   async createSession(projectPath: string, description?: string): Promise<Session> {
-    await this.initialize()
+    await this.initialize();
 
     // Get project identity
-    const identity = await getProjectIdentity(projectPath)
+    const identity = await getProjectIdentity(projectPath);
 
     // Create session ID
-    const sessionId = this.generateSessionId()
+    const sessionId = this.generateSessionId();
 
     // Create session directory structure
-    const projectDir = join(this.sessionsDir, identity.hash)
-    const sessionDir = join(projectDir, sessionId)
+    const projectDir = join(this.sessionsDir, identity.hash);
+    const sessionDir = join(projectDir, sessionId);
 
-    await mkdir(sessionDir, { recursive: true })
+    await mkdir(sessionDir, { recursive: true });
 
     // Create session metadata
     const meta: SessionMeta = {
@@ -89,27 +89,27 @@ export class StorageManager {
       version: this.getCcjkVersion(),
       description,
       lastUpdated: new Date().toISOString(),
-    }
+    };
 
     // Write metadata
-    const metaPath = join(sessionDir, 'meta.json')
-    await this.writeJsonAtomic(metaPath, meta)
+    const metaPath = join(sessionDir, 'meta.json');
+    await this.writeJsonAtomic(metaPath, meta);
 
     // Create empty FC log file
-    const fcLogPath = join(sessionDir, 'fc-log.jsonl')
-    await writeFile(fcLogPath, '', 'utf-8')
+    const fcLogPath = join(sessionDir, 'fc-log.jsonl');
+    await writeFile(fcLogPath, '', 'utf-8');
 
     // Update current session pointer
-    await this.setCurrentSession(identity.hash, sessionId)
+    await this.setCurrentSession(identity.hash, sessionId);
 
     const session: Session = {
       meta,
       path: sessionDir,
       fcLogPath,
       summaryPath: join(sessionDir, 'summary.md'),
-    }
+    };
 
-    return session
+    return session;
   }
 
   /**
@@ -120,42 +120,42 @@ export class StorageManager {
    * @returns Session or null if not found
    */
   async getSession(sessionId: string, projectHash?: string): Promise<Session | null> {
-    await this.initialize()
+    await this.initialize();
 
     try {
-      let sessionDir: string
+      let sessionDir: string;
 
       if (projectHash) {
         // Direct lookup
-        sessionDir = join(this.sessionsDir, projectHash, sessionId)
+        sessionDir = join(this.sessionsDir, projectHash, sessionId);
       }
       else {
         // Search all project directories
-        const projectDirs = await readdir(this.sessionsDir)
+        const projectDirs = await readdir(this.sessionsDir);
 
         for (const dir of projectDirs) {
-          const candidateDir = join(this.sessionsDir, dir, sessionId)
+          const candidateDir = join(this.sessionsDir, dir, sessionId);
           if (existsSync(candidateDir)) {
-            sessionDir = candidateDir
-            break
+            sessionDir = candidateDir;
+            break;
           }
         }
 
         if (!sessionDir!) {
-          return null
+          return null;
         }
       }
 
       if (!existsSync(sessionDir)) {
-        return null
+        return null;
       }
 
       // Read metadata
-      const metaPath = join(sessionDir, 'meta.json')
-      const meta = await this.readJson<SessionMeta>(metaPath)
+      const metaPath = join(sessionDir, 'meta.json');
+      const meta = await this.readJson<SessionMeta>(metaPath);
 
       if (!meta) {
-        return null
+        return null;
       }
 
       return {
@@ -163,10 +163,10 @@ export class StorageManager {
         path: sessionDir,
         fcLogPath: join(sessionDir, 'fc-log.jsonl'),
         summaryPath: join(sessionDir, 'summary.md'),
-      }
+      };
     }
     catch {
-      return null
+      return null;
     }
   }
 
@@ -176,14 +176,14 @@ export class StorageManager {
    * @param session - Session with updated metadata
    */
   async updateSession(session: Session): Promise<void> {
-    await this.initialize()
+    await this.initialize();
 
     // Update lastUpdated timestamp
-    session.meta.lastUpdated = new Date().toISOString()
+    session.meta.lastUpdated = new Date().toISOString();
 
     // Write metadata atomically
-    const metaPath = join(session.path, 'meta.json')
-    await this.writeJsonAtomic(metaPath, session.meta)
+    const metaPath = join(session.path, 'meta.json');
+    await this.writeJsonAtomic(metaPath, session.meta);
   }
 
   /**
@@ -193,17 +193,17 @@ export class StorageManager {
    * @param projectHash - Optional project hash
    */
   async completeSession(sessionId: string, projectHash?: string): Promise<boolean> {
-    const session = await this.getSession(sessionId, projectHash)
+    const session = await this.getSession(sessionId, projectHash);
 
     if (!session) {
-      return false
+      return false;
     }
 
-    session.meta.status = 'completed'
-    session.meta.endTime = new Date().toISOString()
+    session.meta.status = 'completed';
+    session.meta.endTime = new Date().toISOString();
 
-    await this.updateSession(session)
-    return true
+    await this.updateSession(session);
+    return true;
   }
 
   /**
@@ -213,15 +213,15 @@ export class StorageManager {
    * @param projectHash - Optional project hash
    */
   async archiveSession(sessionId: string, projectHash?: string): Promise<boolean> {
-    const session = await this.getSession(sessionId, projectHash)
+    const session = await this.getSession(sessionId, projectHash);
 
     if (!session) {
-      return false
+      return false;
     }
 
-    session.meta.status = 'archived'
-    await this.updateSession(session)
-    return true
+    session.meta.status = 'archived';
+    await this.updateSession(session);
+    return true;
   }
 
   /**
@@ -231,84 +231,84 @@ export class StorageManager {
    * @returns Array of session metadata
    */
   async listSessions(options?: SessionListOptions): Promise<SessionMeta[]> {
-    await this.initialize()
+    await this.initialize();
 
-    const sessions: SessionMeta[] = []
+    const sessions: SessionMeta[] = [];
 
     try {
       // Determine which project directories to scan
       const projectDirs = options?.projectHash
         ? [options.projectHash]
-        : await readdir(this.sessionsDir)
+        : await readdir(this.sessionsDir);
 
       for (const projectDir of projectDirs) {
-        const projectPath = join(this.sessionsDir, projectDir)
+        const projectPath = join(this.sessionsDir, projectDir);
 
         if (!existsSync(projectPath)) {
-          continue
+          continue;
         }
 
-        const sessionDirs = await readdir(projectPath)
+        const sessionDirs = await readdir(projectPath);
 
         for (const sessionDir of sessionDirs) {
           // Skip current.json pointer file
           if (sessionDir === 'current.json') {
-            continue
+            continue;
           }
 
-          const metaPath = join(projectPath, sessionDir, 'meta.json')
+          const metaPath = join(projectPath, sessionDir, 'meta.json');
 
           if (!existsSync(metaPath)) {
-            continue
+            continue;
           }
 
-          const meta = await this.readJson<SessionMeta>(metaPath)
+          const meta = await this.readJson<SessionMeta>(metaPath);
 
           if (!meta) {
-            continue
+            continue;
           }
 
           // Apply filters
           if (options?.status && meta.status !== options.status) {
-            continue
+            continue;
           }
 
-          sessions.push(meta)
+          sessions.push(meta);
         }
       }
 
       // Apply sorting
       if (options?.sortBy) {
-        const sortKey = options.sortBy
-        const order = options.sortOrder || 'desc'
+        const sortKey = options.sortBy;
+        const order = options.sortOrder || 'desc';
 
         sessions.sort((a, b) => {
-          const aVal = a[sortKey]
-          const bVal = b[sortKey]
+          const aVal = a[sortKey];
+          const bVal = b[sortKey];
 
           if (typeof aVal === 'string' && typeof bVal === 'string') {
             return order === 'asc'
               ? aVal.localeCompare(bVal)
-              : bVal.localeCompare(aVal)
+              : bVal.localeCompare(aVal);
           }
 
           if (typeof aVal === 'number' && typeof bVal === 'number') {
-            return order === 'asc' ? aVal - bVal : bVal - aVal
+            return order === 'asc' ? aVal - bVal : bVal - aVal;
           }
 
-          return 0
-        })
+          return 0;
+        });
       }
 
       // Apply limit
       if (options?.limit && options.limit > 0) {
-        return sessions.slice(0, options.limit)
+        return sessions.slice(0, options.limit);
       }
 
-      return sessions
+      return sessions;
     }
     catch {
-      return []
+      return [];
     }
   }
 
@@ -324,22 +324,22 @@ export class StorageManager {
     entry: FCLogEntry,
     projectHash?: string,
   ): Promise<void> {
-    await this.initialize()
+    await this.initialize();
 
-    const session = await this.getSession(sessionId, projectHash)
+    const session = await this.getSession(sessionId, projectHash);
 
     if (!session) {
-      throw new Error(`Session not found: ${sessionId}`)
+      throw new Error(`Session not found: ${sessionId}`);
     }
 
     // Append to JSONL file (one JSON object per line)
-    const line = `${JSON.stringify(entry)}\n`
-    await writeFile(session.fcLogPath, line, { flag: 'a', encoding: 'utf-8' })
+    const line = `${JSON.stringify(entry)}\n`;
+    await writeFile(session.fcLogPath, line, { flag: 'a', encoding: 'utf-8' });
 
     // Update session metadata
-    session.meta.fcCount++
-    session.meta.tokenCount += entry.tokens
-    await this.updateSession(session)
+    session.meta.fcCount++;
+    session.meta.tokenCount += entry.tokens;
+    await this.updateSession(session);
   }
 
   /**
@@ -355,59 +355,59 @@ export class StorageManager {
     options?: FCLogQueryOptions,
     projectHash?: string,
   ): AsyncGenerator<FCLogEntry> {
-    await this.initialize()
+    await this.initialize();
 
-    const session = await this.getSession(sessionId, projectHash)
+    const session = await this.getSession(sessionId, projectHash);
 
     if (!session || !existsSync(session.fcLogPath)) {
-      return
+      return;
     }
 
-    const fileStream = createReadStream(session.fcLogPath, { encoding: 'utf-8' })
+    const fileStream = createReadStream(session.fcLogPath, { encoding: 'utf-8' });
     const rl = createInterface({
       input: fileStream,
       crlfDelay: Infinity,
-    })
+    });
 
-    let count = 0
+    let count = 0;
 
     for await (const line of rl) {
       if (!line.trim()) {
-        continue
+        continue;
       }
 
       try {
-        const entry = JSON.parse(line) as FCLogEntry
+        const entry = JSON.parse(line) as FCLogEntry;
 
         // Apply filters
         if (options?.startTime && entry.ts < options.startTime) {
-          continue
+          continue;
         }
 
         if (options?.endTime && entry.ts > options.endTime) {
-          continue
+          continue;
         }
 
         if (options?.functionName && entry.fc !== options.functionName) {
-          continue
+          continue;
         }
 
         if (options?.status && entry.status !== options.status) {
-          continue
+          continue;
         }
 
-        yield entry
+        yield entry;
 
-        count++
+        count++;
 
         // Apply limit
         if (options?.limit && count >= options.limit) {
-          break
+          break;
         }
       }
       catch {
         // Skip invalid lines
-        continue
+        continue;
       }
     }
   }
@@ -425,13 +425,13 @@ export class StorageManager {
     options?: FCLogQueryOptions,
     projectHash?: string,
   ): Promise<FCLogEntry[]> {
-    const logs: FCLogEntry[] = []
+    const logs: FCLogEntry[] = [];
 
     for await (const entry of this.getFCLogs(sessionId, options, projectHash)) {
-      logs.push(entry)
+      logs.push(entry);
     }
 
-    return logs
+    return logs;
   }
 
   /**
@@ -446,15 +446,15 @@ export class StorageManager {
     summary: string,
     projectHash?: string,
   ): Promise<void> {
-    await this.initialize()
+    await this.initialize();
 
-    const session = await this.getSession(sessionId, projectHash)
+    const session = await this.getSession(sessionId, projectHash);
 
     if (!session) {
-      throw new Error(`Session not found: ${sessionId}`)
+      throw new Error(`Session not found: ${sessionId}`);
     }
 
-    await this.writeFileAtomic(session.summaryPath, summary)
+    await this.writeFileAtomic(session.summaryPath, summary);
   }
 
   /**
@@ -465,19 +465,19 @@ export class StorageManager {
    * @returns Summary content or null if not found
    */
   async getSummary(sessionId: string, projectHash?: string): Promise<string | null> {
-    await this.initialize()
+    await this.initialize();
 
-    const session = await this.getSession(sessionId, projectHash)
+    const session = await this.getSession(sessionId, projectHash);
 
     if (!session || !existsSync(session.summaryPath)) {
-      return null
+      return null;
     }
 
     try {
-      return await readFile(session.summaryPath, 'utf-8')
+      return await readFile(session.summaryPath, 'utf-8');
     }
     catch {
-      return null
+      return null;
     }
   }
 
@@ -488,25 +488,25 @@ export class StorageManager {
    * @returns Current session or null
    */
   async getCurrentSession(projectHash: string): Promise<Session | null> {
-    await this.initialize()
+    await this.initialize();
 
-    const pointerPath = join(this.sessionsDir, projectHash, 'current.json')
+    const pointerPath = join(this.sessionsDir, projectHash, 'current.json');
 
     if (!existsSync(pointerPath)) {
-      return null
+      return null;
     }
 
     try {
-      const pointer = await this.readJson<CurrentSessionPointer>(pointerPath)
+      const pointer = await this.readJson<CurrentSessionPointer>(pointerPath);
 
       if (!pointer) {
-        return null
+        return null;
       }
 
-      return this.getSession(pointer.sessionId, projectHash)
+      return this.getSession(pointer.sessionId, projectHash);
     }
     catch {
-      return null
+      return null;
     }
   }
 
@@ -517,18 +517,18 @@ export class StorageManager {
    * @param sessionId - Session identifier
    */
   async setCurrentSession(projectHash: string, sessionId: string): Promise<void> {
-    await this.initialize()
+    await this.initialize();
 
-    const projectDir = join(this.sessionsDir, projectHash)
-    await mkdir(projectDir, { recursive: true })
+    const projectDir = join(this.sessionsDir, projectHash);
+    await mkdir(projectDir, { recursive: true });
 
     const pointer: CurrentSessionPointer = {
       sessionId,
       lastUpdated: new Date().toISOString(),
-    }
+    };
 
-    const pointerPath = join(projectDir, 'current.json')
-    await this.writeJsonAtomic(pointerPath, pointer)
+    const pointerPath = join(projectDir, 'current.json');
+    await this.writeJsonAtomic(pointerPath, pointer);
   }
 
   /**
@@ -539,21 +539,21 @@ export class StorageManager {
    * @returns True if deleted successfully
    */
   async deleteSession(sessionId: string, projectHash?: string): Promise<boolean> {
-    await this.initialize()
+    await this.initialize();
 
-    const session = await this.getSession(sessionId, projectHash)
+    const session = await this.getSession(sessionId, projectHash);
 
     if (!session) {
-      return false
+      return false;
     }
 
     try {
       // Delete session directory recursively
-      await this.deleteDirectory(session.path)
-      return true
+      await this.deleteDirectory(session.path);
+      return true;
     }
     catch {
-      return false
+      return false;
     }
   }
 
@@ -564,37 +564,37 @@ export class StorageManager {
    * @returns Cleanup result
    */
   async cleanOldSessions(maxAge: number): Promise<CleanupResult> {
-    await this.initialize()
+    await this.initialize();
 
-    const startTime = Date.now()
-    const cutoffTime = new Date(Date.now() - maxAge).toISOString()
+    const startTime = Date.now();
+    const cutoffTime = new Date(Date.now() - maxAge).toISOString();
 
-    const allSessions = await this.listSessions()
-    const removedSessionIds: string[] = []
-    let bytesFreed = 0
+    const allSessions = await this.listSessions();
+    const removedSessionIds: string[] = [];
+    let bytesFreed = 0;
 
     for (const meta of allSessions) {
       // Skip active sessions
       if (meta.status === 'active') {
-        continue
+        continue;
       }
 
       // Check if session is old enough
-      const sessionTime = meta.endTime || meta.lastUpdated
+      const sessionTime = meta.endTime || meta.lastUpdated;
       if (sessionTime >= cutoffTime) {
-        continue
+        continue;
       }
 
       // Get session size
-      const session = await this.getSession(meta.id, meta.projectHash)
+      const session = await this.getSession(meta.id, meta.projectHash);
       if (session) {
-        const size = await this.getDirectorySize(session.path)
-        bytesFreed += size
+        const size = await this.getDirectorySize(session.path);
+        bytesFreed += size;
 
         // Delete session
-        const deleted = await this.deleteSession(meta.id, meta.projectHash)
+        const deleted = await this.deleteSession(meta.id, meta.projectHash);
         if (deleted) {
-          removedSessionIds.push(meta.id)
+          removedSessionIds.push(meta.id);
         }
       }
     }
@@ -604,16 +604,16 @@ export class StorageManager {
       bytesFreed,
       removedSessionIds,
       duration: Date.now() - startTime,
-    }
+    };
   }
 
   /**
    * Get storage statistics
    */
   async getStorageStats(): Promise<StorageStats> {
-    await this.initialize()
+    await this.initialize();
 
-    const allSessions = await this.listSessions()
+    const allSessions = await this.listSessions();
 
     const stats: StorageStats = {
       totalSessions: allSessions.length,
@@ -624,45 +624,45 @@ export class StorageManager {
       totalTokens: 0,
       totalFCs: 0,
       pendingSyncItems: 0,
-    }
+    };
 
-    let oldestTime: string | undefined
-    let newestTime: string | undefined
+    let oldestTime: string | undefined;
+    let newestTime: string | undefined;
 
     for (const meta of allSessions) {
       // Count by status
       if (meta.status === 'active')
-        stats.activeSessions++
+        stats.activeSessions++;
       else if (meta.status === 'completed')
-        stats.completedSessions++
+        stats.completedSessions++;
       else if (meta.status === 'archived')
-        stats.archivedSessions++
+        stats.archivedSessions++;
 
       // Accumulate totals
-      stats.totalTokens += meta.tokenCount
-      stats.totalFCs += meta.fcCount
+      stats.totalTokens += meta.tokenCount;
+      stats.totalFCs += meta.fcCount;
 
       // Track oldest/newest
       if (!oldestTime || meta.startTime < oldestTime) {
-        oldestTime = meta.startTime
+        oldestTime = meta.startTime;
       }
       if (!newestTime || meta.startTime > newestTime) {
-        newestTime = meta.startTime
+        newestTime = meta.startTime;
       }
     }
 
-    stats.oldestSession = oldestTime
-    stats.newestSession = newestTime
+    stats.oldestSession = oldestTime;
+    stats.newestSession = newestTime;
 
     // Calculate total size
     try {
-      stats.totalSize = await this.getDirectorySize(this.baseDir)
+      stats.totalSize = await this.getDirectorySize(this.baseDir);
     }
     catch {
-      stats.totalSize = 0
+      stats.totalSize = 0;
     }
 
-    return stats
+    return stats;
   }
 
   /**
@@ -670,8 +670,8 @@ export class StorageManager {
    * Writes to temp file first, then renames
    */
   private async writeJsonAtomic(filePath: string, data: unknown): Promise<void> {
-    const content = JSON.stringify(data, null, 2)
-    await this.writeFileAtomic(filePath, content)
+    const content = JSON.stringify(data, null, 2);
+    await this.writeFileAtomic(filePath, content);
   }
 
   /**
@@ -679,28 +679,28 @@ export class StorageManager {
    * Writes to temp file first, then renames
    */
   private async writeFileAtomic(filePath: string, content: string): Promise<void> {
-    const dir = dirname(filePath)
-    const tempPath = join(tmpdir(), `ccjk-${Date.now()}-${Math.random().toString(36).substring(2)}.tmp`)
+    const dir = dirname(filePath);
+    const tempPath = join(tmpdir(), `ccjk-${Date.now()}-${Math.random().toString(36).substring(2)}.tmp`);
 
     try {
       // Write to temp file
-      await writeFile(tempPath, content, 'utf-8')
+      await writeFile(tempPath, content, 'utf-8');
 
       // Ensure target directory exists
-      await mkdir(dir, { recursive: true })
+      await mkdir(dir, { recursive: true });
 
       // Atomic rename
-      await rename(tempPath, filePath)
+      await rename(tempPath, filePath);
     }
     catch (error) {
       // Clean up temp file on error
       try {
-        await unlink(tempPath)
+        await unlink(tempPath);
       }
       catch {
         // Ignore cleanup errors
       }
-      throw error
+      throw error;
     }
   }
 
@@ -709,11 +709,11 @@ export class StorageManager {
    */
   private async readJson<T>(filePath: string): Promise<T | null> {
     try {
-      const content = await readFile(filePath, 'utf-8')
-      return JSON.parse(content) as T
+      const content = await readFile(filePath, 'utf-8');
+      return JSON.parse(content) as T;
     }
     catch {
-      return null
+      return null;
     }
   }
 
@@ -721,9 +721,9 @@ export class StorageManager {
    * Generate unique session ID
    */
   private generateSessionId(): string {
-    const timestamp = Date.now()
-    const random = Math.random().toString(36).substring(2, 8)
-    return `session-${timestamp}-${random}`
+    const timestamp = Date.now();
+    const random = Math.random().toString(36).substring(2, 8);
+    return `session-${timestamp}-${random}`;
   }
 
   /**
@@ -732,37 +732,37 @@ export class StorageManager {
   private getCcjkVersion(): string {
     try {
       // Try to read package.json synchronously
-      const pkgPath = join(__dirname, '../../../package.json')
+      const pkgPath = join(__dirname, '../../../package.json');
       if (existsSync(pkgPath)) {
-        const pkgContent = readFileSync(pkgPath, 'utf-8')
-        const pkg = JSON.parse(pkgContent)
-        return pkg.version || 'unknown'
+        const pkgContent = readFileSync(pkgPath, 'utf-8');
+        const pkg = JSON.parse(pkgContent);
+        return pkg.version || 'unknown';
       }
     }
     catch {
       // Fallback
     }
-    return 'unknown'
+    return 'unknown';
   }
 
   /**
    * Get directory size recursively
    */
   private async getDirectorySize(dirPath: string): Promise<number> {
-    let totalSize = 0
+    let totalSize = 0;
 
     try {
-      const entries = await readdir(dirPath, { withFileTypes: true })
+      const entries = await readdir(dirPath, { withFileTypes: true });
 
       for (const entry of entries) {
-        const fullPath = join(dirPath, entry.name)
+        const fullPath = join(dirPath, entry.name);
 
         if (entry.isDirectory()) {
-          totalSize += await this.getDirectorySize(fullPath)
+          totalSize += await this.getDirectorySize(fullPath);
         }
         else if (entry.isFile()) {
-          const stats = await stat(fullPath)
-          totalSize += stats.size
+          const stats = await stat(fullPath);
+          totalSize += stats.size;
         }
       }
     }
@@ -770,7 +770,7 @@ export class StorageManager {
       // Ignore errors
     }
 
-    return totalSize
+    return totalSize;
   }
 
   /**
@@ -778,25 +778,25 @@ export class StorageManager {
    */
   private async deleteDirectory(dirPath: string): Promise<void> {
     if (!existsSync(dirPath)) {
-      return
+      return;
     }
 
-    const entries = await readdir(dirPath, { withFileTypes: true })
+    const entries = await readdir(dirPath, { withFileTypes: true });
 
     for (const entry of entries) {
-      const fullPath = join(dirPath, entry.name)
+      const fullPath = join(dirPath, entry.name);
 
       if (entry.isDirectory()) {
-        await this.deleteDirectory(fullPath)
+        await this.deleteDirectory(fullPath);
       }
       else {
-        await unlink(fullPath)
+        await unlink(fullPath);
       }
     }
 
     // Remove the directory itself
-    const fsp = await import('node:fs/promises')
-    await fsp.rm(dirPath, { recursive: true })
+    const fsp = await import('node:fs/promises');
+    await fsp.rm(dirPath, { recursive: true });
   }
 }
 
@@ -807,20 +807,20 @@ export class StorageManager {
  * @returns Storage manager instance
  */
 export function createStorageManager(baseDir?: string): StorageManager {
-  return new StorageManager(baseDir)
+  return new StorageManager(baseDir);
 }
 
 /**
  * Global storage manager instance
  */
-let globalStorageManager: StorageManager | null = null
+let globalStorageManager: StorageManager | null = null;
 
 /**
  * Get global storage manager instance
  */
 export function getStorageManager(): StorageManager {
   if (!globalStorageManager) {
-    globalStorageManager = new StorageManager()
+    globalStorageManager = new StorageManager();
   }
-  return globalStorageManager
+  return globalStorageManager;
 }

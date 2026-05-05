@@ -15,63 +15,63 @@
  * Login request payload
  */
 export interface LoginRequest {
-  email: string
+  email: string;
 }
 
 /**
  * Login response
  */
 export interface LoginResponse {
-  success: boolean
-  message: string
+  success: boolean;
+  message: string;
   /** Development only - verification code */
-  _dev_code?: string
+  _dev_code?: string;
 }
 
 /**
  * Verify request payload
  */
 export interface VerifyRequest {
-  email: string
-  code: string
+  email: string;
+  code: string;
 }
 
 /**
  * User information
  */
 export interface User {
-  id: string
-  email: string
+  id: string;
+  email: string;
 }
 
 /**
  * Verify response
  */
 export interface VerifyResponse {
-  success: boolean
+  success: boolean;
   data: {
-    token: string
-    expiresAt: string
-    user: User
-  }
+    token: string;
+    expiresAt: string;
+    user: User;
+  };
 }
 
 /**
  * Get current user response
  */
 export interface GetMeResponse {
-  success: boolean
+  success: boolean;
   data: {
-    user: User
-  }
+    user: User;
+  };
 }
 
 /**
  * Logout response
  */
 export interface LogoutResponse {
-  success: boolean
-  message: string
+  success: boolean;
+  message: string;
 }
 
 // ============================================================================
@@ -82,105 +82,105 @@ export interface LogoutResponse {
  * Generate bind code response
  */
 export interface GenerateBindCodeResponse {
-  success: boolean
+  success: boolean;
   data: {
-    code: string
-    expiresAt: string
-    expiresIn: number
-  }
+    code: string;
+    expiresAt: string;
+    expiresIn: number;
+  };
 }
 
 /**
  * Device information for binding
  */
 export interface DeviceInfo {
-  name: string
-  platform: string
-  hostname: string
-  version: string
+  name: string;
+  platform: string;
+  hostname: string;
+  version: string;
 }
 
 /**
  * Use bind code request
  */
 export interface UseBindCodeRequest {
-  code: string
-  device: DeviceInfo
+  code: string;
+  device: DeviceInfo;
 }
 
 /**
  * Use bind code response
  */
 export interface UseBindCodeResponse {
-  success: boolean
+  success: boolean;
   data: {
-    deviceId: string
-    deviceToken: string
-    userId: string
-    message: string
-  }
+    deviceId: string;
+    deviceToken: string;
+    userId: string;
+    message: string;
+  };
 }
 
 /**
  * Bind code status
  */
-export type BindCodeStatus = 'pending' | 'bound' | 'expired'
+export type BindCodeStatus = 'pending' | 'bound' | 'expired';
 
 /**
  * Get bind code status response
  */
 export interface GetBindCodeStatusResponse {
-  success: boolean
+  success: boolean;
   data: {
-    status: BindCodeStatus
-    expiresAt?: string
+    status: BindCodeStatus;
+    expiresAt?: string;
     device?: {
-      id: string
-      name: string
-      platform: string
-    }
-  }
+      id: string;
+      name: string;
+      platform: string;
+    };
+  };
 }
 
 /**
  * Channel configuration
  */
 export interface ChannelConfig {
-  type: NotificationChannel
-  enabled: boolean
-  configured: boolean
+  type: NotificationChannel;
+  enabled: boolean;
+  configured: boolean;
 }
 
 /**
  * Device in list
  */
 export interface DeviceListItem {
-  id: string
-  name: string
-  platform: string
-  hostname: string
-  version: string
-  createdAt: string
-  lastSeenAt: string
-  channels: ChannelConfig[]
+  id: string;
+  name: string;
+  platform: string;
+  hostname: string;
+  version: string;
+  createdAt: string;
+  lastSeenAt: string;
+  channels: ChannelConfig[];
 }
 
 /**
  * Get devices response
  */
 export interface GetDevicesResponse {
-  success: boolean
+  success: boolean;
   data: {
-    devices: DeviceListItem[]
-  }
+    devices: DeviceListItem[];
+  };
 }
 
 /**
  * Delete device response
  */
 export interface DeleteDeviceResponse {
-  success: boolean
-  message: string
+  success: boolean;
+  message: string;
 }
 
 // ============================================================================
@@ -191,85 +191,85 @@ export interface DeleteDeviceResponse {
  * Register device request
  */
 export interface RegisterDeviceRequest {
-  token?: string
-  name: string
-  platform: string
-  hostname: string
-  version: string
+  token?: string;
+  name: string;
+  platform: string;
+  hostname: string;
+  version: string;
 }
 
 /**
  * Register device response
  */
 export interface RegisterDeviceResponse {
-  success: boolean
+  success: boolean;
   data: {
-    deviceId: string
-    token: string
-    isNew: boolean
-  }
+    deviceId: string;
+    token: string;
+    isNew: boolean;
+  };
 }
 
 /**
  * Channel detail configuration
  */
 export interface ChannelDetailConfig {
-  type: NotificationChannel
-  enabled: boolean
-  config: Record<string, string>
+  type: NotificationChannel;
+  enabled: boolean;
+  config: Record<string, string>;
 }
 
 /**
  * Device info response
  */
 export interface GetDeviceInfoResponse {
-  success: boolean
+  success: boolean;
   data: {
-    id: string
-    name: string
-    platform: string
-    hostname: string
-    version: string
-    userId: string
-    createdAt: string
-    lastSeenAt: string
-    channels: ChannelConfig[]
-  }
+    id: string;
+    name: string;
+    platform: string;
+    hostname: string;
+    version: string;
+    userId: string;
+    createdAt: string;
+    lastSeenAt: string;
+    channels: ChannelConfig[];
+  };
 }
 
 /**
  * Get device channels response
  */
 export interface GetDeviceChannelsResponse {
-  success: boolean
+  success: boolean;
   data: {
-    channels: ChannelDetailConfig[]
-  }
+    channels: ChannelDetailConfig[];
+  };
 }
 
 /**
  * Update device channels request
  */
 export interface UpdateDeviceChannelsRequest {
-  channels: ChannelDetailConfig[]
+  channels: ChannelDetailConfig[];
 }
 
 /**
  * Update device channels response
  */
 export interface UpdateDeviceChannelsResponse {
-  success: boolean
-  message: string
+  success: boolean;
+  message: string;
 }
 
 /**
  * Regenerate token response
  */
 export interface RegenerateTokenResponse {
-  success: boolean
+  success: boolean;
   data: {
-    token: string
-  }
+    token: string;
+  };
 }
 
 // ============================================================================
@@ -284,77 +284,77 @@ export type NotificationType
     | 'task_completed'
     | 'task_failed'
     | 'ask_user'
-    | 'custom'
+    | 'custom';
 
 /**
  * Notification channel
  */
-export type NotificationChannel = 'feishu' | 'dingtalk' | 'wechat'
+export type NotificationChannel = 'feishu' | 'dingtalk' | 'wechat';
 
 /**
  * Send notification request
  */
 export interface SendNotificationRequest {
-  type: NotificationType
-  title: string
-  body: string
-  data?: Record<string, unknown>
-  channels?: NotificationChannel[]
-  waitReply?: boolean
+  type: NotificationType;
+  title: string;
+  body: string;
+  data?: Record<string, unknown>;
+  channels?: NotificationChannel[];
+  waitReply?: boolean;
 }
 
 /**
  * Channel send result
  */
 export interface ChannelSendResult {
-  type: NotificationChannel
-  success: boolean
-  error?: string
+  type: NotificationChannel;
+  success: boolean;
+  error?: string;
 }
 
 /**
  * Send notification response
  */
 export interface SendNotificationResponse {
-  success: boolean
+  success: boolean;
   data: {
-    notificationId: string
-    sent: boolean
-    channels: ChannelSendResult[]
-  }
+    notificationId: string;
+    sent: boolean;
+    channels: ChannelSendResult[];
+  };
 }
 
 /**
  * Test notification response
  */
 export interface TestNotificationResponse {
-  success: boolean
+  success: boolean;
   data: {
-    notificationId: string
-    channels: ChannelSendResult[]
-  }
+    notificationId: string;
+    channels: ChannelSendResult[];
+  };
 }
 
 /**
  * Notification history item
  */
 export interface NotificationHistoryItem {
-  id: string
-  type: NotificationType
-  title: string
-  body: string
-  status: 'sent' | 'failed' | 'pending'
-  createdAt: string
+  id: string;
+  type: NotificationType;
+  title: string;
+  body: string;
+  status: 'sent' | 'failed' | 'pending';
+  createdAt: string;
 }
 
 /**
  * Get notification history response
  */
 export interface GetNotificationHistoryResponse {
-  success: boolean
+  success: boolean;
   data: {
-    notifications: NotificationHistoryItem[]
-  }
+    notifications: NotificationHistoryItem[];
+  };
 }
 
 // ============================================================================
@@ -365,59 +365,59 @@ export interface GetNotificationHistoryResponse {
  * Reply item
  */
 export interface ReplyItem {
-  id: string
-  notificationId: string
-  channel: NotificationChannel | 'manual'
-  content: string
-  metadata?: Record<string, unknown>
-  createdAt: string
+  id: string;
+  notificationId: string;
+  channel: NotificationChannel | 'manual';
+  content: string;
+  metadata?: Record<string, unknown>;
+  createdAt: string;
 }
 
 /**
  * Poll replies response
  */
 export interface PollRepliesResponse {
-  success: boolean
-  replies: ReplyItem[]
+  success: boolean;
+  replies: ReplyItem[];
 }
 
 /**
  * Reply status
  */
-export type ReplyStatus = 'replied' | 'pending' | 'not_found'
+export type ReplyStatus = 'replied' | 'pending' | 'not_found';
 
 /**
  * Get reply response
  */
 export interface GetReplyResponse {
-  success: boolean
-  status: ReplyStatus
-  reply?: ReplyItem
+  success: boolean;
+  status: ReplyStatus;
+  reply?: ReplyItem;
 }
 
 /**
  * Get reply history response
  */
 export interface GetReplyHistoryResponse {
-  success: boolean
-  replies: ReplyItem[]
+  success: boolean;
+  replies: ReplyItem[];
 }
 
 /**
  * Manual reply request
  */
 export interface ManualReplyRequest {
-  notificationId: string
-  content: string
-  channel?: string
+  notificationId: string;
+  content: string;
+  channel?: string;
 }
 
 /**
  * Manual reply response
  */
 export interface ManualReplyResponse {
-  success: boolean
-  reply: ReplyItem
+  success: boolean;
+  reply: ReplyItem;
 }
 
 // ============================================================================
@@ -427,96 +427,96 @@ export interface ManualReplyResponse {
 /**
  * Template type
  */
-export type TemplateType = 'skill' | 'mcp' | 'agent' | 'hook'
+export type TemplateType = 'skill' | 'mcp' | 'agent' | 'hook';
 
 /**
  * Template item
  */
 export interface TemplateItem {
-  id: string
-  type: TemplateType
-  name_en: string
-  name_zh_cn: string
-  description_en: string
-  description_zh_cn?: string
-  category: string
-  tags: string[]
-  author: string
-  version: string
-  install_command: string
-  requirements?: string[]
+  id: string;
+  type: TemplateType;
+  name_en: string;
+  name_zh_cn: string;
+  description_en: string;
+  description_zh_cn?: string;
+  category: string;
+  tags: string[];
+  author: string;
+  version: string;
+  install_command: string;
+  requirements?: string[];
   compatibility?: {
-    platforms?: string[]
-    frameworks?: string[]
-  }
-  usage_examples?: string[]
-  is_official: boolean
-  is_featured: boolean
-  download_count: number
-  rating_average: number
+    platforms?: string[];
+    frameworks?: string[];
+  };
+  usage_examples?: string[];
+  is_official: boolean;
+  is_featured: boolean;
+  download_count: number;
+  rating_average: number;
 }
 
 /**
  * List templates query parameters
  */
 export interface ListTemplatesParams {
-  type?: TemplateType
-  category?: string
-  tags?: string
-  is_official?: boolean
-  is_featured?: boolean
-  sortBy?: 'download_count' | 'rating_average' | 'updated_at'
-  limit?: number
-  offset?: number
+  type?: TemplateType;
+  category?: string;
+  tags?: string;
+  is_official?: boolean;
+  is_featured?: boolean;
+  sortBy?: 'download_count' | 'rating_average' | 'updated_at';
+  limit?: number;
+  offset?: number;
 }
 
 /**
  * List templates response
  */
 export interface ListTemplatesResponse {
-  code: number
-  message: string
+  code: number;
+  message: string;
   data: {
-    items: TemplateItem[]
-    total: number
-    limit: number
-    offset: number
-  }
+    items: TemplateItem[];
+    total: number;
+    limit: number;
+    offset: number;
+  };
 }
 
 /**
  * Get template response
  */
 export interface GetTemplateResponse {
-  code: number
-  message: string
-  data: TemplateItem
+  code: number;
+  message: string;
+  data: TemplateItem;
 }
 
 /**
  * Batch get templates request
  */
 export interface BatchGetTemplatesRequest {
-  ids: string[]
-  language?: 'en' | 'zh-CN'
+  ids: string[];
+  language?: 'en' | 'zh-CN';
 }
 
 /**
  * Batch get templates response
  */
 export interface BatchGetTemplatesResponse {
-  requestId: string
-  templates: Record<string, TemplateItem>
-  notFound: string[]
+  requestId: string;
+  templates: Record<string, TemplateItem>;
+  notFound: string[];
 }
 
 /**
  * Search templates query parameters
  */
 export interface SearchTemplatesParams {
-  query: string
-  type?: TemplateType
-  limit?: number
+  query: string;
+  type?: TemplateType;
+  limit?: number;
 }
 
 // ============================================================================
@@ -527,8 +527,8 @@ export interface SearchTemplatesParams {
  * API error response
  */
 export interface ApiErrorResponse {
-  success: false
-  error: string
+  success: false;
+  error: string;
 }
 
 /**
@@ -546,7 +546,7 @@ export type CloudApiErrorCode
     | 'BIND_CODE_USED'
     | 'CHANNEL_NOT_CONFIGURED'
     | 'NETWORK_ERROR'
-    | 'TIMEOUT'
+    | 'TIMEOUT';
 
 /**
  * Cloud API error
@@ -557,8 +557,8 @@ export class CloudApiError extends Error {
     public code: CloudApiErrorCode,
     public statusCode?: number,
   ) {
-    super(message)
-    this.name = 'CloudApiError'
+    super(message);
+    this.name = 'CloudApiError';
   }
 }
 
@@ -571,27 +571,27 @@ export class CloudApiError extends Error {
  */
 export interface CloudApiClientConfig {
   /** Base URL for the API */
-  baseUrl?: string
+  baseUrl?: string;
   /** Device token for authentication */
-  deviceToken?: string
+  deviceToken?: string;
   /** Session token for user authentication */
-  sessionToken?: string
+  sessionToken?: string;
   /** Request timeout in milliseconds */
-  timeout?: number
+  timeout?: number;
   /** Number of retries for failed requests */
-  retries?: number
+  retries?: number;
   /** Custom headers */
-  headers?: Record<string, string>
+  headers?: Record<string, string>;
 }
 
 /**
  * Credentials storage interface
  */
 export interface CloudCredentials {
-  deviceToken: string
-  deviceId: string
-  userId: string
-  createdAt: string
+  deviceToken: string;
+  deviceId: string;
+  userId: string;
+  createdAt: string;
 }
 
 // ============================================================================
@@ -602,98 +602,98 @@ export interface CloudCredentials {
  * Generic API response wrapper
  */
 export interface CloudApiResponse<T> {
-  success: boolean
-  data?: T
+  success: boolean;
+  data?: T;
   error?: {
-    code: string
-    message: string
-  }
+    code: string;
+    message: string;
+  };
   meta?: {
-    requestId: string
-    timestamp: number
-  }
+    requestId: string;
+    timestamp: number;
+  };
 }
 
 /**
  * Cloud recommendation from AI analysis
  */
 export interface CloudRecommendation {
-  id: string
+  id: string;
   name: {
-    'en': string
-    'zh-CN': string
-  }
+    'en': string;
+    'zh-CN': string;
+  };
   description: {
-    'en': string
-    'zh-CN': string
-  }
-  category: 'skill' | 'mcp' | 'agent' | 'hook'
-  relevanceScore: number
-  tags: string[]
-  templateId?: string
-  dependencies?: string[]
+    'en': string;
+    'zh-CN': string;
+  };
+  category: 'skill' | 'mcp' | 'agent' | 'hook';
+  relevanceScore: number;
+  tags: string[];
+  templateId?: string;
+  dependencies?: string[];
 }
 
 /**
  * Cloud template for skills, workflows, etc.
  */
 export interface CloudTemplate {
-  id: string
-  name: string
-  version: string
-  content: string
-  type: 'skill' | 'workflow' | 'agent' | 'hook' | 'mcp'
+  id: string;
+  name: string;
+  version: string;
+  content: string;
+  type: 'skill' | 'workflow' | 'agent' | 'hook' | 'mcp';
   metadata: {
-    author: string
-    description: string
-    tags: string[]
-    createdAt: string
-    updatedAt: string
-  }
+    author: string;
+    description: string;
+    tags: string[];
+    createdAt: string;
+    updatedAt: string;
+  };
 }
 
 /**
  * Telemetry payload for anonymous usage statistics
  */
 export interface TelemetryPayload {
-  sessionId: string
-  projectFingerprint: string
-  events: TelemetryEvent[]
+  sessionId: string;
+  projectFingerprint: string;
+  events: TelemetryEvent[];
   metadata: {
-    ccjkVersion: string
-    platform: string
-    nodeVersion: string
-    timestamp: number
-  }
+    ccjkVersion: string;
+    platform: string;
+    nodeVersion: string;
+    timestamp: number;
+  };
 }
 
 /**
  * Individual telemetry event
  */
 export interface TelemetryEvent {
-  type: 'setup_started' | 'setup_completed' | 'setup_failed' | 'resource_installed' | 'error'
-  timestamp: number
-  data?: Record<string, unknown>
+  type: 'setup_started' | 'setup_completed' | 'setup_failed' | 'resource_installed' | 'error';
+  timestamp: number;
+  data?: Record<string, unknown>;
 }
 
 /**
  * Cloud recommendation response with insights
  */
 export interface CloudRecommendationResponse {
-  skills: CloudRecommendation[]
-  mcpServices: CloudRecommendation[]
-  agents: CloudRecommendation[]
-  hooks: CloudRecommendation[]
-  confidence: number
-  fingerprint: string
-  insights: CloudInsights
+  skills: CloudRecommendation[];
+  mcpServices: CloudRecommendation[];
+  agents: CloudRecommendation[];
+  hooks: CloudRecommendation[];
+  confidence: number;
+  fingerprint: string;
+  insights: CloudInsights;
 }
 
 /**
  * AI-generated insights about the project
  */
 export interface CloudInsights {
-  insights: string[]
-  productivityImprovements: string[]
-  nextRecommendations: string[]
+  insights: string[];
+  productivityImprovements: string[];
+  nextRecommendations: string[];
 }

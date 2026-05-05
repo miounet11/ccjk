@@ -1,64 +1,64 @@
-import type { ProjectContext } from './project-scanner'
-import { execSync } from 'node:child_process'
-import { existsSync, readFileSync } from 'node:fs'
-import { homedir } from 'node:os'
-import { join } from 'pathe'
-import { CODE_TOOL_INFO } from '../constants'
-import { resolveOrchestrationLevelFromRuntime } from '../utils/orchestration'
-import { commandExists, getPlatform } from '../utils/platform'
-import { scanProject } from './project-scanner'
+import type { ProjectContext } from './project-scanner';
+import { execSync } from 'node:child_process';
+import { existsSync, readFileSync } from 'node:fs';
+import { homedir } from 'node:os';
+import { join } from 'pathe';
+import { CODE_TOOL_INFO } from '../constants';
+import { resolveOrchestrationLevelFromRuntime } from '../utils/orchestration';
+import { commandExists, getPlatform } from '../utils/platform';
+import { scanProject } from './project-scanner';
 
 export interface SmartDefaults {
   // Environment detection
-  platform: string
-  homeDir: string
+  platform: string;
+  homeDir: string;
 
   // API configuration
-  apiProvider?: string
-  apiKey?: string
+  apiProvider?: string;
+  apiKey?: string;
 
   // Core services and tools
-  mcpServices: string[]
-  skills: string[]
-  agents: string[]
-  codeToolType?: string
+  mcpServices: string[];
+  skills: string[];
+  agents: string[];
+  codeToolType?: string;
 
   // Workflow preferences
   workflows: {
-    outputStyle: string
-    gitWorkflow: string
-    sixStepWorkflow: boolean
-    orchestrationLevel?: 'off' | 'minimal' | 'standard' | 'max'
-  }
+    outputStyle: string;
+    gitWorkflow: string;
+    sixStepWorkflow: boolean;
+    orchestrationLevel?: 'off' | 'minimal' | 'standard' | 'max';
+  };
 
   // Tool integrations
   tools: {
-    ccr: boolean
-    cometix: boolean
-    ccusage: boolean
-  }
+    ccr: boolean;
+    cometix: boolean;
+    ccusage: boolean;
+  };
 
   // Claude Code native features (version-dependent)
   nativeFeatures: {
-    hooks: boolean
-    plansDirectory: boolean
-    memory: boolean
-    subagents: boolean
-    toolSearch: boolean
-    statusLine: boolean
-  }
+    hooks: boolean;
+    plansDirectory: boolean;
+    memory: boolean;
+    subagents: boolean;
+    toolSearch: boolean;
+    statusLine: boolean;
+  };
 
   // Detected Claude Code version
-  claudeCodeVersion?: string
+  claudeCodeVersion?: string;
 
   // Project context (detected from CWD)
-  projectContext?: ProjectContext
+  projectContext?: ProjectContext;
 
   // Recommended hook template IDs based on project
-  recommendedHooks: string[]
+  recommendedHooks: string[];
 
   /** True when an SSH session is detected — can be used by quick-setup to show a notice */
-  sshDetected?: boolean
+  sshDetected?: boolean;
 }
 
 /**
@@ -70,11 +70,11 @@ export class SmartDefaultsDetector {
    * Detect environment and generate smart defaults
    */
   async detect(cwd?: string): Promise<SmartDefaults> {
-    const platform = getPlatform()
-    const apiKey = this.detectApiKey()
-    const apiProvider = this.detectApiProvider(apiKey)
-    const ccVersion = await this.detectClaudeCodeVersion()
-    const projectContext = scanProject(cwd)
+    const platform = getPlatform();
+    const apiKey = this.detectApiKey();
+    const apiProvider = this.detectApiProvider(apiKey);
+    const ccVersion = await this.detectClaudeCodeVersion();
+    const projectContext = scanProject(cwd);
 
     return {
       // Environment detection
@@ -137,7 +137,7 @@ export class SmartDefaultsDetector {
 
       // SSH session flag for quick-setup notice
       sshDetected: projectContext.runtime.isSSH || undefined,
-    }
+    };
   }
 
   /**
@@ -147,22 +147,22 @@ export class SmartDefaultsDetector {
     const candidateCommands = [
       CODE_TOOL_INFO['claude-code'].runtimeCommand,
       CODE_TOOL_INFO.clavue.runtimeCommand,
-    ]
+    ];
 
     for (const command of candidateCommands) {
       try {
         if (!(await commandExists(command))) {
-          continue
+          continue;
         }
 
         const output = execSync(`${command} --version 2>/dev/null || echo ""`, {
           encoding: 'utf-8',
           timeout: 5000,
-        }).trim()
+        }).trim();
 
-        const match = output.match(/(\d+\.\d+\.\d+)/)
+        const match = output.match(/(\d+\.\d+\.\d+)/);
         if (match) {
-          return match[1]
+          return match[1];
         }
       }
       catch {
@@ -170,7 +170,7 @@ export class SmartDefaultsDetector {
       }
     }
 
-    return undefined
+    return undefined;
   }
 
   /**
@@ -185,7 +185,7 @@ export class SmartDefaultsDetector {
       subagents: this.versionSupports(version, '1.0.3'),
       toolSearch: this.versionSupports(version, '1.0.10'),
       statusLine: this.versionSupports(version, '1.0.8'),
-    }
+    };
   }
 
   /**
@@ -193,16 +193,16 @@ export class SmartDefaultsDetector {
    */
   private versionSupports(version: string | undefined, minVersion: string): boolean {
     if (!version)
-      return false
-    const parts = version.split('.').map(Number)
-    const minParts = minVersion.split('.').map(Number)
+      return false;
+    const parts = version.split('.').map(Number);
+    const minParts = minVersion.split('.').map(Number);
     for (let i = 0; i < 3; i++) {
       if ((parts[i] || 0) > (minParts[i] || 0))
-        return true
+        return true;
       if ((parts[i] || 0) < (minParts[i] || 0))
-        return false
+        return false;
     }
-    return true // equal
+    return true; // equal
   }
 
   /**
@@ -214,23 +214,23 @@ export class SmartDefaultsDetector {
       'ANTHROPIC_API_KEY',
       'CLAUDE_API_KEY',
       'API_KEY',
-    ]
+    ];
 
     for (const envVar of envVars) {
-      const value = process.env[envVar]
+      const value = process.env[envVar];
       if (value && value.length >= 10) {
-        return value
+        return value;
       }
     }
 
     // Check existing Claude Code config
-    const claudeConfigPath = join(homedir(), '.config', 'claude', 'config.json')
+    const claudeConfigPath = join(homedir(), '.config', 'claude', 'config.json');
     if (existsSync(claudeConfigPath)) {
       try {
-        const configContent = readFileSync(claudeConfigPath, 'utf-8')
-        const config = JSON.parse(configContent)
+        const configContent = readFileSync(claudeConfigPath, 'utf-8');
+        const config = JSON.parse(configContent);
         if (config.apiKey && config.apiKey.length >= 10) {
-          return config.apiKey
+          return config.apiKey;
         }
       }
       catch {
@@ -238,7 +238,7 @@ export class SmartDefaultsDetector {
       }
     }
 
-    return undefined
+    return undefined;
   }
 
   /**
@@ -246,23 +246,23 @@ export class SmartDefaultsDetector {
    */
   private detectApiProvider(apiKey?: string): string | undefined {
     if (!apiKey) {
-      return undefined // No key, no provider detected
+      return undefined; // No key, no provider detected
     }
 
     // Anthropic official API key pattern
     if (apiKey.startsWith('sk-ant-')) {
-      return 'anthropic'
+      return 'anthropic';
     }
 
     // Other providers use various key formats - cannot auto-detect
-    return undefined
+    return undefined;
   }
 
   /**
    * Detect installed code tool type (instance method delegates to static)
    */
   private detectCodeToolType(): string {
-    return SmartDefaultsDetector.detectCodeToolType()
+    return SmartDefaultsDetector.detectCodeToolType();
   }
 
   /**
@@ -273,25 +273,25 @@ export class SmartDefaultsDetector {
     const clavueMarkers = [
       join(homedir(), '.clavue', '.clavue.json'),
       join(homedir(), '.clavue', 'settings.json'),
-    ]
+    ];
 
     try {
       if (clavueMarkers.some(p => existsSync(p))) {
-        const globalConfigPath = join(homedir(), '.clavue', '.clavue.json')
+        const globalConfigPath = join(homedir(), '.clavue', '.clavue.json');
         if (existsSync(globalConfigPath)) {
-          const configContent = readFileSync(globalConfigPath, 'utf-8')
-          const config = JSON.parse(configContent)
+          const configContent = readFileSync(globalConfigPath, 'utf-8');
+          const config = JSON.parse(configContent);
           if (
             config.clavueActiveProviderProfileId
             || config.clavueProviderProfiles
             || config.myclaudeActiveProviderProfileId
             || config.myclaudeProviderProfiles
           ) {
-            return 'clavue'
+            return 'clavue';
           }
         }
 
-        return 'clavue'
+        return 'clavue';
       }
     }
     catch {
@@ -302,19 +302,19 @@ export class SmartDefaultsDetector {
     const claudeCodePaths = [
       join(homedir(), '.claude'),
       join(homedir(), '.config', 'claude'),
-    ]
+    ];
     if (claudeCodePaths.some(p => existsSync(p))) {
-      return 'claude-code'
+      return 'claude-code';
     }
 
     // Check for Codex installation
-    const codexPath = join(homedir(), '.codex')
+    const codexPath = join(homedir(), '.codex');
     if (existsSync(codexPath)) {
-      return 'codex'
+      return 'codex';
     }
 
     // Default to Clavue
-    return 'clavue'
+    return 'clavue';
   }
 
   /**
@@ -326,9 +326,9 @@ export class SmartDefaultsDetector {
       join(homedir(), '.local', 'bin', 'ccr'),
       join(homedir(), '.cargo', 'bin', 'ccr'),
       '/usr/local/bin/ccr',
-    ]
+    ];
 
-    return ccrPaths.some(path => existsSync(path))
+    return ccrPaths.some(path => existsSync(path));
   }
 
   /**
@@ -340,9 +340,9 @@ export class SmartDefaultsDetector {
       join(homedir(), '.local', 'bin', 'cometix'),
       join(homedir(), '.cargo', 'bin', 'cometix'),
       '/usr/local/bin/cometix',
-    ]
+    ];
 
-    return cometixPaths.some(path => existsSync(path))
+    return cometixPaths.some(path => existsSync(path));
   }
 
   /**
@@ -354,81 +354,81 @@ export class SmartDefaultsDetector {
       join(homedir(), '.local', 'bin', 'ccusage'),
       join(homedir(), '.cargo', 'bin', 'ccusage'),
       '/usr/local/bin/ccusage',
-    ]
+    ];
 
-    return ccusagePaths.some(path => existsSync(path))
+    return ccusagePaths.some(path => existsSync(path));
   }
 
   /**
    * Get recommended MCP services based on environment + project context
    */
   getRecommendedMcpServices(platform: string, project?: ProjectContext): string[] {
-    void platform
-    void project
-    return ['context7']
+    void platform;
+    void project;
+    return ['context7'];
   }
 
   /**
    * Get recommended hook template IDs based on project toolchain
    */
   getRecommendedHooks(project: ProjectContext): string[] {
-    const runtime = project.runtime
+    const runtime = project.runtime;
 
     // CI: only linting and test hooks — skip interactive/dev-server hooks
     if (runtime.isCI) {
-      const hooks: string[] = []
+      const hooks: string[] = [];
       if (project.linter !== 'none')
-        hooks.push('pre-commit-lint-check')
+        hooks.push('pre-commit-lint-check');
       if (project.testRunner !== 'none')
-        hooks.push('test-before-commit')
-      return hooks
+        hooks.push('test-before-commit');
+      return hooks;
     }
 
     // Container: minimal hooks for ephemeral environments
     if (runtime.isContainer) {
-      const hooks: string[] = []
+      const hooks: string[] = [];
       if (project.linter !== 'none')
-        hooks.push('pre-commit-lint-check')
+        hooks.push('pre-commit-lint-check');
       if (project.testRunner !== 'none')
-        hooks.push('test-before-commit')
-      return hooks
+        hooks.push('test-before-commit');
+      return hooks;
     }
 
-    const hooks: string[] = []
+    const hooks: string[] = [];
 
     // Block dev servers — skip on headless (no dev server on headless)
     if (!runtime.isHeadless) {
-      hooks.push('block-dev-server')
+      hooks.push('block-dev-server');
     }
 
     // Git push confirmation — always useful
-    hooks.push('git-push-confirm')
+    hooks.push('git-push-confirm');
 
     // Console.log / print warning — language-aware
-    const jsLangs: string[] = ['typescript', 'javascript']
+    const jsLangs: string[] = ['typescript', 'javascript'];
     if (jsLangs.includes(project.language)) {
-      hooks.push('warn-console-log')
+      hooks.push('warn-console-log');
     }
 
     // Block unwanted doc files — useful when AI tends to create random .md files
-    hooks.push('block-unwanted-docs')
+    hooks.push('block-unwanted-docs');
 
     // Test-before-commit: only if project has a test runner
     if (project.testRunner !== 'none') {
-      hooks.push('test-before-commit')
+      hooks.push('test-before-commit');
     }
 
     // Format-on-save: only if project has a formatter
     if (project.formatter !== 'none') {
-      hooks.push('auto-format-on-save')
+      hooks.push('auto-format-on-save');
     }
 
     // Lint check: only if project has a linter
     if (project.linter !== 'none') {
-      hooks.push('pre-commit-lint-check')
+      hooks.push('pre-commit-lint-check');
     }
 
-    return hooks
+    return hooks;
   }
 
   /**
@@ -438,14 +438,14 @@ export class SmartDefaultsDetector {
     const core = [
       'ccjk:git-commit',
       'ccjk:init-project',
-    ]
+    ];
 
     if (userType === 'beginner') {
-      return [...core, 'ccjk:workflow']
+      return [...core, 'ccjk:workflow'];
     }
 
     if (userType === 'intermediate') {
-      return [...core, 'ccjk:feat', 'ccjk:workflow', 'ccjk:git-worktree']
+      return [...core, 'ccjk:feat', 'ccjk:workflow', 'ccjk:git-worktree'];
     }
 
     if (userType === 'advanced') {
@@ -456,42 +456,42 @@ export class SmartDefaultsDetector {
         'ccjk:git-worktree',
         'ccjk:git-rollback',
         'ccjk:git-cleanBranches',
-      ]
+      ];
     }
 
-    return core
+    return core;
   }
 
   /**
    * Validate detected defaults
    */
-  validateDefaults(defaults: SmartDefaults): { valid: boolean, issues: string[] } {
-    const issues: string[] = []
+  validateDefaults(defaults: SmartDefaults): { valid: boolean; issues: string[] } {
+    const issues: string[] = [];
 
     // Check API key format
     if (defaults.apiKey) {
       if (defaults.apiKey.length < 10) {
-        issues.push('API key appears too short to be valid')
+        issues.push('API key appears too short to be valid');
       }
       else if (defaults.apiProvider === 'anthropic' && !defaults.apiKey.startsWith('sk-ant-')) {
-        issues.push('API key format appears invalid (should start with sk-ant-)')
+        issues.push('API key format appears invalid (should start with sk-ant-)');
       }
     }
 
     // Check platform support
     if (!['darwin', 'linux', 'win32'].includes(defaults.platform)) {
-      issues.push(`Platform ${defaults.platform} may not be fully supported`)
+      issues.push(`Platform ${defaults.platform} may not be fully supported`);
     }
 
     // Check home directory access
     if (!existsSync(defaults.homeDir)) {
-      issues.push('Home directory is not accessible')
+      issues.push('Home directory is not accessible');
     }
 
     return {
       valid: issues.length === 0,
       issues,
-    }
+    };
   }
 }
 
@@ -500,8 +500,8 @@ export class SmartDefaultsDetector {
  * @returns SmartDefaults object with detected values
  */
 export async function detectSmartDefaults(): Promise<SmartDefaults> {
-  const detector = new SmartDefaultsDetector()
-  return detector.detect()
+  const detector = new SmartDefaultsDetector();
+  return detector.detect();
 }
 
 /**
@@ -510,7 +510,7 @@ export async function detectSmartDefaults(): Promise<SmartDefaults> {
  * @returns true if API key prompt is needed
  */
 export function needsApiKeyPrompt(defaults: SmartDefaults): boolean {
-  return !defaults.apiProvider || !defaults.apiKey
+  return !defaults.apiProvider || !defaults.apiKey;
 }
 
 /**
@@ -519,8 +519,8 @@ export function needsApiKeyPrompt(defaults: SmartDefaults): boolean {
  * @returns Detected code tool type string (e.g., 'claude-code' or 'codex')
  */
 export function detectCodeToolType(): string {
-  return SmartDefaultsDetector.detectCodeToolType()
+  return SmartDefaultsDetector.detectCodeToolType();
 }
 
 // Export singleton instance
-export const smartDefaults = new SmartDefaultsDetector()
+export const smartDefaults = new SmartDefaultsDetector();

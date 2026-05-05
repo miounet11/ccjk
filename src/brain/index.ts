@@ -7,39 +7,39 @@ import type {
   AgentContext,
   AgentResult,
   AgentMessage as BaseAgentMessage,
-} from './agents/base-agent'
-import type { TaskPriority } from './task-queue'
+} from './agents/base-agent';
+import type { TaskContext } from './capability-router';
+import type { TaskPriority } from './task-queue';
 import type {
   AgentRole,
   BrainConfig,
   HealthStatus,
-} from './types'
-import type { TaskContext } from './capability-router'
-import { getSmartRouter } from './smart-router'
-import { getTelemetry } from './telemetry'
-import process from 'node:process'
-import { AgentRegistry, AgentState, BaseAgent } from './agents/base-agent'
-import { CodeAgent } from './agents/code-agent'
-import { getHealthMonitor, HealthMonitor, resetHealthMonitor } from './health-monitor'
-import { trackMessage, trackToolCall } from './hooks/context-monitor'
-import { getMetricsCollector, MetricsCollector, resetMetricsCollector } from './metrics'
-import { PracticeEnforcer } from './practice-enforcer'
-import { createSelfHealingSystem, SelfHealingSystem } from './self-healing'
-import { skillTrigger } from './skill-trigger'
-import { smartSuggestions } from './smart-suggestions'
-import { superpowersRouter } from './superpowers-router'
-import { TaskQueue } from './task-queue'
-import { workflowAutomator } from './workflow-automator'
+} from './types';
+import process from 'node:process';
+import { AgentRegistry, AgentState, BaseAgent } from './agents/base-agent';
+import { CodeAgent } from './agents/code-agent';
+import { getHealthMonitor, HealthMonitor, resetHealthMonitor } from './health-monitor';
+import { trackMessage, trackToolCall } from './hooks/context-monitor';
+import { getMetricsCollector, MetricsCollector, resetMetricsCollector } from './metrics';
+import { PracticeEnforcer } from './practice-enforcer';
+import { createSelfHealingSystem, SelfHealingSystem } from './self-healing';
+import { skillTrigger } from './skill-trigger';
+import { getSmartRouter } from './smart-router';
+import { smartSuggestions } from './smart-suggestions';
+import { superpowersRouter } from './superpowers-router';
+import { TaskQueue } from './task-queue';
+import { getTelemetry } from './telemetry';
+import { workflowAutomator } from './workflow-automator';
 
 /**
  * Brain execution result
  */
 export interface BrainResult<T = unknown> {
-  success: boolean
-  data?: T
-  error?: Error
-  message?: string
-  metadata?: Record<string, unknown>
+  success: boolean;
+  data?: T;
+  error?: Error;
+  message?: string;
+  metadata?: Record<string, unknown>;
 }
 
 /**
@@ -49,27 +49,27 @@ export interface BrainExecuteOptions {
   /**
    * Agent role to execute the task (default: auto-detect)
    */
-  agent?: AgentRole
+  agent?: AgentRole;
 
   /**
    * Task priority (default: 'normal')
    */
-  priority?: TaskPriority
+  priority?: TaskPriority;
 
   /**
    * Task timeout in milliseconds (default: 60000)
    */
-  timeout?: number
+  timeout?: number;
 
   /**
    * Maximum retry attempts (default: 3)
    */
-  maxRetries?: number
+  maxRetries?: number;
 
   /**
    * Additional metadata
    */
-  metadata?: Record<string, unknown>
+  metadata?: Record<string, unknown>;
 }
 
 /**
@@ -79,37 +79,37 @@ export interface BrainInitOptions {
   /**
    * Working directory (default: process.cwd())
    */
-  workingDirectory?: string
+  workingDirectory?: string;
 
   /**
    * Project root directory (default: process.cwd())
    */
-  projectRoot?: string
+  projectRoot?: string;
 
   /**
    * Language (default: 'en')
    */
-  language?: string
+  language?: string;
 
   /**
    * Enable verbose logging (default: false)
    */
-  verbose?: boolean
+  verbose?: boolean;
 
   /**
    * Task queue concurrency (default: 5)
    */
-  concurrency?: number
+  concurrency?: number;
 
   /**
    * Enable health monitoring (default: true)
    */
-  enableHealthMonitoring?: boolean
+  enableHealthMonitoring?: boolean;
 
   /**
    * Brain configuration
    */
-  config?: Partial<BrainConfig>
+  config?: Partial<BrainConfig>;
 }
 
 /**
@@ -119,68 +119,68 @@ export interface BrainStats {
   /**
    * Total agents registered
    */
-  totalAgents: number
+  totalAgents: number;
 
   /**
    * Active agents
    */
-  activeAgents: number
+  activeAgents: number;
 
   /**
    * Total tasks executed
    */
-  totalTasks: number
+  totalTasks: number;
 
   /**
    * Pending tasks
    */
-  pendingTasks: number
+  pendingTasks: number;
 
   /**
    * Completed tasks
    */
-  completedTasks: number
+  completedTasks: number;
 
   /**
    * Failed tasks
    */
-  failedTasks: number
+  failedTasks: number;
 
   /**
    * Average task execution time (ms)
    */
-  averageExecutionTime: number
+  averageExecutionTime: number;
 
   /**
    * Health monitoring statistics
    */
   health: {
-    totalAgents: number
-    healthyAgents: number
-    degradedAgents: number
-    unhealthyAgents: number
-    deadAgents: number
-  }
+    totalAgents: number;
+    healthyAgents: number;
+    degradedAgents: number;
+    unhealthyAgents: number;
+    deadAgents: number;
+  };
 }
 
 /**
  * Brain - Main orchestration class for agent system
  */
 export class Brain {
-  private initialized = false
-  private context: AgentContext
-  private registry: AgentRegistry
-  private taskQueue: TaskQueue
-  private healthMonitor?: HealthMonitor
-  private metricsCollector?: MetricsCollector
-  private options: Required<BrainInitOptions>
-  private messageHistory: BaseAgentMessage[] = []
-  private smartRouter = getSmartRouter()
-  private telemetry = getTelemetry()
+  private initialized = false;
+  private context: AgentContext;
+  private registry: AgentRegistry;
+  private taskQueue: TaskQueue;
+  private healthMonitor?: HealthMonitor;
+  private metricsCollector?: MetricsCollector;
+  private options: Required<BrainInitOptions>;
+  private messageHistory: BaseAgentMessage[] = [];
+  private smartRouter = getSmartRouter();
+  private telemetry = getTelemetry();
 
   constructor(options: BrainInitOptions = {}) {
-    const cwd = process.cwd()
-    const env = process.env
+    const cwd = process.cwd();
+    const env = process.env;
     this.options = {
       workingDirectory: options.workingDirectory ?? cwd,
       projectRoot: options.projectRoot ?? cwd,
@@ -189,7 +189,7 @@ export class Brain {
       concurrency: options.concurrency ?? 5,
       enableHealthMonitoring: options.enableHealthMonitoring ?? true,
       config: options.config ?? {},
-    }
+    };
 
     // Initialize context
     this.context = {
@@ -198,10 +198,10 @@ export class Brain {
       language: this.options.language,
       environment: env as Record<string, string>,
       history: this.messageHistory,
-    }
+    };
 
     // Initialize registry
-    this.registry = new AgentRegistry()
+    this.registry = new AgentRegistry();
 
     // Initialize task queue
     this.taskQueue = new TaskQueue({
@@ -209,7 +209,7 @@ export class Brain {
       defaultTimeout: 60000,
       defaultMaxRetries: 3,
       autoStart: true,
-    })
+    });
 
     // Initialize health monitor
     if (this.options.enableHealthMonitoring) {
@@ -217,13 +217,13 @@ export class Brain {
         heartbeatTimeout: 30000,
         checkInterval: 10000,
         autoRestart: true,
-      })
+      });
 
       // Initialize metrics collector
       this.metricsCollector = getMetricsCollector({
         maxRecords: 1000,
         retentionPeriod: 3600000, // 1 hour
-      })
+      });
 
       // Initialize self-healing system
     }
@@ -234,30 +234,30 @@ export class Brain {
    */
   async initialize(): Promise<void> {
     if (this.initialized) {
-      throw new Error('Brain is already initialized')
+      throw new Error('Brain is already initialized');
     }
 
-    this.log('Initializing Brain system...')
+    this.log('Initializing Brain system...');
 
     try {
       // Register default agents
-      await this.registerDefaultAgents()
+      await this.registerDefaultAgents();
 
       // Start health monitoring
       if (this.healthMonitor) {
-        this.healthMonitor.start()
-        this.log('Health monitoring started')
+        this.healthMonitor.start();
+        this.log('Health monitoring started');
       }
 
       // Initialize all registered agents
-      await this.initializeAgents()
+      await this.initializeAgents();
 
-      this.initialized = true
-      this.log('Brain system initialized successfully')
+      this.initialized = true;
+      this.log('Brain system initialized successfully');
     }
     catch (error) {
-      this.log(`Failed to initialize Brain: ${error instanceof Error ? error.message : String(error)}`, 'error')
-      throw error
+      this.log(`Failed to initialize Brain: ${error instanceof Error ? error.message : String(error)}`, 'error');
+      throw error;
     }
   }
 
@@ -266,30 +266,30 @@ export class Brain {
    */
   async execute(command: string, options: BrainExecuteOptions = {}): Promise<BrainResult> {
     if (!this.initialized) {
-      throw new Error('Brain is not initialized. Call initialize() first.')
+      throw new Error('Brain is not initialized. Call initialize() first.');
     }
 
-    this.log(`Executing command: ${command}`)
+    this.log(`Executing command: ${command}`);
 
     // Track message for context monitoring
-    trackMessage()
+    trackMessage();
 
     try {
       // Determine which agent to use
-      const agentRole = options.agent ?? this.detectAgentForCommand(command)
-      const agent = this.getAgentByRole(agentRole)
+      const agentRole = options.agent ?? this.detectAgentForCommand(command);
+      const agent = this.getAgentByRole(agentRole);
 
       if (!agent) {
-        throw new Error(`No agent found for role: ${agentRole}`)
+        throw new Error(`No agent found for role: ${agentRole}`);
       }
 
       // Record heartbeat if health monitoring is enabled
       if (this.healthMonitor) {
-        this.healthMonitor.recordHeartbeat(agent.getName())
+        this.healthMonitor.recordHeartbeat(agent.getName());
       }
 
       // Track tool call for context monitoring
-      trackToolCall()
+      trackToolCall();
 
       // Execute task through task queue
       const result = await this.taskQueue.add(
@@ -297,7 +297,7 @@ export class Brain {
           return agent.process(command, {
             ...options.metadata,
             priority: options.priority,
-          })
+          });
         },
         {
           priority: options.priority ?? 'normal',
@@ -305,7 +305,7 @@ export class Brain {
           maxRetries: options.maxRetries ?? 3,
           metadata: options.metadata,
         },
-      )
+      );
 
       // Record successful heartbeat
       if (this.healthMonitor && result.success) {
@@ -318,7 +318,7 @@ export class Brain {
           tasksCompleted: 1,
           tasksFailed: 0,
           lastUpdated: new Date().toISOString(),
-        })
+        });
       }
 
       return {
@@ -331,15 +331,15 @@ export class Brain {
           agentRole,
           ...result.metadata,
         },
-      }
+      };
     }
     catch (error) {
-      this.log(`Execution failed: ${error instanceof Error ? error.message : String(error)}`, 'error')
+      this.log(`Execution failed: ${error instanceof Error ? error.message : String(error)}`, 'error');
       return {
         success: false,
         error: error instanceof Error ? error : new Error(String(error)),
         message: `Failed to execute command: ${command}`,
-      }
+      };
     }
   }
 
@@ -347,14 +347,14 @@ export class Brain {
    * Get Brain statistics
    */
   getStats(): BrainStats {
-    const queueStats = this.taskQueue.getStats()
+    const queueStats = this.taskQueue.getStats();
     const healthStats = this.healthMonitor?.getStatistics() ?? {
       totalAgents: 0,
       healthyAgents: 0,
       degradedAgents: 0,
       unhealthyAgents: 0,
       deadAgents: 0,
-    }
+    };
 
     return {
       totalAgents: this.registry.size(),
@@ -365,24 +365,24 @@ export class Brain {
       failedTasks: queueStats.failedTasks,
       averageExecutionTime: queueStats.averageExecutionTime,
       health: healthStats,
-    }
+    };
   }
 
   /**
    * Get agent health status
    */
   getAgentHealth(agentName: string): {
-    healthy: boolean
-    status: HealthStatus
-    lastHeartbeat: number
-    timeSinceLastHeartbeat: number
-    issues: string[]
+    healthy: boolean;
+    status: HealthStatus;
+    lastHeartbeat: number;
+    timeSinceLastHeartbeat: number;
+    issues: string[];
   } | null {
     if (!this.healthMonitor) {
-      return null
+      return null;
     }
 
-    return this.healthMonitor.getHealthStatus(agentName)
+    return this.healthMonitor.getHealthStatus(agentName);
   }
 
   /**
@@ -390,46 +390,46 @@ export class Brain {
    */
   getAgentMetrics(agentName: string): ReturnType<MetricsCollector['getAgentMetrics']> | null {
     if (!this.metricsCollector) {
-      return null
+      return null;
     }
 
-    return this.metricsCollector.getAgentMetrics(agentName)
+    return this.metricsCollector.getAgentMetrics(agentName);
   }
 
   /**
    * Get all registered agents
    */
   getAgents(): BaseAgent[] {
-    return this.registry.getAll()
+    return this.registry.getAll();
   }
 
   /**
    * Get agent by name
    */
   getAgent(name: string): BaseAgent | undefined {
-    return this.registry.get(name)
+    return this.registry.get(name);
   }
 
   /**
    * Register a custom agent
    */
   registerAgent(agent: BaseAgent): void {
-    this.registry.register(agent)
-    this.log(`Registered agent: ${agent.getName()}`)
+    this.registry.register(agent);
+    this.log(`Registered agent: ${agent.getName()}`);
   }
 
   /**
    * Unregister an agent
    */
   unregisterAgent(name: string): void {
-    this.registry.unregister(name)
+    this.registry.unregister(name);
     if (this.healthMonitor) {
-      this.healthMonitor.removeAgent(name)
+      this.healthMonitor.removeAgent(name);
     }
     if (this.metricsCollector) {
-      this.metricsCollector.clearAgentMetrics(name)
+      this.metricsCollector.clearAgentMetrics(name);
     }
-    this.log(`Unregistered agent: ${name}`)
+    this.log(`Unregistered agent: ${name}`);
   }
 
   /**
@@ -437,48 +437,48 @@ export class Brain {
    */
   async shutdown(): Promise<void> {
     if (!this.initialized) {
-      return
+      return;
     }
 
-    this.log('Shutting down Brain system...')
+    this.log('Shutting down Brain system...');
 
     try {
       // Stop health monitoring
       if (this.healthMonitor) {
-        this.healthMonitor.stop()
-        this.log('Health monitoring stopped')
+        this.healthMonitor.stop();
+        this.log('Health monitoring stopped');
       }
 
       // Clear metrics
       if (this.metricsCollector) {
-        this.metricsCollector.clearAll()
-        this.log('Metrics cleared')
+        this.metricsCollector.clearAll();
+        this.log('Metrics cleared');
       }
 
       // Wait for all tasks to complete
-      await this.taskQueue.drain()
-      this.log('All tasks completed')
+      await this.taskQueue.drain();
+      this.log('All tasks completed');
 
       // Cleanup all agents
-      const agents = this.registry.getAll()
+      const agents = this.registry.getAll();
       for (const agent of agents) {
-        await agent.cleanup()
-        this.log(`Cleaned up agent: ${agent.getName()}`)
+        await agent.cleanup();
+        this.log(`Cleaned up agent: ${agent.getName()}`);
       }
 
       // Clear registry
-      this.registry.clear()
+      this.registry.clear();
 
       // Reset health monitor and metrics collector
-      resetHealthMonitor()
-      resetMetricsCollector()
+      resetHealthMonitor();
+      resetMetricsCollector();
 
-      this.initialized = false
-      this.log('Brain system shutdown complete')
+      this.initialized = false;
+      this.log('Brain system shutdown complete');
     }
     catch (error) {
-      this.log(`Error during shutdown: ${error instanceof Error ? error.message : String(error)}`, 'error')
-      throw error
+      this.log(`Error during shutdown: ${error instanceof Error ? error.message : String(error)}`, 'error');
+      throw error;
     }
   }
 
@@ -486,21 +486,21 @@ export class Brain {
    * Check if Brain is initialized
    */
   isInitialized(): boolean {
-    return this.initialized
+    return this.initialized;
   }
 
   /**
    * Get message history
    */
   getHistory(): BaseAgentMessage[] {
-    return [...this.messageHistory]
+    return [...this.messageHistory];
   }
 
   /**
    * Clear message history
    */
   clearHistory(): void {
-    this.messageHistory = []
+    this.messageHistory = [];
   }
 
   /**
@@ -508,7 +508,7 @@ export class Brain {
    * @since v13.4.0
    */
   async routeTask(input: string, context?: Partial<TaskContext>) {
-    return this.smartRouter.route(input, context)
+    return this.smartRouter.route(input, context);
   }
 
   /**
@@ -518,13 +518,13 @@ export class Brain {
   async recordTaskExecution(
     decision: any,
     result: {
-      success: boolean
-      actualSteps: number
-      duration: number
-      effectScore: number
+      success: boolean;
+      actualSteps: number;
+      duration: number;
+      effectScore: number;
     },
   ) {
-    return this.smartRouter.recordExecution(decision, result)
+    return this.smartRouter.recordExecution(decision, result);
   }
 
   /**
@@ -532,7 +532,7 @@ export class Brain {
    * @since v13.4.0
    */
   async getTelemetryStats() {
-    return this.telemetry.getStats()
+    return this.telemetry.getStats();
   }
 
   /**
@@ -546,19 +546,19 @@ export class Brain {
       maxParallelAgents: config.maxParallelAgents,
       enableTelemetry: config.enableTelemetry,
       showReasoning: config.showDecisionReasoning,
-    })
+    });
   }
 
   /**
    * Register default agents
    */
   private async registerDefaultAgents(): Promise<void> {
-    this.log('Registering default agents...')
+    this.log('Registering default agents...');
 
     // Register Code Agent
-    const codeAgent = new CodeAgent(this.context)
-    this.registry.register(codeAgent)
-    this.log('Registered Code Agent')
+    const codeAgent = new CodeAgent(this.context);
+    this.registry.register(codeAgent);
+    this.log('Registered Code Agent');
 
     // Additional agents can be registered here
   }
@@ -567,17 +567,17 @@ export class Brain {
    * Initialize all registered agents
    */
   private async initializeAgents(): Promise<void> {
-    const agents = this.registry.getAll()
-    this.log(`Initializing ${agents.length} agents...`)
+    const agents = this.registry.getAll();
+    this.log(`Initializing ${agents.length} agents...`);
 
     for (const agent of agents) {
       try {
-        await agent.initialize()
-        this.log(`Initialized agent: ${agent.getName()}`)
+        await agent.initialize();
+        this.log(`Initialized agent: ${agent.getName()}`);
       }
       catch (error) {
-        this.log(`Failed to initialize agent ${agent.getName()}: ${error instanceof Error ? error.message : String(error)}`, 'error')
-        throw error
+        this.log(`Failed to initialize agent ${agent.getName()}: ${error instanceof Error ? error.message : String(error)}`, 'error');
+        throw error;
       }
     }
   }
@@ -586,7 +586,7 @@ export class Brain {
    * Detect which agent should handle the command
    */
   private detectAgentForCommand(command: string): AgentRole {
-    const lowerCommand = command.toLowerCase()
+    const lowerCommand = command.toLowerCase();
 
     // Code-related commands
     if (
@@ -597,11 +597,11 @@ export class Brain {
       || lowerCommand.includes('performance')
       || lowerCommand.includes('metrics')
     ) {
-      return 'architect'
+      return 'architect';
     }
 
     // Default to coordinator
-    return 'coordinator'
+    return 'coordinator';
   }
 
   /**
@@ -619,10 +619,10 @@ export class Brain {
       'ccjk-testing-specialist': 'code-agent',
       'ccjk-devops-engineer': 'code-agent',
       'system': 'code-agent',
-    }
+    };
 
-    const agentName = roleToAgentName[role]
-    return agentName ? this.registry.get(agentName) : undefined
+    const agentName = roleToAgentName[role];
+    return agentName ? this.registry.get(agentName) : undefined;
   }
 
   /**
@@ -630,16 +630,16 @@ export class Brain {
    */
   private log(message: string, level: 'info' | 'warn' | 'error' = 'info'): void {
     if (this.options.verbose) {
-      const prefix = '[Brain]'
+      const prefix = '[Brain]';
       switch (level) {
         case 'warn':
-          console.warn(`${prefix} ${message}`)
-          break
+          console.warn(`${prefix} ${message}`);
+          break;
         case 'error':
-          console.error(`${prefix} ${message}`)
-          break
+          console.error(`${prefix} ${message}`);
+          break;
         default:
-          console.log(`${prefix} ${message}`)
+          console.log(`${prefix} ${message}`);
       }
     }
   }
@@ -649,7 +649,7 @@ export class Brain {
  * Create a Brain instance with default options
  */
 export function createBrain(options?: BrainInitOptions): Brain {
-  return new Brain(options)
+  return new Brain(options);
 }
 
 // Re-export types and classes for convenience
@@ -658,7 +658,7 @@ export type {
   BrainConfig,
   HealthStatus,
   TaskPriority,
-}
+};
 
 export {
   AgentRegistry,
@@ -674,7 +674,7 @@ export {
   resetMetricsCollector,
   SelfHealingSystem,
   TaskQueue,
-}
+};
 
 // ============================================================================
 // AGENT FORK CONTEXT SYSTEM (v3.8)
@@ -696,7 +696,7 @@ export {
   createAgentDispatcher,
   getGlobalDispatcher,
   resetGlobalDispatcher,
-} from './agent-dispatcher.js'
+} from './agent-dispatcher.js';
 
 export type {
   AgentDispatchConfig,
@@ -705,7 +705,7 @@ export type {
   AgentFilterCriteria,
   ParallelAgentExecution,
   ParallelExecutionResult,
-} from './agent-dispatcher.js'
+} from './agent-dispatcher.js';
 
 export {
   AgentForkManager,
@@ -714,7 +714,7 @@ export {
   getGlobalForkManager,
   parseSkillForkConfig,
   resetGlobalForkManager,
-} from './agent-fork.js'
+} from './agent-fork.js';
 
 // ============================================================================
 // AGENT DISPATCHER SYSTEM (v3.8)
@@ -738,7 +738,7 @@ export type {
   ForkContextState,
   ForkHook,
   ForkTranscriptEntry,
-} from './agent-fork.js'
+} from './agent-fork.js';
 
 export type {
   CodeAnalysisResult,
@@ -750,7 +750,7 @@ export type {
   PerformanceRecommendation,
   RefactoringPlan,
   RefactoringStep,
-} from './agents/code-agent'
+} from './agents/code-agent';
 
 // ============================================================================
 // ORCHESTRATOR SYSTEM
@@ -768,13 +768,24 @@ export {
   createAutoSessionSaver,
   getAutoSessionSaver,
   resetAutoSessionSaver,
-} from './auto-session-saver'
+} from './auto-session-saver';
 export type {
   AutoSaveEvent,
   AutoSessionSaverStats as AutoSaverStats,
   AutoSessionSaverConfig,
   CrashRecoveryData,
-} from './auto-session-saver'
+} from './auto-session-saver';
+
+export {
+  CapabilityLevel,
+  decideCapability,
+  getCapabilityName,
+} from './capability-router';
+
+export type {
+  TaskContext,
+  TaskDecision,
+} from './capability-router';
 
 export {
   ContextOverflowDetector,
@@ -785,47 +796,38 @@ export {
   getContextDetector,
   PredictiveContextDetector,
   resetContextDetector,
-} from './context-overflow-detector'
-
+} from './context-overflow-detector';
 export type {
   ContextOverflowConfig,
   OverflowPrediction,
   UsageStats,
-} from './context-overflow-detector'
+} from './context-overflow-detector';
 
 export {
   ConvoyManager,
   getGlobalConvoyManager,
   resetGlobalConvoyManager,
-} from './convoy/convoy-manager'
+} from './convoy/convoy-manager';
+
 export type {
   Convoy,
   ConvoyStatus,
   ConvoyTask,
   CreateConvoyOptions,
   CreateTaskOptions,
-} from './convoy/convoy-manager'
-
+} from './convoy/convoy-manager';
 export {
   createProgressCallback,
   ProgressTracker,
-} from './convoy/progress-tracker'
+} from './convoy/progress-tracker';
 
 export type {
   ProgressTrackerConfig,
   ProgressUpdate,
-} from './convoy/progress-tracker'
-export type { HealthCheckResult, HeartbeatRecord } from './health-monitor'
+} from './convoy/progress-tracker';
+export type { HealthCheckResult, HeartbeatRecord } from './health-monitor';
 
-export { HooksIntegration, hooksIntegration } from './hooks-integration'
-export type { HookContext, HookResponse } from './hooks-integration'
-
-export {
-  getStats as getContextMonitorStats,
-  resetStats as resetContextMonitor,
-  trackMessage,
-  trackToolCall,
-} from './hooks/context-monitor'
+export { HooksIntegration, hooksIntegration } from './hooks-integration';
 
 // ============================================================================
 // SKILL HOT RELOAD SYSTEM (v3.8)
@@ -842,30 +844,50 @@ export {
  * - Dependency tracking between skills
  */
 
+export type { HookContext, HookResponse } from './hooks-integration';
+
+export {
+  getStats as getContextMonitorStats,
+  resetStats as resetContextMonitor,
+  trackMessage,
+  trackToolCall,
+} from './hooks/context-monitor';
+
 export {
   getGlobalMayorAgent,
   MayorAgent,
   resetGlobalMayorAgent,
-} from './mayor/mayor-agent'
+} from './mayor/mayor-agent';
 
 export type {
   Intent,
   MayorAgentConfig,
   MayorResponse,
   TaskPlan,
-} from './mayor/mayor-agent'
+} from './mayor/mayor-agent';
 
 export {
   getGlobalMailboxManager,
   PersistentMailboxManager,
   resetGlobalMailboxManager,
-} from './messaging/persistent-mailbox'
+} from './messaging/persistent-mailbox';
 
 export type {
   Mailbox,
   Message,
   SendMessageOptions,
-} from './messaging/persistent-mailbox'
+} from './messaging/persistent-mailbox';
+
+// ============================================================================
+// THINKING MODE - Claude Code CLI 2.0.67+ Integration
+// ============================================================================
+
+/**
+ * Thinking Mode Integration
+ *
+ * Provides support for Claude Code CLI 2.0.67+ thinking mode feature.
+ * Enabled by default for Opus 4.5 with configurable budget tokens.
+ */
 
 // Orchestrator type definitions
 export type {
@@ -906,23 +928,7 @@ export type {
   TaskOutput,
   TaskStage,
   TaskStatus,
-} from './orchestrator-types.js'
-
-// Core orchestrator
-export { BrainOrchestrator } from './orchestrator.js'
-
-// ============================================================================
-// THINKING MODE - Claude Code CLI 2.0.67+ Integration
-// ============================================================================
-
-/**
- * Thinking Mode Integration
- *
- * Provides support for Claude Code CLI 2.0.67+ thinking mode feature.
- * Enabled by default for Opus 4.5 with configurable budget tokens.
- */
-
-export type { OrchestratorEvents } from './orchestrator.js'
+} from './orchestrator-types.js';
 
 // ============================================================================
 // SESSION MANAGEMENT & ZPA (Zero-Prompt Architecture)
@@ -938,13 +944,10 @@ export type { OrchestratorEvents } from './orchestrator.js'
  * - Import/export functionality
  */
 
-export type { ExtendedOrchestratorConfig } from './orchestrator.js'
+// Core orchestrator
+export { BrainOrchestrator } from './orchestrator.js';
 
-export {
-  getGlobalStateManager,
-  GitBackedStateManager,
-  resetGlobalStateManager,
-} from './persistence/git-backed-state'
+export type { OrchestratorEvents } from './orchestrator.js';
 
 /**
  * Auto Session Saver
@@ -955,13 +958,13 @@ export {
  * - Event-driven save triggers
  */
 
-export type {
-  GitBackedStateConfig,
-  StateHistory,
-  StateSnapshot,
-} from './persistence/git-backed-state'
+export type { ExtendedOrchestratorConfig } from './orchestrator.js';
 
-export { PracticeEnforcer } from './practice-enforcer'
+export {
+  getGlobalStateManager,
+  GitBackedStateManager,
+  resetGlobalStateManager,
+} from './persistence/git-backed-state';
 
 /**
  * Context Overflow Detection
@@ -973,10 +976,13 @@ export { PracticeEnforcer } from './practice-enforcer'
  * - Model-specific presets (Claude, GPT-4, custom)
  */
 
-export type { ConversationContext, GitStatus, Violation, ViolationSeverity } from './practice-enforcer'
+export type {
+  GitBackedStateConfig,
+  StateHistory,
+  StateSnapshot,
+} from './persistence/git-backed-state';
 
-// Result aggregation
-export { ResultAggregator } from './result-aggregator.js'
+export { PracticeEnforcer } from './practice-enforcer';
 
 /**
  * Auto Compact Manager
@@ -1001,21 +1007,10 @@ export { ResultAggregator } from './result-aggregator.js'
  * - Multi-device sync via Git remotes
  */
 
-export type {
-  AggregationContext,
-  AggregationResult,
-  ResultAggregationOptions,
-  ResultValidator,
-  ValidationResult,
-} from './result-aggregator.js'
+export type { ConversationContext, GitStatus, Violation, ViolationSeverity } from './practice-enforcer';
 
-export {
-  CrossSessionRecovery,
-  getCrossSessionRecovery,
-  getSessionManager,
-  resetSessionManager,
-  SessionManager,
-} from './session-manager'
+// Result aggregation
+export { ResultAggregator } from './result-aggregator.js';
 
 /**
  * Persistent Mailbox System
@@ -1028,25 +1023,20 @@ export {
  */
 
 export type {
-  RecoveryCheckpoint,
-  Session,
-  GitInfo as SessionGitInfo,
-  SessionHistoryEntry,
-  SessionListOptions,
-  SessionManagerOptions,
-  SessionMetadata,
-} from './session-manager'
+  AggregationContext,
+  AggregationResult,
+  ResultAggregationOptions,
+  ResultValidator,
+  ValidationResult,
+} from './result-aggregator.js';
 
-// Skill Hot Reload
 export {
-  createSkillHotReload,
-  getSkillHotReload,
-  getSkillHotReloadStats,
-  resetSkillHotReload,
-  SkillHotReload,
-  startSkillHotReload,
-  stopSkillHotReload,
-} from './skill-hot-reload'
+  CrossSessionRecovery,
+  getCrossSessionRecovery,
+  getSessionManager,
+  resetSessionManager,
+  SessionManager,
+} from './session-manager';
 
 /**
  * Convoy Task Management
@@ -1059,28 +1049,36 @@ export {
  */
 
 export type {
+  RecoveryCheckpoint,
+  Session,
+  GitInfo as SessionGitInfo,
+  SessionHistoryEntry,
+  SessionListOptions,
+  SessionManagerOptions,
+  SessionMetadata,
+} from './session-manager';
+
+// Skill Hot Reload
+export {
+  createSkillHotReload,
+  getSkillHotReload,
+  getSkillHotReloadStats,
+  resetSkillHotReload,
+  SkillHotReload,
+  startSkillHotReload,
+  stopSkillHotReload,
+} from './skill-hot-reload';
+
+export type {
   HotReloadEvent,
   HotReloadEventType,
   HotReloadOptions,
   HotReloadStats,
   SkillHotReloadEvents,
-} from './skill-hot-reload'
+} from './skill-hot-reload';
 
 // Skill Parser
-export { getSkillParser, isSkillFile, parseSkillContent, parseSkillFile, resetSkillParser, SkillParser } from './skill-parser'
-
-export type { FrontmatterParseOptions, SkillParseResult } from './skill-parser'
-
-// Skill Registry
-export {
-  getSkillById,
-  getSkillRegistry,
-  getSkillsByTrigger,
-  lookupSkills,
-  registerSkill,
-  resetSkillRegistry,
-  SkillRegistry,
-} from './skill-registry'
+export { getSkillParser, isSkillFile, parseSkillContent, parseSkillFile, resetSkillParser, SkillParser } from './skill-parser';
 
 /**
  * Mayor Agent - AI Coordinator
@@ -1092,14 +1090,18 @@ export {
  * - Progress monitoring and reporting
  */
 
-export type {
-  SkillLookupOptions,
-  SkillRegistryEntry,
-  SkillRegistryEvents,
-  SkillRegistryStats,
-} from './skill-registry'
+export type { FrontmatterParseOptions, SkillParseResult } from './skill-parser';
 
-export { SKILL_TRIGGERS, skillTrigger, SkillTriggerEngine } from './skill-trigger'
+// Skill Registry
+export {
+  getSkillById,
+  getSkillRegistry,
+  getSkillsByTrigger,
+  lookupSkills,
+  registerSkill,
+  resetSkillRegistry,
+  SkillRegistry,
+} from './skill-registry';
 
 // ============================================================================
 // SUPERPOWERS INTEGRATION - 智能工作流系统
@@ -1116,27 +1118,37 @@ export { SKILL_TRIGGERS, skillTrigger, SkillTriggerEngine } from './skill-trigge
  * - 工作流自动化 (Code Review, TDD, 系统性调试等)
  */
 
-export type { SkillTrigger, TriggerMatch } from './skill-trigger'
-export { SmartSuggestions, smartSuggestions } from './smart-suggestions'
+export type {
+  SkillLookupOptions,
+  SkillRegistryEntry,
+  SkillRegistryEvents,
+  SkillRegistryStats,
+} from './skill-registry';
+export { SKILL_TRIGGERS, skillTrigger, SkillTriggerEngine } from './skill-trigger';
 
-export type { ContextAnalysis, Suggestion } from './smart-suggestions'
-export { SuperpowersRouter, superpowersRouter } from './superpowers-router'
+export type { SkillTrigger, TriggerMatch } from './skill-trigger';
+export {
+  getSmartRouter,
+  resetSmartRouter,
+  SmartRouter,
+} from './smart-router';
 
-export type { SuperpowerMapping, SuperpowerSkill } from './superpowers-router'
+export type {
+  RouterConfig,
+  RouterResult,
+} from './smart-router';
+export { SmartSuggestions, smartSuggestions } from './smart-suggestions';
+
+export type { ContextAnalysis, Suggestion } from './smart-suggestions';
+export { SuperpowersRouter, superpowersRouter } from './superpowers-router';
+
+export type { SuperpowerMapping, SuperpowerSkill } from './superpowers-router';
 // Task decomposition
-export { TaskDecomposer } from './task-decomposer.js'
+export { TaskDecomposer } from './task-decomposer.js';
 
-export type { TaskDecompositionOptions } from './task-decomposer.js'
+export type { TaskDecompositionOptions } from './task-decomposer.js';
 // Re-export specific types from other modules to avoid conflicts
-export type { Task as QueueTask, TaskPriority as QueueTaskPriority, TaskOptions, TaskQueueOptions, TaskQueueStats } from './task-queue'
-
-// Export all thinking mode types and utilities
-export * from './thinking-mode.js'
-// Re-export all types from types module
-export * from './types'
-
-export { WorkflowAutomator, workflowAutomator } from './workflow-automator'
-export type { Plan, ReviewIssue, ReviewResult, Task as WorkflowTask } from './workflow-automator'
+export type { Task as QueueTask, TaskPriority as QueueTaskPriority, TaskOptions, TaskQueueOptions, TaskQueueStats } from './task-queue';
 
 // ============================================================================
 // CAPABILITY ROUTER & TELEMETRY SYSTEM (v13.4.0)
@@ -1153,37 +1165,25 @@ export type { Plan, ReviewIssue, ReviewResult, Task as WorkflowTask } from './wo
  */
 
 export {
-  CapabilityLevel,
-  decideCapability,
-  getCapabilityName,
-} from './capability-router'
-
-export type {
-  TaskContext,
-  TaskDecision,
-} from './capability-router'
-
-export {
   BrainTelemetry,
   getTelemetry,
   resetTelemetry,
-} from './telemetry'
+} from './telemetry';
 
 export type {
   TaskLog,
   TelemetryStats,
-} from './telemetry'
+} from './telemetry';
 
-export {
-  SmartRouter,
-  getSmartRouter,
-  resetSmartRouter,
-} from './smart-router'
+// Export all thinking mode types and utilities
+export * from './thinking-mode.js';
 
-export type {
-  RouterConfig,
-  RouterResult,
-} from './smart-router'
+// Re-export all types from types module
+export * from './types';
+
+export { WorkflowAutomator, workflowAutomator } from './workflow-automator';
+
+export type { Plan, ReviewIssue, ReviewResult, Task as WorkflowTask } from './workflow-automator';
 
 /**
  * 统一的智能处理入口
@@ -1197,20 +1197,20 @@ export class CCJKBrain {
    */
   async processUserInput(input: string, context: any) {
     // 1. 技能触发检测
-    const skillMatch = skillTrigger.getBestMatch(input)
+    const skillMatch = skillTrigger.getBestMatch(input);
 
     // 2. 最佳实践检测
-    const enforcer = new PracticeEnforcer()
-    const violations = await enforcer.checkAll(context)
+    const enforcer = new PracticeEnforcer();
+    const violations = await enforcer.checkAll(context);
 
     // 3. 智能建议
-    const suggestions = await smartSuggestions.analyze(context)
+    const suggestions = await smartSuggestions.analyze(context);
 
     return {
       skillMatch,
       violations,
       suggestions,
-    }
+    };
   }
 
   /**
@@ -1218,20 +1218,20 @@ export class CCJKBrain {
    * 将数字快捷键映射到 Superpowers 工作流
    */
   async enhanceQuickAction(actionId: number, userContext: string) {
-    const skill = await superpowersRouter.routeByActionId(actionId)
+    const skill = await superpowersRouter.routeByActionId(actionId);
     if (!skill) {
-      return null
+      return null;
     }
 
     const enhancedPrompt = await superpowersRouter.generateEnhancedPrompt(
       actionId,
       userContext,
-    )
+    );
 
     return {
       skill,
       enhancedPrompt,
-    }
+    };
   }
 
   /**
@@ -1240,15 +1240,15 @@ export class CCJKBrain {
   async automateWorkflow(workflowType: string, params: any) {
     switch (workflowType) {
       case 'code-review':
-        return workflowAutomator.autoCodeReview(params)
+        return workflowAutomator.autoCodeReview(params);
       case 'tdd':
-        return workflowAutomator.autoTDD(params.feature)
+        return workflowAutomator.autoTDD(params.feature);
       case 'debug':
-        return workflowAutomator.autoSystematicDebugging(params.issue)
+        return workflowAutomator.autoSystematicDebugging(params.issue);
       case 'finish-branch':
-        return workflowAutomator.autoFinishBranch()
+        return workflowAutomator.autoFinishBranch();
       default:
-        return null
+        return null;
     }
   }
 }
@@ -1256,4 +1256,4 @@ export class CCJKBrain {
 /**
  * 全局单例
  */
-export const ccjkBrain = new CCJKBrain()
+export const ccjkBrain = new CCJKBrain();

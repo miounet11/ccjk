@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest'
-import { CODEX_MODEL_CHOICES } from './features'
+import { describe, expect, it } from 'vitest';
+import { CODEX_MODEL_CHOICES } from './features';
 
 describe('codex model choices', () => {
   it('keeps the stable Codex model list in the recommended order', () => {
@@ -8,6 +8,6 @@ describe('codex model choices', () => {
       'codex-mini-latest',
       'gpt-5',
       'custom',
-    ])
-  })
-})
+    ]);
+  });
+});

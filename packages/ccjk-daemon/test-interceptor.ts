@@ -3,8 +3,6 @@
  */
 
 import { ClaudeCodeInterceptor } from './src/claude-interceptor';
-import { DaemonManager } from './src/manager';
-import { randomBytes } from 'crypto';
 
 // Mock daemon manager
 const mockManager = {
@@ -24,7 +22,7 @@ const interceptor = new ClaudeCodeInterceptor(
     projectPath: process.cwd(),
     codeToolType: 'claude-code',
   },
-  mockManager
+  mockManager,
 );
 
 // Test permission request handling

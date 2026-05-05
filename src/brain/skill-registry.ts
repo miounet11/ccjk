@@ -14,10 +14,10 @@ import type {
   SkillCategory,
   SkillMdFile,
   SkillMdMetadata,
-} from '../types/skill-md'
-import type { MessageType } from './types'
-import { EventEmitter } from 'node:events'
-import { getMessageBus } from './message-bus'
+} from '../types/skill-md';
+import type { MessageType } from './types';
+import { EventEmitter } from 'node:events';
+import { getMessageBus } from './message-bus';
 
 // ============================================================================
 // Types
@@ -28,37 +28,37 @@ import { getMessageBus } from './message-bus'
  */
 export interface SkillRegistryEntry {
   /** Unique skill identifier (from metadata.name) */
-  id: string
+  id: string;
 
   /** Skill metadata */
-  metadata: SkillMdMetadata
+  metadata: SkillMdMetadata;
 
   /** Skill content */
-  content: string
+  content: string;
 
   /** File path */
-  filePath: string
+  filePath: string;
 
   /** Whether skill is enabled */
-  enabled: boolean
+  enabled: boolean;
 
   /** Source type */
-  source: 'builtin' | 'user' | 'marketplace'
+  source: 'builtin' | 'user' | 'marketplace';
 
   /** Timestamp when skill was registered */
-  registeredAt: number
+  registeredAt: number;
 
   /** Timestamp when skill was last modified */
-  modifiedAt: number
+  modifiedAt: number;
 
   /** Estimated token count */
-  estimatedTokens: number
+  estimatedTokens: number;
 
   /** Dependencies (from metadata.agents or related_skills) */
-  dependencies: string[]
+  dependencies: string[];
 
   /** Dependent skills that depend on this skill */
-  dependents: Set<string>
+  dependents: Set<string>;
 }
 
 /**
@@ -66,34 +66,34 @@ export interface SkillRegistryEntry {
  */
 export interface SkillLookupOptions {
   /** Filter by enabled status */
-  enabled?: boolean
+  enabled?: boolean;
 
   /** Filter by category */
-  category?: SkillCategory
+  category?: SkillCategory;
 
   /** Filter by source */
-  source?: 'builtin' | 'user' | 'marketplace'
+  source?: 'builtin' | 'user' | 'marketplace';
 
   /** Filter by user invocable */
-  userInvocable?: boolean
+  userInvocable?: boolean;
 
   /** Filter by auto activate */
-  autoActivate?: boolean
+  autoActivate?: boolean;
 
   /** Filter by agent */
-  agent?: string
+  agent?: string;
 
   /** Search in name, description, tags */
-  search?: string
+  search?: string;
 
   /** Limit results */
-  limit?: number
+  limit?: number;
 
   /** Sort by field */
-  sortBy?: 'name' | 'priority' | 'registeredAt' | 'modifiedAt'
+  sortBy?: 'name' | 'priority' | 'registeredAt' | 'modifiedAt';
 
   /** Sort direction */
-  sortDir?: 'asc' | 'desc'
+  sortDir?: 'asc' | 'desc';
 }
 
 /**
@@ -101,28 +101,28 @@ export interface SkillLookupOptions {
  */
 export interface SkillRegistryStats {
   /** Total number of registered skills */
-  totalSkills: number
+  totalSkills: number;
 
   /** Number of enabled skills */
-  enabledSkills: number
+  enabledSkills: number;
 
   /** Number of disabled skills */
-  disabledSkills: number
+  disabledSkills: number;
 
   /** Skills by category */
-  byCategory: Record<SkillCategory, number>
+  byCategory: Record<SkillCategory, number>;
 
   /** Skills by source */
-  bySource: Record<'builtin' | 'user' | 'marketplace', number>
+  bySource: Record<'builtin' | 'user' | 'marketplace', number>;
 
   /** Total estimated tokens */
-  totalTokens: number
+  totalTokens: number;
 
   /** Most recently registered skill */
-  lastRegistered?: string
+  lastRegistered?: string;
 
   /** Most recently modified skill */
-  lastModified?: string
+  lastModified?: string;
 }
 
 /**
@@ -130,25 +130,25 @@ export interface SkillRegistryStats {
  */
 export interface SkillRegistryEvents {
   /** Emitted when a skill is registered */
-  'skill:registered': (entry: SkillRegistryEntry) => void
+  'skill:registered': (entry: SkillRegistryEntry) => void;
 
   /** Emitted when a skill is updated (hot-swapped) */
-  'skill:updated': (oldEntry: SkillRegistryEntry, newEntry: SkillRegistryEntry) => void
+  'skill:updated': (oldEntry: SkillRegistryEntry, newEntry: SkillRegistryEntry) => void;
 
   /** Emitted when a skill is unregistered */
-  'skill:unregistered': (entry: SkillRegistryEntry) => void
+  'skill:unregistered': (entry: SkillRegistryEntry) => void;
 
   /** Emitted when a skill is enabled */
-  'skill:enabled': (entry: SkillRegistryEntry) => void
+  'skill:enabled': (entry: SkillRegistryEntry) => void;
 
   /** Emitted when a skill is disabled */
-  'skill:disabled': (entry: SkillRegistryEntry) => void
+  'skill:disabled': (entry: SkillRegistryEntry) => void;
 
   /** Emitted when registry is cleared */
-  'registry:cleared': () => void
+  'registry:cleared': () => void;
 
   /** Emitted when a dependency error is detected */
-  'dependency:error': (skillId: string, missingDeps: string[]) => void
+  'dependency:error': (skillId: string, missingDeps: string[]) => void;
 }
 
 // ============================================================================
@@ -178,16 +178,16 @@ export interface SkillRegistryEvents {
  * ```
  */
 export class SkillRegistry extends EventEmitter {
-  private skills: Map<string, SkillRegistryEntry>
-  private filePathIndex: Map<string, string>
-  private triggerIndex: Map<string, Set<string>>
-  private messageBus = getMessageBus()
+  private skills: Map<string, SkillRegistryEntry>;
+  private filePathIndex: Map<string, string>;
+  private triggerIndex: Map<string, Set<string>>;
+  private messageBus = getMessageBus();
 
   constructor() {
-    super()
-    this.skills = new Map()
-    this.filePathIndex = new Map()
-    this.triggerIndex = new Map()
+    super();
+    this.skills = new Map();
+    this.filePathIndex = new Map();
+    this.triggerIndex = new Map();
   }
 
   /**
@@ -198,13 +198,13 @@ export class SkillRegistry extends EventEmitter {
    * @returns Registered entry
    */
   register(skill: SkillMdFile, source: 'builtin' | 'user' | 'marketplace' = 'user'): SkillRegistryEntry {
-    const id = skill.metadata.name
+    const id = skill.metadata.name;
 
     // Check for existing entry (hot-swap scenario)
-    const existing = this.skills.get(id)
+    const existing = this.skills.get(id);
 
     // Extract dependencies
-    const dependencies = this.extractDependencies(skill.metadata)
+    const dependencies = this.extractDependencies(skill.metadata);
 
     // Create entry
     const entry: SkillRegistryEntry = {
@@ -219,29 +219,29 @@ export class SkillRegistry extends EventEmitter {
       estimatedTokens: this.estimateTokens(skill),
       dependencies,
       dependents: existing?.dependents || new Set(),
-    }
+    };
 
     // Update indexes
-    this.skills.set(id, entry)
-    this.filePathIndex.set(skill.filePath, id)
+    this.skills.set(id, entry);
+    this.filePathIndex.set(skill.filePath, id);
 
     // Update trigger index
-    this.updateTriggerIndex(id, entry.metadata.triggers)
+    this.updateTriggerIndex(id, entry.metadata.triggers);
 
     // Update dependency graph
-    this.updateDependencyGraph(id, dependencies)
+    this.updateDependencyGraph(id, dependencies);
 
     // Emit appropriate event
     if (existing) {
-      this.emit('skill:updated', existing, entry)
-      this.publishMessage('skill:updated' as MessageType, { oldSkill: existing, newSkill: entry })
+      this.emit('skill:updated', existing, entry);
+      this.publishMessage('skill:updated' as MessageType, { oldSkill: existing, newSkill: entry });
     }
     else {
-      this.emit('skill:registered', entry)
-      this.publishMessage('skill:registered' as MessageType, entry)
+      this.emit('skill:registered', entry);
+      this.publishMessage('skill:registered' as MessageType, entry);
     }
 
-    return entry
+    return entry;
   }
 
   /**
@@ -251,42 +251,42 @@ export class SkillRegistry extends EventEmitter {
    * @returns True if skill was unregistered
    */
   unregister(id: string): boolean {
-    const entry = this.skills.get(id)
+    const entry = this.skills.get(id);
     if (!entry)
-      return false
+      return false;
 
     // Check for dependents
     if (entry.dependents.size > 0) {
-      const dependentList = Array.from(entry.dependents).join(', ')
-      throw new Error(`Cannot unregister skill "${id}": depended upon by: ${dependentList}`)
+      const dependentList = Array.from(entry.dependents).join(', ');
+      throw new Error(`Cannot unregister skill "${id}": depended upon by: ${dependentList}`);
     }
 
     // Remove from indexes
-    this.skills.delete(id)
-    this.filePathIndex.delete(entry.filePath)
+    this.skills.delete(id);
+    this.filePathIndex.delete(entry.filePath);
 
     // Remove from trigger index
     for (const trigger of entry.metadata.triggers) {
-      const skills = this.triggerIndex.get(trigger)
+      const skills = this.triggerIndex.get(trigger);
       if (skills) {
-        skills.delete(id)
+        skills.delete(id);
         if (skills.size === 0)
-          this.triggerIndex.delete(trigger)
+          this.triggerIndex.delete(trigger);
       }
     }
 
     // Remove from dependency graph
     for (const dep of entry.dependencies) {
-      const depEntry = this.skills.get(dep)
+      const depEntry = this.skills.get(dep);
       if (depEntry)
-        depEntry.dependents.delete(id)
+        depEntry.dependents.delete(id);
     }
 
     // Emit event
-    this.emit('skill:unregistered', entry)
-    this.publishMessage('skill:unregistered' as MessageType, entry)
+    this.emit('skill:unregistered', entry);
+    this.publishMessage('skill:unregistered' as MessageType, entry);
 
-    return true
+    return true;
   }
 
   /**
@@ -296,8 +296,8 @@ export class SkillRegistry extends EventEmitter {
    * @returns True if skill was unregistered
    */
   unregisterByPath(filePath: string): boolean {
-    const id = this.filePathIndex.get(filePath)
-    return id ? this.unregister(id) : false
+    const id = this.filePathIndex.get(filePath);
+    return id ? this.unregister(id) : false;
   }
 
   /**
@@ -307,7 +307,7 @@ export class SkillRegistry extends EventEmitter {
    * @returns Skill entry or undefined
    */
   getById(id: string): SkillRegistryEntry | undefined {
-    return this.skills.get(id)
+    return this.skills.get(id);
   }
 
   /**
@@ -317,8 +317,8 @@ export class SkillRegistry extends EventEmitter {
    * @returns Skill entry or undefined
    */
   getByPath(filePath: string): SkillRegistryEntry | undefined {
-    const id = this.filePathIndex.get(filePath)
-    return id ? this.skills.get(id) : undefined
+    const id = this.filePathIndex.get(filePath);
+    return id ? this.skills.get(id) : undefined;
   }
 
   /**
@@ -328,13 +328,13 @@ export class SkillRegistry extends EventEmitter {
    * @returns Array of matching skills
    */
   getByTrigger(trigger: string): SkillRegistryEntry[] {
-    const ids = this.triggerIndex.get(trigger)
+    const ids = this.triggerIndex.get(trigger);
     if (!ids)
-      return []
+      return [];
 
     return Array.from(ids)
       .map(id => this.skills.get(id))
-      .filter((e): e is SkillRegistryEntry => e !== undefined && e.enabled)
+      .filter((e): e is SkillRegistryEntry => e !== undefined && e.enabled);
   }
 
   /**
@@ -344,74 +344,74 @@ export class SkillRegistry extends EventEmitter {
    * @returns Array of matching skills
    */
   lookup(options: SkillLookupOptions = {}): SkillRegistryEntry[] {
-    let results = Array.from(this.skills.values())
+    let results = Array.from(this.skills.values());
 
     // Apply filters
     if (options.enabled !== undefined) {
-      results = results.filter(e => e.enabled === options.enabled)
+      results = results.filter(e => e.enabled === options.enabled);
     }
 
     if (options.category) {
-      results = results.filter(e => e.metadata.category === options.category)
+      results = results.filter(e => e.metadata.category === options.category);
     }
 
     if (options.source) {
-      results = results.filter(e => e.source === options.source)
+      results = results.filter(e => e.source === options.source);
     }
 
     if (options.userInvocable !== undefined) {
       results = results.filter(e =>
         (e.metadata.user_invocable ?? true) === options.userInvocable,
-      )
+      );
     }
 
     if (options.autoActivate !== undefined) {
       results = results.filter(e =>
         (e.metadata.auto_activate ?? false) === options.autoActivate,
-      )
+      );
     }
 
     if (options.agent) {
       results = results.filter(e =>
         e.metadata.agent === options.agent
         || e.metadata.agents?.includes(options.agent!),
-      )
+      );
     }
 
     if (options.search) {
-      const query = options.search.toLowerCase()
+      const query = options.search.toLowerCase();
       results = results.filter(e =>
         e.id.toLowerCase().includes(query)
         || e.metadata.description.toLowerCase().includes(query)
         || e.metadata.tags?.some(t => t.toLowerCase().includes(query)),
-      )
+      );
     }
 
     // Apply sorting
     if (options.sortBy) {
-      const dir = options.sortDir === 'desc' ? -1 : 1
+      const dir = options.sortDir === 'desc' ? -1 : 1;
       results.sort((a, b) => {
         switch (options.sortBy) {
           case 'name':
-            return a.id.localeCompare(b.id) * dir
+            return a.id.localeCompare(b.id) * dir;
           case 'priority':
-            return ((a.metadata.priority ?? 5) - (b.metadata.priority ?? 5)) * dir
+            return ((a.metadata.priority ?? 5) - (b.metadata.priority ?? 5)) * dir;
           case 'registeredAt':
-            return (a.registeredAt - b.registeredAt) * dir
+            return (a.registeredAt - b.registeredAt) * dir;
           case 'modifiedAt':
-            return (a.modifiedAt - b.modifiedAt) * dir
+            return (a.modifiedAt - b.modifiedAt) * dir;
           default:
-            return 0
+            return 0;
         }
-      })
+      });
     }
 
     // Apply limit
     if (options.limit) {
-      results = results.slice(0, options.limit)
+      results = results.slice(0, options.limit);
     }
 
-    return results
+    return results;
   }
 
   /**
@@ -421,14 +421,14 @@ export class SkillRegistry extends EventEmitter {
    * @returns True if enabled
    */
   enable(id: string): boolean {
-    const entry = this.skills.get(id)
+    const entry = this.skills.get(id);
     if (!entry || entry.enabled)
-      return false
+      return false;
 
-    entry.enabled = true
-    this.emit('skill:enabled', entry)
-    this.publishMessage('skill:enabled' as MessageType, entry)
-    return true
+    entry.enabled = true;
+    this.emit('skill:enabled', entry);
+    this.publishMessage('skill:enabled' as MessageType, entry);
+    return true;
   }
 
   /**
@@ -438,14 +438,14 @@ export class SkillRegistry extends EventEmitter {
    * @returns True if disabled
    */
   disable(id: string): boolean {
-    const entry = this.skills.get(id)
+    const entry = this.skills.get(id);
     if (!entry || !entry.enabled)
-      return false
+      return false;
 
-    entry.enabled = false
-    this.emit('skill:disabled', entry)
-    this.publishMessage('skill:disabled' as MessageType, entry)
-    return true
+    entry.enabled = false;
+    this.emit('skill:disabled', entry);
+    this.publishMessage('skill:disabled' as MessageType, entry);
+    return true;
   }
 
   /**
@@ -455,15 +455,15 @@ export class SkillRegistry extends EventEmitter {
    * @returns New enabled state
    */
   toggle(id: string): boolean {
-    const entry = this.skills.get(id)
+    const entry = this.skills.get(id);
     if (!entry)
-      return false
+      return false;
 
-    entry.enabled = !entry.enabled
-    const event = entry.enabled ? 'skill:enabled' : 'skill:disabled'
-    this.emit(event, entry)
-    this.publishMessage(event as MessageType, entry)
-    return entry.enabled
+    entry.enabled = !entry.enabled;
+    const event = entry.enabled ? 'skill:enabled' : 'skill:disabled';
+    this.emit(event, entry);
+    this.publishMessage(event as MessageType, entry);
+    return entry.enabled;
   }
 
   /**
@@ -473,7 +473,7 @@ export class SkillRegistry extends EventEmitter {
    * @returns True if skill exists
    */
   has(id: string): boolean {
-    return this.skills.has(id)
+    return this.skills.has(id);
   }
 
   /**
@@ -483,7 +483,7 @@ export class SkillRegistry extends EventEmitter {
    * @returns True if enabled, false if disabled or not found
    */
   isEnabled(id: string): boolean {
-    return this.skills.get(id)?.enabled ?? false
+    return this.skills.get(id)?.enabled ?? false;
   }
 
   /**
@@ -492,7 +492,7 @@ export class SkillRegistry extends EventEmitter {
    * @returns Array of skill IDs
    */
   getIds(): string[] {
-    return Array.from(this.skills.keys())
+    return Array.from(this.skills.keys());
   }
 
   /**
@@ -501,7 +501,7 @@ export class SkillRegistry extends EventEmitter {
    * @returns Array of all entries
    */
   getAll(): SkillRegistryEntry[] {
-    return Array.from(this.skills.values())
+    return Array.from(this.skills.values());
   }
 
   /**
@@ -510,7 +510,7 @@ export class SkillRegistry extends EventEmitter {
    * @returns Array of enabled entries
    */
   getEnabled(): SkillRegistryEntry[] {
-    return this.lookup({ enabled: true })
+    return this.lookup({ enabled: true });
   }
 
   /**
@@ -519,8 +519,8 @@ export class SkillRegistry extends EventEmitter {
    * @returns Registry statistics
    */
   getStats(): SkillRegistryStats {
-    const all = this.getAll()
-    const enabled = this.getEnabled()
+    const all = this.getAll();
+    const enabled = this.getEnabled();
     const byCategory: Record<SkillCategory, number> = {
       dev: 0,
       git: 0,
@@ -531,22 +531,22 @@ export class SkillRegistry extends EventEmitter {
       planning: 0,
       debugging: 0,
       custom: 0,
-    }
-    const bySource = { builtin: 0, user: 0, marketplace: 0 }
+    };
+    const bySource = { builtin: 0, user: 0, marketplace: 0 };
 
-    let totalTokens = 0
-    let lastRegistered = 0
-    let lastModified = 0
+    let totalTokens = 0;
+    let lastRegistered = 0;
+    let lastModified = 0;
 
     for (const entry of all) {
-      byCategory[entry.metadata.category]++
-      bySource[entry.source]++
-      totalTokens += entry.estimatedTokens
+      byCategory[entry.metadata.category]++;
+      bySource[entry.source]++;
+      totalTokens += entry.estimatedTokens;
 
       if (entry.registeredAt > lastRegistered)
-        lastRegistered = entry.registeredAt
+        lastRegistered = entry.registeredAt;
       if (entry.modifiedAt > lastModified)
-        lastModified = entry.modifiedAt
+        lastModified = entry.modifiedAt;
     }
 
     return {
@@ -558,7 +558,7 @@ export class SkillRegistry extends EventEmitter {
       totalTokens,
       lastRegistered: lastRegistered > 0 ? this.getById(this.getEntriesSortedBy('registeredAt')[0]?.id || '')?.id : undefined,
       lastModified: lastModified > 0 ? this.getById(this.getEntriesSortedBy('modifiedAt')[0]?.id || '')?.id : undefined,
-    }
+    };
   }
 
   /**
@@ -568,7 +568,7 @@ export class SkillRegistry extends EventEmitter {
    * @returns Array of dependent skill IDs
    */
   getDependents(id: string): string[] {
-    return Array.from(this.skills.get(id)?.dependents || [])
+    return Array.from(this.skills.get(id)?.dependents || []);
   }
 
   /**
@@ -578,7 +578,7 @@ export class SkillRegistry extends EventEmitter {
    * @returns Array of dependency IDs
    */
   getDependencies(id: string): string[] {
-    return this.skills.get(id)?.dependencies || []
+    return this.skills.get(id)?.dependencies || [];
   }
 
   /**
@@ -588,8 +588,8 @@ export class SkillRegistry extends EventEmitter {
    * @returns Array of missing dependency IDs
    */
   getMissingDependencies(id: string): string[] {
-    const deps = this.getDependencies(id)
-    return deps.filter(dep => !this.has(dep))
+    const deps = this.getDependencies(id);
+    return deps.filter(dep => !this.has(dep));
   }
 
   /**
@@ -598,27 +598,27 @@ export class SkillRegistry extends EventEmitter {
    * @returns Map of skill ID to missing dependencies
    */
   validateDependencies(): Map<string, string[]> {
-    const missing = new Map<string, string[]>()
+    const missing = new Map<string, string[]>();
 
     Array.from(this.skills.entries()).forEach(([id, entry]) => {
-      const missingDeps = entry.dependencies.filter(dep => !this.has(dep))
+      const missingDeps = entry.dependencies.filter(dep => !this.has(dep));
       if (missingDeps.length > 0) {
-        missing.set(id, missingDeps)
+        missing.set(id, missingDeps);
       }
-    })
+    });
 
-    return missing
+    return missing;
   }
 
   /**
    * Clear all skills from registry
    */
   clear(): void {
-    this.skills.clear()
-    this.filePathIndex.clear()
-    this.triggerIndex.clear()
-    this.emit('registry:cleared')
-    this.publishMessage('registry:cleared' as MessageType, {})
+    this.skills.clear();
+    this.filePathIndex.clear();
+    this.triggerIndex.clear();
+    this.emit('registry:cleared');
+    this.publishMessage('registry:cleared' as MessageType, {});
   }
 
   /**
@@ -627,7 +627,7 @@ export class SkillRegistry extends EventEmitter {
    * @returns Number of registered skills
    */
   size(): number {
-    return this.skills.size
+    return this.skills.size;
   }
 
   // ==========================================================================
@@ -638,19 +638,19 @@ export class SkillRegistry extends EventEmitter {
    * Extract dependencies from skill metadata
    */
   private extractDependencies(metadata: SkillMdMetadata): string[] {
-    const deps: string[] = []
+    const deps: string[] = [];
 
     // Agents are dependencies
     if (metadata.agents) {
-      deps.push(...metadata.agents)
+      deps.push(...metadata.agents);
     }
 
     // Related skills may also be dependencies
     if (metadata.related_skills) {
-      deps.push(...metadata.related_skills)
+      deps.push(...metadata.related_skills);
     }
 
-    return deps
+    return deps;
   }
 
   /**
@@ -659,17 +659,17 @@ export class SkillRegistry extends EventEmitter {
   private updateTriggerIndex(id: string, triggers: string[]): void {
     // Remove old triggers for this skill
     Array.from(this.triggerIndex.entries()).forEach(([trigger, skillIds]) => {
-      skillIds.delete(id)
+      skillIds.delete(id);
       if (skillIds.size === 0)
-        this.triggerIndex.delete(trigger)
-    })
+        this.triggerIndex.delete(trigger);
+    });
 
     // Add new triggers
     for (const trigger of triggers) {
       if (!this.triggerIndex.has(trigger)) {
-        this.triggerIndex.set(trigger, new Set())
+        this.triggerIndex.set(trigger, new Set());
       }
-      this.triggerIndex.get(trigger)!.add(id)
+      this.triggerIndex.get(trigger)!.add(id);
     }
   }
 
@@ -680,15 +680,15 @@ export class SkillRegistry extends EventEmitter {
     // Remove old dependency relationships
     Array.from(this.skills.entries()).forEach(([_depId, entry]) => {
       if (entry.dependencies.includes(id)) {
-        entry.dependents.delete(id)
+        entry.dependents.delete(id);
       }
-    })
+    });
 
     // Add new dependency relationships
     for (const dep of dependencies) {
-      const depEntry = this.skills.get(dep)
+      const depEntry = this.skills.get(dep);
       if (depEntry) {
-        depEntry.dependents.add(id)
+        depEntry.dependents.add(id);
       }
     }
   }
@@ -698,9 +698,9 @@ export class SkillRegistry extends EventEmitter {
    */
   private estimateTokens(skill: SkillMdFile): number {
     // Rough estimate: ~4 characters per token
-    const contentTokens = Math.ceil(skill.content.length / 4)
-    const metadataTokens = Math.ceil(JSON.stringify(skill.metadata).length / 4)
-    return contentTokens + metadataTokens
+    const contentTokens = Math.ceil(skill.content.length / 4);
+    const metadataTokens = Math.ceil(JSON.stringify(skill.metadata).length / 4);
+    return contentTokens + metadataTokens;
   }
 
   /**
@@ -708,7 +708,7 @@ export class SkillRegistry extends EventEmitter {
    */
   private getEntriesSortedBy(field: 'registeredAt' | 'modifiedAt'): SkillRegistryEntry[] {
     return Array.from(this.skills.values())
-      .sort((a, b) => b[field] - a[field])
+      .sort((a, b) => b[field] - a[field]);
   }
 
   /**
@@ -722,7 +722,7 @@ export class SkillRegistry extends EventEmitter {
       `Skill registry event: ${type}`,
       payload,
       { priority: 'normal' },
-    ).catch(console.error)
+    ).catch(console.error);
   }
 }
 
@@ -730,25 +730,25 @@ export class SkillRegistry extends EventEmitter {
 // Singleton Instance
 // ============================================================================
 
-let registryInstance: SkillRegistry | null = null
+let registryInstance: SkillRegistry | null = null;
 
 /**
  * Get the singleton SkillRegistry instance
  */
 export function getSkillRegistry(): SkillRegistry {
   if (!registryInstance) {
-    registryInstance = new SkillRegistry()
+    registryInstance = new SkillRegistry();
   }
-  return registryInstance
+  return registryInstance;
 }
 
 /**
  * Reset the singleton instance (for testing)
  */
 export function resetSkillRegistry(): void {
-  registryInstance?.clear()
-  registryInstance?.removeAllListeners()
-  registryInstance = null
+  registryInstance?.clear();
+  registryInstance?.removeAllListeners();
+  registryInstance = null;
 }
 
 // ============================================================================
@@ -763,7 +763,7 @@ export function resetSkillRegistry(): void {
  * @returns Registered entry
  */
 export function registerSkill(skill: SkillMdFile, source?: 'builtin' | 'user' | 'marketplace'): SkillRegistryEntry {
-  return getSkillRegistry().register(skill, source)
+  return getSkillRegistry().register(skill, source);
 }
 
 /**
@@ -773,7 +773,7 @@ export function registerSkill(skill: SkillMdFile, source?: 'builtin' | 'user' | 
  * @returns Array of matching skills
  */
 export function lookupSkills(options?: SkillLookupOptions): SkillRegistryEntry[] {
-  return getSkillRegistry().lookup(options)
+  return getSkillRegistry().lookup(options);
 }
 
 /**
@@ -783,7 +783,7 @@ export function lookupSkills(options?: SkillLookupOptions): SkillRegistryEntry[]
  * @returns Skill entry or undefined
  */
 export function getSkillById(id: string): SkillRegistryEntry | undefined {
-  return getSkillRegistry().getById(id)
+  return getSkillRegistry().getById(id);
 }
 
 /**
@@ -793,5 +793,5 @@ export function getSkillById(id: string): SkillRegistryEntry | undefined {
  * @returns Array of matching skills
  */
 export function getSkillsByTrigger(trigger: string): SkillRegistryEntry[] {
-  return getSkillRegistry().getByTrigger(trigger)
+  return getSkillRegistry().getByTrigger(trigger);
 }

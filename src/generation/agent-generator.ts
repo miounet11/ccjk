@@ -4,74 +4,74 @@
  * Generates Claude Code compatible agents based on project analysis
  */
 
-import type { GeneratedAgent, GenerationContext } from './types'
-import consola from 'consola'
-import { recommendAgentCategories } from './project-analyzer'
+import type { GeneratedAgent, GenerationContext } from './types';
+import consola from 'consola';
+import { recommendAgentCategories } from './project-analyzer';
 
-const logger = consola.withTag('agent-generator')
+const logger = consola.withTag('agent-generator');
 
 /**
  * Generate agents based on project analysis
  */
 export async function generateAgents(context: GenerationContext): Promise<GeneratedAgent[]> {
-  logger.info('Generating agents...')
+  logger.info('Generating agents...');
 
-  const recommendedCategories = recommendAgentCategories(context.analysis)
-  const agents: GeneratedAgent[] = []
+  const recommendedCategories = recommendAgentCategories(context.analysis);
+  const agents: GeneratedAgent[] = [];
 
   // Filter categories based on preferences
-  const categoriesToGenerate = filterCategories(recommendedCategories, context)
+  const categoriesToGenerate = filterCategories(recommendedCategories, context);
 
-  logger.info(`Generating agents for categories: ${categoriesToGenerate.join(', ')}`)
+  logger.info(`Generating agents for categories: ${categoriesToGenerate.join(', ')}`);
 
   // Generate agents for each category
   for (const category of categoriesToGenerate) {
-    const agent = await generateAgentForCategory(category, context)
+    const agent = await generateAgentForCategory(category, context);
     if (agent && !context.existingAgents.includes(agent.id)) {
-      agents.push(agent)
+      agents.push(agent);
     }
   }
 
   // Sort by priority
-  agents.sort((a, b) => b.priority - a.priority)
+  agents.sort((a, b) => b.priority - a.priority);
 
   // Limit to max agents
-  const limitedAgents = agents.slice(0, context.preferences.maxAgents)
+  const limitedAgents = agents.slice(0, context.preferences.maxAgents);
 
-  logger.success(`Generated ${limitedAgents.length} agents`)
+  logger.success(`Generated ${limitedAgents.length} agents`);
 
-  return limitedAgents
+  return limitedAgents;
 }
 
 /**
  * Filter categories based on user preferences
  */
 function filterCategories(categories: string[], context: GenerationContext): string[] {
-  const { preferences } = context
-  const filtered: string[] = []
+  const { preferences } = context;
+  const filtered: string[] = [];
 
   for (const category of categories) {
     // Check if category should be included
     if (category.includes('testing') && !preferences.includeTesting)
-      continue
+      continue;
     if (category.includes('deployment') && !preferences.includeDeployment)
-      continue
+      continue;
     if (category.includes('documentation') && !preferences.includeDocumentation)
-      continue
+      continue;
     if (category.includes('security') && !preferences.includeSecurity)
-      continue
+      continue;
     if (category.includes('performance') && !preferences.includePerformance)
-      continue
+      continue;
 
-    filtered.push(category)
+    filtered.push(category);
   }
 
   // Add custom categories
   if (preferences.customCategories) {
-    filtered.push(...preferences.customCategories)
+    filtered.push(...preferences.customCategories);
   }
 
-  return [...new Set(filtered)]
+  return [...new Set(filtered)];
 }
 
 /**
@@ -81,13 +81,13 @@ async function generateAgentForCategory(
   category: string,
   context: GenerationContext,
 ): Promise<GeneratedAgent | null> {
-  const { analysis, preferences } = context
+  const { analysis, preferences } = context;
 
   // Get agent template for category
-  const template = getAgentTemplate(category, analysis.projectType)
+  const template = getAgentTemplate(category, analysis.projectType);
   if (!template) {
-    logger.warn(`No template found for category: ${category}`)
-    return null
+    logger.warn(`No template found for category: ${category}`);
+    return null;
   }
 
   // Build agent from template
@@ -107,27 +107,27 @@ async function generateAgentForCategory(
     priority: template.priority ?? 5,
     tags: buildTags(category, analysis),
     source: 'smart-analysis',
-  }
+  };
 
-  return agent
+  return agent;
 }
 
 /**
  * Build tags for agent based on category and analysis
  */
 function buildTags(category: string, analysis: any): string[] {
-  const tags: string[] = [category]
+  const tags: string[] = [category];
 
   // Add project type
-  tags.push(analysis.projectType)
+  tags.push(analysis.projectType);
 
   // Add languages
-  tags.push(...analysis.languages.map((l: any) => l.language))
+  tags.push(...analysis.languages.map((l: any) => l.language));
 
   // Add frameworks
-  tags.push(...analysis.frameworks.map((f: any) => f.name.toLowerCase()))
+  tags.push(...analysis.frameworks.map((f: any) => f.name.toLowerCase()));
 
-  return [...new Set(tags)]
+  return [...new Set(tags)];
 }
 
 /**
@@ -593,7 +593,7 @@ function getAgentTemplate(category: string, _projectType: string): Partial<Gener
       ],
       priority: 7,
     },
-  }
+  };
 
-  return templates[category] || null
+  return templates[category] || null;
 }

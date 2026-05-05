@@ -19,7 +19,7 @@ export {
   createAgentFromTemplate,
   getAgentCreator,
   getAgentRuntime,
-} from './agents/agent-creator'
+} from './agents/agent-creator';
 
 // Cloud Skill Registry
 export {
@@ -27,7 +27,7 @@ export {
   getSkillRegistry,
   resetSkillRegistry,
   SkillRegistry,
-} from './cloud/skill-registry'
+} from './cloud/skill-registry';
 
 export type {
   CloudApiResponse,
@@ -36,14 +36,14 @@ export type {
   SkillRegistryCache,
   SkillRegistryOptions,
   SkillSearchResult,
-} from './cloud/skill-registry'
+} from './cloud/skill-registry';
 
 // Core
 export {
   getPluginManager,
   PluginManager,
   resetPluginManager,
-} from './core/plugin-manager'
+} from './core/plugin-manager';
 
 // Shell Hook Intent Interception
 export {
@@ -53,7 +53,7 @@ export {
   IntentInterceptor,
   isIntentHookInstalled,
   resetIntentInterceptor,
-} from './hooks/intent-interceptor'
+} from './hooks/intent-interceptor';
 
 export type {
   HookInstallResult,
@@ -61,14 +61,14 @@ export type {
   ShellHookConfig,
   ShellType,
   SuggestedSkill,
-} from './hooks/intent-interceptor'
+} from './hooks/intent-interceptor';
 // Intent Detection
 export {
   DEFAULT_INTENT_RULES,
   getIntentEngine,
   IntentEngine,
   resetIntentEngine,
-} from './intent/intent-engine'
+} from './intent/intent-engine';
 
 // MCP Integration
 export {
@@ -79,14 +79,14 @@ export {
   hasMcpServer,
   McpServerManager,
   resetMcpServerManager,
-} from './mcp/mcp-integration'
+} from './mcp/mcp-integration';
 
 export type {
   McpServerInfo,
   McpServerStatus,
   McpToolCallRequest,
   McpToolCallResponse,
-} from './mcp/mcp-integration'
+} from './mcp/mcp-integration';
 
 // Script Execution
 export {
@@ -96,7 +96,7 @@ export {
   isScriptTypeSupported,
   resetScriptRunner,
   ScriptRunner,
-} from './scripts/script-runner'
+} from './scripts/script-runner';
 // Skill Parsing
 export {
   getSkillGenerator,
@@ -105,7 +105,7 @@ export {
   isValidSkillDirectory,
   SkillGenerator,
   SkillParser,
-} from './skills/skill-parser'
+} from './skills/skill-parser';
 
 // Types
-export * from './types'
+export * from './types';

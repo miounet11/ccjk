@@ -3,17 +3,17 @@
  * 智能意图识别引擎 - 分析用户输入并自动路由到对应的 skill
  */
 
-import process from 'node:process'
+import process from 'node:process';
 
 // ============================================================================
 // 意图识别规则
 // ============================================================================
 
 interface IntentRule {
-  keywords: string[] // 关键词列表
-  skill: string // 对应的 skill 名称
-  confidence: number // 置信度阈值 (0-1)
-  description: string // 规则描述
+  keywords: string[]; // 关键词列表
+  skill: string; // 对应的 skill 名称
+  confidence: number; // 置信度阈值 (0-1)
+  description: string; // 规则描述
 }
 
 const INTENT_RULES: IntentRule[] = [
@@ -65,17 +65,17 @@ const INTENT_RULES: IntentRule[] = [
     confidence: 0.75,
     description: 'Refactor code',
   },
-]
+];
 
 // ============================================================================
 // 意图识别结果
 // ============================================================================
 
 export interface IntentMatch {
-  skill: string
-  confidence: number
-  description: string
-  matchedKeywords: string[]
+  skill: string;
+  confidence: number;
+  description: string;
+  matchedKeywords: string[];
 }
 
 // ============================================================================
@@ -88,45 +88,45 @@ export interface IntentMatch {
  * @returns 匹配的意图，如果没有匹配则返回 null
  */
 export function recognizeIntent(input: string): IntentMatch | null {
-  const normalizedInput = input.toLowerCase().trim()
+  const normalizedInput = input.toLowerCase().trim();
 
-  let bestMatch: IntentMatch | null = null
-  let highestScore = 0
+  let bestMatch: IntentMatch | null = null;
+  let highestScore = 0;
 
   for (const rule of INTENT_RULES) {
-    const matchedKeywords: string[] = []
-    let score = 0
+    const matchedKeywords: string[] = [];
+    let score = 0;
 
     // 检查每个关键词是否在输入中
     for (const keyword of rule.keywords) {
       if (normalizedInput.includes(keyword.toLowerCase())) {
-        matchedKeywords.push(keyword)
+        matchedKeywords.push(keyword);
         // 完全匹配得分更高
         if (normalizedInput === keyword.toLowerCase()) {
-          score += 1.0
+          score += 1.0;
         }
         else {
-          score += 0.5
+          score += 0.5;
         }
       }
     }
 
     // 计算置信度：匹配的关键词数量 / 总关键词数量
-    const confidence = score / rule.keywords.length
+    const confidence = score / rule.keywords.length;
 
     // 如果置信度超过阈值，且得分高于当前最佳匹配
     if (confidence >= rule.confidence && score > highestScore) {
-      highestScore = score
+      highestScore = score;
       bestMatch = {
         skill: rule.skill,
         confidence,
         description: rule.description,
         matchedKeywords,
-      }
+      };
     }
   }
 
-  return bestMatch
+  return bestMatch;
 }
 
 /**
@@ -137,7 +137,7 @@ export function recognizeIntent(input: string): IntentMatch | null {
 export function shouldTriggerSkill(args: string[]): IntentMatch | null {
   // 如果已经是 skill 命令，不需要再识别
   if (args.length > 0 && args[0].startsWith('/')) {
-    return null
+    return null;
   }
 
   // 如果是已知的 CLI 命令，不需要识别
@@ -156,14 +156,14 @@ export function shouldTriggerSkill(args: string[]): IntentMatch | null {
     'template',
     'brain',
     'session',
-  ]
+  ];
   if (args.length > 0 && knownCommands.includes(args[0])) {
-    return null
+    return null;
   }
 
   // 合并所有参数为一个字符串进行分析
-  const input = args.join(' ')
-  return recognizeIntent(input)
+  const input = args.join(' ');
+  return recognizeIntent(input);
 }
 
 /**
@@ -174,18 +174,18 @@ export function shouldTriggerSkill(args: string[]): IntentMatch | null {
 export async function executeSkill(skillName: string, _originalArgs: string[]): Promise<boolean> {
   try {
     // 动态导入 skill 执行器
-    const { executeSlashCommand } = await import('../commands/slash-commands')
+    const { executeSlashCommand } = await import('../commands/slash-commands');
 
     // 构造 skill 命令
-    const skillCommand = `/${skillName}`
+    const skillCommand = `/${skillName}`;
 
     // 执行 skill
-    const handled = await executeSlashCommand(skillCommand)
-    return handled
+    const handled = await executeSlashCommand(skillCommand);
+    return handled;
   }
   catch (error) {
-    console.error(`Failed to execute skill "${skillName}":`, error)
-    return false
+    console.error(`Failed to execute skill "${skillName}":`, error);
+    return false;
   }
 }
 
@@ -194,33 +194,33 @@ export async function executeSkill(skillName: string, _originalArgs: string[]): 
  * 在 CLI 启动时调用，自动识别用户意图并路由到对应的 skill
  */
 export async function handleIntentRecognition(): Promise<boolean> {
-  const args = process.argv.slice(2)
+  const args = process.argv.slice(2);
 
   // 检查是否应该触发 skill
-  const intent = shouldTriggerSkill(args)
+  const intent = shouldTriggerSkill(args);
 
   if (!intent) {
-    return false // 没有匹配的意图，继续正常的 CLI 流程
+    return false; // 没有匹配的意图，继续正常的 CLI 流程
   }
 
   // 高置信度匹配：直接执行
   if (intent.confidence >= 0.9) {
-    console.log(`🎯 Detected intent: ${intent.description}`)
-    console.log(`   Executing skill: /${intent.skill}\n`)
-    return await executeSkill(intent.skill, args)
+    console.log(`🎯 Detected intent: ${intent.description}`);
+    console.log(`   Executing skill: /${intent.skill}\n`);
+    return await executeSkill(intent.skill, args);
   }
 
   // 中等置信度匹配：询问用户
   if (intent.confidence >= 0.7) {
-    console.log(`🤔 Did you mean: /${intent.skill} (${intent.description})?`)
-    console.log(`   Matched keywords: ${intent.matchedKeywords.join(', ')}`)
-    console.log(`   Confidence: ${(intent.confidence * 100).toFixed(0)}%\n`)
+    console.log(`🤔 Did you mean: /${intent.skill} (${intent.description})?`);
+    console.log(`   Matched keywords: ${intent.matchedKeywords.join(', ')}`);
+    console.log(`   Confidence: ${(intent.confidence * 100).toFixed(0)}%\n`);
 
     // TODO: 添加用户确认逻辑
     // 目前直接执行
-    return await executeSkill(intent.skill, args)
+    return await executeSkill(intent.skill, args);
   }
 
   // 低置信度：不处理
-  return false
+  return false;
 }

@@ -7,114 +7,114 @@
  * @module context/persistence
  */
 
-import type { CompressedContext } from './types'
-import { existsSync, mkdirSync } from 'node:fs'
-import Database from 'better-sqlite3'
-import { dirname, join } from 'pathe'
+import type { CompressedContext } from './types';
+import { existsSync, mkdirSync } from 'node:fs';
+import Database from 'better-sqlite3';
+import { dirname, join } from 'pathe';
 
 /**
  * Persisted context entry
  */
 export interface PersistedContext {
-  id: string
-  projectHash: string
-  content: string
-  compressed: string
-  algorithm: string
-  strategy: string
-  originalTokens: number
-  compressedTokens: number
-  compressionRatio: number
-  metadata: string // JSON
-  timestamp: number
-  lastAccessed: number
-  accessCount: number
+  id: string;
+  projectHash: string;
+  content: string;
+  compressed: string;
+  algorithm: string;
+  strategy: string;
+  originalTokens: number;
+  compressedTokens: number;
+  compressionRatio: number;
+  metadata: string; // JSON
+  timestamp: number;
+  lastAccessed: number;
+  accessCount: number;
 }
 
 /**
  * Context query options
  */
 export interface ContextQueryOptions {
-  projectHash?: string
-  startTime?: number
-  endTime?: number
-  limit?: number
-  sortBy?: 'timestamp' | 'lastAccessed' | 'accessCount' | 'relevance'
-  sortOrder?: 'asc' | 'desc'
+  projectHash?: string;
+  startTime?: number;
+  endTime?: number;
+  limit?: number;
+  sortBy?: 'timestamp' | 'lastAccessed' | 'accessCount' | 'relevance';
+  sortOrder?: 'asc' | 'desc';
 }
 
 /**
  * Search result with ranking
  */
 export interface SearchResult extends PersistedContext {
-  rank: number
-  snippet?: string
+  rank: number;
+  snippet?: string;
 }
 
 /**
  * Context statistics
  */
 export interface ContextStats {
-  totalContexts: number
-  totalProjects: number
-  totalOriginalTokens: number
-  totalCompressedTokens: number
-  averageCompressionRatio: number
-  totalSize: number
-  oldestContext?: number
-  newestContext?: number
+  totalContexts: number;
+  totalProjects: number;
+  totalOriginalTokens: number;
+  totalCompressedTokens: number;
+  averageCompressionRatio: number;
+  totalSize: number;
+  oldestContext?: number;
+  newestContext?: number;
 }
 
 /**
  * Compression metric entry
  */
 export interface CompressionMetric {
-  id: number
-  projectHash: string
-  contextId: string
-  originalTokens: number
-  compressedTokens: number
-  compressionRatio: number
-  timeTakenMs: number
-  algorithm: string
-  strategy: string
-  timestamp: number
+  id: number;
+  projectHash: string;
+  contextId: string;
+  originalTokens: number;
+  compressedTokens: number;
+  compressionRatio: number;
+  timeTakenMs: number;
+  algorithm: string;
+  strategy: string;
+  timestamp: number;
 }
 
 /**
  * Compression metrics statistics
  */
 export interface CompressionMetricsStats {
-  totalCompressions: number
-  totalOriginalTokens: number
-  totalCompressedTokens: number
-  totalTokensSaved: number
-  averageCompressionRatio: number
-  averageTimeTakenMs: number
-  estimatedCostSavings: number // in USD
+  totalCompressions: number;
+  totalOriginalTokens: number;
+  totalCompressedTokens: number;
+  totalTokensSaved: number;
+  averageCompressionRatio: number;
+  averageTimeTakenMs: number;
+  estimatedCostSavings: number; // in USD
   sessionStats?: {
-    compressions: number
-    tokensSaved: number
-    costSavings: number
-  }
+    compressions: number;
+    tokensSaved: number;
+    costSavings: number;
+  };
   weeklyStats?: {
-    compressions: number
-    tokensSaved: number
-    costSavings: number
-  }
+    compressions: number;
+    tokensSaved: number;
+    costSavings: number;
+  };
   monthlyStats?: {
-    compressions: number
-    tokensSaved: number
-    costSavings: number
-  }
+    compressions: number;
+    tokensSaved: number;
+    costSavings: number;
+  };
 }
 
 /**
  * Context Persistence Manager
  */
 export class ContextPersistence {
-  private db: Database.Database
-  private dbPath: string
+  private db: Database.Database;
+  private dbPath: string;
 
   constructor(dbPath?: string) {
     // Default to ~/.ccjk/context/contexts.db
@@ -123,22 +123,22 @@ export class ContextPersistence {
       '.ccjk',
       'context',
       'contexts.db',
-    )
+    );
 
     // Ensure directory exists
-    const dir = dirname(this.dbPath)
+    const dir = dirname(this.dbPath);
     if (!existsSync(dir)) {
-      mkdirSync(dir, { recursive: true })
+      mkdirSync(dir, { recursive: true });
     }
 
     // Open database
-    this.db = new Database(this.dbPath)
+    this.db = new Database(this.dbPath);
 
     // Enable WAL mode for better concurrency
-    this.db.pragma('journal_mode = WAL')
+    this.db.pragma('journal_mode = WAL');
 
     // Initialize schema
-    this.initSchema()
+    this.initSchema();
   }
 
   /**
@@ -231,7 +231,7 @@ export class ContextPersistence {
       CREATE INDEX IF NOT EXISTS idx_contexts_hot ON contexts(project_hash, last_accessed DESC, access_count DESC);
       CREATE INDEX IF NOT EXISTS idx_contexts_warm ON contexts(project_hash, timestamp DESC) WHERE access_count > 1;
       CREATE INDEX IF NOT EXISTS idx_contexts_cold ON contexts(project_hash, timestamp ASC) WHERE access_count = 1;
-    `)
+    `);
   }
 
   /**
@@ -244,11 +244,11 @@ export class ContextPersistence {
         original_tokens, compressed_tokens, compression_ratio,
         metadata, timestamp, last_accessed, access_count
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `)
+    `);
 
-    const now = Date.now()
-    const existingContext = this.getContext(context.id)
-    const accessCount = existingContext ? existingContext.accessCount + 1 : 1
+    const now = Date.now();
+    const existingContext = this.getContext(context.id);
+    const accessCount = existingContext ? existingContext.accessCount + 1 : 1;
 
     stmt.run(
       context.id,
@@ -264,7 +264,7 @@ export class ContextPersistence {
       context.compressedAt || now,
       now,
       accessCount,
-    )
+    );
 
     // Save compression metric if time is provided
     if (timeTakenMs !== undefined) {
@@ -278,11 +278,11 @@ export class ContextPersistence {
         algorithm: context.algorithm,
         strategy: context.strategy,
         timestamp: now,
-      })
+      });
     }
 
     // Update project metadata
-    this.updateProjectStats(projectHash)
+    this.updateProjectStats(projectHash);
   }
 
   /**
@@ -291,91 +291,91 @@ export class ContextPersistence {
   getContext(contextId: string): PersistedContext | null {
     const stmt = this.db.prepare(`
       SELECT * FROM contexts WHERE id = ?
-    `)
+    `);
 
-    const row = stmt.get(contextId) as any
+    const row = stmt.get(contextId) as any;
     if (!row)
-      return null
+      return null;
 
     // Update last accessed time
-    this.updateLastAccessed(contextId)
+    this.updateLastAccessed(contextId);
 
-    return this.rowToContext(row)
+    return this.rowToContext(row);
   }
 
   /**
    * Get contexts for a project
    */
   getProjectContexts(projectHash: string, options?: ContextQueryOptions): PersistedContext[] {
-    let query = 'SELECT * FROM contexts WHERE project_hash = ?'
-    const params: any[] = [projectHash]
+    let query = 'SELECT * FROM contexts WHERE project_hash = ?';
+    const params: any[] = [projectHash];
 
     // Apply time filters
     if (options?.startTime) {
-      query += ' AND timestamp >= ?'
-      params.push(options.startTime)
+      query += ' AND timestamp >= ?';
+      params.push(options.startTime);
     }
 
     if (options?.endTime) {
-      query += ' AND timestamp <= ?'
-      params.push(options.endTime)
+      query += ' AND timestamp <= ?';
+      params.push(options.endTime);
     }
 
     // Apply sorting
-    const sortBy = options?.sortBy || 'timestamp'
-    const sortOrder = options?.sortOrder || 'desc'
-    query += ` ORDER BY ${sortBy} ${sortOrder.toUpperCase()}`
+    const sortBy = options?.sortBy || 'timestamp';
+    const sortOrder = options?.sortOrder || 'desc';
+    query += ` ORDER BY ${sortBy} ${sortOrder.toUpperCase()}`;
 
     // Apply limit
     if (options?.limit) {
-      query += ' LIMIT ?'
-      params.push(options.limit)
+      query += ' LIMIT ?';
+      params.push(options.limit);
     }
 
-    const stmt = this.db.prepare(query)
-    const rows = stmt.all(...params) as any[]
+    const stmt = this.db.prepare(query);
+    const rows = stmt.all(...params) as any[];
 
-    return rows.map(row => this.rowToContext(row))
+    return rows.map(row => this.rowToContext(row));
   }
 
   /**
    * Query contexts with filters
    */
   queryContexts(options?: ContextQueryOptions): PersistedContext[] {
-    let query = 'SELECT * FROM contexts WHERE 1=1'
-    const params: any[] = []
+    let query = 'SELECT * FROM contexts WHERE 1=1';
+    const params: any[] = [];
 
     // Apply filters
     if (options?.projectHash) {
-      query += ' AND project_hash = ?'
-      params.push(options.projectHash)
+      query += ' AND project_hash = ?';
+      params.push(options.projectHash);
     }
 
     if (options?.startTime) {
-      query += ' AND timestamp >= ?'
-      params.push(options.startTime)
+      query += ' AND timestamp >= ?';
+      params.push(options.startTime);
     }
 
     if (options?.endTime) {
-      query += ' AND timestamp <= ?'
-      params.push(options.endTime)
+      query += ' AND timestamp <= ?';
+      params.push(options.endTime);
     }
 
     // Apply sorting
-    const sortBy = options?.sortBy || 'timestamp'
-    const sortOrder = options?.sortOrder || 'desc'
-    query += ` ORDER BY ${sortBy} ${sortOrder.toUpperCase()}`
+    const sortBy = options?.sortBy || 'timestamp';
+    const sortOrder = options?.sortOrder || 'desc';
+    query += ` ORDER BY ${sortBy} ${sortOrder.toUpperCase()}`;
 
     // Apply limit
     if (options?.limit) {
-      query += ' LIMIT ?'
-      params.push(options.limit)
+      query += ' LIMIT ?';
+      params.push(options.limit);
     }
 
-    const stmt = this.db.prepare(query)
-    const rows = stmt.all(...params) as any[]
+    const stmt = this.db.prepare(query);
+    const rows = stmt.all(...params) as any[];
 
-    return rows.map(row => this.rowToContext(row))
+    return rows.map(row => this.rowToContext(row));
   }
 
   /**
@@ -386,7 +386,7 @@ export class ContextPersistence {
    */
   searchContexts(searchQuery: string, options?: ContextQueryOptions): SearchResult[] {
     if (!searchQuery || searchQuery.trim().length === 0) {
-      return []
+      return [];
     }
 
     let query = `
@@ -397,50 +397,50 @@ export class ContextPersistence {
       FROM contexts c
       INNER JOIN contexts_fts ON contexts_fts.id = c.id
       WHERE contexts_fts MATCH ?
-    `
-    const params: any[] = [searchQuery]
+    `;
+    const params: any[] = [searchQuery];
 
     // Apply filters
     if (options?.projectHash) {
-      query += ' AND c.project_hash = ?'
-      params.push(options.projectHash)
+      query += ' AND c.project_hash = ?';
+      params.push(options.projectHash);
     }
 
     if (options?.startTime) {
-      query += ' AND c.timestamp >= ?'
-      params.push(options.startTime)
+      query += ' AND c.timestamp >= ?';
+      params.push(options.startTime);
     }
 
     if (options?.endTime) {
-      query += ' AND c.timestamp <= ?'
-      params.push(options.endTime)
+      query += ' AND c.timestamp <= ?';
+      params.push(options.endTime);
     }
 
     // Apply sorting (default to relevance for search)
-    const sortBy = options?.sortBy || 'relevance'
-    const sortOrder = options?.sortOrder || 'desc'
+    const sortBy = options?.sortBy || 'relevance';
+    const sortOrder = options?.sortOrder || 'desc';
 
     if (sortBy === 'relevance') {
-      query += ` ORDER BY rank ${sortOrder === 'asc' ? 'DESC' : 'ASC'}` // BM25 returns negative scores
+      query += ` ORDER BY rank ${sortOrder === 'asc' ? 'DESC' : 'ASC'}`; // BM25 returns negative scores
     }
     else {
-      query += ` ORDER BY c.${sortBy} ${sortOrder.toUpperCase()}`
+      query += ` ORDER BY c.${sortBy} ${sortOrder.toUpperCase()}`;
     }
 
     // Apply limit
     if (options?.limit) {
-      query += ' LIMIT ?'
-      params.push(options.limit)
+      query += ' LIMIT ?';
+      params.push(options.limit);
     }
 
-    const stmt = this.db.prepare(query)
-    const rows = stmt.all(...params) as any[]
+    const stmt = this.db.prepare(query);
+    const rows = stmt.all(...params) as any[];
 
     return rows.map(row => ({
       ...this.rowToContext(row),
       rank: row.rank,
       snippet: row.snippet,
-    }))
+    }));
   }
 
   /**
@@ -454,9 +454,9 @@ export class ContextPersistence {
       WHERE project_hash = ?
       ORDER BY last_accessed DESC, access_count DESC
       LIMIT ?
-    `)
-    const rows = stmt.all(projectHash, limit) as any[]
-    return rows.map(row => this.rowToContext(row))
+    `);
+    const rows = stmt.all(projectHash, limit) as any[];
+    return rows.map(row => this.rowToContext(row));
   }
 
   /**
@@ -470,9 +470,9 @@ export class ContextPersistence {
       WHERE project_hash = ? AND access_count > 1
       ORDER BY timestamp DESC
       LIMIT ?
-    `)
-    const rows = stmt.all(projectHash, limit) as any[]
-    return rows.map(row => this.rowToContext(row))
+    `);
+    const rows = stmt.all(projectHash, limit) as any[];
+    return rows.map(row => this.rowToContext(row));
   }
 
   /**
@@ -486,41 +486,41 @@ export class ContextPersistence {
       WHERE project_hash = ? AND access_count = 1
       ORDER BY timestamp ASC
       LIMIT ?
-    `)
-    const rows = stmt.all(projectHash, limit) as any[]
-    return rows.map(row => this.rowToContext(row))
+    `);
+    const rows = stmt.all(projectHash, limit) as any[];
+    return rows.map(row => this.rowToContext(row));
   }
 
   /**
    * Delete context by ID
    */
   deleteContext(contextId: string): boolean {
-    const context = this.getContext(contextId)
+    const context = this.getContext(contextId);
     if (!context)
-      return false
+      return false;
 
-    const stmt = this.db.prepare('DELETE FROM contexts WHERE id = ?')
-    const result = stmt.run(contextId)
+    const stmt = this.db.prepare('DELETE FROM contexts WHERE id = ?');
+    const result = stmt.run(contextId);
 
     // Update project stats
     if (context.projectHash) {
-      this.updateProjectStats(context.projectHash)
+      this.updateProjectStats(context.projectHash);
     }
 
-    return result.changes > 0
+    return result.changes > 0;
   }
 
   /**
    * Delete all contexts for a project
    */
   deleteProjectContexts(projectHash: string): number {
-    const stmt = this.db.prepare('DELETE FROM contexts WHERE project_hash = ?')
-    const result = stmt.run(projectHash)
+    const stmt = this.db.prepare('DELETE FROM contexts WHERE project_hash = ?');
+    const result = stmt.run(projectHash);
 
     // Update project stats
-    this.updateProjectStats(projectHash)
+    this.updateProjectStats(projectHash);
 
-    return result.changes
+    return result.changes;
   }
 
   /**
@@ -530,11 +530,11 @@ export class ContextPersistence {
     const stmt = this.db.prepare(`
       INSERT OR REPLACE INTO projects (hash, path, name, created_at, updated_at, context_count, total_tokens, metadata)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `)
+    `);
 
-    const now = Date.now()
-    const existing = this.getProject(projectHash)
-    const createdAt = existing?.created_at || now
+    const now = Date.now();
+    const existing = this.getProject(projectHash);
+    const createdAt = existing?.created_at || now;
 
     stmt.run(
       projectHash,
@@ -545,47 +545,47 @@ export class ContextPersistence {
       existing?.context_count || 0,
       existing?.total_tokens || 0,
       JSON.stringify(existing?.metadata || {}),
-    )
+    );
   }
 
   /**
    * Get project info
    */
   getProject(projectHash: string): any {
-    const stmt = this.db.prepare('SELECT * FROM projects WHERE hash = ?')
-    return stmt.get(projectHash)
+    const stmt = this.db.prepare('SELECT * FROM projects WHERE hash = ?');
+    return stmt.get(projectHash);
   }
 
   /**
    * List all projects
    */
   listProjects(): any[] {
-    const stmt = this.db.prepare('SELECT * FROM projects ORDER BY updated_at DESC')
-    return stmt.all()
+    const stmt = this.db.prepare('SELECT * FROM projects ORDER BY updated_at DESC');
+    return stmt.all();
   }
 
   /**
    * Get context statistics
    */
   getStats(projectHash?: string): ContextStats {
-    let query = 'SELECT COUNT(*) as count, SUM(original_tokens) as orig, SUM(compressed_tokens) as comp, MIN(timestamp) as oldest, MAX(timestamp) as newest FROM contexts'
-    const params: any[] = []
+    let query = 'SELECT COUNT(*) as count, SUM(original_tokens) as orig, SUM(compressed_tokens) as comp, MIN(timestamp) as oldest, MAX(timestamp) as newest FROM contexts';
+    const params: any[] = [];
 
     if (projectHash) {
-      query += ' WHERE project_hash = ?'
-      params.push(projectHash)
+      query += ' WHERE project_hash = ?';
+      params.push(projectHash);
     }
 
-    const stmt = this.db.prepare(query)
-    const row = stmt.get(...params) as any
+    const stmt = this.db.prepare(query);
+    const row = stmt.get(...params) as any;
 
     const totalProjects = projectHash
       ? 1
-      : (this.db.prepare('SELECT COUNT(*) as count FROM projects').get() as any).count
+      : (this.db.prepare('SELECT COUNT(*) as count FROM projects').get() as any).count;
 
     const avgRatio = row.orig > 0
       ? (row.orig - row.comp) / row.orig
-      : 0
+      : 0;
 
     return {
       totalContexts: row.count || 0,
@@ -596,39 +596,39 @@ export class ContextPersistence {
       totalSize: this.getDatabaseSize(),
       oldestContext: row.oldest || undefined,
       newestContext: row.newest || undefined,
-    }
+    };
   }
 
   /**
    * Clean up old contexts
    */
   cleanup(maxAge: number): number {
-    const cutoff = Date.now() - maxAge
+    const cutoff = Date.now() - maxAge;
 
-    const stmt = this.db.prepare('DELETE FROM contexts WHERE timestamp < ?')
-    const result = stmt.run(cutoff)
+    const stmt = this.db.prepare('DELETE FROM contexts WHERE timestamp < ?');
+    const result = stmt.run(cutoff);
 
     // Update all project stats
-    const projects = this.listProjects()
+    const projects = this.listProjects();
     for (const project of projects) {
-      this.updateProjectStats(project.hash)
+      this.updateProjectStats(project.hash);
     }
 
-    return result.changes
+    return result.changes;
   }
 
   /**
    * Vacuum database to reclaim space
    */
   vacuum(): void {
-    this.db.exec('VACUUM')
+    this.db.exec('VACUUM');
   }
 
   /**
    * Close database
    */
   close(): void {
-    this.db.close()
+    this.db.close();
   }
 
   /**
@@ -636,12 +636,12 @@ export class ContextPersistence {
    */
   getDatabaseSize(): number {
     try {
-      const fs = require('node:fs')
-      const stats = fs.statSync(this.dbPath)
-      return stats.size
+      const fs = require('node:fs');
+      const stats = fs.statSync(this.dbPath);
+      return stats.size;
     }
     catch {
-      return 0
+      return 0;
     }
   }
 
@@ -649,14 +649,14 @@ export class ContextPersistence {
    * Export contexts to JSON
    */
   exportContexts(projectHash?: string): PersistedContext[] {
-    return this.queryContexts({ projectHash })
+    return this.queryContexts({ projectHash });
   }
 
   /**
    * Import contexts from JSON
    */
   importContexts(contexts: PersistedContext[]): number {
-    let imported = 0
+    let imported = 0;
 
     const stmt = this.db.prepare(`
       INSERT OR REPLACE INTO contexts (
@@ -664,7 +664,7 @@ export class ContextPersistence {
         original_tokens, compressed_tokens, compression_ratio,
         metadata, timestamp, last_accessed, access_count
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `)
+    `);
 
     for (const context of contexts) {
       try {
@@ -682,15 +682,15 @@ export class ContextPersistence {
           context.timestamp,
           context.lastAccessed,
           context.accessCount,
-        )
-        imported++
+        );
+        imported++;
       }
       catch {
         // Skip invalid entries
       }
     }
 
-    return imported
+    return imported;
   }
 
   /**
@@ -701,8 +701,8 @@ export class ContextPersistence {
       UPDATE contexts
       SET last_accessed = ?, access_count = access_count + 1
       WHERE id = ?
-    `)
-    stmt.run(Date.now(), contextId)
+    `);
+    stmt.run(Date.now(), contextId);
   }
 
   /**
@@ -716,8 +716,8 @@ export class ContextPersistence {
         total_tokens = (SELECT COALESCE(SUM(original_tokens), 0) FROM contexts WHERE project_hash = ?),
         updated_at = ?
       WHERE hash = ?
-    `)
-    stmt.run(projectHash, projectHash, Date.now(), projectHash)
+    `);
+    stmt.run(projectHash, projectHash, Date.now(), projectHash);
   }
 
   /**
@@ -738,7 +738,7 @@ export class ContextPersistence {
       timestamp: row.timestamp,
       lastAccessed: row.last_accessed,
       accessCount: row.access_count,
-    }
+    };
   }
 
   /**
@@ -750,7 +750,7 @@ export class ContextPersistence {
         project_hash, context_id, original_tokens, compressed_tokens,
         compression_ratio, time_taken_ms, algorithm, strategy, timestamp
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `)
+    `);
 
     stmt.run(
       metric.projectHash,
@@ -762,80 +762,80 @@ export class ContextPersistence {
       metric.algorithm,
       metric.strategy,
       metric.timestamp,
-    )
+    );
   }
 
   /**
    * Get compression metrics statistics
    */
   getCompressionMetricsStats(projectHash?: string, options?: {
-    startTime?: number
-    endTime?: number
+    startTime?: number;
+    endTime?: number;
   }): CompressionMetricsStats {
-    const now = Date.now()
-    const sessionStart = now - (24 * 60 * 60 * 1000) // Last 24 hours
-    const weekStart = now - (7 * 24 * 60 * 60 * 1000) // Last 7 days
-    const monthStart = now - (30 * 24 * 60 * 60 * 1000) // Last 30 days
+    const now = Date.now();
+    const sessionStart = now - (24 * 60 * 60 * 1000); // Last 24 hours
+    const weekStart = now - (7 * 24 * 60 * 60 * 1000); // Last 7 days
+    const monthStart = now - (30 * 24 * 60 * 60 * 1000); // Last 30 days
 
     // Build base query
-    let baseQuery = 'SELECT * FROM compression_metrics WHERE 1=1'
-    const params: any[] = []
+    let baseQuery = 'SELECT * FROM compression_metrics WHERE 1=1';
+    const params: any[] = [];
 
     if (projectHash) {
-      baseQuery += ' AND project_hash = ?'
-      params.push(projectHash)
+      baseQuery += ' AND project_hash = ?';
+      params.push(projectHash);
     }
 
     if (options?.startTime) {
-      baseQuery += ' AND timestamp >= ?'
-      params.push(options.startTime)
+      baseQuery += ' AND timestamp >= ?';
+      params.push(options.startTime);
     }
 
     if (options?.endTime) {
-      baseQuery += ' AND timestamp <= ?'
-      params.push(options.endTime)
+      baseQuery += ' AND timestamp <= ?';
+      params.push(options.endTime);
     }
 
     // Get all metrics
-    const stmt = this.db.prepare(baseQuery)
-    const metrics = stmt.all(...params) as any[]
+    const stmt = this.db.prepare(baseQuery);
+    const metrics = stmt.all(...params) as any[];
 
     // Calculate overall stats
-    const totalCompressions = metrics.length
-    const totalOriginalTokens = metrics.reduce((sum, m) => sum + m.original_tokens, 0)
-    const totalCompressedTokens = metrics.reduce((sum, m) => sum + m.compressed_tokens, 0)
-    const totalTokensSaved = totalOriginalTokens - totalCompressedTokens
+    const totalCompressions = metrics.length;
+    const totalOriginalTokens = metrics.reduce((sum, m) => sum + m.original_tokens, 0);
+    const totalCompressedTokens = metrics.reduce((sum, m) => sum + m.compressed_tokens, 0);
+    const totalTokensSaved = totalOriginalTokens - totalCompressedTokens;
     const averageCompressionRatio = totalCompressions > 0
       ? metrics.reduce((sum, m) => sum + m.compression_ratio, 0) / totalCompressions
-      : 0
+      : 0;
     const averageTimeTakenMs = totalCompressions > 0
       ? metrics.reduce((sum, m) => sum + m.time_taken_ms, 0) / totalCompressions
-      : 0
+      : 0;
 
     // Cost calculation: $0.015 per 1K tokens (Claude Opus pricing)
-    const COST_PER_1K_TOKENS = 0.015
-    const estimatedCostSavings = (totalTokensSaved / 1000) * COST_PER_1K_TOKENS
+    const COST_PER_1K_TOKENS = 0.015;
+    const estimatedCostSavings = (totalTokensSaved / 1000) * COST_PER_1K_TOKENS;
 
     // Session stats (last 24 hours)
-    const sessionMetrics = metrics.filter(m => m.timestamp >= sessionStart)
+    const sessionMetrics = metrics.filter(m => m.timestamp >= sessionStart);
     const sessionTokensSaved = sessionMetrics.reduce(
       (sum, m) => sum + (m.original_tokens - m.compressed_tokens),
       0,
-    )
+    );
 
     // Weekly stats
-    const weeklyMetrics = metrics.filter(m => m.timestamp >= weekStart)
+    const weeklyMetrics = metrics.filter(m => m.timestamp >= weekStart);
     const weeklyTokensSaved = weeklyMetrics.reduce(
       (sum, m) => sum + (m.original_tokens - m.compressed_tokens),
       0,
-    )
+    );
 
     // Monthly stats
-    const monthlyMetrics = metrics.filter(m => m.timestamp >= monthStart)
+    const monthlyMetrics = metrics.filter(m => m.timestamp >= monthStart);
     const monthlyTokensSaved = monthlyMetrics.reduce(
       (sum, m) => sum + (m.original_tokens - m.compressed_tokens),
       0,
-    )
+    );
 
     return {
       totalCompressions,
@@ -860,26 +860,26 @@ export class ContextPersistence {
         tokensSaved: monthlyTokensSaved,
         costSavings: (monthlyTokensSaved / 1000) * COST_PER_1K_TOKENS,
       },
-    }
+    };
   }
 
   /**
    * Get recent compression metrics
    */
   getRecentCompressionMetrics(projectHash?: string, limit: number = 10): CompressionMetric[] {
-    let query = 'SELECT * FROM compression_metrics'
-    const params: any[] = []
+    let query = 'SELECT * FROM compression_metrics';
+    const params: any[] = [];
 
     if (projectHash) {
-      query += ' WHERE project_hash = ?'
-      params.push(projectHash)
+      query += ' WHERE project_hash = ?';
+      params.push(projectHash);
     }
 
-    query += ' ORDER BY timestamp DESC LIMIT ?'
-    params.push(limit)
+    query += ' ORDER BY timestamp DESC LIMIT ?';
+    params.push(limit);
 
-    const stmt = this.db.prepare(query)
-    const rows = stmt.all(...params) as any[]
+    const stmt = this.db.prepare(query);
+    const rows = stmt.all(...params) as any[];
 
     return rows.map(row => ({
       id: row.id,
@@ -892,45 +892,45 @@ export class ContextPersistence {
       algorithm: row.algorithm,
       strategy: row.strategy,
       timestamp: row.timestamp,
-    }))
+    }));
   }
 
   /**
    * Query compression metrics with optional filters
    */
   getCompressionMetrics(projectHash?: string, options?: {
-    startTime?: number
-    endTime?: number
-    limit?: number
-    sortOrder?: 'asc' | 'desc'
+    startTime?: number;
+    endTime?: number;
+    limit?: number;
+    sortOrder?: 'asc' | 'desc';
   }): CompressionMetric[] {
-    let query = 'SELECT * FROM compression_metrics WHERE 1=1'
-    const params: any[] = []
+    let query = 'SELECT * FROM compression_metrics WHERE 1=1';
+    const params: any[] = [];
 
     if (projectHash) {
-      query += ' AND project_hash = ?'
-      params.push(projectHash)
+      query += ' AND project_hash = ?';
+      params.push(projectHash);
     }
 
     if (options?.startTime) {
-      query += ' AND timestamp >= ?'
-      params.push(options.startTime)
+      query += ' AND timestamp >= ?';
+      params.push(options.startTime);
     }
 
     if (options?.endTime) {
-      query += ' AND timestamp <= ?'
-      params.push(options.endTime)
+      query += ' AND timestamp <= ?';
+      params.push(options.endTime);
     }
 
-    query += ` ORDER BY timestamp ${(options?.sortOrder || 'desc').toUpperCase()}`
+    query += ` ORDER BY timestamp ${(options?.sortOrder || 'desc').toUpperCase()}`;
 
     if (options?.limit) {
-      query += ' LIMIT ?'
-      params.push(options.limit)
+      query += ' LIMIT ?';
+      params.push(options.limit);
     }
 
-    const stmt = this.db.prepare(query)
-    const rows = stmt.all(...params) as any[]
+    const stmt = this.db.prepare(query);
+    const rows = stmt.all(...params) as any[];
 
     return rows.map(row => ({
       id: row.id,
@@ -943,38 +943,38 @@ export class ContextPersistence {
       algorithm: row.algorithm,
       strategy: row.strategy,
       timestamp: row.timestamp,
-    }))
+    }));
   }
 
   /**
    * Clean up old compression metrics
    */
   cleanupCompressionMetrics(maxAge: number): number {
-    const cutoff = Date.now() - maxAge
-    const stmt = this.db.prepare('DELETE FROM compression_metrics WHERE timestamp < ?')
-    const result = stmt.run(cutoff)
-    return result.changes
+    const cutoff = Date.now() - maxAge;
+    const stmt = this.db.prepare('DELETE FROM compression_metrics WHERE timestamp < ?');
+    const result = stmt.run(cutoff);
+    return result.changes;
   }
 }
 
 /**
  * Global context persistence instance
  */
-let globalContextPersistence: ContextPersistence | null = null
+let globalContextPersistence: ContextPersistence | null = null;
 
 /**
  * Get global context persistence instance
  */
 export function getContextPersistence(dbPath?: string): ContextPersistence {
   if (!globalContextPersistence) {
-    globalContextPersistence = new ContextPersistence(dbPath)
+    globalContextPersistence = new ContextPersistence(dbPath);
   }
-  return globalContextPersistence
+  return globalContextPersistence;
 }
 
 /**
  * Create a new context persistence instance
  */
 export function createContextPersistence(dbPath?: string): ContextPersistence {
-  return new ContextPersistence(dbPath)
+  return new ContextPersistence(dbPath);
 }

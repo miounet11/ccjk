@@ -95,7 +95,8 @@ export async function machineRoutes(fastify: FastifyInstance) {
           activeAt: new Date(),
         },
       });
-    } else {
+    }
+    else {
       // Create new machine
       machine = await prisma.machine.create({
         data: {

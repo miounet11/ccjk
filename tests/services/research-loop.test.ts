@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const {
   getSessionMock,
@@ -16,7 +16,7 @@ const {
   getResearchReportMock: vi.fn(),
   getResearchSessionStatusMock: vi.fn(),
   runResearchExperimentMock: vi.fn(),
-}))
+}));
 
 vi.mock('../../src/brain/task-persistence', () => ({
   TaskPersistence: vi.fn().mockImplementation(() => ({
@@ -24,21 +24,21 @@ vi.mock('../../src/brain/task-persistence', () => ({
     listSessions: listSessionsMock,
     saveSession: saveSessionMock,
   })),
-}))
+}));
 
 vi.mock('../../src/services/research-program', () => ({
   readResearchProgram: readResearchProgramMock,
-}))
+}));
 
 vi.mock('../../src/services/research-runner', () => ({
   getResearchReport: getResearchReportMock,
   getResearchSessionStatus: getResearchSessionStatusMock,
   runResearchExperiment: runResearchExperimentMock,
-}))
+}));
 
 describe('research loop service', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
+    vi.clearAllMocks();
 
     readResearchProgramMock.mockReturnValue({
       name: 'repo-research',
@@ -53,17 +53,17 @@ describe('research loop service', () => {
       targetMetric: undefined,
       notes: 'notes',
       programPath: '/repo/.ccjk/research/program.md',
-    })
+    });
 
-    getResearchSessionStatusMock.mockReturnValue(null)
-  })
+    getResearchSessionStatusMock.mockReturnValue(null);
+  });
 
   it('starts a loop, runs baseline and rounds until maxRounds', async () => {
-    const { startResearchLoop } = await import('../../src/services/research-loop')
+    const { startResearchLoop } = await import('../../src/services/research-loop');
 
-    const sessions = new Map<string, any>()
-    const orderedSessions: Array<{ id: string, createdAt: number, metadata: any }> = []
-    let createdAt = 1
+    const sessions = new Map<string, any>();
+    const orderedSessions: Array<{ id: string; createdAt: number; metadata: any }> = [];
+    let createdAt = 1;
 
     saveSessionMock.mockImplementation((id: string, metadata: any) => {
       const record = {
@@ -71,20 +71,20 @@ describe('research loop service', () => {
         createdAt: sessions.get(id)?.createdAt || createdAt++,
         updatedAt: createdAt,
         metadata: structuredClone(metadata),
-      }
-      sessions.set(id, record)
-      const existingIndex = orderedSessions.findIndex(item => item.id === id)
+      };
+      sessions.set(id, record);
+      const existingIndex = orderedSessions.findIndex(item => item.id === id);
       if (existingIndex >= 0) {
-        orderedSessions.splice(existingIndex, 1)
+        orderedSessions.splice(existingIndex, 1);
       }
-      orderedSessions.unshift({ id, createdAt: record.createdAt, metadata: record.metadata })
-    })
+      orderedSessions.unshift({ id, createdAt: record.createdAt, metadata: record.metadata });
+    });
 
-    getSessionMock.mockImplementation((id: string) => sessions.get(id))
-    listSessionsMock.mockImplementation(() => [...orderedSessions])
+    getSessionMock.mockImplementation((id: string) => sessions.get(id));
+    listSessionsMock.mockImplementation(() => [...orderedSessions]);
 
-    const reports = new Map<string, any>()
-    getResearchReportMock.mockImplementation((id: string) => reports.get(id) || null)
+    const reports = new Map<string, any>();
+    getResearchReportMock.mockImplementation((id: string) => reports.get(id) || null);
 
     runResearchExperimentMock
       .mockImplementationOnce(async () => {
@@ -110,14 +110,14 @@ describe('research loop service', () => {
           comparison: undefined,
           phaseHistory: ['brief', 'baseline', 'verify', 'report'],
           createdAt: '2026-04-08T00:00:00.000Z',
-        }
+        };
         reports.set(result.sessionId, {
           ...result,
           currentPhase: 'report',
           outcome: result.verdictReason,
           content: '',
-        })
-        return result
+        });
+        return result;
       })
       .mockImplementationOnce(async () => {
         const result = {
@@ -152,14 +152,14 @@ describe('research loop service', () => {
           },
           phaseHistory: ['brief', 'experiment', 'verify', 'report'],
           createdAt: '2026-04-08T00:01:00.000Z',
-        }
+        };
         reports.set(result.sessionId, {
           ...result,
           currentPhase: 'report',
           outcome: result.verdictReason,
           content: '',
-        })
-        return result
+        });
+        return result;
       })
       .mockImplementationOnce(async () => {
         const result = {
@@ -194,14 +194,14 @@ describe('research loop service', () => {
           },
           phaseHistory: ['brief', 'experiment', 'verify', 'report'],
           createdAt: '2026-04-08T00:02:00.000Z',
-        }
+        };
         reports.set(result.sessionId, {
           ...result,
           currentPhase: 'report',
           outcome: result.verdictReason,
           content: '',
-        })
-        return result
+        });
+        return result;
       })
       .mockImplementationOnce(async () => {
         const result = {
@@ -236,32 +236,32 @@ describe('research loop service', () => {
           },
           phaseHistory: ['brief', 'experiment', 'verify', 'report'],
           createdAt: '2026-04-08T00:03:00.000Z',
-        }
+        };
         reports.set(result.sessionId, {
           ...result,
           currentPhase: 'report',
           outcome: result.verdictReason,
           content: '',
-        })
-        return result
-      })
+        });
+        return result;
+      });
 
-    const status = await startResearchLoop({})
+    const status = await startResearchLoop({});
 
-    expect(runResearchExperimentMock).toHaveBeenCalledTimes(4)
-    expect(status.metadata.status).toBe('completed')
-    expect(status.metadata.stopReason).toBe('max-rounds-reached')
-    expect(status.metadata.currentRound).toBe(3)
-    expect(status.metadata.bestSessionId).toBe('round-3')
-    expect(status.metadata.bestMetricValue).toBe(12)
-    expect(status.metadata.acceptedRoundSessionIds).toEqual(['round-1', 'round-3'])
-    expect(status.metadata.rejectedRoundSessionIds).toEqual(['round-2'])
-    expect(status.latestRound?.sessionId).toBe('round-3')
-    expect(status.rounds).toHaveLength(3)
-  })
+    expect(runResearchExperimentMock).toHaveBeenCalledTimes(4);
+    expect(status.metadata.status).toBe('completed');
+    expect(status.metadata.stopReason).toBe('max-rounds-reached');
+    expect(status.metadata.currentRound).toBe(3);
+    expect(status.metadata.bestSessionId).toBe('round-3');
+    expect(status.metadata.bestMetricValue).toBe(12);
+    expect(status.metadata.acceptedRoundSessionIds).toEqual(['round-1', 'round-3']);
+    expect(status.metadata.rejectedRoundSessionIds).toEqual(['round-2']);
+    expect(status.latestRound?.sessionId).toBe('round-3');
+    expect(status.rounds).toHaveLength(3);
+  });
 
   it('stops when no-improve streak reaches the limit', async () => {
-    const { runResearchRound } = await import('../../src/services/research-loop')
+    const { runResearchRound } = await import('../../src/services/research-loop');
 
     let loopSession = {
       id: 'loop-1',
@@ -290,17 +290,17 @@ describe('research loop service', () => {
         createdAt: '2026-04-08T00:00:00.000Z',
         updatedAt: '2026-04-08T00:01:00.000Z',
       },
-    }
+    };
 
-    getSessionMock.mockImplementation(() => loopSession)
+    getSessionMock.mockImplementation(() => loopSession);
     saveSessionMock.mockImplementation((id: string, metadata: any) => {
       loopSession = {
         ...loopSession,
         id,
         updatedAt: loopSession.updatedAt + 1,
         metadata: structuredClone(metadata),
-      }
-    })
+      };
+    });
 
     getResearchReportMock.mockImplementation((id: string) => {
       if (id === 'baseline-1') {
@@ -322,7 +322,7 @@ describe('research loop service', () => {
           phaseHistory: ['brief', 'baseline', 'verify', 'report'],
           outcome: 'baseline ok',
           content: '',
-        }
+        };
       }
 
       if (id === 'round-0') {
@@ -352,7 +352,7 @@ describe('research loop service', () => {
           phaseHistory: ['brief', 'experiment', 'verify', 'report'],
           outcome: 'worse',
           content: '',
-        }
+        };
       }
 
       if (id === 'round-2') {
@@ -382,11 +382,11 @@ describe('research loop service', () => {
           phaseHistory: ['brief', 'experiment', 'verify', 'report'],
           outcome: 'still worse',
           content: '',
-        }
+        };
       }
 
-      return null
-    })
+      return null;
+    });
 
     runResearchExperimentMock.mockResolvedValue({
       sessionId: 'round-2',
@@ -416,19 +416,19 @@ describe('research loop service', () => {
       },
       phaseHistory: ['brief', 'experiment', 'verify', 'report'],
       createdAt: '2026-04-08T00:02:00.000Z',
-    })
+    });
 
-    const status = await runResearchRound({ sessionId: 'loop-1' })
+    const status = await runResearchRound({ sessionId: 'loop-1' });
 
-    expect(status.metadata.status).toBe('completed')
-    expect(status.metadata.stopReason).toBe('max-no-improve-rounds-reached')
-    expect(status.metadata.currentRound).toBe(2)
-    expect(status.metadata.rejectedRoundSessionIds).toEqual(['round-0', 'round-2'])
-    expect(status.metadata.noImproveStreak).toBe(2)
-  })
+    expect(status.metadata.status).toBe('completed');
+    expect(status.metadata.stopReason).toBe('max-no-improve-rounds-reached');
+    expect(status.metadata.currentRound).toBe(2);
+    expect(status.metadata.rejectedRoundSessionIds).toEqual(['round-0', 'round-2']);
+    expect(status.metadata.noImproveStreak).toBe(2);
+  });
 
   it('stops a loop manually', async () => {
-    const { stopResearchLoop } = await import('../../src/services/research-loop')
+    const { stopResearchLoop } = await import('../../src/services/research-loop');
 
     let loopSession = {
       id: 'loop-2',
@@ -457,17 +457,17 @@ describe('research loop service', () => {
         createdAt: '2026-04-08T00:00:00.000Z',
         updatedAt: '2026-04-08T00:01:00.000Z',
       },
-    }
+    };
 
-    getSessionMock.mockImplementation(() => loopSession)
+    getSessionMock.mockImplementation(() => loopSession);
     saveSessionMock.mockImplementation((id: string, metadata: any) => {
       loopSession = {
         ...loopSession,
         id,
         updatedAt: loopSession.updatedAt + 1,
         metadata: structuredClone(metadata),
-      }
-    })
+      };
+    });
 
     getResearchReportMock.mockReturnValue({
       sessionId: 'baseline-1',
@@ -487,12 +487,12 @@ describe('research loop service', () => {
       phaseHistory: ['brief', 'baseline', 'verify', 'report'],
       outcome: 'baseline ok',
       content: '',
-    })
+    });
 
-    const status = stopResearchLoop({ sessionId: 'loop-2' })
+    const status = stopResearchLoop({ sessionId: 'loop-2' });
 
-    expect(saveSessionMock).toHaveBeenCalled()
-    expect(status?.metadata.status).toBe('stopped')
-    expect(status?.metadata.stopReason).toBe('manual-stop')
-  })
-})
+    expect(saveSessionMock).toHaveBeenCalled();
+    expect(status?.metadata.status).toBe('stopped');
+    expect(status?.metadata.stopReason).toBe('manual-stop');
+  });
+});

@@ -4,14 +4,14 @@
  * Replace "73%" with realistic "30-50%" claims
  */
 
-import { readFileSync, writeFileSync } from 'fs'
-import { glob } from 'glob'
-import { fileURLToPath } from 'url'
-import { dirname, join } from 'path'
+import { readFileSync, writeFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { glob } from 'glob';
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
-const rootDir = join(__dirname, '..')
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const rootDir = join(__dirname, '..');
 
 // Files to update
 const patterns = [
@@ -19,8 +19,8 @@ const patterns = [
   'docs/**/*.md',
   'CHANGELOG.md',
   'IMPLEMENTATION_REPORT.md',
-  'src/**/*.md'
-]
+  'src/**/*.md',
+];
 
 // Replacement rules
 const replacements = [
@@ -74,53 +74,54 @@ const replacements = [
   // 95%+ claims (extremely unrealistic)
   { from: /95%\+ token savings/gi, to: 'significant token reduction' },
   { from: /massive token savings \(95%\+\)/gi, to: 'substantial token reduction' },
-]
+];
 
-let totalFiles = 0
-let totalReplacements = 0
+let totalFiles = 0;
+let totalReplacements = 0;
 
 async function processFile(filePath) {
   try {
-    let content = readFileSync(filePath, 'utf-8')
-    let modified = false
-    let fileReplacements = 0
+    let content = readFileSync(filePath, 'utf-8');
+    let modified = false;
+    let fileReplacements = 0;
 
     for (const { from, to } of replacements) {
-      const matches = content.match(from)
+      const matches = content.match(from);
       if (matches) {
-        content = content.replace(from, to)
-        modified = true
-        fileReplacements += matches.length
+        content = content.replace(from, to);
+        modified = true;
+        fileReplacements += matches.length;
       }
     }
 
     if (modified) {
-      writeFileSync(filePath, content, 'utf-8')
-      totalFiles++
-      totalReplacements += fileReplacements
-      console.log(`✓ Updated ${filePath} (${fileReplacements} replacements)`)
+      writeFileSync(filePath, content, 'utf-8');
+      totalFiles++;
+      totalReplacements += fileReplacements;
+      console.log(`✓ Updated ${filePath} (${fileReplacements} replacements)`);
     }
-  } catch (error) {
-    console.error(`✗ Error processing ${filePath}:`, error.message)
+  }
+  catch (error) {
+    console.error(`✗ Error processing ${filePath}:`, error.message);
   }
 }
 
 async function main() {
-  console.log('🔧 Fixing compression claims in documentation...\n')
+  console.log('🔧 Fixing compression claims in documentation...\n');
 
   for (const pattern of patterns) {
     const files = await glob(pattern, {
       cwd: rootDir,
       ignore: ['node_modules/**', 'dist/**', '.git/**'],
-      absolute: true
-    })
+      absolute: true,
+    });
 
     for (const file of files) {
-      await processFile(file)
+      await processFile(file);
     }
   }
 
-  console.log(`\n✅ Complete! Updated ${totalFiles} files with ${totalReplacements} replacements.`)
+  console.log(`\n✅ Complete! Updated ${totalFiles} files with ${totalReplacements} replacements.`);
 }
 
-main().catch(console.error)
+main().catch(console.error);

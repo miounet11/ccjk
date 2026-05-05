@@ -8,30 +8,30 @@
  * @since v8.3.0
  */
 
-import type { PathConversionOptions, PathInfo, WslPathMapping } from './types'
-import * as fs from 'node:fs'
+import type { PathConversionOptions, PathInfo, WslPathMapping } from './types';
+import * as fs from 'node:fs';
 
-import * as nodePath from 'node:path'
-import { getPlatformInfo, isWSL } from './detector'
+import * as nodePath from 'node:path';
+import { getPlatformInfo, isWSL } from './detector';
 
 // ============================================================================
 // Constants
 // ============================================================================
 
 /** Windows long path prefix */
-const WINDOWS_LONG_PATH_PREFIX = '\\\\?\\'
+const WINDOWS_LONG_PATH_PREFIX = '\\\\?\\';
 
 /** Windows UNC path prefix */
-const WINDOWS_UNC_PREFIX = '\\\\'
+const WINDOWS_UNC_PREFIX = '\\\\';
 
 /** Maximum path length on Windows without long path support */
-const WINDOWS_MAX_PATH = 260
+const WINDOWS_MAX_PATH = 260;
 
 /** WSL default mount point */
-const WSL_DEFAULT_MOUNT = '/mnt'
+const WSL_DEFAULT_MOUNT = '/mnt';
 
 /** Termux internal storage path */
-const TERMUX_STORAGE_PATH = '/data/data/com.termux/files'
+const TERMUX_STORAGE_PATH = '/data/data/com.termux/files';
 
 // ============================================================================
 // Path Normalization
@@ -49,32 +49,32 @@ export function normalizePath(
   options: PathConversionOptions = {},
 ): string {
   if (!inputPath)
-    return inputPath
+    return inputPath;
 
-  const platform = getPlatformInfo()
-  const targetStyle = options.style || (platform.os === 'windows' ? 'windows' : 'posix')
+  const platform = getPlatformInfo();
+  const targetStyle = options.style || (platform.os === 'windows' ? 'windows' : 'posix');
 
-  let result = inputPath
+  let result = inputPath;
 
   if (targetStyle === 'windows') {
     // Convert forward slashes to backslashes
-    result = result.replace(/\//g, '\\')
+    result = result.replace(/\//g, '\\');
 
     // Handle long paths if needed
     if (options.longPath && result.length > WINDOWS_MAX_PATH) {
-      result = toWindowsLongPath(result)
+      result = toWindowsLongPath(result);
     }
   }
   else {
     // Convert backslashes to forward slashes
-    result = result.replace(/\\/g, '/')
+    result = result.replace(/\\/g, '/');
   }
 
   if (options.normalize) {
-    result = nodePath.normalize(result)
+    result = nodePath.normalize(result);
   }
 
-  return result
+  return result;
 }
 
 /**
@@ -85,21 +85,21 @@ export function normalizePath(
  */
 export function toWindowsLongPath(inputPath: string): string {
   if (!inputPath)
-    return inputPath
+    return inputPath;
 
   // Already a long path
   if (inputPath.startsWith(WINDOWS_LONG_PATH_PREFIX)) {
-    return inputPath
+    return inputPath;
   }
 
   // UNC paths need special handling
   if (inputPath.startsWith(WINDOWS_UNC_PREFIX)) {
-    return `${WINDOWS_LONG_PATH_PREFIX}UNC\\${inputPath.slice(2)}`
+    return `${WINDOWS_LONG_PATH_PREFIX}UNC\\${inputPath.slice(2)}`;
   }
 
   // Regular paths
-  const normalized = nodePath.win32.normalize(inputPath)
-  return `${WINDOWS_LONG_PATH_PREFIX}${normalized}`
+  const normalized = nodePath.win32.normalize(inputPath);
+  return `${WINDOWS_LONG_PATH_PREFIX}${normalized}`;
 }
 
 /**
@@ -110,19 +110,19 @@ export function toWindowsLongPath(inputPath: string): string {
  */
 export function fromWindowsLongPath(inputPath: string): string {
   if (!inputPath)
-    return inputPath
+    return inputPath;
 
   // Handle UNC long paths
   if (inputPath.startsWith(`${WINDOWS_LONG_PATH_PREFIX}UNC\\`)) {
-    return `\\\\${inputPath.slice(8)}`
+    return `\\\\${inputPath.slice(8)}`;
   }
 
   // Handle regular long paths
   if (inputPath.startsWith(WINDOWS_LONG_PATH_PREFIX)) {
-    return inputPath.slice(4)
+    return inputPath.slice(4);
   }
 
-  return inputPath
+  return inputPath;
 }
 
 // ============================================================================
@@ -141,27 +141,27 @@ export function windowsToWslPath(
   mountPoint: string = WSL_DEFAULT_MOUNT,
 ): string {
   if (!windowsPath)
-    return windowsPath
+    return windowsPath;
 
   // Remove long path prefix if present
-  const path = fromWindowsLongPath(windowsPath)
+  const path = fromWindowsLongPath(windowsPath);
 
   // Check for drive letter pattern (C:\ or C:/)
-  const driveMatch = path.match(/^([A-Z]):[/\\](.*)$/i)
+  const driveMatch = path.match(/^([A-Z]):[/\\](.*)$/i);
   if (driveMatch) {
-    const [, drive, rest] = driveMatch
-    const wslPath = `${mountPoint}/${drive.toLowerCase()}/${rest}`
-    return wslPath.replace(/\\/g, '/')
+    const [, drive, rest] = driveMatch;
+    const wslPath = `${mountPoint}/${drive.toLowerCase()}/${rest}`;
+    return wslPath.replace(/\\/g, '/');
   }
 
   // UNC paths
   if (path.startsWith('\\\\')) {
     // Convert \\server\share to /mnt/server/share or similar
-    return path.replace(/\\/g, '/').replace(/^\/\//, `${mountPoint}/`)
+    return path.replace(/\\/g, '/').replace(/^\/\//, `${mountPoint}/`);
   }
 
   // Already a Unix-style path or relative path
-  return path.replace(/\\/g, '/')
+  return path.replace(/\\/g, '/');
 }
 
 /**
@@ -176,25 +176,25 @@ export function wslToWindowsPath(
   mountPoint: string = WSL_DEFAULT_MOUNT,
 ): string {
   if (!wslPath)
-    return wslPath
+    return wslPath;
 
   // Check for WSL mount pattern (/mnt/c/...)
-  const mountPattern = new RegExp(`^${mountPoint}/([a-z])/(.*)$`, 'i')
-  const mountMatch = wslPath.match(mountPattern)
+  const mountPattern = new RegExp(`^${mountPoint}/([a-z])/(.*)$`, 'i');
+  const mountMatch = wslPath.match(mountPattern);
 
   if (mountMatch) {
-    const [, drive, rest] = mountMatch
-    return `${drive.toUpperCase()}:\\${rest.replace(/\//g, '\\')}`
+    const [, drive, rest] = mountMatch;
+    return `${drive.toUpperCase()}:\\${rest.replace(/\//g, '\\')}`;
   }
 
   // Check for home directory pattern
   if (wslPath.startsWith('/home/')) {
     // This is a Linux-native path, return as-is or convert to UNC
-    return wslPath
+    return wslPath;
   }
 
   // Return as-is for other paths
-  return wslPath
+  return wslPath;
 }
 
 /**
@@ -205,26 +205,26 @@ export function wslToWindowsPath(
  */
 export function convertWslPath(inputPath: string): string {
   if (!inputPath)
-    return inputPath
+    return inputPath;
 
-  const platform = getPlatformInfo()
+  const platform = getPlatformInfo();
 
   // In WSL, convert Windows paths to WSL paths
   if (platform.variant === 'wsl') {
     // Check if it's a Windows path
     if (/^[A-Z]:[/\\]/i.test(inputPath)) {
-      return windowsToWslPath(inputPath)
+      return windowsToWslPath(inputPath);
     }
   }
 
   // On Windows, convert WSL paths to Windows paths
   if (platform.os === 'windows') {
     if (inputPath.startsWith('/mnt/')) {
-      return wslToWindowsPath(inputPath)
+      return wslToWindowsPath(inputPath);
     }
   }
 
-  return inputPath
+  return inputPath;
 }
 
 /**
@@ -234,25 +234,25 @@ export function convertWslPath(inputPath: string): string {
  */
 export function getWslDriveMappings(): WslPathMapping[] {
   if (!isWSL()) {
-    return []
+    return [];
   }
 
-  const mappings: WslPathMapping[] = []
-  const mntPath = WSL_DEFAULT_MOUNT
+  const mappings: WslPathMapping[] = [];
+  const mntPath = WSL_DEFAULT_MOUNT;
 
   try {
-    const entries = fs.readdirSync(mntPath)
+    const entries = fs.readdirSync(mntPath);
     for (const entry of entries) {
       // Check if it's a single letter (drive mount)
       if (/^[a-z]$/i.test(entry)) {
-        const fullPath = `${mntPath}/${entry}`
+        const fullPath = `${mntPath}/${entry}`;
         try {
-          const stat = fs.statSync(fullPath)
+          const stat = fs.statSync(fullPath);
           if (stat.isDirectory()) {
             mappings.push({
               drive: entry.toUpperCase(),
               mountPoint: fullPath,
-            })
+            });
           }
         }
         catch {
@@ -265,7 +265,7 @@ export function getWslDriveMappings(): WslPathMapping[] {
     // /mnt doesn't exist or isn't accessible
   }
 
-  return mappings
+  return mappings;
 }
 
 // ============================================================================
@@ -280,11 +280,11 @@ export function getWslDriveMappings(): WslPathMapping[] {
  */
 export function toTermuxPath(linuxPath: string): string {
   if (!linuxPath)
-    return linuxPath
+    return linuxPath;
 
-  const platform = getPlatformInfo()
+  const platform = getPlatformInfo();
   if (platform.variant !== 'termux') {
-    return linuxPath
+    return linuxPath;
   }
 
   // Map common paths to Termux equivalents
@@ -294,15 +294,15 @@ export function toTermuxPath(linuxPath: string): string {
     '/usr': process.env.PREFIX || `${TERMUX_STORAGE_PATH}/usr`,
     '/etc': `${process.env.PREFIX || TERMUX_STORAGE_PATH}/usr/etc`,
     '/var': `${process.env.PREFIX || TERMUX_STORAGE_PATH}/usr/var`,
-  }
+  };
 
   for (const [from, to] of Object.entries(mappings)) {
     if (linuxPath.startsWith(from)) {
-      return linuxPath.replace(from, to)
+      return linuxPath.replace(from, to);
     }
   }
 
-  return linuxPath
+  return linuxPath;
 }
 
 /**
@@ -311,17 +311,17 @@ export function toTermuxPath(linuxPath: string): string {
  * @returns Path to shared storage or null if not available
  */
 export function getTermuxStoragePath(): string | null {
-  const platform = getPlatformInfo()
+  const platform = getPlatformInfo();
   if (platform.variant !== 'termux') {
-    return null
+    return null;
   }
 
-  const storagePath = `${TERMUX_STORAGE_PATH}/home/storage`
+  const storagePath = `${TERMUX_STORAGE_PATH}/home/storage`;
   if (fs.existsSync(storagePath)) {
-    return storagePath
+    return storagePath;
   }
 
-  return null
+  return null;
 }
 
 // ============================================================================
@@ -335,13 +335,13 @@ export function getTermuxStoragePath(): string | null {
  * @returns Path information object
  */
 export function getPathInfo(inputPath: string): PathInfo {
-  const normalized = normalizePath(inputPath, { normalize: true })
-  const parsed = nodePath.parse(normalized)
+  const normalized = normalizePath(inputPath, { normalize: true });
+  const parsed = nodePath.parse(normalized);
 
-  let exists = false
+  let exists = false;
   try {
-    fs.accessSync(normalized)
-    exists = true
+    fs.accessSync(normalized);
+    exists = true;
   }
   catch {
     // Path doesn't exist
@@ -356,7 +356,7 @@ export function getPathInfo(inputPath: string): PathInfo {
     extension: parsed.ext || null,
     baseName: parsed.name,
     parentDir: parsed.dir,
-  }
+  };
 }
 
 /**
@@ -367,17 +367,17 @@ export function getPathInfo(inputPath: string): PathInfo {
  */
 export function isAbsolutePath(inputPath: string): boolean {
   if (!inputPath)
-    return false
+    return false;
 
-  const platform = getPlatformInfo()
+  const platform = getPlatformInfo();
 
   // Windows absolute paths
   if (platform.os === 'windows' || /^[A-Z]:[/\\]/i.test(inputPath)) {
-    return nodePath.win32.isAbsolute(inputPath)
+    return nodePath.win32.isAbsolute(inputPath);
   }
 
   // Unix absolute paths
-  return nodePath.posix.isAbsolute(inputPath)
+  return nodePath.posix.isAbsolute(inputPath);
 }
 
 /**
@@ -389,14 +389,14 @@ export function isAbsolutePath(inputPath: string): boolean {
  */
 export function toAbsolutePath(inputPath: string, basePath?: string): string {
   if (!inputPath)
-    return inputPath
+    return inputPath;
 
   if (isAbsolutePath(inputPath)) {
-    return normalizePath(inputPath, { normalize: true })
+    return normalizePath(inputPath, { normalize: true });
   }
 
-  const base = basePath || process.cwd()
-  return normalizePath(nodePath.join(base, inputPath), { normalize: true })
+  const base = basePath || process.cwd();
+  return normalizePath(nodePath.join(base, inputPath), { normalize: true });
 }
 
 /**
@@ -408,12 +408,12 @@ export function toAbsolutePath(inputPath: string, basePath?: string): string {
  */
 export function toRelativePath(inputPath: string, basePath?: string): string {
   if (!inputPath)
-    return inputPath
+    return inputPath;
 
-  const base = basePath || process.cwd()
-  const absolute = toAbsolutePath(inputPath, base)
+  const base = basePath || process.cwd();
+  const absolute = toAbsolutePath(inputPath, base);
 
-  return nodePath.relative(base, absolute)
+  return nodePath.relative(base, absolute);
 }
 
 // ============================================================================
@@ -427,12 +427,12 @@ export function toRelativePath(inputPath: string, basePath?: string): string {
  * @returns Joined path
  */
 export function joinPath(...segments: string[]): string {
-  const platform = getPlatformInfo()
-  const joined = nodePath.join(...segments)
+  const platform = getPlatformInfo();
+  const joined = nodePath.join(...segments);
 
   return normalizePath(joined, {
     style: platform.os === 'windows' ? 'windows' : 'posix',
-  })
+  });
 }
 
 /**
@@ -442,12 +442,12 @@ export function joinPath(...segments: string[]): string {
  * @returns Resolved absolute path
  */
 export function resolvePath(...segments: string[]): string {
-  const platform = getPlatformInfo()
-  const resolved = nodePath.resolve(...segments)
+  const platform = getPlatformInfo();
+  const resolved = nodePath.resolve(...segments);
 
   return normalizePath(resolved, {
     style: platform.os === 'windows' ? 'windows' : 'posix',
-  })
+  });
 }
 
 // ============================================================================
@@ -462,19 +462,19 @@ export function resolvePath(...segments: string[]): string {
  */
 export function isValidPath(inputPath: string): boolean {
   if (!inputPath)
-    return false
+    return false;
 
-  const platform = getPlatformInfo()
+  const platform = getPlatformInfo();
 
   if (platform.os === 'windows') {
     // Windows invalid characters: < > : " | ? * and control characters
     // Note: : is allowed after drive letter
-    const withoutDrive = inputPath.replace(/^[A-Z]:/i, '')
-    return !/[<>"|?*\x00-\x1F]/.test(withoutDrive)
+    const withoutDrive = inputPath.replace(/^[A-Z]:/i, '');
+    return !/[<>"|?*\x00-\x1F]/.test(withoutDrive);
   }
 
   // Unix: only null character is invalid
-  return !inputPath.includes('\x00')
+  return !inputPath.includes('\x00');
 }
 
 /**
@@ -486,22 +486,22 @@ export function isValidPath(inputPath: string): boolean {
  */
 export function sanitizePath(inputPath: string, replacement: string = '_'): string {
   if (!inputPath)
-    return inputPath
+    return inputPath;
 
-  const platform = getPlatformInfo()
+  const platform = getPlatformInfo();
 
   if (platform.os === 'windows') {
     // Preserve drive letter
-    const driveMatch = inputPath.match(/^([A-Z]:)(.*)$/i)
+    const driveMatch = inputPath.match(/^([A-Z]:)(.*)$/i);
     if (driveMatch) {
-      const [, drive, rest] = driveMatch
-      return drive + rest.replace(/[<>"|?*\x00-\x1F]/g, replacement)
+      const [, drive, rest] = driveMatch;
+      return drive + rest.replace(/[<>"|?*\x00-\x1F]/g, replacement);
     }
-    return inputPath.replace(/[<>:"|?*\x00-\x1F]/g, replacement)
+    return inputPath.replace(/[<>:"|?*\x00-\x1F]/g, replacement);
   }
 
   // Unix: only null character is invalid
-  return inputPath.replace(/\0/g, replacement)
+  return inputPath.replace(/\0/g, replacement);
 }
 
 // ============================================================================
@@ -516,19 +516,19 @@ export function sanitizePath(inputPath: string, replacement: string = '_'): stri
  */
 export function expandTilde(inputPath: string): string {
   if (!inputPath)
-    return inputPath
+    return inputPath;
 
-  const platform = getPlatformInfo()
+  const platform = getPlatformInfo();
 
   if (inputPath === '~') {
-    return platform.homeDir
+    return platform.homeDir;
   }
 
   if (inputPath.startsWith('~/')) {
-    return nodePath.join(platform.homeDir, inputPath.slice(2))
+    return nodePath.join(platform.homeDir, inputPath.slice(2));
   }
 
-  return inputPath
+  return inputPath;
 }
 
 /**
@@ -537,8 +537,8 @@ export function expandTilde(inputPath: string): string {
  * @returns CCJK config directory path
  */
 export function getCcjkConfigPath(): string {
-  const platform = getPlatformInfo()
-  return nodePath.join(platform.configDir, 'ccjk')
+  const platform = getPlatformInfo();
+  return nodePath.join(platform.configDir, 'ccjk');
 }
 
 /**
@@ -547,8 +547,8 @@ export function getCcjkConfigPath(): string {
  * @returns CCJK data directory path
  */
 export function getCcjkDataPath(): string {
-  const platform = getPlatformInfo()
-  return nodePath.join(platform.dataDir, 'ccjk')
+  const platform = getPlatformInfo();
+  return nodePath.join(platform.dataDir, 'ccjk');
 }
 
 /**
@@ -557,6 +557,6 @@ export function getCcjkDataPath(): string {
  * @returns CCJK cache directory path
  */
 export function getCcjkCachePath(): string {
-  const platform = getPlatformInfo()
-  return nodePath.join(platform.cacheDir, 'ccjk')
+  const platform = getPlatformInfo();
+  return nodePath.join(platform.cacheDir, 'ccjk');
 }

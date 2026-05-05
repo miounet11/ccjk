@@ -7,7 +7,7 @@
  * "In the beginning, there was green text on black screen..."
  */
 
-import ansis from 'ansis'
+import ansis from 'ansis';
 
 /**
  * MUD-style color palette for CCJK
@@ -54,7 +54,7 @@ export const theme = {
   quest: ansis.bold.green,
   /** Item/feature name - white bold */
   item: ansis.bold.white,
-} as const
+} as const;
 
 /**
  * Status indicators with MUD-style symbols
@@ -76,7 +76,7 @@ export const status = {
   step: (text: string) => `${ansis.green('→')} ${text}`,
   /** • Bullet point */
   dot: (text: string) => `${ansis.green('•')} ${text}`,
-} as const
+} as const;
 
 /**
  * Box drawing characters for terminal UI
@@ -86,9 +86,9 @@ export const box = {
   double: { tl: '╔', tr: '╗', bl: '╚', br: '╝', h: '═', v: '║' },
   rounded: { tl: '╭', tr: '╮', bl: '╰', br: '╯', h: '─', v: '│' },
   heavy: { tl: '┏', tr: '┓', bl: '┗', br: '┛', h: '━', v: '┃' },
-} as const
+} as const;
 
-export type BoxStyle = keyof typeof box
+export type BoxStyle = keyof typeof box;
 
 /**
  * Format a menu item in MUD style
@@ -98,10 +98,10 @@ export type BoxStyle = keyof typeof box
  * // Output: [1] Start Game - Begin your adventure
  */
 export function menuItem(key: string, label: string, desc?: string): string {
-  const keyPart = theme.primary.bold(`[${key}]`)
-  const labelPart = theme.secondary(label)
-  const descPart = desc ? theme.muted(` - ${desc}`) : ''
-  return `  ${keyPart} ${labelPart}${descPart}`
+  const keyPart = theme.primary.bold(`[${key}]`);
+  const labelPart = theme.secondary(label);
+  const descPart = desc ? theme.muted(` - ${desc}`) : '';
+  return `  ${keyPart} ${labelPart}${descPart}`;
 }
 
 /**
@@ -112,17 +112,17 @@ export function menuItem(key: string, label: string, desc?: string): string {
  * // Output: ═══ Inventory ═══
  */
 export function header(title: string, width: number = 50): string {
-  const titleLen = title.length + 2
-  const sideLen = Math.floor((width - titleLen) / 2)
-  const line = '═'.repeat(sideLen)
-  return theme.primary(`${line} ${theme.secondary.bold(title)} ${line}`)
+  const titleLen = title.length + 2;
+  const sideLen = Math.floor((width - titleLen) / 2);
+  const line = '═'.repeat(sideLen);
+  return theme.primary(`${line} ${theme.secondary.bold(title)} ${line}`);
 }
 
 /**
  * Format a divider line
  */
 export function divider(width: number = 50, char: string = '─'): string {
-  return theme.muted(char.repeat(width))
+  return theme.muted(char.repeat(width));
 }
 
 /**
@@ -133,11 +133,11 @@ export function divider(width: number = 50, char: string = '─'): string {
  * // Output: [████████████████████░░░░░░░░░░] 75%
  */
 export function progress(percent: number, width: number = 30): string {
-  const filled = Math.round((percent / 100) * width)
-  const empty = width - filled
-  const bar = theme.primary('█'.repeat(filled)) + theme.muted('░'.repeat(empty))
-  const pct = `${Math.round(percent)}%`.padStart(4)
-  return `[${bar}] ${theme.secondary(pct)}`
+  const filled = Math.round((percent / 100) * width);
+  const empty = width - filled;
+  const bar = theme.primary('█'.repeat(filled)) + theme.muted('░'.repeat(empty));
+  const pct = `${Math.round(percent)}%`.padStart(4);
+  return `[${bar}] ${theme.secondary(pct)}`;
 }
 
 /**
@@ -148,38 +148,38 @@ export function boxify(
   style: BoxStyle = 'double',
   title?: string,
 ): string {
-  const chars = box[style]
-  const lines = content.split('\n')
+  const chars = box[style];
+  const lines = content.split('\n');
 
   // Calculate max width considering display width
   const getWidth = (s: string): number => {
-    let w = 0
+    let w = 0;
     for (const c of s) {
-      w += c.match(/[\u4E00-\u9FFF\uFF01-\uFF60\u3000-\u303F]/) ? 2 : 1
+      w += c.match(/[\u4E00-\u9FFF\uFF01-\uFF60\u3000-\u303F]/) ? 2 : 1;
     }
-    return w
-  }
+    return w;
+  };
 
   const maxWidth = Math.max(
     ...lines.map(getWidth),
     title ? getWidth(title) + 4 : 0,
-  )
+  );
 
   const paddedLines = lines.map((line) => {
-    const padding = maxWidth - getWidth(line)
-    return `${chars.v} ${line}${' '.repeat(padding)} ${chars.v}`
-  })
+    const padding = maxWidth - getWidth(line);
+    return `${chars.v} ${line}${' '.repeat(padding)} ${chars.v}`;
+  });
 
-  let topBorder = `${chars.tl}${chars.h.repeat(maxWidth + 2)}${chars.tr}`
+  let topBorder = `${chars.tl}${chars.h.repeat(maxWidth + 2)}${chars.tr}`;
   if (title) {
-    const pad = Math.floor((maxWidth - getWidth(title)) / 2)
-    topBorder = `${chars.tl}${chars.h.repeat(pad)} ${title} ${chars.h.repeat(maxWidth - pad - getWidth(title))}${chars.tr}`
+    const pad = Math.floor((maxWidth - getWidth(title)) / 2);
+    topBorder = `${chars.tl}${chars.h.repeat(pad)} ${title} ${chars.h.repeat(maxWidth - pad - getWidth(title))}${chars.tr}`;
   }
 
-  const bottomBorder = `${chars.bl}${chars.h.repeat(maxWidth + 2)}${chars.br}`
+  const bottomBorder = `${chars.bl}${chars.h.repeat(maxWidth + 2)}${chars.br}`;
 
-  return theme.primary([topBorder, ...paddedLines, bottomBorder].join('\n'))
+  return theme.primary([topBorder, ...paddedLines, bottomBorder].join('\n'));
 }
 
 // Re-export for backward compatibility
-export { theme as COLORS }
+export { theme as COLORS };

@@ -1,4 +1,4 @@
-import type { SupportedLang } from '../constants'
+import type { SupportedLang } from '../constants';
 
 /**
  * Interview depth levels
@@ -6,7 +6,7 @@ import type { SupportedLang } from '../constants'
  * - standard: 25 questions - Standard coverage of all major areas
  * - deep: 40+ questions - Comprehensive exploration for complex features
  */
-export type InterviewDepth = 'quick' | 'standard' | 'deep'
+export type InterviewDepth = 'quick' | 'standard' | 'deep';
 
 /**
  * Interview category identifiers
@@ -21,35 +21,35 @@ export type InterviewCategoryId
     | 'tradeoffs'
     | 'business-logic'
     | 'security-compliance'
-    | 'custom'
+    | 'custom';
 
 /**
  * Interview session status
  */
-export type InterviewStatus = 'pending' | 'in_progress' | 'paused' | 'completed' | 'cancelled'
+export type InterviewStatus = 'pending' | 'in_progress' | 'paused' | 'completed' | 'cancelled';
 
 /**
  * Question option definition
  */
 export interface QuestionOption {
   /** Option label (displayed to user) */
-  label: string
+  label: string;
   /** Option description (explains what this means) */
-  description: string
+  description: string;
   /** Value to store if selected */
-  value?: string
+  value?: string;
   /** Whether this is a recommended option */
-  recommended?: boolean
+  recommended?: boolean;
 }
 
 /**
  * Localized question option
  */
 export interface LocalizedQuestionOption {
-  label: Record<SupportedLang, string>
-  description: Record<SupportedLang, string>
-  value?: string
-  recommended?: boolean
+  label: Record<SupportedLang, string>;
+  description: Record<SupportedLang, string>;
+  value?: string;
+  recommended?: boolean;
 }
 
 /**
@@ -57,11 +57,11 @@ export interface LocalizedQuestionOption {
  */
 export interface ConditionalLogic {
   /** Question ID that triggers this condition */
-  dependsOn: string
+  dependsOn: string;
   /** Values that trigger this question */
-  whenValues: string[]
+  whenValues: string[];
   /** Whether to skip or show based on condition */
-  action: 'show' | 'skip'
+  action: 'show' | 'skip';
 }
 
 /**
@@ -69,25 +69,25 @@ export interface ConditionalLogic {
  */
 export interface InterviewQuestion {
   /** Unique question identifier */
-  id: string
+  id: string;
   /** Question category */
-  category: InterviewCategoryId
+  category: InterviewCategoryId;
   /** Localized question text */
-  question: Record<SupportedLang, string>
+  question: Record<SupportedLang, string>;
   /** Localized question options */
-  options: LocalizedQuestionOption[]
+  options: LocalizedQuestionOption[];
   /** Whether multiple options can be selected */
-  multiSelect: boolean
+  multiSelect: boolean;
   /** Short header for the question (max 12 chars) */
-  header: Record<SupportedLang, string>
+  header: Record<SupportedLang, string>;
   /** Conditional display logic */
-  conditional?: ConditionalLogic
+  conditional?: ConditionalLogic;
   /** Question priority order within category */
-  order: number
+  order: number;
   /** Tags for filtering/search */
-  tags?: string[]
+  tags?: string[];
   /** Whether this question is required */
-  required: boolean
+  required: boolean;
 }
 
 /**
@@ -95,17 +95,17 @@ export interface InterviewQuestion {
  */
 export interface InterviewCategory {
   /** Category identifier */
-  id: InterviewCategoryId
+  id: InterviewCategoryId;
   /** Localized category name */
-  name: Record<SupportedLang, string>
+  name: Record<SupportedLang, string>;
   /** Localized category description */
-  description: Record<SupportedLang, string>
+  description: Record<SupportedLang, string>;
   /** Questions in this category */
-  questions: InterviewQuestion[]
+  questions: InterviewQuestion[];
   /** Display order (lower = earlier) */
-  order: number
+  order: number;
   /** Icon for UI display */
-  icon?: string
+  icon?: string;
 }
 
 /**
@@ -113,15 +113,15 @@ export interface InterviewCategory {
  */
 export interface InterviewAnswer {
   /** Question ID */
-  questionId: string
+  questionId: string;
   /** Category ID */
-  categoryId: InterviewCategoryId
+  categoryId: InterviewCategoryId;
   /** Selected option values */
-  values: string[]
+  values: string[];
   /** Custom text input (if "other" selected) */
-  customInput?: string
+  customInput?: string;
   /** Timestamp when answered */
-  answeredAt: Date
+  answeredAt: Date;
 }
 
 /**
@@ -129,19 +129,19 @@ export interface InterviewAnswer {
  */
 export interface CategoryProgress {
   /** Category ID */
-  categoryId: InterviewCategoryId
+  categoryId: InterviewCategoryId;
   /** Category name (localized) */
-  name: string
+  name: string;
   /** Number of questions answered */
-  answered: number
+  answered: number;
   /** Total questions in category */
-  total: number
+  total: number;
   /** Completion percentage */
-  percentage: number
+  percentage: number;
   /** Whether category is complete */
-  isComplete: boolean
+  isComplete: boolean;
   /** Whether category is current */
-  isCurrent: boolean
+  isCurrent: boolean;
 }
 
 /**
@@ -149,33 +149,33 @@ export interface CategoryProgress {
  */
 export interface InterviewSession {
   /** Unique session ID */
-  id: string
+  id: string;
   /** Spec file path to write results */
-  specFile: string
+  specFile: string;
   /** Interview depth level */
-  depth: InterviewDepth
+  depth: InterviewDepth;
   /** Current category ID */
-  currentCategory: InterviewCategoryId
+  currentCategory: InterviewCategoryId;
   /** Current question index */
-  currentQuestionIndex: number
+  currentQuestionIndex: number;
   /** Total questions asked so far */
-  questionsAsked: number
+  questionsAsked: number;
   /** Estimated remaining questions */
-  questionsRemaining: number
+  questionsRemaining: number;
   /** All collected answers */
-  answers: InterviewAnswer[]
+  answers: InterviewAnswer[];
   /** Category progress tracking */
-  progress: CategoryProgress[]
+  progress: CategoryProgress[];
   /** Session start time */
-  startedAt: Date
+  startedAt: Date;
   /** Last activity time */
-  lastActivityAt: Date
+  lastActivityAt: Date;
   /** Session status */
-  status: InterviewStatus
+  status: InterviewStatus;
   /** Categories to include */
-  includedCategories: InterviewCategoryId[]
+  includedCategories: InterviewCategoryId[];
   /** Original user request/context */
-  context?: string
+  context?: string;
 }
 
 /**
@@ -183,19 +183,19 @@ export interface InterviewSession {
  */
 export interface InterviewOptions {
   /** Interview depth level */
-  depth: InterviewDepth
+  depth: InterviewDepth;
   /** Which categories to cover (empty = all) */
-  categories: InterviewCategoryId[]
+  categories: InterviewCategoryId[];
   /** Skip questions already answered in spec */
-  skipObvious: boolean
+  skipObvious: boolean;
   /** Output spec file path */
-  outputFile: string
+  outputFile: string;
   /** Language for questions */
-  language: SupportedLang
+  language: SupportedLang;
   /** Resume from existing session */
-  resumeSessionId?: string
+  resumeSessionId?: string;
   /** Context from user's initial request */
-  context?: string
+  context?: string;
 }
 
 /**
@@ -203,19 +203,19 @@ export interface InterviewOptions {
  */
 export interface InterviewTemplate {
   /** Template identifier */
-  id: string
+  id: string;
   /** Localized template name */
-  name: Record<SupportedLang, string>
+  name: Record<SupportedLang, string>;
   /** Localized template description */
-  description: Record<SupportedLang, string>
+  description: Record<SupportedLang, string>;
   /** Target project types */
-  targetTypes: string[]
+  targetTypes: string[];
   /** Included categories (order matters) */
-  categories: InterviewCategoryId[]
+  categories: InterviewCategoryId[];
   /** Default depth for this template */
-  defaultDepth: InterviewDepth
+  defaultDepth: InterviewDepth;
   /** Estimated question count */
-  estimatedQuestions: number
+  estimatedQuestions: number;
 }
 
 /**
@@ -223,11 +223,11 @@ export interface InterviewTemplate {
  */
 export interface SpecSection {
   /** Section title */
-  title: string
+  title: string;
   /** Section content */
-  content: string
+  content: string;
   /** Order in final spec */
-  order: number
+  order: number;
 }
 
 /**
@@ -235,13 +235,13 @@ export interface SpecSection {
  */
 export interface SpecDecision {
   /** Decision summary */
-  decision: string
+  decision: string;
   /** Rationale/reasoning */
-  rationale: string
+  rationale: string;
   /** Related question IDs */
-  relatedQuestions: string[]
+  relatedQuestions: string[];
   /** Category this decision belongs to */
-  category: string
+  category: string;
 }
 
 /**
@@ -249,13 +249,13 @@ export interface SpecDecision {
  */
 export interface SpecEdgeCase {
   /** Edge case description */
-  description: string
+  description: string;
   /** How to handle it */
-  handling: string
+  handling: string;
   /** Severity level */
-  severity: 'low' | 'medium' | 'high'
+  severity: 'low' | 'medium' | 'high';
   /** Related questions */
-  relatedQuestions: string[]
+  relatedQuestions: string[];
 }
 
 /**
@@ -263,13 +263,13 @@ export interface SpecEdgeCase {
  */
 export interface SpecOpenQuestion {
   /** Question text */
-  question: string
+  question: string;
   /** Why it's still open */
-  reason: string
+  reason: string;
   /** Suggested approach */
-  suggestedApproach?: string
+  suggestedApproach?: string;
   /** Priority level */
-  priority: 'low' | 'medium' | 'high'
+  priority: 'low' | 'medium' | 'high';
 }
 
 /**
@@ -277,68 +277,68 @@ export interface SpecOpenQuestion {
  */
 export interface GeneratedSpec {
   /** Spec title/feature name */
-  title: string
+  title: string;
   /** Generation timestamp */
-  generatedAt: Date
+  generatedAt: Date;
   /** Interview session ID */
-  sessionId: string
+  sessionId: string;
   /** Number of questions answered */
-  questionCount: number
+  questionCount: number;
   /** Interview depth used */
-  depth: InterviewDepth
+  depth: InterviewDepth;
 
   /** Overview section */
   overview: {
-    projectType: string
-    targetAudience: string
-    mvpScope: string[]
-    platforms: string[]
-  }
+    projectType: string;
+    targetAudience: string;
+    mvpScope: string[];
+    platforms: string[];
+  };
 
   /** Technical architecture */
   technical: {
-    architecture: string
-    database: string
-    authentication: string
-    stateManagement: string
-    integrations: string[]
-    apiDesign?: string
-  }
+    architecture: string;
+    database: string;
+    authentication: string;
+    stateManagement: string;
+    integrations: string[];
+    apiDesign?: string;
+  };
 
   /** UI/UX requirements */
   uiux: {
-    platforms: string[]
-    designSystem: string
-    accessibility: string
-    responsiveDesign: string
-    keyFlows: string[]
-  }
+    platforms: string[];
+    designSystem: string;
+    accessibility: string;
+    responsiveDesign: string;
+    keyFlows: string[];
+  };
 
   /** Security and compliance */
   security: {
-    requirements: string[]
-    compliance: string[]
-    dataPrivacy: string[]
-  }
+    requirements: string[];
+    compliance: string[];
+    dataPrivacy: string[];
+  };
 
   /** Business logic */
   business: {
-    validationRules: string[]
-    workflowStates: string[]
-    constraints: string[]
-  }
+    validationRules: string[];
+    workflowStates: string[];
+    constraints: string[];
+  };
 
   /** Decisions made */
-  decisions: SpecDecision[]
+  decisions: SpecDecision[];
 
   /** Edge cases identified */
-  edgeCases: SpecEdgeCase[]
+  edgeCases: SpecEdgeCase[];
 
   /** Open questions */
-  openQuestions: SpecOpenQuestion[]
+  openQuestions: SpecOpenQuestion[];
 
   /** Raw answers for reference */
-  rawAnswers: InterviewAnswer[]
+  rawAnswers: InterviewAnswer[];
 }
 
 /**
@@ -346,15 +346,15 @@ export interface GeneratedSpec {
  */
 export interface InterviewResult {
   /** Whether interview completed successfully */
-  success: boolean
+  success: boolean;
   /** Final session state */
-  session: InterviewSession
+  session: InterviewSession;
   /** Generated spec (if complete) */
-  spec?: GeneratedSpec
+  spec?: GeneratedSpec;
   /** Spec file path (if written) */
-  specFilePath?: string
+  specFilePath?: string;
   /** Error message (if failed) */
-  error?: string
+  error?: string;
 }
 
 /**
@@ -362,22 +362,22 @@ export interface InterviewResult {
  */
 export interface QuestionDisplay {
   /** Current question */
-  question: InterviewQuestion
+  question: InterviewQuestion;
   /** Progress indicator text */
-  progressText: string
+  progressText: string;
   /** Category breadcrumb */
-  categoryBreadcrumb: string
+  categoryBreadcrumb: string;
   /** Question number */
-  questionNumber: number
+  questionNumber: number;
   /** Estimated total questions */
-  estimatedTotal: number
+  estimatedTotal: number;
   /** Available options formatted for display */
   options: Array<{
-    label: string
-    description: string
-    value: string
-    isRecommended: boolean
-  }>
+    label: string;
+    description: string;
+    value: string;
+    isRecommended: boolean;
+  }>;
 }
 
 /**
@@ -385,17 +385,17 @@ export interface QuestionDisplay {
  */
 export interface InterviewStats {
   /** Total sessions started */
-  totalSessions: number
+  totalSessions: number;
   /** Completed sessions */
-  completedSessions: number
+  completedSessions: number;
   /** Average questions per session */
-  avgQuestionsPerSession: number
+  avgQuestionsPerSession: number;
   /** Most used depth */
-  mostUsedDepth: InterviewDepth
+  mostUsedDepth: InterviewDepth;
   /** Most common project types */
-  commonProjectTypes: Array<{ type: string, count: number }>
+  commonProjectTypes: Array<{ type: string; count: number }>;
   /** Category completion rates */
-  categoryCompletionRates: Record<InterviewCategoryId, number>
+  categoryCompletionRates: Record<InterviewCategoryId, number>;
 }
 
 /**
@@ -403,17 +403,17 @@ export interface InterviewStats {
  */
 export interface InterviewStorage {
   /** Active sessions */
-  sessions: InterviewSession[]
+  sessions: InterviewSession[];
   /** Completed session summaries */
   history: Array<{
-    sessionId: string
-    specFile: string
-    completedAt: Date
-    questionCount: number
-    depth: InterviewDepth
-  }>
+    sessionId: string;
+    specFile: string;
+    completedAt: Date;
+    questionCount: number;
+    depth: InterviewDepth;
+  }>;
   /** Statistics */
-  stats: InterviewStats
+  stats: InterviewStats;
   /** Last updated */
-  lastUpdated: Date
+  lastUpdated: Date;
 }

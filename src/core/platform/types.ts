@@ -15,71 +15,71 @@
 /**
  * Operating system type
  */
-export type OSType = 'windows' | 'macos' | 'linux'
+export type OSType = 'windows' | 'macos' | 'linux';
 
 /**
  * Platform variant for special environments
  */
-export type PlatformVariant = 'standard' | 'wsl' | 'termux' | 'docker' | 'ci'
+export type PlatformVariant = 'standard' | 'wsl' | 'termux' | 'docker' | 'ci';
 
 /**
  * CPU architecture
  */
-export type Architecture = 'x64' | 'arm64' | 'arm'
+export type Architecture = 'x64' | 'arm64' | 'arm';
 
 /**
  * Shell type
  */
-export type ShellType = 'bash' | 'zsh' | 'powershell' | 'cmd' | 'sh' | 'fish'
+export type ShellType = 'bash' | 'zsh' | 'powershell' | 'cmd' | 'sh' | 'fish';
 
 /**
  * Comprehensive platform information
  */
 export interface PlatformInfo {
   /** Operating system */
-  os: OSType
+  os: OSType;
 
   /** Platform variant (WSL, Termux, Docker, CI, etc.) */
-  variant: PlatformVariant
+  variant: PlatformVariant;
 
   /** CPU architecture */
-  arch: Architecture
+  arch: Architecture;
 
   /** Whether GUI is available */
-  hasGui: boolean
+  hasGui: boolean;
 
   /** Default shell */
-  shell: ShellType
+  shell: ShellType;
 
   /** User home directory */
-  homeDir: string
+  homeDir: string;
 
   /** System temp directory */
-  tempDir: string
+  tempDir: string;
 
   /** User config directory (XDG_CONFIG_HOME or equivalent) */
-  configDir: string
+  configDir: string;
 
   /** User data directory (XDG_DATA_HOME or equivalent) */
-  dataDir: string
+  dataDir: string;
 
   /** User cache directory (XDG_CACHE_HOME or equivalent) */
-  cacheDir: string
+  cacheDir: string;
 
   /** Platform-specific path separator */
-  pathSeparator: string
+  pathSeparator: string;
 
   /** Line ending style */
-  lineEnding: '\n' | '\r\n'
+  lineEnding: '\n' | '\r\n';
 
   /** Whether running as root/admin */
-  isElevated: boolean
+  isElevated: boolean;
 
   /** Node.js version */
-  nodeVersion: string
+  nodeVersion: string;
 
   /** Platform raw identifier from process.platform */
-  rawPlatform: NodeJS.Platform
+  rawPlatform: NodeJS.Platform;
 }
 
 // ============================================================================
@@ -91,13 +91,13 @@ export interface PlatformInfo {
  */
 export interface PathConversionOptions {
   /** Force specific path style */
-  style?: 'posix' | 'windows'
+  style?: 'posix' | 'windows';
 
   /** Handle long paths on Windows (> 260 chars) */
-  longPath?: boolean
+  longPath?: boolean;
 
   /** Normalize path separators */
-  normalize?: boolean
+  normalize?: boolean;
 }
 
 /**
@@ -105,10 +105,10 @@ export interface PathConversionOptions {
  */
 export interface WslPathMapping {
   /** Windows drive letter (e.g., 'C') */
-  drive: string
+  drive: string;
 
   /** WSL mount point (e.g., '/mnt/c') */
-  mountPoint: string
+  mountPoint: string;
 }
 
 /**
@@ -116,28 +116,28 @@ export interface WslPathMapping {
  */
 export interface PathInfo {
   /** Original path */
-  original: string
+  original: string;
 
   /** Normalized path for current platform */
-  normalized: string
+  normalized: string;
 
   /** Whether path is absolute */
-  isAbsolute: boolean
+  isAbsolute: boolean;
 
   /** Whether path exists */
-  exists: boolean
+  exists: boolean;
 
   /** Path components */
-  components: string[]
+  components: string[];
 
   /** File extension (if any) */
-  extension: string | null
+  extension: string | null;
 
   /** Base name without extension */
-  baseName: string
+  baseName: string;
 
   /** Parent directory */
-  parentDir: string
+  parentDir: string;
 }
 
 // ============================================================================
@@ -149,16 +149,16 @@ export interface PathInfo {
  */
 export interface CommandMapping {
   /** Command name */
-  name: string
+  name: string;
 
   /** Windows equivalent */
-  windows: string
+  windows: string;
 
   /** Unix equivalent (macOS/Linux) */
-  unix: string
+  unix: string;
 
   /** Arguments transformation */
-  transformArgs?: (args: string[], os: OSType) => string[]
+  transformArgs?: (args: string[], os: OSType) => string[];
 }
 
 /**
@@ -166,31 +166,31 @@ export interface CommandMapping {
  */
 export interface CommandOptions {
   /** Working directory */
-  cwd?: string
+  cwd?: string;
 
   /** Environment variables to inject */
-  env?: Record<string, string>
+  env?: Record<string, string>;
 
   /** Timeout in milliseconds */
-  timeout?: number
+  timeout?: number;
 
   /** Shell to use (auto-detected if not specified) */
-  shell?: ShellType | boolean
+  shell?: ShellType | boolean;
 
   /** Whether to capture output */
-  capture?: boolean
+  capture?: boolean;
 
   /** Input to pipe to stdin */
-  stdin?: string
+  stdin?: string;
 
   /** Encoding for output */
-  encoding?: BufferEncoding
+  encoding?: BufferEncoding;
 
   /** Whether to throw on non-zero exit code */
-  throwOnError?: boolean
+  throwOnError?: boolean;
 
   /** Maximum buffer size for output */
-  maxBuffer?: number
+  maxBuffer?: number;
 }
 
 /**
@@ -198,22 +198,22 @@ export interface CommandOptions {
  */
 export interface CommandResult {
   /** Exit code */
-  exitCode: number
+  exitCode: number;
 
   /** Standard output */
-  stdout: string
+  stdout: string;
 
   /** Standard error */
-  stderr: string
+  stderr: string;
 
   /** Whether command succeeded (exit code 0) */
-  success: boolean
+  success: boolean;
 
   /** Execution duration in milliseconds */
-  durationMs: number
+  durationMs: number;
 
   /** Signal that terminated the process (if any) */
-  signal?: NodeJS.Signals
+  signal?: NodeJS.Signals;
 }
 
 /**
@@ -221,13 +221,13 @@ export interface CommandResult {
  */
 export interface ShellEscapeOptions {
   /** Target shell type */
-  shell: ShellType
+  shell: ShellType;
 
   /** Whether to quote the entire string */
-  quote?: boolean
+  quote?: boolean;
 
   /** Whether to escape for use in double quotes */
-  doubleQuoted?: boolean
+  doubleQuoted?: boolean;
 }
 
 // ============================================================================
@@ -239,19 +239,19 @@ export interface ShellEscapeOptions {
  */
 export interface AtomicWriteOptions {
   /** File mode (permissions) */
-  mode?: number
+  mode?: number;
 
   /** Encoding for text files */
-  encoding?: BufferEncoding
+  encoding?: BufferEncoding;
 
   /** Whether to create parent directories */
-  createDirs?: boolean
+  createDirs?: boolean;
 
   /** Whether to preserve existing permissions */
-  preservePermissions?: boolean
+  preservePermissions?: boolean;
 
   /** Temporary file suffix */
-  tempSuffix?: string
+  tempSuffix?: string;
 }
 
 /**
@@ -259,19 +259,19 @@ export interface AtomicWriteOptions {
  */
 export interface SafeDeleteOptions {
   /** Move to trash instead of permanent delete */
-  useTrash?: boolean
+  useTrash?: boolean;
 
   /** Force delete even if file is read-only */
-  force?: boolean
+  force?: boolean;
 
   /** Delete directories recursively */
-  recursive?: boolean
+  recursive?: boolean;
 
   /** Maximum retries for locked files */
-  maxRetries?: number
+  maxRetries?: number;
 
   /** Delay between retries in milliseconds */
-  retryDelay?: number
+  retryDelay?: number;
 }
 
 /**
@@ -279,28 +279,28 @@ export interface SafeDeleteOptions {
  */
 export interface PermissionCheckResult {
   /** Whether file/directory exists */
-  exists: boolean
+  exists: boolean;
 
   /** Whether readable */
-  readable: boolean
+  readable: boolean;
 
   /** Whether writable */
-  writable: boolean
+  writable: boolean;
 
   /** Whether executable */
-  executable: boolean
+  executable: boolean;
 
   /** Owner user ID */
-  uid?: number
+  uid?: number;
 
   /** Owner group ID */
-  gid?: number
+  gid?: number;
 
   /** File mode (permissions) */
-  mode?: number
+  mode?: number;
 
   /** Human-readable permission string (e.g., 'rwxr-xr-x') */
-  modeString?: string
+  modeString?: string;
 }
 
 /**
@@ -308,16 +308,16 @@ export interface PermissionCheckResult {
  */
 export interface FileCopyOptions {
   /** Overwrite existing file */
-  overwrite?: boolean
+  overwrite?: boolean;
 
   /** Preserve timestamps */
-  preserveTimestamps?: boolean
+  preserveTimestamps?: boolean;
 
   /** Preserve permissions */
-  preservePermissions?: boolean
+  preservePermissions?: boolean;
 
   /** Follow symlinks */
-  followSymlinks?: boolean
+  followSymlinks?: boolean;
 }
 
 /**
@@ -325,10 +325,10 @@ export interface FileCopyOptions {
  */
 export interface MkdirOptions {
   /** Create parent directories if needed */
-  recursive?: boolean
+  recursive?: boolean;
 
   /** Directory mode (permissions) */
-  mode?: number
+  mode?: number;
 }
 
 /**
@@ -336,16 +336,16 @@ export interface MkdirOptions {
  */
 export interface WatchOptions {
   /** Watch recursively */
-  recursive?: boolean
+  recursive?: boolean;
 
   /** Debounce delay in milliseconds */
-  debounce?: number
+  debounce?: number;
 
   /** File patterns to include */
-  include?: string[]
+  include?: string[];
 
   /** File patterns to exclude */
-  exclude?: string[]
+  exclude?: string[];
 }
 
 /**
@@ -353,16 +353,16 @@ export interface WatchOptions {
  */
 export interface WatchEvent {
   /** Event type */
-  type: 'create' | 'update' | 'delete' | 'rename'
+  type: 'create' | 'update' | 'delete' | 'rename';
 
   /** Affected path */
-  path: string
+  path: string;
 
   /** Previous path (for rename events) */
-  previousPath?: string
+  previousPath?: string;
 
   /** Event timestamp */
-  timestamp: Date
+  timestamp: Date;
 }
 
 // ============================================================================
@@ -385,26 +385,26 @@ export type PlatformErrorCode
     | 'EROFS' // Read-only file system
     | 'EPERM' // Operation not permitted
     | 'ETIMEDOUT' // Operation timed out
-    | 'UNKNOWN' // Unknown error
+    | 'UNKNOWN'; // Unknown error
 
 /**
  * Platform error with additional context
  */
 export interface PlatformError extends Error {
   /** Error code */
-  code: PlatformErrorCode
+  code: PlatformErrorCode;
 
   /** Affected path (if applicable) */
-  path?: string
+  path?: string;
 
   /** System error number */
-  errno?: number
+  errno?: number;
 
   /** System call that failed */
-  syscall?: string
+  syscall?: string;
 
   /** Original error */
-  cause?: Error
+  cause?: Error;
 }
 
 // ============================================================================
@@ -415,33 +415,33 @@ export interface PlatformError extends Error {
  * Platform-specific value
  */
 export interface PlatformSpecific<T> {
-  windows?: T
-  macos?: T
-  linux?: T
-  default: T
+  windows?: T;
+  macos?: T;
+  linux?: T;
+  default: T;
 }
 
 /**
  * Get platform-specific value helper type
  */
 export type GetPlatformValue<T extends PlatformSpecific<unknown>>
-  = T extends PlatformSpecific<infer V> ? V : never
+  = T extends PlatformSpecific<infer V> ? V : never;
 
 /**
  * Environment variable definition
  */
 export interface EnvVarDefinition {
   /** Variable name */
-  name: string
+  name: string;
 
   /** Default value if not set */
-  defaultValue?: string
+  defaultValue?: string;
 
   /** Whether variable is required */
-  required?: boolean
+  required?: boolean;
 
   /** Platform-specific names */
-  platformNames?: Partial<Record<OSType, string>>
+  platformNames?: Partial<Record<OSType, string>>;
 }
 
 /**
@@ -449,29 +449,29 @@ export interface EnvVarDefinition {
  */
 export interface PlatformCapabilities {
   /** Supports symlinks */
-  symlinks: boolean
+  symlinks: boolean;
 
   /** Supports hard links */
-  hardLinks: boolean
+  hardLinks: boolean;
 
   /** Supports file permissions (chmod) */
-  permissions: boolean
+  permissions: boolean;
 
   /** Supports extended attributes */
-  extendedAttributes: boolean
+  extendedAttributes: boolean;
 
   /** Supports case-sensitive file names */
-  caseSensitive: boolean
+  caseSensitive: boolean;
 
   /** Supports long file paths (> 260 chars) */
-  longPaths: boolean
+  longPaths: boolean;
 
   /** Supports file locking */
-  fileLocking: boolean
+  fileLocking: boolean;
 
   /** Supports trash/recycle bin */
-  trash: boolean
+  trash: boolean;
 
   /** Supports native file watching */
-  nativeWatch: boolean
+  nativeWatch: boolean;
 }

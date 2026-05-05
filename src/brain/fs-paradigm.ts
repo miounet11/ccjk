@@ -7,9 +7,9 @@
  * @module brain/fs-paradigm
  */
 
-import { existsSync } from 'node:fs'
-import { join } from 'pathe'
-import { glob } from 'tinyglobby'
+import { existsSync } from 'node:fs';
+import { join } from 'pathe';
+import { glob } from 'tinyglobby';
 
 /**
  * Project paradigm types
@@ -21,7 +21,7 @@ export type ParadigmType
     | 'backend'
     | 'library'
     | 'cli'
-    | 'unknown'
+    | 'unknown';
 
 /**
  * File role in project
@@ -33,44 +33,44 @@ export type FileRole
     | 'docs'
     | 'build'
     | 'assets'
-    | 'types'
+    | 'types';
 
 /**
  * File pattern definition
  */
 export interface FilePattern {
-  pattern: string
-  role: FileRole
-  priority: number
-  description: string
+  pattern: string;
+  role: FileRole;
+  priority: number;
+  description: string;
 }
 
 /**
  * Paradigm definition
  */
 export interface Paradigm {
-  type: ParadigmType
-  name: string
-  description: string
-  indicators: string[] // Files that indicate this paradigm
-  patterns: FilePattern[]
+  type: ParadigmType;
+  name: string;
+  description: string;
+  indicators: string[]; // Files that indicate this paradigm
+  patterns: FilePattern[];
   conventions: {
-    sourceDir?: string
-    testDir?: string
-    configDir?: string
-    buildDir?: string
-  }
+    sourceDir?: string;
+    testDir?: string;
+    configDir?: string;
+    buildDir?: string;
+  };
 }
 
 /**
  * Detected project structure
  */
 export interface ProjectStructure {
-  paradigm: ParadigmType
-  root: string
-  conventions: Paradigm['conventions']
-  fileMap: Map<FileRole, string[]>
-  confidence: number // 0-100
+  paradigm: ParadigmType;
+  root: string;
+  conventions: Paradigm['conventions'];
+  fileMap: Map<FileRole, string[]>;
+  confidence: number; // 0-100
 }
 
 /**
@@ -188,22 +188,22 @@ const PARADIGMS: Paradigm[] = [
       buildDir: 'dist',
     },
   },
-]
+];
 
 /**
  * File System Paradigm Detector
  */
 export class FsParadigm {
-  private cache = new Map<string, ProjectStructure>()
+  private cache = new Map<string, ProjectStructure>();
 
   /**
    * Detect project paradigm
    */
   async detect(projectRoot: string): Promise<ProjectStructure> {
     // Check cache
-    const cached = this.cache.get(projectRoot)
+    const cached = this.cache.get(projectRoot);
     if (cached)
-      return cached
+      return cached;
 
     // Try each paradigm
     const scores = await Promise.all(
@@ -211,13 +211,13 @@ export class FsParadigm {
         paradigm,
         score: await this.scoreParadigm(paradigm, projectRoot),
       })),
-    )
+    );
 
     // Find best match
-    const best = scores.reduce((a, b) => (b.score > a.score ? b : a))
+    const best = scores.reduce((a, b) => (b.score > a.score ? b : a));
 
     // Build file map
-    const fileMap = await this.buildFileMap(best.paradigm, projectRoot)
+    const fileMap = await this.buildFileMap(best.paradigm, projectRoot);
 
     const structure: ProjectStructure = {
       paradigm: best.paradigm.type,
@@ -225,25 +225,25 @@ export class FsParadigm {
       conventions: best.paradigm.conventions,
       fileMap,
       confidence: best.score,
-    }
+    };
 
     // Cache result
-    this.cache.set(projectRoot, structure)
+    this.cache.set(projectRoot, structure);
 
-    return structure
+    return structure;
   }
 
   /**
    * Score how well a paradigm matches the project
    */
   private async scoreParadigm(paradigm: Paradigm, projectRoot: string): Promise<number> {
-    let score = 0
+    let score = 0;
 
     // Check indicators (strong signal)
     for (const indicator of paradigm.indicators) {
-      const exists = await this.checkPath(projectRoot, indicator)
+      const exists = await this.checkPath(projectRoot, indicator);
       if (exists) {
-        score += 30
+        score += 30;
       }
     }
 
@@ -253,14 +253,14 @@ export class FsParadigm {
         cwd: projectRoot,
         absolute: false,
         ignore: ['**/node_modules/**', '**/dist/**', '**/.git/**'],
-      })
+      });
 
       if (files.length > 0) {
-        score += Math.min(files.length * 2, 20) // Cap at 20 per pattern
+        score += Math.min(files.length * 2, 20); // Cap at 20 per pattern
       }
     }
 
-    return Math.min(score, 100)
+    return Math.min(score, 100);
   }
 
   /**
@@ -270,20 +270,20 @@ export class FsParadigm {
     paradigm: Paradigm,
     projectRoot: string,
   ): Promise<Map<FileRole, string[]>> {
-    const fileMap = new Map<FileRole, string[]>()
+    const fileMap = new Map<FileRole, string[]>();
 
     for (const pattern of paradigm.patterns) {
       const files = await glob([pattern.pattern], {
         cwd: projectRoot,
         absolute: true,
         ignore: ['**/node_modules/**', '**/dist/**', '**/.git/**'],
-      })
+      });
 
-      const existing = fileMap.get(pattern.role) || []
-      fileMap.set(pattern.role, [...existing, ...files])
+      const existing = fileMap.get(pattern.role) || [];
+      fileMap.set(pattern.role, [...existing, ...files]);
     }
 
-    return fileMap
+    return fileMap;
   }
 
   /**
@@ -292,7 +292,7 @@ export class FsParadigm {
   private async checkPath(root: string, pattern: string): Promise<boolean> {
     // Direct file check
     if (!pattern.includes('*')) {
-      return existsSync(join(root, pattern))
+      return existsSync(join(root, pattern));
     }
 
     // Glob check
@@ -300,64 +300,64 @@ export class FsParadigm {
       cwd: root,
       absolute: false,
       ignore: ['**/node_modules/**'],
-    })
+    });
 
-    return files.length > 0
+    return files.length > 0;
   }
 
   /**
    * Get files by role
    */
   getFilesByRole(structure: ProjectStructure, role: FileRole): string[] {
-    return structure.fileMap.get(role) || []
+    return structure.fileMap.get(role) || [];
   }
 
   /**
    * Get paradigm definition
    */
   getParadigm(type: ParadigmType): Paradigm | undefined {
-    return PARADIGMS.find(p => p.type === type)
+    return PARADIGMS.find(p => p.type === type);
   }
 
   /**
    * Clear cache
    */
   clearCache(): void {
-    this.cache.clear()
+    this.cache.clear();
   }
 
   /**
    * Format structure for display
    */
   formatStructure(structure: ProjectStructure): string {
-    const lines: string[] = []
+    const lines: string[] = [];
 
-    lines.push(`Paradigm: ${structure.paradigm} (${structure.confidence}% confidence)`)
-    lines.push(`Root: ${structure.root}`)
-    lines.push('')
+    lines.push(`Paradigm: ${structure.paradigm} (${structure.confidence}% confidence)`);
+    lines.push(`Root: ${structure.root}`);
+    lines.push('');
 
-    lines.push('Conventions:')
+    lines.push('Conventions:');
     if (structure.conventions.sourceDir) {
-      lines.push(`  Source: ${structure.conventions.sourceDir}`)
+      lines.push(`  Source: ${structure.conventions.sourceDir}`);
     }
     if (structure.conventions.testDir) {
-      lines.push(`  Test: ${structure.conventions.testDir}`)
+      lines.push(`  Test: ${structure.conventions.testDir}`);
     }
     if (structure.conventions.buildDir) {
-      lines.push(`  Build: ${structure.conventions.buildDir}`)
+      lines.push(`  Build: ${structure.conventions.buildDir}`);
     }
-    lines.push('')
+    lines.push('');
 
-    lines.push('File Map:')
+    lines.push('File Map:');
     for (const [role, files] of structure.fileMap) {
-      lines.push(`  ${role}: ${files.length} files`)
+      lines.push(`  ${role}: ${files.length} files`);
     }
 
-    return lines.join('\n')
+    return lines.join('\n');
   }
 }
 
 /**
  * Global paradigm detector instance
  */
-export const fsParadigm = new FsParadigm()
+export const fsParadigm = new FsParadigm();

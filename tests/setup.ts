@@ -2,13 +2,13 @@
  * Vitest setup file for CCJK tests
  */
 
-import { beforeEach, vi } from 'vitest'
+import { beforeEach, vi } from 'vitest';
 
 // Setup before each test
 beforeEach(() => {
   // Clear all mocks
-  vi.clearAllMocks()
-})
+  vi.clearAllMocks();
+});
 
 // Mock console methods to reduce noise in tests
 global.console = {
@@ -19,4 +19,4 @@ global.console = {
   // info: vi.fn(),
   // warn: vi.fn(),
   // error: vi.fn(),
-}
+};

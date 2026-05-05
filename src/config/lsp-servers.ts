@@ -5,7 +5,7 @@
  * These templates are used by the LSP manager to start servers.
  */
 
-import type { LspServerConfig } from '../types/lsp'
+import type { LspServerConfig } from '../types/lsp';
 
 /**
  * TypeScript language server configuration
@@ -32,7 +32,7 @@ export const typescriptLspConfig: LspServerConfig = {
       includeInlayFunctionLikeReturnTypeHints: true,
     },
   },
-}
+};
 
 /**
  * Python language server configuration
@@ -51,7 +51,7 @@ export const pythonLspConfig: LspServerConfig = {
   },
   enabled: true,
   autoStart: true,
-}
+};
 
 /**
  * Rust language server configuration
@@ -69,7 +69,7 @@ export const rustLspConfig: LspServerConfig = {
   },
   enabled: true,
   autoStart: true,
-}
+};
 
 /**
  * Go language server configuration
@@ -87,7 +87,7 @@ export const goLspConfig: LspServerConfig = {
   },
   enabled: true,
   autoStart: true,
-}
+};
 
 /**
  * JavaScript language server configuration
@@ -105,7 +105,7 @@ export const javascriptLspConfig: LspServerConfig = {
   },
   enabled: true,
   autoStart: true,
-}
+};
 
 /**
  * JSX/TSX language server configuration
@@ -122,7 +122,7 @@ export const jsxLspConfig: LspServerConfig = {
   },
   enabled: true,
   autoStart: true,
-}
+};
 
 /**
  * TSX language server configuration
@@ -139,7 +139,7 @@ export const tsxLspConfig: LspServerConfig = {
   },
   enabled: true,
   autoStart: true,
-}
+};
 
 /**
  * C/C++ language server configuration
@@ -157,7 +157,7 @@ export const cppLspConfig: LspServerConfig = {
   },
   enabled: false,
   autoStart: false,
-}
+};
 
 /**
  * C# language server configuration
@@ -175,7 +175,7 @@ export const csharpLspConfig: LspServerConfig = {
   },
   enabled: false,
   autoStart: false,
-}
+};
 
 /**
  * Java language server configuration
@@ -193,7 +193,7 @@ export const javaLspConfig: LspServerConfig = {
   },
   enabled: false,
   autoStart: false,
-}
+};
 
 /**
  * PHP language server configuration
@@ -211,7 +211,7 @@ export const phpLspConfig: LspServerConfig = {
   },
   enabled: false,
   autoStart: false,
-}
+};
 
 /**
  * Ruby language server configuration
@@ -229,7 +229,7 @@ export const rubyLspConfig: LspServerConfig = {
   },
   enabled: false,
   autoStart: false,
-}
+};
 
 /**
  * Lua language server configuration
@@ -247,7 +247,7 @@ export const luaLspConfig: LspServerConfig = {
   },
   enabled: false,
   autoStart: false,
-}
+};
 
 /**
  * Vim script language server configuration
@@ -265,7 +265,7 @@ export const vimLspConfig: LspServerConfig = {
   },
   enabled: false,
   autoStart: false,
-}
+};
 
 /**
  * YAML language server configuration
@@ -282,7 +282,7 @@ export const yamlLspConfig: LspServerConfig = {
   },
   enabled: false,
   autoStart: false,
-}
+};
 
 /**
  * JSON language server configuration
@@ -299,7 +299,7 @@ export const jsonLspConfig: LspServerConfig = {
   },
   enabled: false,
   autoStart: false,
-}
+};
 
 /**
  * CSS language server configuration
@@ -316,7 +316,7 @@ export const cssLspConfig: LspServerConfig = {
   },
   enabled: false,
   autoStart: false,
-}
+};
 
 /**
  * HTML language server configuration
@@ -333,7 +333,7 @@ export const htmlLspConfig: LspServerConfig = {
   },
   enabled: false,
   autoStart: false,
-}
+};
 
 /**
  * Markdown language server configuration
@@ -350,7 +350,7 @@ export const markdownLspConfig: LspServerConfig = {
   },
   enabled: false,
   autoStart: false,
-}
+};
 
 /**
  * GraphQL language server configuration
@@ -367,7 +367,7 @@ export const graphqlLspConfig: LspServerConfig = {
   },
   enabled: false,
   autoStart: false,
-}
+};
 
 /**
  * Terraform language server configuration
@@ -384,7 +384,7 @@ export const terraformLspConfig: LspServerConfig = {
   },
   enabled: false,
   autoStart: false,
-}
+};
 
 /**
  * Dockerfile language server configuration
@@ -401,7 +401,7 @@ export const dockerfileLspConfig: LspServerConfig = {
   },
   enabled: false,
   autoStart: false,
-}
+};
 
 /**
  * ESLint language server configuration
@@ -418,7 +418,7 @@ export const eslintLspConfig: LspServerConfig = {
   },
   enabled: false,
   autoStart: false,
-}
+};
 
 /**
  * Tailwind CSS language server configuration
@@ -435,7 +435,7 @@ export const tailwindcssLspConfig: LspServerConfig = {
   },
   enabled: false,
   autoStart: false,
-}
+};
 
 /**
  * All LSP server configurations
@@ -472,13 +472,13 @@ export const LSP_SERVER_CONFIGS: LspServerConfig[] = [
   // Tool-specific servers
   eslintLspConfig,
   tailwindcssLspConfig,
-]
+];
 
 /**
  * Get LSP server configuration by ID
  */
 export function getLspServerConfig(id: string): LspServerConfig | undefined {
-  return LSP_SERVER_CONFIGS.find(config => config.id === id)
+  return LSP_SERVER_CONFIGS.find(config => config.id === id);
 }
 
 /**
@@ -487,21 +487,21 @@ export function getLspServerConfig(id: string): LspServerConfig | undefined {
 export function getLspServersForExtension(ext: string): LspServerConfig[] {
   return LSP_SERVER_CONFIGS.filter(config =>
     config.extensions?.includes(ext),
-  )
+  );
 }
 
 /**
  * Get enabled LSP server configurations
  */
 export function getEnabledLspServers(): LspServerConfig[] {
-  return LSP_SERVER_CONFIGS.filter(config => config.enabled === true)
+  return LSP_SERVER_CONFIGS.filter(config => config.enabled === true);
 }
 
 /**
  * Get auto-start LSP server configurations
  */
 export function getAutoStartLspServers(): LspServerConfig[] {
-  return LSP_SERVER_CONFIGS.filter(config => config.autoStart === true)
+  return LSP_SERVER_CONFIGS.filter(config => config.autoStart === true);
 }
 
 /**
@@ -519,7 +519,7 @@ export function getWebDevLspServers(): LspServerConfig[] {
     yamlLspConfig,
     tailwindcssLspConfig,
     eslintLspConfig,
-  ]
+  ];
 }
 
 /**
@@ -533,5 +533,5 @@ export function getBackendDevLspServers(): LspServerConfig[] {
     jsonLspConfig,
     yamlLspConfig,
     markdownLspConfig,
-  ]
+  ];
 }

@@ -4,23 +4,23 @@
  * Measures real compression ratios on actual code and context files
  */
 
-import * as fs from 'node:fs'
-import * as path from 'node:path'
-import process from 'node:process'
-import { SemanticCompression } from '../src/context/compression/algorithms/semantic-compression'
-import { createApiClient } from '../src/utils/context/api-client'
-import { estimateTokens } from '../src/utils/context/token-estimator'
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import process from 'node:process';
+import { SemanticCompression } from '../src/context/compression/algorithms/semantic-compression';
+import { createApiClient } from '../src/utils/context/api-client';
+import { estimateTokens } from '../src/utils/context/token-estimator';
 
 interface BenchmarkResult {
-  name: string
-  originalChars: number
-  compressedChars: number
-  originalTokens: number
-  compressedTokens: number
-  charReduction: number
-  tokenReduction: number
-  method: 'rule-based' | 'llm-based'
-  duration: number
+  name: string;
+  originalChars: number;
+  compressedChars: number;
+  originalTokens: number;
+  compressedTokens: number;
+  charReduction: number;
+  tokenReduction: number;
+  method: 'rule-based' | 'llm-based';
+  duration: number;
 }
 
 /**
@@ -32,7 +32,7 @@ const TEST_FILES = [
   'src/utils/context/multi-head-compressor.ts',
   'src/commands/menu.ts',
   'src/cli-lazy.ts',
-]
+];
 
 /**
  * Sample context strings for testing
@@ -182,7 +182,7 @@ export function generateTokenPair(userId: string) {
 This provides better security with short-lived access tokens.
     `.trim(),
   },
-]
+];
 
 /**
  * Run benchmark on a single text
@@ -192,13 +192,13 @@ async function benchmarkText(
   text: string,
   useApi: boolean,
 ): Promise<BenchmarkResult> {
-  const originalChars = text.length
-  const originalTokens = estimateTokens(text)
+  const originalChars = text.length;
+  const originalTokens = estimateTokens(text);
 
-  let compressor: SemanticCompression
-  let method: 'rule-based' | 'llm-based'
-  let compressed: string
-  let duration: number
+  let compressor: SemanticCompression;
+  let method: 'rule-based' | 'llm-based';
+  let compressed: string;
+  let duration: number;
 
   if (useApi) {
     // LLM-based compression
@@ -207,31 +207,31 @@ async function benchmarkText(
       model: 'claude-3-5-haiku-20241022',
       maxTokens: 1024,
       temperature: 0.3,
-    })
-    compressor = new SemanticCompression(0.5, apiClient)
-    method = 'llm-based'
+    });
+    compressor = new SemanticCompression(0.5, apiClient);
+    method = 'llm-based';
 
-    const startTime = Date.now()
-    const result = await compressor.compressAsync(text)
-    duration = Date.now() - startTime
-    compressed = result.compressed
+    const startTime = Date.now();
+    const result = await compressor.compressAsync(text);
+    duration = Date.now() - startTime;
+    compressed = result.compressed;
   }
   else {
     // Rule-based compression
-    compressor = new SemanticCompression(0.5)
-    method = 'rule-based'
+    compressor = new SemanticCompression(0.5);
+    method = 'rule-based';
 
-    const startTime = Date.now()
-    const result = compressor.compress(text)
-    duration = Date.now() - startTime
-    compressed = result.compressed
+    const startTime = Date.now();
+    const result = compressor.compress(text);
+    duration = Date.now() - startTime;
+    compressed = result.compressed;
   }
 
-  const compressedChars = compressed.length
-  const compressedTokens = estimateTokens(compressed)
+  const compressedChars = compressed.length;
+  const compressedTokens = estimateTokens(compressed);
 
-  const charReduction = ((originalChars - compressedChars) / originalChars) * 100
-  const tokenReduction = ((originalTokens - compressedTokens) / originalTokens) * 100
+  const charReduction = ((originalChars - compressedChars) / originalChars) * 100;
+  const tokenReduction = ((originalTokens - compressedTokens) / originalTokens) * 100;
 
   return {
     name,
@@ -243,7 +243,7 @@ async function benchmarkText(
     tokenReduction,
     method,
     duration,
-  }
+  };
 }
 
 /**
@@ -256,22 +256,22 @@ ${result.name} (${result.method}):
   Compressed: ${result.compressedChars} chars, ~${result.compressedTokens} tokens
   Reduction: ${result.charReduction.toFixed(1)}% chars, ${result.tokenReduction.toFixed(1)}% tokens
   Duration: ${result.duration}ms
-  `
+  `;
 }
 
 /**
  * Calculate aggregate statistics
  */
 function calculateStats(results: BenchmarkResult[]): {
-  avgCharReduction: number
-  avgTokenReduction: number
-  minTokenReduction: number
-  maxTokenReduction: number
-  totalOriginalTokens: number
-  totalCompressedTokens: number
+  avgCharReduction: number;
+  avgTokenReduction: number;
+  minTokenReduction: number;
+  maxTokenReduction: number;
+  totalOriginalTokens: number;
+  totalCompressedTokens: number;
 } {
-  const charReductions = results.map(r => r.charReduction)
-  const tokenReductions = results.map(r => r.tokenReduction)
+  const charReductions = results.map(r => r.charReduction);
+  const tokenReductions = results.map(r => r.tokenReduction);
 
   return {
     avgCharReduction: charReductions.reduce((a, b) => a + b, 0) / charReductions.length,
@@ -280,98 +280,98 @@ function calculateStats(results: BenchmarkResult[]): {
     maxTokenReduction: Math.max(...tokenReductions),
     totalOriginalTokens: results.reduce((sum, r) => sum + r.originalTokens, 0),
     totalCompressedTokens: results.reduce((sum, r) => sum + r.compressedTokens, 0),
-  }
+  };
 }
 
 /**
  * Main benchmark runner
  */
 async function main() {
-  console.log('=== CCJK Compression Benchmark ===')
-  console.log()
+  console.log('=== CCJK Compression Benchmark ===');
+  console.log();
 
-  const useApi = !!process.env.ANTHROPIC_API_KEY
-  const method = useApi ? 'LLM-based (Claude Haiku)' : 'Rule-based'
+  const useApi = !!process.env.ANTHROPIC_API_KEY;
+  const method = useApi ? 'LLM-based (Claude Haiku)' : 'Rule-based';
 
-  console.log(`Method: ${method}`)
+  console.log(`Method: ${method}`);
   if (!useApi) {
-    console.log('Note: Set ANTHROPIC_API_KEY to test LLM-based compression')
-    console.log('      Rule-based compression provides 30-50% reduction')
-    console.log('      LLM-based compression provides 40-60% reduction')
+    console.log('Note: Set ANTHROPIC_API_KEY to test LLM-based compression');
+    console.log('      Rule-based compression provides 30-50% reduction');
+    console.log('      LLM-based compression provides 40-60% reduction');
   }
-  console.log()
+  console.log();
 
-  const results: BenchmarkResult[] = []
+  const results: BenchmarkResult[] = [];
 
   // Benchmark sample contexts
-  console.log('--- Sample Contexts ---')
+  console.log('--- Sample Contexts ---');
   for (const sample of SAMPLE_CONTEXTS) {
     try {
-      const result = await benchmarkText(sample.name, sample.content, useApi)
-      results.push(result)
-      console.log(formatResult(result))
+      const result = await benchmarkText(sample.name, sample.content, useApi);
+      results.push(result);
+      console.log(formatResult(result));
     }
     catch (error) {
-      console.error(`Failed to benchmark ${sample.name}:`, error instanceof Error ? error.message : error)
+      console.error(`Failed to benchmark ${sample.name}:`, error instanceof Error ? error.message : error);
     }
   }
 
   // Benchmark actual source files
-  console.log('--- Source Files ---')
-  const projectRoot = path.join(__dirname, '..')
+  console.log('--- Source Files ---');
+  const projectRoot = path.join(__dirname, '..');
   for (const file of TEST_FILES) {
-    const filePath = path.join(projectRoot, file)
+    const filePath = path.join(projectRoot, file);
     if (fs.existsSync(filePath)) {
       try {
-        const content = fs.readFileSync(filePath, 'utf-8')
-        const result = await benchmarkText(path.basename(file), content, useApi)
-        results.push(result)
-        console.log(formatResult(result))
+        const content = fs.readFileSync(filePath, 'utf-8');
+        const result = await benchmarkText(path.basename(file), content, useApi);
+        results.push(result);
+        console.log(formatResult(result));
       }
       catch (error) {
-        console.error(`Failed to benchmark ${file}:`, error instanceof Error ? error.message : error)
+        console.error(`Failed to benchmark ${file}:`, error instanceof Error ? error.message : error);
       }
     }
   }
 
   if (results.length === 0) {
-    console.error('No benchmark results collected')
-    process.exit(1)
+    console.error('No benchmark results collected');
+    process.exit(1);
   }
 
   // Calculate and display aggregate statistics
-  console.log('--- Aggregate Statistics ---')
-  const stats = calculateStats(results)
+  console.log('--- Aggregate Statistics ---');
+  const stats = calculateStats(results);
   console.log(`
-Average Character Reduction: ${stats.avgCharReduction.toFixed(1)}%`)
-  console.log(`Average Token Reduction: ${stats.avgTokenReduction.toFixed(1)}%`)
-  console.log(`Token Reduction Range: ${stats.minTokenReduction.toFixed(1)}% - ${stats.maxTokenReduction.toFixed(1)}%`)
-  console.log(`Total Tokens: ${stats.totalOriginalTokens} → ${stats.totalCompressedTokens}`)
-  console.log(`Total Savings: ${stats.totalOriginalTokens - stats.totalCompressedTokens} tokens (${((stats.totalOriginalTokens - stats.totalCompressedTokens) / stats.totalOriginalTokens * 100).toFixed(1)}%)`)
-  console.log()
+Average Character Reduction: ${stats.avgCharReduction.toFixed(1)}%`);
+  console.log(`Average Token Reduction: ${stats.avgTokenReduction.toFixed(1)}%`);
+  console.log(`Token Reduction Range: ${stats.minTokenReduction.toFixed(1)}% - ${stats.maxTokenReduction.toFixed(1)}%`);
+  console.log(`Total Tokens: ${stats.totalOriginalTokens} → ${stats.totalCompressedTokens}`);
+  console.log(`Total Savings: ${stats.totalOriginalTokens - stats.totalCompressedTokens} tokens (${((stats.totalOriginalTokens - stats.totalCompressedTokens) / stats.totalOriginalTokens * 100).toFixed(1)}%)`);
+  console.log();
 
   // Provide recommendation based on method
-  const expectedMin = useApi ? 40 : 30
-  const expectedMax = useApi ? 60 : 50
+  const expectedMin = useApi ? 40 : 30;
+  const expectedMax = useApi ? 60 : 50;
 
   if (stats.avgTokenReduction >= expectedMin && stats.avgTokenReduction <= expectedMax) {
-    console.log(`✓ Compression meets target range (${expectedMin}-${expectedMax}% reduction for ${method})`)
+    console.log(`✓ Compression meets target range (${expectedMin}-${expectedMax}% reduction for ${method})`);
   }
   else if (stats.avgTokenReduction < expectedMin) {
-    console.log(`⚠ Compression below target (< ${expectedMin}% reduction)`)
-    console.log(`  Consider increasing aggressiveness or checking compression logic`)
+    console.log(`⚠ Compression below target (< ${expectedMin}% reduction)`);
+    console.log(`  Consider increasing aggressiveness or checking compression logic`);
   }
   else {
-    console.log(`⚠ Compression very aggressive (> ${expectedMax}% reduction)`)
-    console.log(`  May lose important context - verify information preservation`)
+    console.log(`⚠ Compression very aggressive (> ${expectedMax}% reduction)`);
+    console.log(`  May lose important context - verify information preservation`);
   }
 
-  console.log()
-  console.log('=== Benchmark Complete ===')
+  console.log();
+  console.log('=== Benchmark Complete ===');
 }
 
 // Run benchmark
 main().catch((error) => {
-  console.error('Benchmark failed:', error)
-  process.exit(1)
-})
+  console.error('Benchmark failed:', error);
+  process.exit(1);
+});

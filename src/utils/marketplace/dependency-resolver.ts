@@ -14,8 +14,8 @@ import type {
   MarketplacePackage,
   PackageDependencyNode,
   PackageDependencyTree,
-} from '../../types/marketplace.js'
-import { getPackage } from './registry.js'
+} from '../../types/marketplace.js';
+import { getPackage } from './registry.js';
 
 /**
  * Resolve package dependencies
@@ -40,36 +40,36 @@ export async function resolveDependencies(
       dependencies: [],
       totalCount: 0,
       hasCircular: true,
-    }
+    };
   }
 
   // Mark as visited
-  visited.add(pkg.id)
+  visited.add(pkg.id);
 
-  const dependencies: PackageDependencyNode[] = []
-  let totalCount = 0
-  let hasCircular = false
+  const dependencies: PackageDependencyNode[] = [];
+  let totalCount = 0;
+  let hasCircular = false;
 
   // Resolve each dependency
   if (pkg.dependencies) {
     for (const [depId, versionRange] of Object.entries(pkg.dependencies)) {
       try {
         // Fetch dependency package
-        const depPkg = await getPackage(depId)
+        const depPkg = await getPackage(depId);
 
         if (!depPkg) {
-          throw new Error(`Dependency not found: ${depId}`)
+          throw new Error(`Dependency not found: ${depId}`);
         }
 
         // Check version compatibility
         if (!isVersionCompatible(depPkg.version, versionRange)) {
           throw new Error(
             `Version mismatch for ${depId}: required ${versionRange}, found ${depPkg.version}`,
-          )
+          );
         }
 
         // Recursively resolve nested dependencies
-        const nestedTree = await resolveDependencies(depPkg, new Set(visited))
+        const nestedTree = await resolveDependencies(depPkg, new Set(visited));
 
         // Create dependency node
         const node: PackageDependencyNode = {
@@ -77,19 +77,19 @@ export async function resolveDependencies(
           versionRange,
           dependencies: nestedTree.dependencies,
           circular: nestedTree.hasCircular,
-        }
+        };
 
-        dependencies.push(node)
-        totalCount += 1 + nestedTree.totalCount
+        dependencies.push(node);
+        totalCount += 1 + nestedTree.totalCount;
 
         if (nestedTree.hasCircular) {
-          hasCircular = true
+          hasCircular = true;
         }
       }
       catch (error) {
         throw new Error(
           `Failed to resolve dependency ${depId}: ${error instanceof Error ? error.message : String(error)}`,
-        )
+        );
       }
     }
   }
@@ -99,7 +99,7 @@ export async function resolveDependencies(
     dependencies,
     totalCount,
     hasCircular,
-  }
+  };
 }
 
 /**
@@ -120,89 +120,89 @@ export async function resolveDependencies(
 export function isVersionCompatible(version: string, range: string): boolean {
   // Wildcard - accept any version
   if (range === '*') {
-    return true
+    return true;
   }
 
   // Parse version
-  const versionParts = parseVersion(version)
+  const versionParts = parseVersion(version);
   if (!versionParts) {
-    return false
+    return false;
   }
 
   // Exact match
   if (!range.match(/^[~^><]/)) {
-    return version === range
+    return version === range;
   }
 
   // Caret range (^1.2.3 = >=1.2.3 <2.0.0)
   if (range.startsWith('^')) {
-    const rangeParts = parseVersion(range.slice(1))
+    const rangeParts = parseVersion(range.slice(1));
     if (!rangeParts) {
-      return false
+      return false;
     }
 
     return (
       versionParts.major === rangeParts.major
       && (versionParts.minor > rangeParts.minor
         || (versionParts.minor === rangeParts.minor && versionParts.patch >= rangeParts.patch))
-    )
+    );
   }
 
   // Tilde range (~1.2.3 = >=1.2.3 <1.3.0)
   if (range.startsWith('~')) {
-    const rangeParts = parseVersion(range.slice(1))
+    const rangeParts = parseVersion(range.slice(1));
     if (!rangeParts) {
-      return false
+      return false;
     }
 
     return (
       versionParts.major === rangeParts.major
       && versionParts.minor === rangeParts.minor
       && versionParts.patch >= rangeParts.patch
-    )
+    );
   }
 
   // Greater than or equal (>=1.2.3)
   if (range.startsWith('>=')) {
-    const rangeParts = parseVersion(range.slice(2))
+    const rangeParts = parseVersion(range.slice(2));
     if (!rangeParts) {
-      return false
+      return false;
     }
 
-    return compareVersions(versionParts, rangeParts) >= 0
+    return compareVersions(versionParts, rangeParts) >= 0;
   }
 
   // Greater than (>1.2.3)
   if (range.startsWith('>')) {
-    const rangeParts = parseVersion(range.slice(1))
+    const rangeParts = parseVersion(range.slice(1));
     if (!rangeParts) {
-      return false
+      return false;
     }
 
-    return compareVersions(versionParts, rangeParts) > 0
+    return compareVersions(versionParts, rangeParts) > 0;
   }
 
   // Less than or equal (<=1.2.3)
   if (range.startsWith('<=')) {
-    const rangeParts = parseVersion(range.slice(2))
+    const rangeParts = parseVersion(range.slice(2));
     if (!rangeParts) {
-      return false
+      return false;
     }
 
-    return compareVersions(versionParts, rangeParts) <= 0
+    return compareVersions(versionParts, rangeParts) <= 0;
   }
 
   // Less than (<1.2.3)
   if (range.startsWith('<')) {
-    const rangeParts = parseVersion(range.slice(1))
+    const rangeParts = parseVersion(range.slice(1));
     if (!rangeParts) {
-      return false
+      return false;
     }
 
-    return compareVersions(versionParts, rangeParts) < 0
+    return compareVersions(versionParts, rangeParts) < 0;
   }
 
-  return false
+  return false;
 }
 
 /**
@@ -211,17 +211,17 @@ export function isVersionCompatible(version: string, range: string): boolean {
  * @param version - Version string (e.g., "1.2.3")
  * @returns Parsed version parts or null if invalid
  */
-function parseVersion(version: string): { major: number, minor: number, patch: number } | null {
-  const match = version.trim().match(/^(\d+)\.(\d+)\.(\d+)/)
+function parseVersion(version: string): { major: number; minor: number; patch: number } | null {
+  const match = version.trim().match(/^(\d+)\.(\d+)\.(\d+)/);
   if (!match) {
-    return null
+    return null;
   }
 
   return {
     major: Number.parseInt(match[1], 10),
     minor: Number.parseInt(match[2], 10),
     patch: Number.parseInt(match[3], 10),
-  }
+  };
 }
 
 /**
@@ -232,16 +232,16 @@ function parseVersion(version: string): { major: number, minor: number, patch: n
  * @returns -1 if a < b, 0 if a === b, 1 if a > b
  */
 function compareVersions(
-  a: { major: number, minor: number, patch: number },
-  b: { major: number, minor: number, patch: number },
+  a: { major: number; minor: number; patch: number },
+  b: { major: number; minor: number; patch: number },
 ): number {
   if (a.major !== b.major) {
-    return a.major - b.major
+    return a.major - b.major;
   }
   if (a.minor !== b.minor) {
-    return a.minor - b.minor
+    return a.minor - b.minor;
   }
-  return a.patch - b.patch
+  return a.patch - b.patch;
 }
 
 /**
@@ -254,31 +254,31 @@ function compareVersions(
  * @returns Flat list of packages in installation order
  */
 export function flattenDependencyTree(tree: PackageDependencyTree): MarketplacePackage[] {
-  const result: MarketplacePackage[] = []
-  const visited = new Set<string>()
+  const result: MarketplacePackage[] = [];
+  const visited = new Set<string>();
 
   function traverse(node: PackageDependencyNode | PackageDependencyTree): void {
     // Skip if already visited
     if (visited.has(node.package.id)) {
-      return
+      return;
     }
 
     // Visit dependencies first
     if ('dependencies' in node && node.dependencies) {
       for (const dep of node.dependencies) {
-        traverse(dep)
+        traverse(dep);
       }
     }
 
     // Add current package
     if (!visited.has(node.package.id)) {
-      result.push(node.package)
-      visited.add(node.package.id)
+      result.push(node.package);
+      visited.add(node.package.id);
     }
   }
 
-  traverse(tree)
-  return result
+  traverse(tree);
+  return result;
 }
 
 /**
@@ -290,44 +290,44 @@ export function flattenDependencyTree(tree: PackageDependencyTree): MarketplaceP
 export function detectCircularDependencies(
   tree: PackageDependencyTree,
 ): string[][] {
-  const cycles: string[][] = []
-  const visited = new Set<string>()
-  const recursionStack: string[] = []
+  const cycles: string[][] = [];
+  const visited = new Set<string>();
+  const recursionStack: string[] = [];
 
   function traverse(node: PackageDependencyNode | PackageDependencyTree): void {
-    const pkgId = node.package.id
+    const pkgId = node.package.id;
 
     // Check if we've found a cycle
-    const cycleStartIndex = recursionStack.indexOf(pkgId)
+    const cycleStartIndex = recursionStack.indexOf(pkgId);
     if (cycleStartIndex !== -1) {
       // Found a cycle - extract the cycle path
-      const cycle = [...recursionStack.slice(cycleStartIndex), pkgId]
-      cycles.push(cycle)
-      return
+      const cycle = [...recursionStack.slice(cycleStartIndex), pkgId];
+      cycles.push(cycle);
+      return;
     }
 
     // Skip if already fully visited
     if (visited.has(pkgId)) {
-      return
+      return;
     }
 
     // Add to recursion stack
-    recursionStack.push(pkgId)
+    recursionStack.push(pkgId);
 
     // Visit dependencies
     if ('dependencies' in node && node.dependencies) {
       for (const dep of node.dependencies) {
-        traverse(dep)
+        traverse(dep);
       }
     }
 
     // Remove from recursion stack and mark as visited
-    recursionStack.pop()
-    visited.add(pkgId)
+    recursionStack.pop();
+    visited.add(pkgId);
   }
 
-  traverse(tree)
-  return cycles
+  traverse(tree);
+  return cycles;
 }
 
 /**
@@ -337,18 +337,18 @@ export function detectCircularDependencies(
  * @returns Set of unique package IDs
  */
 export function getUniqueDependencies(tree: PackageDependencyTree): Set<string> {
-  const unique = new Set<string>()
+  const unique = new Set<string>();
 
   function traverse(node: PackageDependencyNode | PackageDependencyTree): void {
-    unique.add(node.package.id)
+    unique.add(node.package.id);
 
     if ('dependencies' in node && node.dependencies) {
       for (const dep of node.dependencies) {
-        traverse(dep)
+        traverse(dep);
       }
     }
   }
 
-  traverse(tree)
-  return unique
+  traverse(tree);
+  return unique;
 }

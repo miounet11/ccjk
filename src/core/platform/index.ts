@@ -42,10 +42,10 @@
 // Convenience Namespace Export
 // ============================================================================
 
-import * as commands from './commands'
-import * as detector from './detector'
-import * as filesystem from './filesystem'
-import * as paths from './paths'
+import * as commands from './commands';
+import * as detector from './detector';
+import * as filesystem from './filesystem';
+import * as paths from './paths';
 
 export {
   buildCommand,
@@ -72,7 +72,7 @@ export {
   getEnvVarRef,
   registerCommandMapping,
   spawnCommand,
-} from './commands'
+} from './commands';
 
 // ============================================================================
 // Platform Detection Exports
@@ -113,7 +113,7 @@ export {
   isWindows,
 
   isWSL,
-} from './detector'
+} from './detector';
 
 // ============================================================================
 // Path Handling Exports
@@ -153,7 +153,7 @@ export {
   safeDeleteSync,
   writeJson,
   writeText,
-} from './filesystem'
+} from './filesystem';
 
 // ============================================================================
 // Command Execution Exports
@@ -192,7 +192,7 @@ export {
   // WSL path conversion
   windowsToWslPath,
   wslToWindowsPath,
-} from './paths'
+} from './paths';
 
 // ============================================================================
 // File System Exports
@@ -232,7 +232,7 @@ export type {
 
   WatchOptions,
   WslPathMapping,
-} from './types'
+} from './types';
 
 /**
  * Platform abstraction namespace
@@ -251,7 +251,7 @@ export const platform = {
 
   // File system
   ...filesystem,
-} as const
+} as const;
 
 // Default export
-export default platform
+export default platform;

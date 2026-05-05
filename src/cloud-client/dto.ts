@@ -17,7 +17,7 @@ import type {
   TemplateParameter,
   TemplateResponse,
   UsageReport,
-} from './types'
+} from './types';
 
 // ============================================================================
 // Strict Config Types
@@ -27,53 +27,53 @@ import type {
  * MCP Server Configuration
  */
 export interface McpServerConfig {
-  type?: 'stdio' | 'http' | 'websocket'
-  command?: string
-  args?: string[]
-  env?: Record<string, string>
-  npmPackage?: string
-  installCommand?: string
+  type?: 'stdio' | 'http' | 'websocket';
+  command?: string;
+  args?: string[];
+  env?: Record<string, string>;
+  npmPackage?: string;
+  installCommand?: string;
 }
 
 /**
  * Skill Configuration
  */
 export interface SkillConfig {
-  enabled?: boolean
-  priority?: number
-  triggers?: string[]
-  parameters?: Record<string, string | number | boolean>
+  enabled?: boolean;
+  priority?: number;
+  triggers?: string[];
+  parameters?: Record<string, string | number | boolean>;
 }
 
 /**
  * Agent Configuration
  */
 export interface AgentConfig {
-  persona?: string
-  capabilities?: string[]
-  skills?: string[]
-  mcpServers?: string[]
-  temperature?: number
-  maxTokens?: number
+  persona?: string;
+  capabilities?: string[];
+  skills?: string[];
+  mcpServers?: string[];
+  temperature?: number;
+  maxTokens?: number;
 }
 
 /**
  * Hook Configuration
  */
 export interface HookConfig {
-  command?: string
-  args?: string[]
-  when?: 'pre' | 'post'
-  enabled?: boolean
+  command?: string;
+  args?: string[];
+  when?: 'pre' | 'post';
+  enabled?: boolean;
 }
 
 /**
  * Workflow Configuration
  */
 export interface WorkflowConfig {
-  steps?: string[]
-  triggers?: string[]
-  conditions?: Record<string, string | boolean>
+  steps?: string[];
+  triggers?: string[];
+  conditions?: Record<string, string | boolean>;
 }
 
 /**
@@ -84,7 +84,7 @@ export type RecommendationConfig
     | SkillConfig
     | AgentConfig
     | HookConfig
-    | WorkflowConfig
+    | WorkflowConfig;
 
 // ============================================================================
 // Template Parameter Value Types
@@ -100,7 +100,7 @@ export type TemplateParameterValue
     | string[]
     | number[]
     | Record<string, string | number | boolean>
-    | null
+    | null;
 
 // ============================================================================
 // Telemetry Data Types
@@ -110,47 +110,47 @@ export type TemplateParameterValue
  * Template download telemetry data
  */
 export interface TemplateDownloadData {
-  templateId: string
-  templateType: string
-  timestamp: number
+  templateId: string;
+  templateType: string;
+  timestamp: number;
 }
 
 /**
  * Recommendation shown telemetry data
  */
 export interface RecommendationShownData {
-  recommendationId: string
-  category: string
-  timestamp: number
+  recommendationId: string;
+  category: string;
+  timestamp: number;
 }
 
 /**
  * Recommendation accepted telemetry data
  */
 export interface RecommendationAcceptedData {
-  recommendationId: string
-  category: string
-  timestamp: number
+  recommendationId: string;
+  category: string;
+  timestamp: number;
 }
 
 /**
  * Analysis completed telemetry data
  */
 export interface AnalysisCompletedData {
-  projectType?: string
-  frameworks?: string[]
-  recommendationCount: number
-  timestamp: number
+  projectType?: string;
+  frameworks?: string[];
+  recommendationCount: number;
+  timestamp: number;
 }
 
 /**
  * Error occurred telemetry data
  */
 export interface ErrorOccurredData {
-  errorType: string
-  errorMessage?: string
-  context?: string
-  timestamp: number
+  errorType: string;
+  errorMessage?: string;
+  context?: string;
+  timestamp: number;
 }
 
 /**
@@ -158,12 +158,12 @@ export interface ErrorOccurredData {
  */
 export interface BatchTelemetryData {
   events: Array<{
-    type: MetricType
-    data?: TelemetryEventData
-    timestamp: string
-  }>
-  batchSize: number
-  userId: string
+    type: MetricType;
+    data?: TelemetryEventData;
+    timestamp: string;
+  }>;
+  batchSize: number;
+  userId: string;
 }
 
 /**
@@ -175,7 +175,7 @@ export type TelemetryEventData
     | RecommendationAcceptedData
     | AnalysisCompletedData
     | ErrorOccurredData
-    | BatchTelemetryData
+    | BatchTelemetryData;
 
 // ============================================================================
 // API Response DTOs (from cloud)
@@ -185,57 +185,57 @@ export type TelemetryEventData
  * Raw recommendation from cloud API
  */
 export interface RawRecommendation {
-  id: string
-  name: string | Record<string, string>
-  description: string | Record<string, string>
-  category: 'skill' | 'mcp' | 'agent' | 'hook'
-  relevanceScore: number
-  installCommand?: string
-  config?: unknown
-  tags?: string[]
-  dependencies?: string[]
+  id: string;
+  name: string | Record<string, string>;
+  description: string | Record<string, string>;
+  category: 'skill' | 'mcp' | 'agent' | 'hook';
+  relevanceScore: number;
+  installCommand?: string;
+  config?: unknown;
+  tags?: string[];
+  dependencies?: string[];
 }
 
 /**
  * Raw template from cloud API
  */
 export interface RawTemplate {
-  id: string
-  type: 'workflow' | 'output-style' | 'prompt' | 'agent'
-  name: string | Record<string, string>
-  description: string | Record<string, string>
-  content: string
-  version: string
-  author?: string
-  tags?: string[]
+  id: string;
+  type: 'workflow' | 'output-style' | 'prompt' | 'agent';
+  name: string | Record<string, string>;
+  description: string | Record<string, string>;
+  content: string;
+  version: string;
+  author?: string;
+  tags?: string[];
   parameters?: Array<{
-    name: string
-    type: 'string' | 'number' | 'boolean' | 'object' | 'array'
-    required: boolean
-    default?: unknown
-    description?: string | Record<string, string>
-  }>
-  createdAt: string
-  updatedAt: string
+    name: string;
+    type: 'string' | 'number' | 'boolean' | 'object' | 'array';
+    required: boolean;
+    default?: unknown;
+    description?: string | Record<string, string>;
+  }>;
+  createdAt: string;
+  updatedAt: string;
 }
 
 /**
  * Raw project analysis response from cloud API
  */
 export interface RawProjectAnalysisResponse {
-  requestId: string
-  recommendations: RawRecommendation[]
-  projectType?: string
-  frameworks?: string[]
+  requestId: string;
+  recommendations: RawRecommendation[];
+  projectType?: string;
+  frameworks?: string[];
 }
 
 /**
  * Raw batch template response from cloud API
  */
 export interface RawBatchTemplateResponse {
-  requestId: string
-  templates: Record<string, RawTemplate>
-  notFound: string[]
+  requestId: string;
+  templates: Record<string, RawTemplate>;
+  notFound: string[];
 }
 
 // ============================================================================
@@ -251,34 +251,34 @@ export function extractString(
   preferredLang: 'en' | 'zh-CN' = 'en',
 ): string {
   if (val === undefined || val === null)
-    return fallback
+    return fallback;
   if (typeof val === 'string')
-    return val || fallback
+    return val || fallback;
 
   if (typeof val === 'object') {
     // Preferred language
-    const preferred = val[preferredLang]
+    const preferred = val[preferredLang];
     if (typeof preferred === 'string' && preferred)
-      return preferred
+      return preferred;
 
     // Fallback to English
-    const en = val.en || val['en-US']
+    const en = val.en || val['en-US'];
     if (typeof en === 'string' && en)
-      return en
+      return en;
 
     // Fallback to Chinese
-    const zhCN = val['zh-CN'] || val.zh || val['zh-Hans']
+    const zhCN = val['zh-CN'] || val.zh || val['zh-Hans'];
     if (typeof zhCN === 'string' && zhCN)
-      return zhCN
+      return zhCN;
 
     // Use first available value
     for (const v of Object.values(val)) {
       if (typeof v === 'string' && v)
-        return v
+        return v;
     }
   }
 
-  return fallback
+  return fallback;
 }
 
 /**
@@ -286,10 +286,10 @@ export function extractString(
  */
 export function convertConfig(config: unknown): RecommendationConfig | undefined {
   if (!config || typeof config !== 'object')
-    return undefined
+    return undefined;
 
   // Type guard: check if it's a valid config object
-  const obj = config as Record<string, unknown>
+  const obj = config as Record<string, unknown>;
 
   // MCP Server Config
   if ('command' in obj || 'npmPackage' in obj) {
@@ -300,7 +300,7 @@ export function convertConfig(config: unknown): RecommendationConfig | undefined
       env: typeof obj.env === 'object' && obj.env ? obj.env as Record<string, string> : undefined,
       npmPackage: typeof obj.npmPackage === 'string' ? obj.npmPackage : undefined,
       installCommand: typeof obj.installCommand === 'string' ? obj.installCommand : undefined,
-    } as McpServerConfig
+    } as McpServerConfig;
   }
 
   // Skill Config
@@ -310,7 +310,7 @@ export function convertConfig(config: unknown): RecommendationConfig | undefined
       priority: typeof obj.priority === 'number' ? obj.priority : undefined,
       triggers: Array.isArray(obj.triggers) ? obj.triggers.filter(t => typeof t === 'string') : undefined,
       parameters: typeof obj.parameters === 'object' && obj.parameters ? obj.parameters as Record<string, string | number | boolean> : undefined,
-    } as SkillConfig
+    } as SkillConfig;
   }
 
   // Agent Config
@@ -322,7 +322,7 @@ export function convertConfig(config: unknown): RecommendationConfig | undefined
       mcpServers: Array.isArray(obj.mcpServers) ? obj.mcpServers.filter(m => typeof m === 'string') : undefined,
       temperature: typeof obj.temperature === 'number' ? obj.temperature : undefined,
       maxTokens: typeof obj.maxTokens === 'number' ? obj.maxTokens : undefined,
-    } as AgentConfig
+    } as AgentConfig;
   }
 
   // Hook Config
@@ -332,7 +332,7 @@ export function convertConfig(config: unknown): RecommendationConfig | undefined
       args: Array.isArray(obj.args) ? obj.args.filter(a => typeof a === 'string') : undefined,
       when: typeof obj.when === 'string' ? obj.when as 'pre' | 'post' : undefined,
       enabled: typeof obj.enabled === 'boolean' ? obj.enabled : undefined,
-    } as HookConfig
+    } as HookConfig;
   }
 
   // Workflow Config
@@ -341,10 +341,10 @@ export function convertConfig(config: unknown): RecommendationConfig | undefined
       steps: Array.isArray(obj.steps) ? obj.steps.filter(s => typeof s === 'string') : undefined,
       triggers: Array.isArray(obj.triggers) ? obj.triggers.filter(t => typeof t === 'string') : undefined,
       conditions: typeof obj.conditions === 'object' && obj.conditions ? obj.conditions as Record<string, string | boolean> : undefined,
-    } as WorkflowConfig
+    } as WorkflowConfig;
   }
 
-  return undefined
+  return undefined;
 }
 
 /**
@@ -352,30 +352,30 @@ export function convertConfig(config: unknown): RecommendationConfig | undefined
  */
 export function convertParameterDefault(value: unknown): TemplateParameterValue {
   if (value === null || value === undefined)
-    return null
+    return null;
 
   if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean')
-    return value
+    return value;
 
   if (Array.isArray(value)) {
     if (value.every(v => typeof v === 'string'))
-      return value as string[]
+      return value as string[];
     if (value.every(v => typeof v === 'number'))
-      return value as number[]
-    return null
+      return value as number[];
+    return null;
   }
 
   if (typeof value === 'object') {
-    const obj = value as Record<string, unknown>
-    const converted: Record<string, string | number | boolean> = {}
+    const obj = value as Record<string, unknown>;
+    const converted: Record<string, string | number | boolean> = {};
     for (const [k, v] of Object.entries(obj)) {
       if (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean')
-        converted[k] = v
+        converted[k] = v;
     }
-    return converted
+    return converted;
   }
 
-  return null
+  return null;
 }
 
 /**
@@ -383,7 +383,7 @@ export function convertParameterDefault(value: unknown): TemplateParameterValue 
  */
 export function convertRecommendation(
   raw: RawRecommendation,
-  preferredLang: 'en' | 'zh-CN' = 'en',
+  _preferredLang: 'en' | 'zh-CN' = 'en',
 ): Recommendation {
   return {
     id: raw.id,
@@ -399,7 +399,7 @@ export function convertRecommendation(
     config: convertConfig(raw.config),
     tags: raw.tags,
     dependencies: raw.dependencies,
-  }
+  };
 }
 
 /**
@@ -407,11 +407,11 @@ export function convertRecommendation(
  */
 export function convertTemplateParameter(
   raw: {
-    name: string
-    type: 'string' | 'number' | 'boolean' | 'object' | 'array'
-    required: boolean
-    default?: unknown
-    description?: string | Record<string, string>
+    name: string;
+    type: 'string' | 'number' | 'boolean' | 'object' | 'array';
+    required: boolean;
+    default?: unknown;
+    description?: string | Record<string, string>;
   },
 ): TemplateParameter {
   return {
@@ -422,7 +422,7 @@ export function convertTemplateParameter(
     description: typeof raw.description === 'string'
       ? { en: raw.description }
       : raw.description,
-  }
+  };
 }
 
 /**
@@ -430,7 +430,7 @@ export function convertTemplateParameter(
  */
 export function convertTemplate(
   raw: RawTemplate,
-  preferredLang: 'en' | 'zh-CN' = 'en',
+  _preferredLang: 'en' | 'zh-CN' = 'en',
 ): TemplateResponse {
   return {
     id: raw.id,
@@ -448,7 +448,7 @@ export function convertTemplate(
     parameters: raw.parameters ? raw.parameters.map(convertTemplateParameter) : undefined,
     createdAt: raw.createdAt,
     updatedAt: raw.updatedAt,
-  }
+  };
 }
 
 /**
@@ -463,7 +463,7 @@ export function convertProjectAnalysisResponse(
     recommendations: raw.recommendations.map(r => convertRecommendation(r, preferredLang)),
     projectType: raw.projectType,
     frameworks: raw.frameworks,
-  }
+  };
 }
 
 /**
@@ -473,16 +473,16 @@ export function convertBatchTemplateResponse(
   raw: RawBatchTemplateResponse,
   preferredLang: 'en' | 'zh-CN' = 'en',
 ): BatchTemplateResponse {
-  const templates: Record<string, TemplateResponse> = {}
+  const templates: Record<string, TemplateResponse> = {};
   for (const [id, template] of Object.entries(raw.templates)) {
-    templates[id] = convertTemplate(template, preferredLang)
+    templates[id] = convertTemplate(template, preferredLang);
   }
 
   return {
     requestId: raw.requestId,
     templates,
     notFound: raw.notFound,
-  }
+  };
 }
 
 // ============================================================================
@@ -494,25 +494,25 @@ export function convertBatchTemplateResponse(
  */
 export function validateProjectAnalysisRequest(
   request: ProjectAnalysisRequest,
-): { valid: boolean, errors: string[] } {
-  const errors: string[] = []
+): { valid: boolean; errors: string[] } {
+  const errors: string[] = [];
 
   if (!request.projectRoot || typeof request.projectRoot !== 'string')
-    errors.push('projectRoot is required and must be a string')
+    errors.push('projectRoot is required and must be a string');
 
   if (request.dependencies && typeof request.dependencies !== 'object')
-    errors.push('dependencies must be an object')
+    errors.push('dependencies must be an object');
 
   if (request.devDependencies && typeof request.devDependencies !== 'object')
-    errors.push('devDependencies must be an object')
+    errors.push('devDependencies must be an object');
 
   if (request.language && !['en', 'zh-CN'].includes(request.language))
-    errors.push('language must be "en" or "zh-CN"')
+    errors.push('language must be "en" or "zh-CN"');
 
   return {
     valid: errors.length === 0,
     errors,
-  }
+  };
 }
 
 /**
@@ -520,23 +520,23 @@ export function validateProjectAnalysisRequest(
  */
 export function validateBatchTemplateRequest(
   request: BatchTemplateRequest,
-): { valid: boolean, errors: string[] } {
-  const errors: string[] = []
+): { valid: boolean; errors: string[] } {
+  const errors: string[] = [];
 
   if (!Array.isArray(request.ids))
-    errors.push('ids must be an array')
+    errors.push('ids must be an array');
   else if (request.ids.length === 0)
-    errors.push('ids array cannot be empty')
+    errors.push('ids array cannot be empty');
   else if (!request.ids.every(id => typeof id === 'string'))
-    errors.push('all ids must be strings')
+    errors.push('all ids must be strings');
 
   if (request.language && !['en', 'zh-CN'].includes(request.language))
-    errors.push('language must be "en" or "zh-CN"')
+    errors.push('language must be "en" or "zh-CN"');
 
   return {
     valid: errors.length === 0,
     errors,
-  }
+  };
 }
 
 /**
@@ -544,37 +544,37 @@ export function validateBatchTemplateRequest(
  */
 export function validateUsageReport(
   report: UsageReport,
-): { valid: boolean, errors: string[] } {
-  const errors: string[] = []
+): { valid: boolean; errors: string[] } {
+  const errors: string[] = [];
 
   if (!report.reportId || typeof report.reportId !== 'string')
-    errors.push('reportId is required and must be a string')
+    errors.push('reportId is required and must be a string');
 
   if (!report.metricType || typeof report.metricType !== 'string')
-    errors.push('metricType is required and must be a string')
+    errors.push('metricType is required and must be a string');
 
   if (!report.timestamp || typeof report.timestamp !== 'string')
-    errors.push('timestamp is required and must be a string')
+    errors.push('timestamp is required and must be a string');
 
   if (!report.ccjkVersion || typeof report.ccjkVersion !== 'string')
-    errors.push('ccjkVersion is required and must be a string')
+    errors.push('ccjkVersion is required and must be a string');
 
   if (!report.nodeVersion || typeof report.nodeVersion !== 'string')
-    errors.push('nodeVersion is required and must be a string')
+    errors.push('nodeVersion is required and must be a string');
 
   if (!report.platform || typeof report.platform !== 'string')
-    errors.push('platform is required and must be a string')
+    errors.push('platform is required and must be a string');
 
   if (report.deviceId !== undefined && typeof report.deviceId !== 'string')
-    errors.push('deviceId must be a string when provided')
+    errors.push('deviceId must be a string when provided');
 
   if (report.clientVersion !== undefined && typeof report.clientVersion !== 'string')
-    errors.push('clientVersion must be a string when provided')
+    errors.push('clientVersion must be a string when provided');
 
   return {
     valid: errors.length === 0,
     errors,
-  }
+  };
 }
 
 // ============================================================================
@@ -585,7 +585,7 @@ export function validateUsageReport(
  * Check if value is a valid recommendation config
  */
 export function isRecommendationConfig(value: unknown): value is RecommendationConfig {
-  return convertConfig(value) !== undefined
+  return convertConfig(value) !== undefined;
 }
 
 /**
@@ -593,15 +593,15 @@ export function isRecommendationConfig(value: unknown): value is RecommendationC
  */
 export function isTelemetryEventData(value: unknown): value is TelemetryEventData {
   if (!value || typeof value !== 'object')
-    return false
+    return false;
 
-  const obj = value as Record<string, unknown>
+  const obj = value as Record<string, unknown>;
 
   // Check for required timestamp field
   if (typeof obj.timestamp !== 'number' && typeof obj.timestamp !== 'string')
-    return false
+    return false;
 
-  return true
+  return true;
 }
 
 /**
@@ -609,25 +609,25 @@ export function isTelemetryEventData(value: unknown): value is TelemetryEventDat
  */
 export function isTemplateParameterValue(value: unknown): value is TemplateParameterValue {
   if (value === null || value === undefined)
-    return value === null // null is valid, undefined is not
+    return value === null; // null is valid, undefined is not
 
   if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean')
-    return true
+    return true;
 
   if (Array.isArray(value)) {
     if (value.length === 0)
-      return true
+      return true;
     // Check if all elements are strings OR all are numbers (not mixed)
-    const allStrings = value.every(v => typeof v === 'string')
-    const allNumbers = value.every(v => typeof v === 'number')
-    return allStrings || allNumbers
+    const allStrings = value.every(v => typeof v === 'string');
+    const allNumbers = value.every(v => typeof v === 'number');
+    return allStrings || allNumbers;
   }
 
   if (typeof value === 'object') {
     return Object.values(value).every(v =>
       typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean',
-    )
+    );
   }
 
-  return false
+  return false;
 }

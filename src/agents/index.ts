@@ -12,21 +12,21 @@ export type {
   OrchestratorAgentModel,
   OrchestratorTask,
   TaskComplexity,
-} from '../types/agent.js'
+} from '../types/agent.js';
 
 export {
   AGENT_CAPABILITIES,
   findAgentsBySpecialty,
   getAgentCapability,
   getCollaborators,
-} from './capability-map.js'
-export { AgentCommunication } from './communication.js'
-export { createCommunication, MESSAGE_TYPES } from './communication.js'
+} from './capability-map.js';
+export { AgentCommunication } from './communication.js';
+export { createCommunication, MESSAGE_TYPES } from './communication.js';
 
 // Multi-Agent Orchestration System (v6.0.0)
-export { MultiAgentOrchestrator } from './multi-agent-orchestrator.js'
+export { MultiAgentOrchestrator } from './multi-agent-orchestrator.js';
 // Agent Orchestration System
-export { AgentOrchestrator } from './orchestrator.js'
+export { AgentOrchestrator } from './orchestrator.js';
 
 export {
   AGENT_REGISTRY,
@@ -37,4 +37,4 @@ export {
   getRegistryStats,
   sortAgentsByCost,
   sortAgentsByExpertise,
-} from './registry.js'
+} from './registry.js';

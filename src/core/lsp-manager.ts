@@ -15,12 +15,12 @@ import type {
   LspServerId,
   LspServerState,
   LspStatusInfo,
-} from '../types/lsp'
-import { existsSync } from 'node:fs'
-import { readFile } from 'node:fs/promises'
-import { extname, join } from 'pathe'
-import { commandExists } from '../utils/platform'
-import { LspClient } from './lsp-client'
+} from '../types/lsp';
+import { existsSync } from 'node:fs';
+import { readFile } from 'node:fs/promises';
+import { extname, join } from 'pathe';
+import { commandExists } from '../utils/platform';
+import { LspClient } from './lsp-client';
 
 /**
  * File extension to LSP server mapping
@@ -112,16 +112,16 @@ const EXTENSION_TO_SERVER: Record<string, LspServerId> = {
 
   // Tailwind
   '.tailwindcss': 'tailwindcss',
-}
+};
 
 /**
  * LSP Manager class for managing multiple LSP servers
  */
 export class LspManager {
-  private servers = new Map<LspServerId, LspServerState>()
-  private clients = new Map<LspServerId, LspClient>()
-  private fileToServer = new Map<string, LspServerId>()
-  private config: Required<LspManagerConfig>
+  private servers = new Map<LspServerId, LspServerState>();
+  private clients = new Map<LspServerId, LspClient>();
+  private fileToServer = new Map<string, LspServerId>();
+  private config: Required<LspManagerConfig>;
 
   constructor(
     private serverConfigs: LspServerConfig[],
@@ -136,7 +136,7 @@ export class LspManager {
       autoRestart: config.autoRestart ?? true,
       maxRestartAttempts: config.maxRestartAttempts ?? 3,
       restartDelay: config.restartDelay ?? 1000,
-    }
+    };
 
     // Initialize server states
     for (const serverConfig of serverConfigs) {
@@ -145,7 +145,7 @@ export class LspManager {
         status: 'stopped',
         restartCount: 0,
         files: new Set(),
-      })
+      });
     }
   }
 
@@ -153,74 +153,74 @@ export class LspManager {
    * Get the LSP server ID for a file
    */
   getServerForFile(filePath: string): LspServerId | null {
-    const ext = extname(filePath)
-    const fileName = filePath.split('/').pop() ?? filePath
+    const ext = extname(filePath);
+    const fileName = filePath.split('/').pop() ?? filePath;
 
     // Check exact filename match first (for Dockerfile, etc.)
     if (EXTENSION_TO_SERVER[fileName]) {
-      return EXTENSION_TO_SERVER[fileName]
+      return EXTENSION_TO_SERVER[fileName];
     }
 
-    return EXTENSION_TO_SERVER[ext] ?? null
+    return EXTENSION_TO_SERVER[ext] ?? null;
   }
 
   /**
    * Check if a server is available (installed and ready)
    */
   async isServerAvailable(serverId: LspServerId): Promise<boolean> {
-    const config = this.serverConfigs.find(c => c.id === serverId)
+    const config = this.serverConfigs.find(c => c.id === serverId);
     if (!config) {
-      return false
+      return false;
     }
 
     // Check command availability
-    const command = config.command
-    const hasCommand = await commandExists(command)
+    const command = config.command;
+    const hasCommand = await commandExists(command);
     if (!hasCommand) {
-      return false
+      return false;
     }
 
     // Check required files
     if (config.requires?.files) {
       for (const file of config.requires.files) {
         if (!existsSync(file)) {
-          return false
+          return false;
         }
       }
     }
 
-    return true
+    return true;
   }
 
   /**
    * Detect available LSP servers from project configuration
    */
   async detectAvailableServers(projectPath: string = process.cwd()): Promise<LspServerId[]> {
-    const available: LspServerId[] = []
+    const available: LspServerId[] = [];
 
     for (const config of this.serverConfigs) {
       // Check if server is available
-      const isAvailable = await this.isServerAvailable(config.id)
+      const isAvailable = await this.isServerAvailable(config.id);
       if (!isAvailable) {
-        this.updateServerState(config.id, { status: 'not-installed' })
-        continue
+        this.updateServerState(config.id, { status: 'not-installed' });
+        continue;
       }
 
       // Check project-specific files
-      let shouldEnable = config.enabled ?? false
+      let shouldEnable = config.enabled ?? false;
 
       // Auto-detect based on project files
       if (config.autoStart) {
-        const hasProjectFiles = await this.hasProjectFiles(projectPath, config)
-        shouldEnable = shouldEnable || hasProjectFiles
+        const hasProjectFiles = await this.hasProjectFiles(projectPath, config);
+        shouldEnable = shouldEnable || hasProjectFiles;
       }
 
       if (shouldEnable) {
-        available.push(config.id)
+        available.push(config.id);
       }
     }
 
-    return available
+    return available;
   }
 
   /**
@@ -228,96 +228,96 @@ export class LspManager {
    */
   private async hasProjectFiles(projectPath: string, config: LspServerConfig): Promise<boolean> {
     if (!config.extensions || config.extensions.length === 0) {
-      return false
+      return false;
     }
 
-    const { readdirSync } = await import('node:fs')
-    const { existsSync } = await import('node:fs')
+    const { readdirSync } = await import('node:fs');
+    const { existsSync } = await import('node:fs');
 
     if (!existsSync(projectPath)) {
-      return false
+      return false;
     }
 
     try {
-      const files = readdirSync(projectPath, { recursive: true, withFileTypes: true })
+      const files = readdirSync(projectPath, { recursive: true, withFileTypes: true });
       for (const file of files) {
         if (file.isFile()) {
-          const ext = extname(file.name)
+          const ext = extname(file.name);
           if (config.extensions.includes(ext)) {
-            return true
+            return true;
           }
         }
       }
     }
     catch {
-      return false
+      return false;
     }
 
-    return false
+    return false;
   }
 
   /**
    * Start an LSP server
    */
   async startServer(serverId: LspServerId): Promise<void> {
-    const state = this.servers.get(serverId)
+    const state = this.servers.get(serverId);
     if (!state) {
-      throw new Error(`Unknown LSP server: ${serverId}`)
+      throw new Error(`Unknown LSP server: ${serverId}`);
     }
 
     if (state.status === 'running' || state.status === 'starting') {
-      return
+      return;
     }
 
-    const config = this.serverConfigs.find(c => c.id === serverId)
+    const config = this.serverConfigs.find(c => c.id === serverId);
     if (!config) {
-      throw new Error(`No configuration for server: ${serverId}`)
+      throw new Error(`No configuration for server: ${serverId}`);
     }
 
-    this.updateServerState(serverId, { status: 'starting' })
+    this.updateServerState(serverId, { status: 'starting' });
 
     try {
       const client = new LspClient(config, {
         requestTimeout: this.config.defaultRequestTimeout,
         debug: this.config.enableLogging,
         logger: this.log.bind(this),
-      })
+      });
 
       // Set up client event handlers
       client.on('error', (error) => {
-        this.log(`LSP server ${serverId} error:`, error)
-        this.handleServerError(serverId, error)
-      })
+        this.log(`LSP server ${serverId} error:`, error);
+        this.handleServerError(serverId, error);
+      });
 
       client.on('exit', () => {
-        this.log(`LSP server ${serverId} exited`)
-        this.handleServerExit(serverId)
-      })
+        this.log(`LSP server ${serverId} exited`);
+        this.handleServerExit(serverId);
+      });
 
       client.on('diagnostics', (params) => {
         this.emit('diagnostics', {
           uri: params.uri,
           diagnostics: params.diagnostics,
           serverId,
-        } as LspDiagnosticReport)
-      })
+        } as LspDiagnosticReport);
+      });
 
-      await client.start()
+      await client.start();
 
-      this.clients.set(serverId, client)
+      this.clients.set(serverId, client);
       this.updateServerState(serverId, {
         status: 'running',
         pid: client.getPid(),
         startTime: new Date(),
         capabilities: client.getCapabilities() ?? undefined,
-      })
+      });
     }
     catch (error) {
       this.updateServerState(serverId, {
         status: 'error',
         error: error instanceof Error ? error.message : String(error),
-      })
-      throw error
+      });
+      throw error;
     }
   }
 
@@ -325,28 +325,28 @@ export class LspManager {
    * Stop an LSP server
    */
   async stopServer(serverId: LspServerId): Promise<void> {
-    const client = this.clients.get(serverId)
+    const client = this.clients.get(serverId);
     if (!client) {
-      return
+      return;
     }
 
-    await client.stop()
-    this.clients.delete(serverId)
-    this.updateServerState(serverId, { status: 'stopped' })
+    await client.stop();
+    this.clients.delete(serverId);
+    this.updateServerState(serverId, { status: 'stopped' });
   }
 
   /**
    * Start all available LSP servers
    */
   async startAll(): Promise<void> {
-    const available = await this.detectAvailableServers()
+    const available = await this.detectAvailableServers();
 
     for (const serverId of available) {
       try {
-        await this.startServer(serverId)
+        await this.startServer(serverId);
       }
       catch (error) {
-        this.log(`Failed to start LSP server ${serverId}:`, error)
+        this.log(`Failed to start LSP server ${serverId}:`, error);
       }
     }
   }
@@ -355,67 +355,67 @@ export class LspManager {
    * Stop all running LSP servers
    */
   async stopAll(): Promise<void> {
-    const stopPromises: Promise<void>[] = []
+    const stopPromises: Promise<void>[] = [];
 
     for (const serverId of this.clients.keys()) {
-      stopPromises.push(this.stopServer(serverId))
+      stopPromises.push(this.stopServer(serverId));
     }
 
-    await Promise.all(stopPromises)
+    await Promise.all(stopPromises);
   }
 
   /**
    * Restart an LSP server
    */
   async restartServer(serverId: LspServerId): Promise<void> {
-    await this.stopServer(serverId)
-    await this.startServer(serverId)
+    await this.stopServer(serverId);
+    await this.startServer(serverId);
   }
 
   /**
    * Get server state
    */
   getServerState(serverId: LspServerId): LspServerState | undefined {
-    return this.servers.get(serverId)
+    return this.servers.get(serverId);
   }
 
   /**
    * Get all server states
    */
   getAllServerStates(): Record<LspServerId, LspServerState> {
-    const result: Record<string, LspServerState> = {}
+    const result: Record<string, LspServerState> = {};
     for (const [id, state] of this.servers) {
       result[id] = {
         ...state,
         files: new Set(state.files), // Clone the Set
-      }
+      };
     }
-    return result as Record<LspServerId, LspServerState>
+    return result as Record<LspServerId, LspServerState>;
   }
 
   /**
    * Get status information
    */
   getStatus(): LspStatusInfo {
-    let runningCount = 0
-    let stoppedCount = 0
-    let errorCount = 0
-    let notInstalledCount = 0
+    let runningCount = 0;
+    let stoppedCount = 0;
+    let errorCount = 0;
+    let notInstalledCount = 0;
 
     for (const state of this.servers.values()) {
       switch (state.status) {
         case 'running':
-          runningCount++
-          break
+          runningCount++;
+          break;
         case 'stopped':
-          stoppedCount++
-          break
+          stoppedCount++;
+          break;
         case 'error':
-          errorCount++
-          break
+          errorCount++;
+          break;
         case 'not-installed':
-          notInstalledCount++
-          break
+          notInstalledCount++;
+          break;
       }
     }
 
@@ -425,25 +425,25 @@ export class LspManager {
       stoppedCount,
       errorCount,
       notInstalledCount,
-    }
+    };
   }
 
   /**
    * Enable/disable a server
    */
   async setServerEnabled(serverId: LspServerId, enabled: boolean): Promise<void> {
-    const config = this.serverConfigs.find(c => c.id === serverId)
+    const config = this.serverConfigs.find(c => c.id === serverId);
     if (!config) {
-      throw new Error(`Unknown LSP server: ${serverId}`)
+      throw new Error(`Unknown LSP server: ${serverId}`);
     }
 
-    config.enabled = enabled
+    config.enabled = enabled;
 
     if (enabled) {
-      await this.startServer(serverId)
+      await this.startServer(serverId);
     }
     else {
-      await this.stopServer(serverId)
+      await this.stopServer(serverId);
     }
   }
 
@@ -451,24 +451,24 @@ export class LspManager {
    * Execute a feature request on the appropriate server
    */
   async executeFeature<T = any>(request: LspFeatureRequest): Promise<LspFeatureResponse<T>> {
-    const client = this.clients.get(request.serverId)
+    const client = this.clients.get(request.serverId);
 
     if (!client) {
       return {
         error: `LSP server not running: ${request.serverId}`,
         code: -1,
-      }
+      };
     }
 
     try {
-      const data = await client.sendRequest<T>(request.method, request.params, request.timeout)
-      return { data }
+      const data = await client.sendRequest<T>(request.method, request.params, request.timeout);
+      return { data };
     }
     catch (error) {
       return {
         error: error instanceof Error ? error.message : String(error),
         code: -2,
-      }
+      };
     }
   }
 
@@ -483,7 +483,7 @@ export class LspManager {
         textDocument: { uri },
         position: { line, character },
       },
-    })
+    });
   }
 
   /**
@@ -498,7 +498,7 @@ export class LspManager {
         position: { line, character },
         context: { includeDeclaration: true },
       },
-    })
+    });
   }
 
   /**
@@ -512,7 +512,7 @@ export class LspManager {
         textDocument: { uri },
         position: { line, character },
       },
-    })
+    });
   }
 
   /**
@@ -526,7 +526,7 @@ export class LspManager {
         textDocument: { uri },
         position: { line, character },
       },
-    })
+    });
   }
 
   /**
@@ -537,28 +537,28 @@ export class LspManager {
       serverId,
       method: 'textDocument/documentSymbol',
       params: { textDocument: { uri } },
-    })
+    });
   }
 
   /**
    * Open a document in the appropriate LSP server
    */
   async openDocument(filePath: string): Promise<void> {
-    const serverId = this.getServerForFile(filePath)
+    const serverId = this.getServerForFile(filePath);
     if (!serverId) {
-      return
+      return;
     }
 
-    const client = this.clients.get(serverId)
+    const client = this.clients.get(serverId);
     if (!client) {
-      return
+      return;
     }
 
-    const content = await readFile(filePath, 'utf-8')
-    const ext = extname(filePath)
+    const content = await readFile(filePath, 'utf-8');
+    const ext = extname(filePath);
 
     // Map extension to language ID
-    const languageId = this.getLanguageId(ext)
+    const languageId = this.getLanguageId(ext);
 
     client.openDocument({
       textDocument: {
@@ -567,12 +567,12 @@ export class LspManager {
         version: 1,
         text: content,
       },
-    })
+    });
 
-    this.fileToServer.set(filePath, serverId)
-    const state = this.servers.get(serverId)
+    this.fileToServer.set(filePath, serverId);
+    const state = this.servers.get(serverId);
     if (state) {
-      state.files.add(filePath)
+      state.files.add(filePath);
     }
   }
 
@@ -580,22 +580,22 @@ export class LspManager {
    * Close a document
    */
   async closeDocument(filePath: string): Promise<void> {
-    const serverId = this.fileToServer.get(filePath)
+    const serverId = this.fileToServer.get(filePath);
     if (!serverId) {
-      return
+      return;
     }
 
-    const client = this.clients.get(serverId)
+    const client = this.clients.get(serverId);
     if (!client) {
-      return
+      return;
     }
 
-    client.closeDocument({ textDocument: { uri: filePath } })
+    client.closeDocument({ textDocument: { uri: filePath } });
 
-    this.fileToServer.delete(filePath)
-    const state = this.servers.get(serverId)
+    this.fileToServer.delete(filePath);
+    const state = this.servers.get(serverId);
     if (state) {
-      state.files.delete(filePath)
+      state.files.delete(filePath);
     }
   }
 
@@ -603,7 +603,7 @@ export class LspManager {
    * Get server capabilities
    */
   getServerCapabilities(serverId: LspServerId): LspServerCapabilities | null {
-    return this.servers.get(serverId)?.capabilities ?? null
+    return this.servers.get(serverId)?.capabilities ?? null;
   }
 
   /**
@@ -613,14 +613,14 @@ export class LspManager {
     this.updateServerState(serverId, {
       status: 'error',
       error: error.message,
-    })
+    });
 
     if (this.config.autoRestart) {
-      const state = this.servers.get(serverId)
+      const state = this.servers.get(serverId);
       if (state && state.restartCount < this.config.maxRestartAttempts) {
         setTimeout(() => {
-          this.restartServer(serverId)
-        }, this.config.restartDelay)
+          this.restartServer(serverId);
+        }, this.config.restartDelay);
       }
     }
   }
@@ -629,18 +629,18 @@ export class LspManager {
    * Handle server exit
    */
   private handleServerExit(serverId: LspServerId): void {
-    this.clients.delete(serverId)
-    this.updateServerState(serverId, { status: 'stopped' })
+    this.clients.delete(serverId);
+    this.updateServerState(serverId, { status: 'stopped' });
   }
 
   /**
    * Update server state
    */
   private updateServerState(serverId: LspServerId, updates: Partial<LspServerState>): void {
-    const state = this.servers.get(serverId)
+    const state = this.servers.get(serverId);
     if (state) {
-      Object.assign(state, updates)
-      this.emit('serverStateChanged', { serverId, state })
+      Object.assign(state, updates);
+      this.emit('serverStateChanged', { serverId, state });
     }
   }
 
@@ -675,9 +675,9 @@ export class LspManager {
       '.md': 'markdown',
       '.graphql': 'graphql',
       '.tf': 'terraform',
-    }
+    };
 
-    return mapping[ext] ?? ext.substring(1)
+    return mapping[ext] ?? ext.substring(1);
   }
 
   /**
@@ -685,7 +685,7 @@ export class LspManager {
    */
   private log(message: string, ...args: any[]): void {
     if (this.config.enableLogging) {
-      console.log(`[LspManager] ${message}`, ...args)
+      console.log(`[LspManager] ${message}`, ...args);
     }
   }
 
@@ -700,22 +700,22 @@ export class LspManager {
 /**
  * LSP Manager singleton instance
  */
-let lspManagerInstance: LspManager | null = null
+let lspManagerInstance: LspManager | null = null;
 
 /**
  * Get or create the LSP Manager singleton
  */
 export async function getLspManager(configs?: LspServerConfig[], managerConfig?: LspManagerConfig): Promise<LspManager> {
   if (!lspManagerInstance) {
-    const serverConfigs = configs ?? (await import('../config/lsp-servers')).LSP_SERVER_CONFIGS
-    lspManagerInstance = new LspManager(serverConfigs, managerConfig)
+    const serverConfigs = configs ?? (await import('../config/lsp-servers')).LSP_SERVER_CONFIGS;
+    lspManagerInstance = new LspManager(serverConfigs, managerConfig);
   }
-  return lspManagerInstance
+  return lspManagerInstance;
 }
 
 /**
  * Reset the LSP Manager singleton (useful for testing)
  */
 export function resetLspManager(): void {
-  lspManagerInstance = null
+  lspManagerInstance = null;
 }

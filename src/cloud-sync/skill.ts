@@ -5,7 +5,7 @@
  * Supports cross-device configuration, skills, and workflow synchronization
  */
 
-import type { CcjkSkill } from '../skills/types'
+import type { CcjkSkill } from '../skills/types';
 
 /**
  * Cloud Sync Skill definition
@@ -226,18 +226,18 @@ For manual sync via Dropbox, OneDrive, etc.
 /backup delete <corrupted-id>
 \`\`\`
 `,
-}
+};
 
 /**
  * Get cloud sync skill template
  */
 export function getCloudSyncSkillTemplate(): string {
-  return cloudSyncSkill.template
+  return cloudSyncSkill.template;
 }
 
 /**
  * Get cloud sync skill definition
  */
 export function getCloudSyncSkill(): CcjkSkill {
-  return cloudSyncSkill
+  return cloudSyncSkill;
 }

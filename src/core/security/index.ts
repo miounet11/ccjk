@@ -31,13 +31,13 @@ export {
   CredentialManager,
   getCredentialManager,
   resetCredentialManager,
-} from './credential-manager'
+} from './credential-manager';
 
 // Encryption
 export {
   EncryptionService,
   encryptionService,
-} from './encryption'
+} from './encryption';
 
 // Keychain backends
 export {
@@ -47,7 +47,7 @@ export {
   LinuxSecretServiceBackend,
   MacOSKeychainBackend,
   WindowsCredentialBackend,
-} from './keychain'
+} from './keychain';
 
 // Types
 export type {
@@ -66,4 +66,4 @@ export type {
   Platform,
   StorageBackend,
   StoredCredential,
-} from './types'
+} from './types';

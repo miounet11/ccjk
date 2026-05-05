@@ -4,17 +4,17 @@
  * Manages permissions for resources in the CCJK system
  */
 
-import type { Permission, PermissionLevel, PermissionMetadata } from './types'
+import type { Permission, PermissionLevel, PermissionMetadata } from './types';
 
 /**
  * Permission Manager - Singleton class for managing permissions
  */
 export class PermissionManager {
-  private static instance: PermissionManager
-  private permissions: Map<string, Permission>
+  private static instance: PermissionManager;
+  private permissions: Map<string, Permission>;
 
   private constructor() {
-    this.permissions = new Map()
+    this.permissions = new Map();
   }
 
   /**
@@ -22,9 +22,9 @@ export class PermissionManager {
    */
   public static getInstance(): PermissionManager {
     if (!PermissionManager.instance) {
-      PermissionManager.instance = new PermissionManager()
+      PermissionManager.instance = new PermissionManager();
     }
-    return PermissionManager.instance
+    return PermissionManager.instance;
   }
 
   /**
@@ -40,16 +40,16 @@ export class PermissionManager {
       level,
       grantedAt: Date.now(),
       metadata,
-    }
+    };
 
-    this.permissions.set(resource, permission)
+    this.permissions.set(resource, permission);
   }
 
   /**
    * Revoke permission for a resource
    */
   public async revokePermission(resource: string): Promise<void> {
-    this.permissions.delete(resource)
+    this.permissions.delete(resource);
   }
 
   /**
@@ -60,40 +60,40 @@ export class PermissionManager {
     requiredLevel: PermissionLevel,
   ): Promise<boolean> {
     // Check exact match first
-    const permission = this.permissions.get(resource)
+    const permission = this.permissions.get(resource);
     if (permission) {
-      return this.hasRequiredLevel(permission.level, requiredLevel)
+      return this.hasRequiredLevel(permission.level, requiredLevel);
     }
 
     // Check wildcard patterns
     for (const [pattern, perm] of this.permissions.entries()) {
       if (this.matchesPattern(resource, pattern)) {
-        return this.hasRequiredLevel(perm.level, requiredLevel)
+        return this.hasRequiredLevel(perm.level, requiredLevel);
       }
     }
 
-    return false
+    return false;
   }
 
   /**
    * Get permission for a specific resource
    */
   public getPermission(resource: string): Permission | undefined {
-    return this.permissions.get(resource)
+    return this.permissions.get(resource);
   }
 
   /**
    * Get all permissions
    */
   public getAllPermissions(): Permission[] {
-    return Array.from(this.permissions.values())
+    return Array.from(this.permissions.values());
   }
 
   /**
    * Clear all permissions
    */
   public clearAllPermissions(): void {
-    this.permissions.clear()
+    this.permissions.clear();
   }
 
   /**
@@ -103,11 +103,11 @@ export class PermissionManager {
     grantedLevel: PermissionLevel,
     requiredLevel: PermissionLevel,
   ): boolean {
-    const levels: PermissionLevel[] = ['none', 'read', 'write', 'full']
-    const grantedIndex = levels.indexOf(grantedLevel)
-    const requiredIndex = levels.indexOf(requiredLevel)
+    const levels: PermissionLevel[] = ['none', 'read', 'write', 'full'];
+    const grantedIndex = levels.indexOf(grantedLevel);
+    const requiredIndex = levels.indexOf(requiredLevel);
 
-    return grantedIndex >= requiredIndex
+    return grantedIndex >= requiredIndex;
   }
 
   /**
@@ -117,9 +117,9 @@ export class PermissionManager {
     // Convert wildcard pattern to regex
     const regexPattern = pattern
       .replace(/[.+?^${}()|[\]\\]/g, '\\$&') // Escape special regex chars
-      .replace(/\*/g, '.*') // Convert * to .*
+      .replace(/\*/g, '.*'); // Convert * to .*
 
-    const regex = new RegExp(`^${regexPattern}$`)
-    return regex.test(resource)
+    const regex = new RegExp(`^${regexPattern}$`);
+    return regex.test(resource);
   }
 }

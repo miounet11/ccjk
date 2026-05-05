@@ -14,13 +14,13 @@ import type {
   Recommendation,
   TemplateResponse,
   UsageReportResponse,
-} from '../../src/cloud-client/types'
+} from '../../src/cloud-client/types';
 import type {
   BindResponse,
   CloudReply,
   NotifyResponse,
-} from '../../src/services/cloud-notification'
-import type { CloudApiResponse } from '../../src/services/cloud/api-client'
+} from '../../src/services/cloud-notification';
+import type { CloudApiResponse } from '../../src/services/cloud/api-client';
 
 // ============================================================================
 // Mock Data Generators
@@ -41,7 +41,7 @@ export function createMockAnalysisResponse(
     projectType: 'typescript-react',
     frameworks: ['react', 'typescript'],
     ...overrides,
-  }
+  };
 }
 
 /**
@@ -58,7 +58,7 @@ export function createMockRecommendation(
     relevanceScore: 0.95,
     tags: ['test', 'mock'],
     ...overrides,
-  }
+  };
 }
 
 /**
@@ -79,7 +79,7 @@ export function createMockTemplate(
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     ...overrides,
-  }
+  };
 }
 
 /**
@@ -89,18 +89,18 @@ export function createMockBatchTemplateResponse(
   templateIds: string[],
   overrides?: Partial<BatchTemplateResponse>,
 ): BatchTemplateResponse {
-  const templates: Record<string, TemplateResponse> = {}
+  const templates: Record<string, TemplateResponse> = {};
 
   templateIds.forEach((id) => {
-    templates[id] = createMockTemplate({ id })
-  })
+    templates[id] = createMockTemplate({ id });
+  });
 
   return {
     requestId: `batch_${Date.now()}`,
     templates,
     notFound: [],
     ...overrides,
-  }
+  };
 }
 
 /**
@@ -114,7 +114,7 @@ export function createMockHealthResponse(
     version: '1.0.0',
     timestamp: new Date().toISOString(),
     ...overrides,
-  }
+  };
 }
 
 /**
@@ -128,7 +128,7 @@ export function createMockUsageReportResponse(
     requestId: `usage_${Date.now()}`,
     message: 'Telemetry received',
     ...overrides,
-  }
+  };
 }
 
 /**
@@ -142,7 +142,7 @@ export function createMockBindResponse(
     deviceToken: `token_${Date.now()}`,
     deviceId: `device_${Date.now()}`,
     ...overrides,
-  }
+  };
 }
 
 /**
@@ -155,7 +155,7 @@ export function createMockNotifyResponse(
     success: true,
     notificationId: `notif_${Date.now()}`,
     ...overrides,
-  }
+  };
 }
 
 /**
@@ -169,7 +169,7 @@ export function createMockCloudReply(
     timestamp: new Date(),
     notificationId: `notif_${Date.now()}`,
     ...overrides,
-  }
+  };
 }
 
 // ============================================================================
@@ -180,11 +180,11 @@ export function createMockCloudReply(
  * Mock server state
  */
 interface MockServerState {
-  responses: Map<string, any>
-  requestLog: Array<{ path: string, method: string, body?: any }>
-  latency: number
-  shouldFail: boolean
-  failureRate: number
+  responses: Map<string, any>;
+  requestLog: Array<{ path: string; method: string; body?: any }>;
+  latency: number;
+  shouldFail: boolean;
+  failureRate: number;
 }
 
 /**
@@ -197,61 +197,61 @@ export class MockCloudServer {
     latency: 0,
     shouldFail: false,
     failureRate: 0,
-  }
+  };
 
   /**
    * Set mock response for a specific endpoint
    */
   setResponse<T>(path: string, response: CloudApiResponse<T>): void {
-    this.state.responses.set(path, response)
+    this.state.responses.set(path, response);
   }
 
   /**
    * Set mock latency (in milliseconds)
    */
   setLatency(ms: number): void {
-    this.state.latency = ms
+    this.state.latency = ms;
   }
 
   /**
    * Enable failure mode
    */
   enableFailures(rate: number = 1.0): void {
-    this.state.shouldFail = true
-    this.state.failureRate = rate
+    this.state.shouldFail = true;
+    this.state.failureRate = rate;
   }
 
   /**
    * Disable failure mode
    */
   disableFailures(): void {
-    this.state.shouldFail = false
-    this.state.failureRate = 0
+    this.state.shouldFail = false;
+    this.state.failureRate = 0;
   }
 
   /**
    * Get request log
    */
-  getRequestLog(): Array<{ path: string, method: string, body?: any }> {
-    return [...this.state.requestLog]
+  getRequestLog(): Array<{ path: string; method: string; body?: any }> {
+    return [...this.state.requestLog];
   }
 
   /**
    * Clear request log
    */
   clearRequestLog(): void {
-    this.state.requestLog = []
+    this.state.requestLog = [];
   }
 
   /**
    * Reset all mock state
    */
   reset(): void {
-    this.state.responses.clear()
-    this.state.requestLog = []
-    this.state.latency = 0
-    this.state.shouldFail = false
-    this.state.failureRate = 0
+    this.state.responses.clear();
+    this.state.requestLog = [];
+    this.state.latency = 0;
+    this.state.shouldFail = false;
+    this.state.failureRate = 0;
   }
 
   /**
@@ -263,11 +263,11 @@ export class MockCloudServer {
     body?: any,
   ): Promise<CloudApiResponse<T>> {
     // Log the request
-    this.state.requestLog.push({ path, method, body })
+    this.state.requestLog.push({ path, method, body });
 
     // Simulate latency
     if (this.state.latency > 0) {
-      await new Promise(resolve => setTimeout(resolve, this.state.latency))
+      await new Promise(resolve => setTimeout(resolve, this.state.latency));
     }
 
     // Simulate failures
@@ -276,20 +276,20 @@ export class MockCloudServer {
         success: false,
         error: 'Mock server failure',
         code: 'MOCK_ERROR',
-      }
+      };
     }
 
     // Return mock response
-    const response = this.state.responses.get(path)
+    const response = this.state.responses.get(path);
     if (response) {
-      return response
+      return response;
     }
 
     // Default success response
     return {
       success: true,
       data: {} as T,
-    }
+    };
   }
 }
 
@@ -301,18 +301,18 @@ export class MockCloudServer {
  * Create a test gateway with mock responses
  */
 export function createTestGateway(mockServer?: MockCloudServer) {
-  const server = mockServer || new MockCloudServer()
+  const server = mockServer || new MockCloudServer();
 
   return {
     gateway: {
       request: async <T>(route: string, options: any) => {
-        return server.request<T>(route, options.method, options.body)
+        return server.request<T>(route, options.method, options.body);
       },
       setAuthToken: () => {},
       getConfig: () => ({}),
     },
     mockServer: server,
-  }
+  };
 }
 
 // ============================================================================
@@ -324,12 +324,12 @@ export function createTestGateway(mockServer?: MockCloudServer) {
  */
 export function assertSuccessResponse<T>(
   response: CloudApiResponse<T>,
-): asserts response is CloudApiResponse<T> & { success: true, data: T } {
+): asserts response is CloudApiResponse<T> & { success: true; data: T } {
   if (!response.success) {
-    throw new Error(`Expected success response, got error: ${response.error}`)
+    throw new Error(`Expected success response, got error: ${response.error}`);
   }
   if (!response.data) {
-    throw new Error('Expected data in success response')
+    throw new Error('Expected data in success response');
   }
 }
 
@@ -338,12 +338,12 @@ export function assertSuccessResponse<T>(
  */
 export function assertErrorResponse<T>(
   response: CloudApiResponse<T>,
-): asserts response is CloudApiResponse<T> & { success: false, error: string } {
+): asserts response is CloudApiResponse<T> & { success: false; error: string } {
   if (response.success) {
-    throw new Error('Expected error response, got success')
+    throw new Error('Expected error response, got success');
   }
   if (!response.error) {
-    throw new Error('Expected error message in error response')
+    throw new Error('Expected error message in error response');
   }
 }
 
@@ -355,14 +355,14 @@ export async function waitFor(
   timeout: number = 5000,
   interval: number = 100,
 ): Promise<void> {
-  const startTime = Date.now()
+  const startTime = Date.now();
 
   while (Date.now() - startTime < timeout) {
     if (await condition()) {
-      return
+      return;
     }
-    await new Promise(resolve => setTimeout(resolve, interval))
+    await new Promise(resolve => setTimeout(resolve, interval));
   }
 
-  throw new Error(`Timeout waiting for condition after ${timeout}ms`)
+  throw new Error(`Timeout waiting for condition after ${timeout}ms`);
 }

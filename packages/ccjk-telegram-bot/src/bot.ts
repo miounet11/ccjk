@@ -1,6 +1,7 @@
+import type { Socket } from 'socket.io-client';
 import { decryptEnvelope } from '@ccjk/wire';
 import chalk from 'chalk';
-import { io, Socket } from 'socket.io-client';
+import { io } from 'socket.io-client';
 import { Markup, Telegraf } from 'telegraf';
 import { message } from 'telegraf/filters';
 
@@ -140,7 +141,8 @@ export class CCJKTelegramBot {
       }
       const data = await response.json().catch(() => null) as { status?: string } | null;
       return data?.status === 'ok';
-    } catch {
+    }
+    catch {
       return false;
     }
   }
@@ -160,35 +162,35 @@ export class CCJKTelegramBot {
     // /start - Welcome message
     this.bot.command('start', (ctx) => {
       ctx.reply(
-        '🤖 *CCJK Remote Control Bot*\n\n' +
-        'Control your Claude Code sessions from Telegram!\n\n' +
-        '*Commands:*\n' +
-        '/sessions - List active sessions\n' +
-        '/select - Select a session to monitor\n' +
-        '/status - Show current session status\n' +
-        '/send - Send command to Claude Code\n' +
-        '/interrupt - Send Ctrl+C\n' +
-        '/help - Show this message',
-        { parse_mode: 'Markdown' }
+        '🤖 *CCJK Remote Control Bot*\n\n'
+        + 'Control your Claude Code sessions from Telegram!\n\n'
+        + '*Commands:*\n'
+        + '/sessions - List active sessions\n'
+        + '/select - Select a session to monitor\n'
+        + '/status - Show current session status\n'
+        + '/send - Send command to Claude Code\n'
+        + '/interrupt - Send Ctrl+C\n'
+        + '/help - Show this message',
+        { parse_mode: 'Markdown' },
       );
     });
 
     // /help - Show help
     this.bot.command('help', (ctx) => {
       ctx.reply(
-        '*Available Commands:*\n\n' +
-        '📋 /sessions - List all active sessions\n' +
-        '🎯 /select - Select a session to monitor\n' +
-        '📊 /status - Show current session status\n' +
-        '💬 /send <text> - Send command to Claude Code\n' +
-        '⏹ /interrupt - Send Ctrl+C to stop execution\n' +
-        '❓ /help - Show this message\n\n' +
-        '*Features:*\n' +
-        '• Real-time session monitoring\n' +
-        '• Permission approval from Telegram\n' +
-        '• Send commands remotely\n' +
-        '• View tool calls and output',
-        { parse_mode: 'Markdown' }
+        '*Available Commands:*\n\n'
+        + '📋 /sessions - List all active sessions\n'
+        + '🎯 /select - Select a session to monitor\n'
+        + '📊 /status - Show current session status\n'
+        + '💬 /send <text> - Send command to Claude Code\n'
+        + '⏹ /interrupt - Send Ctrl+C to stop execution\n'
+        + '❓ /help - Show this message\n\n'
+        + '*Features:*\n'
+        + '• Real-time session monitoring\n'
+        + '• Permission approval from Telegram\n'
+        + '• Send commands remotely\n'
+        + '• View tool calls and output',
+        { parse_mode: 'Markdown' },
       );
     });
 
@@ -199,10 +201,10 @@ export class CCJKTelegramBot {
         return;
       }
 
-      const buttons = Array.from(this.sessions.values()).map((session) => [
+      const buttons = Array.from(this.sessions.values()).map(session => [
         Markup.button.callback(
           `${session.active ? '🟢' : '⚪'} ${session.tag} (${session.machine.hostname})`,
-          `select_${session.id}`
+          `select_${session.id}`,
         ),
       ]);
 
@@ -211,7 +213,7 @@ export class CCJKTelegramBot {
         {
           parse_mode: 'Markdown',
           ...Markup.inlineKeyboard(buttons),
-        }
+        },
       );
     });
 
@@ -230,13 +232,13 @@ export class CCJKTelegramBot {
       }
 
       ctx.reply(
-        `📊 *Session Status*\n\n` +
-        `*Tag:* ${session.tag}\n` +
-        `*Status:* ${session.active ? '🟢 Active' : '⚪ Inactive'}\n` +
-        `*Machine:* ${session.machine.hostname}\n` +
-        `*Platform:* ${session.machine.platform}\n` +
-        `*Project:* \`${session.projectPath}\``,
-        { parse_mode: 'Markdown' }
+        `📊 *Session Status*\n\n`
+        + `*Tag:* ${session.tag}\n`
+        + `*Status:* ${session.active ? '🟢 Active' : '⚪ Inactive'}\n`
+        + `*Machine:* ${session.machine.hostname}\n`
+        + `*Platform:* ${session.machine.platform}\n`
+        + `*Project:* \`${session.projectPath}\``,
+        { parse_mode: 'Markdown' },
       );
     });
 
@@ -291,11 +293,11 @@ export class CCJKTelegramBot {
 
           await ctx.answerCbQuery();
           await ctx.reply(
-            `✅ Now monitoring session:\n\n` +
-            `*${session.tag}*\n` +
-            `${session.machine.hostname} • ${session.machine.platform}\n\n` +
-            `You will receive real-time updates from this session.`,
-            { parse_mode: 'Markdown' }
+            `✅ Now monitoring session:\n\n`
+            + `*${session.tag}*\n`
+            + `${session.machine.hostname} • ${session.machine.platform}\n\n`
+            + `You will receive real-time updates from this session.`,
+            { parse_mode: 'Markdown' },
           );
         }
       }
@@ -311,10 +313,10 @@ export class CCJKTelegramBot {
 
           await ctx.answerCbQuery('✅ Permission approved');
           await ctx.editMessageText(
-            `✅ *Permission Approved*\n\n` +
-            `Tool: ${approval.tool}\n` +
-            `Pattern: \`${approval.pattern}\``,
-            { parse_mode: 'Markdown' }
+            `✅ *Permission Approved*\n\n`
+            + `Tool: ${approval.tool}\n`
+            + `Pattern: \`${approval.pattern}\``,
+            { parse_mode: 'Markdown' },
           );
         }
       }
@@ -330,10 +332,10 @@ export class CCJKTelegramBot {
 
           await ctx.answerCbQuery('❌ Permission denied');
           await ctx.editMessageText(
-            `❌ *Permission Denied*\n\n` +
-            `Tool: ${approval.tool}\n` +
-            `Pattern: \`${approval.pattern}\``,
-            { parse_mode: 'Markdown' }
+            `❌ *Permission Denied*\n\n`
+            + `Tool: ${approval.tool}\n`
+            + `Pattern: \`${approval.pattern}\``,
+            { parse_mode: 'Markdown' },
           );
         }
       }
@@ -342,7 +344,8 @@ export class CCJKTelegramBot {
     // Handle text messages (send to Claude Code)
     this.bot.on(message('text'), (ctx) => {
       // Ignore commands
-      if (ctx.message.text.startsWith('/')) return;
+      if (ctx.message.text.startsWith('/'))
+        return;
 
       const sessionId = this.userSessions.get(ctx.chat.id);
       if (!sessionId) {
@@ -366,7 +369,8 @@ export class CCJKTelegramBot {
       .filter(([_, sid]) => sid === sessionId)
       .map(([chatId]) => chatId);
 
-    if (chatIds.length === 0) return;
+    if (chatIds.length === 0)
+      return;
 
     // Decrypt event
     const sessionKey = this.sessionKeys.get(sessionId);
@@ -376,7 +380,8 @@ export class CCJKTelegramBot {
     }
 
     const event = decryptEnvelope(envelope, sessionKey);
-    if (!event) return;
+    if (!event)
+      return;
 
     // Handle different event types
     for (const chatId of chatIds) {
@@ -395,7 +400,8 @@ export class CCJKTelegramBot {
             await this.bot.telegram.sendMessage(chatId, `🤔 *Thinking...*\n\n${event.text}`, {
               parse_mode: 'Markdown',
             });
-          } else {
+          }
+          else {
             await this.bot.telegram.sendMessage(chatId, event.text);
           }
           break;
@@ -403,9 +409,9 @@ export class CCJKTelegramBot {
         case 'tool-call-start':
           await this.bot.telegram.sendMessage(
             chatId,
-            `🔧 *Tool Call: ${event.name}*\n\n` +
-            `\`\`\`\n${JSON.stringify(event.args, null, 2)}\n\`\`\``,
-            { parse_mode: 'Markdown' }
+            `🔧 *Tool Call: ${event.name}*\n\n`
+            + `\`\`\`\n${JSON.stringify(event.args, null, 2)}\n\`\`\``,
+            { parse_mode: 'Markdown' },
           );
           break;
 
@@ -413,7 +419,7 @@ export class CCJKTelegramBot {
           await this.bot.telegram.sendMessage(
             chatId,
             `✅ *Tool Completed*\n\n${event.result || 'Done'}`,
-            { parse_mode: 'Markdown' }
+            { parse_mode: 'Markdown' },
           );
           break;
 
@@ -430,10 +436,10 @@ export class CCJKTelegramBot {
 
           await this.bot.telegram.sendMessage(
             chatId,
-            `⚠️ *Permission Required*\n\n` +
-            `*Tool:* ${event.tool}\n` +
-            `*Pattern:* \`${event.pattern}\`\n\n` +
-            `Auto-deny in 60 seconds`,
+            `⚠️ *Permission Required*\n\n`
+            + `*Tool:* ${event.tool}\n`
+            + `*Pattern:* \`${event.pattern}\`\n\n`
+            + `Auto-deny in 60 seconds`,
             {
               parse_mode: 'Markdown',
               ...Markup.inlineKeyboard([
@@ -442,7 +448,7 @@ export class CCJKTelegramBot {
                   Markup.button.callback('✅ Approve', `approve_${event.requestId}`),
                 ],
               ]),
-            }
+            },
           );
           break;
 
@@ -451,7 +457,7 @@ export class CCJKTelegramBot {
           await this.bot.telegram.sendMessage(
             chatId,
             `${icon} *Status: ${event.state}*\n\n${event.message || ''}`,
-            { parse_mode: 'Markdown' }
+            { parse_mode: 'Markdown' },
           );
           break;
 
@@ -465,11 +471,12 @@ export class CCJKTelegramBot {
           await this.bot.telegram.sendMessage(
             chatId,
             `🛑 *Session Stopped*\n\n${event.reason || ''}`,
-            { parse_mode: 'Markdown' }
+            { parse_mode: 'Markdown' },
           );
           break;
       }
-    } catch (error) {
+    }
+    catch (error) {
       console.error('Failed to send event to user:', error);
     }
   }
@@ -478,7 +485,8 @@ export class CCJKTelegramBot {
    * Send command to session
    */
   private sendCommand(sessionId: string, text: string): void {
-    if (!this.socket) return;
+    if (!this.socket)
+      return;
 
     this.socket.emit('remote:command', {
       sessionId,
@@ -493,7 +501,8 @@ export class CCJKTelegramBot {
    * Send interrupt to session
    */
   private sendInterrupt(sessionId: string): void {
-    if (!this.socket) return;
+    if (!this.socket)
+      return;
 
     this.socket.emit('remote:command', {
       sessionId,
@@ -507,7 +516,8 @@ export class CCJKTelegramBot {
    * Send approval response
    */
   private sendApproval(requestId: string, approved: boolean): void {
-    if (!this.socket) return;
+    if (!this.socket)
+      return;
 
     this.socket.emit('approval:response', {
       requestId,

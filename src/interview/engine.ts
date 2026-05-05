@@ -1,4 +1,4 @@
-import type { SupportedLang } from '../constants'
+import type { SupportedLang } from '../constants';
 import type {
   CategoryProgress,
   InterviewAnswer,
@@ -9,14 +9,14 @@ import type {
   InterviewResult,
   InterviewSession,
   QuestionDisplay,
-} from './types'
-import { randomUUID } from 'node:crypto'
+} from './types';
+import { randomUUID } from 'node:crypto';
 import {
   calculateQuestionCount,
   getCategoryById,
   getQuestionsByCategory,
   INTERVIEW_CATEGORIES,
-} from './question-categories'
+} from './question-categories';
 
 /**
  * Default interview options
@@ -27,17 +27,17 @@ const DEFAULT_OPTIONS: InterviewOptions = {
   skipObvious: true,
   outputFile: 'SPEC.md',
   language: 'en',
-}
+};
 
 /**
  * Interview Engine - Manages interview sessions and question flow
  */
 export class InterviewEngine {
-  private sessions: Map<string, InterviewSession> = new Map()
-  private language: SupportedLang = 'en'
+  private sessions: Map<string, InterviewSession> = new Map();
+  private language: SupportedLang = 'en';
 
   constructor(language: SupportedLang = 'en') {
-    this.language = language
+    this.language = language;
   }
 
   /**
@@ -47,22 +47,22 @@ export class InterviewEngine {
     specFile: string,
     options: Partial<InterviewOptions> = {},
   ): Promise<InterviewSession> {
-    const mergedOptions = { ...DEFAULT_OPTIONS, ...options }
-    const sessionId = randomUUID()
+    const mergedOptions = { ...DEFAULT_OPTIONS, ...options };
+    const sessionId = randomUUID();
 
     // Determine categories to include
-    let categories = mergedOptions.categories
+    let categories = mergedOptions.categories;
     if (categories.length === 0) {
       // Use all categories based on depth
-      categories = this.getCategoriesForDepth(mergedOptions.depth)
+      categories = this.getCategoriesForDepth(mergedOptions.depth);
     }
 
     // Calculate question count
-    const totalQuestions = calculateQuestionCount(categories)
+    const totalQuestions = calculateQuestionCount(categories);
 
     // Initialize progress for each category
     const progress: CategoryProgress[] = categories.map((catId, index) => {
-      const category = getCategoryById(catId)
+      const category = getCategoryById(catId);
       return {
         categoryId: catId,
         name: category?.name[this.language] ?? catId,
@@ -71,8 +71,8 @@ export class InterviewEngine {
         percentage: 0,
         isComplete: false,
         isCurrent: index === 0,
-      }
-    })
+      };
+    });
 
     const session: InterviewSession = {
       id: sessionId,
@@ -89,10 +89,10 @@ export class InterviewEngine {
       status: 'in_progress',
       includedCategories: categories,
       context: mergedOptions.context,
-    }
+    };
 
-    this.sessions.set(sessionId, session)
-    return session
+    this.sessions.set(sessionId, session);
+    return session;
   }
 
   /**
@@ -101,7 +101,7 @@ export class InterviewEngine {
   private getCategoriesForDepth(depth: InterviewDepth): InterviewCategoryId[] {
     switch (depth) {
       case 'quick':
-        return ['project-foundation', 'technical-implementation', 'tradeoffs']
+        return ['project-foundation', 'technical-implementation', 'tradeoffs'];
       case 'standard':
         return [
           'project-foundation',
@@ -111,9 +111,9 @@ export class InterviewEngine {
           'ui-ux',
           'concerns',
           'tradeoffs',
-        ]
+        ];
       case 'deep':
-        return INTERVIEW_CATEGORIES.map(c => c.id)
+        return INTERVIEW_CATEGORIES.map(c => c.id);
     }
   }
 
@@ -121,50 +121,50 @@ export class InterviewEngine {
    * Get the next question to ask
    */
   async getNextQuestion(sessionId: string): Promise<QuestionDisplay | null> {
-    const session = this.sessions.get(sessionId)
+    const session = this.sessions.get(sessionId);
     if (!session || session.status !== 'in_progress') {
-      return null
+      return null;
     }
 
     // Get current category questions
-    const categoryQuestions = getQuestionsByCategory(session.currentCategory)
+    const categoryQuestions = getQuestionsByCategory(session.currentCategory);
 
     // Find next unanswered question
     while (session.currentQuestionIndex < categoryQuestions.length) {
-      const question = categoryQuestions[session.currentQuestionIndex]
+      const question = categoryQuestions[session.currentQuestionIndex];
 
       // Check if this question should be skipped (conditional logic)
       if (this.shouldSkipQuestion(session, question)) {
-        session.currentQuestionIndex++
-        continue
+        session.currentQuestionIndex++;
+        continue;
       }
 
       // Format for display
-      return this.formatQuestionForDisplay(session, question)
+      return this.formatQuestionForDisplay(session, question);
     }
 
     // Move to next category
-    const currentCatIndex = session.includedCategories.indexOf(session.currentCategory)
+    const currentCatIndex = session.includedCategories.indexOf(session.currentCategory);
     if (currentCatIndex < session.includedCategories.length - 1) {
       // Update progress
-      this.updateCategoryProgress(session, session.currentCategory, true)
+      this.updateCategoryProgress(session, session.currentCategory, true);
 
       // Move to next category
-      session.currentCategory = session.includedCategories[currentCatIndex + 1]
-      session.currentQuestionIndex = 0
+      session.currentCategory = session.includedCategories[currentCatIndex + 1];
+      session.currentQuestionIndex = 0;
 
       // Mark new category as current
       session.progress.forEach((p) => {
-        p.isCurrent = p.categoryId === session.currentCategory
-      })
+        p.isCurrent = p.categoryId === session.currentCategory;
+      });
 
-      return this.getNextQuestion(sessionId)
+      return this.getNextQuestion(sessionId);
     }
 
     // Interview complete
-    session.status = 'completed'
-    this.updateCategoryProgress(session, session.currentCategory, true)
-    return null
+    session.status = 'completed';
+    this.updateCategoryProgress(session, session.currentCategory, true);
+    return null;
   }
 
   /**
@@ -172,26 +172,26 @@ export class InterviewEngine {
    */
   private shouldSkipQuestion(session: InterviewSession, question: InterviewQuestion): boolean {
     if (!question.conditional) {
-      return false
+      return false;
     }
 
-    const { dependsOn, whenValues, action } = question.conditional
-    const dependentAnswer = session.answers.find(a => a.questionId === dependsOn)
+    const { dependsOn, whenValues, action } = question.conditional;
+    const dependentAnswer = session.answers.find(a => a.questionId === dependsOn);
 
     if (!dependentAnswer) {
       // If dependent question not answered, skip conditional questions
-      return action === 'show'
+      return action === 'show';
     }
 
-    const hasMatchingValue = dependentAnswer.values.some(v => whenValues.includes(v))
+    const hasMatchingValue = dependentAnswer.values.some(v => whenValues.includes(v));
 
     if (action === 'show') {
       // Only show if condition matches
-      return !hasMatchingValue
+      return !hasMatchingValue;
     }
     else {
       // Skip if condition matches
-      return hasMatchingValue
+      return hasMatchingValue;
     }
   }
 
@@ -202,7 +202,7 @@ export class InterviewEngine {
     session: InterviewSession,
     question: InterviewQuestion,
   ): QuestionDisplay {
-    const estimatedTotal = this.getEstimatedTotal(session)
+    const estimatedTotal = this.getEstimatedTotal(session);
 
     return {
       question,
@@ -216,15 +216,15 @@ export class InterviewEngine {
         value: opt.value ?? opt.label[this.language],
         isRecommended: opt.recommended ?? false,
       })),
-    }
+    };
   }
 
   /**
    * Format progress text
    */
   private formatProgressText(session: InterviewSession): string {
-    const estimatedTotal = this.getEstimatedTotal(session)
-    return `Question ${session.questionsAsked + 1} of ~${estimatedTotal}`
+    const estimatedTotal = this.getEstimatedTotal(session);
+    return `Question ${session.questionsAsked + 1} of ~${estimatedTotal}`;
   }
 
   /**
@@ -234,14 +234,14 @@ export class InterviewEngine {
     return session.progress
       .map((p) => {
         if (p.isComplete) {
-          return `[X] ${p.name}`
+          return `[X] ${p.name}`;
         }
         if (p.isCurrent) {
-          return `[>] ${p.name}`
+          return `[>] ${p.name}`;
         }
-        return `[ ] ${p.name}`
+        return `[ ] ${p.name}`;
       })
-      .join(' -> ')
+      .join(' -> ');
   }
 
   /**
@@ -250,11 +250,11 @@ export class InterviewEngine {
   private getEstimatedTotal(session: InterviewSession): number {
     switch (session.depth) {
       case 'quick':
-        return 10
+        return 10;
       case 'standard':
-        return 25
+        return 25;
       case 'deep':
-        return 40
+        return 40;
     }
   }
 
@@ -267,17 +267,17 @@ export class InterviewEngine {
     values: string[],
     customInput?: string,
   ): Promise<boolean> {
-    const session = this.sessions.get(sessionId)
+    const session = this.sessions.get(sessionId);
     if (!session || session.status !== 'in_progress') {
-      return false
+      return false;
     }
 
     // Find the question
-    const categoryQuestions = getQuestionsByCategory(session.currentCategory)
-    const question = categoryQuestions.find(q => q.id === questionId)
+    const categoryQuestions = getQuestionsByCategory(session.currentCategory);
+    const question = categoryQuestions.find(q => q.id === questionId);
 
     if (!question) {
-      return false
+      return false;
     }
 
     // Store the answer
@@ -287,18 +287,18 @@ export class InterviewEngine {
       values,
       customInput,
       answeredAt: new Date(),
-    }
+    };
 
-    session.answers.push(answer)
-    session.questionsAsked++
-    session.questionsRemaining--
-    session.currentQuestionIndex++
-    session.lastActivityAt = new Date()
+    session.answers.push(answer);
+    session.questionsAsked++;
+    session.questionsRemaining--;
+    session.currentQuestionIndex++;
+    session.lastActivityAt = new Date();
 
     // Update category progress
-    this.updateCategoryProgress(session, session.currentCategory, false)
+    this.updateCategoryProgress(session, session.currentCategory, false);
 
-    return true
+    return true;
   }
 
   /**
@@ -309,12 +309,12 @@ export class InterviewEngine {
     categoryId: InterviewCategoryId,
     isComplete: boolean,
   ): void {
-    const progressItem = session.progress.find(p => p.categoryId === categoryId)
+    const progressItem = session.progress.find(p => p.categoryId === categoryId);
     if (progressItem) {
-      const categoryAnswers = session.answers.filter(a => a.categoryId === categoryId)
-      progressItem.answered = categoryAnswers.length
-      progressItem.percentage = Math.round((progressItem.answered / progressItem.total) * 100)
-      progressItem.isComplete = isComplete || progressItem.answered >= progressItem.total
+      const categoryAnswers = session.answers.filter(a => a.categoryId === categoryId);
+      progressItem.answered = categoryAnswers.length;
+      progressItem.percentage = Math.round((progressItem.answered / progressItem.total) * 100);
+      progressItem.isComplete = isComplete || progressItem.answered >= progressItem.total;
     }
   }
 
@@ -322,49 +322,49 @@ export class InterviewEngine {
    * Pause an interview session
    */
   async pauseInterview(sessionId: string): Promise<boolean> {
-    const session = this.sessions.get(sessionId)
+    const session = this.sessions.get(sessionId);
     if (!session || session.status !== 'in_progress') {
-      return false
+      return false;
     }
 
-    session.status = 'paused'
-    session.lastActivityAt = new Date()
-    return true
+    session.status = 'paused';
+    session.lastActivityAt = new Date();
+    return true;
   }
 
   /**
    * Resume a paused interview session
    */
   async resumeInterview(sessionId: string): Promise<InterviewSession | null> {
-    const session = this.sessions.get(sessionId)
+    const session = this.sessions.get(sessionId);
     if (!session || session.status !== 'paused') {
-      return null
+      return null;
     }
 
-    session.status = 'in_progress'
-    session.lastActivityAt = new Date()
-    return session
+    session.status = 'in_progress';
+    session.lastActivityAt = new Date();
+    return session;
   }
 
   /**
    * Cancel an interview session
    */
   async cancelInterview(sessionId: string): Promise<boolean> {
-    const session = this.sessions.get(sessionId)
+    const session = this.sessions.get(sessionId);
     if (!session) {
-      return false
+      return false;
     }
 
-    session.status = 'cancelled'
-    session.lastActivityAt = new Date()
-    return true
+    session.status = 'cancelled';
+    session.lastActivityAt = new Date();
+    return true;
   }
 
   /**
    * Get session by ID
    */
   getSession(sessionId: string): InterviewSession | undefined {
-    return this.sessions.get(sessionId)
+    return this.sessions.get(sessionId);
   }
 
   /**
@@ -373,29 +373,29 @@ export class InterviewEngine {
   getActiveSessions(): InterviewSession[] {
     return Array.from(this.sessions.values()).filter(
       s => s.status === 'in_progress' || s.status === 'paused',
-    )
+    );
   }
 
   /**
    * Check if interview is complete
    */
   isComplete(sessionId: string): boolean {
-    const session = this.sessions.get(sessionId)
-    return session?.status === 'completed'
+    const session = this.sessions.get(sessionId);
+    return session?.status === 'completed';
   }
 
   /**
    * Get interview result
    */
   async getResult(sessionId: string): Promise<InterviewResult> {
-    const session = this.sessions.get(sessionId)
+    const session = this.sessions.get(sessionId);
 
     if (!session) {
       return {
         success: false,
         session: null as any,
         error: 'Session not found',
-      }
+      };
     }
 
     if (session.status !== 'completed') {
@@ -403,82 +403,82 @@ export class InterviewEngine {
         success: false,
         session,
         error: `Interview not complete. Status: ${session.status}`,
-      }
+      };
     }
 
     return {
       success: true,
       session,
-    }
+    };
   }
 
   /**
    * Get answers grouped by category
    */
   getAnswersByCategory(sessionId: string): Map<InterviewCategoryId, InterviewAnswer[]> {
-    const session = this.sessions.get(sessionId)
+    const session = this.sessions.get(sessionId);
     if (!session) {
-      return new Map()
+      return new Map();
     }
 
-    const grouped = new Map<InterviewCategoryId, InterviewAnswer[]>()
+    const grouped = new Map<InterviewCategoryId, InterviewAnswer[]>();
 
     for (const answer of session.answers) {
-      const existing = grouped.get(answer.categoryId) ?? []
-      existing.push(answer)
-      grouped.set(answer.categoryId, existing)
+      const existing = grouped.get(answer.categoryId) ?? [];
+      existing.push(answer);
+      grouped.set(answer.categoryId, existing);
     }
 
-    return grouped
+    return grouped;
   }
 
   /**
    * Get answer for a specific question
    */
   getAnswerForQuestion(sessionId: string, questionId: string): InterviewAnswer | undefined {
-    const session = this.sessions.get(sessionId)
-    return session?.answers.find(a => a.questionId === questionId)
+    const session = this.sessions.get(sessionId);
+    return session?.answers.find(a => a.questionId === questionId);
   }
 
   /**
    * Get interview statistics
    */
   getStats(sessionId: string): {
-    answered: number
-    remaining: number
-    percentage: number
-    duration: number
+    answered: number;
+    remaining: number;
+    percentage: number;
+    duration: number;
   } | null {
-    const session = this.sessions.get(sessionId)
+    const session = this.sessions.get(sessionId);
     if (!session) {
-      return null
+      return null;
     }
 
     const duration = Math.round(
       (session.lastActivityAt.getTime() - session.startedAt.getTime()) / 1000,
-    )
+    );
 
-    const total = session.questionsAsked + session.questionsRemaining
-    const percentage = Math.round((session.questionsAsked / total) * 100)
+    const total = session.questionsAsked + session.questionsRemaining;
+    const percentage = Math.round((session.questionsAsked / total) * 100);
 
     return {
       answered: session.questionsAsked,
       remaining: session.questionsRemaining,
       percentage,
       duration,
-    }
+    };
   }
 
   /**
    * Export session to JSON
    */
   exportSession(sessionId: string): string | null {
-    const session = this.sessions.get(sessionId)
+    const session = this.sessions.get(sessionId);
     if (!session) {
-      return null
+      return null;
     }
 
-    return JSON.stringify(session, null, 2)
+    return JSON.stringify(session, null, 2);
   }
 
   /**
@@ -486,20 +486,20 @@ export class InterviewEngine {
    */
   importSession(json: string): InterviewSession | null {
     try {
-      const session = JSON.parse(json) as InterviewSession
+      const session = JSON.parse(json) as InterviewSession;
 
       // Restore dates
-      session.startedAt = new Date(session.startedAt)
-      session.lastActivityAt = new Date(session.lastActivityAt)
+      session.startedAt = new Date(session.startedAt);
+      session.lastActivityAt = new Date(session.lastActivityAt);
       session.answers.forEach((a) => {
-        a.answeredAt = new Date(a.answeredAt)
-      })
+        a.answeredAt = new Date(a.answeredAt);
+      });
 
-      this.sessions.set(session.id, session)
-      return session
+      this.sessions.set(session.id, session);
+      return session;
     }
     catch {
-      return null
+      return null;
     }
   }
 
@@ -507,21 +507,21 @@ export class InterviewEngine {
    * Clear all sessions
    */
   clearAllSessions(): void {
-    this.sessions.clear()
+    this.sessions.clear();
   }
 
   /**
    * Set language for the engine
    */
   setLanguage(language: SupportedLang): void {
-    this.language = language
+    this.language = language;
   }
 
   /**
    * Get current language
    */
   getLanguage(): SupportedLang {
-    return this.language
+    return this.language;
   }
 }
 
@@ -529,23 +529,23 @@ export class InterviewEngine {
  * Create a new interview engine instance
  */
 export function createInterviewEngine(language: SupportedLang = 'en'): InterviewEngine {
-  return new InterviewEngine(language)
+  return new InterviewEngine(language);
 }
 
 /**
  * Global interview engine instance
  */
-let globalEngine: InterviewEngine | null = null
+let globalEngine: InterviewEngine | null = null;
 
 /**
  * Get or create the global interview engine
  */
 export function getInterviewEngine(language: SupportedLang = 'en'): InterviewEngine {
   if (!globalEngine) {
-    globalEngine = new InterviewEngine(language)
+    globalEngine = new InterviewEngine(language);
   }
   else if (globalEngine.getLanguage() !== language) {
-    globalEngine.setLanguage(language)
+    globalEngine.setLanguage(language);
   }
-  return globalEngine
+  return globalEngine;
 }

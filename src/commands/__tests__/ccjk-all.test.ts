@@ -2,16 +2,16 @@
  * CCJK All Command Tests
  */
 
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { CloudSetupOrchestrator } from '../../orchestrators/cloud-setup-orchestrator'
-import { ccjkAll } from '../ccjk-all'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { CloudSetupOrchestrator } from '../../orchestrators/cloud-setup-orchestrator';
+import { ccjkAll } from '../ccjk-all';
 
 // Mock dependencies
 vi.mock('../../cloud-client', () => ({
   createCompleteCloudClient: vi.fn(() => ({
     healthCheck: vi.fn().mockResolvedValue({ version: '1.0.0' }),
   })),
-}))
+}));
 
 vi.mock('../../i18n', () => ({
   ensureI18nInitialized: vi.fn(() => Promise.resolve()),
@@ -20,20 +20,20 @@ vi.mock('../../i18n', () => ({
     language: 'en',
     t: vi.fn((key: string) => key),
   },
-}))
+}));
 
 describe('ccjkAll', () => {
-  let mockExecuteWithFallback: any
+  let mockExecuteWithFallback: any;
 
   beforeEach(() => {
-    vi.clearAllMocks()
+    vi.clearAllMocks();
     // Spy on CloudSetupOrchestrator prototype
-    mockExecuteWithFallback = vi.spyOn(CloudSetupOrchestrator.prototype, 'executeWithFallback')
-  })
+    mockExecuteWithFallback = vi.spyOn(CloudSetupOrchestrator.prototype, 'executeWithFallback');
+  });
 
   afterEach(() => {
-    vi.restoreAllMocks()
-  })
+    vi.restoreAllMocks();
+  });
 
   describe('basic functionality', () => {
     it('should execute successfully with default options', async () => {
@@ -50,14 +50,14 @@ describe('ccjkAll', () => {
           productivityImprovements: [],
           nextRecommendations: [],
         },
-      }
+      };
 
-      mockExecuteWithFallback.mockResolvedValue(mockResult)
+      mockExecuteWithFallback.mockResolvedValue(mockResult);
 
-      const result = await ccjkAll()
+      const result = await ccjkAll();
 
-      expect(result).toEqual(mockResult)
-    })
+      expect(result).toEqual(mockResult);
+    });
 
     it('should handle cloud unavailability gracefully', async () => {
       mockExecuteWithFallback.mockResolvedValue({
@@ -68,12 +68,12 @@ describe('ccjkAll', () => {
         skipped: { skills: [], mcpServices: [], agents: [], hooks: [] },
         failed: { skills: [], mcpServices: [], agents: [], hooks: [] },
         duration: 1000,
-      })
+      });
 
-      const result = await ccjkAll({ skipCloudCheck: false })
+      const result = await ccjkAll({ skipCloudCheck: false });
 
-      expect(result).toBeDefined()
-    })
+      expect(result).toBeDefined();
+    });
 
     it('should handle JSON output mode', async () => {
       const mockResult = {
@@ -84,14 +84,14 @@ describe('ccjkAll', () => {
         skipped: { skills: [], mcpServices: [], agents: [], hooks: [] },
         failed: { skills: [], mcpServices: [], agents: [], hooks: [] },
         duration: 1000,
-      }
+      };
 
-      mockExecuteWithFallback.mockResolvedValue(mockResult)
+      mockExecuteWithFallback.mockResolvedValue(mockResult);
 
-      const result = await ccjkAll({ json: true })
+      const result = await ccjkAll({ json: true });
 
-      expect(result).toEqual(mockResult)
-    })
+      expect(result).toEqual(mockResult);
+    });
 
     it('should handle quiet mode', async () => {
       const mockResult = {
@@ -102,55 +102,55 @@ describe('ccjkAll', () => {
         skipped: { skills: [], mcpServices: [], agents: [], hooks: [] },
         failed: { skills: [], mcpServices: [], agents: [], hooks: [] },
         duration: 1000,
-      }
+      };
 
-      mockExecuteWithFallback.mockResolvedValue(mockResult)
+      mockExecuteWithFallback.mockResolvedValue(mockResult);
 
-      const result = await ccjkAll({ quiet: true })
+      const result = await ccjkAll({ quiet: true });
 
-      expect(result).toEqual(mockResult)
-    })
-  })
+      expect(result).toEqual(mockResult);
+    });
+  });
 
   describe('error handling', () => {
     it('should handle orchestrator failure gracefully', async () => {
-      const error = new Error('Setup failed')
-      mockExecuteWithFallback.mockRejectedValue(error)
+      const error = new Error('Setup failed');
+      mockExecuteWithFallback.mockRejectedValue(error);
 
-      await expect(ccjkAll()).rejects.toThrow('Setup failed')
-    })
+      await expect(ccjkAll()).rejects.toThrow('Setup failed');
+    });
 
     it('should handle network errors with user-friendly message', async () => {
-      const networkError = new Error('Network error')
-      networkError.code = 'ENOTFOUND'
-      mockExecuteWithFallback.mockRejectedValue(networkError)
+      const networkError = new Error('Network error');
+      networkError.code = 'ENOTFOUND';
+      mockExecuteWithFallback.mockRejectedValue(networkError);
 
-      await expect(ccjkAll()).rejects.toThrow()
-    })
+      await expect(ccjkAll()).rejects.toThrow();
+    });
 
     it('should handle JSON error output', async () => {
-      const error = new Error('Test error')
-      mockExecuteWithFallback.mockRejectedValue(error)
+      const error = new Error('Test error');
+      mockExecuteWithFallback.mockRejectedValue(error);
 
-      const result = await ccjkAll({ json: true, quiet: true }).catch(e => e)
+      const result = await ccjkAll({ json: true, quiet: true }).catch(e => e);
 
-      expect(result).toBeInstanceOf(Error)
-    })
-  })
+      expect(result).toBeInstanceOf(Error);
+    });
+  });
 
   describe('help and version', () => {
     it('should display help', async () => {
-      const result = await ccjkAll({ help: true })
+      const result = await ccjkAll({ help: true });
 
-      expect(result).toBeUndefined()
-    })
+      expect(result).toBeUndefined();
+    });
 
     it('should display version', async () => {
-      const result = await ccjkAll({ version: true })
+      const result = await ccjkAll({ version: true });
 
-      expect(result).toBeUndefined()
-    })
-  })
+      expect(result).toBeUndefined();
+    });
+  });
 
   describe('language support', () => {
     it('should change language', async () => {
@@ -162,13 +162,13 @@ describe('ccjkAll', () => {
         skipped: { skills: [], mcpServices: [], agents: [], hooks: [] },
         failed: { skills: [], mcpServices: [], agents: [], hooks: [] },
         duration: 1000,
-      }
+      };
 
-      mockExecuteWithFallback.mockResolvedValue(mockResult)
+      mockExecuteWithFallback.mockResolvedValue(mockResult);
 
-      await ccjkAll({ lang: 'zh-CN' })
-    })
-  })
+      await ccjkAll({ lang: 'zh-CN' });
+    });
+  });
 
   describe('strategy options', () => {
     it('should use cloud-smart strategy', async () => {
@@ -180,14 +180,14 @@ describe('ccjkAll', () => {
         skipped: { skills: [], mcpServices: [], agents: [], hooks: [] },
         failed: { skills: [], mcpServices: [], agents: [], hooks: [] },
         duration: 1000,
-      }
+      };
 
-      mockExecuteWithFallback.mockResolvedValue(mockResult)
+      mockExecuteWithFallback.mockResolvedValue(mockResult);
 
-      const result = await ccjkAll({ strategy: 'cloud-smart' })
+      const result = await ccjkAll({ strategy: 'cloud-smart' });
 
-      expect(result).toEqual(mockResult)
-    })
+      expect(result).toEqual(mockResult);
+    });
 
     it('should use local-fallback strategy', async () => {
       const mockResult = {
@@ -198,15 +198,15 @@ describe('ccjkAll', () => {
         skipped: { skills: [], mcpServices: [], agents: [], hooks: [] },
         failed: { skills: [], mcpServices: [], agents: [], hooks: [] },
         duration: 1000,
-      }
+      };
 
-      mockExecuteWithFallback.mockResolvedValue(mockResult)
+      mockExecuteWithFallback.mockResolvedValue(mockResult);
 
-      const result = await ccjkAll({ strategy: 'local-fallback' })
+      const result = await ccjkAll({ strategy: 'local-fallback' });
 
-      expect(result).toEqual(mockResult)
-    })
-  })
+      expect(result).toEqual(mockResult);
+    });
+  });
 
   describe('report generation', () => {
     it('should generate markdown report', async () => {
@@ -223,14 +223,14 @@ describe('ccjkAll', () => {
           productivityImprovements: [],
           nextRecommendations: [],
         },
-      }
+      };
 
-      mockExecuteWithFallback.mockResolvedValue(mockResult)
+      mockExecuteWithFallback.mockResolvedValue(mockResult);
 
-      const result = await ccjkAll({ generateReport: true, quiet: true })
+      const result = await ccjkAll({ generateReport: true, quiet: true });
 
-      expect(result).toEqual(mockResult)
-    })
+      expect(result).toEqual(mockResult);
+    });
 
     it('should generate JSON report', async () => {
       const mockResult = {
@@ -241,13 +241,13 @@ describe('ccjkAll', () => {
         skipped: { skills: [], mcpServices: [], agents: [], hooks: [] },
         failed: { skills: [], mcpServices: [], agents: [], hooks: [] },
         duration: 5000,
-      }
+      };
 
-      mockExecuteWithFallback.mockResolvedValue(mockResult)
+      mockExecuteWithFallback.mockResolvedValue(mockResult);
 
-      const result = await ccjkAll({ json: true, generateReport: true })
+      const result = await ccjkAll({ json: true, generateReport: true });
 
-      expect(result).toEqual(mockResult)
-    })
-  })
-})
+      expect(result).toEqual(mockResult);
+    });
+  });
+});

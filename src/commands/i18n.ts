@@ -17,22 +17,22 @@ export const i18n = {
   t(key: string, fallback: string): string {
     // For now, just return the fallback
     // This can be extended to support actual translations
-    return fallback
+    return fallback;
   },
 
   /**
    * Get current language
    */
   get language(): string {
-    return process.env.LANG?.startsWith('zh') ? 'zh-CN' : 'en'
+    return process.env.LANG?.startsWith('zh') ? 'zh-CN' : 'en';
   },
 
   /**
    * Check if current language is Chinese
    */
   get isZh(): boolean {
-    return this.language.startsWith('zh')
+    return this.language.startsWith('zh');
   },
-}
+};
 
-export default i18n
+export default i18n;

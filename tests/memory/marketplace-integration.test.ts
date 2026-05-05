@@ -2,11 +2,11 @@
  * Memory Marketplace Integration Tests
  */
 
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest';
 import {
   MemoryMarketplace,
   MemoryPackBuilder,
-} from '../../src/memory/marketplace-integration'
+} from '../../src/memory/marketplace-integration';
 
 describe('memoryMarketplace', () => {
   describe('memoryPackBuilder', () => {
@@ -19,19 +19,19 @@ describe('memoryMarketplace', () => {
         .category('development')
         .tags(['test', 'example'])
         .license('MIT')
-        .build()
+        .build();
 
-      expect(pack.metadata.name).toBe('Test Pack')
-      expect(pack.metadata.description).toBe('A test memory pack')
-      expect(pack.metadata.author).toBe('Test Author')
-      expect(pack.metadata.version).toBe('1.0.0')
-      expect(pack.metadata.category).toBe('development')
-      expect(pack.metadata.tags).toEqual(['test', 'example'])
-      expect(pack.metadata.license).toBe('MIT')
-      expect(pack.metadata.id).toBeDefined()
-      expect(pack.metadata.downloads).toBe(0)
-      expect(pack.metadata.rating).toBe(0)
-    })
+      expect(pack.metadata.name).toBe('Test Pack');
+      expect(pack.metadata.description).toBe('A test memory pack');
+      expect(pack.metadata.author).toBe('Test Author');
+      expect(pack.metadata.version).toBe('1.0.0');
+      expect(pack.metadata.category).toBe('development');
+      expect(pack.metadata.tags).toEqual(['test', 'example']);
+      expect(pack.metadata.license).toBe('MIT');
+      expect(pack.metadata.id).toBeDefined();
+      expect(pack.metadata.downloads).toBe(0);
+      expect(pack.metadata.rating).toBe(0);
+    });
 
     it('should add memories to pack', () => {
       const memory = {
@@ -50,19 +50,19 @@ describe('memoryMarketplace', () => {
         updatedAt: Date.now(),
         archived: false,
         metadata: {},
-      }
+      };
 
       const pack = new MemoryPackBuilder()
         .name('Test Pack')
         .author('Author')
         .version('1.0.0')
         .addMemory(memory)
-        .build()
+        .build();
 
-      expect(pack.memories.length).toBe(1)
-      expect(pack.memories[0].id).toBe('test-memory')
-      expect(pack.metadata.memoryCount).toBe(1)
-    })
+      expect(pack.memories.length).toBe(1);
+      expect(pack.memories[0].id).toBe('test-memory');
+      expect(pack.metadata.memoryCount).toBe(1);
+    });
 
     it('should add multiple memories', () => {
       const memories = [
@@ -100,18 +100,18 @@ describe('memoryMarketplace', () => {
           archived: false,
           metadata: {},
         },
-      ]
+      ];
 
       const pack = new MemoryPackBuilder()
         .name('Multi Memory Pack')
         .author('Author')
         .version('1.0.0')
         .addMemories(memories)
-        .build()
+        .build();
 
-      expect(pack.memories.length).toBe(2)
-      expect(pack.metadata.memoryCount).toBe(2)
-    })
+      expect(pack.memories.length).toBe(2);
+      expect(pack.metadata.memoryCount).toBe(2);
+    });
 
     it('should set readme and changelog', () => {
       const pack = new MemoryPackBuilder()
@@ -120,116 +120,116 @@ describe('memoryMarketplace', () => {
         .version('1.0.0')
         .setReadme('# README\n\nThis is a test pack.')
         .setChangelog('## 1.0.0\n\n- Initial release')
-        .build()
+        .build();
 
-      expect(pack.readme).toBe('# README\n\nThis is a test pack.')
-      expect(pack.changelog).toBe('## 1.0.0\n\n- Initial release')
-    })
+      expect(pack.readme).toBe('# README\n\nThis is a test pack.');
+      expect(pack.changelog).toBe('## 1.0.0\n\n- Initial release');
+    });
 
     it('should throw error if name is missing', () => {
       expect(() => {
         new MemoryPackBuilder()
           .author('Author')
           .version('1.0.0')
-          .build()
-      }).toThrow('Pack name is required')
-    })
+          .build();
+      }).toThrow('Pack name is required');
+    });
 
     it('should throw error if author is missing', () => {
       expect(() => {
         new MemoryPackBuilder()
           .name('Test')
           .version('1.0.0')
-          .build()
-      }).toThrow('Pack author is required')
-    })
+          .build();
+      }).toThrow('Pack author is required');
+    });
 
     it('should throw error if version is missing', () => {
       expect(() => {
         new MemoryPackBuilder()
           .name('Test')
           .author('Author')
-          .build()
-      }).toThrow('Pack version is required')
-    })
+          .build();
+      }).toThrow('Pack version is required');
+    });
 
     it('should use default values', () => {
       const pack = new MemoryPackBuilder()
         .name('Minimal Pack')
         .author('Author')
         .version('1.0.0')
-        .build()
+        .build();
 
-      expect(pack.metadata.category).toBe('general')
-      expect(pack.metadata.language).toBe('en')
-      expect(pack.metadata.license).toBe('MIT')
-      expect(pack.metadata.tags).toEqual([])
-      expect(pack.metadata.description).toBe('')
-    })
-  })
+      expect(pack.metadata.category).toBe('general');
+      expect(pack.metadata.language).toBe('en');
+      expect(pack.metadata.license).toBe('MIT');
+      expect(pack.metadata.tags).toEqual([]);
+      expect(pack.metadata.description).toBe('');
+    });
+  });
 
   describe('memoryMarketplace', () => {
     it('should create marketplace client with default config', () => {
-      const marketplace = new MemoryMarketplace()
-      expect(marketplace).toBeDefined()
-    })
+      const marketplace = new MemoryMarketplace();
+      expect(marketplace).toBeDefined();
+    });
 
     it('should create marketplace client with custom config', () => {
       const marketplace = new MemoryMarketplace({
         apiUrl: 'https://custom.api.com',
         apiKey: 'test-key',
         timeout: 60000,
-      })
-      expect(marketplace).toBeDefined()
-    })
+      });
+      expect(marketplace).toBeDefined();
+    });
 
     it('should throw error when publishing without API key', async () => {
-      const marketplace = new MemoryMarketplace()
+      const marketplace = new MemoryMarketplace();
       const pack = new MemoryPackBuilder()
         .name('Test')
         .author('Author')
         .version('1.0.0')
-        .build()
+        .build();
 
       await expect(marketplace.publish(pack as any)).rejects.toThrow(
         'API key required to publish memory packs',
-      )
-    })
+      );
+    });
 
     it('should throw error when updating without API key', async () => {
-      const marketplace = new MemoryMarketplace()
+      const marketplace = new MemoryMarketplace();
 
       await expect(marketplace.update('pack-id', {})).rejects.toThrow(
         'API key required to update memory packs',
-      )
-    })
+      );
+    });
 
     it('should throw error when deleting without API key', async () => {
-      const marketplace = new MemoryMarketplace()
+      const marketplace = new MemoryMarketplace();
 
       await expect(marketplace.delete('pack-id')).rejects.toThrow(
         'API key required to delete memory packs',
-      )
-    })
+      );
+    });
 
     it('should throw error when rating without API key', async () => {
-      const marketplace = new MemoryMarketplace()
+      const marketplace = new MemoryMarketplace();
 
       await expect(marketplace.rate('pack-id', 5)).rejects.toThrow(
         'API key required to rate memory packs',
-      )
-    })
+      );
+    });
 
     it('should validate rating range', async () => {
-      const marketplace = new MemoryMarketplace({ apiKey: 'test-key' })
+      const marketplace = new MemoryMarketplace({ apiKey: 'test-key' });
 
       await expect(marketplace.rate('pack-id', 0)).rejects.toThrow(
         'Rating must be between 1 and 5',
-      )
+      );
 
       await expect(marketplace.rate('pack-id', 6)).rejects.toThrow(
         'Rating must be between 1 and 5',
-      )
-    })
-  })
-})
+      );
+    });
+  });
+});

@@ -17,12 +17,12 @@ const PACKAGE_TO_REPO: Record<string, string> = {
   '@anthropic-ai/claude-code': 'anthropics/claude-code',
   '@musistudio/claude-code-router': 'musi-studio/claude-code-router',
   '@cometix/ccline': 'cometix/ccline',
-}
+};
 
 /**
  * Default timeout for GitHub API requests (10 seconds)
  */
-const DEFAULT_TIMEOUT = 10000
+const DEFAULT_TIMEOUT = 10000;
 
 /**
  * GitHub API response for latest release
@@ -31,10 +31,10 @@ const DEFAULT_TIMEOUT = 10000
  * Only includes fields we actually use.
  */
 interface GitHubRelease {
-  tag_name: string
-  name: string
-  prerelease: boolean
-  draft: boolean
+  tag_name: string;
+  name: string;
+  prerelease: boolean;
+  draft: boolean;
 }
 
 /**
@@ -51,7 +51,7 @@ interface GitHubRelease {
  */
 function extractVersionFromTag(tagName: string): string {
   // Remove common prefixes: version-, release-, v (order matters - longest first)
-  return tagName.replace(/^(version-|release-|v)/i, '')
+  return tagName.replace(/^(version-|release-|v)/i, '');
 }
 
 /**
@@ -81,16 +81,16 @@ export async function getVersionFromGitHub(
   timeout: number = DEFAULT_TIMEOUT,
 ): Promise<string | null> {
   // Check if we have a GitHub repository mapping for this package
-  const repo = PACKAGE_TO_REPO[packageName]
+  const repo = PACKAGE_TO_REPO[packageName];
   if (!repo) {
-    return null
+    return null;
   }
 
-  const controller = new AbortController()
-  const timeoutId = setTimeout(() => controller.abort(), timeout)
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
 
   try {
-    const apiUrl = `https://api.github.com/repos/${repo}/releases/latest`
+    const apiUrl = `https://api.github.com/repos/${repo}/releases/latest`;
 
     const response = await fetch(apiUrl, {
       signal: controller.signal,
@@ -101,39 +101,39 @@ export async function getVersionFromGitHub(
         // Using X-GitHub-Api-Version for API stability
         'X-GitHub-Api-Version': '2022-11-28',
       },
-    })
+    });
 
     // Handle rate limiting gracefully
     if (response.status === 403) {
-      const rateLimitRemaining = response.headers.get('X-RateLimit-Remaining')
+      const rateLimitRemaining = response.headers.get('X-RateLimit-Remaining');
       if (rateLimitRemaining === '0') {
         // Rate limit exceeded, return null instead of throwing
-        return null
+        return null;
       }
     }
 
     // Handle other non-OK responses
     if (!response.ok) {
-      return null
+      return null;
     }
 
-    const release = await response.json() as GitHubRelease
+    const release = await response.json() as GitHubRelease;
 
     // Skip draft and prerelease versions
     if (release.draft || release.prerelease) {
-      return null
+      return null;
     }
 
     // Extract and return clean version number
-    return extractVersionFromTag(release.tag_name)
+    return extractVersionFromTag(release.tag_name);
   }
   catch {
     // Handle timeout, network errors, and other failures gracefully
     // Return null instead of throwing to allow fallback strategies
-    return null
+    return null;
   }
   finally {
-    clearTimeout(timeoutId)
+    clearTimeout(timeoutId);
   }
 }
 
@@ -144,7 +144,7 @@ export async function getVersionFromGitHub(
  * @returns true if package has GitHub repository mapping
  */
 export function isGitHubVersionSupported(packageName: string): boolean {
-  return packageName in PACKAGE_TO_REPO
+  return packageName in PACKAGE_TO_REPO;
 }
 
 /**
@@ -153,5 +153,5 @@ export function isGitHubVersionSupported(packageName: string): boolean {
  * @returns Array of supported package names
  */
 export function getSupportedPackages(): string[] {
-  return Object.keys(PACKAGE_TO_REPO)
+  return Object.keys(PACKAGE_TO_REPO);
 }

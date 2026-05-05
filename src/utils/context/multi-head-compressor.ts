@@ -11,11 +11,11 @@
  * using weighted combination for optimal context preservation.
  */
 
-import type { FCSummary } from '../../types/context'
-import type { AnthropicApiClient } from './api-client'
-import process from 'node:process'
-import { createApiClient } from './api-client'
-import { estimateTokens } from './token-estimator'
+import type { FCSummary } from '../../types/context';
+import type { AnthropicApiClient } from './api-client';
+import process from 'node:process';
+import { createApiClient } from './api-client';
+import { estimateTokens } from './token-estimator';
 
 // ============================================================================
 // Type Definitions
@@ -26,39 +26,39 @@ import { estimateTokens } from './token-estimator'
  */
 export interface RawContext {
   /** Function call summaries */
-  functionCalls: FCSummary[]
+  functionCalls: FCSummary[];
   /** Files that were read/modified */
-  files: FileContext[]
+  files: FileContext[];
   /** User messages */
-  userMessages: string[]
+  userMessages: string[];
   /** Assistant responses */
-  assistantResponses: string[]
+  assistantResponses: string[];
   /** Error messages */
-  errors: string[]
+  errors: string[];
   /** Current goal/task */
-  currentGoal?: string
+  currentGoal?: string;
   /** Session metadata */
-  metadata?: Record<string, unknown>
+  metadata?: Record<string, unknown>;
 }
 
 /**
  * File context information
  */
 export interface FileContext {
-  path: string
-  action: 'read' | 'write' | 'edit' | 'delete'
-  summary?: string
-  linesChanged?: number
+  path: string;
+  action: 'read' | 'write' | 'edit' | 'delete';
+  summary?: string;
+  linesChanged?: number;
 }
 
 /**
  * Compressed segment from a single head
  */
 export interface CompressedSegment {
-  headName: string
-  content: string
-  tokens: number
-  importance: number // 0-1 scale
+  headName: string;
+  content: string;
+  tokens: number;
+  importance: number; // 0-1 scale
 }
 
 /**
@@ -66,26 +66,26 @@ export interface CompressedSegment {
  */
 export interface CompressedOutput {
   /** Combined compressed content */
-  content: string
+  content: string;
   /** Individual head outputs */
-  segments: CompressedSegment[]
+  segments: CompressedSegment[];
   /** Original token count */
-  originalTokens: number
+  originalTokens: number;
   /** Compressed token count */
-  compressedTokens: number
+  compressedTokens: number;
   /** Compression ratio */
-  compressionRatio: number
+  compressionRatio: number;
   /** Timestamp */
-  timestamp: Date
+  timestamp: Date;
 }
 
 /**
  * Compression head interface
  */
 export interface CompressionHead {
-  name: string
-  weight: number
-  compress: (context: RawContext, apiClient?: AnthropicApiClient) => Promise<CompressedSegment>
+  name: string;
+  weight: number;
+  compress: (context: RawContext, apiClient?: AnthropicApiClient) => Promise<CompressedSegment>;
 }
 
 // ============================================================================
@@ -103,7 +103,7 @@ Focus on:
 Input:
 {context}
 
-Provide a concise summary (max 200 words) capturing the essential meaning. Use bullet points for clarity.`
+Provide a concise summary (max 200 words) capturing the essential meaning. Use bullet points for clarity.`;
 
 // Reserved for future API-based structural compression
 const _STRUCTURAL_PROMPT = `Analyze the following code-related context and extract the STRUCTURAL INFORMATION.
@@ -117,7 +117,7 @@ Focus on:
 Input:
 {context}
 
-Provide a structured summary (max 150 words) of the code structure. Use code blocks where appropriate.`
+Provide a structured summary (max 150 words) of the code structure. Use code blocks where appropriate.`;
 
 // Reserved for future API-based temporal compression
 const _TEMPORAL_PROMPT = `Analyze the following conversation and create a TIMELINE of key events.
@@ -131,7 +131,7 @@ Focus on:
 Input:
 {context}
 
-Provide a chronological summary (max 100 words) of key events. Use numbered list format.`
+Provide a chronological summary (max 100 words) of key events. Use numbered list format.`;
 
 // ============================================================================
 // Compression Heads Implementation
@@ -146,26 +146,26 @@ async function semanticCompress(
   apiClient?: AnthropicApiClient,
 ): Promise<CompressedSegment> {
   // Build context string
-  const contextStr = buildContextString(context)
+  const contextStr = buildContextString(context);
 
   // If no API client, use rule-based fallback
   if (!apiClient) {
-    return semanticCompressFallback(context)
+    return semanticCompressFallback(context);
   }
 
   try {
-    const prompt = _SEMANTIC_PROMPT.replace('{context}', contextStr)
-    const response = await apiClient.sendMessage(prompt)
+    const prompt = _SEMANTIC_PROMPT.replace('{context}', contextStr);
+    const response = await apiClient.sendMessage(prompt);
 
     return {
       headName: 'semantic',
       content: response,
       tokens: estimateTokens(response),
       importance: 0.9, // Semantic is most important
-    }
+    };
   }
   catch {
-    return semanticCompressFallback(context)
+    return semanticCompressFallback(context);
   }
 }
 
@@ -173,37 +173,37 @@ async function semanticCompress(
  * Semantic compression fallback (rule-based)
  */
 function semanticCompressFallback(context: RawContext): CompressedSegment {
-  const parts: string[] = []
+  const parts: string[] = [];
 
   // Extract key decisions from user messages
   if (context.currentGoal) {
-    parts.push(`**Goal**: ${context.currentGoal}`)
+    parts.push(`**Goal**: ${context.currentGoal}`);
   }
 
   // Summarize function calls
   if (context.functionCalls.length > 0) {
-    parts.push('**Actions**:')
-    const recentFCs = context.functionCalls.slice(-10)
+    parts.push('**Actions**:');
+    const recentFCs = context.functionCalls.slice(-10);
     for (const fc of recentFCs) {
-      parts.push(`- ${fc.fcName}: ${fc.summary}`)
+      parts.push(`- ${fc.fcName}: ${fc.summary}`);
     }
   }
 
   // Note errors
   if (context.errors.length > 0) {
-    parts.push('**Issues**:')
+    parts.push('**Issues**:');
     for (const error of context.errors.slice(-3)) {
-      parts.push(`- ${error}`)
+      parts.push(`- ${error}`);
     }
   }
 
-  const content = parts.join('\n')
+  const content = parts.join('\n');
   return {
     headName: 'semantic',
     content,
     tokens: estimateTokens(content),
     importance: 0.8,
-  }
+  };
 }
 
 /**
@@ -214,49 +214,49 @@ async function structuralCompress(
   context: RawContext,
   _apiClient?: AnthropicApiClient,
 ): Promise<CompressedSegment> {
-  const parts: string[] = []
+  const parts: string[] = [];
 
   // Group files by action
-  const filesByAction = new Map<string, FileContext[]>()
+  const filesByAction = new Map<string, FileContext[]>();
   for (const file of context.files) {
-    const existing = filesByAction.get(file.action) || []
-    existing.push(file)
-    filesByAction.set(file.action, existing)
+    const existing = filesByAction.get(file.action) || [];
+    existing.push(file);
+    filesByAction.set(file.action, existing);
   }
 
   // Summarize file operations
   if (filesByAction.size > 0) {
-    parts.push('**File Operations**:')
+    parts.push('**File Operations**:');
 
     for (const [action, files] of filesByAction) {
-      const icon = getActionIcon(action)
-      parts.push(`${icon} ${action.toUpperCase()}:`)
+      const icon = getActionIcon(action);
+      parts.push(`${icon} ${action.toUpperCase()}:`);
       for (const file of files.slice(0, 10)) {
-        const detail = file.linesChanged ? ` (${file.linesChanged} lines)` : ''
-        parts.push(`  - ${file.path}${detail}`)
+        const detail = file.linesChanged ? ` (${file.linesChanged} lines)` : '';
+        parts.push(`  - ${file.path}${detail}`);
       }
       if (files.length > 10) {
-        parts.push(`  - ... and ${files.length - 10} more`)
+        parts.push(`  - ... and ${files.length - 10} more`);
       }
     }
   }
 
   // Extract imports/exports from function calls
-  const codePatterns = extractCodePatterns(context.functionCalls)
+  const codePatterns = extractCodePatterns(context.functionCalls);
   if (codePatterns.length > 0) {
-    parts.push('**Code Patterns**:')
+    parts.push('**Code Patterns**:');
     for (const pattern of codePatterns) {
-      parts.push(`- ${pattern}`)
+      parts.push(`- ${pattern}`);
     }
   }
 
-  const content = parts.join('\n')
+  const content = parts.join('\n');
   return {
     headName: 'structural',
     content,
     tokens: estimateTokens(content),
     importance: 0.7,
-  }
+  };
 }
 
 /**
@@ -267,41 +267,41 @@ async function temporalCompress(
   context: RawContext,
   _apiClient?: AnthropicApiClient,
 ): Promise<CompressedSegment> {
-  const parts: string[] = []
-  const events: { time: Date, event: string }[] = []
+  const parts: string[] = [];
+  const events: { time: Date; event: string }[] = [];
 
   // Extract timeline from function calls
   for (const fc of context.functionCalls) {
     events.push({
       time: fc.timestamp,
       event: `${fc.fcName}: ${fc.summary}`,
-    })
+    });
   }
 
   // Sort by time
-  events.sort((a, b) => a.time.getTime() - b.time.getTime())
+  events.sort((a, b) => a.time.getTime() - b.time.getTime());
 
   // Group into phases
   if (events.length > 0) {
-    parts.push('**Timeline**:')
+    parts.push('**Timeline**:');
 
     // Take key events (first, last, and important ones)
-    const keyEvents = selectKeyEvents(events, 10)
-    let index = 1
+    const keyEvents = selectKeyEvents(events, 10);
+    let index = 1;
     for (const event of keyEvents) {
-      const timeStr = formatTime(event.time)
-      parts.push(`${index}. [${timeStr}] ${event.event}`)
-      index++
+      const timeStr = formatTime(event.time);
+      parts.push(`${index}. [${timeStr}] ${event.event}`);
+      index++;
     }
   }
 
-  const content = parts.join('\n')
+  const content = parts.join('\n');
   return {
     headName: 'temporal',
     content,
     tokens: estimateTokens(content),
     importance: 0.5,
-  }
+  };
 }
 
 /**
@@ -312,46 +312,46 @@ async function entityCompress(
   context: RawContext,
   _apiClient?: AnthropicApiClient,
 ): Promise<CompressedSegment> {
-  const parts: string[] = []
+  const parts: string[] = [];
 
   // Extract entities
-  const entities = extractEntities(context)
+  const entities = extractEntities(context);
 
   if (entities.files.size > 0) {
-    parts.push('**Key Files**:')
+    parts.push('**Key Files**:');
     for (const file of Array.from(entities.files).slice(0, 10)) {
-      parts.push(`- ${file}`)
+      parts.push(`- ${file}`);
     }
   }
 
   if (entities.functions.size > 0) {
-    parts.push('**Key Functions**:')
+    parts.push('**Key Functions**:');
     for (const func of Array.from(entities.functions).slice(0, 10)) {
-      parts.push(`- ${func}`)
+      parts.push(`- ${func}`);
     }
   }
 
   if (entities.variables.size > 0) {
-    parts.push('**Key Variables**:')
+    parts.push('**Key Variables**:');
     for (const variable of Array.from(entities.variables).slice(0, 10)) {
-      parts.push(`- ${variable}`)
+      parts.push(`- ${variable}`);
     }
   }
 
   if (entities.dependencies.size > 0) {
-    parts.push('**Dependencies**:')
+    parts.push('**Dependencies**:');
     for (const dep of Array.from(entities.dependencies).slice(0, 5)) {
-      parts.push(`- ${dep}`)
+      parts.push(`- ${dep}`);
     }
   }
 
-  const content = parts.join('\n')
+  const content = parts.join('\n');
   return {
     headName: 'entity',
     content,
     tokens: estimateTokens(content),
     importance: 0.4,
-  }
+  };
 }
 
 // ============================================================================
@@ -362,34 +362,34 @@ async function entityCompress(
  * Build context string from raw context
  */
 function buildContextString(context: RawContext): string {
-  const parts: string[] = []
+  const parts: string[] = [];
 
   if (context.currentGoal) {
-    parts.push(`Goal: ${context.currentGoal}`)
+    parts.push(`Goal: ${context.currentGoal}`);
   }
 
   if (context.userMessages.length > 0) {
-    parts.push('User Messages:')
+    parts.push('User Messages:');
     for (const msg of context.userMessages.slice(-5)) {
-      parts.push(`- ${msg.substring(0, 200)}`)
+      parts.push(`- ${msg.substring(0, 200)}`);
     }
   }
 
   if (context.functionCalls.length > 0) {
-    parts.push('Function Calls:')
+    parts.push('Function Calls:');
     for (const fc of context.functionCalls.slice(-10)) {
-      parts.push(`- ${fc.fcName}: ${fc.summary}`)
+      parts.push(`- ${fc.fcName}: ${fc.summary}`);
     }
   }
 
   if (context.errors.length > 0) {
-    parts.push('Errors:')
+    parts.push('Errors:');
     for (const error of context.errors) {
-      parts.push(`- ${error}`)
+      parts.push(`- ${error}`);
     }
   }
 
-  return parts.join('\n')
+  return parts.join('\n');
 }
 
 /**
@@ -401,97 +401,97 @@ function getActionIcon(action: string): string {
     write: '✏️',
     edit: '🔧',
     delete: '🗑️',
-  }
-  return icons[action] || '📄'
+  };
+  return icons[action] || '📄';
 }
 
 /**
  * Extract code patterns from function calls
  */
 function extractCodePatterns(fcs: FCSummary[]): string[] {
-  const patterns: string[] = []
-  const seen = new Set<string>()
+  const patterns: string[] = [];
+  const seen = new Set<string>();
 
   for (const fc of fcs) {
     // Look for common patterns in summaries
-    const summary = fc.summary.toLowerCase()
+    const summary = fc.summary.toLowerCase();
 
     if (summary.includes('import') && !seen.has('import')) {
-      patterns.push('Import statements modified')
-      seen.add('import')
+      patterns.push('Import statements modified');
+      seen.add('import');
     }
     if (summary.includes('export') && !seen.has('export')) {
-      patterns.push('Export statements modified')
-      seen.add('export')
+      patterns.push('Export statements modified');
+      seen.add('export');
     }
     if (summary.includes('function') && !seen.has('function')) {
-      patterns.push('Function definitions changed')
-      seen.add('function')
+      patterns.push('Function definitions changed');
+      seen.add('function');
     }
     if (summary.includes('class') && !seen.has('class')) {
-      patterns.push('Class definitions changed')
-      seen.add('class')
+      patterns.push('Class definitions changed');
+      seen.add('class');
     }
     if (summary.includes('test') && !seen.has('test')) {
-      patterns.push('Test files modified')
-      seen.add('test')
+      patterns.push('Test files modified');
+      seen.add('test');
     }
     if (summary.includes('config') && !seen.has('config')) {
-      patterns.push('Configuration updated')
-      seen.add('config')
+      patterns.push('Configuration updated');
+      seen.add('config');
     }
   }
 
-  return patterns
+  return patterns;
 }
 
 /**
  * Select key events from timeline
  */
 function selectKeyEvents(
-  events: { time: Date, event: string }[],
+  events: { time: Date; event: string }[],
   maxEvents: number,
-): { time: Date, event: string }[] {
+): { time: Date; event: string }[] {
   if (events.length <= maxEvents) {
-    return events
+    return events;
   }
 
-  const result: { time: Date, event: string }[] = []
+  const result: { time: Date; event: string }[] = [];
 
   // Always include first and last
-  result.push(events[0])
+  result.push(events[0]);
 
   // Include events with important keywords
-  const importantKeywords = ['error', 'success', 'complete', 'create', 'delete', 'fix']
+  const importantKeywords = ['error', 'success', 'complete', 'create', 'delete', 'fix'];
   for (const event of events) {
     if (result.length >= maxEvents - 1)
-      break
-    const eventLower = event.event.toLowerCase()
+      break;
+    const eventLower = event.event.toLowerCase();
     if (importantKeywords.some(kw => eventLower.includes(kw))) {
       if (!result.includes(event)) {
-        result.push(event)
+        result.push(event);
       }
     }
   }
 
   // Fill remaining with evenly spaced events
-  const remaining = maxEvents - result.length - 1
+  const remaining = maxEvents - result.length - 1;
   if (remaining > 0) {
-    const step = Math.floor(events.length / (remaining + 1))
+    const step = Math.floor(events.length / (remaining + 1));
     for (let i = step; i < events.length - 1 && result.length < maxEvents - 1; i += step) {
       if (!result.includes(events[i])) {
-        result.push(events[i])
+        result.push(events[i]);
       }
     }
   }
 
   // Always include last
   if (!result.includes(events[events.length - 1])) {
-    result.push(events[events.length - 1])
+    result.push(events[events.length - 1]);
   }
 
   // Sort by time
-  return result.sort((a, b) => a.time.getTime() - b.time.getTime())
+  return result.sort((a, b) => a.time.getTime() - b.time.getTime());
 }
 
 /**
@@ -501,26 +501,26 @@ function formatTime(date: Date): string {
   return date.toLocaleTimeString('en-US', {
     hour: '2-digit',
     minute: '2-digit',
-  })
+  });
 }
 
 /**
  * Extract entities from context
  */
 function extractEntities(context: RawContext): {
-  files: Set<string>
-  functions: Set<string>
-  variables: Set<string>
-  dependencies: Set<string>
+  files: Set<string>;
+  functions: Set<string>;
+  variables: Set<string>;
+  dependencies: Set<string>;
 } {
-  const files = new Set<string>()
-  const functions = new Set<string>()
-  const variables = new Set<string>()
-  const dependencies = new Set<string>()
+  const files = new Set<string>();
+  const functions = new Set<string>();
+  const variables = new Set<string>();
+  const dependencies = new Set<string>();
 
   // Extract from file contexts
   for (const file of context.files) {
-    files.add(file.path)
+    files.add(file.path);
   }
 
   // Extract from function calls
@@ -528,35 +528,35 @@ function extractEntities(context: RawContext): {
     // Function names often indicate what was called
     if (fc.fcName.includes('Read') || fc.fcName.includes('Write') || fc.fcName.includes('Edit')) {
       // Try to extract file path from summary
-      const pathMatch = fc.summary.match(/[/\\][\w\-./\\]+\.\w+/)
+      const pathMatch = fc.summary.match(/[/\\][\w\-./\\]+\.\w+/);
       if (pathMatch) {
-        files.add(pathMatch[0])
+        files.add(pathMatch[0]);
       }
     }
 
     // Extract function names from summaries
-    const funcMatch = fc.summary.match(/function\s+(\w+)|(\w+)\s*\(/)
+    const funcMatch = fc.summary.match(/function\s+(\w+)|(\w+)\s*\(/);
     if (funcMatch) {
-      functions.add(funcMatch[1] || funcMatch[2])
+      functions.add(funcMatch[1] || funcMatch[2]);
     }
   }
 
   // Extract from user messages
   for (const msg of context.userMessages) {
     // Look for npm packages
-    const npmMatch = msg.match(/npm\s+(?:install|i)\s+([\w\-@/]+)/)
+    const npmMatch = msg.match(/npm\s+(?:install|i)\s+([\w\-@/]+)/);
     if (npmMatch) {
-      dependencies.add(npmMatch[1])
+      dependencies.add(npmMatch[1]);
     }
 
     // Look for variable assignments
-    const varMatch = msg.match(/(?:const|let|var)\s+(\w+)/)
+    const varMatch = msg.match(/(?:const|let|var)\s+(\w+)/);
     if (varMatch) {
-      variables.add(varMatch[1])
+      variables.add(varMatch[1]);
     }
   }
 
-  return { files, functions, variables, dependencies }
+  return { files, functions, variables, dependencies };
 }
 
 // ============================================================================
@@ -568,20 +568,20 @@ function extractEntities(context: RawContext): {
  */
 export interface MultiHeadCompressorConfig {
   /** API key for Haiku calls */
-  apiKey?: string
+  apiKey?: string;
   /** Enable semantic head (uses API) */
-  enableSemanticHead?: boolean
+  enableSemanticHead?: boolean;
   /** Head weights (must sum to 1.0) */
   weights?: {
-    semantic: number
-    structural: number
-    temporal: number
-    entity: number
-  }
+    semantic: number;
+    structural: number;
+    temporal: number;
+    entity: number;
+  };
   /** Target compression ratio */
-  targetRatio?: number
+  targetRatio?: number;
   /** Maximum output tokens */
-  maxOutputTokens?: number
+  maxOutputTokens?: number;
 }
 
 /**
@@ -590,9 +590,9 @@ export interface MultiHeadCompressorConfig {
  * Orchestrates multiple compression heads to produce optimal compressed context.
  */
 export class MultiHeadCompressor {
-  private config: Required<MultiHeadCompressorConfig>
-  private apiClient: AnthropicApiClient | null = null
-  private heads: CompressionHead[]
+  private config: Required<MultiHeadCompressorConfig>;
+  private apiClient: AnthropicApiClient | null = null;
+  private heads: CompressionHead[];
 
   constructor(config: MultiHeadCompressorConfig = {}) {
     // Normalize weights
@@ -601,7 +601,7 @@ export class MultiHeadCompressor {
       structural: 0.3,
       temporal: 0.2,
       entity: 0.1,
-    }
+    };
 
     this.config = {
       apiKey: config.apiKey || process.env.ANTHROPIC_API_KEY || '',
@@ -609,7 +609,7 @@ export class MultiHeadCompressor {
       weights: config.weights || defaultWeights,
       targetRatio: config.targetRatio ?? 0.2, // 5x compression
       maxOutputTokens: config.maxOutputTokens ?? 2000,
-    }
+    };
 
     // Initialize API client if key available
     if (this.config.apiKey && this.config.enableSemanticHead) {
@@ -618,7 +618,7 @@ export class MultiHeadCompressor {
         model: 'claude-haiku-4-5-20251001',
         maxTokens: 500,
         temperature: 0.3,
-      })
+      });
     }
 
     // Initialize heads
@@ -643,7 +643,7 @@ export class MultiHeadCompressor {
         weight: this.config.weights.entity,
         compress: entityCompress,
       },
-    ]
+    ];
   }
 
   /**
@@ -651,20 +651,20 @@ export class MultiHeadCompressor {
    */
   async compress(context: RawContext): Promise<CompressedOutput> {
     // Calculate original tokens
-    const originalTokens = this.estimateOriginalTokens(context)
+    const originalTokens = this.estimateOriginalTokens(context);
 
     // Run all heads in parallel
     const segmentPromises = this.heads.map(head =>
       head.compress(context, this.apiClient || undefined),
-    )
+    );
 
-    const segments = await Promise.all(segmentPromises)
+    const segments = await Promise.all(segmentPromises);
 
     // Fuse segments
-    const fusedContent = this.fuseSegments(segments)
+    const fusedContent = this.fuseSegments(segments);
 
     // Calculate compressed tokens
-    const compressedTokens = estimateTokens(fusedContent)
+    const compressedTokens = estimateTokens(fusedContent);
 
     return {
       content: fusedContent,
@@ -673,83 +673,83 @@ export class MultiHeadCompressor {
       compressedTokens,
       compressionRatio: compressedTokens / originalTokens,
       timestamp: new Date(),
-    }
+    };
   }
 
   /**
    * Fuse segments from all heads
    */
   private fuseSegments(segments: CompressedSegment[]): string {
-    const parts: string[] = []
+    const parts: string[] = [];
 
     // Sort by importance * weight
     const sortedSegments = [...segments].sort((a, b) => {
-      const headA = this.heads.find(h => h.name === a.headName)
-      const headB = this.heads.find(h => h.name === b.headName)
-      const scoreA = a.importance * (headA?.weight || 0)
-      const scoreB = b.importance * (headB?.weight || 0)
-      return scoreB - scoreA
-    })
+      const headA = this.heads.find(h => h.name === a.headName);
+      const headB = this.heads.find(h => h.name === b.headName);
+      const scoreA = a.importance * (headA?.weight || 0);
+      const scoreB = b.importance * (headB?.weight || 0);
+      return scoreB - scoreA;
+    });
 
     // Build fused output
-    parts.push('# Context Summary\n')
+    parts.push('# Context Summary\n');
 
-    let currentTokens = 0
+    let currentTokens = 0;
     for (const segment of sortedSegments) {
       // Check if adding this segment would exceed limit
       if (currentTokens + segment.tokens > this.config.maxOutputTokens) {
         // Truncate segment if needed
-        const remainingTokens = this.config.maxOutputTokens - currentTokens
+        const remainingTokens = this.config.maxOutputTokens - currentTokens;
         if (remainingTokens > 50) {
-          const truncated = this.truncateToTokens(segment.content, remainingTokens)
-          parts.push(truncated)
+          const truncated = this.truncateToTokens(segment.content, remainingTokens);
+          parts.push(truncated);
         }
-        break
+        break;
       }
 
-      parts.push(segment.content)
-      parts.push('') // Empty line between sections
-      currentTokens += segment.tokens
+      parts.push(segment.content);
+      parts.push(''); // Empty line between sections
+      currentTokens += segment.tokens;
     }
 
-    return parts.join('\n').trim()
+    return parts.join('\n').trim();
   }
 
   /**
    * Estimate original token count
    */
   private estimateOriginalTokens(context: RawContext): number {
-    let total = 0
+    let total = 0;
 
     // Function calls
     for (const fc of context.functionCalls) {
-      total += estimateTokens(fc.summary) * 3 // Assume summary is 3x compressed
+      total += estimateTokens(fc.summary) * 3; // Assume summary is 3x compressed
     }
 
     // User messages
     for (const msg of context.userMessages) {
-      total += estimateTokens(msg)
+      total += estimateTokens(msg);
     }
 
     // Assistant responses
     for (const resp of context.assistantResponses) {
-      total += estimateTokens(resp)
+      total += estimateTokens(resp);
     }
 
     // Files
     for (const file of context.files) {
-      total += estimateTokens(file.path)
+      total += estimateTokens(file.path);
       if (file.summary) {
-        total += estimateTokens(file.summary) * 2
+        total += estimateTokens(file.summary) * 2;
       }
     }
 
     // Errors
     for (const error of context.errors) {
-      total += estimateTokens(error)
+      total += estimateTokens(error);
     }
 
-    return total
+    return total;
   }
 
   /**
@@ -757,11 +757,11 @@ export class MultiHeadCompressor {
    */
   private truncateToTokens(content: string, maxTokens: number): string {
     // Rough estimate: 4 chars per token for English
-    const maxChars = maxTokens * 4
+    const maxChars = maxTokens * 4;
     if (content.length <= maxChars) {
-      return content
+      return content;
     }
-    return `${content.substring(0, maxChars - 3)}...`
+    return `${content.substring(0, maxChars - 3)}...`;
   }
 
   /**
@@ -769,19 +769,19 @@ export class MultiHeadCompressor {
    */
   updateConfig(config: Partial<MultiHeadCompressorConfig>): void {
     if (config.apiKey !== undefined) {
-      this.config.apiKey = config.apiKey
+      this.config.apiKey = config.apiKey;
     }
     if (config.enableSemanticHead !== undefined) {
-      this.config.enableSemanticHead = config.enableSemanticHead
+      this.config.enableSemanticHead = config.enableSemanticHead;
     }
     if (config.weights) {
-      this.config.weights = { ...this.config.weights, ...config.weights }
+      this.config.weights = { ...this.config.weights, ...config.weights };
     }
     if (config.targetRatio !== undefined) {
-      this.config.targetRatio = config.targetRatio
+      this.config.targetRatio = config.targetRatio;
     }
     if (config.maxOutputTokens !== undefined) {
-      this.config.maxOutputTokens = config.maxOutputTokens
+      this.config.maxOutputTokens = config.maxOutputTokens;
     }
 
     // Reinitialize API client if needed
@@ -791,10 +791,10 @@ export class MultiHeadCompressor {
         model: 'claude-haiku-4-5-20251001',
         maxTokens: 500,
         temperature: 0.3,
-      })
+      });
     }
     else {
-      this.apiClient = null
+      this.apiClient = null;
     }
   }
 
@@ -802,14 +802,14 @@ export class MultiHeadCompressor {
    * Get current configuration
    */
   getConfig(): Required<MultiHeadCompressorConfig> {
-    return { ...this.config }
+    return { ...this.config };
   }
 
   /**
    * Check if API is available
    */
   hasApiAccess(): boolean {
-    return this.apiClient !== null
+    return this.apiClient !== null;
   }
 }
 
@@ -819,5 +819,5 @@ export class MultiHeadCompressor {
 export function createMultiHeadCompressor(
   config?: MultiHeadCompressorConfig,
 ): MultiHeadCompressor {
-  return new MultiHeadCompressor(config)
+  return new MultiHeadCompressor(config);
 }

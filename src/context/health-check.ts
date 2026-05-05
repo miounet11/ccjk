@@ -7,10 +7,10 @@
  * @module context/health-check
  */
 
-import type { ContextPersistence } from './persistence'
-import { copyFileSync, existsSync, mkdirSync, readdirSync, statSync, unlinkSync } from 'node:fs'
-import Database from 'better-sqlite3'
-import { basename, dirname, join } from 'pathe'
+import type { ContextPersistence } from './persistence';
+import { copyFileSync, existsSync, mkdirSync, readdirSync, statSync, unlinkSync } from 'node:fs';
+import Database from 'better-sqlite3';
+import { basename, dirname, join } from 'pathe';
 
 /**
  * Database health status
@@ -26,173 +26,173 @@ export enum HealthStatus {
  * Health check result
  */
 export interface HealthCheckResult {
-  status: HealthStatus
-  timestamp: number
+  status: HealthStatus;
+  timestamp: number;
   checks: {
-    integrity: IntegrityCheckResult
-    wal: WALCheckResult
-    size: SizeCheckResult
-    performance: PerformanceCheckResult
-  }
-  recommendations: string[]
-  errors: string[]
+    integrity: IntegrityCheckResult;
+    wal: WALCheckResult;
+    size: SizeCheckResult;
+    performance: PerformanceCheckResult;
+  };
+  recommendations: string[];
+  errors: string[];
 }
 
 /**
  * Integrity check result
  */
 export interface IntegrityCheckResult {
-  passed: boolean
-  errors: string[]
-  corruptedTables: string[]
-  duration: number
+  passed: boolean;
+  errors: string[];
+  corruptedTables: string[];
+  duration: number;
 }
 
 /**
  * WAL checkpoint result
  */
 export interface WALCheckResult {
-  mode: string
-  walSize: number
-  shmSize: number
-  checkpointable: boolean
-  lastCheckpoint?: number
-  recommendations: string[]
+  mode: string;
+  walSize: number;
+  shmSize: number;
+  checkpointable: boolean;
+  lastCheckpoint?: number;
+  recommendations: string[];
 }
 
 /**
  * Size check result
  */
 export interface SizeCheckResult {
-  dbSize: number
-  walSize: number
-  totalSize: number
-  pageCount: number
-  pageSize: number
-  freePages: number
-  utilizationPercent: number
-  recommendations: string[]
+  dbSize: number;
+  walSize: number;
+  totalSize: number;
+  pageCount: number;
+  pageSize: number;
+  freePages: number;
+  utilizationPercent: number;
+  recommendations: string[];
 }
 
 /**
  * Performance check result
  */
 export interface PerformanceCheckResult {
-  queryTime: number
-  writeTime: number
-  indexEfficiency: number
-  cacheHitRate: number
-  recommendations: string[]
+  queryTime: number;
+  writeTime: number;
+  indexEfficiency: number;
+  cacheHitRate: number;
+  recommendations: string[];
 }
 
 /**
  * Backup metadata
  */
 export interface BackupMetadata {
-  timestamp: number
-  dbSize: number
-  contextCount: number
-  projectCount: number
-  checksum?: string
-  version: string
+  timestamp: number;
+  dbSize: number;
+  contextCount: number;
+  projectCount: number;
+  checksum?: string;
+  version: string;
 }
 
 /**
  * Backup result
  */
 export interface BackupResult {
-  success: boolean
-  backupPath: string
-  metadata: BackupMetadata
-  duration: number
-  error?: string
+  success: boolean;
+  backupPath: string;
+  metadata: BackupMetadata;
+  duration: number;
+  error?: string;
 }
 
 /**
  * Restore result
  */
 export interface RestoreResult {
-  success: boolean
-  restoredFrom: string
-  metadata: BackupMetadata
-  duration: number
-  error?: string
+  success: boolean;
+  restoredFrom: string;
+  metadata: BackupMetadata;
+  duration: number;
+  error?: string;
 }
 
 /**
  * Migration info
  */
 export interface MigrationInfo {
-  version: number
-  description: string
-  timestamp: number
-  applied: boolean
+  version: number;
+  description: string;
+  timestamp: number;
+  applied: boolean;
 }
 
 /**
  * Schema version
  */
-const CURRENT_SCHEMA_VERSION = 1
+const CURRENT_SCHEMA_VERSION = 1;
 
 /**
  * Database Health Monitor
  */
 export class DatabaseHealthMonitor {
-  private db: Database.Database
-  private dbPath: string
-  private backupDir: string
+  private db: Database.Database;
+  private dbPath: string;
+  private backupDir: string;
 
   constructor(dbPath: string) {
-    this.dbPath = dbPath
-    this.backupDir = join(dirname(dbPath), 'backups')
+    this.dbPath = dbPath;
+    this.backupDir = join(dirname(dbPath), 'backups');
 
     // Ensure backup directory exists
     if (!existsSync(this.backupDir)) {
-      mkdirSync(this.backupDir, { recursive: true })
+      mkdirSync(this.backupDir, { recursive: true });
     }
 
     // Open database in read-only mode for health checks
-    this.db = new Database(dbPath, { readonly: false })
+    this.db = new Database(dbPath, { readonly: false });
   }
 
   /**
    * Run comprehensive health check
    */
   async runHealthCheck(): Promise<HealthCheckResult> {
-    const _startTime = Date.now()
-    const errors: string[] = []
-    const recommendations: string[] = []
+    const _startTime = Date.now();
+    const errors: string[] = [];
+    const recommendations: string[] = [];
 
     try {
       // Run all checks
-      const integrity = await this.checkIntegrity()
-      const wal = await this.checkWAL()
-      const size = await this.checkSize()
-      const performance = await this.checkPerformance()
+      const integrity = await this.checkIntegrity();
+      const wal = await this.checkWAL();
+      const size = await this.checkSize();
+      const performance = await this.checkPerformance();
 
       // Aggregate recommendations
-      recommendations.push(...wal.recommendations)
-      recommendations.push(...size.recommendations)
-      recommendations.push(...performance.recommendations)
+      recommendations.push(...wal.recommendations);
+      recommendations.push(...size.recommendations);
+      recommendations.push(...performance.recommendations);
 
       // Determine overall status
-      let status = HealthStatus.HEALTHY
+      let status = HealthStatus.HEALTHY;
 
       if (!integrity.passed) {
-        status = HealthStatus.CRITICAL
-        errors.push('Database integrity check failed')
+        status = HealthStatus.CRITICAL;
+        errors.push('Database integrity check failed');
       }
       else if (size.utilizationPercent < 50) {
-        status = HealthStatus.WARNING
-        recommendations.push('Consider running VACUUM to reclaim space')
+        status = HealthStatus.WARNING;
+        recommendations.push('Consider running VACUUM to reclaim space');
       }
       else if (wal.walSize > 10 * 1024 * 1024) {
-        status = HealthStatus.WARNING
-        recommendations.push('WAL file is large, consider checkpointing')
+        status = HealthStatus.WARNING;
+        recommendations.push('WAL file is large, consider checkpointing');
       }
       else if (performance.queryTime > 100) {
-        status = HealthStatus.WARNING
-        recommendations.push('Query performance is degraded')
+        status = HealthStatus.WARNING;
+        recommendations.push('Query performance is degraded');
       }
 
       return {
@@ -206,7 +206,7 @@ export class DatabaseHealthMonitor {
         },
         recommendations: [...new Set(recommendations)], // Remove duplicates
         errors,
-      }
+      };
     }
     catch (error) {
       return {
@@ -220,7 +220,7 @@ export class DatabaseHealthMonitor {
         },
         recommendations: [],
         errors: [`Health check failed: ${error instanceof Error ? error.message : String(error)}`],
-      }
+      };
     }
   }
 
@@ -228,33 +228,33 @@ export class DatabaseHealthMonitor {
    * Check database integrity
    */
   async checkIntegrity(): Promise<IntegrityCheckResult> {
-    const _startTime = Date.now()
-    const errors: string[] = []
-    const corruptedTables: string[] = []
+    const _startTime = Date.now();
+    const errors: string[] = [];
+    const corruptedTables: string[] = [];
 
     try {
       // Run PRAGMA integrity_check
-      const result = this.db.prepare('PRAGMA integrity_check').all() as Array<{ integrity_check: string }>
+      const result = this.db.prepare('PRAGMA integrity_check').all() as Array<{ integrity_check: string }>;
 
-      const passed = result.length === 1 && result[0].integrity_check === 'ok'
+      const passed = result.length === 1 && result[0].integrity_check === 'ok';
 
       if (!passed) {
         for (const row of result) {
-          const msg = row.integrity_check
-          errors.push(msg)
+          const msg = row.integrity_check;
+          errors.push(msg);
 
           // Extract table name if mentioned
-          const tableMatch = msg.match(/table (\w+)/)
+          const tableMatch = msg.match(/table (\w+)/);
           if (tableMatch) {
-            corruptedTables.push(tableMatch[1])
+            corruptedTables.push(tableMatch[1]);
           }
         }
       }
 
       // Also check foreign key integrity
-      const fkResult = this.db.prepare('PRAGMA foreign_key_check').all()
+      const fkResult = this.db.prepare('PRAGMA foreign_key_check').all();
       if (fkResult.length > 0) {
-        errors.push(`Foreign key violations found: ${fkResult.length}`)
+        errors.push(`Foreign key violations found: ${fkResult.length}`);
       }
 
       return {
@@ -262,7 +262,7 @@ export class DatabaseHealthMonitor {
         errors,
         corruptedTables: [...new Set(corruptedTables)],
         duration: Date.now() - _startTime,
-      }
+      };
     }
     catch (error) {
       return {
@@ -270,7 +270,7 @@ export class DatabaseHealthMonitor {
         errors: [`Integrity check failed: ${error instanceof Error ? error.message : String(error)}`],
         corruptedTables: [],
         duration: Date.now() - _startTime,
-      }
+      };
     }
   }
 
@@ -278,29 +278,29 @@ export class DatabaseHealthMonitor {
    * Check WAL status and recommend checkpoint if needed
    */
   async checkWAL(): Promise<WALCheckResult> {
-    const recommendations: string[] = []
+    const recommendations: string[] = [];
 
     try {
       // Get journal mode
-      const modeResult = this.db.prepare('PRAGMA journal_mode').get() as { journal_mode: string }
-      const mode = modeResult.journal_mode
+      const modeResult = this.db.prepare('PRAGMA journal_mode').get() as { journal_mode: string };
+      const mode = modeResult.journal_mode;
 
       // Get WAL file sizes
-      const walPath = `${this.dbPath}-wal`
-      const shmPath = `${this.dbPath}-shm`
+      const walPath = `${this.dbPath}-wal`;
+      const shmPath = `${this.dbPath}-shm`;
 
-      const walSize = existsSync(walPath) ? statSync(walPath).size : 0
-      const shmSize = existsSync(shmPath) ? statSync(shmPath).size : 0
+      const walSize = existsSync(walPath) ? statSync(walPath).size : 0;
+      const shmSize = existsSync(shmPath) ? statSync(shmPath).size : 0;
 
       // Check if checkpoint is needed
-      const checkpointable = walSize > 1024 * 1024 // > 1MB
+      const checkpointable = walSize > 1024 * 1024; // > 1MB
 
       if (checkpointable) {
-        recommendations.push('WAL file is large, run checkpoint to merge changes')
+        recommendations.push('WAL file is large, run checkpoint to merge changes');
       }
 
       if (walSize > 10 * 1024 * 1024) {
-        recommendations.push('WAL file exceeds 10MB, immediate checkpoint recommended')
+        recommendations.push('WAL file exceeds 10MB, immediate checkpoint recommended');
       }
 
       return {
@@ -309,7 +309,7 @@ export class DatabaseHealthMonitor {
         shmSize,
         checkpointable,
         recommendations,
-      }
+      };
     }
     catch (error) {
       return {
@@ -318,7 +318,7 @@ export class DatabaseHealthMonitor {
         shmSize: 0,
         checkpointable: false,
         recommendations: [`WAL check failed: ${error instanceof Error ? error.message : String(error)}`],
-      }
+      };
     }
   }
 
@@ -326,23 +326,23 @@ export class DatabaseHealthMonitor {
    * Checkpoint WAL to main database
    */
   async checkpoint(mode: 'PASSIVE' | 'FULL' | 'RESTART' | 'TRUNCATE' = 'RESTART'): Promise<{
-    success: boolean
-    walFrames: number
-    checkpointed: number
-    error?: string
+    success: boolean;
+    walFrames: number;
+    checkpointed: number;
+    error?: string;
   }> {
     try {
       const result = this.db.prepare(`PRAGMA wal_checkpoint(${mode})`).get() as {
-        busy: number
-        log: number
-        checkpointed: number
-      }
+        busy: number;
+        log: number;
+        checkpointed: number;
+      };
 
       return {
         success: result.busy === 0,
         walFrames: result.log,
         checkpointed: result.checkpointed,
-      }
+      };
     }
     catch (error) {
       return {
@@ -350,7 +350,7 @@ export class DatabaseHealthMonitor {
         walFrames: 0,
         checkpointed: 0,
         error: error instanceof Error ? error.message : String(error),
-      }
+      };
     }
   }
 
@@ -358,37 +358,37 @@ export class DatabaseHealthMonitor {
    * Check database size and utilization
    */
   async checkSize(): Promise<SizeCheckResult> {
-    const recommendations: string[] = []
+    const recommendations: string[] = [];
 
     try {
       // Get database file size
-      const dbSize = existsSync(this.dbPath) ? statSync(this.dbPath).size : 0
+      const dbSize = existsSync(this.dbPath) ? statSync(this.dbPath).size : 0;
 
       // Get WAL size
-      const walPath = `${this.dbPath}-wal`
-      const walSize = existsSync(walPath) ? statSync(walPath).size : 0
+      const walPath = `${this.dbPath}-wal`;
+      const walSize = existsSync(walPath) ? statSync(walPath).size : 0;
 
       // Get page info
-      const pageCountResult = this.db.prepare('PRAGMA page_count').get() as { page_count: number }
-      const pageSizeResult = this.db.prepare('PRAGMA page_size').get() as { page_size: number }
-      const freePagesResult = this.db.prepare('PRAGMA freelist_count').get() as { freelist_count: number }
+      const pageCountResult = this.db.prepare('PRAGMA page_count').get() as { page_count: number };
+      const pageSizeResult = this.db.prepare('PRAGMA page_size').get() as { page_size: number };
+      const freePagesResult = this.db.prepare('PRAGMA freelist_count').get() as { freelist_count: number };
 
-      const pageCount = pageCountResult.page_count
-      const pageSize = pageSizeResult.page_size
-      const freePages = freePagesResult.freelist_count
+      const pageCount = pageCountResult.page_count;
+      const pageSize = pageSizeResult.page_size;
+      const freePages = freePagesResult.freelist_count;
 
-      const utilizationPercent = pageCount > 0 ? ((pageCount - freePages) / pageCount) * 100 : 100
+      const utilizationPercent = pageCount > 0 ? ((pageCount - freePages) / pageCount) * 100 : 100;
 
       if (utilizationPercent < 70) {
-        recommendations.push(`Database utilization is ${utilizationPercent.toFixed(1)}%, consider VACUUM`)
+        recommendations.push(`Database utilization is ${utilizationPercent.toFixed(1)}%, consider VACUUM`);
       }
 
       if (freePages > pageCount * 0.3) {
-        recommendations.push(`${freePages} free pages detected, VACUUM recommended`)
+        recommendations.push(`${freePages} free pages detected, VACUUM recommended`);
       }
 
       if (dbSize > 100 * 1024 * 1024) {
-        recommendations.push('Database exceeds 100MB, consider archiving old data')
+        recommendations.push('Database exceeds 100MB, consider archiving old data');
       }
 
       return {
@@ -400,7 +400,7 @@ export class DatabaseHealthMonitor {
         freePages,
         utilizationPercent,
         recommendations,
-      }
+      };
     }
     catch (error) {
       return {
@@ -412,7 +412,7 @@ export class DatabaseHealthMonitor {
         freePages: 0,
         utilizationPercent: 0,
         recommendations: [`Size check failed: ${error instanceof Error ? error.message : String(error)}`],
-      }
+      };
     }
   }
 
@@ -420,40 +420,40 @@ export class DatabaseHealthMonitor {
    * Check database performance
    */
   async checkPerformance(): Promise<PerformanceCheckResult> {
-    const recommendations: string[] = []
+    const recommendations: string[] = [];
 
     try {
       // Test query performance
-      const queryStart = Date.now()
-      this.db.prepare('SELECT COUNT(*) FROM contexts').get()
-      const queryTime = Date.now() - queryStart
+      const queryStart = Date.now();
+      this.db.prepare('SELECT COUNT(*) FROM contexts').get();
+      const queryTime = Date.now() - queryStart;
 
       // Test write performance
-      const writeStart = Date.now()
-      this.db.prepare('BEGIN').run()
-      this.db.prepare('ROLLBACK').run()
-      const writeTime = Date.now() - writeStart
+      const writeStart = Date.now();
+      this.db.prepare('BEGIN').run();
+      this.db.prepare('ROLLBACK').run();
+      const writeTime = Date.now() - writeStart;
 
       // Check index usage
       const indexes = this.db.prepare(`
         SELECT name FROM sqlite_master WHERE type = 'index' AND sql IS NOT NULL
-      `).all() as Array<{ name: string }>
+      `).all() as Array<{ name: string }>;
 
-      const indexEfficiency = indexes.length > 0 ? 100 : 0
+      const indexEfficiency = indexes.length > 0 ? 100 : 0;
 
       // Get cache stats
-      const cacheHitRate = 95 // Placeholder - SQLite doesn't expose this easily
+      const cacheHitRate = 95; // Placeholder - SQLite doesn't expose this easily
 
       if (queryTime > 50) {
-        recommendations.push('Query performance is slow, check indexes')
+        recommendations.push('Query performance is slow, check indexes');
       }
 
       if (writeTime > 20) {
-        recommendations.push('Write performance is slow, consider optimizing')
+        recommendations.push('Write performance is slow, consider optimizing');
       }
 
       if (indexes.length < 4) {
-        recommendations.push('Few indexes detected, query performance may be suboptimal')
+        recommendations.push('Few indexes detected, query performance may be suboptimal');
       }
 
       return {
@@ -462,7 +462,7 @@ export class DatabaseHealthMonitor {
         indexEfficiency,
         cacheHitRate,
         recommendations,
-      }
+      };
     }
     catch (error) {
       return {
@@ -471,7 +471,7 @@ export class DatabaseHealthMonitor {
         indexEfficiency: 0,
         cacheHitRate: 0,
         recommendations: [`Performance check failed: ${error instanceof Error ? error.message : String(error)}`],
-      }
+      };
     }
   }
 
@@ -479,26 +479,26 @@ export class DatabaseHealthMonitor {
    * Create database backup
    */
   async backup(label?: string): Promise<BackupResult> {
-    const _startTime = Date.now()
+    const _startTime = Date.now();
 
     try {
       // Checkpoint WAL first
-      await this.checkpoint('FULL')
+      await this.checkpoint('FULL');
 
       // Generate backup filename
-      const timestamp = Date.now()
-      const dateStr = new Date(timestamp).toISOString().replace(/[:.]/g, '-')
-      const labelStr = label ? `-${label}` : ''
-      const backupFilename = `contexts-${dateStr}${labelStr}.db`
-      const backupPath = join(this.backupDir, backupFilename)
+      const timestamp = Date.now();
+      const dateStr = new Date(timestamp).toISOString().replace(/[:.]/g, '-');
+      const labelStr = label ? `-${label}` : '';
+      const backupFilename = `contexts-${dateStr}${labelStr}.db`;
+      const backupPath = join(this.backupDir, backupFilename);
 
       // Copy database file
-      copyFileSync(this.dbPath, backupPath)
+      copyFileSync(this.dbPath, backupPath);
 
       // Get metadata
-      const stats = this.db.prepare('SELECT COUNT(*) as count FROM contexts').get() as { count: number }
-      const projectStats = this.db.prepare('SELECT COUNT(*) as count FROM projects').get() as { count: number }
-      const dbSize = statSync(backupPath).size
+      const stats = this.db.prepare('SELECT COUNT(*) as count FROM contexts').get() as { count: number };
+      const projectStats = this.db.prepare('SELECT COUNT(*) as count FROM projects').get() as { count: number };
+      const dbSize = statSync(backupPath).size;
 
       const metadata: BackupMetadata = {
         timestamp,
@@ -506,22 +506,22 @@ export class DatabaseHealthMonitor {
         contextCount: stats.count,
         projectCount: projectStats.count,
         version: String(CURRENT_SCHEMA_VERSION),
-      }
+      };
 
       // Save metadata
-      const metadataPath = `${backupPath}.meta.json`
-      const fs = require('node:fs')
-      fs.writeFileSync(metadataPath, JSON.stringify(metadata, null, 2))
+      const metadataPath = `${backupPath}.meta.json`;
+      const fs = require('node:fs');
+      fs.writeFileSync(metadataPath, JSON.stringify(metadata, null, 2));
 
       // Clean up old backups (keep last 10)
-      await this.cleanupOldBackups(10)
+      await this.cleanupOldBackups(10);
 
       return {
         success: true,
         backupPath,
         metadata,
         duration: Date.now() - _startTime,
-      }
+      };
     }
     catch (error) {
       return {
@@ -536,7 +536,7 @@ export class DatabaseHealthMonitor {
         },
         duration: Date.now() - _startTime,
         error: error instanceof Error ? error.message : String(error),
-      }
+      };
     }
   }
 
@@ -544,21 +544,21 @@ export class DatabaseHealthMonitor {
    * Restore database from backup
    */
   async restore(backupPath: string): Promise<RestoreResult> {
-    const _startTime = Date.now()
+    const _startTime = Date.now();
 
     try {
       // Verify backup exists
       if (!existsSync(backupPath)) {
-        throw new Error(`Backup file not found: ${backupPath}`)
+        throw new Error(`Backup file not found: ${backupPath}`);
       }
 
       // Load metadata
-      const metadataPath = `${backupPath}.meta.json`
-      let metadata: BackupMetadata
+      const metadataPath = `${backupPath}.meta.json`;
+      let metadata: BackupMetadata;
 
       if (existsSync(metadataPath)) {
-        const fs = require('node:fs')
-        metadata = JSON.parse(fs.readFileSync(metadataPath, 'utf-8'))
+        const fs = require('node:fs');
+        metadata = JSON.parse(fs.readFileSync(metadataPath, 'utf-8'));
       }
       else {
         // Create minimal metadata
@@ -568,31 +568,31 @@ export class DatabaseHealthMonitor {
           contextCount: 0,
           projectCount: 0,
           version: String(CURRENT_SCHEMA_VERSION),
-        }
+        };
       }
 
       // Close current database
-      this.db.close()
+      this.db.close();
 
       // Backup current database before restore
-      const currentBackupPath = `${this.dbPath}.pre-restore-${Date.now()}.bak`
+      const currentBackupPath = `${this.dbPath}.pre-restore-${Date.now()}.bak`;
       if (existsSync(this.dbPath)) {
-        copyFileSync(this.dbPath, currentBackupPath)
+        copyFileSync(this.dbPath, currentBackupPath);
       }
 
       // Restore from backup
-      copyFileSync(backupPath, this.dbPath)
+      copyFileSync(backupPath, this.dbPath);
 
       // Reopen database
-      this.db = new Database(this.dbPath)
+      this.db = new Database(this.dbPath);
 
       // Verify integrity
-      const integrity = await this.checkIntegrity()
+      const integrity = await this.checkIntegrity();
       if (!integrity.passed) {
         // Restore failed, rollback
-        copyFileSync(currentBackupPath, this.dbPath)
-        this.db = new Database(this.dbPath)
-        throw new Error('Restored database failed integrity check')
+        copyFileSync(currentBackupPath, this.dbPath);
+        this.db = new Database(this.dbPath);
+        throw new Error('Restored database failed integrity check');
       }
 
       return {
@@ -600,7 +600,7 @@ export class DatabaseHealthMonitor {
         restoredFrom: backupPath,
         metadata,
         duration: Date.now() - _startTime,
-      }
+      };
     }
     catch (error) {
       return {
@@ -615,32 +615,32 @@ export class DatabaseHealthMonitor {
         },
         duration: Date.now() - _startTime,
         error: error instanceof Error ? error.message : String(error),
-      }
+      };
     }
   }
 
   /**
    * List available backups
    */
-  listBackups(): Array<{ path: string, metadata: BackupMetadata }> {
-    const backups: Array<{ path: string, metadata: BackupMetadata }> = []
+  listBackups(): Array<{ path: string; metadata: BackupMetadata }> {
+    const backups: Array<{ path: string; metadata: BackupMetadata }> = [];
 
     if (!existsSync(this.backupDir)) {
-      return backups
+      return backups;
     }
 
-    const files = readdirSync(this.backupDir)
+    const files = readdirSync(this.backupDir);
 
     for (const file of files) {
       if (file.endsWith('.db') && !file.endsWith('.bak')) {
-        const backupPath = join(this.backupDir, file)
-        const metadataPath = `${backupPath}.meta.json`
+        const backupPath = join(this.backupDir, file);
+        const metadataPath = `${backupPath}.meta.json`;
 
-        let metadata: BackupMetadata
+        let metadata: BackupMetadata;
 
         if (existsSync(metadataPath)) {
-          const fs = require('node:fs')
-          metadata = JSON.parse(fs.readFileSync(metadataPath, 'utf-8'))
+          const fs = require('node:fs');
+          metadata = JSON.parse(fs.readFileSync(metadataPath, 'utf-8'));
         }
         else {
           metadata = {
@@ -649,109 +649,109 @@ export class DatabaseHealthMonitor {
             contextCount: 0,
             projectCount: 0,
             version: String(CURRENT_SCHEMA_VERSION),
-          }
+          };
         }
 
-        backups.push({ path: backupPath, metadata })
+        backups.push({ path: backupPath, metadata });
       }
     }
 
     // Sort by timestamp descending
-    return backups.sort((a, b) => b.metadata.timestamp - a.metadata.timestamp)
+    return backups.sort((a, b) => b.metadata.timestamp - a.metadata.timestamp);
   }
 
   /**
    * Clean up old backups
    */
   private async cleanupOldBackups(keepCount: number): Promise<number> {
-    const backups = this.listBackups()
+    const backups = this.listBackups();
 
     if (backups.length <= keepCount) {
-      return 0
+      return 0;
     }
 
-    const toDelete = backups.slice(keepCount)
-    let deleted = 0
+    const toDelete = backups.slice(keepCount);
+    let deleted = 0;
 
     for (const backup of toDelete) {
       try {
-        unlinkSync(backup.path)
-        const metadataPath = `${backup.path}.meta.json`
+        unlinkSync(backup.path);
+        const metadataPath = `${backup.path}.meta.json`;
         if (existsSync(metadataPath)) {
-          unlinkSync(metadataPath)
+          unlinkSync(metadataPath);
         }
-        deleted++
+        deleted++;
       }
       catch {
         // Ignore errors
       }
     }
 
-    return deleted
+    return deleted;
   }
 
   /**
    * Attempt automatic recovery
    */
   async attemptRecovery(): Promise<{
-    success: boolean
-    actions: string[]
-    errors: string[]
+    success: boolean;
+    actions: string[];
+    errors: string[];
   }> {
-    const actions: string[] = []
-    const errors: string[] = []
+    const actions: string[] = [];
+    const errors: string[] = [];
 
     try {
       // Check integrity first
-      const integrity = await this.checkIntegrity()
+      const integrity = await this.checkIntegrity();
 
       if (!integrity.passed) {
         // Try to restore from latest backup
-        const backups = this.listBackups()
+        const backups = this.listBackups();
 
         if (backups.length > 0) {
-          actions.push('Database corruption detected, attempting restore from backup')
+          actions.push('Database corruption detected, attempting restore from backup');
 
-          const restoreResult = await this.restore(backups[0].path)
+          const restoreResult = await this.restore(backups[0].path);
 
           if (restoreResult.success) {
-            actions.push(`Successfully restored from backup: ${basename(backups[0].path)}`)
-            return { success: true, actions, errors }
+            actions.push(`Successfully restored from backup: ${basename(backups[0].path)}`);
+            return { success: true, actions, errors };
           }
           else {
-            errors.push(`Restore failed: ${restoreResult.error}`)
+            errors.push(`Restore failed: ${restoreResult.error}`);
           }
         }
         else {
-          errors.push('No backups available for recovery')
+          errors.push('No backups available for recovery');
         }
 
-        return { success: false, actions, errors }
+        return { success: false, actions, errors };
       }
 
       // Check WAL and checkpoint if needed
-      const wal = await this.checkWAL()
+      const wal = await this.checkWAL();
       if (wal.checkpointable) {
-        actions.push('Checkpointing WAL')
-        const checkpointResult = await this.checkpoint('RESTART')
+        actions.push('Checkpointing WAL');
+        const checkpointResult = await this.checkpoint('RESTART');
         if (checkpointResult.success) {
-          actions.push(`Checkpointed ${checkpointResult.checkpointed} frames`)
+          actions.push(`Checkpointed ${checkpointResult.checkpointed} frames`);
         }
         else {
-          errors.push(`Checkpoint failed: ${checkpointResult.error}`)
+          errors.push(`Checkpoint failed: ${checkpointResult.error}`);
         }
       }
 
       // Check size and vacuum if needed
-      const size = await this.checkSize()
+      const size = await this.checkSize();
       if (size.utilizationPercent < 70) {
-        actions.push('Running VACUUM to reclaim space')
+        actions.push('Running VACUUM to reclaim space');
         try {
-          this.db.prepare('VACUUM').run()
-          actions.push('VACUUM completed successfully')
+          this.db.prepare('VACUUM').run();
+          actions.push('VACUUM completed successfully');
         }
         catch (error) {
-          errors.push(`VACUUM failed: ${error instanceof Error ? error.message : String(error)}`)
+          errors.push(`VACUUM failed: ${error instanceof Error ? error.message : String(error)}`);
         }
       }
 
@@ -759,11 +759,11 @@ export class DatabaseHealthMonitor {
         success: errors.length === 0,
         actions,
         errors,
-      }
+      };
     }
     catch (error) {
-      errors.push(`Recovery failed: ${error instanceof Error ? error.message : String(error)}`)
-      return { success: false, actions, errors }
+      errors.push(`Recovery failed: ${error instanceof Error ? error.message : String(error)}`);
+      return { success: false, actions, errors };
     }
   }
 
@@ -772,11 +772,11 @@ export class DatabaseHealthMonitor {
    */
   getSchemaVersion(): number {
     try {
-      const result = this.db.prepare('PRAGMA user_version').get() as { user_version: number }
-      return result.user_version
+      const result = this.db.prepare('PRAGMA user_version').get() as { user_version: number };
+      return result.user_version;
     }
     catch {
-      return 0
+      return 0;
     }
   }
 
@@ -784,50 +784,50 @@ export class DatabaseHealthMonitor {
    * Set schema version
    */
   setSchemaVersion(version: number): void {
-    this.db.prepare(`PRAGMA user_version = ${version}`).run()
+    this.db.prepare(`PRAGMA user_version = ${version}`).run();
   }
 
   /**
    * Apply migrations
    */
   async applyMigrations(migrations: Array<{
-    version: number
-    description: string
-    up: (db: Database.Database) => void
+    version: number;
+    description: string;
+    up: (db: Database.Database) => void;
   }>): Promise<{
-    success: boolean
-    applied: number[]
-    errors: string[]
+    success: boolean;
+    applied: number[];
+    errors: string[];
   }> {
-    const applied: number[] = []
-    const errors: string[] = []
+    const applied: number[] = [];
+    const errors: string[] = [];
 
-    const currentVersion = this.getSchemaVersion()
+    const currentVersion = this.getSchemaVersion();
 
     // Sort migrations by version
-    const sortedMigrations = migrations.sort((a, b) => a.version - b.version)
+    const sortedMigrations = migrations.sort((a, b) => a.version - b.version);
 
     for (const migration of sortedMigrations) {
       if (migration.version <= currentVersion) {
-        continue // Already applied
+        continue; // Already applied
       }
 
       try {
         // Create backup before migration
-        await this.backup(`pre-migration-v${migration.version}`)
+        await this.backup(`pre-migration-v${migration.version}`);
 
         // Apply migration in transaction
-        this.db.prepare('BEGIN').run()
-        migration.up(this.db)
-        this.setSchemaVersion(migration.version)
-        this.db.prepare('COMMIT').run()
+        this.db.prepare('BEGIN').run();
+        migration.up(this.db);
+        this.setSchemaVersion(migration.version);
+        this.db.prepare('COMMIT').run();
 
-        applied.push(migration.version)
+        applied.push(migration.version);
       }
       catch (error) {
-        this.db.prepare('ROLLBACK').run()
-        errors.push(`Migration v${migration.version} failed: ${error instanceof Error ? error.message : String(error)}`)
-        break // Stop on first error
+        this.db.prepare('ROLLBACK').run();
+        errors.push(`Migration v${migration.version} failed: ${error instanceof Error ? error.message : String(error)}`);
+        break; // Stop on first error
       }
     }
 
@@ -835,14 +835,14 @@ export class DatabaseHealthMonitor {
       success: errors.length === 0,
       applied,
       errors,
-    }
+    };
   }
 
   /**
    * Close database connection
    */
   close(): void {
-    this.db.close()
+    this.db.close();
   }
 }
 
@@ -851,6 +851,6 @@ export class DatabaseHealthMonitor {
  */
 export function createHealthMonitor(persistence: ContextPersistence): DatabaseHealthMonitor {
   // Access private dbPath through reflection
-  const dbPath = (persistence as any).dbPath
-  return new DatabaseHealthMonitor(dbPath)
+  const dbPath = (persistence as any).dbPath;
+  return new DatabaseHealthMonitor(dbPath);
 }

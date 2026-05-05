@@ -3,21 +3,21 @@
  * Provides zero-learning-curve experience with number-based quick actions
  */
 
-import type { CodeToolType, SupportedLang } from '../constants'
-import { existsSync } from 'node:fs'
-import { readFile, writeFile } from 'node:fs/promises'
-import { resolveClaudeFamilySettingsTarget } from './runtime-settings'
+import type { CodeToolType, SupportedLang } from '../constants';
+import { existsSync } from 'node:fs';
+import { readFile, writeFile } from 'node:fs/promises';
+import { resolveClaudeFamilySettingsTarget } from './runtime-settings';
 
 export interface QuickAction {
-  id: number
-  name: string
-  nameZh: string
-  icon: string
-  description: string
-  descriptionZh: string
-  command: string
-  autoActivate: boolean
-  triggers: string[]
+  id: number;
+  name: string;
+  nameZh: string;
+  icon: string;
+  description: string;
+  descriptionZh: string;
+  command: string;
+  autoActivate: boolean;
+  triggers: string[];
 }
 
 /**
@@ -112,89 +112,89 @@ export const QUICK_ACTIONS: QuickAction[] = [
     autoActivate: false,
     triggers: ['doc', 'docs', 'readme', 'documentation', 'comment', 'explain', '文档', '说明', '注释', '解释', '写文档'],
   },
-]
+];
 
 /**
  * Generate quick actions panel for display
  */
 export function generateQuickActionsPanel(lang: SupportedLang = 'en'): string {
-  const isZh = lang === 'zh-CN'
-  const title = isZh ? '💡 快捷操作（输入数字执行）：' : '💡 Quick Actions (type number to execute):'
+  const isZh = lang === 'zh-CN';
+  const title = isZh ? '💡 快捷操作（输入数字执行）：' : '💡 Quick Actions (type number to execute):';
 
   const lines = [
     title,
     '┌─────────────────────────────────────────┐',
-  ]
+  ];
 
   for (const action of QUICK_ACTIONS) {
-    const name = isZh ? action.nameZh : action.name
-    const desc = isZh ? action.descriptionZh : action.description
-    const line = `│  ${action.id}. ${action.icon} ${name.padEnd(10)} - ${desc.padEnd(16)} │`
-    lines.push(line)
+    const name = isZh ? action.nameZh : action.name;
+    const desc = isZh ? action.descriptionZh : action.description;
+    const line = `│  ${action.id}. ${action.icon} ${name.padEnd(10)} - ${desc.padEnd(16)} │`;
+    lines.push(line);
   }
 
-  lines.push('└─────────────────────────────────────────┘')
-  lines.push(isZh ? '输入数字 (1-8) 或描述你的任务...' : 'Type number (1-8) or describe your task...')
+  lines.push('└─────────────────────────────────────────┘');
+  lines.push(isZh ? '输入数字 (1-8) 或描述你的任务...' : 'Type number (1-8) or describe your task...');
 
-  return lines.join('\n')
+  return lines.join('\n');
 }
 
 /**
  * Generate skill reference card
  */
 export function generateSkillReferenceCard(lang: SupportedLang = 'en'): string {
-  const isZh = lang === 'zh-CN'
+  const isZh = lang === 'zh-CN';
 
   const header = isZh
     ? '╔══════════════════════════════════════════════════════════════╗\n║                    CCJK 技能速查卡                            ║\n╠══════════════════════════════════════════════════════════════╣'
-    : '╔══════════════════════════════════════════════════════════════╗\n║                    CCJK Skills Reference                      ║\n╠══════════════════════════════════════════════════════════════╣'
+    : '╔══════════════════════════════════════════════════════════════╗\n║                    CCJK Skills Reference                      ║\n╠══════════════════════════════════════════════════════════════╣';
 
-  const lines = [header]
+  const lines = [header];
 
   for (const action of QUICK_ACTIONS) {
-    const name = isZh ? action.nameZh : action.name
-    const line = `║  ${action.icon} ${name.padEnd(10)}    ${isZh ? '输入' : 'Type'}: ${action.id} ${isZh ? '或' : 'or'} ${action.command.padEnd(12)}            ║`
-    lines.push(line)
+    const name = isZh ? action.nameZh : action.name;
+    const line = `║  ${action.icon} ${name.padEnd(10)}    ${isZh ? '输入' : 'Type'}: ${action.id} ${isZh ? '或' : 'or'} ${action.command.padEnd(12)}            ║`;
+    lines.push(line);
   }
 
-  lines.push('╠══════════════════════════════════════════════════════════════╣')
+  lines.push('╠══════════════════════════════════════════════════════════════╣');
   lines.push(isZh
     ? '║  💡 提示: 直接输入数字，Claude 会自动执行对应操作              ║'
-    : '║  💡 Tip: Just type a number, Claude will execute automatically ║')
-  lines.push('╚══════════════════════════════════════════════════════════════╝')
+    : '║  💡 Tip: Just type a number, Claude will execute automatically ║');
+  lines.push('╚══════════════════════════════════════════════════════════════╝');
 
-  return lines.join('\n')
+  return lines.join('\n');
 }
 
 /**
  * Get action by number input
  */
 export function getActionByNumber(num: number): QuickAction | undefined {
-  return QUICK_ACTIONS.find(a => a.id === num)
+  return QUICK_ACTIONS.find(a => a.id === num);
 }
 
 /**
  * Detect suggested action based on user input
  */
 export function detectSuggestedAction(input: string): QuickAction | undefined {
-  const lowerInput = input.toLowerCase()
+  const lowerInput = input.toLowerCase();
 
   for (const action of QUICK_ACTIONS) {
     for (const trigger of action.triggers) {
       if (lowerInput.includes(trigger.toLowerCase())) {
-        return action
+        return action;
       }
     }
   }
 
-  return undefined
+  return undefined;
 }
 
 /**
  * Generate smart guide content for CLAUDE.md injection
  */
 export function generateSmartGuideDirective(lang: SupportedLang = 'en'): string {
-  const isZh = lang === 'zh-CN'
+  const isZh = lang === 'zh-CN';
 
   const directive = isZh
     ? `
@@ -250,47 +250,47 @@ Auto-suggest based on user input:
 ### Help Commands
 - User says "more" or "help" → Show full skill list
 - User says "?" → Show quick actions panel
-`
+`;
 
-  return directive
+  return directive;
 }
 
 /**
  * Path to CLAUDE.md file
  */
 function getClaudeMdPath(codeTool?: CodeToolType): string {
-  return resolveClaudeFamilySettingsTarget(codeTool).instructionsFile
+  return resolveClaudeFamilySettingsTarget(codeTool).instructionsFile;
 }
 
 /**
  * Inject smart guide into CLAUDE.md
  */
 export async function injectSmartGuide(lang: SupportedLang = 'en', codeTool?: CodeToolType): Promise<boolean> {
-  const claudeMdPath = getClaudeMdPath(codeTool)
+  const claudeMdPath = getClaudeMdPath(codeTool);
 
   try {
-    let content = ''
+    let content = '';
 
     if (existsSync(claudeMdPath)) {
-      content = await readFile(claudeMdPath, 'utf-8')
+      content = await readFile(claudeMdPath, 'utf-8');
 
       // Check if already injected
       if (content.includes('CCJK 智能助手模式') || content.includes('CCJK Smart Assistant Mode')) {
         // Remove existing smart guide section
-        content = content.replace(/\n## 🎯 CCJK (智能助手模式|Smart Assistant Mode)[\s\S]*?(?=\n## |$)/g, '')
+        content = content.replace(/\n## 🎯 CCJK (智能助手模式|Smart Assistant Mode)[\s\S]*?(?=\n## |$)/g, '');
       }
     }
 
     // Add smart guide directive
-    const directive = generateSmartGuideDirective(lang)
-    content = `${content.trim()}\n${directive}`
+    const directive = generateSmartGuideDirective(lang);
+    content = `${content.trim()}\n${directive}`;
 
-    await writeFile(claudeMdPath, content, 'utf-8')
-    return true
+    await writeFile(claudeMdPath, content, 'utf-8');
+    return true;
   }
   catch (error) {
-    console.error('Failed to inject smart guide:', error)
-    return false
+    console.error('Failed to inject smart guide:', error);
+    return false;
   }
 }
 
@@ -298,23 +298,23 @@ export async function injectSmartGuide(lang: SupportedLang = 'en', codeTool?: Co
  * Remove smart guide from CLAUDE.md
  */
 export async function removeSmartGuide(codeTool?: CodeToolType): Promise<boolean> {
-  const claudeMdPath = getClaudeMdPath(codeTool)
+  const claudeMdPath = getClaudeMdPath(codeTool);
 
   try {
     if (!existsSync(claudeMdPath)) {
-      return true
+      return true;
     }
 
-    let content = await readFile(claudeMdPath, 'utf-8')
+    let content = await readFile(claudeMdPath, 'utf-8');
 
     // Remove smart guide section
-    content = content.replace(/\n## 🎯 CCJK (智能助手模式|Smart Assistant Mode)[\s\S]*?(?=\n## |$)/g, '')
+    content = content.replace(/\n## 🎯 CCJK (智能助手模式|Smart Assistant Mode)[\s\S]*?(?=\n## |$)/g, '');
 
-    await writeFile(claudeMdPath, content.trim(), 'utf-8')
-    return true
+    await writeFile(claudeMdPath, content.trim(), 'utf-8');
+    return true;
   }
   catch {
-    return false
+    return false;
   }
 }
 
@@ -322,18 +322,18 @@ export async function removeSmartGuide(codeTool?: CodeToolType): Promise<boolean
  * Check if smart guide is installed
  */
 export async function isSmartGuideInstalled(codeTool?: CodeToolType): Promise<boolean> {
-  const claudeMdPath = getClaudeMdPath(codeTool)
+  const claudeMdPath = getClaudeMdPath(codeTool);
 
   try {
     if (!existsSync(claudeMdPath)) {
-      return false
+      return false;
     }
 
-    const content = await readFile(claudeMdPath, 'utf-8')
-    return content.includes('CCJK 智能助手模式') || content.includes('CCJK Smart Assistant Mode')
+    const content = await readFile(claudeMdPath, 'utf-8');
+    return content.includes('CCJK 智能助手模式') || content.includes('CCJK Smart Assistant Mode');
   }
   catch {
-    return false
+    return false;
   }
 }
 
@@ -341,44 +341,44 @@ export async function isSmartGuideInstalled(codeTool?: CodeToolType): Promise<bo
  * Get localized action name
  */
 export function getActionName(action: QuickAction, lang: SupportedLang = 'en'): string {
-  return lang === 'zh-CN' ? action.nameZh : action.name
+  return lang === 'zh-CN' ? action.nameZh : action.name;
 }
 
 /**
  * Get localized action description
  */
 export function getActionDescription(action: QuickAction, lang: SupportedLang = 'en'): string {
-  return lang === 'zh-CN' ? action.descriptionZh : action.description
+  return lang === 'zh-CN' ? action.descriptionZh : action.description;
 }
 
 /**
  * Format action for menu display
  */
 export function formatActionForMenu(action: QuickAction, lang: SupportedLang = 'en'): string {
-  const name = getActionName(action, lang)
-  const desc = getActionDescription(action, lang)
-  return `${action.icon} ${action.id}. ${name} - ${desc}`
+  const name = getActionName(action, lang);
+  const desc = getActionDescription(action, lang);
+  return `${action.icon} ${action.id}. ${name} - ${desc}`;
 }
 
 /**
  * Get all actions formatted for menu
  */
-export function getAllActionsForMenu(lang: SupportedLang = 'en'): Array<{ name: string, value: number }> {
+export function getAllActionsForMenu(lang: SupportedLang = 'en'): Array<{ name: string; value: number }> {
   return QUICK_ACTIONS.map(action => ({
     name: formatActionForMenu(action, lang),
     value: action.id,
-  }))
+  }));
 }
 
 /**
  * Show Quick Actions menu
  */
 export async function showQuickActionsMenu(): Promise<void> {
-  const { default: inquirer } = await import('inquirer')
-  const { default: ansis } = await import('ansis')
+  const { default: inquirer } = await import('inquirer');
+  const { default: ansis } = await import('ansis');
 
-  console.log(ansis.cyan('\n📋 Quick Actions'))
-  console.log(generateQuickActionsPanel('en'))
+  console.log(ansis.cyan('\n📋 Quick Actions'));
+  console.log(generateQuickActionsPanel('en'));
 
   const { action } = await inquirer.prompt([{
     type: 'list',
@@ -388,14 +388,14 @@ export async function showQuickActionsMenu(): Promise<void> {
       ...getAllActionsForMenu('en'),
       { name: '← Back', value: 0 },
     ],
-  }])
+  }]);
 
   if (action === 0)
-    return
+    return;
 
-  const selectedAction = getActionByNumber(action)
+  const selectedAction = getActionByNumber(action);
   if (selectedAction) {
-    console.log(ansis.green(`\nExecuting: ${selectedAction.command}`))
+    console.log(ansis.green(`\nExecuting: ${selectedAction.command}`));
     // The command would be executed by the skill system
   }
 }
@@ -404,13 +404,13 @@ export async function showQuickActionsMenu(): Promise<void> {
  * Show Smart Guide configuration menu
  */
 export async function showSmartGuideMenu(): Promise<void> {
-  const { default: inquirer } = await import('inquirer')
-  const { default: ansis } = await import('ansis')
+  const { default: inquirer } = await import('inquirer');
+  const { default: ansis } = await import('ansis');
 
-  const installed = await isSmartGuideInstalled()
+  const installed = await isSmartGuideInstalled();
 
-  console.log(ansis.cyan('\n🎯 Smart Guide Configuration'))
-  console.log(`Status: ${installed ? ansis.green('Installed') : ansis.yellow('Not installed')}`)
+  console.log(ansis.cyan('\n🎯 Smart Guide Configuration'));
+  console.log(`Status: ${installed ? ansis.green('Installed') : ansis.yellow('Not installed')}`);
 
   const { action } = await inquirer.prompt([{
     type: 'list',
@@ -422,20 +422,20 @@ export async function showSmartGuideMenu(): Promise<void> {
       { name: '📖 View Reference Card', value: 'view' },
       { name: '← Back', value: 'back' },
     ],
-  }])
+  }]);
 
   switch (action) {
     case 'install':
-      await injectSmartGuide('en')
-      console.log(ansis.green('✓ Smart Guide installed'))
-      break
+      await injectSmartGuide('en');
+      console.log(ansis.green('✓ Smart Guide installed'));
+      break;
     case 'remove':
-      await removeSmartGuide()
-      console.log(ansis.green('✓ Smart Guide removed'))
-      break
+      await removeSmartGuide();
+      console.log(ansis.green('✓ Smart Guide removed'));
+      break;
     case 'view':
-      console.log(generateSkillReferenceCard('en'))
-      break
+      console.log(generateSkillReferenceCard('en'));
+      break;
   }
 }
 
@@ -443,10 +443,10 @@ export async function showSmartGuideMenu(): Promise<void> {
  * Show Workflows and Skills menu
  */
 export async function showWorkflowsAndSkillsMenu(): Promise<void> {
-  const { default: inquirer } = await import('inquirer')
-  const { default: ansis } = await import('ansis')
+  const { default: inquirer } = await import('inquirer');
+  const { default: ansis } = await import('ansis');
 
-  console.log(ansis.cyan('\n📋 Workflows & Skills'))
+  console.log(ansis.cyan('\n📋 Workflows & Skills'));
 
   const { action } = await inquirer.prompt([{
     type: 'list',
@@ -459,25 +459,25 @@ export async function showWorkflowsAndSkillsMenu(): Promise<void> {
       { name: '📖 Documentation Skills', value: 'docs' },
       { name: '← Back', value: 'back' },
     ],
-  }])
+  }]);
 
   if (action === 'back')
-    return
+    return;
 
   // Show skills in selected category
   const categorySkills = QUICK_ACTIONS.filter((a) => {
     switch (action) {
-      case 'dev': return [4, 6].includes(a.id) // Plan, Brainstorm
-      case 'review': return [2, 7].includes(a.id) // Review, Verify
-      case 'test': return [3, 5].includes(a.id) // Test, Debug
-      case 'docs': return [1, 8].includes(a.id) // Commit, Docs
-      default: return false
+      case 'dev': return [4, 6].includes(a.id); // Plan, Brainstorm
+      case 'review': return [2, 7].includes(a.id); // Review, Verify
+      case 'test': return [3, 5].includes(a.id); // Test, Debug
+      case 'docs': return [1, 8].includes(a.id); // Commit, Docs
+      default: return false;
     }
-  })
+  });
 
-  console.log(ansis.dim('\nAvailable skills:'))
+  console.log(ansis.dim('\nAvailable skills:'));
   for (const skill of categorySkills) {
-    console.log(`  ${skill.icon} ${skill.name} - ${skill.description}`)
+    console.log(`  ${skill.icon} ${skill.name} - ${skill.description}`);
   }
 }
 
@@ -485,10 +485,10 @@ export async function showWorkflowsAndSkillsMenu(): Promise<void> {
  * Show Output Styles menu
  */
 export async function showOutputStylesMenu(): Promise<void> {
-  const { default: inquirer } = await import('inquirer')
-  const { default: ansis } = await import('ansis')
+  const { default: inquirer } = await import('inquirer');
+  const { default: ansis } = await import('ansis');
 
-  console.log(ansis.cyan('\n🎨 Output Styles'))
+  console.log(ansis.cyan('\n🎨 Output Styles'));
 
   const { style } = await inquirer.prompt([{
     type: 'list',
@@ -501,10 +501,10 @@ export async function showOutputStylesMenu(): Promise<void> {
       { name: '🎯 Technical - Code-focused output', value: 'technical' },
       { name: '← Back', value: 'back' },
     ],
-  }])
+  }]);
 
   if (style === 'back')
-    return
+    return;
 
-  console.log(ansis.green(`\n✓ Output style set to: ${style}`))
+  console.log(ansis.green(`\n✓ Output style set to: ${style}`));
 }

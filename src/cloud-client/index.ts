@@ -6,15 +6,15 @@
  */
 
 // Import classes
-import type { CloudClient } from './client'
+import type { CloudClient } from './client';
 import type {
   BatchTemplateRequest,
   BatchTemplateResponse,
   DeviceRegistrationRequest,
   DeviceRegistrationResponse,
-  HealthCheckResponse,
   HandshakeRequest,
   HandshakeResponse,
+  HealthCheckResponse,
   ProjectAnalysisRequest,
   ProjectAnalysisResponse,
   SyncRequest,
@@ -22,26 +22,26 @@ import type {
   TemplateResponse,
   UsageReport,
   UsageReportResponse,
-} from './types'
+} from './types';
 
 // Import dependencies
-import consola from 'consola'
-import { CachedCloudClient, CloudCache } from './cache'
-import { createCloudClient } from './client'
+import consola from 'consola';
+import { CachedCloudClient, CloudCache } from './cache';
+import { createCloudClient } from './client';
 // Import recommendations
-import { getCloudMcpRecommendations, getCloudRecommendations, getCloudSkillRecommendations } from './recommendations'
+import { getCloudMcpRecommendations, getCloudRecommendations, getCloudSkillRecommendations } from './recommendations';
 
-import { RetryableCloudClient } from './retry'
-import { initializeTelemetry } from './telemetry'
+import { RetryableCloudClient } from './retry';
+import { initializeTelemetry } from './telemetry';
 
 // Import v8 Templates Client
-import { createTemplatesClient, getTemplatesClient, TemplatesClient } from './templates-client'
+import { createTemplatesClient, getTemplatesClient, TemplatesClient } from './templates-client';
 
 // Export caching
-export { CachedCloudClient, CloudCache } from './cache'
+export { CachedCloudClient, CloudCache } from './cache';
 
 // Export core client
-export { CloudClient, createCloudClient } from './client'
+export { CloudClient, createCloudClient } from './client';
 
 // Export DTO types and converters
 export type {
@@ -63,7 +63,7 @@ export type {
   TemplateDownloadData,
   TemplateParameterValue,
   WorkflowConfig,
-} from './dto'
+} from './dto';
 export {
   convertBatchTemplateResponse,
   convertConfig,
@@ -79,7 +79,7 @@ export {
   validateBatchTemplateRequest,
   validateProjectAnalysisRequest,
   validateUsageReport,
-} from './dto'
+} from './dto';
 
 // Export standardized error handling
 export {
@@ -93,15 +93,15 @@ export {
   isRateLimitError,
   isRetryableError,
   isRetryableErrorCode,
-} from './errors'
-export type { CloudErrorMetadata } from './errors'
+} from './errors';
+export type { CloudErrorMetadata } from './errors';
 
 // Miaoda backend client
 export {
   createMiaodaClient,
   MiaodaClient,
   parseResponse as parseMiaodaResponse,
-} from './miaoda-client'
+} from './miaoda-client';
 
 export type {
   LlmMessage,
@@ -112,7 +112,7 @@ export type {
   QuotaInfo,
   StreamCallbacks,
   TokenPair,
-} from './miaoda-client'
+} from './miaoda-client';
 
 // Ratings API
 export {
@@ -124,34 +124,34 @@ export {
   ratingsApi,
   RatingsApiError,
   RatingsApiErrorCode,
-} from './ratings-api.js'
+} from './ratings-api.js';
 
 // Export recommendations
 export {
   getCloudMcpRecommendations,
   getCloudRecommendations,
   getCloudSkillRecommendations,
-}
+};
 
 // Export v8 Templates Client
 export {
   createTemplatesClient,
   getTemplatesClient,
   TemplatesClient,
-}
+};
 export type {
   CreateRatingData,
   CreateRatingResponse,
   GetSkillRatingsParams,
   GetSkillRatingsResponse,
   RatingSortOption,
-} from './ratings-api.js'
+} from './ratings-api.js';
 
 // Export retry logic
-export { RetryableCloudClient, retryUtils, withRetry } from './retry'
+export { RetryableCloudClient, retryUtils, withRetry } from './retry';
 
 // Skills Marketplace API
-export { skillsMarketplaceApi } from './skills-marketplace-api.js'
+export { skillsMarketplaceApi } from './skills-marketplace-api.js';
 
 /**
  * Fallback Cloud Client with Local Fallback Support
@@ -159,12 +159,12 @@ export { skillsMarketplaceApi } from './skills-marketplace-api.js'
  * When the API is unavailable, falls back to local recommendations
  */
 export class FallbackCloudClient {
-  private client: CloudClient
-  private fallbackEnabled: boolean
+  private client: CloudClient;
+  private fallbackEnabled: boolean;
 
   constructor(client: CloudClient, fallbackEnabled = true) {
-    this.client = client
-    this.fallbackEnabled = fallbackEnabled
+    this.client = client;
+    this.fallbackEnabled = fallbackEnabled;
   }
 
   /**
@@ -172,14 +172,14 @@ export class FallbackCloudClient {
    */
   async analyzeProject(request: ProjectAnalysisRequest): Promise<ProjectAnalysisResponse> {
     try {
-      return await this.client.analyzeProject(request)
+      return await this.client.analyzeProject(request);
     }
     catch (error) {
       if (this.fallbackEnabled) {
-        consola.warn('Cloud API unavailable, using local recommendations')
-        return this.getLocalRecommendations(request)
+        consola.warn('Cloud API unavailable, using local recommendations');
+        return this.getLocalRecommendations(request);
       }
-      throw error
+      throw error;
     }
   }
 
@@ -188,14 +188,14 @@ export class FallbackCloudClient {
    */
   async getTemplate(id: string, language?: string): Promise<TemplateResponse> {
     try {
-      return await this.client.getTemplate(id, language)
+      return await this.client.getTemplate(id, language);
     }
     catch (error) {
       if (this.fallbackEnabled) {
-        consola.warn('Cloud API unavailable, using local template')
-        return this.getLocalTemplate(id, language)
+        consola.warn('Cloud API unavailable, using local template');
+        return this.getLocalTemplate(id, language);
       }
-      throw error
+      throw error;
     }
   }
 
@@ -204,14 +204,14 @@ export class FallbackCloudClient {
    */
   async getBatchTemplates(request: BatchTemplateRequest): Promise<BatchTemplateResponse> {
     try {
-      return await this.client.getBatchTemplates(request)
+      return await this.client.getBatchTemplates(request);
     }
     catch (error) {
       if (this.fallbackEnabled) {
-        consola.warn('Cloud API unavailable, using local templates')
-        return this.getLocalBatchTemplates(request)
+        consola.warn('Cloud API unavailable, using local templates');
+        return this.getLocalBatchTemplates(request);
       }
-      throw error
+      throw error;
     }
   }
 
@@ -219,26 +219,26 @@ export class FallbackCloudClient {
    * Report usage (no fallback)
    */
   async reportUsage(report: UsageReport): Promise<UsageReportResponse> {
-    return this.client.reportUsage(report)
+    return this.client.reportUsage(report);
   }
 
   async registerDevice(payload?: Partial<DeviceRegistrationRequest>): Promise<DeviceRegistrationResponse> {
-    return this.client.registerDevice(payload)
+    return this.client.registerDevice(payload);
   }
 
   async handshake(payload?: Partial<HandshakeRequest>): Promise<HandshakeResponse> {
-    return this.client.handshake(payload)
+    return this.client.handshake(payload);
   }
 
   async syncClientUsage(payload?: Partial<SyncRequest>): Promise<SyncResponse> {
-    return this.client.syncClientUsage(payload)
+    return this.client.syncClientUsage(payload);
   }
 
   /**
    * Health check (no fallback)
    */
   async healthCheck(): Promise<HealthCheckResponse> {
-    return this.client.healthCheck()
+    return this.client.healthCheck();
   }
 
   /**
@@ -246,7 +246,7 @@ export class FallbackCloudClient {
    */
   private getLocalRecommendations(request: ProjectAnalysisRequest): ProjectAnalysisResponse {
     // Basic local recommendations based on project type
-    const recommendations = []
+    const recommendations = [];
 
     // TypeScript projects
     if (request.devDependencies?.typescript || request.devDependencies?.tslib) {
@@ -258,7 +258,7 @@ export class FallbackCloudClient {
         relevanceScore: 0.9,
         installCommand: 'ccjk config switch typescript',
         tags: ['typescript', 'type-checking'],
-      })
+      });
     }
 
     // React projects
@@ -271,7 +271,7 @@ export class FallbackCloudClient {
         relevanceScore: 0.95,
         installCommand: 'ccjk config switch react',
         tags: ['react', 'jsx', 'frontend'],
-      })
+      });
     }
 
     // Node.js projects
@@ -284,7 +284,7 @@ export class FallbackCloudClient {
         relevanceScore: 0.9,
         installCommand: 'ccjk config switch nodejs',
         tags: ['nodejs', 'backend', 'server'],
-      })
+      });
     }
 
     // Git projects
@@ -297,7 +297,7 @@ export class FallbackCloudClient {
         relevanceScore: 0.8,
         installCommand: 'ccjk config switch git',
         tags: ['git', 'vcs'],
-      })
+      });
     }
 
     return {
@@ -305,7 +305,7 @@ export class FallbackCloudClient {
       recommendations,
       projectType: this.detectProjectType(request),
       frameworks: this.detectFrameworks(request),
-    }
+    };
   }
 
   /**
@@ -327,7 +327,7 @@ export class FallbackCloudClient {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       },
-    }
+    };
 
     return templates[id] || {
       id,
@@ -338,22 +338,22 @@ export class FallbackCloudClient {
       version: '1.0.0',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-    }
+    };
   }
 
   /**
    * Get local fallback batch templates
    */
   private getLocalBatchTemplates(request: BatchTemplateRequest): BatchTemplateResponse {
-    const templates: Record<string, TemplateResponse> = {}
-    const notFound: string[] = []
+    const templates: Record<string, TemplateResponse> = {};
+    const notFound: string[] = [];
 
     for (const id of request.ids) {
       try {
-        templates[id] = this.getLocalTemplate(id, request.language)
+        templates[id] = this.getLocalTemplate(id, request.language);
       }
       catch {
-        notFound.push(id)
+        notFound.push(id);
       }
     }
 
@@ -361,7 +361,7 @@ export class FallbackCloudClient {
       requestId: 'local-fallback',
       templates,
       notFound,
-    }
+    };
   }
 
   /**
@@ -369,43 +369,43 @@ export class FallbackCloudClient {
    */
   private detectProjectType(request: ProjectAnalysisRequest): string {
     if (request.dependencies?.react)
-      return 'react'
+      return 'react';
     if (request.dependencies?.vue)
-      return 'vue'
+      return 'vue';
     if (request.dependencies?.express)
-      return 'nodejs'
+      return 'nodejs';
     if (request.devDependencies?.typescript)
-      return 'typescript'
-    return 'generic'
+      return 'typescript';
+    return 'generic';
   }
 
   /**
    * Detect frameworks
    */
   private detectFrameworks(request: ProjectAnalysisRequest): string[] {
-    const frameworks: string[] = []
-    const deps = { ...request.dependencies, ...request.devDependencies }
+    const frameworks: string[] = [];
+    const deps = { ...request.dependencies, ...request.devDependencies };
 
     if (deps.react)
-      frameworks.push('react')
+      frameworks.push('react');
     if (deps.vue)
-      frameworks.push('vue')
+      frameworks.push('vue');
     if (deps.angular)
-      frameworks.push('angular')
+      frameworks.push('angular');
     if (deps.svelte)
-      frameworks.push('svelte')
+      frameworks.push('svelte');
     if (deps.express)
-      frameworks.push('express')
+      frameworks.push('express');
     if (deps.fastify)
-      frameworks.push('fastify')
+      frameworks.push('fastify');
     if (deps.typescript)
-      frameworks.push('typescript')
+      frameworks.push('typescript');
     if (deps.webpack)
-      frameworks.push('webpack')
+      frameworks.push('webpack');
     if (deps.vite)
-      frameworks.push('vite')
+      frameworks.push('vite');
 
-    return frameworks
+    return frameworks;
   }
 }
 
@@ -414,22 +414,22 @@ export class FallbackCloudClient {
  */
 export function createCompleteCloudClient(config?: Partial<import('./types').CloudClientConfig>) {
   // Create base client
-  const baseClient = createCloudClient(config)
+  const baseClient = createCloudClient(config);
 
   // Add retry wrapper
-  const retryClient = new RetryableCloudClient(baseClient)
+  const retryClient = new RetryableCloudClient(baseClient);
 
   // Add cache wrapper
-  const cache = new CloudCache(baseClient.getConfig())
-  const cachedClient = new CachedCloudClient(retryClient.getClient(), cache)
+  const cache = new CloudCache(baseClient.getConfig());
+  const cachedClient = new CachedCloudClient(retryClient.getClient(), cache);
 
   // Add fallback wrapper
-  const fallbackClient = new FallbackCloudClient(cachedClient.getClient())
+  const fallbackClient = new FallbackCloudClient(cachedClient.getClient());
 
   // Initialize telemetry
-  initializeTelemetry(baseClient)
+  initializeTelemetry(baseClient);
 
-  return fallbackClient
+  return fallbackClient;
 }
 
 /**
@@ -461,10 +461,10 @@ export type {
   TrendingParams,
   UpdateSkillRequest,
   UserSkill,
-} from './skills-marketplace-types.js'
+} from './skills-marketplace-types.js';
 
 // Unified Skills API
-export * from './skills/index.js'
+export * from './skills/index.js';
 
 // Export telemetry
 export {
@@ -474,7 +474,7 @@ export {
   TelemetryReporter,
   telemetryUtils,
   trackEvent,
-} from './telemetry'
+} from './telemetry';
 export type {
   Template,
   TemplateListResponse,
@@ -483,10 +483,10 @@ export type {
   BatchTemplateRequest as V8BatchTemplateRequest,
   BatchTemplateResponse as V8BatchTemplateResponse,
   TemplateType as V8TemplateType,
-} from './templates-client'
+} from './templates-client';
 
 // Export types
-export * from './types'
+export * from './types';
 
 // Re-export all interfaces for convenience
 export type {
@@ -504,10 +504,10 @@ export type {
   TemplateType,
   UsageReport,
   UsageReportResponse,
-} from './types'
+} from './types';
 
 // User Skills API
-export type { AuthRequestOptions } from './user-skills-api.js'
+export type { AuthRequestOptions } from './user-skills-api.js';
 export {
   canInstallMore,
   getDisabledSkills,
@@ -523,22 +523,22 @@ export {
   uninstallSkill,
   updateSkill,
   userSkillsApi,
-} from './user-skills-api.js'
+} from './user-skills-api.js';
 
 export default {
   createClient: createCompleteCloudClient,
   createCloudClient,
   createCachedClient: (config?: Partial<import('./types').CloudClientConfig>) => {
-    const client = createCloudClient(config)
-    const cache = new CloudCache(client.getConfig())
-    return new CachedCloudClient(client, cache)
+    const client = createCloudClient(config);
+    const cache = new CloudCache(client.getConfig());
+    return new CachedCloudClient(client, cache);
   },
   createRetryableClient: (config?: Partial<import('./types').CloudClientConfig>) => {
-    const client = createCloudClient(config)
-    return new RetryableCloudClient(client)
+    const client = createCloudClient(config);
+    return new RetryableCloudClient(client);
   },
   createFallbackClient: (config?: Partial<import('./types').CloudClientConfig>) => {
-    const client = createCloudClient(config)
-    return new FallbackCloudClient(client)
+    const client = createCloudClient(config);
+    return new FallbackCloudClient(client);
   },
-}
+};

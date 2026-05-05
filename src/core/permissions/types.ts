@@ -5,13 +5,13 @@
 /**
  * Permission levels
  */
-export type PermissionLevel = 'none' | 'read' | 'write' | 'full'
+export type PermissionLevel = 'none' | 'read' | 'write' | 'full';
 
 /**
  * Permission metadata
  */
 export interface PermissionMetadata {
-  [key: string]: any
+  [key: string]: any;
 }
 
 /**
@@ -19,13 +19,13 @@ export interface PermissionMetadata {
  */
 export interface Permission {
   /** Resource identifier */
-  resource: string
+  resource: string;
   /** Permission level */
-  level: PermissionLevel
+  level: PermissionLevel;
   /** Timestamp when permission was granted */
-  grantedAt: number
+  grantedAt: number;
   /** Optional metadata */
-  metadata?: PermissionMetadata
+  metadata?: PermissionMetadata;
 }
 
 /**
@@ -33,9 +33,9 @@ export interface Permission {
  */
 export interface PermissionCheckResult {
   /** Whether the permission is granted */
-  granted: boolean
+  granted: boolean;
   /** The permission level if granted */
-  level?: PermissionLevel
+  level?: PermissionLevel;
   /** Reason for the result */
-  reason?: string
+  reason?: string;
 }

@@ -19,7 +19,7 @@
  * @module core/command-groups
  */
 
-import type { CAC } from 'cac'
+import type { CAC } from 'cac';
 
 // ============================================================================
 // Types
@@ -29,35 +29,35 @@ import type { CAC } from 'cac'
  * Command group definition
  */
 export interface CommandGroup {
-  id: string
-  name: string
-  description: string
-  aliases: string[]
-  commands: CommandDefinition[]
-  hidden?: boolean
+  id: string;
+  name: string;
+  description: string;
+  aliases: string[];
+  commands: CommandDefinition[];
+  hidden?: boolean;
 }
 
 /**
  * Individual command definition
  */
 export interface CommandDefinition {
-  name: string
-  description: string
-  aliases?: string[]
-  handler: string // Module path for lazy loading
-  options?: CommandOption[]
-  hidden?: boolean
+  name: string;
+  description: string;
+  aliases?: string[];
+  handler: string; // Module path for lazy loading
+  options?: CommandOption[];
+  hidden?: boolean;
 }
 
 /**
  * Command option definition
  */
 export interface CommandOption {
-  name: string
-  description: string
-  type: 'string' | 'boolean' | 'number'
-  default?: unknown
-  required?: boolean
+  name: string;
+  description: string;
+  type: 'string' | 'boolean' | 'number';
+  default?: unknown;
+  required?: boolean;
 }
 
 // ============================================================================
@@ -472,7 +472,7 @@ export const COMMAND_GROUPS: CommandGroup[] = [
       },
     ],
   },
-]
+];
 
 // ============================================================================
 // Command Group Registry
@@ -484,14 +484,14 @@ export const COMMAND_GROUPS: CommandGroup[] = [
 export function getCommandGroup(idOrAlias: string): CommandGroup | undefined {
   return COMMAND_GROUPS.find(
     g => g.id === idOrAlias || g.aliases.includes(idOrAlias),
-  )
+  );
 }
 
 /**
  * Get all visible command groups
  */
 export function getVisibleGroups(): CommandGroup[] {
-  return COMMAND_GROUPS.filter(g => !g.hidden)
+  return COMMAND_GROUPS.filter(g => !g.hidden);
 }
 
 /**
@@ -501,28 +501,28 @@ export function getCommand(
   groupId: string,
   commandName: string,
 ): CommandDefinition | undefined {
-  const group = getCommandGroup(groupId)
+  const group = getCommandGroup(groupId);
   if (!group)
-    return undefined
+    return undefined;
 
   return group.commands.find(
     c => c.name === commandName || c.aliases?.includes(commandName),
-  )
+  );
 }
 
 /**
  * Get all commands (flattened)
  */
-export function getAllCommands(): Array<{ group: string, command: CommandDefinition }> {
-  const commands: Array<{ group: string, command: CommandDefinition }> = []
+export function getAllCommands(): Array<{ group: string; command: CommandDefinition }> {
+  const commands: Array<{ group: string; command: CommandDefinition }> = [];
 
   for (const group of COMMAND_GROUPS) {
     for (const command of group.commands) {
-      commands.push({ group: group.id, command })
+      commands.push({ group: group.id, command });
     }
   }
 
-  return commands
+  return commands;
 }
 
 // ============================================================================
@@ -535,23 +535,23 @@ export function getAllCommands(): Array<{ group: string, command: CommandDefinit
 export function registerCommandGroups(cli: CAC): void {
   for (const group of COMMAND_GROUPS) {
     if (group.hidden)
-      continue
+      continue;
 
     // Register group command
     const groupCmd = cli.command(
       `${group.id} [action] [...args]`,
       group.description,
-    )
+    );
 
     // Add aliases
     for (const alias of group.aliases) {
-      groupCmd.alias(alias)
+      groupCmd.alias(alias);
     }
 
     // Add action handler
     groupCmd.action(async (action: string | undefined, args: string[], options: Record<string, unknown>) => {
-      await handleGroupCommand(group.id, action, args, options)
-    })
+      await handleGroupCommand(group.id, action, args, options);
+    });
   }
 }
 
@@ -564,40 +564,40 @@ async function handleGroupCommand(
   args: string[],
   options: Record<string, unknown>,
 ): Promise<void> {
-  const group = getCommandGroup(groupId)
+  const group = getCommandGroup(groupId);
   if (!group) {
-    console.error(`Unknown command group: ${groupId}`)
-    return
+    console.error(`Unknown command group: ${groupId}`);
+    return;
   }
 
   // If no action, show group help
   if (!action) {
-    showGroupHelp(group)
-    return
+    showGroupHelp(group);
+    return;
   }
 
   // Find command
-  const command = getCommand(groupId, action)
+  const command = getCommand(groupId, action);
   if (!command) {
-    console.error(`Unknown command: ${groupId} ${action}`)
-    showGroupHelp(group)
-    return
+    console.error(`Unknown command: ${groupId} ${action}`);
+    showGroupHelp(group);
+    return;
   }
 
   // Lazy load and execute command handler
   try {
-    const handler = await import(`../${command.handler}`)
-    const handlerFn = handler.default || handler[`handle${capitalize(command.name)}Command`]
+    const handler = await import(`../${command.handler}`);
+    const handlerFn = handler.default || handler[`handle${capitalize(command.name)}Command`];
 
     if (typeof handlerFn === 'function') {
-      await handlerFn(args, options)
+      await handlerFn(args, options);
     }
     else {
-      console.error(`Command handler not found: ${command.handler}`)
+      console.error(`Command handler not found: ${command.handler}`);
     }
   }
   catch (error) {
-    console.error(`Failed to execute command: ${error}`)
+    console.error(`Failed to execute command: ${error}`);
   }
 }
 
@@ -605,33 +605,33 @@ async function handleGroupCommand(
  * Show help for a command group
  */
 function showGroupHelp(group: CommandGroup): void {
-  const ansis = require('ansis').default
+  const ansis = require('ansis').default;
 
-  console.log('')
-  console.log(ansis.bold(ansis.cyan(`📦 ${group.name}`)))
-  console.log(ansis.dim(group.description))
-  console.log('')
-  console.log(ansis.bold('Commands:'))
+  console.log('');
+  console.log(ansis.bold(ansis.cyan(`📦 ${group.name}`)));
+  console.log(ansis.dim(group.description));
+  console.log('');
+  console.log(ansis.bold('Commands:'));
 
   for (const cmd of group.commands) {
     if (cmd.hidden)
-      continue
+      continue;
 
-    const aliases = cmd.aliases?.length ? ansis.dim(` (${cmd.aliases.join(', ')})`) : ''
-    console.log(`  ${ansis.green(cmd.name)}${aliases}`)
-    console.log(ansis.dim(`    ${cmd.description}`))
+    const aliases = cmd.aliases?.length ? ansis.dim(` (${cmd.aliases.join(', ')})`) : '';
+    console.log(`  ${ansis.green(cmd.name)}${aliases}`);
+    console.log(ansis.dim(`    ${cmd.description}`));
   }
 
-  console.log('')
-  console.log(ansis.dim(`Usage: ccjk ${group.id} <command> [options]`))
-  console.log('')
+  console.log('');
+  console.log(ansis.dim(`Usage: ccjk ${group.id} <command> [options]`));
+  console.log('');
 }
 
 /**
  * Capitalize first letter
  */
 function capitalize(str: string): string {
-  return str.charAt(0).toUpperCase() + str.slice(1)
+  return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
 // ============================================================================
@@ -642,32 +642,32 @@ function capitalize(str: string): string {
  * Generate main help text
  */
 export function generateMainHelp(): string {
-  const ansis = require('ansis').default
-  const lines: string[] = []
+  const ansis = require('ansis').default;
+  const lines: string[] = [];
 
-  lines.push('')
-  lines.push(ansis.bold(ansis.cyan('🚀 CCJK - Claude Code Enhancement Layer')))
-  lines.push(ansis.dim('"Not replacement, but enhancement"'))
-  lines.push('')
-  lines.push(ansis.bold('Command Groups:'))
-  lines.push('')
+  lines.push('');
+  lines.push(ansis.bold(ansis.cyan('🚀 CCJK - Claude Code Enhancement Layer')));
+  lines.push(ansis.dim('"Not replacement, but enhancement"'));
+  lines.push('');
+  lines.push(ansis.bold('Command Groups:'));
+  lines.push('');
 
   for (const group of getVisibleGroups()) {
-    const aliases = group.aliases.length ? ansis.dim(` (${group.aliases.join(', ')})`) : ''
-    lines.push(`  ${ansis.green(group.id)}${aliases}`)
-    lines.push(ansis.dim(`    ${group.description}`))
+    const aliases = group.aliases.length ? ansis.dim(` (${group.aliases.join(', ')})`) : '';
+    lines.push(`  ${ansis.green(group.id)}${aliases}`);
+    lines.push(ansis.dim(`    ${group.description}`));
   }
 
-  lines.push('')
-  lines.push(ansis.bold('Quick Start:'))
-  lines.push(ansis.dim('  ccjk init full      # Full initialization'))
-  lines.push(ansis.dim('  ccjk init quick     # Quick setup'))
-  lines.push(ansis.dim('  ccjk mcp install    # Install MCP service'))
-  lines.push(ansis.dim('  ccjk skills create  # Create a new skill'))
-  lines.push('')
-  lines.push(ansis.dim('Run "ccjk <group>" to see group commands'))
-  lines.push(ansis.dim('Run "ccjk <group> <command> --help" for command help'))
-  lines.push('')
+  lines.push('');
+  lines.push(ansis.bold('Quick Start:'));
+  lines.push(ansis.dim('  ccjk init full      # Full initialization'));
+  lines.push(ansis.dim('  ccjk init quick     # Quick setup'));
+  lines.push(ansis.dim('  ccjk mcp install    # Install MCP service'));
+  lines.push(ansis.dim('  ccjk skills create  # Create a new skill'));
+  lines.push('');
+  lines.push(ansis.dim('Run "ccjk <group>" to see group commands'));
+  lines.push(ansis.dim('Run "ccjk <group> <command> --help" for command help'));
+  lines.push('');
 
-  return lines.join('\n')
+  return lines.join('\n');
 }

@@ -19,15 +19,15 @@
  */
 export interface UsageStats {
   /** Estimated total tokens used in current context */
-  estimatedTokens: number
+  estimatedTokens: number;
   /** Maximum tokens allowed in context window */
-  maxTokens: number
+  maxTokens: number;
   /** Percentage of context window used (0-100) */
-  usagePercentage: number
+  usagePercentage: number;
   /** Number of conversation turns tracked */
-  turnCount: number
+  turnCount: number;
   /** Timestamp of last compaction, null if never compacted */
-  lastCompactedAt: Date | null
+  lastCompactedAt: Date | null;
 }
 
 /**
@@ -35,28 +35,28 @@ export interface UsageStats {
  */
 export interface ContextOverflowConfig {
   /** Maximum tokens in context window (default: 200000 for Claude) */
-  maxTokens?: number
+  maxTokens?: number;
   /** Warning threshold percentage (default: 80) */
-  warningThreshold?: number
+  warningThreshold?: number;
   /** Critical threshold percentage (default: 90) */
-  criticalThreshold?: number
+  criticalThreshold?: number;
   /** Characters per token approximation (default: 4) */
-  charsPerToken?: number
+  charsPerToken?: number;
   /** Callback when warning threshold is reached */
-  onWarning?: (stats: UsageStats) => void
+  onWarning?: (stats: UsageStats) => void;
   /** Callback when critical threshold is reached */
-  onCritical?: (stats: UsageStats) => void
+  onCritical?: (stats: UsageStats) => void;
   /** Callback for auto-compact triggering */
-  onAutoCompact?: (stats: UsageStats) => Promise<void> | void
+  onAutoCompact?: (stats: UsageStats) => Promise<void> | void;
 }
 
 /**
  * Turn data for tracking individual conversation turns
  */
 interface TurnData {
-  inputTokens: number
-  outputTokens: number
-  timestamp: Date
+  inputTokens: number;
+  outputTokens: number;
+  timestamp: Date;
 }
 
 /**
@@ -69,7 +69,7 @@ const DEFAULT_CONFIG: Required<Omit<ContextOverflowConfig, 'onWarning' | 'onCrit
   warningThreshold: 70,
   criticalThreshold: 85,
   charsPerToken: 4, // tiktoken-like approximation
-}
+};
 
 /**
  * Proactive context overflow detector
@@ -96,14 +96,14 @@ const DEFAULT_CONFIG: Required<Omit<ContextOverflowConfig, 'onWarning' | 'onCrit
  * ```
  */
 export class ContextOverflowDetector {
-  private config: Required<Omit<ContextOverflowConfig, 'onWarning' | 'onCritical' | 'onAutoCompact'>>
-  private callbacks: Pick<ContextOverflowConfig, 'onWarning' | 'onCritical' | 'onAutoCompact'>
-  private turns: TurnData[] = []
-  private totalInputTokens = 0
-  private totalOutputTokens = 0
-  private lastCompactedAt: Date | null = null
-  private warningTriggered = false
-  private criticalTriggered = false
+  private config: Required<Omit<ContextOverflowConfig, 'onWarning' | 'onCritical' | 'onAutoCompact'>>;
+  private callbacks: Pick<ContextOverflowConfig, 'onWarning' | 'onCritical' | 'onAutoCompact'>;
+  private turns: TurnData[] = [];
+  private totalInputTokens = 0;
+  private totalOutputTokens = 0;
+  private lastCompactedAt: Date | null = null;
+  private warningTriggered = false;
+  private criticalTriggered = false;
 
   constructor(config: ContextOverflowConfig = {}) {
     this.config = {
@@ -111,12 +111,12 @@ export class ContextOverflowDetector {
       warningThreshold: config.warningThreshold ?? DEFAULT_CONFIG.warningThreshold,
       criticalThreshold: config.criticalThreshold ?? DEFAULT_CONFIG.criticalThreshold,
       charsPerToken: config.charsPerToken ?? DEFAULT_CONFIG.charsPerToken,
-    }
+    };
     this.callbacks = {
       onWarning: config.onWarning,
       onCritical: config.onCritical,
       onAutoCompact: config.onAutoCompact,
-    }
+    };
   }
 
   /**
@@ -131,44 +131,44 @@ export class ContextOverflowDetector {
    */
   estimateTokenCount(text: string): number {
     if (!text || text.length === 0) {
-      return 0
+      return 0;
     }
 
     // Base estimation: chars / charsPerToken
-    const baseEstimate = Math.ceil(text.length / this.config.charsPerToken)
+    const baseEstimate = Math.ceil(text.length / this.config.charsPerToken);
 
     // Adjust for special patterns that typically use more tokens
-    let adjustment = 0
+    let adjustment = 0;
 
     // Code blocks tend to have more tokens due to syntax
-    const codeBlockMatches = text.match(/```[\s\S]*?```/g)
+    const codeBlockMatches = text.match(/```[\s\S]*?```/g);
     if (codeBlockMatches) {
       // Code typically has ~20% more tokens than plain text
-      const codeLength = codeBlockMatches.reduce((sum, block) => sum + block.length, 0)
-      adjustment += Math.ceil(codeLength * 0.05 / this.config.charsPerToken)
+      const codeLength = codeBlockMatches.reduce((sum, block) => sum + block.length, 0);
+      adjustment += Math.ceil(codeLength * 0.05 / this.config.charsPerToken);
     }
 
     // URLs and paths tend to tokenize poorly
-    const urlMatches = text.match(/https?:\/\/\S+/g)
+    const urlMatches = text.match(/https?:\/\/\S+/g);
     if (urlMatches) {
-      const urlLength = urlMatches.reduce((sum, url) => sum + url.length, 0)
-      adjustment += Math.ceil(urlLength * 0.1 / this.config.charsPerToken)
+      const urlLength = urlMatches.reduce((sum, url) => sum + url.length, 0);
+      adjustment += Math.ceil(urlLength * 0.1 / this.config.charsPerToken);
     }
 
     // JSON/structured data has more tokens
-    const jsonMatches = text.match(/\{[\s\S]*?\}/g)
+    const jsonMatches = text.match(/\{[\s\S]*?\}/g);
     if (jsonMatches) {
-      const jsonLength = jsonMatches.reduce((sum, json) => sum + json.length, 0)
-      adjustment += Math.ceil(jsonLength * 0.05 / this.config.charsPerToken)
+      const jsonLength = jsonMatches.reduce((sum, json) => sum + json.length, 0);
+      adjustment += Math.ceil(jsonLength * 0.05 / this.config.charsPerToken);
     }
 
     // Whitespace-heavy content (indentation) uses fewer tokens
-    const whitespaceRatio = (text.match(/\s/g)?.length ?? 0) / text.length
+    const whitespaceRatio = (text.match(/\s/g)?.length ?? 0) / text.length;
     if (whitespaceRatio > 0.3) {
-      adjustment -= Math.ceil(baseEstimate * 0.05)
+      adjustment -= Math.ceil(baseEstimate * 0.05);
     }
 
-    return Math.max(1, baseEstimate + adjustment)
+    return Math.max(1, baseEstimate + adjustment);
   }
 
   /**
@@ -181,20 +181,20 @@ export class ContextOverflowDetector {
    * @param output - Assistant output text
    */
   trackUsage(input: string, output: string): void {
-    const inputTokens = this.estimateTokenCount(input)
-    const outputTokens = this.estimateTokenCount(output)
+    const inputTokens = this.estimateTokenCount(input);
+    const outputTokens = this.estimateTokenCount(output);
 
     this.turns.push({
       inputTokens,
       outputTokens,
       timestamp: new Date(),
-    })
+    });
 
-    this.totalInputTokens += inputTokens
-    this.totalOutputTokens += outputTokens
+    this.totalInputTokens += inputTokens;
+    this.totalOutputTokens += outputTokens;
 
     // Check thresholds and trigger callbacks
-    this.checkThresholds()
+    this.checkThresholds();
   }
 
   /**
@@ -204,9 +204,9 @@ export class ContextOverflowDetector {
    * @returns True if usage exceeds the threshold
    */
   isApproachingLimit(threshold?: number): boolean {
-    const effectiveThreshold = threshold ?? this.config.warningThreshold
-    const stats = this.getUsageStats()
-    return stats.usagePercentage >= effectiveThreshold
+    const effectiveThreshold = threshold ?? this.config.warningThreshold;
+    const stats = this.getUsageStats();
+    return stats.usagePercentage >= effectiveThreshold;
   }
 
   /**
@@ -215,8 +215,8 @@ export class ContextOverflowDetector {
    * @returns Current usage stats including tokens, percentage, and turn count
    */
   getUsageStats(): UsageStats {
-    const estimatedTokens = this.totalInputTokens + this.totalOutputTokens
-    const usagePercentage = (estimatedTokens / this.config.maxTokens) * 100
+    const estimatedTokens = this.totalInputTokens + this.totalOutputTokens;
+    const usagePercentage = (estimatedTokens / this.config.maxTokens) * 100;
 
     return {
       estimatedTokens,
@@ -224,7 +224,7 @@ export class ContextOverflowDetector {
       usagePercentage: Math.min(100, Math.round(usagePercentage * 100) / 100),
       turnCount: this.turns.length,
       lastCompactedAt: this.lastCompactedAt,
-    }
+    };
   }
 
   /**
@@ -237,20 +237,20 @@ export class ContextOverflowDetector {
    * @returns True if compaction is recommended
    */
   suggestCompaction(): boolean {
-    const stats = this.getUsageStats()
+    const stats = this.getUsageStats();
 
     // Always suggest at critical threshold
     if (stats.usagePercentage >= this.config.criticalThreshold) {
-      return true
+      return true;
     }
 
     // Suggest at warning threshold if many turns since last compaction
     if (stats.usagePercentage >= this.config.warningThreshold) {
-      const turnsSinceCompaction = this.getTurnsSinceCompaction()
-      return turnsSinceCompaction >= 10
+      const turnsSinceCompaction = this.getTurnsSinceCompaction();
+      return turnsSinceCompaction >= 10;
     }
 
-    return false
+    return false;
   }
 
   /**
@@ -260,11 +260,11 @@ export class ContextOverflowDetector {
    * Does not reset the lastCompactedAt timestamp.
    */
   reset(): void {
-    this.turns = []
-    this.totalInputTokens = 0
-    this.totalOutputTokens = 0
-    this.warningTriggered = false
-    this.criticalTriggered = false
+    this.turns = [];
+    this.totalInputTokens = 0;
+    this.totalOutputTokens = 0;
+    this.warningTriggered = false;
+    this.criticalTriggered = false;
   }
 
   /**
@@ -274,9 +274,9 @@ export class ContextOverflowDetector {
    * threshold triggers to allow re-triggering.
    */
   markCompacted(): void {
-    this.lastCompactedAt = new Date()
-    this.warningTriggered = false
-    this.criticalTriggered = false
+    this.lastCompactedAt = new Date();
+    this.warningTriggered = false;
+    this.criticalTriggered = false;
   }
 
   /**
@@ -285,7 +285,7 @@ export class ContextOverflowDetector {
    * @returns Array of turn data with token counts and timestamps
    */
   getTurnBreakdown(): ReadonlyArray<Readonly<TurnData>> {
-    return this.turns.map(turn => ({ ...turn }))
+    return this.turns.map(turn => ({ ...turn }));
   }
 
   /**
@@ -295,10 +295,10 @@ export class ContextOverflowDetector {
    */
   getAverageTokensPerTurn(): number {
     if (this.turns.length === 0) {
-      return 0
+      return 0;
     }
-    const stats = this.getUsageStats()
-    return Math.round(stats.estimatedTokens / this.turns.length)
+    const stats = this.getUsageStats();
+    return Math.round(stats.estimatedTokens / this.turns.length);
   }
 
   /**
@@ -308,22 +308,22 @@ export class ContextOverflowDetector {
    * @returns Estimated number of turns remaining
    */
   estimateRemainingTurns(targetPercentage?: number): number {
-    const target = targetPercentage ?? this.config.criticalThreshold
-    const avgTokensPerTurn = this.getAverageTokensPerTurn()
+    const target = targetPercentage ?? this.config.criticalThreshold;
+    const avgTokensPerTurn = this.getAverageTokensPerTurn();
 
     if (avgTokensPerTurn === 0) {
-      return Number.POSITIVE_INFINITY
+      return Number.POSITIVE_INFINITY;
     }
 
-    const stats = this.getUsageStats()
-    const targetTokens = (target / 100) * this.config.maxTokens
-    const remainingTokens = targetTokens - stats.estimatedTokens
+    const stats = this.getUsageStats();
+    const targetTokens = (target / 100) * this.config.maxTokens;
+    const remainingTokens = targetTokens - stats.estimatedTokens;
 
     if (remainingTokens <= 0) {
-      return 0
+      return 0;
     }
 
-    return Math.floor(remainingTokens / avgTokensPerTurn)
+    return Math.floor(remainingTokens / avgTokensPerTurn);
   }
 
   /**
@@ -333,25 +333,25 @@ export class ContextOverflowDetector {
    */
   updateConfig(newConfig: Partial<ContextOverflowConfig>): void {
     if (newConfig.maxTokens !== undefined) {
-      this.config.maxTokens = newConfig.maxTokens
+      this.config.maxTokens = newConfig.maxTokens;
     }
     if (newConfig.warningThreshold !== undefined) {
-      this.config.warningThreshold = newConfig.warningThreshold
+      this.config.warningThreshold = newConfig.warningThreshold;
     }
     if (newConfig.criticalThreshold !== undefined) {
-      this.config.criticalThreshold = newConfig.criticalThreshold
+      this.config.criticalThreshold = newConfig.criticalThreshold;
     }
     if (newConfig.charsPerToken !== undefined) {
-      this.config.charsPerToken = newConfig.charsPerToken
+      this.config.charsPerToken = newConfig.charsPerToken;
     }
     if (newConfig.onWarning !== undefined) {
-      this.callbacks.onWarning = newConfig.onWarning
+      this.callbacks.onWarning = newConfig.onWarning;
     }
     if (newConfig.onCritical !== undefined) {
-      this.callbacks.onCritical = newConfig.onCritical
+      this.callbacks.onCritical = newConfig.onCritical;
     }
     if (newConfig.onAutoCompact !== undefined) {
-      this.callbacks.onAutoCompact = newConfig.onAutoCompact
+      this.callbacks.onAutoCompact = newConfig.onAutoCompact;
     }
   }
 
@@ -359,25 +359,25 @@ export class ContextOverflowDetector {
    * Check thresholds and trigger callbacks
    */
   private checkThresholds(): void {
-    const stats = this.getUsageStats()
+    const stats = this.getUsageStats();
 
     // Check critical threshold first
     if (stats.usagePercentage >= this.config.criticalThreshold) {
       if (!this.criticalTriggered) {
-        this.criticalTriggered = true
-        this.callbacks.onCritical?.(stats)
+        this.criticalTriggered = true;
+        this.callbacks.onCritical?.(stats);
 
         // Trigger auto-compact at critical level
         if (this.callbacks.onAutoCompact) {
-          void Promise.resolve(this.callbacks.onAutoCompact(stats))
+          void Promise.resolve(this.callbacks.onAutoCompact(stats));
         }
       }
     }
     // Then check warning threshold
     else if (stats.usagePercentage >= this.config.warningThreshold) {
       if (!this.warningTriggered) {
-        this.warningTriggered = true
-        this.callbacks.onWarning?.(stats)
+        this.warningTriggered = true;
+        this.callbacks.onWarning?.(stats);
       }
     }
   }
@@ -387,10 +387,10 @@ export class ContextOverflowDetector {
    */
   private getTurnsSinceCompaction(): number {
     if (!this.lastCompactedAt) {
-      return this.turns.length
+      return this.turns.length;
     }
 
-    return this.turns.filter(turn => turn.timestamp > this.lastCompactedAt!).length
+    return this.turns.filter(turn => turn.timestamp > this.lastCompactedAt!).length;
   }
 }
 
@@ -406,7 +406,7 @@ export function createClaudeDetector(config?: Partial<ContextOverflowConfig>): C
     warningThreshold: 80,
     criticalThreshold: 90,
     ...config,
-  })
+  });
 }
 
 /**
@@ -421,7 +421,7 @@ export function createGPT4Detector(config?: Partial<ContextOverflowConfig>): Con
     warningThreshold: 80,
     criticalThreshold: 90,
     ...config,
-  })
+  });
 }
 
 /**
@@ -440,7 +440,7 @@ export function createCustomDetector(
     warningThreshold: 80,
     criticalThreshold: 90,
     ...config,
-  })
+  });
 }
 
 // ============================================================================
@@ -452,72 +452,72 @@ export function createCustomDetector(
  */
 export interface OverflowPrediction {
   /** Predicted turns until warning threshold */
-  turnsUntilWarning: number
+  turnsUntilWarning: number;
   /** Predicted turns until critical threshold */
-  turnsUntilCritical: number
+  turnsUntilCritical: number;
   /** Predicted turns until overflow */
-  turnsUntilOverflow: number
+  turnsUntilOverflow: number;
   /** Confidence level (0-1) based on data points */
-  confidence: number
+  confidence: number;
   /** Recommended action */
-  recommendation: 'none' | 'prepare' | 'compact_soon' | 'compact_now'
+  recommendation: 'none' | 'prepare' | 'compact_soon' | 'compact_now';
   /** Current usage trend */
-  trend: 'stable' | 'increasing' | 'decreasing'
+  trend: 'stable' | 'increasing' | 'decreasing';
 }
 
 /**
  * Enhanced detector with predictive capabilities
  */
 export class PredictiveContextDetector extends ContextOverflowDetector {
-  private recentTokenRates: number[] = []
-  private readonly maxRateSamples = 10
+  private recentTokenRates: number[] = [];
+  private readonly maxRateSamples = 10;
 
   /**
    * Track usage with rate calculation
    */
   override trackUsage(input: string, output: string): void {
-    const inputTokens = this.estimateTokenCount(input)
-    const outputTokens = this.estimateTokenCount(output)
-    const totalTokens = inputTokens + outputTokens
+    const inputTokens = this.estimateTokenCount(input);
+    const outputTokens = this.estimateTokenCount(output);
+    const totalTokens = inputTokens + outputTokens;
 
     // Track token rate
-    this.recentTokenRates.push(totalTokens)
+    this.recentTokenRates.push(totalTokens);
     if (this.recentTokenRates.length > this.maxRateSamples) {
-      this.recentTokenRates.shift()
+      this.recentTokenRates.shift();
     }
 
-    super.trackUsage(input, output)
+    super.trackUsage(input, output);
   }
 
   /**
    * Get overflow prediction
    */
   predictOverflow(): OverflowPrediction {
-    const stats = this.getUsageStats()
-    const avgTokensPerTurn = this.getAverageTokensPerTurn()
+    const stats = this.getUsageStats();
+    const avgTokensPerTurn = this.getAverageTokensPerTurn();
 
     // Calculate confidence based on data points
-    const confidence = Math.min(1, this.recentTokenRates.length / this.maxRateSamples)
+    const confidence = Math.min(1, this.recentTokenRates.length / this.maxRateSamples);
 
     // Calculate trend
-    const trend = this.calculateTrend()
+    const trend = this.calculateTrend();
 
     // Calculate turns until thresholds
-    const turnsUntilWarning = this.calculateTurnsUntil(80, avgTokensPerTurn, stats)
-    const turnsUntilCritical = this.calculateTurnsUntil(90, avgTokensPerTurn, stats)
-    const turnsUntilOverflow = this.calculateTurnsUntil(100, avgTokensPerTurn, stats)
+    const turnsUntilWarning = this.calculateTurnsUntil(80, avgTokensPerTurn, stats);
+    const turnsUntilCritical = this.calculateTurnsUntil(90, avgTokensPerTurn, stats);
+    const turnsUntilOverflow = this.calculateTurnsUntil(100, avgTokensPerTurn, stats);
 
     // Determine recommendation
-    let recommendation: OverflowPrediction['recommendation'] = 'none'
+    let recommendation: OverflowPrediction['recommendation'] = 'none';
 
     if (stats.usagePercentage >= 90) {
-      recommendation = 'compact_now'
+      recommendation = 'compact_now';
     }
     else if (stats.usagePercentage >= 80 || turnsUntilCritical <= 3) {
-      recommendation = 'compact_soon'
+      recommendation = 'compact_soon';
     }
     else if (stats.usagePercentage >= 70 || turnsUntilWarning <= 5) {
-      recommendation = 'prepare'
+      recommendation = 'prepare';
     }
 
     return {
@@ -527,7 +527,7 @@ export class PredictiveContextDetector extends ContextOverflowDetector {
       confidence,
       recommendation,
       trend,
-    }
+    };
   }
 
   /**
@@ -539,17 +539,17 @@ export class PredictiveContextDetector extends ContextOverflowDetector {
     stats: UsageStats,
   ): number {
     if (avgTokensPerTurn === 0) {
-      return Number.POSITIVE_INFINITY
+      return Number.POSITIVE_INFINITY;
     }
 
-    const targetTokens = (targetPercentage / 100) * stats.maxTokens
-    const remainingTokens = targetTokens - stats.estimatedTokens
+    const targetTokens = (targetPercentage / 100) * stats.maxTokens;
+    const remainingTokens = targetTokens - stats.estimatedTokens;
 
     if (remainingTokens <= 0) {
-      return 0
+      return 0;
     }
 
-    return Math.floor(remainingTokens / avgTokensPerTurn)
+    return Math.floor(remainingTokens / avgTokensPerTurn);
   }
 
   /**
@@ -557,37 +557,37 @@ export class PredictiveContextDetector extends ContextOverflowDetector {
    */
   private calculateTrend(): OverflowPrediction['trend'] {
     if (this.recentTokenRates.length < 3) {
-      return 'stable'
+      return 'stable';
     }
 
-    const recent = this.recentTokenRates.slice(-3)
-    const older = this.recentTokenRates.slice(0, -3)
+    const recent = this.recentTokenRates.slice(-3);
+    const older = this.recentTokenRates.slice(0, -3);
 
     if (older.length === 0) {
-      return 'stable'
+      return 'stable';
     }
 
-    const recentAvg = recent.reduce((a, b) => a + b, 0) / recent.length
-    const olderAvg = older.reduce((a, b) => a + b, 0) / older.length
+    const recentAvg = recent.reduce((a, b) => a + b, 0) / recent.length;
+    const olderAvg = older.reduce((a, b) => a + b, 0) / older.length;
 
-    const changePercent = ((recentAvg - olderAvg) / olderAvg) * 100
+    const changePercent = ((recentAvg - olderAvg) / olderAvg) * 100;
 
     if (changePercent > 10) {
-      return 'increasing'
+      return 'increasing';
     }
     else if (changePercent < -10) {
-      return 'decreasing'
+      return 'decreasing';
     }
 
-    return 'stable'
+    return 'stable';
   }
 
   /**
    * Reset with rate tracking
    */
   override reset(): void {
-    super.reset()
-    this.recentTokenRates = []
+    super.reset();
+    this.recentTokenRates = [];
   }
 }
 
@@ -602,14 +602,14 @@ export function createPredictiveClaudeDetector(
     warningThreshold: 80,
     criticalThreshold: 90,
     ...config,
-  })
+  });
 }
 
 // ============================================================================
 // Singleton Instance
 // ============================================================================
 
-let contextDetectorInstance: PredictiveContextDetector | null = null
+let contextDetectorInstance: PredictiveContextDetector | null = null;
 
 /**
  * Get the singleton context detector instance
@@ -618,14 +618,14 @@ export function getContextDetector(
   config?: Partial<ContextOverflowConfig>,
 ): PredictiveContextDetector {
   if (!contextDetectorInstance) {
-    contextDetectorInstance = createPredictiveClaudeDetector(config)
+    contextDetectorInstance = createPredictiveClaudeDetector(config);
   }
-  return contextDetectorInstance
+  return contextDetectorInstance;
 }
 
 /**
  * Reset the singleton instance (for testing)
  */
 export function resetContextDetector(): void {
-  contextDetectorInstance = null
+  contextDetectorInstance = null;
 }

@@ -5,37 +5,37 @@
 /**
  * API provider identifier
  */
-export type ApiProvider = '302ai' | 'glm' | 'minimax' | 'kimi' | 'anthropic' | 'openai' | 'custom' | string
+export type ApiProvider = '302ai' | 'glm' | 'minimax' | 'kimi' | 'anthropic' | 'openai' | 'custom' | string;
 
 /**
  * Time period for statistics
  */
-export type StatsPeriod = '1d' | '7d' | '30d' | '90d' | 'all'
+export type StatsPeriod = '1d' | '7d' | '30d' | '90d' | 'all';
 
 /**
  * Single request record
  */
 export interface RequestRecord {
   /** Timestamp of the request */
-  timestamp: number
+  timestamp: number;
   /** API provider used */
-  provider: ApiProvider
+  provider: ApiProvider;
   /** Model used for the request */
-  model?: string
+  model?: string;
   /** Input tokens consumed */
-  inputTokens: number
+  inputTokens: number;
   /** Output tokens generated */
-  outputTokens: number
+  outputTokens: number;
   /** Total tokens (input + output) */
-  totalTokens: number
+  totalTokens: number;
   /** Request latency in milliseconds */
-  latency: number
+  latency: number;
   /** Whether the request was successful */
-  success: boolean
+  success: boolean;
   /** Error message if failed */
-  error?: string
+  error?: string;
   /** Estimated cost in USD */
-  cost?: number
+  cost?: number;
 }
 
 /**
@@ -43,25 +43,25 @@ export interface RequestRecord {
  */
 export interface DailyStats {
   /** Date in YYYY-MM-DD format */
-  date: string
+  date: string;
   /** Total number of requests */
-  totalRequests: number
+  totalRequests: number;
   /** Number of successful requests */
-  successfulRequests: number
+  successfulRequests: number;
   /** Number of failed requests */
-  failedRequests: number
+  failedRequests: number;
   /** Total input tokens */
-  totalInputTokens: number
+  totalInputTokens: number;
   /** Total output tokens */
-  totalOutputTokens: number
+  totalOutputTokens: number;
   /** Total tokens */
-  totalTokens: number
+  totalTokens: number;
   /** Total estimated cost */
-  totalCost: number
+  totalCost: number;
   /** Average latency in milliseconds */
-  averageLatency: number
+  averageLatency: number;
   /** Provider breakdown */
-  providerStats: Record<ApiProvider, ProviderDailyStats>
+  providerStats: Record<ApiProvider, ProviderDailyStats>;
 }
 
 /**
@@ -69,21 +69,21 @@ export interface DailyStats {
  */
 export interface ProviderDailyStats {
   /** Provider identifier */
-  provider: ApiProvider
+  provider: ApiProvider;
   /** Number of requests */
-  requests: number
+  requests: number;
   /** Input tokens */
-  inputTokens: number
+  inputTokens: number;
   /** Output tokens */
-  outputTokens: number
+  outputTokens: number;
   /** Total tokens */
-  totalTokens: number
+  totalTokens: number;
   /** Estimated cost */
-  cost: number
+  cost: number;
   /** Average latency */
-  averageLatency: number
+  averageLatency: number;
   /** Success rate (0-1) */
-  successRate: number
+  successRate: number;
 }
 
 /**
@@ -91,33 +91,33 @@ export interface ProviderDailyStats {
  */
 export interface AggregatedStats {
   /** Time period */
-  period: StatsPeriod
+  period: StatsPeriod;
   /** Start timestamp */
-  startTime: number
+  startTime: number;
   /** End timestamp */
-  endTime: number
+  endTime: number;
   /** Total number of requests */
-  totalRequests: number
+  totalRequests: number;
   /** Number of successful requests */
-  successfulRequests: number
+  successfulRequests: number;
   /** Number of failed requests */
-  failedRequests: number
+  failedRequests: number;
   /** Success rate (0-1) */
-  successRate: number
+  successRate: number;
   /** Total input tokens */
-  totalInputTokens: number
+  totalInputTokens: number;
   /** Total output tokens */
-  totalOutputTokens: number
+  totalOutputTokens: number;
   /** Total tokens */
-  totalTokens: number
+  totalTokens: number;
   /** Total estimated cost in USD */
-  totalCost: number
+  totalCost: number;
   /** Average latency in milliseconds */
-  averageLatency: number
+  averageLatency: number;
   /** Provider breakdown */
-  providerStats: ProviderStats[]
+  providerStats: ProviderStats[];
   /** Daily breakdown */
-  dailyStats: DailyStats[]
+  dailyStats: DailyStats[];
 }
 
 /**
@@ -125,44 +125,44 @@ export interface AggregatedStats {
  */
 export interface ProviderStats {
   /** Provider identifier */
-  provider: ApiProvider
+  provider: ApiProvider;
   /** Number of requests */
-  requests: number
+  requests: number;
   /** Percentage of total requests (0-100) */
-  percentage: number
+  percentage: number;
   /** Input tokens */
-  inputTokens: number
+  inputTokens: number;
   /** Output tokens */
-  outputTokens: number
+  outputTokens: number;
   /** Total tokens */
-  totalTokens: number
+  totalTokens: number;
   /** Estimated cost */
-  cost: number
+  cost: number;
   /** Average latency */
-  averageLatency: number
+  averageLatency: number;
   /** Success rate (0-1) */
-  successRate: number
+  successRate: number;
 }
 
 /**
  * Statistics export format
  */
-export type ExportFormat = 'json' | 'csv' | 'markdown'
+export type ExportFormat = 'json' | 'csv' | 'markdown';
 
 /**
  * Statistics query options
  */
 export interface StatsQueryOptions {
   /** Time period to query */
-  period?: StatsPeriod
+  period?: StatsPeriod;
   /** Specific provider to filter */
-  provider?: ApiProvider
+  provider?: ApiProvider;
   /** Start date (YYYY-MM-DD) */
-  startDate?: string
+  startDate?: string;
   /** End date (YYYY-MM-DD) */
-  endDate?: string
+  endDate?: string;
   /** Include detailed daily breakdown */
-  includeDaily?: boolean
+  includeDaily?: boolean;
 }
 
 /**
@@ -170,11 +170,11 @@ export interface StatsQueryOptions {
  */
 export interface StatsExportOptions {
   /** Export format */
-  format: ExportFormat
+  format: ExportFormat;
   /** Output file path */
-  outputPath?: string
+  outputPath?: string;
   /** Query options */
-  query?: StatsQueryOptions
+  query?: StatsQueryOptions;
 }
 
 /**
@@ -182,13 +182,13 @@ export interface StatsExportOptions {
  */
 export interface CostConfig {
   /** Provider identifier */
-  provider: ApiProvider
+  provider: ApiProvider;
   /** Model name */
-  model?: string
+  model?: string;
   /** Cost per 1M input tokens in USD */
-  inputCostPer1M: number
+  inputCostPer1M: number;
   /** Cost per 1M output tokens in USD */
-  outputCostPer1M: number
+  outputCostPer1M: number;
 }
 
 /**
@@ -233,4 +233,4 @@ export const DEFAULT_COST_CONFIGS: Record<string, CostConfig> = {
     inputCostPer1M: 0.5,
     outputCostPer1M: 0.5,
   },
-}
+};

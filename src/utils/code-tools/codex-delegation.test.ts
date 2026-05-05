@@ -1,26 +1,26 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest';
 
 const featureDelegates = vi.hoisted(() => ({
   configureCodexAiMemoryFeature: vi.fn(async () => {}),
   configureCodexDefaultModelFeature: vi.fn(async () => {}),
-}))
+}));
 
-vi.mock('../features', () => featureDelegates)
+vi.mock('../features', () => featureDelegates);
 
 describe('codex feature delegation', () => {
   it('delegates Codex memory configuration to the richer shared feature flow', async () => {
-    const { configureCodexAiMemoryFeature } = await import('./codex')
+    const { configureCodexAiMemoryFeature } = await import('./codex');
 
-    await configureCodexAiMemoryFeature()
+    await configureCodexAiMemoryFeature();
 
-    expect(featureDelegates.configureCodexAiMemoryFeature).toHaveBeenCalledTimes(1)
-  })
+    expect(featureDelegates.configureCodexAiMemoryFeature).toHaveBeenCalledTimes(1);
+  });
 
   it('delegates Codex model configuration to the richer shared feature flow', async () => {
-    const { configureCodexDefaultModelFeature } = await import('./codex')
+    const { configureCodexDefaultModelFeature } = await import('./codex');
 
-    await configureCodexDefaultModelFeature()
+    await configureCodexDefaultModelFeature();
 
-    expect(featureDelegates.configureCodexDefaultModelFeature).toHaveBeenCalledTimes(1)
-  })
-})
+    expect(featureDelegates.configureCodexDefaultModelFeature).toHaveBeenCalledTimes(1);
+  });
+});

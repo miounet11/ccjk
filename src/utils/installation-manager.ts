@@ -1,13 +1,13 @@
-import type { InstallationStatus } from './installer'
-import { CLAUDE_DIR, ZCF_CONFIG_FILE } from '../constants'
-import { ensureI18nInitialized } from '../i18n'
-import { updateTomlConfig } from './ccjk-config'
+import type { InstallationStatus } from './installer';
+import { CLAUDE_DIR, ZCF_CONFIG_FILE } from '../constants';
+import { ensureI18nInitialized } from '../i18n';
+import { updateTomlConfig } from './ccjk-config';
 
 /**
  * Installation method type
  * Note: 'local' is deprecated and kept only for backward compatibility
  */
-export type InstallationMethod = 'global' | 'local' | 'none'
+export type InstallationMethod = 'global' | 'local' | 'none';
 
 /**
  * Handle installation status - simplified since local installation is no longer supported
@@ -16,11 +16,11 @@ export type InstallationMethod = 'global' | 'local' | 'none'
 export async function handleMultipleInstallations(
   status: InstallationStatus,
 ): Promise<InstallationMethod> {
-  ensureI18nInitialized()
+  ensureI18nInitialized();
 
   // No installation found
   if (!status.hasGlobal) {
-    return 'none'
+    return 'none';
   }
 
   // Global installation exists - use it and save to config
@@ -28,9 +28,9 @@ export async function handleMultipleInstallations(
     claudeCode: {
       installType: 'global',
     },
-  } as any) // Type assertion for partial update
+  } as any); // Type assertion for partial update
 
-  return 'global'
+  return 'global';
 }
 
 /**
@@ -38,5 +38,5 @@ export async function handleMultipleInstallations(
  */
 export function getClaudeCodeConfigDir(): string {
   // Always use standard Claude directory since we simplified the config structure
-  return CLAUDE_DIR
+  return CLAUDE_DIR;
 }

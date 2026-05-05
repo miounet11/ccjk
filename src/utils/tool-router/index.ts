@@ -14,11 +14,11 @@ export {
   generateSuggestions,
   getAvailableToolsInCategory,
   resolveConflict,
-} from './conflicts'
-export type { ToolAvailability, ToolConflict } from './conflicts'
+} from './conflicts';
+export type { ToolAvailability, ToolConflict } from './conflicts';
 
-export { DEFAULT_TOOL_PRIORITIES, TOOL_METADATA } from './priorities'
-export type { FallbackBehavior, ToolCategory, ToolMetadata, ToolPriorityConfig } from './priorities'
+export { DEFAULT_TOOL_PRIORITIES, TOOL_METADATA } from './priorities';
+export type { FallbackBehavior, ToolCategory, ToolMetadata, ToolPriorityConfig } from './priorities';
 
-export { createToolRouter, selectBrowserTool, selectFileSearchTool, selectSearchTool, ToolRouter } from './router'
-export type { RoutingOptions, ToolSelection } from './router'
+export { createToolRouter, selectBrowserTool, selectFileSearchTool, selectSearchTool, ToolRouter } from './router';
+export type { RoutingOptions, ToolSelection } from './router';

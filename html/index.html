@@ -10,15 +10,15 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@300;400&display=swap" rel="stylesheet" />
     <script>
-      ;(function () {
-        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
-        const setting = localStorage.getItem('vueuse-color-scheme') || 'auto'
+      (function () {
+        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const setting = localStorage.getItem('vueuse-color-scheme') || 'auto';
         if (setting === 'dark' || (prefersDark && setting !== 'light'))
-          document.documentElement.classList.toggle('dark', true)
-      })()
+          document.documentElement.classList.toggle('dark', true);
+      })();
     </script>
     <script>
-      window.METADATA_PATH = 'html.meta.json.gz'
+      window.METADATA_PATH = 'html.meta.json.gz';
     </script>
     <script type="module" src="./assets/index-D_ryMEPs.js"></script>
     <link rel="stylesheet" href="./assets/index-X8b7Z_4p.css" />

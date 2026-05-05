@@ -23,11 +23,11 @@ import type {
   MessageType,
   Subscription,
   SubscriptionOptions,
-} from './types'
-import { Buffer } from 'node:buffer'
-import { randomUUID } from 'node:crypto'
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
-import { dirname } from 'pathe'
+} from './types';
+import { Buffer } from 'node:buffer';
+import { randomUUID } from 'node:crypto';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { dirname } from 'pathe';
 
 /**
  * Default configuration for message bus
@@ -41,98 +41,98 @@ const DEFAULT_CONFIG: BrainConfig = {
   enableValidation: true,
   maxMessageSize: 1024 * 1024, // 1MB
   enableDeadLetterQueue: true,
-}
+};
 
 /**
  * File-based message storage implementation
  */
 class FileMessageStorage implements MessageStorage {
-  private filePath: string
+  private filePath: string;
 
   constructor(filePath: string) {
-    this.filePath = filePath
-    this.ensureDirectory()
+    this.filePath = filePath;
+    this.ensureDirectory();
   }
 
   private ensureDirectory(): void {
-    const dir = dirname(this.filePath)
+    const dir = dirname(this.filePath);
     if (!existsSync(dir)) {
-      mkdirSync(dir, { recursive: true })
+      mkdirSync(dir, { recursive: true });
     }
   }
 
   async save(message: AgentMessage): Promise<void> {
     try {
-      const messages = await this.load()
-      messages.push(message)
-      writeFileSync(this.filePath, JSON.stringify(messages, null, 2), 'utf-8')
+      const messages = await this.load();
+      messages.push(message);
+      writeFileSync(this.filePath, JSON.stringify(messages, null, 2), 'utf-8');
     }
     catch (error) {
-      console.error('Failed to save message:', error)
-      throw error
+      console.error('Failed to save message:', error);
+      throw error;
     }
   }
 
   async load(filter?: MessageFilter): Promise<AgentMessage[]> {
     try {
       if (!existsSync(this.filePath)) {
-        return []
+        return [];
       }
 
-      const content = readFileSync(this.filePath, 'utf-8')
-      const messages = JSON.parse(content) as AgentMessage[]
+      const content = readFileSync(this.filePath, 'utf-8');
+      const messages = JSON.parse(content) as AgentMessage[];
 
       if (filter) {
-        return messages.filter(filter)
+        return messages.filter(filter);
       }
 
-      return messages
+      return messages;
     }
     catch (error) {
-      console.error('Failed to load messages:', error)
-      return []
+      console.error('Failed to load messages:', error);
+      return [];
     }
   }
 
   async delete(messageId: string): Promise<void> {
     try {
-      const messages = await this.load()
-      const filtered = messages.filter(msg => msg.id !== messageId)
-      writeFileSync(this.filePath, JSON.stringify(filtered, null, 2), 'utf-8')
+      const messages = await this.load();
+      const filtered = messages.filter(msg => msg.id !== messageId);
+      writeFileSync(this.filePath, JSON.stringify(filtered, null, 2), 'utf-8');
     }
     catch (error) {
-      console.error('Failed to delete message:', error)
-      throw error
+      console.error('Failed to delete message:', error);
+      throw error;
     }
   }
 
   async clear(): Promise<void> {
     try {
-      writeFileSync(this.filePath, JSON.stringify([], null, 2), 'utf-8')
+      writeFileSync(this.filePath, JSON.stringify([], null, 2), 'utf-8');
     }
     catch (error) {
-      console.error('Failed to clear messages:', error)
-      throw error
+      console.error('Failed to clear messages:', error);
+      throw error;
     }
   }
 
-  async getStats(): Promise<{ count: number, size: number }> {
+  async getStats(): Promise<{ count: number; size: number }> {
     try {
       if (!existsSync(this.filePath)) {
-        return { count: 0, size: 0 }
+        return { count: 0, size: 0 };
       }
 
-      const messages = await this.load()
-      const content = readFileSync(this.filePath, 'utf-8')
+      const messages = await this.load();
+      const content = readFileSync(this.filePath, 'utf-8');
 
       return {
         count: messages.length,
         size: Buffer.byteLength(content, 'utf-8'),
-      }
+      };
     }
     catch (error) {
-      console.error('Failed to get storage stats:', error)
-      return { count: 0, size: 0 }
+      console.error('Failed to get storage stats:', error);
+      return { count: 0, size: 0 };
     }
   }
 }
@@ -141,23 +141,23 @@ class FileMessageStorage implements MessageStorage {
  * Message Bus implementation
  */
 export class MessageBus {
-  private config: BrainConfig
-  private subscriptions: Map<string, Subscription>
-  private messageHistory: AgentMessage[]
-  private deadLetterQueue: AgentMessage[]
-  private storage?: MessageStorage
-  private stats: MessageBusStats
+  private config: BrainConfig;
+  private subscriptions: Map<string, Subscription>;
+  private messageHistory: AgentMessage[];
+  private deadLetterQueue: AgentMessage[];
+  private storage?: MessageStorage;
+  private stats: MessageBusStats;
 
   constructor(config: Partial<BrainConfig> = {}) {
-    this.config = { ...DEFAULT_CONFIG, ...config }
-    this.subscriptions = new Map()
-    this.messageHistory = []
-    this.deadLetterQueue = []
+    this.config = { ...DEFAULT_CONFIG, ...config };
+    this.subscriptions = new Map();
+    this.messageHistory = [];
+    this.deadLetterQueue = [];
 
     // Initialize storage if persistence is enabled
     if (this.config.enablePersistence && this.config.persistencePath) {
-      this.storage = new FileMessageStorage(this.config.persistencePath)
-      this.loadPersistedMessages()
+      this.storage = new FileMessageStorage(this.config.persistencePath);
+      this.loadPersistedMessages();
     }
 
     // Initialize statistics
@@ -169,10 +169,10 @@ export class MessageBus {
       historySize: 0,
       deadLetterQueueSize: 0,
       avgProcessingTime: 0,
-    }
+    };
 
     // Start cleanup interval
-    this.startCleanupInterval()
+    this.startCleanupInterval();
   }
 
   /**
@@ -185,10 +185,10 @@ export class MessageBus {
     subject: string,
     payload: T,
     options: {
-      priority?: MessagePriority
-      correlationId?: string
-      replyTo?: AgentRole
-      metadata?: Record<string, any>
+      priority?: MessagePriority;
+      correlationId?: string;
+      replyTo?: AgentRole;
+      metadata?: Record<string, any>;
     } = {},
   ): Promise<string> {
     const message: AgentMessage<T> = {
@@ -204,31 +204,31 @@ export class MessageBus {
       correlationId: options.correlationId,
       replyTo: options.replyTo,
       metadata: options.metadata,
-    }
+    };
 
     // Validate message
     if (this.config.enableValidation) {
-      this.validateMessage(message)
+      this.validateMessage(message);
     }
 
     // Log message
-    this.logMessage('publish', message)
+    this.logMessage('publish', message);
 
     // Update statistics
-    this.updateStats(message)
+    this.updateStats(message);
 
     // Add to history
-    this.addToHistory(message)
+    this.addToHistory(message);
 
     // Persist message
     if (this.storage) {
-      await this.storage.save(message)
+      await this.storage.save(message);
     }
 
     // Route message to subscribers
-    await this.routeMessage(message)
+    await this.routeMessage(message);
 
-    return message.id
+    return message.id;
   }
 
   /**
@@ -246,25 +246,25 @@ export class MessageBus {
       handler,
       createdAt: Date.now(),
       unsubscribe: () => this.unsubscribe(subscription.id),
-    }
+    };
 
-    this.subscriptions.set(subscription.id, subscription)
-    this.stats.activeSubscriptions = this.subscriptions.size
+    this.subscriptions.set(subscription.id, subscription);
+    this.stats.activeSubscriptions = this.subscriptions.size;
 
-    this.log('info', `Agent ${subscriber} subscribed with ID ${subscription.id}`)
+    this.log('info', `Agent ${subscriber} subscribed with ID ${subscription.id}`);
 
-    return subscription
+    return subscription;
   }
 
   /**
    * Unsubscribe from messages
    */
   unsubscribe(subscriptionId: string): void {
-    const subscription = this.subscriptions.get(subscriptionId)
+    const subscription = this.subscriptions.get(subscriptionId);
     if (subscription) {
-      this.subscriptions.delete(subscriptionId)
-      this.stats.activeSubscriptions = this.subscriptions.size
-      this.log('info', `Subscription ${subscriptionId} removed`)
+      this.subscriptions.delete(subscriptionId);
+      this.stats.activeSubscriptions = this.subscriptions.size;
+      this.log('info', `Subscription ${subscriptionId} removed`);
     }
   }
 
@@ -272,14 +272,14 @@ export class MessageBus {
    * Get message by ID
    */
   getMessage(messageId: string): AgentMessage | undefined {
-    return this.messageHistory.find(msg => msg.id === messageId)
+    return this.messageHistory.find(msg => msg.id === messageId);
   }
 
   /**
    * Get messages by filter
    */
   getMessages(filter: MessageFilter): AgentMessage[] {
-    return this.messageHistory.filter(filter)
+    return this.messageHistory.filter(filter);
   }
 
   /**
@@ -288,30 +288,30 @@ export class MessageBus {
   async updateMessageStatus(
     messageId: string,
     status: MessageStatus,
-    error?: { code: string, message: string, stack?: string },
+    error?: { code: string; message: string; stack?: string },
   ): Promise<void> {
-    const message = this.getMessage(messageId)
+    const message = this.getMessage(messageId);
     if (message) {
-      message.status = status
+      message.status = status;
       if (error) {
-        message.error = error
+        message.error = error;
       }
 
       // Move to dead letter queue if failed
       if (status === 'failed' && this.config.enableDeadLetterQueue) {
-        this.deadLetterQueue.push(message)
-        this.stats.deadLetterQueueSize = this.deadLetterQueue.length
+        this.deadLetterQueue.push(message);
+        this.stats.deadLetterQueueSize = this.deadLetterQueue.length;
       }
 
       // Update statistics
-      this.stats.messagesByStatus[status] = (this.stats.messagesByStatus[status] || 0) + 1
+      this.stats.messagesByStatus[status] = (this.stats.messagesByStatus[status] || 0) + 1;
 
       // Persist update
       if (this.storage) {
-        await this.storage.save(message)
+        await this.storage.save(message);
       }
 
-      this.log('debug', `Message ${messageId} status updated to ${status}`)
+      this.log('debug', `Message ${messageId} status updated to ${status}`);
     }
   }
 
@@ -319,127 +319,127 @@ export class MessageBus {
    * Get message bus statistics
    */
   getStats(): MessageBusStats {
-    return { ...this.stats }
+    return { ...this.stats };
   }
 
   /**
    * Clear message history
    */
   async clearHistory(): Promise<void> {
-    this.messageHistory = []
-    this.stats.historySize = 0
+    this.messageHistory = [];
+    this.stats.historySize = 0;
 
     if (this.storage) {
-      await this.storage.clear()
+      await this.storage.clear();
     }
 
-    this.log('info', 'Message history cleared')
+    this.log('info', 'Message history cleared');
   }
 
   /**
    * Clear dead letter queue
    */
   clearDeadLetterQueue(): void {
-    this.deadLetterQueue = []
-    this.stats.deadLetterQueueSize = 0
-    this.log('info', 'Dead letter queue cleared')
+    this.deadLetterQueue = [];
+    this.stats.deadLetterQueueSize = 0;
+    this.log('info', 'Dead letter queue cleared');
   }
 
   /**
    * Get dead letter queue messages
    */
   getDeadLetterQueue(): AgentMessage[] {
-    return [...this.deadLetterQueue]
+    return [...this.deadLetterQueue];
   }
 
   /**
    * Shutdown message bus
    */
   async shutdown(): Promise<void> {
-    this.log('info', 'Shutting down message bus')
+    this.log('info', 'Shutting down message bus');
 
     // Unsubscribe all
-    this.subscriptions.clear()
-    this.stats.activeSubscriptions = 0
+    this.subscriptions.clear();
+    this.stats.activeSubscriptions = 0;
 
     // Final persistence
     if (this.storage && this.messageHistory.length > 0) {
       for (const message of this.messageHistory) {
-        await this.storage.save(message)
+        await this.storage.save(message);
       }
     }
 
-    this.log('info', 'Message bus shutdown complete')
+    this.log('info', 'Message bus shutdown complete');
   }
 
   /**
    * Route message to subscribers
    */
   private async routeMessage(message: AgentMessage): Promise<void> {
-    const startTime = Date.now()
-    const matchingSubscriptions = this.findMatchingSubscriptions(message)
+    const startTime = Date.now();
+    const matchingSubscriptions = this.findMatchingSubscriptions(message);
 
-    this.log('debug', `Routing message ${message.id} to ${matchingSubscriptions.length} subscribers`)
+    this.log('debug', `Routing message ${message.id} to ${matchingSubscriptions.length} subscribers`);
 
     for (const subscription of matchingSubscriptions) {
       try {
         // Update message status
-        message.status = 'processing'
+        message.status = 'processing';
 
         // Handle message
         if (subscription.options.async) {
-          await subscription.handler(message)
+          await subscription.handler(message);
         }
         else {
-          subscription.handler(message)
+          subscription.handler(message);
         }
 
         // Update message status
-        message.status = 'completed'
+        message.status = 'completed';
       }
       catch (error) {
-        this.log('error', `Error handling message ${message.id} in subscription ${subscription.id}:`, error)
+        this.log('error', `Error handling message ${message.id} in subscription ${subscription.id}:`, error);
 
         // Update message status
         await this.updateMessageStatus(message.id, 'failed', {
           code: 'HANDLER_ERROR',
           message: error instanceof Error ? error.message : String(error),
           stack: error instanceof Error ? error.stack : undefined,
-        })
+        });
       }
     }
 
     // Update average processing time
-    const processingTime = Date.now() - startTime
-    this.stats.avgProcessingTime = (this.stats.avgProcessingTime + processingTime) / 2
+    const processingTime = Date.now() - startTime;
+    this.stats.avgProcessingTime = (this.stats.avgProcessingTime + processingTime) / 2;
   }
 
   /**
    * Find subscriptions matching the message
    */
   private findMatchingSubscriptions(message: AgentMessage): Subscription[] {
-    const matching: Subscription[] = []
-    const subscriptions = Array.from(this.subscriptions.values())
+    const matching: Subscription[] = [];
+    const subscriptions = Array.from(this.subscriptions.values());
 
     for (const subscription of subscriptions) {
       // Check if message is addressed to this subscriber
       const isAddressed = message.to === 'all'
         || message.to === subscription.subscriber
-        || (Array.isArray(message.to) && message.to.includes(subscription.subscriber))
+        || (Array.isArray(message.to) && message.to.includes(subscription.subscriber));
 
       if (!isAddressed) {
-        continue
+        continue;
       }
 
       // Apply filters
       if (!this.matchesSubscriptionFilters(message, subscription.options)) {
-        continue
+        continue;
       }
 
-      matching.push(subscription)
+      matching.push(subscription);
     }
 
-    return matching
+    return matching;
   }
 
   /**
@@ -451,34 +451,34 @@ export class MessageBus {
   ): boolean {
     // Filter by type
     if (options.type) {
-      const types = Array.isArray(options.type) ? options.type : [options.type]
+      const types = Array.isArray(options.type) ? options.type : [options.type];
       if (!types.includes(message.type)) {
-        return false
+        return false;
       }
     }
 
     // Filter by sender
     if (options.from) {
-      const senders = Array.isArray(options.from) ? options.from : [options.from]
+      const senders = Array.isArray(options.from) ? options.from : [options.from];
       if (!senders.includes(message.from)) {
-        return false
+        return false;
       }
     }
 
     // Filter by priority
     if (options.priority) {
-      const priorities = Array.isArray(options.priority) ? options.priority : [options.priority]
+      const priorities = Array.isArray(options.priority) ? options.priority : [options.priority];
       if (!priorities.includes(message.priority)) {
-        return false
+        return false;
       }
     }
 
     // Custom filter
     if (options.filter && !options.filter(message)) {
-      return false
+      return false;
     }
 
-    return true
+    return true;
   }
 
   /**
@@ -486,30 +486,30 @@ export class MessageBus {
    */
   private validateMessage(message: AgentMessage): void {
     if (!message.id) {
-      throw new Error('Message ID is required')
+      throw new Error('Message ID is required');
     }
 
     if (!message.type) {
-      throw new Error('Message type is required')
+      throw new Error('Message type is required');
     }
 
     if (!message.from) {
-      throw new Error('Message sender is required')
+      throw new Error('Message sender is required');
     }
 
     if (!message.to) {
-      throw new Error('Message recipient is required')
+      throw new Error('Message recipient is required');
     }
 
     if (!message.subject) {
-      throw new Error('Message subject is required')
+      throw new Error('Message subject is required');
     }
 
     // Check message size
     if (this.config.maxMessageSize) {
-      const messageSize = Buffer.byteLength(JSON.stringify(message), 'utf-8')
+      const messageSize = Buffer.byteLength(JSON.stringify(message), 'utf-8');
       if (messageSize > this.config.maxMessageSize) {
-        throw new Error(`Message size ${messageSize} exceeds maximum ${this.config.maxMessageSize}`)
+        throw new Error(`Message size ${messageSize} exceeds maximum ${this.config.maxMessageSize}`);
       }
     }
   }
@@ -518,14 +518,14 @@ export class MessageBus {
    * Add message to history
    */
   private addToHistory(message: AgentMessage): void {
-    this.messageHistory.push(message)
-    this.stats.historySize = this.messageHistory.length
+    this.messageHistory.push(message);
+    this.stats.historySize = this.messageHistory.length;
 
     // Trim history if needed
-    const maxHistorySize = this.config.maxHistorySize ?? 1000
+    const maxHistorySize = this.config.maxHistorySize ?? 1000;
     if (this.messageHistory.length > maxHistorySize) {
-      this.messageHistory.shift()
-      this.stats.historySize = this.messageHistory.length
+      this.messageHistory.shift();
+      this.stats.historySize = this.messageHistory.length;
     }
   }
 
@@ -533,9 +533,9 @@ export class MessageBus {
    * Update statistics
    */
   private updateStats(message: AgentMessage): void {
-    this.stats.totalMessages++
-    this.stats.messagesByType[message.type] = (this.stats.messagesByType[message.type] || 0) + 1
-    this.stats.messagesByStatus[message.status] = (this.stats.messagesByStatus[message.status] || 0) + 1
+    this.stats.totalMessages++;
+    this.stats.messagesByType[message.type] = (this.stats.messagesByType[message.type] || 0) + 1;
+    this.stats.messagesByStatus[message.status] = (this.stats.messagesByStatus[message.status] || 0) + 1;
   }
 
   /**
@@ -543,17 +543,17 @@ export class MessageBus {
    */
   private async loadPersistedMessages(): Promise<void> {
     if (!this.storage) {
-      return
+      return;
     }
 
     try {
-      const messages = await this.storage.load()
-      this.messageHistory = messages
-      this.stats.historySize = messages.length
-      this.log('info', `Loaded ${messages.length} persisted messages`)
+      const messages = await this.storage.load();
+      this.messageHistory = messages;
+      this.stats.historySize = messages.length;
+      this.log('info', `Loaded ${messages.length} persisted messages`);
     }
     catch (error) {
-      this.log('error', 'Failed to load persisted messages:', error)
+      this.log('error', 'Failed to load persisted messages:', error);
     }
   }
 
@@ -562,23 +562,23 @@ export class MessageBus {
    */
   private startCleanupInterval(): void {
     setInterval(() => {
-      const now = Date.now()
-      const retentionTime = this.config.messageRetentionTime ?? 86400000 // Default 24 hours
+      const now = Date.now();
+      const retentionTime = this.config.messageRetentionTime ?? 86400000; // Default 24 hours
 
       // Remove old messages from history
       this.messageHistory = this.messageHistory.filter(
         msg => now - msg.timestamp < retentionTime,
-      )
-      this.stats.historySize = this.messageHistory.length
+      );
+      this.stats.historySize = this.messageHistory.length;
 
       // Remove old messages from dead letter queue
       this.deadLetterQueue = this.deadLetterQueue.filter(
         msg => now - msg.timestamp < retentionTime,
-      )
-      this.stats.deadLetterQueueSize = this.deadLetterQueue.length
+      );
+      this.stats.deadLetterQueueSize = this.deadLetterQueue.length;
 
-      this.log('debug', 'Cleanup completed')
-    }, 60 * 60 * 1000) // Run every hour
+      this.log('debug', 'Cleanup completed');
+    }, 60 * 60 * 1000); // Run every hour
   }
 
   /**
@@ -586,17 +586,17 @@ export class MessageBus {
    */
   private logMessage(action: string, message: AgentMessage): void {
     if (!this.config.enableLogging) {
-      return
+      return;
     }
 
-    const logLevel = this.config.logLevel
+    const logLevel = this.config.logLevel;
     const shouldLog = logLevel === 'debug'
       || (logLevel === 'info' && ['publish', 'subscribe'].includes(action))
       || (logLevel === 'warn' && message.priority === 'high')
-      || (logLevel === 'error' && message.status === 'failed')
+      || (logLevel === 'error' && message.status === 'failed');
 
     if (shouldLog) {
-      this.log('debug', `[${action}] ${message.type} from ${message.from} to ${message.to}: ${message.subject}`)
+      this.log('debug', `[${action}] ${message.type} from ${message.from} to ${message.to}: ${message.subject}`);
     }
   }
 
@@ -605,15 +605,15 @@ export class MessageBus {
    */
   private log(level: 'debug' | 'info' | 'warn' | 'error', message: string, ...args: any[]): void {
     if (!this.config.enableLogging) {
-      return
+      return;
     }
 
-    const levels = ['debug', 'info', 'warn', 'error']
-    const configLevel = levels.indexOf(this.config.logLevel ?? 'info')
-    const messageLevel = levels.indexOf(level)
+    const levels = ['debug', 'info', 'warn', 'error'];
+    const configLevel = levels.indexOf(this.config.logLevel ?? 'info');
+    const messageLevel = levels.indexOf(level);
 
     if (messageLevel >= configLevel) {
-      console[level](`[MessageBus] ${message}`, ...args)
+      console[level](`[MessageBus] ${message}`, ...args);
     }
   }
 }
@@ -622,22 +622,22 @@ export class MessageBus {
  * Create a new message bus instance
  */
 export function createMessageBus(config?: Partial<BrainConfig>): MessageBus {
-  return new MessageBus(config)
+  return new MessageBus(config);
 }
 
 /**
  * Singleton message bus instance
  */
-let globalMessageBus: MessageBus | null = null
+let globalMessageBus: MessageBus | null = null;
 
 /**
  * Get or create global message bus instance
  */
 export function getMessageBus(config?: Partial<BrainConfig>): MessageBus {
   if (!globalMessageBus) {
-    globalMessageBus = new MessageBus(config)
+    globalMessageBus = new MessageBus(config);
   }
-  return globalMessageBus
+  return globalMessageBus;
 }
 
 /**
@@ -645,7 +645,7 @@ export function getMessageBus(config?: Partial<BrainConfig>): MessageBus {
  */
 export function resetMessageBus(): void {
   if (globalMessageBus) {
-    globalMessageBus.shutdown()
-    globalMessageBus = null
+    globalMessageBus.shutdown();
+    globalMessageBus = null;
   }
 }

@@ -7,25 +7,25 @@
  * - Version history management
  */
 
-import type { ProjectContext } from '../config/project-scanner.js'
-import { existsSync, readFileSync, writeFileSync } from 'node:fs'
-import process from 'node:process'
-import ansis from 'ansis'
-import inquirer from 'inquirer'
-import { join } from 'pathe'
-import { getProjectBestPractices } from '../config/project-best-practices.js'
+import type { ProjectContext } from '../config/project-scanner.js';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import process from 'node:process';
+import ansis from 'ansis';
+import inquirer from 'inquirer';
+import { join } from 'pathe';
+import { getProjectBestPractices } from '../config/project-best-practices.js';
 
 // ============================================================================
 // CLAUDE.md Generation Utilities
 // ============================================================================
 
-import { i18n } from '../i18n'
+import { i18n } from '../i18n';
 import {
   applyTemplate,
   downloadClaudeMd,
   getClaudeMdSyncService,
   uploadClaudeMd,
-} from '../services/cloud/claude-md-sync'
+} from '../services/cloud/claude-md-sync';
 
 // ============================================================================
 // Main Command Handler
@@ -45,40 +45,40 @@ export async function claudeMdCommand(
     case 'templates':
     case 'template':
     case 't':
-      await browseTemplates()
-      break
+      await browseTemplates();
+      break;
     case 'apply':
     case 'a':
-      await applyTemplateCommand(args?.[0])
-      break
+      await applyTemplateCommand(args?.[0]);
+      break;
     case 'push':
     case 'upload':
     case 'u':
-      await uploadCommand(args?.[0])
-      break
+      await uploadCommand(args?.[0]);
+      break;
     case 'pull':
     case 'download':
     case 'd':
-      await downloadCommand(args?.[0])
-      break
+      await downloadCommand(args?.[0]);
+      break;
     case 'list':
     case 'ls':
     case 'l':
-      await listCloudConfigs()
-      break
+      await listCloudConfigs();
+      break;
     case 'versions':
     case 'v':
-      await showVersionHistory(args?.[0])
-      break
+      await showVersionHistory(args?.[0]);
+      break;
     case 'rollback':
     case 'r':
-      await rollbackVersion(args?.[0], args?.[1])
-      break
+      await rollbackVersion(args?.[0], args?.[1]);
+      break;
     case 'menu':
     case 'm':
     default:
-      await showClaudeMdMenu()
-      break
+      await showClaudeMdMenu();
+      break;
   }
 }
 
@@ -90,12 +90,12 @@ export async function claudeMdCommand(
  * Browse template marketplace
  */
 async function browseTemplates(): Promise<void> {
-  const service = getClaudeMdSyncService()
+  const service = getClaudeMdSyncService();
 
-  console.log(ansis.green.bold(`\n📚 ${i18n.t('claudeMd:templates.title')}\n`))
+  console.log(ansis.green.bold(`\n📚 ${i18n.t('claudeMd:templates.title')}\n`));
 
   // Get categories
-  const categories = await service.listCategories()
+  const categories = await service.listCategories();
 
   // Show category selection
   const { category } = await inquirer.prompt([
@@ -111,16 +111,16 @@ async function browseTemplates(): Promise<void> {
         })),
       ],
     },
-  ])
+  ]);
 
   // Get templates
   const templates = await service.listTemplates(
     category === 'all' ? {} : { category },
-  )
+  );
 
   if (templates.length === 0) {
-    console.log(ansis.yellow(`\n⚠️  ${i18n.t('claudeMd:templates.noTemplates')}`))
-    return
+    console.log(ansis.yellow(`\n⚠️  ${i18n.t('claudeMd:templates.noTemplates')}`));
+    return;
   }
 
   // Show template selection
@@ -134,18 +134,18 @@ async function browseTemplates(): Promise<void> {
         value: t.id,
       })),
     },
-  ])
+  ]);
 
   // Show template details
-  const template = templates.find(t => t.id === templateId)
+  const template = templates.find(t => t.id === templateId);
   if (!template) {
-    return
+    return;
   }
 
-  console.log(ansis.green.bold(`\n📄 ${template.name}\n`))
-  console.log(ansis.gray(template.description))
-  console.log(ansis.gray(`\n${i18n.t('claudeMd:templates.category')}: ${template.category}`))
-  console.log(ansis.gray(`${i18n.t('claudeMd:templates.variables')}: ${template.variables.join(', ')}`))
+  console.log(ansis.green.bold(`\n📄 ${template.name}\n`));
+  console.log(ansis.gray(template.description));
+  console.log(ansis.gray(`\n${i18n.t('claudeMd:templates.category')}: ${template.category}`));
+  console.log(ansis.gray(`${i18n.t('claudeMd:templates.variables')}: ${template.variables.join(', ')}`));
 
   // Ask if user wants to apply
   const { apply } = await inquirer.prompt([
@@ -155,10 +155,10 @@ async function browseTemplates(): Promise<void> {
       message: i18n.t('claudeMd:templates.applyNow'),
       default: true,
     },
-  ])
+  ]);
 
   if (apply) {
-    await applyTemplateCommand(templateId)
+    await applyTemplateCommand(templateId);
   }
 }
 
@@ -166,11 +166,11 @@ async function browseTemplates(): Promise<void> {
  * Apply template command
  */
 async function applyTemplateCommand(templateId?: string): Promise<void> {
-  const service = getClaudeMdSyncService()
+  const service = getClaudeMdSyncService();
 
   // Get template ID if not provided
   if (!templateId) {
-    const templates = await service.listTemplates()
+    const templates = await service.listTemplates();
     const { selectedId } = await inquirer.prompt<{ selectedId: string }>([
       {
         type: 'list',
@@ -181,15 +181,15 @@ async function applyTemplateCommand(templateId?: string): Promise<void> {
           value: t.id,
         })),
       },
-    ])
-    templateId = selectedId
+    ]);
+    templateId = selectedId;
   }
 
   // Get template - templateId is guaranteed to be string at this point
-  const template = await service.getTemplate(templateId as string)
+  const template = await service.getTemplate(templateId as string);
   if (!template) {
-    console.log(ansis.red(`\n❌ ${i18n.t('claudeMd:templates.notFound', { id: templateId })}`))
-    return
+    console.log(ansis.red(`\n❌ ${i18n.t('claudeMd:templates.notFound', { id: templateId })}`));
+    return;
   }
 
   // Get project path
@@ -201,15 +201,15 @@ async function applyTemplateCommand(templateId?: string): Promise<void> {
       default: process.cwd(),
       validate: (input: string) => {
         if (!existsSync(input)) {
-          return i18n.t('claudeMd:templates.pathNotExist')
+          return i18n.t('claudeMd:templates.pathNotExist');
         }
-        return true
+        return true;
       },
     },
-  ])
+  ]);
 
   // Collect variable values
-  const variables: Record<string, string> = {}
+  const variables: Record<string, string> = {};
 
   for (const variable of template.variables) {
     const { value } = await inquirer.prompt([
@@ -219,20 +219,20 @@ async function applyTemplateCommand(templateId?: string): Promise<void> {
         message: i18n.t('claudeMd:templates.enterVariable', { variable }),
         default: getDefaultValue(variable),
       },
-    ])
-    variables[variable] = value
+    ]);
+    variables[variable] = value;
   }
 
   // Apply template
-  console.log(ansis.green(`\n⏳ ${i18n.t('claudeMd:templates.applying')}`))
+  console.log(ansis.green(`\n⏳ ${i18n.t('claudeMd:templates.applying')}`));
 
-  const result = await applyTemplate(templateId as string, projectPath, variables)
+  const result = await applyTemplate(templateId as string, projectPath, variables);
 
   if (result.success) {
-    console.log(ansis.green(`\n✅ ${i18n.t('claudeMd:templates.applied', { path: result.filePath })}`))
+    console.log(ansis.green(`\n✅ ${i18n.t('claudeMd:templates.applied', { path: result.filePath })}`));
   }
   else {
-    console.log(ansis.red(`\n❌ ${i18n.t('claudeMd:templates.applyFailed', { error: result.error })}`))
+    console.log(ansis.red(`\n❌ ${i18n.t('claudeMd:templates.applyFailed', { error: result.error })}`));
   }
 }
 
@@ -242,17 +242,17 @@ async function applyTemplateCommand(templateId?: string): Promise<void> {
 function getDefaultValue(variable: string): string {
   switch (variable) {
     case 'PROJECT_NAME':
-      return process.cwd().split('/').pop() || 'my-project'
+      return process.cwd().split('/').pop() || 'my-project';
     case 'AUTHOR':
-      return process.env.USER || 'Unknown'
+      return process.env.USER || 'Unknown';
     case 'PORT':
-      return '3000'
+      return '3000';
     case 'DESCRIPTION':
-      return 'Project description'
+      return 'Project description';
     case 'TECH_STACK':
-      return 'Technology stack'
+      return 'Technology stack';
     default:
-      return ''
+      return '';
   }
 }
 
@@ -264,7 +264,7 @@ function getDefaultValue(variable: string): string {
  * Upload CLAUDE.md to cloud
  */
 async function uploadCommand(filePath?: string): Promise<void> {
-  console.log(ansis.green.bold(`\n☁️  ${i18n.t('claudeMd:cloud.uploadTitle')}\n`))
+  console.log(ansis.green.bold(`\n☁️  ${i18n.t('claudeMd:cloud.uploadTitle')}\n`));
 
   // Get file path
   if (!filePath) {
@@ -276,13 +276,13 @@ async function uploadCommand(filePath?: string): Promise<void> {
         default: join(process.cwd(), 'CLAUDE.md'),
         validate: (input: string) => {
           if (!existsSync(input)) {
-            return i18n.t('claudeMd:cloud.fileNotExist')
+            return i18n.t('claudeMd:cloud.fileNotExist');
           }
-          return true
+          return true;
         },
       },
-    ])
-    filePath = path
+    ]);
+    filePath = path;
   }
 
   // Get metadata
@@ -328,10 +328,10 @@ async function uploadCommand(filePath?: string): Promise<void> {
       name: 'tags',
       message: i18n.t('claudeMd:cloud.tags'),
     },
-  ])
+  ]);
 
   // Upload
-  console.log(ansis.green(`\n⏳ ${i18n.t('claudeMd:cloud.uploading')}`))
+  console.log(ansis.green(`\n⏳ ${i18n.t('claudeMd:cloud.uploading')}`));
 
   const result = await uploadClaudeMd(filePath as string, {
     name: answers.name,
@@ -339,13 +339,13 @@ async function uploadCommand(filePath?: string): Promise<void> {
     privacy: answers.privacy,
     description: answers.description,
     tags: answers.tags ? answers.tags.split(',').map((t: string) => t.trim()) : [],
-  })
+  });
 
   if (result.success) {
-    console.log(ansis.green(`\n✅ ${i18n.t('claudeMd:cloud.uploaded', { id: result.id })}`))
+    console.log(ansis.green(`\n✅ ${i18n.t('claudeMd:cloud.uploaded', { id: result.id })}`));
   }
   else {
-    console.log(ansis.red(`\n❌ ${i18n.t('claudeMd:cloud.uploadFailed', { error: result.error })}`))
+    console.log(ansis.red(`\n❌ ${i18n.t('claudeMd:cloud.uploadFailed', { error: result.error })}`));
   }
 }
 
@@ -353,17 +353,17 @@ async function uploadCommand(filePath?: string): Promise<void> {
  * Download CLAUDE.md from cloud
  */
 async function downloadCommand(configId?: string): Promise<void> {
-  const service = getClaudeMdSyncService()
+  const service = getClaudeMdSyncService();
 
-  console.log(ansis.green.bold(`\n☁️  ${i18n.t('claudeMd:cloud.downloadTitle')}\n`))
+  console.log(ansis.green.bold(`\n☁️  ${i18n.t('claudeMd:cloud.downloadTitle')}\n`));
 
   // Get config ID if not provided
   if (!configId) {
-    const configs = await service.listCloudConfigs()
+    const configs = await service.listCloudConfigs();
 
     if (configs.length === 0) {
-      console.log(ansis.yellow(`\n⚠️  ${i18n.t('claudeMd:cloud.noConfigs')}`))
-      return
+      console.log(ansis.yellow(`\n⚠️  ${i18n.t('claudeMd:cloud.noConfigs')}`));
+      return;
     }
 
     const { selectedId } = await inquirer.prompt([
@@ -376,8 +376,8 @@ async function downloadCommand(configId?: string): Promise<void> {
           value: c.id,
         })),
       },
-    ])
-    configId = selectedId
+    ]);
+    configId = selectedId;
   }
 
   // Get project path
@@ -388,18 +388,18 @@ async function downloadCommand(configId?: string): Promise<void> {
       message: i18n.t('claudeMd:cloud.projectPath'),
       default: process.cwd(),
     },
-  ])
+  ]);
 
   // Download
-  console.log(ansis.green(`\n⏳ ${i18n.t('claudeMd:cloud.downloading')}`))
+  console.log(ansis.green(`\n⏳ ${i18n.t('claudeMd:cloud.downloading')}`));
 
-  const result = await downloadClaudeMd(configId as string, projectPath)
+  const result = await downloadClaudeMd(configId as string, projectPath);
 
   if (result.success) {
-    console.log(ansis.green(`\n✅ ${i18n.t('claudeMd:cloud.downloaded', { path: result.filePath })}`))
+    console.log(ansis.green(`\n✅ ${i18n.t('claudeMd:cloud.downloaded', { path: result.filePath })}`));
   }
   else {
-    console.log(ansis.red(`\n❌ ${i18n.t('claudeMd:cloud.downloadFailed', { error: result.error })}`))
+    console.log(ansis.red(`\n❌ ${i18n.t('claudeMd:cloud.downloadFailed', { error: result.error })}`));
   }
 }
 
@@ -407,24 +407,24 @@ async function downloadCommand(configId?: string): Promise<void> {
  * List cloud configs
  */
 async function listCloudConfigs(): Promise<void> {
-  const service = getClaudeMdSyncService()
+  const service = getClaudeMdSyncService();
 
-  console.log(ansis.green.bold(`\n☁️  ${i18n.t('claudeMd:cloud.listTitle')}\n`))
+  console.log(ansis.green.bold(`\n☁️  ${i18n.t('claudeMd:cloud.listTitle')}\n`));
 
-  const configs = await service.listCloudConfigs()
+  const configs = await service.listCloudConfigs();
 
   if (configs.length === 0) {
-    console.log(ansis.yellow(`⚠️  ${i18n.t('claudeMd:cloud.noConfigs')}`))
-    return
+    console.log(ansis.yellow(`⚠️  ${i18n.t('claudeMd:cloud.noConfigs')}`));
+    return;
   }
 
   for (const config of configs) {
-    console.log(ansis.green(`\n📄 ${config.name}`))
-    console.log(ansis.gray(`   ID: ${config.id}`))
-    console.log(ansis.gray(`   ${i18n.t('claudeMd:cloud.type')}: ${config.projectType}`))
-    console.log(ansis.gray(`   ${i18n.t('claudeMd:cloud.privacy')}: ${config.privacy}`))
-    console.log(ansis.gray(`   ${i18n.t('claudeMd:cloud.updated')}: ${config.metadata.updatedAt}`))
-    console.log(ansis.gray(`   ${i18n.t('claudeMd:cloud.usage')}: ${config.metadata.usageCount}`))
+    console.log(ansis.green(`\n📄 ${config.name}`));
+    console.log(ansis.gray(`   ID: ${config.id}`));
+    console.log(ansis.gray(`   ${i18n.t('claudeMd:cloud.type')}: ${config.projectType}`));
+    console.log(ansis.gray(`   ${i18n.t('claudeMd:cloud.privacy')}: ${config.privacy}`));
+    console.log(ansis.gray(`   ${i18n.t('claudeMd:cloud.updated')}: ${config.metadata.updatedAt}`));
+    console.log(ansis.gray(`   ${i18n.t('claudeMd:cloud.usage')}: ${config.metadata.usageCount}`));
   }
 }
 
@@ -436,17 +436,17 @@ async function listCloudConfigs(): Promise<void> {
  * Show version history
  */
 async function showVersionHistory(configId?: string): Promise<void> {
-  const service = getClaudeMdSyncService()
+  const service = getClaudeMdSyncService();
 
-  console.log(ansis.green.bold(`\n📜 ${i18n.t('claudeMd:version.title')}\n`))
+  console.log(ansis.green.bold(`\n📜 ${i18n.t('claudeMd:version.title')}\n`));
 
   // Get config ID if not provided
   if (!configId) {
-    const configs = await service.listCloudConfigs()
+    const configs = await service.listCloudConfigs();
 
     if (configs.length === 0) {
-      console.log(ansis.yellow(`\n⚠️  ${i18n.t('claudeMd:cloud.noConfigs')}`))
-      return
+      console.log(ansis.yellow(`\n⚠️  ${i18n.t('claudeMd:cloud.noConfigs')}`));
+      return;
     }
 
     const { selectedId } = await inquirer.prompt([
@@ -459,22 +459,22 @@ async function showVersionHistory(configId?: string): Promise<void> {
           value: c.id,
         })),
       },
-    ])
-    configId = selectedId
+    ]);
+    configId = selectedId;
   }
 
   // Get versions
-  const versions = await service.listVersions(configId as string)
+  const versions = await service.listVersions(configId as string);
 
   if (versions.length === 0) {
-    console.log(ansis.yellow(`\n⚠️  ${i18n.t('claudeMd:version.noVersions')}`))
-    return
+    console.log(ansis.yellow(`\n⚠️  ${i18n.t('claudeMd:version.noVersions')}`));
+    return;
   }
 
   for (const version of versions) {
-    console.log(ansis.green(`\n📌 ${version.id}`))
-    console.log(ansis.gray(`   ${i18n.t('claudeMd:version.timestamp')}: ${version.timestamp}`))
-    console.log(ansis.gray(`   ${i18n.t('claudeMd:version.message')}: ${version.message}`))
+    console.log(ansis.green(`\n📌 ${version.id}`));
+    console.log(ansis.gray(`   ${i18n.t('claudeMd:version.timestamp')}: ${version.timestamp}`));
+    console.log(ansis.gray(`   ${i18n.t('claudeMd:version.message')}: ${version.message}`));
   }
 }
 
@@ -482,17 +482,17 @@ async function showVersionHistory(configId?: string): Promise<void> {
  * Rollback to version
  */
 async function rollbackVersion(configId?: string, versionId?: string): Promise<void> {
-  const service = getClaudeMdSyncService()
+  const service = getClaudeMdSyncService();
 
-  console.log(ansis.green.bold(`\n⏪ ${i18n.t('claudeMd:version.rollbackTitle')}\n`))
+  console.log(ansis.green.bold(`\n⏪ ${i18n.t('claudeMd:version.rollbackTitle')}\n`));
 
   // Get config ID if not provided
   if (!configId) {
-    const configs = await service.listCloudConfigs()
+    const configs = await service.listCloudConfigs();
 
     if (configs.length === 0) {
-      console.log(ansis.yellow(`\n⚠️  ${i18n.t('claudeMd:cloud.noConfigs')}`))
-      return
+      console.log(ansis.yellow(`\n⚠️  ${i18n.t('claudeMd:cloud.noConfigs')}`));
+      return;
     }
 
     const { selectedId } = await inquirer.prompt([
@@ -505,17 +505,17 @@ async function rollbackVersion(configId?: string, versionId?: string): Promise<v
           value: c.id,
         })),
       },
-    ])
-    configId = selectedId
+    ]);
+    configId = selectedId;
   }
 
   // Get version ID if not provided
   if (!versionId) {
-    const versions = await service.listVersions(configId as string)
+    const versions = await service.listVersions(configId as string);
 
     if (versions.length === 0) {
-      console.log(ansis.yellow(`\n⚠️  ${i18n.t('claudeMd:version.noVersions')}`))
-      return
+      console.log(ansis.yellow(`\n⚠️  ${i18n.t('claudeMd:version.noVersions')}`));
+      return;
     }
 
     const { selectedVersionId } = await inquirer.prompt([
@@ -528,8 +528,8 @@ async function rollbackVersion(configId?: string, versionId?: string): Promise<v
           value: v.id,
         })),
       },
-    ])
-    versionId = selectedVersionId
+    ]);
+    versionId = selectedVersionId;
   }
 
   // Confirm rollback
@@ -540,23 +540,23 @@ async function rollbackVersion(configId?: string, versionId?: string): Promise<v
       message: i18n.t('claudeMd:version.confirmRollback'),
       default: false,
     },
-  ])
+  ]);
 
   if (!confirm) {
-    console.log(ansis.yellow(`\n⏸️  ${i18n.t('claudeMd:version.cancelled')}`))
-    return
+    console.log(ansis.yellow(`\n⏸️  ${i18n.t('claudeMd:version.cancelled')}`));
+    return;
   }
 
   // Rollback
-  console.log(ansis.green(`\n⏳ ${i18n.t('claudeMd:version.rolling')}`))
+  console.log(ansis.green(`\n⏳ ${i18n.t('claudeMd:version.rolling')}`));
 
-  const result = await service.rollbackToVersion(configId as string, versionId as string)
+  const result = await service.rollbackToVersion(configId as string, versionId as string);
 
   if (result.success) {
-    console.log(ansis.green(`\n✅ ${i18n.t('claudeMd:version.rolledBack')}`))
+    console.log(ansis.green(`\n✅ ${i18n.t('claudeMd:version.rolledBack')}`));
   }
   else {
-    console.log(ansis.red(`\n❌ ${i18n.t('claudeMd:version.rollbackFailed', { error: result.error })}`))
+    console.log(ansis.red(`\n❌ ${i18n.t('claudeMd:version.rollbackFailed', { error: result.error })}`));
   }
 }
 
@@ -568,7 +568,7 @@ async function rollbackVersion(configId?: string, versionId?: string): Promise<v
  * Show CLAUDE.md management menu
  */
 async function showClaudeMdMenu(): Promise<void> {
-  console.log(ansis.green.bold(`\n📝 ${i18n.t('claudeMd:menu.title')}\n`))
+  console.log(ansis.green.bold(`\n📝 ${i18n.t('claudeMd:menu.title')}\n`));
 
   const { action } = await inquirer.prompt([
     {
@@ -610,17 +610,17 @@ async function showClaudeMdMenu(): Promise<void> {
         },
       ],
     },
-  ])
+  ]);
 
   if (action === 'exit') {
-    console.log(ansis.green(`\n👋 ${i18n.t('claudeMd:menu.goodbye')}`))
-    return
+    console.log(ansis.green(`\n👋 ${i18n.t('claudeMd:menu.goodbye')}`));
+    return;
   }
 
-  await claudeMdCommand(action)
+  await claudeMdCommand(action);
 
   // Show menu again
-  await showClaudeMdMenu()
+  await showClaudeMdMenu();
 }
 
 /**
@@ -628,45 +628,45 @@ async function showClaudeMdMenu(): Promise<void> {
  * This provides Claude Code with project-specific context.
  */
 export function generateClaudeMd(projectRoot: string, projectContext?: ProjectContext): string {
-  const lines: string[] = []
+  const lines: string[] = [];
 
-  lines.push(`# ${i18n.t('init:claudeMd.title')}`)
-  lines.push('')
-  lines.push(i18n.t('init:claudeMd.autoGenerated'))
-  lines.push('')
+  lines.push(`# ${i18n.t('init:claudeMd.title')}`);
+  lines.push('');
+  lines.push(i18n.t('init:claudeMd.autoGenerated'));
+  lines.push('');
 
   // Detect project type and add relevant sections
-  const pkgJsonPath = join(projectRoot, 'package.json')
+  const pkgJsonPath = join(projectRoot, 'package.json');
   if (existsSync(pkgJsonPath)) {
     try {
-      const pkg = JSON.parse(readFileSync(pkgJsonPath, 'utf-8'))
+      const pkg = JSON.parse(readFileSync(pkgJsonPath, 'utf-8'));
 
       // Project name
       if (pkg.name) {
-        lines.push(`## ${i18n.t('init:claudeMd.projectInfo')}`)
-        lines.push('')
-        lines.push(`- **${i18n.t('init:claudeMd.name')}**: ${pkg.name}`)
+        lines.push(`## ${i18n.t('init:claudeMd.projectInfo')}`);
+        lines.push('');
+        lines.push(`- **${i18n.t('init:claudeMd.name')}**: ${pkg.name}`);
         if (pkg.description) {
-          lines.push(`- **${i18n.t('init:claudeMd.description')}**: ${pkg.description}`)
+          lines.push(`- **${i18n.t('init:claudeMd.description')}**: ${pkg.description}`);
         }
-        lines.push('')
+        lines.push('');
       }
 
       // Scripts
       if (pkg.scripts && Object.keys(pkg.scripts).length > 0) {
-        lines.push(`## ${i18n.t('init:claudeMd.availableScripts')}`)
-        lines.push('')
-        lines.push('```bash')
-        const importantScripts = ['dev', 'build', 'test', 'lint', 'format', 'typecheck', 'start']
+        lines.push(`## ${i18n.t('init:claudeMd.availableScripts')}`);
+        lines.push('');
+        lines.push('```bash');
+        const importantScripts = ['dev', 'build', 'test', 'lint', 'format', 'typecheck', 'start'];
         for (const script of importantScripts) {
           if (pkg.scripts[script]) {
-            lines.push(`# ${script}`)
-            lines.push(`npm run ${script}`)
-            lines.push('')
+            lines.push(`# ${script}`);
+            lines.push(`npm run ${script}`);
+            lines.push('');
           }
         }
-        lines.push('```')
-        lines.push('')
+        lines.push('```');
+        lines.push('');
       }
     }
     catch {
@@ -676,22 +676,22 @@ export function generateClaudeMd(projectRoot: string, projectContext?: ProjectCo
 
   // Add project-aware best practices
   if (projectContext) {
-    const practices = getProjectBestPractices(projectContext)
+    const practices = getProjectBestPractices(projectContext);
     if (practices) {
-      lines.push(`## ${i18n.t('init:claudeMd.bestPractices', { defaultValue: 'Best Practices' })}`)
-      lines.push('')
-      lines.push(practices)
-      lines.push('')
+      lines.push(`## ${i18n.t('init:claudeMd.bestPractices', { defaultValue: 'Best Practices' })}`);
+      lines.push('');
+      lines.push(practices);
+      lines.push('');
     }
   }
 
   // Add general guidelines
-  lines.push(`## ${i18n.t('init:claudeMd.guidelines')}`)
-  lines.push('')
-  lines.push(i18n.t('init:claudeMd.guidelinesContent'))
-  lines.push('')
+  lines.push(`## ${i18n.t('init:claudeMd.guidelines')}`);
+  lines.push('');
+  lines.push(i18n.t('init:claudeMd.guidelinesContent'));
+  lines.push('');
 
-  return lines.join('\n')
+  return lines.join('\n');
 }
 
 /**
@@ -699,14 +699,14 @@ export function generateClaudeMd(projectRoot: string, projectContext?: ProjectCo
  * Returns true if the file was created.
  */
 export function writeClaudeMd(projectRoot: string, projectContext?: ProjectContext): boolean {
-  const claudeMdPath = join(projectRoot, 'CLAUDE.md')
+  const claudeMdPath = join(projectRoot, 'CLAUDE.md');
 
   // Don't overwrite existing CLAUDE.md
   if (existsSync(claudeMdPath)) {
-    return false
+    return false;
   }
 
-  const content = generateClaudeMd(projectRoot, projectContext)
-  writeFileSync(claudeMdPath, content, 'utf-8')
-  return true
+  const content = generateClaudeMd(projectRoot, projectContext);
+  writeFileSync(claudeMdPath, content, 'utf-8');
+  return true;
 }

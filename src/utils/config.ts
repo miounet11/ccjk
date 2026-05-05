@@ -1,41 +1,41 @@
-import type { AiOutputLanguage, CodeToolType } from '../constants'
-import type { ApiConfig, ClaudeSettings } from '../types/config'
-import type { ModelEnvKey } from './config.model-keys'
-import type { CopyDirOptions } from './fs-operations'
-import { fileURLToPath } from 'node:url'
-import ansis from 'ansis'
-import dayjs from 'dayjs'
-import inquirer from 'inquirer'
-import { dirname, join } from 'pathe'
-import { AI_OUTPUT_LANGUAGES, CLAUDE_VSC_CONFIG_FILE, SETTINGS_FILE } from '../constants'
-import { ensureI18nInitialized, i18n } from '../i18n'
-import { addCompletedOnboarding, setPrimaryApiKey } from './claude-config'
-import { clearModelEnv, MODEL_ENV_KEYS } from './config.model-keys'
-import { normalizeClaudeFamilySettings } from './claude-settings-normalizer'
+import type { AiOutputLanguage, CodeToolType } from '../constants';
+import type { ApiConfig, ClaudeSettings } from '../types/config';
+import type { ModelEnvKey } from './config.model-keys';
+import type { CopyDirOptions } from './fs-operations';
+import { fileURLToPath } from 'node:url';
+import ansis from 'ansis';
+import dayjs from 'dayjs';
+import inquirer from 'inquirer';
+import { dirname, join } from 'pathe';
+import { AI_OUTPUT_LANGUAGES, CLAUDE_VSC_CONFIG_FILE, SETTINGS_FILE } from '../constants';
+import { ensureI18nInitialized, i18n } from '../i18n';
+import { addCompletedOnboarding, setPrimaryApiKey } from './claude-config';
+import { normalizeClaudeFamilySettings } from './claude-settings-normalizer';
+import { clearModelEnv, MODEL_ENV_KEYS } from './config.model-keys';
 import {
   copyDir,
   copyFile,
   ensureDir,
   exists,
   writeFileAtomic,
-} from './fs-operations'
-import { readJsonConfig, writeJsonConfig } from './json-config'
-import { deepMerge } from './object-utils'
-import { mergeAndCleanPermissions } from './permission-cleaner'
-import { resolveClaudeFamilySettingsTarget } from './runtime-settings'
+} from './fs-operations';
+import { readJsonConfig, writeJsonConfig } from './json-config';
+import { deepMerge } from './object-utils';
+import { mergeAndCleanPermissions } from './permission-cleaner';
+import { resolveClaudeFamilySettingsTarget } from './runtime-settings';
 
-export type { ApiConfig } from '../types/config'
+export type { ApiConfig } from '../types/config';
 
-const BUILTIN_MODEL_VALUES = ['opus', 'sonnet', 'sonnet[1m]'] as const
+const BUILTIN_MODEL_VALUES = ['opus', 'sonnet', 'sonnet[1m]'] as const;
 
 export function clearLegacyTopLevelRuntimeSettings(settings: Record<string, any>): void {
-  delete settings.baseUrl
-  delete settings.apiProvider
-  delete settings.apiUrl
-  delete settings.apiKey
-  delete settings.authToken
-  delete settings.defaultModel
-  delete settings.preferredModel
+  delete settings.baseUrl;
+  delete settings.apiProvider;
+  delete settings.apiUrl;
+  delete settings.apiKey;
+  delete settings.authToken;
+  delete settings.defaultModel;
+  delete settings.preferredModel;
 }
 
 function hasAdaptiveRoutingEnv(settings: ClaudeSettings): boolean {
@@ -43,51 +43,51 @@ function hasAdaptiveRoutingEnv(settings: ClaudeSettings): boolean {
     settings.env?.ANTHROPIC_DEFAULT_HAIKU_MODEL
     || settings.env?.ANTHROPIC_DEFAULT_SONNET_MODEL
     || settings.env?.ANTHROPIC_DEFAULT_OPUS_MODEL,
-  )
+  );
 }
 
 export function ensureClaudeDir(codeTool?: CodeToolType): void {
-  ensureDir(resolveClaudeFamilySettingsTarget(codeTool).configDir)
+  ensureDir(resolveClaudeFamilySettingsTarget(codeTool).configDir);
 }
 
 export function backupExistingConfig(codeTool?: CodeToolType): string | null {
-  const target = resolveClaudeFamilySettingsTarget(codeTool)
+  const target = resolveClaudeFamilySettingsTarget(codeTool);
   if (!exists(target.configDir)) {
-    return null
+    return null;
   }
 
-  const timestamp = dayjs().format('YYYY-MM-DD_HH-mm-ss')
-  const backupBaseDir = join(target.configDir, target.runtimeBackupDirName)
-  const backupDir = join(backupBaseDir, `backup_${timestamp}`)
+  const timestamp = dayjs().format('YYYY-MM-DD_HH-mm-ss');
+  const backupBaseDir = join(target.configDir, target.runtimeBackupDirName);
+  const backupDir = join(backupBaseDir, `backup_${timestamp}`);
 
   // Create backup directory
-  ensureDir(backupDir)
+  ensureDir(backupDir);
 
   // Copy all files from the runtime config dir to backup directory (excluding backup folders).
   const filter: CopyDirOptions['filter'] = (path) => {
-    return !path.includes('/backup') && !path.includes('/backups')
-  }
+    return !path.includes('/backup') && !path.includes('/backups');
+  };
 
-  copyDir(target.configDir, backupDir, { filter })
+  copyDir(target.configDir, backupDir, { filter });
 
-  return backupDir
+  return backupDir;
 }
 
 export function copyConfigFiles(onlyMd: boolean = false, codeTool?: CodeToolType): void {
-  const target = resolveClaudeFamilySettingsTarget(codeTool)
+  const target = resolveClaudeFamilySettingsTarget(codeTool);
   // Get the root directory of the package
-  const currentFilePath = fileURLToPath(import.meta.url)
+  const currentFilePath = fileURLToPath(import.meta.url);
   // Navigate from dist/shared/xxx.mjs to package root
-  const distDir = dirname(dirname(currentFilePath))
-  const rootDir = dirname(distDir)
-  const baseTemplateDir = join(rootDir, 'templates', 'claude-code')
+  const distDir = dirname(dirname(currentFilePath));
+  const rootDir = dirname(distDir);
+  const baseTemplateDir = join(rootDir, 'templates', 'claude-code');
 
   if (!onlyMd) {
     // Intelligently merge settings.json instead of copying
-    const baseSettingsPath = join(baseTemplateDir, 'common', 'settings.json')
-    const destSettingsPath = target.settingsFile
+    const baseSettingsPath = join(baseTemplateDir, 'common', 'settings.json');
+    const destSettingsPath = target.settingsFile;
     if (exists(baseSettingsPath)) {
-      mergeSettingsFile(baseSettingsPath, destSettingsPath)
+      mergeSettingsFile(baseSettingsPath, destSettingsPath);
     }
   }
 }
@@ -98,111 +98,111 @@ export function copyConfigFiles(onlyMd: boolean = false, codeTool?: CodeToolType
 function getDefaultSettings(): ClaudeSettings {
   try {
     // Get template directory path
-    const currentFilePath = fileURLToPath(import.meta.url)
-    const distDir = dirname(dirname(currentFilePath))
-    const rootDir = dirname(distDir)
-    const templateSettingsPath = join(rootDir, 'templates', 'claude-code', 'common', 'settings.json')
+    const currentFilePath = fileURLToPath(import.meta.url);
+    const distDir = dirname(dirname(currentFilePath));
+    const rootDir = dirname(distDir);
+    const templateSettingsPath = join(rootDir, 'templates', 'claude-code', 'common', 'settings.json');
 
-    return readJsonConfig<ClaudeSettings>(templateSettingsPath) || {}
+    return readJsonConfig<ClaudeSettings>(templateSettingsPath) || {};
   }
   catch (error) {
-    console.error('Failed to read template settings', error)
-    return {}
+    console.error('Failed to read template settings', error);
+    return {};
   }
 }
 
 export function configureApi(apiConfig: ApiConfig | null, codeTool?: CodeToolType): ApiConfig | null {
   if (!apiConfig)
-    return null
-  const target = resolveClaudeFamilySettingsTarget(codeTool)
+    return null;
+  const target = resolveClaudeFamilySettingsTarget(codeTool);
 
   // Read existing settings first — user config takes priority
   // Only fall back to template defaults if no settings.json exists at all
-  const existingSettings = readJsonConfig<ClaudeSettings>(target.settingsFile)
-  let settings: ClaudeSettings
+  const existingSettings = readJsonConfig<ClaudeSettings>(target.settingsFile);
+  let settings: ClaudeSettings;
   if (existingSettings) {
-    settings = existingSettings
+    settings = existingSettings;
   }
   else {
     // First-time setup: start from template defaults
-    settings = getDefaultSettings()
+    settings = getDefaultSettings();
   }
 
   // Ensure env object exists
   if (!settings.env) {
-    settings.env = {}
+    settings.env = {};
   }
 
-  clearLegacyTopLevelRuntimeSettings(settings)
+  clearLegacyTopLevelRuntimeSettings(settings);
 
   // Update API configuration based on auth type
   if (apiConfig.authType === 'api_key') {
-    settings.env.ANTHROPIC_API_KEY = apiConfig.key
+    settings.env.ANTHROPIC_API_KEY = apiConfig.key;
     // Remove auth token if switching to API key
-    delete settings.env.ANTHROPIC_AUTH_TOKEN
+    delete settings.env.ANTHROPIC_AUTH_TOKEN;
   }
   else if (apiConfig.authType === 'auth_token') {
-    settings.env.ANTHROPIC_AUTH_TOKEN = apiConfig.key
+    settings.env.ANTHROPIC_AUTH_TOKEN = apiConfig.key;
     // Remove API key if switching to auth token
-    delete settings.env.ANTHROPIC_API_KEY
+    delete settings.env.ANTHROPIC_API_KEY;
   }
 
   // Always update URL if provided
   if (apiConfig.url) {
-    settings.env.ANTHROPIC_BASE_URL = apiConfig.url
+    settings.env.ANTHROPIC_BASE_URL = apiConfig.url;
   }
 
-  normalizeClaudeFamilySettings(settings)
-  writeJsonConfig(target.settingsFile, settings)
+  normalizeClaudeFamilySettings(settings);
+  writeJsonConfig(target.settingsFile, settings);
 
   // Set primaryApiKey for third-party API (Claude Code 2.0 requirement)
   // Re-read settings after write to avoid race with other writers
   if (apiConfig.authType && target.codeTool === 'claude-code') {
     try {
-      setPrimaryApiKey(target.codeTool)
+      setPrimaryApiKey(target.codeTool);
     }
     catch (error) {
-      ensureI18nInitialized()
-      console.error(i18n.t('mcp:primaryApiKeySetFailed'), error)
+      ensureI18nInitialized();
+      console.error(i18n.t('mcp:primaryApiKeySetFailed'), error);
     }
   }
 
   // Add hasCompletedOnboarding flag — re-read from disk to avoid clobbering
   try {
-    addCompletedOnboarding(target.codeTool)
+    addCompletedOnboarding(target.codeTool);
   }
   catch (error) {
-    console.error('Failed to set onboarding flag', error)
+    console.error('Failed to set onboarding flag', error);
   }
 
   // Verify the write actually persisted
-  const verification = readJsonConfig<ClaudeSettings>(target.settingsFile)
+  const verification = readJsonConfig<ClaudeSettings>(target.settingsFile);
   if (verification?.env) {
-    const envKey = apiConfig.authType === 'api_key' ? 'ANTHROPIC_API_KEY' : 'ANTHROPIC_AUTH_TOKEN'
+    const envKey = apiConfig.authType === 'api_key' ? 'ANTHROPIC_API_KEY' : 'ANTHROPIC_AUTH_TOKEN';
     if (verification.env[envKey] !== apiConfig.key) {
-      console.error(ansis.red('⚠ API config write verification failed — retrying...'))
+      console.error(ansis.red('⚠ API config write verification failed — retrying...'));
       // Re-read, re-apply, re-write
-      const freshSettings = readJsonConfig<ClaudeSettings>(target.settingsFile) || settings
-      clearLegacyTopLevelRuntimeSettings(freshSettings)
+      const freshSettings = readJsonConfig<ClaudeSettings>(target.settingsFile) || settings;
+      clearLegacyTopLevelRuntimeSettings(freshSettings);
       if (!freshSettings.env)
-        freshSettings.env = {}
+        freshSettings.env = {};
       if (apiConfig.authType === 'api_key') {
-        freshSettings.env.ANTHROPIC_API_KEY = apiConfig.key
-        delete freshSettings.env.ANTHROPIC_AUTH_TOKEN
+        freshSettings.env.ANTHROPIC_API_KEY = apiConfig.key;
+        delete freshSettings.env.ANTHROPIC_AUTH_TOKEN;
       }
       else if (apiConfig.authType === 'auth_token') {
-        freshSettings.env.ANTHROPIC_AUTH_TOKEN = apiConfig.key
-        delete freshSettings.env.ANTHROPIC_API_KEY
+        freshSettings.env.ANTHROPIC_AUTH_TOKEN = apiConfig.key;
+        delete freshSettings.env.ANTHROPIC_API_KEY;
       }
       if (apiConfig.url) {
-        freshSettings.env.ANTHROPIC_BASE_URL = apiConfig.url
+        freshSettings.env.ANTHROPIC_BASE_URL = apiConfig.url;
       }
-      normalizeClaudeFamilySettings(freshSettings)
-      writeJsonConfig(target.settingsFile, freshSettings)
+      normalizeClaudeFamilySettings(freshSettings);
+      writeJsonConfig(target.settingsFile, freshSettings);
     }
   }
 
-  return apiConfig
+  return apiConfig;
 }
 
 /**
@@ -210,42 +210,42 @@ export function configureApi(apiConfig: ApiConfig | null, codeTool?: CodeToolTyp
  * Adds default hooks configuration if the version supports it
  */
 export function configureHooks(hooks: Record<string, unknown[]>): void {
-  let settings = getDefaultSettings()
+  let settings = getDefaultSettings();
 
-  const existingSettings = readJsonConfig<ClaudeSettings>(SETTINGS_FILE)
+  const existingSettings = readJsonConfig<ClaudeSettings>(SETTINGS_FILE);
   if (existingSettings) {
-    settings = existingSettings
+    settings = existingSettings;
   }
 
   // Merge hooks with existing hooks configuration
   settings.hooks = {
     ...(settings.hooks || {}),
     ...hooks,
-  }
+  };
 
-  normalizeClaudeFamilySettings(settings)
-  writeJsonConfig(SETTINGS_FILE, settings)
+  normalizeClaudeFamilySettings(settings);
+  writeJsonConfig(SETTINGS_FILE, settings);
 }
 
 export function mergeConfigs(sourceFile: string, targetFile: string): void {
   if (!exists(sourceFile))
-    return
+    return;
 
-  const target = readJsonConfig<ClaudeSettings>(targetFile) || {}
-  const source = readJsonConfig<ClaudeSettings>(sourceFile) || {}
+  const target = readJsonConfig<ClaudeSettings>(targetFile) || {};
+  const source = readJsonConfig<ClaudeSettings>(sourceFile) || {};
 
   // Deep merge logic
-  const merged = deepMerge(target, source)
+  const merged = deepMerge(target, source);
 
-  normalizeClaudeFamilySettings(merged)
-  writeJsonConfig(targetFile, merged)
+  normalizeClaudeFamilySettings(merged);
+  writeJsonConfig(targetFile, merged);
 }
 
 export interface ModelConfigOverride {
-  primaryModel?: string
-  haikuModel?: string
-  sonnetModel?: string
-  opusModel?: string
+  primaryModel?: string;
+  haikuModel?: string;
+  sonnetModel?: string;
+  opusModel?: string;
 }
 
 /**
@@ -262,29 +262,29 @@ export function overwriteModelSettings(
   }: ModelConfigOverride,
   mode: 'reset' | 'override' = 'override',
 ): ClaudeSettings {
-  settings.env = settings.env || {}
-  clearModelEnv(settings.env, mode)
-  delete settings.model
+  settings.env = settings.env || {};
+  clearModelEnv(settings.env, mode);
+  delete settings.model;
 
   // When family-specific models are configured, do NOT set settings.model
   // settings.model overrides ALL env vars, breaking adaptive routing
   // (Haiku for small tasks, Sonnet for standard, Opus for complex)
-  const hasAdaptiveRouting = Boolean(haikuModel?.trim() || sonnetModel?.trim() || opusModel?.trim())
+  const hasAdaptiveRouting = Boolean(haikuModel?.trim() || sonnetModel?.trim() || opusModel?.trim());
   if (primaryModel?.trim() && !hasAdaptiveRouting) {
-    settings.model = primaryModel.trim()
+    settings.model = primaryModel.trim();
   }
   if (haikuModel?.trim()) {
-    settings.env.ANTHROPIC_SMALL_FAST_MODEL = haikuModel.trim()
-    settings.env.ANTHROPIC_DEFAULT_HAIKU_MODEL = haikuModel.trim()
+    settings.env.ANTHROPIC_SMALL_FAST_MODEL = haikuModel.trim();
+    settings.env.ANTHROPIC_DEFAULT_HAIKU_MODEL = haikuModel.trim();
   }
   if (sonnetModel?.trim()) {
-    settings.env.ANTHROPIC_DEFAULT_SONNET_MODEL = sonnetModel.trim()
+    settings.env.ANTHROPIC_DEFAULT_SONNET_MODEL = sonnetModel.trim();
   }
   if (opusModel?.trim()) {
-    settings.env.ANTHROPIC_DEFAULT_OPUS_MODEL = opusModel.trim()
+    settings.env.ANTHROPIC_DEFAULT_OPUS_MODEL = opusModel.trim();
   }
 
-  return settings
+  return settings;
 }
 
 /**
@@ -303,28 +303,28 @@ export function updateCustomModel(
 ): void {
   // Skip if all models are empty
   if (!primaryModel?.trim() && !haikuModel?.trim() && !sonnetModel?.trim() && !opusModel?.trim()) {
-    return
+    return;
   }
 
-  const target = resolveClaudeFamilySettingsTarget(codeTool)
-  let settings = getDefaultSettings()
+  const target = resolveClaudeFamilySettingsTarget(codeTool);
+  let settings = getDefaultSettings();
 
-  const existingSettings = readJsonConfig<ClaudeSettings>(target.settingsFile)
+  const existingSettings = readJsonConfig<ClaudeSettings>(target.settingsFile);
   if (existingSettings) {
-    settings = existingSettings
+    settings = existingSettings;
   }
 
-  clearLegacyTopLevelRuntimeSettings(settings)
+  clearLegacyTopLevelRuntimeSettings(settings);
 
   overwriteModelSettings(settings, {
     primaryModel,
     haikuModel,
     sonnetModel,
     opusModel,
-  }, 'override')
+  }, 'override');
 
-  normalizeClaudeFamilySettings(settings)
-  writeJsonConfig(target.settingsFile, settings)
+  normalizeClaudeFamilySettings(settings);
+  writeJsonConfig(target.settingsFile, settings);
 }
 
 /**
@@ -333,37 +333,37 @@ export function updateCustomModel(
  * Note: 'custom' is configured by updateCustomModel().
  */
 export function updateDefaultModel(model: 'opus' | 'sonnet' | 'sonnet[1m]' | 'default' | 'custom', codeTool?: CodeToolType): void {
-  const target = resolveClaudeFamilySettingsTarget(codeTool)
-  let settings = getDefaultSettings()
+  const target = resolveClaudeFamilySettingsTarget(codeTool);
+  let settings = getDefaultSettings();
 
-  const existingSettings = readJsonConfig<ClaudeSettings>(target.settingsFile)
+  const existingSettings = readJsonConfig<ClaudeSettings>(target.settingsFile);
   if (existingSettings) {
-    settings = existingSettings
+    settings = existingSettings;
   }
 
-  clearLegacyTopLevelRuntimeSettings(settings)
+  clearLegacyTopLevelRuntimeSettings(settings);
 
   // Ensure env object exists
   if (!settings.env) {
-    settings.env = {}
+    settings.env = {};
   }
 
   // Clean model-related environment variables unless caller manages custom values
   if (model !== 'custom') {
-    clearModelEnv(settings.env)
+    clearModelEnv(settings.env);
   }
 
   if (model === 'default' || model === 'custom') {
     // Remove model field to let Claude Code auto-select or use custom env
-    delete settings.model
+    delete settings.model;
   }
   else {
     // Set explicit model for built-in options
-    settings.model = model
+    settings.model = model;
   }
 
-  normalizeClaudeFamilySettings(settings)
-  writeJsonConfig(target.settingsFile, settings)
+  normalizeClaudeFamilySettings(settings);
+  writeJsonConfig(target.settingsFile, settings);
 }
 
 /**
@@ -374,30 +374,30 @@ export function updateDefaultModel(model: 'opus' | 'sonnet' | 'sonnet[1m]' | 'de
 export function mergeSettingsFile(templatePath: string, targetPath: string): void {
   try {
     // Read template settings
-    const templateSettings = readJsonConfig<ClaudeSettings>(templatePath)
+    const templateSettings = readJsonConfig<ClaudeSettings>(templatePath);
 
     if (!templateSettings) {
-      console.error('Failed to read template settings')
-      return
+      console.error('Failed to read template settings');
+      return;
     }
 
     // If target doesn't exist, just copy template
     if (!exists(targetPath)) {
-      copyFile(templatePath, targetPath)
-      return
+      copyFile(templatePath, targetPath);
+      return;
     }
 
     // Read existing settings
-    const existingSettings = readJsonConfig<ClaudeSettings>(targetPath) || {}
+    const existingSettings = readJsonConfig<ClaudeSettings>(targetPath) || {};
 
     // Special handling for env variables - preserve all user's env vars
     const mergedEnv = {
       ...(templateSettings.env || {}), // Template env vars first
       ...(existingSettings.env || {}), // User's env vars override (preserving API keys, etc.)
-    }
+    };
 
     // Start with template as base to ensure correct schema/format
-    const mergedSettings: ClaudeSettings = { ...templateSettings }
+    const mergedSettings: ClaudeSettings = { ...templateSettings };
 
     // Merge user settings, but preserve template's schema-critical fields
     // Fields that MUST come from template for validation
@@ -406,35 +406,35 @@ export function mergeSettingsFile(templatePath: string, targetPath: string): voi
       'attribution',
       'fileSuggestion',
       'permissions',
-    ]
+    ];
 
     // Fields that should not be null (remove null values from user settings)
     const removeNullFields = [
       'plansDirectory',
       'contextFiles',
-    ]
+    ];
 
     // Copy user settings to merged, skipping schema-critical fields
     for (const [key, value] of Object.entries(existingSettings)) {
       if (!schemaCriticalFields.includes(key)) {
         // Don't copy null values for fields that should not be null
         if (removeNullFields.includes(key) && value === null) {
-          continue
+          continue;
         }
-        (mergedSettings as any)[key] = value
+        (mergedSettings as any)[key] = value;
       }
     }
 
     // Ensure user's env vars are preserved
-    mergedSettings.env = mergedEnv
+    mergedSettings.env = mergedEnv;
 
     // `model: "default"` is not a valid Claude Code runtime value.
     // When adaptive routing env vars are present, any explicit `model` also breaks routing.
     if (mergedSettings.model === 'default') {
-      delete mergedSettings.model
+      delete mergedSettings.model;
     }
     if (mergedSettings.model && hasAdaptiveRoutingEnv(mergedSettings)) {
-      delete mergedSettings.model
+      delete mergedSettings.model;
     }
 
     // Handle permissions.allow array specially to avoid duplicates and clean invalid entries
@@ -443,28 +443,28 @@ export function mergeSettingsFile(templatePath: string, targetPath: string): voi
       mergedSettings.permissions.allow = mergeAndCleanPermissions(
         templateSettings.permissions?.allow,
         existingSettings.permissions?.allow,
-      )
+      );
     }
 
     // Clean up null values that should not exist
     // If plansDirectory is null, remove it entirely (Claude Code will use default)
     if ((mergedSettings as any).plansDirectory === null) {
-      delete (mergedSettings as any).plansDirectory
+      delete (mergedSettings as any).plansDirectory;
     }
 
     // Write merged settings
-    normalizeClaudeFamilySettings(mergedSettings)
-    writeJsonConfig(targetPath, mergedSettings)
+    normalizeClaudeFamilySettings(mergedSettings);
+    writeJsonConfig(targetPath, mergedSettings);
   }
   catch (error) {
-    console.error('Failed to merge settings', error)
+    console.error('Failed to merge settings', error);
     // If merge fails, preserve existing file
     if (exists(targetPath)) {
-      console.log('Preserving existing settings')
+      console.log('Preserving existing settings');
     }
     else {
       // If no existing file and merge failed, copy template as fallback
-      copyFile(templatePath, targetPath)
+      copyFile(templatePath, targetPath);
     }
   }
 }
@@ -473,50 +473,50 @@ export function mergeSettingsFile(templatePath: string, targetPath: string): voi
  * Get existing model configuration from settings.json
  */
 export function getExistingModelConfig(codeTool?: CodeToolType): 'opus' | 'sonnet' | 'sonnet[1m]' | 'default' | 'custom' | null {
-  const target = resolveClaudeFamilySettingsTarget(codeTool)
-  const settings = readJsonConfig<ClaudeSettings>(target.settingsFile)
+  const target = resolveClaudeFamilySettingsTarget(codeTool);
+  const settings = readJsonConfig<ClaudeSettings>(target.settingsFile);
 
   if (!settings) {
-    return null
+    return null;
   }
 
   // Check if using custom model configuration via environment variables
   const hasModelEnv = MODEL_ENV_KEYS
     .filter(key => key !== 'ANTHROPIC_MODEL')
     .some((key: ModelEnvKey) => {
-      const value = settings.env?.[key]
-      return value !== undefined && value !== null && value !== ''
-    })
+      const value = settings.env?.[key];
+      return value !== undefined && value !== null && value !== '';
+    });
   if (hasModelEnv) {
-    return 'custom'
+    return 'custom';
   }
 
   // If model field doesn't exist, it means using default
   if (!settings.model || settings.model === 'default') {
-    return 'default'
+    return 'default';
   }
 
   if (BUILTIN_MODEL_VALUES.includes(settings.model as any)) {
-    return settings.model as 'opus' | 'sonnet' | 'sonnet[1m]'
+    return settings.model as 'opus' | 'sonnet' | 'sonnet[1m]';
   }
 
-  return 'custom'
+  return 'custom';
 }
 
 /**
  * Get existing custom model configuration from settings.json
  */
 export function getExistingCustomModelConfig(codeTool?: CodeToolType): {
-  primaryModel?: string
-  haikuModel?: string
-  sonnetModel?: string
-  opusModel?: string
+  primaryModel?: string;
+  haikuModel?: string;
+  sonnetModel?: string;
+  opusModel?: string;
 } | null {
-  const target = resolveClaudeFamilySettingsTarget(codeTool)
-  const settings = readJsonConfig<ClaudeSettings>(target.settingsFile)
+  const target = resolveClaudeFamilySettingsTarget(codeTool);
+  const settings = readJsonConfig<ClaudeSettings>(target.settingsFile);
 
   if (!settings) {
-    return null
+    return null;
   }
 
   const {
@@ -524,15 +524,15 @@ export function getExistingCustomModelConfig(codeTool?: CodeToolType): {
     ANTHROPIC_DEFAULT_HAIKU_MODEL,
     ANTHROPIC_DEFAULT_SONNET_MODEL,
     ANTHROPIC_DEFAULT_OPUS_MODEL,
-  } = settings.env || {}
+  } = settings.env || {};
 
   // Check if any custom model configuration exists
   const primaryModel = settings.model && settings.model !== 'default' && !BUILTIN_MODEL_VALUES.includes(settings.model as any)
     ? settings.model
-    : settings.env?.ANTHROPIC_MODEL
+    : settings.env?.ANTHROPIC_MODEL;
 
   if (!primaryModel && !ANTHROPIC_DEFAULT_HAIKU_MODEL && !ANTHROPIC_DEFAULT_SONNET_MODEL && !ANTHROPIC_DEFAULT_OPUS_MODEL) {
-    return null
+    return null;
   }
 
   return {
@@ -540,69 +540,69 @@ export function getExistingCustomModelConfig(codeTool?: CodeToolType): {
     haikuModel: ANTHROPIC_DEFAULT_HAIKU_MODEL || ANTHROPIC_SMALL_FAST_MODEL,
     sonnetModel: ANTHROPIC_DEFAULT_SONNET_MODEL,
     opusModel: ANTHROPIC_DEFAULT_OPUS_MODEL,
-  }
+  };
 }
 
 /**
  * Get existing API configuration from settings.json
  */
 export function getExistingApiConfig(codeTool?: CodeToolType): ApiConfig | null {
-  const target = resolveClaudeFamilySettingsTarget(codeTool)
-  const settings = readJsonConfig<ClaudeSettings>(target.settingsFile)
+  const target = resolveClaudeFamilySettingsTarget(codeTool);
+  const settings = readJsonConfig<ClaudeSettings>(target.settingsFile);
 
   if (!settings || !settings.env) {
-    return null
+    return null;
   }
 
-  const { ANTHROPIC_API_KEY, ANTHROPIC_AUTH_TOKEN, ANTHROPIC_BASE_URL } = settings.env
+  const { ANTHROPIC_API_KEY, ANTHROPIC_AUTH_TOKEN, ANTHROPIC_BASE_URL } = settings.env;
 
   // Check if any API configuration exists
   if (!ANTHROPIC_BASE_URL && !ANTHROPIC_API_KEY && !ANTHROPIC_AUTH_TOKEN) {
-    return null
+    return null;
   }
 
   // Determine auth type based on which key is present
-  let authType: 'auth_token' | 'api_key' | undefined
-  let key: string | undefined
+  let authType: 'auth_token' | 'api_key' | undefined;
+  let key: string | undefined;
 
   if (ANTHROPIC_AUTH_TOKEN) {
-    authType = 'auth_token'
-    key = ANTHROPIC_AUTH_TOKEN
+    authType = 'auth_token';
+    key = ANTHROPIC_AUTH_TOKEN;
   }
   else if (ANTHROPIC_API_KEY) {
-    authType = 'api_key'
-    key = ANTHROPIC_API_KEY
+    authType = 'api_key';
+    key = ANTHROPIC_API_KEY;
   }
 
   return {
     url: ANTHROPIC_BASE_URL || '',
     key: key || '',
     authType,
-  }
+  };
 }
 
 export function applyAiLanguageDirective(aiOutputLang: AiOutputLanguage | string, codeTool?: CodeToolType): void {
-  const target = resolveClaudeFamilySettingsTarget(codeTool)
+  const target = resolveClaudeFamilySettingsTarget(codeTool);
   // Write language directive directly to CLAUDE.md file
-  const instructionsFile = target.instructionsFile
+  const instructionsFile = target.instructionsFile;
 
   // Prepare the language directive
-  let directive = ''
+  let directive = '';
   if (aiOutputLang === 'custom') {
     // Custom language will be handled by the caller
-    return
+    return;
   }
   else if (AI_OUTPUT_LANGUAGES[aiOutputLang as AiOutputLanguage]) {
-    directive = AI_OUTPUT_LANGUAGES[aiOutputLang as AiOutputLanguage].directive
+    directive = AI_OUTPUT_LANGUAGES[aiOutputLang as AiOutputLanguage].directive;
   }
   else {
     // It's a custom language string
-    directive = `Always respond in ${aiOutputLang}`
+    directive = `Always respond in ${aiOutputLang}`;
   }
 
   // Write to CLAUDE.md file with memory scope frontmatter
-  const frontmatter = target.codeTool === 'clavue' ? '' : '---\nscope: user\n---\n\n'
-  writeFileAtomic(instructionsFile, `${frontmatter}${directive}`)
+  const frontmatter = target.codeTool === 'clavue' ? '' : '---\nscope: user\n---\n\n';
+  writeFileAtomic(instructionsFile, `${frontmatter}${directive}`);
 }
 
 /**
@@ -612,35 +612,35 @@ export function applyAiLanguageDirective(aiOutputLang: AiOutputLanguage | string
  */
 export function switchToOfficialLogin(codeTool?: CodeToolType): boolean {
   try {
-    ensureI18nInitialized()
-    const target = resolveClaudeFamilySettingsTarget(codeTool)
+    ensureI18nInitialized();
+    const target = resolveClaudeFamilySettingsTarget(codeTool);
 
     // 1. Clean settings.json - remove all API-related env vars
-    const settings = readJsonConfig<ClaudeSettings>(target.settingsFile) || {}
+    const settings = readJsonConfig<ClaudeSettings>(target.settingsFile) || {};
     if (settings.env) {
-      delete settings.env.ANTHROPIC_BASE_URL
-      delete settings.env.ANTHROPIC_AUTH_TOKEN
-      delete settings.env.ANTHROPIC_API_KEY
+      delete settings.env.ANTHROPIC_BASE_URL;
+      delete settings.env.ANTHROPIC_AUTH_TOKEN;
+      delete settings.env.ANTHROPIC_API_KEY;
     }
-    normalizeClaudeFamilySettings(settings)
-    writeJsonConfig(target.settingsFile, settings)
+    normalizeClaudeFamilySettings(settings);
+    writeJsonConfig(target.settingsFile, settings);
 
     // 2. Clean ~/.claude/config.json - remove primaryApiKey
     if (target.codeTool === 'claude-code') {
-      const vscConfig = readJsonConfig<{ primaryApiKey?: string }>(CLAUDE_VSC_CONFIG_FILE)
+      const vscConfig = readJsonConfig<{ primaryApiKey?: string }>(CLAUDE_VSC_CONFIG_FILE);
       if (vscConfig) {
-        delete vscConfig.primaryApiKey
-        writeJsonConfig(CLAUDE_VSC_CONFIG_FILE, vscConfig)
+        delete vscConfig.primaryApiKey;
+        writeJsonConfig(CLAUDE_VSC_CONFIG_FILE, vscConfig);
       }
     }
 
-    console.log(i18n.t('api:officialLoginConfigured'))
-    return true
+    console.log(i18n.t('api:officialLoginConfigured'));
+    return true;
   }
   catch (error) {
-    ensureI18nInitialized()
-    console.error(i18n.t('api:officialLoginFailed'), error)
-    return false
+    ensureI18nInitialized();
+    console.error(i18n.t('api:officialLoginFailed'), error);
+    return false;
   }
 }
 
@@ -649,20 +649,20 @@ export function switchToOfficialLogin(codeTool?: CodeToolType): boolean {
  * Returns the user's choice for how to handle existing configuration
  */
 export async function promptApiConfigurationAction(): Promise<'modify-partial' | 'modify-all' | 'keep-existing' | null> {
-  ensureI18nInitialized()
+  ensureI18nInitialized();
 
-  const existingConfig = getExistingApiConfig()
+  const existingConfig = getExistingApiConfig();
 
   // If no existing config, return null
   if (!existingConfig) {
-    return null
+    return null;
   }
 
   // Display existing configuration
-  console.log(`\n${ansis.green(`ℹ ${i18n.t('api:existingApiConfig')}`)}`)
-  console.log(ansis.gray(`  ${i18n.t('api:apiConfigUrl')}: ${existingConfig.url || 'N/A'}`))
-  console.log(ansis.gray(`  ${i18n.t('api:apiConfigKey')}: ${existingConfig.key ? `***${existingConfig.key.slice(-4)}` : 'N/A'}`))
-  console.log(ansis.gray(`  ${i18n.t('api:apiConfigAuthType')}: ${existingConfig.authType || 'N/A'}\n`))
+  console.log(`\n${ansis.green(`ℹ ${i18n.t('api:existingApiConfig')}`)}`);
+  console.log(ansis.gray(`  ${i18n.t('api:apiConfigUrl')}: ${existingConfig.url || 'N/A'}`));
+  console.log(ansis.gray(`  ${i18n.t('api:apiConfigKey')}: ${existingConfig.key ? `***${existingConfig.key.slice(-4)}` : 'N/A'}`));
+  console.log(ansis.gray(`  ${i18n.t('api:apiConfigAuthType')}: ${existingConfig.authType || 'N/A'}\n`));
 
   const { choice } = await inquirer.prompt<{ choice: 'modify-partial' | 'modify-all' | 'keep-existing' | undefined }>({
     type: 'list',
@@ -682,7 +682,7 @@ export async function promptApiConfigurationAction(): Promise<'modify-partial' |
         value: 'keep-existing',
       },
     ],
-  })
+  });
 
-  return choice || null
+  return choice || null;
 }

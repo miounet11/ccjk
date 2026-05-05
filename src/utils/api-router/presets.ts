@@ -2,7 +2,7 @@
  * CCJK API Router - Built-in Provider Presets
  * Pre-configured settings for popular API providers
  */
-import type { ProviderPreset } from './types'
+import type { ProviderPreset } from './types';
 
 /**
  * Built-in provider presets
@@ -299,13 +299,13 @@ export const PROVIDER_PRESETS: ProviderPreset[] = [
       zh: '从 https://ollama.ai 安装 Ollama 并运行: ollama pull llama3.2',
     },
   },
-]
+];
 
 /**
  * Get all provider presets
  */
 export function getAllPresets(): ProviderPreset[] {
-  return PROVIDER_PRESETS
+  return PROVIDER_PRESETS;
 }
 
 /**
@@ -314,24 +314,24 @@ export function getAllPresets(): ProviderPreset[] {
 export function getPresetsByCategory(
   category: ProviderPreset['category'],
 ): ProviderPreset[] {
-  return PROVIDER_PRESETS.filter(p => p.category === category)
+  return PROVIDER_PRESETS.filter(p => p.category === category);
 }
 
 /**
  * Get preset by ID
  */
 export function getPresetById(id: string): ProviderPreset | undefined {
-  return PROVIDER_PRESETS.find(p => p.id === id)
+  return PROVIDER_PRESETS.find(p => p.id === id);
 }
 
 /**
  * Get recommended presets (sorted by popularity/reliability)
  */
 export function getRecommendedPresets(): ProviderPreset[] {
-  const recommendedIds = ['anthropic', '302ai', 'deepseek', 'openrouter', 'qwen']
+  const recommendedIds = ['anthropic', '302ai', 'deepseek', 'openrouter', 'qwen'];
   return recommendedIds
     .map(id => getPresetById(id))
-    .filter((p): p is ProviderPreset => p !== undefined)
+    .filter((p): p is ProviderPreset => p !== undefined);
 }
 
 /**
@@ -340,7 +340,7 @@ export function getRecommendedPresets(): ProviderPreset[] {
 export function getChinesePresets(): ProviderPreset[] {
   return PROVIDER_PRESETS.filter(
     p => p.category === 'chinese' || p.id === '302ai',
-  )
+  );
 }
 
 /**
@@ -349,5 +349,5 @@ export function getChinesePresets(): ProviderPreset[] {
 export function getFreePresets(): ProviderPreset[] {
   return PROVIDER_PRESETS.filter(
     p => p.category === 'free' || p.category === 'local',
-  )
+  );
 }

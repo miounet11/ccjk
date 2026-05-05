@@ -13,8 +13,8 @@
  * - GitHub releases as final fallback
  */
 
-import process from 'node:process'
-import { i18n } from '../../i18n'
+import process from 'node:process';
+import { i18n } from '../../i18n';
 
 /**
  * Registry source configurations with their base URLs
@@ -23,25 +23,25 @@ export const REGISTRIES = {
   npm: 'https://registry.npmjs.org',
   taobao: 'https://registry.npmmirror.com',
   huawei: 'https://repo.huaweicloud.com/repository/npm',
-} as const
+} as const;
 
 /**
  * All available registry sources including GitHub as fallback
  */
-export type RegistrySource = keyof typeof REGISTRIES | 'github'
+export type RegistrySource = keyof typeof REGISTRIES | 'github';
 
 /**
  * Result of a successful version query
  */
 export interface VersionQueryResult {
-  version: string
-  source: RegistrySource
+  version: string;
+  source: RegistrySource;
 }
 
 /**
  * Default timeout for each registry query in milliseconds
  */
-const DEFAULT_TIMEOUT_MS = 5000
+const DEFAULT_TIMEOUT_MS = 5000;
 
 /**
  * Query the latest version of a package from a specific npm registry
@@ -56,11 +56,11 @@ export async function queryVersionFromRegistry(
   registry: string,
   timeout: number = DEFAULT_TIMEOUT_MS,
 ): Promise<string | null> {
-  const url = `${registry}/${packageName}/latest`
+  const url = `${registry}/${packageName}/latest`;
 
   try {
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), timeout)
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
 
     const response = await fetch(url, {
       signal: controller.signal,
@@ -69,26 +69,26 @@ export async function queryVersionFromRegistry(
         // Some registries require a user-agent
         'User-Agent': 'ccjk-version-checker',
       },
-    })
+    });
 
-    clearTimeout(timeoutId)
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       // Log non-200 responses for debugging
       logDebug('registry:queryFailed', {
         registry: getRegistryName(registry),
         status: String(response.status),
-      })
-      return null
+      });
+      return null;
     }
 
-    const data = await response.json() as { version?: string }
+    const data = await response.json() as { version?: string };
 
     if (data && typeof data.version === 'string') {
-      return data.version
+      return data.version;
     }
 
-    return null
+    return null;
   }
   catch (error) {
     // Handle timeout and network errors gracefully
@@ -97,16 +97,16 @@ export async function queryVersionFromRegistry(
         logDebug('registry:timeout', {
           registry: getRegistryName(registry),
           timeout: String(timeout),
-        })
+        });
       }
       else {
         logDebug('registry:error', {
           registry: getRegistryName(registry),
           error: error.message,
-        })
+        });
       }
     }
-    return null
+    return null;
   }
 }
 
@@ -116,10 +116,10 @@ export async function queryVersionFromRegistry(
 function getRegistryName(registry: string): string {
   for (const [name, url] of Object.entries(REGISTRIES)) {
     if (url === registry) {
-      return name
+      return name;
     }
   }
-  return registry
+  return registry;
 }
 
 /**
@@ -128,8 +128,8 @@ function getRegistryName(registry: string): string {
  */
 function logDebug(key: string, params?: Record<string, string>): void {
   if (process.env.DEBUG || process.env.CCJK_DEBUG) {
-    const message = i18n.t(`registry:${key}`, params)
-    console.debug(`[registry] ${message}`)
+    const message = i18n.t(`registry:${key}`, params);
+    console.debug(`[registry] ${message}`);
   }
 }
 
@@ -138,8 +138,8 @@ function logDebug(key: string, params?: Record<string, string>): void {
  */
 function logInfo(key: string, params?: Record<string, string>): void {
   if (process.env.DEBUG || process.env.CCJK_DEBUG) {
-    const message = i18n.t(`registry:${key}`, params)
-    console.info(`[registry] ${message}`)
+    const message = i18n.t(`registry:${key}`, params);
+    console.info(`[registry] ${message}`);
   }
 }
 
@@ -156,12 +156,12 @@ function logInfo(key: string, params?: Record<string, string>): void {
 export function isChinaUser(): boolean {
   // Check explicit environment variable first
   if (process.env.CCJK_CHINA === '1' || process.env.CHINA === '1') {
-    return true
+    return true;
   }
 
   // Check timezone
   try {
-    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     const chinaTimezones = [
       'Asia/Shanghai',
       'Asia/Chongqing',
@@ -170,9 +170,9 @@ export function isChinaUser(): boolean {
       'Asia/Hong_Kong',
       'Asia/Macau',
       'Asia/Taipei',
-    ]
+    ];
     if (chinaTimezones.includes(timezone)) {
-      return true
+      return true;
     }
   }
   catch {
@@ -180,12 +180,12 @@ export function isChinaUser(): boolean {
   }
 
   // Check locale environment variables
-  const locale = process.env.LANG || process.env.LC_ALL || process.env.LC_MESSAGES || ''
+  const locale = process.env.LANG || process.env.LC_ALL || process.env.LC_MESSAGES || '';
   if (locale.toLowerCase().startsWith('zh_cn') || locale.toLowerCase().startsWith('zh-cn')) {
-    return true
+    return true;
   }
 
-  return false
+  return false;
 }
 
 /**
@@ -197,15 +197,15 @@ export function isChinaUser(): boolean {
  * @returns Ordered array of registry sources to try
  */
 export async function getPreferredSources(): Promise<RegistrySource[]> {
-  const isChina = isChinaUser()
+  const isChina = isChinaUser();
 
   if (isChina) {
-    logDebug('registry:chinaUserDetected')
-    return ['taobao', 'npm', 'github']
+    logDebug('registry:chinaUserDetected');
+    return ['taobao', 'npm', 'github'];
   }
 
-  logDebug('registry:globalUserDetected')
-  return ['npm', 'taobao', 'github']
+  logDebug('registry:globalUserDetected');
+  return ['npm', 'taobao', 'github'];
 }
 
 /**
@@ -224,19 +224,19 @@ async function queryVersionFromGitHub(packageName: string): Promise<string | nul
     '@musistudio/claude-code-router': 'anthropics/claude-code-router',
     '@cometix/ccline': 'cometix/ccline',
     'ccjk': 'anthropics/ccjk',
-  }
+  };
 
-  const repo = packageToRepo[packageName]
+  const repo = packageToRepo[packageName];
   if (!repo) {
-    logDebug('registry:githubNoMapping', { package: packageName })
-    return null
+    logDebug('registry:githubNoMapping', { package: packageName });
+    return null;
   }
 
-  const url = `https://api.github.com/repos/${repo}/releases/latest`
+  const url = `https://api.github.com/repos/${repo}/releases/latest`;
 
   try {
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS)
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS);
 
     const response = await fetch(url, {
       signal: controller.signal,
@@ -244,30 +244,30 @@ async function queryVersionFromGitHub(packageName: string): Promise<string | nul
         'Accept': 'application/vnd.github.v3+json',
         'User-Agent': 'ccjk-version-checker',
       },
-    })
+    });
 
-    clearTimeout(timeoutId)
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
-      logDebug('registry:githubQueryFailed', { status: String(response.status) })
-      return null
+      logDebug('registry:githubQueryFailed', { status: String(response.status) });
+      return null;
     }
 
-    const data = await response.json() as { tag_name?: string }
+    const data = await response.json() as { tag_name?: string };
 
     if (data && typeof data.tag_name === 'string') {
       // Remove 'v' prefix if present (e.g., 'v1.2.3' -> '1.2.3')
-      const version = data.tag_name.replace(/^v/, '')
-      return version
+      const version = data.tag_name.replace(/^v/, '');
+      return version;
     }
 
-    return null
+    return null;
   }
   catch (error) {
     if (error instanceof Error) {
-      logDebug('registry:githubError', { error: error.message })
+      logDebug('registry:githubError', { error: error.message });
     }
-    return null
+    return null;
   }
 }
 
@@ -275,26 +275,26 @@ async function queryVersionFromGitHub(packageName: string): Promise<string | nul
  * Simple in-memory cache for version queries
  * This provides basic caching when version-cache module is not available
  */
-const memoryCache = new Map<string, { version: string, source: RegistrySource, timestamp: number }>()
-const CACHE_TTL_MS = 5 * 60 * 1000 // 5 minutes
+const memoryCache = new Map<string, { version: string; source: RegistrySource; timestamp: number }>();
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
 /**
  * Get cached version if available and not expired
  */
 function getCachedVersion(packageName: string): VersionQueryResult | null {
-  const cached = memoryCache.get(packageName)
+  const cached = memoryCache.get(packageName);
   if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
-    logDebug('registry:cacheHit', { package: packageName })
-    return { version: cached.version, source: cached.source }
+    logDebug('registry:cacheHit', { package: packageName });
+    return { version: cached.version, source: cached.source };
   }
-  return null
+  return null;
 }
 
 /**
  * Store version in cache
  */
 function setCachedVersion(packageName: string, version: string, source: RegistrySource): void {
-  memoryCache.set(packageName, { version, source, timestamp: Date.now() })
+  memoryCache.set(packageName, { version, source, timestamp: Date.now() });
 }
 
 /**
@@ -314,47 +314,47 @@ export async function getLatestVersionWithFallback(
   packageName: string,
 ): Promise<VersionQueryResult | null> {
   // Check cache first
-  const cached = getCachedVersion(packageName)
+  const cached = getCachedVersion(packageName);
   if (cached) {
-    return cached
+    return cached;
   }
 
   // Get preferred sources based on user location
-  const sources = await getPreferredSources()
+  const sources = await getPreferredSources();
 
-  logInfo('registry:queryingVersion', { package: packageName })
+  logInfo('registry:queryingVersion', { package: packageName });
 
   // Try each source in order
   for (const source of sources) {
     if (source === 'github') {
       // GitHub is handled separately as it uses a different API
-      logInfo('registry:tryingSource', { source: 'github' })
-      const version = await queryVersionFromGitHub(packageName)
+      logInfo('registry:tryingSource', { source: 'github' });
+      const version = await queryVersionFromGitHub(packageName);
       if (version) {
-        logInfo('registry:sourceSuccess', { source: 'github', version })
-        setCachedVersion(packageName, version, 'github')
-        return { version, source: 'github' }
+        logInfo('registry:sourceSuccess', { source: 'github', version });
+        setCachedVersion(packageName, version, 'github');
+        return { version, source: 'github' };
       }
-      continue
+      continue;
     }
 
     // Query npm registry
-    const registry = REGISTRIES[source]
-    logInfo('registry:tryingSource', { source })
+    const registry = REGISTRIES[source];
+    logInfo('registry:tryingSource', { source });
 
-    const version = await queryVersionFromRegistry(packageName, registry)
+    const version = await queryVersionFromRegistry(packageName, registry);
     if (version) {
-      logInfo('registry:sourceSuccess', { source, version })
-      setCachedVersion(packageName, version, source)
-      return { version, source }
+      logInfo('registry:sourceSuccess', { source, version });
+      setCachedVersion(packageName, version, source);
+      return { version, source };
     }
 
-    logInfo('registry:sourceFailed', { source })
+    logInfo('registry:sourceFailed', { source });
   }
 
   // All sources failed
-  logInfo('registry:allSourcesFailed', { package: packageName })
-  return null
+  logInfo('registry:allSourcesFailed', { package: packageName });
+  return null;
 }
 
 /**
@@ -362,17 +362,17 @@ export async function getLatestVersionWithFallback(
  * Useful for testing or forcing fresh queries
  */
 export function clearVersionCache(): void {
-  memoryCache.clear()
+  memoryCache.clear();
 }
 
 /**
  * Get cache statistics for debugging
  */
-export function getCacheStats(): { size: number, entries: string[] } {
+export function getCacheStats(): { size: number; entries: string[] } {
   return {
     size: memoryCache.size,
     entries: Array.from(memoryCache.keys()),
-  }
+  };
 }
 
 /**
@@ -390,11 +390,11 @@ export async function queryVersionFromSource(
   timeout?: number,
 ): Promise<string | null> {
   if (source === 'github') {
-    return queryVersionFromGitHub(packageName)
+    return queryVersionFromGitHub(packageName);
   }
 
-  const registry = REGISTRIES[source]
-  return queryVersionFromRegistry(packageName, registry, timeout)
+  const registry = REGISTRIES[source];
+  return queryVersionFromRegistry(packageName, registry, timeout);
 }
 
 /**
@@ -409,15 +409,15 @@ export async function isRegistryReachable(
   source: Exclude<RegistrySource, 'github'>,
   timeout: number = 3000,
 ): Promise<boolean> {
-  const registry = REGISTRIES[source]
-  const testPackage = 'lodash' // A well-known package that should always exist
+  const registry = REGISTRIES[source];
+  const testPackage = 'lodash'; // A well-known package that should always exist
 
   try {
-    const version = await queryVersionFromRegistry(testPackage, registry, timeout)
-    return version !== null
+    const version = await queryVersionFromRegistry(testPackage, registry, timeout);
+    return version !== null;
   }
   catch {
-    return false
+    return false;
   }
 }
 
@@ -428,15 +428,15 @@ export async function isRegistryReachable(
  * @returns Array of reachable registry sources
  */
 export async function getReachableRegistries(): Promise<Array<Exclude<RegistrySource, 'github'>>> {
-  const sources: Array<Exclude<RegistrySource, 'github'>> = ['npm', 'taobao', 'huawei']
+  const sources: Array<Exclude<RegistrySource, 'github'>> = ['npm', 'taobao', 'huawei'];
   const results = await Promise.all(
     sources.map(async (source) => {
-      const reachable = await isRegistryReachable(source)
-      return { source, reachable }
+      const reachable = await isRegistryReachable(source);
+      return { source, reachable };
     }),
-  )
+  );
 
   return results
     .filter(r => r.reachable)
-    .map(r => r.source)
+    .map(r => r.source);
 }

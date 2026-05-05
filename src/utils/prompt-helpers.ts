@@ -6,27 +6,27 @@
  * @returns Choices with numbers added to their names
  */
 export function addNumbersToChoices<T = any>(
-  choices: Array<{ name: string, value: T, short?: string, disabled?: boolean | string }>,
+  choices: Array<{ name: string; value: T; short?: string; disabled?: boolean | string }>,
   startFrom = 1,
   format: (index: number) => string = n => `${n}. `,
-): Array<{ name: string, value: T, short?: string, disabled?: boolean | string }> {
-  let currentNumber = startFrom
+): Array<{ name: string; value: T; short?: string; disabled?: boolean | string }> {
+  let currentNumber = startFrom;
 
   return choices.map((choice) => {
     // Skip disabled choices
     if (choice.disabled) {
-      return choice
+      return choice;
     }
 
     // Add number to the choice name
     const numbered = {
       ...choice,
       name: `${format(currentNumber)}${choice.name}`,
-    }
+    };
 
-    currentNumber++
-    return numbered
-  })
+    currentNumber++;
+    return numbered;
+  });
 }
 
 /**
@@ -37,33 +37,33 @@ export function addNumbersToChoices<T = any>(
  * @returns Choices with appropriate formatting
  */
 export function addCustomNumbersToChoices<T = any>(
-  choices: Array<{ name: string, value: T, short?: string, disabled?: boolean | string }>,
+  choices: Array<{ name: string; value: T; short?: string; disabled?: boolean | string }>,
   customFormats: Map<T, string> = new Map(),
-): Array<{ name: string, value: T, short?: string, disabled?: boolean | string }> {
-  let currentNumber = 1
+): Array<{ name: string; value: T; short?: string; disabled?: boolean | string }> {
+  let currentNumber = 1;
 
   return choices.map((choice) => {
     // Skip disabled choices
     if (choice.disabled) {
-      return choice
+      return choice;
     }
 
     // Check for custom format
-    const customFormat = customFormats.get(choice.value)
+    const customFormat = customFormats.get(choice.value);
     if (customFormat) {
       return {
         ...choice,
         name: `${customFormat}${choice.name}`,
-      }
+      };
     }
 
     // Use standard numbering
     const numbered = {
       ...choice,
       name: `${currentNumber}. ${choice.name}`,
-    }
+    };
 
-    currentNumber++
-    return numbered
-  })
+    currentNumber++;
+    return numbered;
+  });
 }

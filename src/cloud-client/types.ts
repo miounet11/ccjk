@@ -10,17 +10,17 @@
  */
 export interface ProjectAnalysisRequest {
   /** Project root directory path */
-  projectRoot: string
+  projectRoot: string;
   /** Package.json dependencies */
-  dependencies?: Record<string, string>
+  dependencies?: Record<string, string>;
   /** Dev dependencies */
-  devDependencies?: Record<string, string>
+  devDependencies?: Record<string, string>;
   /** Git repository URL */
-  gitRemote?: string
+  gitRemote?: string;
   /** Project language (zh-CN, en, ja, ko) */
-  language?: string
+  language?: string;
   /** CCJK version */
-  ccjkVersion?: string
+  ccjkVersion?: string;
 }
 
 /**
@@ -28,23 +28,23 @@ export interface ProjectAnalysisRequest {
  */
 export interface Recommendation {
   /** Unique identifier */
-  id: string
+  id: string;
   /** Display name (multilingual) */
-  name: Record<string, string>
+  name: Record<string, string>;
   /** Description (multilingual) */
-  description: Record<string, string>
+  description: Record<string, string>;
   /** Category: skill, mcp, agent, hook */
-  category: 'skill' | 'mcp' | 'agent' | 'hook'
+  category: 'skill' | 'mcp' | 'agent' | 'hook';
   /** Relevance score (0-1) */
-  relevanceScore: number
+  relevanceScore: number;
   /** Install command */
-  installCommand?: string
+  installCommand?: string;
   /** Configuration JSON - use RecommendationConfig from dto.ts for strict typing */
-  config?: import('./dto').RecommendationConfig
+  config?: import('./dto').RecommendationConfig;
   /** Tags for filtering */
-  tags?: string[]
+  tags?: string[];
   /** Dependencies required */
-  dependencies?: string[]
+  dependencies?: string[];
 }
 
 /**
@@ -52,46 +52,46 @@ export interface Recommendation {
  */
 export interface ProjectAnalysisResponse {
   /** Unique request ID for tracking */
-  requestId: string
+  requestId: string;
   /** Array of personalized recommendations */
-  recommendations: Recommendation[]
+  recommendations: Recommendation[];
   /** Project type detection result */
-  projectType?: string
+  projectType?: string;
   /** Framework detection results */
-  frameworks?: string[]
+  frameworks?: string[];
 }
 
 /**
  * Template type
  */
-export type TemplateType = 'workflow' | 'output-style' | 'prompt' | 'agent'
+export type TemplateType = 'workflow' | 'output-style' | 'prompt' | 'agent';
 
 /**
  * Template response
  */
 export interface TemplateResponse {
   /** Unique template identifier */
-  id: string
+  id: string;
   /** Template type */
-  type: TemplateType
+  type: TemplateType;
   /** Template name (multilingual) */
-  name: Record<string, string>
+  name: Record<string, string>;
   /** Template description (multilingual) */
-  description: Record<string, string>
+  description: Record<string, string>;
   /** Template content */
-  content: string
+  content: string;
   /** Version */
-  version: string
+  version: string;
   /** Author */
-  author?: string
+  author?: string;
   /** Tags */
-  tags?: string[]
+  tags?: string[];
   /** Required parameters */
-  parameters?: TemplateParameter[]
+  parameters?: TemplateParameter[];
   /** ISO 8601 creation timestamp */
-  createdAt: string
+  createdAt: string;
   /** ISO 8601 update timestamp */
-  updatedAt: string
+  updatedAt: string;
 }
 
 /**
@@ -99,15 +99,15 @@ export interface TemplateResponse {
  */
 export interface TemplateParameter {
   /** Parameter name */
-  name: string
+  name: string;
   /** Parameter type */
-  type: 'string' | 'number' | 'boolean' | 'object' | 'array'
+  type: 'string' | 'number' | 'boolean' | 'object' | 'array';
   /** Required flag */
-  required: boolean
+  required: boolean;
   /** Default value - use TemplateParameterValue from dto.ts for strict typing */
-  default?: import('./dto').TemplateParameterValue
+  default?: import('./dto').TemplateParameterValue;
   /** Description (multilingual) */
-  description?: Record<string, string>
+  description?: Record<string, string>;
 }
 
 /**
@@ -115,9 +115,9 @@ export interface TemplateParameter {
  */
 export interface BatchTemplateRequest {
   /** Template IDs to fetch */
-  ids: string[]
+  ids: string[];
   /** Language for translations */
-  language?: string
+  language?: string;
 }
 
 /**
@@ -125,11 +125,11 @@ export interface BatchTemplateRequest {
  */
 export interface BatchTemplateResponse {
   /** Request ID for tracking */
-  requestId: string
+  requestId: string;
   /** Map of template ID to template content */
-  templates: Record<string, TemplateResponse>
+  templates: Record<string, TemplateResponse>;
   /** IDs that were not found */
-  notFound: string[]
+  notFound: string[];
 }
 
 /**
@@ -142,32 +142,32 @@ export type MetricType
     | 'analysis_completed'
     | 'error_occurred'
     | 'command_run'
-    | (string & {})
+    | (string & {});
 
 /**
  * Usage report payload
  */
 export interface UsageReport {
   /** Unique report ID */
-  reportId: string
+  reportId: string;
   /** Metric type */
-  metricType: MetricType
+  metricType: MetricType;
   /** ISO 8601 timestamp */
-  timestamp: string
+  timestamp: string;
   /** CCJK version */
-  ccjkVersion: string
+  ccjkVersion: string;
   /** Node.js version */
-  nodeVersion: string
+  nodeVersion: string;
   /** Operating system */
-  platform: string
+  platform: string;
   /** Stable device identifier */
-  deviceId?: string
+  deviceId?: string;
   /** Client version reported to analytics endpoints */
-  clientVersion?: string
+  clientVersion?: string;
   /** Project language if applicable */
-  language?: string
+  language?: string;
   /** Additional context data - use TelemetryEventData from dto.ts for strict typing */
-  data?: import('./dto').TelemetryEventData
+  data?: import('./dto').TelemetryEventData;
 }
 
 /**
@@ -175,11 +175,11 @@ export interface UsageReport {
  */
 export interface UsageReportResponse {
   /** Success indicator */
-  success: boolean
+  success: boolean;
   /** Request ID */
-  requestId: string
+  requestId: string;
   /** Message from server */
-  message?: string
+  message?: string;
 }
 
 /**
@@ -187,13 +187,13 @@ export interface UsageReportResponse {
  */
 export interface HealthCheckResponse {
   /** Service health status */
-  status: 'healthy' | 'degraded' | 'unhealthy'
+  status: 'healthy' | 'degraded' | 'unhealthy';
   /** API version */
-  version: string
+  version: string;
   /** Current timestamp */
-  timestamp: string
+  timestamp: string;
   /** Optional service messages */
-  message?: string
+  message?: string;
 }
 
 /**
@@ -208,7 +208,7 @@ export type CloudClientErrorType
     | 'AUTH_ERROR'
     | 'RATE_LIMIT_ERROR'
     | 'SERVER_ERROR'
-    | 'UNKNOWN_ERROR'
+    | 'UNKNOWN_ERROR';
 
 /**
  * Cloud client error class
@@ -216,11 +216,11 @@ export type CloudClientErrorType
  */
 export class CloudClientError extends Error {
   /** Error type */
-  readonly type: CloudClientErrorType
+  readonly type: CloudClientErrorType;
   /** HTTP status code if applicable */
-  readonly statusCode?: number
+  readonly statusCode?: number;
   /** Original error */
-  readonly originalError?: unknown
+  readonly originalError?: unknown;
 
   constructor(
     type: CloudClientErrorType,
@@ -228,30 +228,30 @@ export class CloudClientError extends Error {
     statusCode?: number,
     originalError?: unknown,
   ) {
-    super(message)
-    this.name = 'CloudClientError'
-    this.type = type
-    this.statusCode = statusCode
-    this.originalError = originalError
+    super(message);
+    this.name = 'CloudClientError';
+    this.type = type;
+    this.statusCode = statusCode;
+    this.originalError = originalError;
   }
 
   /**
    * Create error from HTTP response
    */
   static fromResponse(statusCode: number, message: string): CloudClientError {
-    let type: CloudClientErrorType
+    let type: CloudClientErrorType;
 
     if (statusCode === 401)
-      type = 'AUTH_ERROR'
+      type = 'AUTH_ERROR';
     else if (statusCode === 429)
-      type = 'RATE_LIMIT_ERROR'
+      type = 'RATE_LIMIT_ERROR';
     else if (statusCode >= 500)
-      type = 'SERVER_ERROR'
+      type = 'SERVER_ERROR';
     else if (statusCode >= 400)
-      type = 'API_ERROR'
-    else type = 'UNKNOWN_ERROR'
+      type = 'API_ERROR';
+    else type = 'UNKNOWN_ERROR';
 
-    return new CloudClientError(type, message, statusCode)
+    return new CloudClientError(type, message, statusCode);
   }
 
   /**
@@ -263,7 +263,7 @@ export class CloudClientError extends Error {
       error instanceof Error ? error.message : 'Network connection failed',
       undefined,
       error,
-    )
+    );
   }
 
   /**
@@ -273,14 +273,14 @@ export class CloudClientError extends Error {
     return new CloudClientError(
       'TIMEOUT_ERROR',
       `Request timeout after ${timeout}ms`,
-    )
+    );
   }
 
   /**
    * Create validation error
    */
   static validation(message: string): CloudClientError {
-    return new CloudClientError('VALIDATION_ERROR', message)
+    return new CloudClientError('VALIDATION_ERROR', message);
   }
 }
 
@@ -289,37 +289,37 @@ export class CloudClientError extends Error {
  */
 export interface CloudClientConfig {
   /** API base URL */
-  baseURL: string
+  baseURL: string;
   /** Request timeout in milliseconds */
-  timeout?: number
+  timeout?: number;
   /** CCJK version header */
-  version?: string
+  version?: string;
   /** Enable caching */
-  enableCache?: boolean
+  enableCache?: boolean;
   /** Cache directory path */
-  cacheDir?: string
+  cacheDir?: string;
   /** Enable retry logic */
-  enableRetry?: boolean
+  enableRetry?: boolean;
   /** Maximum retry attempts */
-  maxRetries?: number
+  maxRetries?: number;
   /** Enable telemetry reporting */
-  enableTelemetry?: boolean
+  enableTelemetry?: boolean;
   /** Enable client usage analytics endpoints */
-  enableUsageAnalytics?: boolean
+  enableUsageAnalytics?: boolean;
   /** API key if required */
-  apiKey?: string
+  apiKey?: string;
   /** Language for API responses */
-  language?: string
+  language?: string;
   /** Stable device token for analytics/auth headers */
-  deviceToken?: string
+  deviceToken?: string;
   /** Stable device ID for usage analytics dedupe */
-  deviceId?: string
+  deviceId?: string;
   /** Stable anonymous installation/user ID */
-  anonymousUserId?: string
+  anonymousUserId?: string;
   /** Override analytics platform label */
-  platform?: string
+  platform?: string;
   /** Automatically send startup handshake on initialization */
-  autoHandshake?: boolean
+  autoHandshake?: boolean;
 }
 
 /**
@@ -327,11 +327,11 @@ export interface CloudClientConfig {
  */
 export interface CacheEntry<T> {
   /** Cached data */
-  data: T
+  data: T;
   /** Expiration timestamp */
-  expiresAt: number
+  expiresAt: number;
   /** Cache key */
-  key: string
+  key: string;
 }
 
 /**
@@ -339,15 +339,15 @@ export interface CacheEntry<T> {
  */
 export interface RetryConfig {
   /** Maximum retry attempts */
-  maxAttempts: number
+  maxAttempts: number;
   /** Initial delay in milliseconds */
-  initialDelay: number
+  initialDelay: number;
   /** Backoff multiplier */
-  multiplier: number
+  multiplier: number;
   /** Maximum delay in milliseconds */
-  maxDelay: number
+  maxDelay: number;
   /** HTTP status codes to retry */
-  retryableStatusCodes: number[]
+  retryableStatusCodes: number[];
 }
 
 /**
@@ -355,11 +355,11 @@ export interface RetryConfig {
  */
 export interface TelemetryEvent {
   /** Event type */
-  type: MetricType
+  type: MetricType;
   /** Event data - use TelemetryEventData from dto.ts for strict typing */
-  data?: import('./dto').TelemetryEventData
+  data?: import('./dto').TelemetryEventData;
   /** Event timestamp */
-  timestamp: string
+  timestamp: string;
 }
 
 /**
@@ -367,55 +367,55 @@ export interface TelemetryEvent {
  */
 export interface TelemetryConfig {
   /** Enable telemetry reporting */
-  enabled: boolean
+  enabled: boolean;
   /** Batch size before sending */
-  batchSize: number
+  batchSize: number;
   /** Maximum time to wait before sending (ms) */
-  flushInterval: number
+  flushInterval: number;
   /** Anonymous user ID */
-  userId?: string
+  userId?: string;
 }
 
 export interface ClientIdentity {
-  deviceId: string
-  anonymousUserId: string
-  clientVersion: string
-  platform: string
-  deviceToken?: string
+  deviceId: string;
+  anonymousUserId: string;
+  clientVersion: string;
+  platform: string;
+  deviceToken?: string;
 }
 
 export interface DeviceRegistrationRequest {
-  deviceId: string
-  platform: string
-  clientVersion: string
+  deviceId: string;
+  platform: string;
+  clientVersion: string;
 }
 
 export interface DeviceRegistrationResponse {
-  success: boolean
-  requestId?: string
-  message?: string
+  success: boolean;
+  requestId?: string;
+  message?: string;
 }
 
 export interface HandshakeRequest {
-  deviceId: string
-  platform: string
-  clientVersion: string
+  deviceId: string;
+  platform: string;
+  clientVersion: string;
 }
 
 export interface HandshakeResponse {
-  success: boolean
-  requestId?: string
-  message?: string
+  success: boolean;
+  requestId?: string;
+  message?: string;
 }
 
 export interface SyncRequest {
-  deviceId: string
-  platform: string
-  clientVersion: string
+  deviceId: string;
+  platform: string;
+  clientVersion: string;
 }
 
 export interface SyncResponse {
-  success: boolean
-  requestId?: string
-  message?: string
+  success: boolean;
+  requestId?: string;
+  message?: string;
 }

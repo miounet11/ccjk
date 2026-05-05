@@ -7,7 +7,7 @@
  * @module cloud-sync
  */
 
-import type { SyncEngine, SyncOptions } from './sync-engine'
+import type { SyncEngine, SyncOptions } from './sync-engine';
 import type {
   CloudProvider,
   ConflictStrategy,
@@ -17,21 +17,21 @@ import type {
   SyncDirection,
   SyncResult,
   SyncState,
-} from './types'
-import { createConflictResolver } from './conflict-resolver'
-import { createSyncEngine } from './sync-engine'
-import { DEFAULT_SYNC_CONFIG, INITIAL_SYNC_STATE } from './types'
+} from './types';
+import { createConflictResolver } from './conflict-resolver';
+import { createSyncEngine } from './sync-engine';
+import { DEFAULT_SYNC_CONFIG, INITIAL_SYNC_STATE } from './types';
 
 // ============================================================================
 // Singleton Instances
 // ============================================================================
 
-let syncEngineInstance: SyncEngine | null = null
-let conflictResolverInstance: ReturnType<typeof createConflictResolver> | null = null
+let syncEngineInstance: SyncEngine | null = null;
+let conflictResolverInstance: ReturnType<typeof createConflictResolver> | null = null;
 
 // Export getter for testing (avoid mutable export)
 export function getConflictResolverInstance(): ReturnType<typeof createConflictResolver> | null {
-  return conflictResolverInstance
+  return conflictResolverInstance;
 }
 
 // ============================================================================
@@ -42,7 +42,7 @@ export function getConflictResolverInstance(): ReturnType<typeof createConflictR
  * Get or create the sync engine singleton
  */
 export function getSyncEngine(): SyncEngine | null {
-  return syncEngineInstance
+  return syncEngineInstance;
 }
 
 /**
@@ -61,17 +61,17 @@ export async function configureSyncEngine(
       secretKey: credentials.secretKey,
     },
     endpoint: credentials.endpoint,
-  }
+  };
 
   const syncConfig: SyncConfig = {
     ...DEFAULT_SYNC_CONFIG,
     provider: providerConfig,
-  }
+  };
 
-  syncEngineInstance = createSyncEngine(syncConfig)
-  conflictResolverInstance = createConflictResolver()
+  syncEngineInstance = createSyncEngine(syncConfig);
+  conflictResolverInstance = createConflictResolver();
 
-  return syncEngineInstance
+  return syncEngineInstance;
 }
 
 /**
@@ -79,23 +79,23 @@ export async function configureSyncEngine(
  */
 export function getSyncStatus(): SyncState {
   if (!syncEngineInstance) {
-    return { ...INITIAL_SYNC_STATE }
+    return { ...INITIAL_SYNC_STATE };
   }
 
-  return syncEngineInstance.getState()
+  return syncEngineInstance.getState();
 }
 
 /**
  * Perform sync operation
  */
 export async function performSync(options: {
-  direction?: SyncDirection
-  force?: boolean
-  dryRun?: boolean
-  conflictStrategy?: ConflictStrategy
+  direction?: SyncDirection;
+  force?: boolean;
+  dryRun?: boolean;
+  conflictStrategy?: ConflictStrategy;
 }): Promise<SyncResult> {
   if (!syncEngineInstance) {
-    const now = new Date().toISOString()
+    const now = new Date().toISOString();
     return {
       success: false,
       direction: options.direction || 'bidirectional',
@@ -109,15 +109,15 @@ export async function performSync(options: {
       durationMs: 0,
       startedAt: now,
       completedAt: now,
-    }
+    };
   }
 
   const syncOptions: SyncOptions = {
     force: options.force,
     conflictStrategy: options.conflictStrategy,
-  }
+  };
 
-  return syncEngineInstance.sync(syncOptions)
+  return syncEngineInstance.sync(syncOptions);
 }
 
 /**
@@ -125,11 +125,11 @@ export async function performSync(options: {
  */
 export function getConflicts(): SyncConflict[] {
   if (!syncEngineInstance) {
-    return []
+    return [];
   }
 
-  const state = syncEngineInstance.getState()
-  return state.conflicts
+  const state = syncEngineInstance.getState();
+  return state.conflicts;
 }
 
 /**
@@ -143,23 +143,23 @@ export async function resolveConflict(
   resolution: 'local' | 'remote',
 ): Promise<SyncResult> {
   if (!syncEngineInstance) {
-    throw new Error('Sync engine not configured')
+    throw new Error('Sync engine not configured');
   }
 
-  const startTime = Date.now()
-  const startedAt = new Date().toISOString()
+  const startTime = Date.now();
+  const startedAt = new Date().toISOString();
 
   try {
     // Get the conflict before resolution to include in result
-    const state = syncEngineInstance.getState()
-    const conflict = state.conflicts.find(c => c.id === conflictId)
+    const state = syncEngineInstance.getState();
+    const conflict = state.conflicts.find(c => c.id === conflictId);
     const resolvedItem = conflict
       ? (resolution === 'local' ? conflict.localItem : conflict.remoteItem)
-      : null
+      : null;
 
     // Delegate to the sync engine's resolveConflictManually method
     // This properly updates state, pushes changes to remote, and removes the conflict
-    await syncEngineInstance.resolveConflictManually(conflictId, resolution)
+    await syncEngineInstance.resolveConflictManually(conflictId, resolution);
 
     return {
       success: true,
@@ -171,7 +171,7 @@ export async function resolveConflict(
       durationMs: Date.now() - startTime,
       startedAt,
       completedAt: new Date().toISOString(),
-    }
+    };
   }
   catch (error) {
     return {
@@ -187,7 +187,7 @@ export async function resolveConflict(
       durationMs: Date.now() - startTime,
       startedAt,
       completedAt: new Date().toISOString(),
-    }
+    };
   }
 }
 
@@ -195,11 +195,11 @@ export async function resolveConflict(
 // Re-exports
 // ============================================================================
 
-export { GitHubGistAdapter } from './adapters/github-gist-adapter'
+export { GitHubGistAdapter } from './adapters/github-gist-adapter';
 // Adapters
-export { CloudAdapter, createAdapter } from './adapters/index'
-export { LocalAdapter } from './adapters/local-adapter'
-export { WebDAVAdapter } from './adapters/webdav-adapter'
+export { CloudAdapter, createAdapter } from './adapters/index';
+export { LocalAdapter } from './adapters/local-adapter';
+export { WebDAVAdapter } from './adapters/webdav-adapter';
 
 // Conflict Resolver
 export {
@@ -207,12 +207,12 @@ export {
   createChangeSet,
   createConflictResolver,
   createVersionedItem,
-} from './conflict-resolver'
+} from './conflict-resolver';
 
 // Skill
-export { cloudSyncSkill, getCloudSyncSkill } from './skill'
+export { cloudSyncSkill, getCloudSyncSkill } from './skill';
 // Sync Engine
-export { createSyncEngine, SyncEngine, SyncOptions } from './sync-engine'
+export { createSyncEngine, SyncEngine, SyncOptions } from './sync-engine';
 
 // Types
 export type {
@@ -236,9 +236,9 @@ export type {
   SyncState,
   SyncStats,
   SyncStatus,
-} from './types'
+} from './types';
 
 export {
   DEFAULT_SYNC_CONFIG,
   INITIAL_SYNC_STATE,
-} from './types'
+} from './types';

@@ -1,31 +1,31 @@
-import type { StatusLineConfig } from '../types/config'
-import { isWindows } from './platform'
+import type { StatusLineConfig } from '../types/config';
+import { isWindows } from './platform';
 
 /**
  * Validates StatusLine configuration structure
  */
 export function validateStatusLineConfig(config: any): config is StatusLineConfig {
   if (!config || typeof config !== 'object') {
-    return false
+    return false;
   }
 
   // Check required fields
   if (config.type !== 'command') {
-    return false
+    return false;
   }
 
   if (!config.command || typeof config.command !== 'string' || config.command.trim() === '') {
-    return false
+    return false;
   }
 
   // Check optional fields
   if (config.padding !== undefined) {
     if (typeof config.padding !== 'number' || config.padding < 0) {
-      return false
+      return false;
     }
   }
 
-  return true
+  return true;
 }
 
 /**
@@ -33,19 +33,19 @@ export function validateStatusLineConfig(config: any): config is StatusLineConfi
  */
 export function sanitizeStatusLineConfig(config: any): StatusLineConfig | null {
   if (!validateStatusLineConfig(config)) {
-    return null
+    return null;
   }
 
   const sanitized: StatusLineConfig = {
     type: 'command',
     command: config.command.trim(),
-  }
+  };
 
   if (config.padding !== undefined && typeof config.padding === 'number' && config.padding >= 0) {
-    sanitized.padding = config.padding
+    sanitized.padding = config.padding;
   }
 
-  return sanitized
+  return sanitized;
 }
 
 /**
@@ -58,5 +58,5 @@ export function getPlatformStatusLineConfig(): StatusLineConfig {
       ? '%USERPROFILE%\\.claude\\ccline\\ccline.exe'
       : '~/.claude/ccline/ccline',
     padding: 0,
-  }
+  };
 }

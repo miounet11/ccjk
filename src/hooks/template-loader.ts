@@ -1,55 +1,55 @@
-import type { HookTemplate } from './types.js'
-import { existsSync, readFileSync } from 'node:fs'
-import { join } from 'pathe'
+import type { HookTemplate } from './types.js';
+import { existsSync, readFileSync } from 'node:fs';
+import { join } from 'pathe';
 
 /**
  * Load hook templates from local directory
  */
 export async function loadHookTemplates(): Promise<HookTemplate[]> {
-  const templates: HookTemplate[] = []
+  const templates: HookTemplate[] = [];
 
   // Template directory
-  const templateDir = join(process.cwd(), 'templates', 'hooks')
+  const templateDir = join(process.cwd(), 'templates', 'hooks');
 
   // Check if directory exists
   if (!existsSync(templateDir)) {
     // Return default templates
-    return getDefaultTemplates()
+    return getDefaultTemplates();
   }
 
   // Load all template files
   try {
-    const hookTypes = ['pre-commit', 'post-test', 'lifecycle']
+    const hookTypes = ['pre-commit', 'post-test', 'lifecycle'];
 
     for (const type of hookTypes) {
-      const typeDir = join(templateDir, type)
+      const typeDir = join(templateDir, type);
       if (!existsSync(typeDir))
-        continue
+        continue;
 
       // Read all JSON files in the directory
-      const files = require('node:fs').readdirSync(typeDir)
+      const files = require('node:fs').readdirSync(typeDir);
       for (const file of files) {
         if (!file.endsWith('.json'))
-          continue
+          continue;
 
         try {
-          const templatePath = join(typeDir, file)
-          const content = readFileSync(templatePath, 'utf-8')
-          const template = JSON.parse(content) as HookTemplate
-          templates.push(template)
+          const templatePath = join(typeDir, file);
+          const content = readFileSync(templatePath, 'utf-8');
+          const template = JSON.parse(content) as HookTemplate;
+          templates.push(template);
         }
         catch (error) {
-          console.error(`Failed to load template ${file}:`, error)
+          console.error(`Failed to load template ${file}:`, error);
         }
       }
     }
   }
   catch (error) {
-    console.error('Failed to load hook templates:', error)
+    console.error('Failed to load hook templates:', error);
   }
 
   // Return loaded templates or defaults
-  return templates.length > 0 ? templates : getDefaultTemplates()
+  return templates.length > 0 ? templates : getDefaultTemplates();
 }
 
 /**
@@ -270,5 +270,5 @@ function getDefaultTemplates(): HookTemplate[] {
       enabled: true,
       priority: 100,
     },
-  ]
+  ];
 }

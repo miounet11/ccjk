@@ -2,12 +2,12 @@
  * Sandbox manager for secure request/response handling
  */
 
-import type { SandboxConfig, SandboxRequest, SandboxResponse, SandboxStatus } from '../types/sandbox.js'
-import { homedir } from 'node:os'
-import { join } from 'pathe'
-import { AuditLogger } from './audit-logger.js'
-import { DataMasker } from './data-masker.js'
-import { RateLimiter } from './rate-limiter.js'
+import type { SandboxConfig, SandboxRequest, SandboxResponse, SandboxStatus } from '../types/sandbox.js';
+import { homedir } from 'node:os';
+import { join } from 'pathe';
+import { AuditLogger } from './audit-logger.js';
+import { DataMasker } from './data-masker.js';
+import { RateLimiter } from './rate-limiter.js';
 
 /**
  * Default sandbox configuration
@@ -19,34 +19,34 @@ const DEFAULT_CONFIG: SandboxConfig = {
   auditLog: true,
   maxRequestsPerMinute: 60,
   auditLogDir: join(homedir(), '.ccjk', 'audit'),
-}
+};
 
 /**
  * Sandbox manager class for secure request/response handling
  */
 export class SandboxManager {
-  private config: SandboxConfig
-  private dataMasker: DataMasker
-  private auditLogger: AuditLogger
-  private rateLimiter: RateLimiter
+  private config: SandboxConfig;
+  private dataMasker: DataMasker;
+  private auditLogger: AuditLogger;
+  private rateLimiter: RateLimiter;
   private stats: {
-    totalRequests: number
-    totalResponses: number
-    totalErrors: number
-    rateLimitHits: number
-  }
+    totalRequests: number;
+    totalResponses: number;
+    totalErrors: number;
+    rateLimitHits: number;
+  };
 
   constructor(config?: Partial<SandboxConfig>) {
-    this.config = { ...DEFAULT_CONFIG, ...config }
-    this.dataMasker = new DataMasker()
-    this.auditLogger = new AuditLogger(this.config.auditLogDir, this.config.auditLog)
-    this.rateLimiter = new RateLimiter(this.config.maxRequestsPerMinute)
+    this.config = { ...DEFAULT_CONFIG, ...config };
+    this.dataMasker = new DataMasker();
+    this.auditLogger = new AuditLogger(this.config.auditLogDir, this.config.auditLog);
+    this.rateLimiter = new RateLimiter(this.config.maxRequestsPerMinute);
     this.stats = {
       totalRequests: 0,
       totalResponses: 0,
       totalErrors: 0,
       rateLimitHits: 0,
-    }
+    };
   }
 
   /**
@@ -54,7 +54,7 @@ export class SandboxManager {
    */
   async initialize(): Promise<void> {
     if (this.config.enabled && this.config.auditLog) {
-      await this.auditLogger.initialize()
+      await this.auditLogger.initialize();
     }
   }
 
@@ -62,23 +62,23 @@ export class SandboxManager {
    * Enable sandbox mode
    */
   async enable(config?: Partial<SandboxConfig>): Promise<void> {
-    this.config = { ...this.config, ...config, enabled: true }
+    this.config = { ...this.config, ...config, enabled: true };
 
     // Update components
     if (this.config.maxRequestsPerMinute) {
-      this.rateLimiter.updateConfig(this.config.maxRequestsPerMinute)
+      this.rateLimiter.updateConfig(this.config.maxRequestsPerMinute);
     }
 
-    this.auditLogger.setEnabled(this.config.auditLog)
+    this.auditLogger.setEnabled(this.config.auditLog);
 
-    await this.initialize()
+    await this.initialize();
   }
 
   /**
    * Disable sandbox mode
    */
   disable(): void {
-    this.config.enabled = false
+    this.config.enabled = false;
   }
 
   /**
@@ -91,26 +91,26 @@ export class SandboxManager {
         requestId: this.generateRequestId(),
         timestamp: Date.now(),
         metadata,
-      }
+      };
     }
 
-    const requestId = this.generateRequestId()
-    this.stats.totalRequests++
+    const requestId = this.generateRequestId();
+    this.stats.totalRequests++;
 
     // Check rate limit
     if (this.config.maxRequestsPerMinute) {
-      const key = metadata?.userId || 'default'
+      const key = metadata?.userId || 'default';
       if (!this.rateLimiter.checkLimit(key)) {
-        this.stats.rateLimitHits++
-        throw new Error(`Rate limit exceeded for key: ${key}`)
+        this.stats.rateLimitHits++;
+        throw new Error(`Rate limit exceeded for key: ${key}`);
       }
-      this.rateLimiter.recordRequest(key)
+      this.rateLimiter.recordRequest(key);
     }
 
     // Mask sensitive data if enabled
-    let processedRequest = request
+    let processedRequest = request;
     if (this.config.maskSensitiveData) {
-      processedRequest = this.dataMasker.maskSensitiveFields(request)
+      processedRequest = this.dataMasker.maskSensitiveFields(request);
     }
 
     // Log request if audit is enabled
@@ -119,7 +119,7 @@ export class SandboxManager {
         ...metadata,
         requestId,
         isolated: this.config.isolateRequests,
-      })
+      });
     }
 
     return {
@@ -127,7 +127,7 @@ export class SandboxManager {
       requestId,
       timestamp: Date.now(),
       metadata,
-    }
+    };
   }
 
   /**
@@ -140,15 +140,15 @@ export class SandboxManager {
         requestId,
         timestamp: Date.now(),
         metadata,
-      }
+      };
     }
 
-    this.stats.totalResponses++
+    this.stats.totalResponses++;
 
     // Mask sensitive data if enabled
-    let processedResponse = response
+    let processedResponse = response;
     if (this.config.maskSensitiveData) {
-      processedResponse = this.dataMasker.maskSensitiveFields(response)
+      processedResponse = this.dataMasker.maskSensitiveFields(response);
     }
 
     // Log response if audit is enabled
@@ -156,7 +156,7 @@ export class SandboxManager {
       await this.auditLogger.logResponse(processedResponse, {
         ...metadata,
         requestId,
-      })
+      });
     }
 
     return {
@@ -164,7 +164,7 @@ export class SandboxManager {
       requestId,
       timestamp: Date.now(),
       metadata,
-    }
+    };
   }
 
   /**
@@ -172,13 +172,13 @@ export class SandboxManager {
    */
   async logError(error: Error, context?: Record<string, any>): Promise<void> {
     if (!this.config.enabled) {
-      return
+      return;
     }
 
-    this.stats.totalErrors++
+    this.stats.totalErrors++;
 
     if (this.config.auditLog) {
-      await this.auditLogger.logError(error, context)
+      await this.auditLogger.logError(error, context);
     }
   }
 
@@ -190,7 +190,7 @@ export class SandboxManager {
       enabled: this.config.enabled,
       config: { ...this.config },
       stats: { ...this.stats },
-    }
+    };
   }
 
   /**
@@ -198,10 +198,10 @@ export class SandboxManager {
    */
   async getAuditLogs(filter?: any): Promise<any[]> {
     if (!this.config.enabled || !this.config.auditLog) {
-      return []
+      return [];
     }
 
-    return await this.auditLogger.getAuditLogs(filter)
+    return await this.auditLogger.getAuditLogs(filter);
   }
 
   /**
@@ -209,43 +209,43 @@ export class SandboxManager {
    */
   async clearAuditLogs(olderThan?: number): Promise<number> {
     if (!this.config.enabled || !this.config.auditLog) {
-      return 0
+      return 0;
     }
 
-    return await this.auditLogger.clearLogs(olderThan)
+    return await this.auditLogger.clearLogs(olderThan);
   }
 
   /**
    * Get rate limit quota
    */
   getRateLimitQuota(key: string = 'default'): any {
-    return this.rateLimiter.getRemainingQuota(key)
+    return this.rateLimiter.getRemainingQuota(key);
   }
 
   /**
    * Reset rate limit for a key
    */
   resetRateLimit(key: string): void {
-    this.rateLimiter.reset(key)
+    this.rateLimiter.reset(key);
   }
 
   /**
    * Update sandbox configuration
    */
   async updateConfig(config: Partial<SandboxConfig>): Promise<void> {
-    this.config = { ...this.config, ...config }
+    this.config = { ...this.config, ...config };
 
     // Update components
     if (config.maxRequestsPerMinute !== undefined) {
-      this.rateLimiter.updateConfig(config.maxRequestsPerMinute)
+      this.rateLimiter.updateConfig(config.maxRequestsPerMinute);
     }
 
     if (config.auditLog !== undefined) {
-      this.auditLogger.setEnabled(config.auditLog)
+      this.auditLogger.setEnabled(config.auditLog);
     }
 
     if (config.enabled && config.auditLog) {
-      await this.initialize()
+      await this.initialize();
     }
   }
 
@@ -253,28 +253,28 @@ export class SandboxManager {
    * Get current configuration
    */
   getConfig(): SandboxConfig {
-    return { ...this.config }
+    return { ...this.config };
   }
 
   /**
    * Get data masker instance
    */
   getDataMasker(): DataMasker {
-    return this.dataMasker
+    return this.dataMasker;
   }
 
   /**
    * Get audit logger instance
    */
   getAuditLogger(): AuditLogger {
-    return this.auditLogger
+    return this.auditLogger;
   }
 
   /**
    * Get rate limiter instance
    */
   getRateLimiter(): RateLimiter {
-    return this.rateLimiter
+    return this.rateLimiter;
   }
 
   /**
@@ -286,14 +286,14 @@ export class SandboxManager {
       totalResponses: 0,
       totalErrors: 0,
       rateLimitHits: 0,
-    }
+    };
   }
 
   /**
    * Generate unique request ID
    */
   private generateRequestId(): string {
-    return `req-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
+    return `req-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
   }
 }
 
@@ -301,27 +301,27 @@ export class SandboxManager {
  * Create a sandbox manager instance
  */
 export function createSandboxManager(config?: Partial<SandboxConfig>): SandboxManager {
-  return new SandboxManager(config)
+  return new SandboxManager(config);
 }
 
 /**
  * Global sandbox manager instance
  */
-let globalSandboxManager: SandboxManager | null = null
+let globalSandboxManager: SandboxManager | null = null;
 
 /**
  * Get or create global sandbox manager
  */
 export function getGlobalSandboxManager(): SandboxManager {
   if (!globalSandboxManager) {
-    globalSandboxManager = new SandboxManager()
+    globalSandboxManager = new SandboxManager();
   }
-  return globalSandboxManager
+  return globalSandboxManager;
 }
 
 /**
  * Set global sandbox manager
  */
 export function setGlobalSandboxManager(manager: SandboxManager): void {
-  globalSandboxManager = manager
+  globalSandboxManager = manager;
 }

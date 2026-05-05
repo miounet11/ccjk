@@ -1,7 +1,7 @@
-import type { CodeToolType } from '../constants'
-import { CCJK_CLOUD_API_URL } from '../constants'
-import { LoadBalancer } from '../utils/load-balancer'
-import { ProviderHealthMonitor } from '../utils/provider-health'
+import type { CodeToolType } from '../constants';
+import { CCJK_CLOUD_API_URL } from '../constants';
+import { LoadBalancer } from '../utils/load-balancer';
+import { ProviderHealthMonitor } from '../utils/provider-health';
 
 function normalizeProviderPreset(provider: ApiProviderPreset): ApiProviderPreset {
   if (
@@ -12,20 +12,20 @@ function normalizeProviderPreset(provider: ApiProviderPreset): ApiProviderPreset
     return {
       ...provider,
       supportedCodeTools: [...provider.supportedCodeTools, 'clavue'],
-    }
+    };
   }
 
-  return provider
+  return provider;
 }
 
 function supportsCodeTool(provider: ApiProviderPreset, codeToolType: CodeToolType): boolean {
   if (provider.supportedCodeTools.includes(codeToolType)) {
-    return true
+    return true;
   }
 
   return codeToolType === 'clavue'
     && Boolean(provider.claudeCode)
-    && provider.supportedCodeTools.includes('claude-code')
+    && provider.supportedCodeTools.includes('claude-code');
 }
 
 /**
@@ -34,41 +34,41 @@ function supportsCodeTool(provider: ApiProviderPreset, codeToolType: CodeToolTyp
  */
 export interface ApiProviderPreset {
   /** Unique identifier for the provider */
-  id: string
+  id: string;
   /** Display name of the provider */
-  name: string
+  name: string;
   /** Supported code tool types */
-  supportedCodeTools: CodeToolType[]
+  supportedCodeTools: CodeToolType[];
   /** Claude Code specific configuration */
   claudeCode?: {
     /** API base URL */
-    baseUrl: string
+    baseUrl: string;
     /** Authentication type */
-    authType: 'api_key' | 'auth_token'
+    authType: 'api_key' | 'auth_token';
     /** Default models (optional) */
-    defaultModels?: string[]
-  }
+    defaultModels?: string[];
+  };
   /** Codex specific configuration */
   codex?: {
     /** API base URL */
-    baseUrl: string
+    baseUrl: string;
     /** Wire API protocol type */
-    wireApi: 'responses' | 'chat'
+    wireApi: 'responses' | 'chat';
     /** Default model (optional) */
-    defaultModel?: string
-  }
+    defaultModel?: string;
+  };
   /** Provider description (optional) */
-  description?: string
+  description?: string;
   /** Provider website (optional) */
-  website?: string
+  website?: string;
   /** Provider logo URL (optional) */
-  logo?: string
+  logo?: string;
   /** Default API key for demo/trial (optional) */
-  defaultApiKey?: string
+  defaultApiKey?: string;
   /** Note about default API key usage limits (optional) */
-  defaultApiKeyNote?: string
+  defaultApiKeyNote?: string;
   /** Whether this provider is from cloud */
-  isCloud?: boolean
+  isCloud?: boolean;
 }
 
 /**
@@ -121,26 +121,26 @@ export const LOCAL_PROVIDER_PRESETS: ApiProviderPreset[] = [
     },
     description: 'Kimi (Moonshot AI)',
   },
-]
+];
 
 // Cache for cloud providers
-let cloudProvidersCache: ApiProviderPreset[] | null = null
-let cloudProvidersCacheTime = 0
-const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
+let cloudProvidersCache: ApiProviderPreset[] | null = null;
+let cloudProvidersCacheTime = 0;
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
 // Configuration manager integration
-let configManagerIntegrated = false
+let configManagerIntegrated = false;
 
 /**
  * Cloud API response interface
  */
 interface CloudProviderResponse {
-  success: boolean
-  data: ApiProviderPreset | ApiProviderPreset[]
+  success: boolean;
+  data: ApiProviderPreset | ApiProviderPreset[];
   error?: {
-    code: string
-    message: string
-  }
+    code: string;
+    message: string;
+  };
 }
 
 /**
@@ -150,9 +150,9 @@ interface CloudProviderResponse {
  */
 async function fetchCloudProviders(codeType?: CodeToolType): Promise<ApiProviderPreset[]> {
   try {
-    const url = new URL(`${CCJK_CLOUD_API_URL}/providers`)
+    const url = new URL(`${CCJK_CLOUD_API_URL}/providers`);
     if (codeType) {
-      url.searchParams.set('codeType', codeType === 'clavue' ? 'claude-code' : codeType)
+      url.searchParams.set('codeType', codeType === 'clavue' ? 'claude-code' : codeType);
     }
 
     const response = await fetch(url.toString(), {
@@ -161,21 +161,21 @@ async function fetchCloudProviders(codeType?: CodeToolType): Promise<ApiProvider
         'Content-Type': 'application/json',
       },
       signal: AbortSignal.timeout(5000), // 5 second timeout
-    })
+    });
 
     if (!response.ok) {
-      return []
+      return [];
     }
 
-    const result = await response.json() as CloudProviderResponse
+    const result = await response.json() as CloudProviderResponse;
     if (result.success && Array.isArray(result.data)) {
-      return result.data.map(p => normalizeProviderPreset({ ...p, isCloud: true }))
+      return result.data.map(p => normalizeProviderPreset({ ...p, isCloud: true }));
     }
-    return []
+    return [];
   }
   catch {
     // Silently fail and use local fallback
-    return []
+    return [];
   }
 }
 
@@ -192,20 +192,20 @@ async function fetchCloudProvider(providerId: string): Promise<ApiProviderPreset
         'Content-Type': 'application/json',
       },
       signal: AbortSignal.timeout(5000),
-    })
+    });
 
     if (!response.ok) {
-      return null
+      return null;
     }
 
-    const result = await response.json() as CloudProviderResponse
+    const result = await response.json() as CloudProviderResponse;
     if (result.success && result.data && !Array.isArray(result.data)) {
-      return normalizeProviderPreset({ ...result.data, isCloud: true })
+      return normalizeProviderPreset({ ...result.data, isCloud: true });
     }
-    return null
+    return null;
   }
   catch {
-    return null
+    return null;
   }
 }
 
@@ -215,32 +215,32 @@ async function fetchCloudProvider(providerId: string): Promise<ApiProviderPreset
  * @returns Array of API provider presets
  */
 export async function getApiProvidersAsync(codeToolType?: CodeToolType): Promise<ApiProviderPreset[]> {
-  const now = Date.now()
+  const now = Date.now();
 
   // Check cache
   if (cloudProvidersCache && (now - cloudProvidersCacheTime) < CACHE_TTL) {
-    const providers = cloudProvidersCache
+    const providers = cloudProvidersCache;
     if (codeToolType) {
-      return providers.filter(p => supportsCodeTool(p, codeToolType))
+      return providers.filter(p => supportsCodeTool(p, codeToolType));
     }
-    return providers
+    return providers;
   }
 
   // Fetch from cloud
-  const cloudProviders = await fetchCloudProviders(codeToolType)
+  const cloudProviders = await fetchCloudProviders(codeToolType);
 
   if (cloudProviders.length > 0) {
     // Update cache
-    cloudProvidersCache = cloudProviders
-    cloudProvidersCacheTime = now
-    return cloudProviders
+    cloudProvidersCache = cloudProviders;
+    cloudProvidersCacheTime = now;
+    return cloudProviders;
   }
 
   // Fallback to local
   if (codeToolType) {
-    return LOCAL_PROVIDER_PRESETS.filter(p => supportsCodeTool(p, codeToolType))
+    return LOCAL_PROVIDER_PRESETS.filter(p => supportsCodeTool(p, codeToolType));
   }
-  return LOCAL_PROVIDER_PRESETS
+  return LOCAL_PROVIDER_PRESETS;
 }
 
 /**
@@ -251,9 +251,9 @@ export async function getApiProvidersAsync(codeToolType?: CodeToolType): Promise
 export function getApiProviders(codeToolType: CodeToolType): ApiProviderPreset[] {
   // Use cache if available
   if (cloudProvidersCache) {
-    return cloudProvidersCache.filter(p => supportsCodeTool(p, codeToolType))
+    return cloudProvidersCache.filter(p => supportsCodeTool(p, codeToolType));
   }
-  return LOCAL_PROVIDER_PRESETS.filter(p => supportsCodeTool(p, codeToolType))
+  return LOCAL_PROVIDER_PRESETS.filter(p => supportsCodeTool(p, codeToolType));
 }
 
 /**
@@ -263,23 +263,23 @@ export function getApiProviders(codeToolType: CodeToolType): ApiProviderPreset[]
  */
 export async function getProviderPresetAsync(providerId: string): Promise<ApiProviderPreset | undefined> {
   // Check local first
-  const localProvider = LOCAL_PROVIDER_PRESETS.find(p => p.id === providerId)
+  const localProvider = LOCAL_PROVIDER_PRESETS.find(p => p.id === providerId);
 
   // Check cache
   if (cloudProvidersCache) {
-    const cachedProvider = cloudProvidersCache.find(p => p.id === providerId)
+    const cachedProvider = cloudProvidersCache.find(p => p.id === providerId);
     if (cachedProvider) {
-      return cachedProvider
+      return cachedProvider;
     }
   }
 
   // Fetch from cloud (for custom providers like 302ai)
-  const cloudProvider = await fetchCloudProvider(providerId)
+  const cloudProvider = await fetchCloudProvider(providerId);
   if (cloudProvider) {
-    return cloudProvider
+    return cloudProvider;
   }
 
-  return localProvider
+  return localProvider;
 }
 
 /**
@@ -290,12 +290,12 @@ export async function getProviderPresetAsync(providerId: string): Promise<ApiPro
 export function getProviderPreset(providerId: string): ApiProviderPreset | undefined {
   // Check cache first
   if (cloudProvidersCache) {
-    const cachedProvider = cloudProvidersCache.find(p => p.id === providerId)
+    const cachedProvider = cloudProvidersCache.find(p => p.id === providerId);
     if (cachedProvider) {
-      return cachedProvider
+      return cachedProvider;
     }
   }
-  return LOCAL_PROVIDER_PRESETS.find(p => p.id === providerId)
+  return LOCAL_PROVIDER_PRESETS.find(p => p.id === providerId);
 }
 
 /**
@@ -304,9 +304,9 @@ export function getProviderPreset(providerId: string): ApiProviderPreset | undef
  */
 export function getValidProviderIds(): string[] {
   if (cloudProvidersCache) {
-    return cloudProvidersCache.map(p => p.id)
+    return cloudProvidersCache.map(p => p.id);
   }
-  return LOCAL_PROVIDER_PRESETS.map(p => p.id)
+  return LOCAL_PROVIDER_PRESETS.map(p => p.id);
 }
 
 /**
@@ -314,16 +314,16 @@ export function getValidProviderIds(): string[] {
  * @returns Array of valid provider IDs
  */
 export async function getValidProviderIdsAsync(): Promise<string[]> {
-  const providers = await getApiProvidersAsync()
-  return providers.map(p => p.id)
+  const providers = await getApiProvidersAsync();
+  return providers.map(p => p.id);
 }
 
 /**
  * Clear the cloud providers cache
  */
 export function clearProvidersCache(): void {
-  cloudProvidersCache = null
-  cloudProvidersCacheTime = 0
+  cloudProvidersCache = null;
+  cloudProvidersCacheTime = 0;
 }
 
 /**
@@ -332,42 +332,42 @@ export function clearProvidersCache(): void {
  */
 export function integrateWithConfigManager(): void {
   if (configManagerIntegrated) {
-    return
+    return;
   }
 
   // Lazy import to avoid circular dependencies
   import('../config-manager').then(({ getConfigManager }) => {
-    const manager = getConfigManager()
+    const manager = getConfigManager();
 
     // Subscribe to provider updates from cloud sync
     manager.on('providers-updated', (event: any) => {
       if (event.current?.providers) {
-        cloudProvidersCache = event.current.providers.map(normalizeProviderPreset)
-        cloudProvidersCacheTime = Date.now()
+        cloudProvidersCache = event.current.providers.map(normalizeProviderPreset);
+        cloudProvidersCacheTime = Date.now();
       }
-    })
+    });
 
-    configManagerIntegrated = true
+    configManagerIntegrated = true;
   }).catch(() => {
     // Silently fail if config manager is not available
-  })
+  });
 }
 
 /**
  * Backward compatibility export
  * @deprecated Use LOCAL_PROVIDER_PRESETS or getApiProvidersAsync instead
  */
-export const API_PROVIDER_PRESETS = LOCAL_PROVIDER_PRESETS
+export const API_PROVIDER_PRESETS = LOCAL_PROVIDER_PRESETS;
 
 /**
  * Backward compatibility alias for getApiProvidersAsync
  * @deprecated Use getApiProvidersAsync instead
  */
-export const getApiProviderPresets = getApiProvidersAsync
+export const getApiProviderPresets = getApiProvidersAsync;
 
 // Global health monitor and load balancer instances
-let globalHealthMonitor: ProviderHealthMonitor | null = null
-let globalLoadBalancer: LoadBalancer | null = null
+let globalHealthMonitor: ProviderHealthMonitor | null = null;
+let globalLoadBalancer: LoadBalancer | null = null;
 
 /**
  * Initialize health monitoring and load balancing
@@ -378,10 +378,10 @@ let globalLoadBalancer: LoadBalancer | null = null
 export function initializeHealthMonitoring(
   providers: ApiProviderPreset[],
   autoStart = true,
-): { healthMonitor: ProviderHealthMonitor, loadBalancer: LoadBalancer } {
+): { healthMonitor: ProviderHealthMonitor; loadBalancer: LoadBalancer } {
   // Create health monitor
-  globalHealthMonitor = new ProviderHealthMonitor()
-  globalHealthMonitor.setProviders(providers)
+  globalHealthMonitor = new ProviderHealthMonitor();
+  globalHealthMonitor.setProviders(providers);
 
   // Create load balancer with health monitor
   globalLoadBalancer = new LoadBalancer({
@@ -390,20 +390,20 @@ export function initializeHealthMonitoring(
     maxFailoverAttempts: 3,
     excludeUnhealthy: true,
     preferHealthy: true,
-  })
-  globalLoadBalancer.setHealthMonitor(globalHealthMonitor)
+  });
+  globalLoadBalancer.setHealthMonitor(globalHealthMonitor);
 
   // Start monitoring if requested
   if (autoStart) {
     globalHealthMonitor.startMonitoring().catch((error) => {
-      console.error('Failed to start health monitoring:', error)
-    })
+      console.error('Failed to start health monitoring:', error);
+    });
   }
 
   return {
     healthMonitor: globalHealthMonitor,
     loadBalancer: globalLoadBalancer,
-  }
+  };
 }
 
 /**
@@ -411,7 +411,7 @@ export function initializeHealthMonitoring(
  * @returns Health monitor instance or null if not initialized
  */
 export function getHealthMonitor(): ProviderHealthMonitor | null {
-  return globalHealthMonitor
+  return globalHealthMonitor;
 }
 
 /**
@@ -419,7 +419,7 @@ export function getHealthMonitor(): ProviderHealthMonitor | null {
  * @returns Load balancer instance or null if not initialized
  */
 export function getLoadBalancer(): LoadBalancer | null {
-  return globalLoadBalancer
+  return globalLoadBalancer;
 }
 
 /**
@@ -432,20 +432,20 @@ export async function getHealthAwareProviders(
   codeToolType?: CodeToolType,
   useLoadBalancer = false,
 ): Promise<ApiProviderPreset[]> {
-  const providers = await getApiProvidersAsync(codeToolType)
+  const providers = await getApiProvidersAsync(codeToolType);
 
   // If no health monitor or load balancer, return providers as-is
   if (!globalHealthMonitor || !useLoadBalancer) {
-    return providers
+    return providers;
   }
 
   // Return providers sorted by health
   return globalHealthMonitor.getProvidersByHealth().filter((p) => {
     if (!codeToolType) {
-      return true
+      return true;
     }
-    return supportsCodeTool(p, codeToolType)
-  })
+    return supportsCodeTool(p, codeToolType);
+  });
 }
 
 /**
@@ -458,33 +458,33 @@ export async function selectBestProvider(
   codeToolType: CodeToolType,
   currentProvider?: ApiProviderPreset,
 ): Promise<ApiProviderPreset | null> {
-  const providers = await getApiProvidersAsync(codeToolType)
+  const providers = await getApiProvidersAsync(codeToolType);
 
   if (providers.length === 0) {
-    return null
+    return null;
   }
 
   // Initialize health monitoring if not already done
   if (!globalHealthMonitor || !globalLoadBalancer) {
-    initializeHealthMonitoring(providers, true)
+    initializeHealthMonitoring(providers, true);
   }
 
   // If we have a current provider and it failed, perform failover
   if (currentProvider && globalLoadBalancer) {
-    const failoverResult = globalLoadBalancer.failover(currentProvider, providers)
+    const failoverResult = globalLoadBalancer.failover(currentProvider, providers);
     if (failoverResult) {
-      return failoverResult.provider
+      return failoverResult.provider;
     }
   }
 
   // Otherwise, select using load balancer
   if (globalLoadBalancer) {
-    const result = globalLoadBalancer.selectProvider(providers)
-    return result ? result.provider : null
+    const result = globalLoadBalancer.selectProvider(providers);
+    return result ? result.provider : null;
   }
 
   // Fallback to first provider
-  return providers[0]
+  return providers[0];
 }
 
 /**
@@ -497,20 +497,20 @@ export async function handleProviderFailure(
   providerId: string,
   codeToolType: CodeToolType,
 ): Promise<ApiProviderPreset | null> {
-  const providers = await getApiProvidersAsync(codeToolType)
-  const failedProvider = providers.find(p => p.id === providerId)
+  const providers = await getApiProvidersAsync(codeToolType);
+  const failedProvider = providers.find(p => p.id === providerId);
 
   if (!failedProvider) {
-    return null
+    return null;
   }
 
   // Mark as failed in load balancer
   if (globalLoadBalancer) {
-    globalLoadBalancer.markProviderFailed(providerId)
+    globalLoadBalancer.markProviderFailed(providerId);
   }
 
   // Select next provider
-  return selectBestProvider(codeToolType, failedProvider)
+  return selectBestProvider(codeToolType, failedProvider);
 }
 
 /**
@@ -519,9 +519,9 @@ export async function handleProviderFailure(
  */
 export function getProvidersHealthStatus(): Map<string, any> {
   if (!globalHealthMonitor) {
-    return new Map()
+    return new Map();
   }
-  return globalHealthMonitor.getAllHealthData()
+  return globalHealthMonitor.getAllHealthData();
 }
 
 /**
@@ -529,7 +529,7 @@ export function getProvidersHealthStatus(): Map<string, any> {
  */
 export function stopHealthMonitoring(): void {
   if (globalHealthMonitor) {
-    globalHealthMonitor.stopMonitoring()
+    globalHealthMonitor.stopMonitoring();
   }
 }
 
@@ -538,6 +538,6 @@ export function stopHealthMonitoring(): void {
  */
 export async function restartHealthMonitoring(): Promise<void> {
   if (globalHealthMonitor) {
-    await globalHealthMonitor.startMonitoring()
+    await globalHealthMonitor.startMonitoring();
   }
 }

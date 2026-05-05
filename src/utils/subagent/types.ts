@@ -9,17 +9,17 @@ export interface SkillMdFile {
   /**
    * Path to the skill.md file
    */
-  path: string
+  path: string;
 
   /**
    * Skill name
    */
-  name: string
+  name: string;
 
   /**
    * Skill description
    */
-  description?: string
+  description?: string;
 }
 
 /**
@@ -29,57 +29,57 @@ export interface SubagentConfig {
   /**
    * Unique identifier for the subagent
    */
-  id: string
+  id: string;
 
   /**
    * Human-readable name for the subagent
    */
-  name: string
+  name: string;
 
   /**
    * Execution mode:
    * - fork: Creates a new isolated context
    * - inherit: Inherits parent context
    */
-  mode: 'fork' | 'inherit'
+  mode: 'fork' | 'inherit';
 
   /**
    * Optional skill.md file to load for the subagent
    */
-  skill?: SkillMdFile
+  skill?: SkillMdFile;
 
   /**
    * Parent subagent ID (for nested subagents)
    */
-  parentId?: string
+  parentId?: string;
 
   /**
    * List of allowed tools for this subagent
    * If not specified, all tools are allowed
    */
-  allowedTools?: string[]
+  allowedTools?: string[];
 
   /**
    * Timeout in milliseconds
    * Default: 300000 (5 minutes)
    */
-  timeout?: number
+  timeout?: number;
 
   /**
    * Initial prompt/task for the subagent
    */
-  initialPrompt?: string
+  initialPrompt?: string;
 
   /**
    * Additional metadata
    */
-  metadata?: Record<string, any>
+  metadata?: Record<string, any>;
 }
 
 /**
  * Transcript entry type
  */
-export type TranscriptEntryType = 'user' | 'assistant' | 'tool' | 'system' | 'error'
+export type TranscriptEntryType = 'user' | 'assistant' | 'tool' | 'system' | 'error';
 
 /**
  * Single entry in the subagent transcript
@@ -88,38 +88,38 @@ export interface TranscriptEntry {
   /**
    * Timestamp of the entry
    */
-  timestamp: Date
+  timestamp: Date;
 
   /**
    * Type of the entry
    */
-  type: TranscriptEntryType
+  type: TranscriptEntryType;
 
   /**
    * Content of the entry
    */
-  content: string
+  content: string;
 
   /**
    * Optional metadata for the entry
    */
-  metadata?: Record<string, any>
+  metadata?: Record<string, any>;
 
   /**
    * Tool name (if type is 'tool')
    */
-  toolName?: string
+  toolName?: string;
 
   /**
    * Tool result (if type is 'tool')
    */
-  toolResult?: any
+  toolResult?: any;
 }
 
 /**
  * Subagent execution status
  */
-export type SubagentStatus = 'pending' | 'running' | 'completed' | 'failed' | 'timeout' | 'cancelled'
+export type SubagentStatus = 'pending' | 'running' | 'completed' | 'failed' | 'timeout' | 'cancelled';
 
 /**
  * Subagent state tracking
@@ -128,52 +128,52 @@ export interface SubagentState {
   /**
    * Unique identifier
    */
-  id: string
+  id: string;
 
   /**
    * Subagent configuration
    */
-  config: SubagentConfig
+  config: SubagentConfig;
 
   /**
    * Current execution status
    */
-  status: SubagentStatus
+  status: SubagentStatus;
 
   /**
    * Execution transcript
    */
-  transcript: TranscriptEntry[]
+  transcript: TranscriptEntry[];
 
   /**
    * Start timestamp
    */
-  startedAt: Date
+  startedAt: Date;
 
   /**
    * End timestamp (if completed/failed/timeout)
    */
-  endedAt?: Date
+  endedAt?: Date;
 
   /**
    * Execution result (if completed)
    */
-  result?: any
+  result?: any;
 
   /**
    * Error message (if failed)
    */
-  error?: string
+  error?: string;
 
   /**
    * Timeout timer reference
    */
-  timeoutTimer?: NodeJS.Timeout
+  timeoutTimer?: NodeJS.Timeout;
 
   /**
    * Child subagent IDs
    */
-  children?: string[]
+  children?: string[];
 }
 
 /**
@@ -183,37 +183,37 @@ export interface SubagentEvents {
   /**
    * Emitted when a subagent starts
    */
-  start: (state: SubagentState) => void
+  start: (state: SubagentState) => void;
 
   /**
    * Emitted when a subagent completes successfully
    */
-  complete: (state: SubagentState) => void
+  complete: (state: SubagentState) => void;
 
   /**
    * Emitted when a subagent fails
    */
-  fail: (state: SubagentState) => void
+  fail: (state: SubagentState) => void;
 
   /**
    * Emitted when a subagent times out
    */
-  timeout: (state: SubagentState) => void
+  timeout: (state: SubagentState) => void;
 
   /**
    * Emitted when a subagent is cancelled
    */
-  cancel: (state: SubagentState) => void
+  cancel: (state: SubagentState) => void;
 
   /**
    * Emitted when a transcript entry is added
    */
-  transcript: (state: SubagentState, entry: TranscriptEntry) => void
+  transcript: (state: SubagentState, entry: TranscriptEntry) => void;
 
   /**
    * Emitted when status changes
    */
-  statusChange: (state: SubagentState, oldStatus: SubagentStatus, newStatus: SubagentStatus) => void
+  statusChange: (state: SubagentState, oldStatus: SubagentStatus, newStatus: SubagentStatus) => void;
 }
 
 /**
@@ -223,23 +223,23 @@ export interface TranscriptSaveOptions {
   /**
    * Output format
    */
-  format?: 'json' | 'markdown' | 'both'
+  format?: 'json' | 'markdown' | 'both';
 
   /**
    * Output directory
    * Default: ~/.claude/transcripts/
    */
-  outputDir?: string
+  outputDir?: string;
 
   /**
    * Include metadata in output
    */
-  includeMetadata?: boolean
+  includeMetadata?: boolean;
 
   /**
    * Pretty print JSON
    */
-  prettyPrint?: boolean
+  prettyPrint?: boolean;
 }
 
 /**
@@ -250,17 +250,17 @@ export interface TranscriptCleanupOptions {
    * Maximum age in days
    * Transcripts older than this will be deleted
    */
-  maxAgeDays?: number
+  maxAgeDays?: number;
 
   /**
    * Maximum number of transcripts to keep
    */
-  maxCount?: number
+  maxCount?: number;
 
   /**
    * Dry run mode (don't actually delete)
    */
-  dryRun?: boolean
+  dryRun?: boolean;
 }
 
 /**
@@ -271,28 +271,28 @@ export interface SubagentManagerOptions {
    * Default timeout for subagents (ms)
    * Default: 300000 (5 minutes)
    */
-  defaultTimeout?: number
+  defaultTimeout?: number;
 
   /**
    * Maximum number of concurrent subagents
    * Default: 10
    */
-  maxConcurrent?: number
+  maxConcurrent?: number;
 
   /**
    * Auto-save transcripts
    * Default: true
    */
-  autoSaveTranscripts?: boolean
+  autoSaveTranscripts?: boolean;
 
   /**
    * Transcript save directory
    * Default: ~/.claude/transcripts/
    */
-  transcriptDir?: string
+  transcriptDir?: string;
 
   /**
    * Enable verbose logging
    */
-  verbose?: boolean
+  verbose?: boolean;
 }

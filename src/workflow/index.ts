@@ -54,9 +54,9 @@
 // CLI Convenience Functions
 // ============================================================================
 
-import type { WorkflowPhase, WorkflowSession } from './types'
-import { getScheduler as _getScheduler } from './scheduler'
-import { getWorkflowStateMachine as _getWorkflowStateMachine } from './state-machine'
+import type { WorkflowPhase, WorkflowSession } from './types';
+import { getScheduler as _getScheduler } from './scheduler';
+import { getWorkflowStateMachine as _getWorkflowStateMachine } from './state-machine';
 
 // Plan Complete Handler
 export {
@@ -64,25 +64,25 @@ export {
   extractFilesFromPlan,
   extractTasksFromPlan,
   handlePlanComplete,
-} from './plan-complete-handler'
+} from './plan-complete-handler';
 
 export type {
   PlanCompleteOptions,
   PlanCompleteResult,
-} from './plan-complete-handler'
+} from './plan-complete-handler';
 
 // Plan Persistence
 export {
   getPlanPersistenceManager,
   PlanPersistenceManager,
   resetPlanPersistenceManager,
-} from './plan-persistence'
+} from './plan-persistence';
 
 export type {
   PlanDocument,
   PlanSaveOptions,
   PlanTask,
-} from './plan-persistence'
+} from './plan-persistence';
 
 export {
   canRetryReview,
@@ -91,7 +91,7 @@ export {
   formatReviewResult,
   getUnresolvedIssues,
   TwoStageReviewer,
-} from './review'
+} from './review';
 
 export type {
   QualityCategory,
@@ -99,7 +99,7 @@ export type {
   ReviewConfig,
   ReviewContext,
   SpecComplianceCheck,
-} from './review'
+} from './review';
 
 // Scheduler
 export {
@@ -107,25 +107,25 @@ export {
   getScheduler,
   resetScheduler,
   SubagentScheduler,
-} from './scheduler'
+} from './scheduler';
 
-export type { SchedulerEvents } from './scheduler'
+export type { SchedulerEvents } from './scheduler';
 
 // Skill
 export {
   getWorkflowSkill,
   getWorkflowSkillTemplate,
   workflowSkill,
-} from './skill'
+} from './skill';
 
 // State Machine
 export {
   getWorkflowStateMachine,
   resetWorkflowStateMachine,
   WorkflowStateMachine,
-} from './state-machine'
+} from './state-machine';
 
-export type { StateMachineOptions } from './state-machine'
+export type { StateMachineOptions } from './state-machine';
 
 // Types
 export type {
@@ -146,70 +146,70 @@ export type {
   WorkflowSession,
   WorkflowStatus,
   WorkflowTask,
-} from './types'
+} from './types';
 
 export {
   DEFAULT_SCHEDULER_CONFIG,
   PHASE_CONFIGS,
   WORKFLOW_PERSISTENCE_VERSION,
-} from './types'
+} from './types';
 
 /**
  * Configuration for creating a new workflow
  */
 export interface CreateWorkflowOptions {
-  name: string
-  description: string
-  branch?: string
-  skills?: string[]
-  metadata?: Record<string, unknown>
+  name: string;
+  description: string;
+  branch?: string;
+  skills?: string[];
+  metadata?: Record<string, unknown>;
 }
 
 /**
  * Create a new workflow with the given configuration
  */
 export function createWorkflow(options: CreateWorkflowOptions): WorkflowSession {
-  const machine = _getWorkflowStateMachine()
-  return machine.createSession(options)
+  const machine = _getWorkflowStateMachine();
+  return machine.createSession(options);
 }
 
 /**
  * Get workflow state by ID
  */
 export function getWorkflowState(workflowId: string): WorkflowSession | null {
-  const machine = _getWorkflowStateMachine()
-  return machine.getSession(workflowId)
+  const machine = _getWorkflowStateMachine();
+  return machine.getSession(workflowId);
 }
 
 /**
  * List all workflows
  */
 export function listWorkflows(): WorkflowSession[] {
-  const machine = _getWorkflowStateMachine()
-  return machine.getAllSessions()
+  const machine = _getWorkflowStateMachine();
+  return machine.getAllSessions();
 }
 
 /**
  * Transition workflow to a new phase
  */
 export function transitionWorkflow(workflowId: string, phase: WorkflowPhase): void {
-  const machine = _getWorkflowStateMachine()
-  machine.transitionTo(workflowId, phase)
+  const machine = _getWorkflowStateMachine();
+  machine.transitionTo(workflowId, phase);
 }
 
 /**
  * Get scheduler statistics
  */
 export function getSchedulerStats(): {
-  activeWorkflows: number
-  queuedTasks: number
-  completedTasks: number
-  failedTasks: number
-  totalAgents: number
-  uptime: number
+  activeWorkflows: number;
+  queuedTasks: number;
+  completedTasks: number;
+  failedTasks: number;
+  totalAgents: number;
+  uptime: number;
 } {
-  const scheduler = _getScheduler()
-  const stats = scheduler.getStats()
+  const scheduler = _getScheduler();
+  const stats = scheduler.getStats();
   return {
     activeWorkflows: stats.activeTasks,
     queuedTasks: stats.queuedTasks,
@@ -217,29 +217,29 @@ export function getSchedulerStats(): {
     failedTasks: stats.failedTasks,
     totalAgents: stats.totalAgents,
     uptime: stats.uptime,
-  }
+  };
 }
 
 /**
  * Pause the scheduler
  */
 export function pauseScheduler(): void {
-  const scheduler = _getScheduler()
-  scheduler.pause()
+  const scheduler = _getScheduler();
+  scheduler.pause();
 }
 
 /**
  * Resume the scheduler
  */
 export function resumeScheduler(): void {
-  const scheduler = _getScheduler()
-  scheduler.resume()
+  const scheduler = _getScheduler();
+  scheduler.resume();
 }
 
 /**
  * Cancel all tasks for a workflow
  */
 export function cancelAllTasks(workflowId: string): void {
-  const scheduler = _getScheduler()
-  scheduler.cancelWorkflow(workflowId)
+  const scheduler = _getScheduler();
+  scheduler.cancelWorkflow(workflowId);
 }

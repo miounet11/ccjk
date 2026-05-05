@@ -13,14 +13,14 @@
  *   ccjk config set <key> <value> --no-backup  Skip backup creation
  */
 
-import type { SetConfigOptions } from './types'
+import type { SetConfigOptions } from './types';
 
-import ansis from 'ansis'
-import { config } from '../../config/unified'
-import { backupClaudeConfig, readClaudeConfig, writeClaudeConfig } from '../../config/unified/claude-config'
-import { CCJK_CONFIG_FILE, STATE_FILE } from '../../constants'
-import { ensureI18nInitialized, i18n } from '../../i18n'
-import { resolveClaudeFamilySettingsTarget } from '../../utils/runtime-settings'
+import ansis from 'ansis';
+import { config } from '../../config/unified';
+import { backupClaudeConfig, readClaudeConfig, writeClaudeConfig } from '../../config/unified/claude-config';
+import { CCJK_CONFIG_FILE, STATE_FILE } from '../../constants';
+import { ensureI18nInitialized, i18n } from '../../i18n';
+import { resolveClaudeFamilySettingsTarget } from '../../utils/runtime-settings';
 
 /**
  * Parse a value string based on type hint or auto-detection
@@ -32,56 +32,56 @@ import { resolveClaudeFamilySettingsTarget } from '../../utils/runtime-settings'
 function parseValue(value: string, type?: SetConfigOptions['type']): unknown {
   // Explicit type handling
   if (type === 'string') {
-    return value
+    return value;
   }
 
   if (type === 'number') {
-    const num = Number.parseFloat(value)
+    const num = Number.parseFloat(value);
     if (Number.isNaN(num)) {
-      throw new TypeError(`Cannot parse "${value}" as number`)
+      throw new TypeError(`Cannot parse "${value}" as number`);
     }
-    return num
+    return num;
   }
 
   if (type === 'boolean') {
     if (value === 'true' || value === '1' || value === 'yes') {
-      return true
+      return true;
     }
     if (value === 'false' || value === '0' || value === 'no') {
-      return false
+      return false;
     }
-    throw new Error(`Cannot parse "${value}" as boolean`)
+    throw new Error(`Cannot parse "${value}" as boolean`);
   }
 
   if (type === 'json') {
     try {
-      return JSON.parse(value)
+      return JSON.parse(value);
     }
     catch (error) {
-      throw new Error(`Cannot parse "${value}" as JSON: ${error instanceof Error ? error.message : String(error)}`)
+      throw new Error(`Cannot parse "${value}" as JSON: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
   // Auto-detect
   // Try JSON first
   try {
-    return JSON.parse(value)
+    return JSON.parse(value);
   }
   catch {
     // Try boolean
     if (value === 'true')
-      return true
+      return true;
     if (value === 'false')
-      return false
+      return false;
 
     // Try number
-    const num = Number.parseFloat(value)
+    const num = Number.parseFloat(value);
     if (!Number.isNaN(num) && String(num) === value) {
-      return num
+      return num;
     }
 
     // Default to string
-    return value
+    return value;
   }
 }
 
@@ -94,23 +94,23 @@ function parseValue(value: string, type?: SetConfigOptions['type']): unknown {
  * @returns Modified object
  */
 function setNestedValue(obj: Record<string, unknown>, path: string, value: unknown): Record<string, unknown> {
-  const segments = path.split('.')
-  let current: Record<string, unknown> = obj
+  const segments = path.split('.');
+  let current: Record<string, unknown> = obj;
 
   for (let i = 0; i < segments.length - 1; i++) {
-    const segment = segments[i]
+    const segment = segments[i];
 
     if (!(segment in current) || typeof current[segment] !== 'object' || current[segment] === null) {
-      current[segment] = {}
+      current[segment] = {};
     }
 
-    current = current[segment] as Record<string, unknown>
+    current = current[segment] as Record<string, unknown>;
   }
 
-  const lastSegment = segments[segments.length - 1]
-  current[lastSegment] = value
+  const lastSegment = segments[segments.length - 1];
+  current[lastSegment] = value;
 
-  return obj
+  return obj;
 }
 
 /**
@@ -122,41 +122,41 @@ function setNestedValue(obj: Record<string, unknown>, path: string, value: unkno
  * @returns Set result
  */
 function setCcjkValue(path: string, value: unknown, options: SetConfigOptions): {
-  success: boolean
-  backupPath?: string
-  error?: string
+  success: boolean;
+  backupPath?: string;
+  error?: string;
 } {
   try {
     // Create backup if requested
-    let backupPath: string | undefined
+    let backupPath: string | undefined;
     if (options.backup !== false) {
-      const ccjkConfig = config.ccjk.read()
+      const ccjkConfig = config.ccjk.read();
       if (ccjkConfig) {
         // Backup is handled by writeCcjkConfig with timestamp
-        backupPath = `${CCJK_CONFIG_FILE}.backup`
+        backupPath = `${CCJK_CONFIG_FILE}.backup`;
       }
     }
 
     // Read current config
-    const currentConfig = config.ccjk.read() || config.ccjk.createDefault()
+    const currentConfig = config.ccjk.read() || config.ccjk.createDefault();
 
     // Set the nested value
     const updatedConfig = setNestedValue(
       currentConfig as unknown as Record<string, unknown>,
       path,
       value,
-    )
+    );
 
     // Write back
-    config.ccjk.write(updatedConfig as any)
+    config.ccjk.write(updatedConfig as any);
 
-    return { success: true, backupPath }
+    return { success: true, backupPath };
   }
   catch (error) {
     return {
       success: false,
       error: error instanceof Error ? error.message : String(error),
-    }
+    };
   }
 }
 
@@ -169,42 +169,42 @@ function setCcjkValue(path: string, value: unknown, options: SetConfigOptions): 
  * @returns Set result
  */
 function setClaudeValue(path: string, value: unknown, options: SetConfigOptions): {
-  success: boolean
-  backupPath?: string
-  error?: string
+  success: boolean;
+  backupPath?: string;
+  error?: string;
 } {
   try {
-    const runtime = resolveClaudeFamilySettingsTarget(options.codeType)
+    const runtime = resolveClaudeFamilySettingsTarget(options.codeType);
 
     // Create backup if requested
-    let backupPath: string | undefined
+    let backupPath: string | undefined;
     if (options.backup !== false) {
-      const backedUp = backupClaudeConfig(runtime.settingsFile)
+      const backedUp = backupClaudeConfig(runtime.settingsFile);
       if (backedUp) {
-        backupPath = backedUp
+        backupPath = backedUp;
       }
     }
 
     // Read current config
-    const currentConfig = readClaudeConfig(runtime.settingsFile) || {}
+    const currentConfig = readClaudeConfig(runtime.settingsFile) || {};
 
     // Set the nested value
     const updatedConfig = setNestedValue(
       currentConfig as unknown as Record<string, unknown>,
       path,
       value,
-    )
+    );
 
     // Write back
-    writeClaudeConfig(updatedConfig as any, {}, runtime.settingsFile)
+    writeClaudeConfig(updatedConfig as any, {}, runtime.settingsFile);
 
-    return { success: true, backupPath }
+    return { success: true, backupPath };
   }
   catch (error) {
     return {
       success: false,
       error: error instanceof Error ? error.message : String(error),
-    }
+    };
   }
 }
 
@@ -217,40 +217,40 @@ function setClaudeValue(path: string, value: unknown, options: SetConfigOptions)
  * @returns Set result
  */
 function setStateValue(path: string, value: unknown, options: SetConfigOptions): {
-  success: boolean
-  backupPath?: string
-  error?: string
+  success: boolean;
+  backupPath?: string;
+  error?: string;
 } {
   try {
     // Create backup if requested
-    let backupPath: string | undefined
+    let backupPath: string | undefined;
     if (options.backup !== false) {
-      const stateConfig = config.state.read()
+      const stateConfig = config.state.read();
       if (stateConfig) {
-        backupPath = `${STATE_FILE}.backup`
+        backupPath = `${STATE_FILE}.backup`;
       }
     }
 
     // Read current state
-    const currentState = config.state.read() || config.state.createDefault()
+    const currentState = config.state.read() || config.state.createDefault();
 
     // Set the nested value
     const updatedState = setNestedValue(
       currentState as unknown as Record<string, unknown>,
       path,
       value,
-    )
+    );
 
     // Write back
-    config.state.write(updatedState as any)
+    config.state.write(updatedState as any);
 
-    return { success: true, backupPath }
+    return { success: true, backupPath };
   }
   catch (error) {
     return {
       success: false,
       error: error instanceof Error ? error.message : String(error),
-    }
+    };
   }
 }
 
@@ -261,25 +261,25 @@ function setStateValue(path: string, value: unknown, options: SetConfigOptions):
  * @returns Detected scope
  */
 function detectScope(key: string): 'ccjk' | 'claude' | 'state' {
-  const lowerKey = key.toLowerCase()
+  const lowerKey = key.toLowerCase();
 
   // CCJK-specific keys
   if (lowerKey.startsWith('general.') || lowerKey.startsWith('tools.') || lowerKey.startsWith('storage.')) {
-    return 'ccjk'
+    return 'ccjk';
   }
 
   // Claude-specific keys
   if (lowerKey.startsWith('env.') || lowerKey.startsWith('permissions.') || lowerKey.startsWith('mcp')) {
-    return 'claude'
+    return 'claude';
   }
 
   // State-specific keys
   if (lowerKey.startsWith('sessions.') || lowerKey.startsWith('cache.') || lowerKey.startsWith('updates.')) {
-    return 'state'
+    return 'state';
   }
 
   // Default to CCJK
-  return 'ccjk'
+  return 'ccjk';
 }
 
 /**
@@ -291,108 +291,108 @@ function detectScope(key: string): 'ccjk' | 'claude' | 'state' {
  */
 export async function setCommand(key: string, value: string, options: SetConfigOptions = {}): Promise<void> {
   // Initialize i18n if needed
-  await ensureI18nInitialized()
+  await ensureI18nInitialized();
 
-  const isZh = i18n.language === 'zh-CN'
+  const isZh = i18n.language === 'zh-CN';
 
   if (!key) {
     console.log(ansis.yellow(isZh
       ? 'Please specify a configuration key'
-      : '请指定配置项'))
-    console.log('')
+      : '请指定配置项'));
+    console.log('');
     console.log(ansis.dim(isZh
       ? 'Usage: ccjk config set <key> <value>'
-      : '用法: ccjk config set <配置项> <值>'))
+      : '用法: ccjk config set <配置项> <值>'));
     console.log(ansis.dim(isZh
       ? 'Example: ccjk config set general.preferredLang zh-CN'
-      : '示例: ccjk config set general.preferredLang zh-CN'))
-    console.log('')
-    return
+      : '示例: ccjk config set general.preferredLang zh-CN'));
+    console.log('');
+    return;
   }
 
   if (!value) {
     console.log(ansis.yellow(isZh
       ? 'Please specify a value'
-      : '请指定值'))
-    console.log('')
-    return
+      : '请指定值'));
+    console.log('');
+    return;
   }
 
   // Parse the value
-  let parsedValue: unknown
+  let parsedValue: unknown;
   try {
-    parsedValue = parseValue(value, options.type)
+    parsedValue = parseValue(value, options.type);
   }
   catch (error) {
     console.log(ansis.red(isZh
       ? `Failed to parse value: ${error instanceof Error ? error.message : String(error)}`
-      : `解析值失败: ${error instanceof Error ? error.message : String(error)}`))
-    console.log('')
+      : `解析值失败: ${error instanceof Error ? error.message : String(error)}`));
+    console.log('');
     console.log(ansis.dim(isZh
       ? 'Tip: Use --type to specify the value type explicitly'
-      : '提示: 使用 --type 显式指定值类型'))
+      : '提示: 使用 --type 显式指定值类型'));
     console.log(ansis.dim(isZh
       ? '     --type string    Set as string'
-      : '     --type string    设置为字符串'))
+      : '     --type string    设置为字符串'));
     console.log(ansis.dim(isZh
       ? '     --type number    Set as number'
-      : '     --type number    设置为数字'))
+      : '     --type number    设置为数字'));
     console.log(ansis.dim(isZh
       ? '     --type boolean   Set as boolean (true/false)'
-      : '     --type boolean   设置为布尔值 (true/false)'))
+      : '     --type boolean   设置为布尔值 (true/false)'));
     console.log(ansis.dim(isZh
       ? '     --type json       Set as JSON'
-      : '     --type json       设置为 JSON'))
-    console.log('')
-    return
+      : '     --type json       设置为 JSON'));
+    console.log('');
+    return;
   }
 
   // Determine scope
-  const scope = options.scope === 'auto' ? detectScope(key) : options.scope || detectScope(key)
+  const scope = options.scope === 'auto' ? detectScope(key) : options.scope || detectScope(key);
 
   // Set the value
-  let result: { success: boolean, backupPath?: string, error?: string }
+  let result: { success: boolean; backupPath?: string; error?: string };
 
   if (scope === 'ccjk') {
-    result = setCcjkValue(key, parsedValue, options)
+    result = setCcjkValue(key, parsedValue, options);
   }
   else if (scope === 'claude') {
-    result = setClaudeValue(key, parsedValue, options)
+    result = setClaudeValue(key, parsedValue, options);
   }
   else if (scope === 'state') {
-    result = setStateValue(key, parsedValue, options)
+    result = setStateValue(key, parsedValue, options);
   }
   else {
     console.log(ansis.red(isZh
       ? `Invalid scope: ${scope}`
-      : `无效的作用域: ${scope}`))
-    console.log('')
-    return
+      : `无效的作用域: ${scope}`));
+    console.log('');
+    return;
   }
 
   // Display result
   if (!result.success) {
-    console.log('')
+    console.log('');
     console.log(ansis.red(isZh
       ? 'Failed to set configuration value'
-      : '设置配置值失败'))
-    console.log(ansis.dim(result.error || ''))
-    console.log('')
-    return
+      : '设置配置值失败'));
+    console.log(ansis.dim(result.error || ''));
+    console.log('');
+    return;
   }
 
-  console.log('')
+  console.log('');
   console.log(ansis.green(isZh
     ? 'Configuration value updated successfully'
-    : '配置值更新成功'))
-  console.log('')
-  console.log(`${ansis.bold(isZh ? 'Key' : '配置项')}: ${ansis.green(key)}`)
-  console.log(`${ansis.bold(isZh ? 'Value' : '值')}: ${ansis.green(JSON.stringify(parsedValue))}`)
-  console.log(`${ansis.bold(isZh ? 'Scope' : '作用域')}: ${ansis.dim(scope)}`)
+    : '配置值更新成功'));
+  console.log('');
+  console.log(`${ansis.bold(isZh ? 'Key' : '配置项')}: ${ansis.green(key)}`);
+  console.log(`${ansis.bold(isZh ? 'Value' : '值')}: ${ansis.green(JSON.stringify(parsedValue))}`);
+  console.log(`${ansis.bold(isZh ? 'Scope' : '作用域')}: ${ansis.dim(scope)}`);
 
   if (result.backupPath) {
-    console.log(`${ansis.bold(isZh ? 'Backup' : '备份')}: ${ansis.dim(result.backupPath)}`)
+    console.log(`${ansis.bold(isZh ? 'Backup' : '备份')}: ${ansis.dim(result.backupPath)}`);
   }
 
-  console.log('')
+  console.log('');
 }

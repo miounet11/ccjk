@@ -5,31 +5,31 @@
  * @module bootstrap/event-bus
  */
 
-import type { StartupContext, StartupEvent, StartupHandler } from '../utils/startup-orchestrator/types'
+import type { StartupContext, StartupEvent, StartupHandler } from '../utils/startup-orchestrator/types';
 
 /**
  * Event priority levels for handler execution order
  */
-export type EventPriority = 'high' | 'normal' | 'low'
+export type EventPriority = 'high' | 'normal' | 'low';
 
 /**
  * Extended handler registration with priority and metadata
  */
 export interface EventHandlerRegistration {
-  handler: StartupHandler
-  priority: EventPriority
-  name?: string
-  once?: boolean
+  handler: StartupHandler;
+  priority: EventPriority;
+  name?: string;
+  once?: boolean;
 }
 
 /**
  * Event emission result for tracking handler execution
  */
 export interface EventEmitResult {
-  event: StartupEvent
-  handlersExecuted: number
-  errors: Array<{ handler: string, error: Error }>
-  duration: number
+  event: StartupEvent;
+  handlersExecuted: number;
+  errors: Array<{ handler: string; error: Error }>;
+  duration: number;
 }
 
 /**
@@ -39,7 +39,7 @@ const PRIORITY_WEIGHTS: Record<EventPriority, number> = {
   high: 0,
   normal: 1,
   low: 2,
-}
+};
 
 /**
  * Startup Event Bus
@@ -53,8 +53,8 @@ const PRIORITY_WEIGHTS: Record<EventPriority, number> = {
  * - Handler naming for debugging
  */
 export class StartupEventBus {
-  private handlers: Map<StartupEvent, EventHandlerRegistration[]> = new Map()
-  private emitHistory: EventEmitResult[] = []
+  private handlers: Map<StartupEvent, EventHandlerRegistration[]> = new Map();
+  private emitHistory: EventEmitResult[] = [];
 
   /**
    * Register an event handler
@@ -73,20 +73,20 @@ export class StartupEventBus {
       priority: options.priority ?? 'normal',
       name: options.name,
       once: options.once ?? false,
-    }
+    };
 
     if (!this.handlers.has(event)) {
-      this.handlers.set(event, [])
+      this.handlers.set(event, []);
     }
 
-    const handlers = this.handlers.get(event)!
-    handlers.push(registration)
+    const handlers = this.handlers.get(event)!;
+    handlers.push(registration);
 
     // Sort by priority
-    handlers.sort((a, b) => PRIORITY_WEIGHTS[a.priority] - PRIORITY_WEIGHTS[b.priority])
+    handlers.sort((a, b) => PRIORITY_WEIGHTS[a.priority] - PRIORITY_WEIGHTS[b.priority]);
 
     // Return unsubscribe function
-    return () => this.off(event, handler)
+    return () => this.off(event, handler);
   }
 
   /**
@@ -101,7 +101,7 @@ export class StartupEventBus {
     handler: StartupHandler,
     options: Partial<Omit<EventHandlerRegistration, 'handler' | 'once'>> = {},
   ): () => void {
-    return this.on(event, handler, { ...options, once: true })
+    return this.on(event, handler, { ...options, once: true });
   }
 
   /**
@@ -111,16 +111,16 @@ export class StartupEventBus {
    * @param handler - The handler function to remove
    */
   off(event: StartupEvent, handler: StartupHandler): boolean {
-    const handlers = this.handlers.get(event)
+    const handlers = this.handlers.get(event);
     if (!handlers)
-      return false
+      return false;
 
-    const index = handlers.findIndex(reg => reg.handler === handler)
+    const index = handlers.findIndex(reg => reg.handler === handler);
     if (index === -1)
-      return false
+      return false;
 
-    handlers.splice(index, 1)
-    return true
+    handlers.splice(index, 1);
+    return true;
   }
 
   /**
@@ -134,70 +134,70 @@ export class StartupEventBus {
    * @returns Result containing execution statistics and any errors
    */
   async emit(event: StartupEvent, context: StartupContext): Promise<EventEmitResult> {
-    const startTime = Date.now()
+    const startTime = Date.now();
     const result: EventEmitResult = {
       event,
       handlersExecuted: 0,
       errors: [],
       duration: 0,
-    }
+    };
 
-    const handlers = this.handlers.get(event)
+    const handlers = this.handlers.get(event);
     if (!handlers || handlers.length === 0) {
-      result.duration = Date.now() - startTime
-      this.emitHistory.push(result)
-      return result
+      result.duration = Date.now() - startTime;
+      this.emitHistory.push(result);
+      return result;
     }
 
     // Track handlers to remove after execution (once handlers)
-    const toRemove: StartupHandler[] = []
+    const toRemove: StartupHandler[] = [];
 
     for (const registration of handlers) {
       try {
-        await registration.handler(context)
-        result.handlersExecuted++
+        await registration.handler(context);
+        result.handlersExecuted++;
 
         if (registration.once) {
-          toRemove.push(registration.handler)
+          toRemove.push(registration.handler);
         }
       }
       catch (error) {
         result.errors.push({
           handler: registration.name ?? 'anonymous',
           error: error instanceof Error ? error : new Error(String(error)),
-        })
+        });
       }
     }
 
     // Remove one-time handlers
     for (const handler of toRemove) {
-      this.off(event, handler)
+      this.off(event, handler);
     }
 
-    result.duration = Date.now() - startTime
-    this.emitHistory.push(result)
-    return result
+    result.duration = Date.now() - startTime;
+    this.emitHistory.push(result);
+    return result;
   }
 
   /**
    * Get the number of handlers registered for an event
    */
   listenerCount(event: StartupEvent): number {
-    return this.handlers.get(event)?.length ?? 0
+    return this.handlers.get(event)?.length ?? 0;
   }
 
   /**
    * Get all registered events
    */
   eventNames(): StartupEvent[] {
-    return Array.from(this.handlers.keys())
+    return Array.from(this.handlers.keys());
   }
 
   /**
    * Get emit history for debugging
    */
   getEmitHistory(): EventEmitResult[] {
-    return [...this.emitHistory]
+    return [...this.emitHistory];
   }
 
   /**
@@ -205,10 +205,10 @@ export class StartupEventBus {
    */
   clear(event?: StartupEvent): void {
     if (event) {
-      this.handlers.delete(event)
+      this.handlers.delete(event);
     }
     else {
-      this.handlers.clear()
+      this.handlers.clear();
     }
   }
 
@@ -216,24 +216,24 @@ export class StartupEventBus {
    * Reset the event bus (clear handlers and history)
    */
   reset(): void {
-    this.handlers.clear()
-    this.emitHistory = []
+    this.handlers.clear();
+    this.emitHistory = [];
   }
 }
 
 /**
  * Global singleton event bus instance
  */
-let globalEventBus: StartupEventBus | null = null
+let globalEventBus: StartupEventBus | null = null;
 
 /**
  * Get the global startup event bus instance
  */
 export function getStartupEventBus(): StartupEventBus {
   if (!globalEventBus) {
-    globalEventBus = new StartupEventBus()
+    globalEventBus = new StartupEventBus();
   }
-  return globalEventBus
+  return globalEventBus;
 }
 
 /**
@@ -241,9 +241,9 @@ export function getStartupEventBus(): StartupEventBus {
  */
 export function resetStartupEventBus(): void {
   if (globalEventBus) {
-    globalEventBus.reset()
+    globalEventBus.reset();
   }
-  globalEventBus = null
+  globalEventBus = null;
 }
 
 /**
@@ -253,7 +253,7 @@ export async function emitStartupEvent(
   event: StartupEvent,
   context: StartupContext,
 ): Promise<EventEmitResult> {
-  return getStartupEventBus().emit(event, context)
+  return getStartupEventBus().emit(event, context);
 }
 
 /**
@@ -264,5 +264,5 @@ export function onStartupEvent(
   handler: StartupHandler,
   options?: Partial<Omit<EventHandlerRegistration, 'handler'>>,
 ): () => void {
-  return getStartupEventBus().on(event, handler, options)
+  return getStartupEventBus().on(event, handler, options);
 }

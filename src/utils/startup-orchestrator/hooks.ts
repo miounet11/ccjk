@@ -5,7 +5,7 @@
  * @module startup-orchestrator/hooks
  */
 
-import type { StartupContext, StartupEvent, StartupHandler } from './types'
+import type { StartupContext, StartupEvent, StartupHandler } from './types';
 
 /**
  * Startup Hooks Manager
@@ -14,7 +14,7 @@ import type { StartupContext, StartupEvent, StartupHandler } from './types'
  * Supports multiple handlers per event with async execution.
  */
 export class StartupHooks {
-  private handlers: Map<StartupEvent, StartupHandler[]> = new Map()
+  private handlers: Map<StartupEvent, StartupHandler[]> = new Map();
 
   /**
    * Register a handler for a startup event
@@ -24,9 +24,9 @@ export class StartupHooks {
    */
   on(event: StartupEvent, handler: StartupHandler): void {
     if (!this.handlers.has(event)) {
-      this.handlers.set(event, [])
+      this.handlers.set(event, []);
     }
-    this.handlers.get(event)!.push(handler)
+    this.handlers.get(event)!.push(handler);
   }
 
   /**
@@ -37,16 +37,16 @@ export class StartupHooks {
    * @returns true if handler was found and removed
    */
   off(event: StartupEvent, handler: StartupHandler): boolean {
-    const handlers = this.handlers.get(event)
+    const handlers = this.handlers.get(event);
     if (!handlers)
-      return false
+      return false;
 
-    const index = handlers.indexOf(handler)
+    const index = handlers.indexOf(handler);
     if (index === -1)
-      return false
+      return false;
 
-    handlers.splice(index, 1)
-    return true
+    handlers.splice(index, 1);
+    return true;
   }
 
   /**
@@ -59,14 +59,14 @@ export class StartupHooks {
    * @param context - The startup context to pass to handlers
    */
   async trigger(event: StartupEvent, context: StartupContext): Promise<void> {
-    const handlers = this.handlers.get(event) || []
+    const handlers = this.handlers.get(event) || [];
 
     for (const handler of handlers) {
       try {
-        await handler(context)
+        await handler(context);
       }
       catch (error) {
-        console.error(`Hook handler failed for ${event}:`, error)
+        console.error(`Hook handler failed for ${event}:`, error);
       }
     }
   }
@@ -76,10 +76,10 @@ export class StartupHooks {
    */
   clear(event?: StartupEvent): void {
     if (event) {
-      this.handlers.delete(event)
+      this.handlers.delete(event);
     }
     else {
-      this.handlers.clear()
+      this.handlers.clear();
     }
   }
 
@@ -87,6 +87,6 @@ export class StartupHooks {
    * Get number of handlers for an event
    */
   count(event: StartupEvent): number {
-    return this.handlers.get(event)?.length || 0
+    return this.handlers.get(event)?.length || 0;
   }
 }

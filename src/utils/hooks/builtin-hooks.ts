@@ -6,16 +6,16 @@
  * @module utils/hooks/builtin-hooks
  */
 
-import type { HookRegistry } from './registry.js'
+import type { HookRegistry } from './registry.js';
 
-import type { Hook, HookContext, HookResult } from './types.js'
-import process from 'node:process'
+import type { Hook, HookContext, HookResult } from './types.js';
+import process from 'node:process';
 import {
   completeTaskMonitoring,
   failTaskMonitoring,
   getNotificationManager,
   startTaskMonitoring,
-} from '../notification/index.js'
+} from '../notification/index.js';
 
 /**
  * Pre-tool-use validation hook
@@ -42,7 +42,7 @@ export const preToolUseValidation: Hook = {
           durationMs: 0,
           error: 'Tool name is required',
           continueChain: false,
-        }
+        };
       }
 
       return {
@@ -50,12 +50,12 @@ export const preToolUseValidation: Hook = {
         status: 'success',
         durationMs: 0,
         continueChain: true,
-      }
+      };
     },
     timeout: 5000,
     continueOnError: false,
   },
-}
+};
 
 /**
  * Post-tool-use logging hook
@@ -76,7 +76,7 @@ export const postToolUseLogging: Hook = {
     execute: (context: HookContext): HookResult => {
       // Log tool execution (in production, this would use a proper logger)
       if (process.env.DEBUG) {
-        console.log(`[Hook] Tool executed: ${context.tool}`)
+        console.log(`[Hook] Tool executed: ${context.tool}`);
       }
 
       return {
@@ -84,12 +84,12 @@ export const postToolUseLogging: Hook = {
         status: 'success',
         durationMs: 0,
         continueChain: true,
-      }
+      };
     },
     timeout: 5000,
     continueOnError: true,
   },
-}
+};
 
 /**
  * Skill activation notification hook
@@ -109,7 +109,7 @@ export const skillActivateNotification: Hook = {
   action: {
     execute: (context: HookContext): HookResult => {
       if (process.env.DEBUG) {
-        console.log(`[Hook] Skill activated: ${context.skillId}`)
+        console.log(`[Hook] Skill activated: ${context.skillId}`);
       }
 
       return {
@@ -117,12 +117,12 @@ export const skillActivateNotification: Hook = {
         status: 'success',
         durationMs: 0,
         continueChain: true,
-      }
+      };
     },
     timeout: 5000,
     continueOnError: true,
   },
-}
+};
 
 /**
  * Skill completion statistics hook
@@ -143,7 +143,7 @@ export const skillCompleteStatistics: Hook = {
     execute: (context: HookContext): HookResult => {
       // In production, this would update statistics storage
       if (process.env.DEBUG) {
-        console.log(`[Hook] Skill completed: ${context.skillId}`)
+        console.log(`[Hook] Skill completed: ${context.skillId}`);
       }
 
       return {
@@ -151,12 +151,12 @@ export const skillCompleteStatistics: Hook = {
         status: 'success',
         durationMs: 0,
         continueChain: true,
-      }
+      };
     },
     timeout: 5000,
     continueOnError: true,
   },
-}
+};
 
 /**
  * Workflow start initialization hook
@@ -176,7 +176,7 @@ export const workflowStartInitialization: Hook = {
   action: {
     execute: (context: HookContext): HookResult => {
       if (process.env.DEBUG) {
-        console.log(`[Hook] Workflow started: ${context.workflowId}`)
+        console.log(`[Hook] Workflow started: ${context.workflowId}`);
       }
 
       return {
@@ -190,12 +190,12 @@ export const workflowStartInitialization: Hook = {
             workflowStartedAt: new Date().toISOString(),
           },
         },
-      }
+      };
     },
     timeout: 10000,
     continueOnError: false,
   },
-}
+};
 
 /**
  * Workflow completion cleanup hook
@@ -215,7 +215,7 @@ export const workflowCompleteCleanup: Hook = {
   action: {
     execute: (context: HookContext): HookResult => {
       if (process.env.DEBUG) {
-        console.log(`[Hook] Workflow completed: ${context.workflowId}`)
+        console.log(`[Hook] Workflow completed: ${context.workflowId}`);
       }
 
       return {
@@ -223,12 +223,12 @@ export const workflowCompleteCleanup: Hook = {
         status: 'success',
         durationMs: 0,
         continueChain: true,
-      }
+      };
     },
     timeout: 10000,
     continueOnError: true,
   },
-}
+};
 
 /**
  * Configuration change logger hook
@@ -248,7 +248,7 @@ export const configChangeLogger: Hook = {
   action: {
     execute: (context: HookContext): HookResult => {
       if (process.env.DEBUG) {
-        console.log(`[Hook] Config changed: ${context.configKey}`)
+        console.log(`[Hook] Config changed: ${context.configKey}`);
       }
 
       return {
@@ -256,12 +256,12 @@ export const configChangeLogger: Hook = {
         status: 'success',
         durationMs: 0,
         continueChain: true,
-      }
+      };
     },
     timeout: 5000,
     continueOnError: true,
   },
-}
+};
 
 /**
  * Global error handler hook
@@ -282,7 +282,7 @@ export const globalErrorHandler: Hook = {
     execute: (context: HookContext): HookResult => {
       // Log error (in production, this would use a proper error tracking service)
       if (context.error) {
-        console.error(`[Hook] Error occurred: ${context.error.message}`)
+        console.error(`[Hook] Error occurred: ${context.error.message}`);
       }
 
       return {
@@ -290,12 +290,12 @@ export const globalErrorHandler: Hook = {
         status: 'success',
         durationMs: 0,
         continueChain: true,
-      }
+      };
     },
     timeout: 5000,
     continueOnError: true,
   },
-}
+};
 
 // ============================================================================
 // Task Notification Hooks
@@ -318,14 +318,14 @@ export const taskStartNotification: Hook = {
   tags: ['notification', 'task'],
   action: {
     execute: async (context: HookContext): Promise<HookResult> => {
-      const startTime = Date.now()
+      const startTime = Date.now();
 
       try {
         if (context.taskId && context.taskDescription) {
-          await startTaskMonitoring(context.taskId, context.taskDescription)
+          await startTaskMonitoring(context.taskId, context.taskDescription);
 
           if (process.env.DEBUG) {
-            console.log(`[Hook] Task monitoring started: ${context.taskId}`)
+            console.log(`[Hook] Task monitoring started: ${context.taskId}`);
           }
         }
 
@@ -334,7 +334,7 @@ export const taskStartNotification: Hook = {
           status: 'success',
           durationMs: Date.now() - startTime,
           continueChain: true,
-        }
+        };
       }
       catch (error) {
         return {
@@ -343,13 +343,13 @@ export const taskStartNotification: Hook = {
           durationMs: Date.now() - startTime,
           error: error instanceof Error ? error.message : String(error),
           continueChain: true, // Don't block task execution on notification failure
-        }
+        };
       }
     },
     timeout: 5000,
     continueOnError: true,
   },
-}
+};
 
 /**
  * Task complete notification hook
@@ -368,13 +368,13 @@ export const taskCompleteNotification: Hook = {
   tags: ['notification', 'task'],
   action: {
     execute: async (context: HookContext): Promise<HookResult> => {
-      const startTime = Date.now()
+      const startTime = Date.now();
 
       try {
-        const results = await completeTaskMonitoring(context.taskResult)
+        const results = await completeTaskMonitoring(context.taskResult);
 
         if (process.env.DEBUG) {
-          console.log(`[Hook] Task completed, notifications sent: ${results.length}`)
+          console.log(`[Hook] Task completed, notifications sent: ${results.length}`);
         }
 
         return {
@@ -383,7 +383,7 @@ export const taskCompleteNotification: Hook = {
           durationMs: Date.now() - startTime,
           output: { notificationResults: results },
           continueChain: true,
-        }
+        };
       }
       catch (error) {
         return {
@@ -392,13 +392,13 @@ export const taskCompleteNotification: Hook = {
           durationMs: Date.now() - startTime,
           error: error instanceof Error ? error.message : String(error),
           continueChain: true,
-        }
+        };
       }
     },
     timeout: 30000, // Allow more time for network requests
     continueOnError: true,
   },
-}
+};
 
 /**
  * Task failed notification hook
@@ -417,14 +417,14 @@ export const taskFailedNotification: Hook = {
   tags: ['notification', 'task', 'error'],
   action: {
     execute: async (context: HookContext): Promise<HookResult> => {
-      const startTime = Date.now()
+      const startTime = Date.now();
 
       try {
-        const errorMessage = context.error?.message || 'Unknown error'
-        const results = await failTaskMonitoring(errorMessage)
+        const errorMessage = context.error?.message || 'Unknown error';
+        const results = await failTaskMonitoring(errorMessage);
 
         if (process.env.DEBUG) {
-          console.log(`[Hook] Task failed, notifications sent: ${results.length}`)
+          console.log(`[Hook] Task failed, notifications sent: ${results.length}`);
         }
 
         return {
@@ -433,7 +433,7 @@ export const taskFailedNotification: Hook = {
           durationMs: Date.now() - startTime,
           output: { notificationResults: results },
           continueChain: true,
-        }
+        };
       }
       catch (error) {
         return {
@@ -442,13 +442,13 @@ export const taskFailedNotification: Hook = {
           durationMs: Date.now() - startTime,
           error: error instanceof Error ? error.message : String(error),
           continueChain: true,
-        }
+        };
       }
     },
     timeout: 30000,
     continueOnError: true,
   },
-}
+};
 
 /**
  * Task progress notification hook
@@ -467,17 +467,17 @@ export const taskProgressNotification: Hook = {
   tags: ['notification', 'task', 'progress'],
   action: {
     execute: async (context: HookContext): Promise<HookResult> => {
-      const startTime = Date.now()
+      const startTime = Date.now();
 
       try {
-        const manager = getNotificationManager()
-        const currentTask = manager.getCurrentTask()
+        const manager = getNotificationManager();
+        const currentTask = manager.getCurrentTask();
 
         if (process.env.DEBUG && currentTask) {
           const durationMin = context.taskDuration
             ? Math.round(context.taskDuration / 60000)
-            : 0
-          console.log(`[Hook] Task progress: ${currentTask.taskId} running for ${durationMin} minutes`)
+            : 0;
+          console.log(`[Hook] Task progress: ${currentTask.taskId} running for ${durationMin} minutes`);
         }
 
         return {
@@ -485,7 +485,7 @@ export const taskProgressNotification: Hook = {
           status: 'success',
           durationMs: Date.now() - startTime,
           continueChain: true,
-        }
+        };
       }
       catch (error) {
         return {
@@ -494,13 +494,13 @@ export const taskProgressNotification: Hook = {
           durationMs: Date.now() - startTime,
           error: error instanceof Error ? error.message : String(error),
           continueChain: true,
-        }
+        };
       }
     },
     timeout: 5000,
     continueOnError: true,
   },
-}
+};
 
 /**
  * All built-in hooks
@@ -519,7 +519,7 @@ export const builtinHooks: Hook[] = [
   taskCompleteNotification,
   taskFailedNotification,
   taskProgressNotification,
-]
+];
 
 /**
  * Register all built-in hooks
@@ -528,6 +528,6 @@ export const builtinHooks: Hook[] = [
  */
 export function registerBuiltinHooks(registry: HookRegistry): void {
   for (const hook of builtinHooks) {
-    registry.register(hook, { source: 'builtin' })
+    registry.register(hook, { source: 'builtin' });
   }
 }

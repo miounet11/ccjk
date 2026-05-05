@@ -5,22 +5,22 @@
  * Tokens are used to authenticate with the CCJK cloud service.
  */
 
-import { Buffer } from 'node:buffer'
-import crypto from 'node:crypto'
-import os from 'node:os'
+import { Buffer } from 'node:buffer';
+import crypto from 'node:crypto';
+import os from 'node:os';
 
 // ============================================================================
 // Constants
 // ============================================================================
 
 /** Token prefix for identification */
-const TOKEN_PREFIX = 'ccjk_'
+const TOKEN_PREFIX = 'ccjk_';
 
 /** Token length (excluding prefix) */
-const TOKEN_LENGTH = 64
+const TOKEN_LENGTH = 64;
 
 /** Token version for future compatibility */
-const TOKEN_VERSION = 1
+const TOKEN_VERSION = 1;
 
 // ============================================================================
 // Token Generation
@@ -35,9 +35,9 @@ const TOKEN_VERSION = 1
  * @returns Generated device token
  */
 export function generateDeviceToken(): string {
-  const randomBytes = crypto.randomBytes(TOKEN_LENGTH / 2)
-  const randomHex = randomBytes.toString('hex')
-  return `${TOKEN_PREFIX}${TOKEN_VERSION}${randomHex}`
+  const randomBytes = crypto.randomBytes(TOKEN_LENGTH / 2);
+  const randomHex = randomBytes.toString('hex');
+  return `${TOKEN_PREFIX}${TOKEN_VERSION}${randomHex}`;
 }
 
 /**
@@ -48,33 +48,33 @@ export function generateDeviceToken(): string {
  */
 export function isValidTokenFormat(token: string): boolean {
   if (!token || typeof token !== 'string') {
-    return false
+    return false;
   }
 
   // Check prefix
   if (!token.startsWith(TOKEN_PREFIX)) {
-    return false
+    return false;
   }
 
   // Check length (prefix + version + hex)
-  const expectedLength = TOKEN_PREFIX.length + 1 + TOKEN_LENGTH
+  const expectedLength = TOKEN_PREFIX.length + 1 + TOKEN_LENGTH;
   if (token.length !== expectedLength) {
-    return false
+    return false;
   }
 
   // Check version
-  const version = token[TOKEN_PREFIX.length]
+  const version = token[TOKEN_PREFIX.length];
   if (!/^\d$/.test(version)) {
-    return false
+    return false;
   }
 
   // Check hex part
-  const hexPart = token.slice(TOKEN_PREFIX.length + 1)
+  const hexPart = token.slice(TOKEN_PREFIX.length + 1);
   if (!/^[a-f0-9]+$/i.test(hexPart)) {
-    return false
+    return false;
   }
 
-  return true
+  return true;
 }
 
 /**
@@ -85,11 +85,11 @@ export function isValidTokenFormat(token: string): boolean {
  */
 export function getTokenVersion(token: string): number | null {
   if (!isValidTokenFormat(token)) {
-    return null
+    return null;
   }
 
-  const version = Number.parseInt(token[TOKEN_PREFIX.length], 10)
-  return Number.isNaN(version) ? null : version
+  const version = Number.parseInt(token[TOKEN_PREFIX.length], 10);
+  return Number.isNaN(version) ? null : version;
 }
 
 // ============================================================================
@@ -106,7 +106,7 @@ export function getTokenVersion(token: string): number | null {
  * @returns SHA-256 hash of the token
  */
 export function hashToken(token: string): string {
-  return crypto.createHash('sha256').update(token).digest('hex')
+  return crypto.createHash('sha256').update(token).digest('hex');
 }
 
 /**
@@ -117,9 +117,9 @@ export function hashToken(token: string): string {
  * @returns Whether the token matches the hash
  */
 export function verifyTokenHash(token: string, hash: string): boolean {
-  const tokenHash = hashToken(token)
+  const tokenHash = hashToken(token);
   // Use timing-safe comparison to prevent timing attacks
-  return crypto.timingSafeEqual(Buffer.from(tokenHash), Buffer.from(hash))
+  return crypto.timingSafeEqual(Buffer.from(tokenHash), Buffer.from(hash));
 }
 
 // ============================================================================
@@ -131,17 +131,17 @@ export function verifyTokenHash(token: string, hash: string): boolean {
  */
 export interface DeviceInfo {
   /** Device name (hostname) */
-  name: string
+  name: string;
   /** Operating system platform */
-  platform: string
+  platform: string;
   /** OS version */
-  osVersion: string
+  osVersion: string;
   /** Architecture */
-  arch: string
+  arch: string;
   /** Username */
-  username: string
+  username: string;
   /** Unique machine identifier */
-  machineId: string
+  machineId: string;
 }
 
 /**
@@ -157,7 +157,7 @@ export function getDeviceInfo(): DeviceInfo {
     arch: os.arch(),
     username: os.userInfo().username,
     machineId: generateMachineId(),
-  }
+  };
 }
 
 /**
@@ -182,10 +182,10 @@ export function generateMachineId(): string {
       .map(iface => iface?.mac)
       .filter(Boolean)
       .slice(0, 3), // Limit to first 3 MACs
-  ]
+  ];
 
-  const combined = components.join('|')
-  return crypto.createHash('sha256').update(combined).digest('hex').slice(0, 32)
+  const combined = components.join('|');
+  return crypto.createHash('sha256').update(combined).digest('hex').slice(0, 32);
 }
 
 // ============================================================================
@@ -199,9 +199,9 @@ export function generateMachineId(): string {
  * The key is derived from machine-specific properties.
  */
 function deriveEncryptionKey(): Buffer {
-  const machineId = generateMachineId()
-  const salt = 'ccjk-notification-token-v1'
-  return crypto.pbkdf2Sync(machineId, salt, 100000, 32, 'sha256')
+  const machineId = generateMachineId();
+  const salt = 'ccjk-notification-token-v1';
+  return crypto.pbkdf2Sync(machineId, salt, 100000, 32, 'sha256');
 }
 
 /**
@@ -211,17 +211,17 @@ function deriveEncryptionKey(): Buffer {
  * @returns Encrypted token string (base64)
  */
 export function encryptToken(token: string): string {
-  const key = deriveEncryptionKey()
-  const iv = crypto.randomBytes(16)
-  const cipher = crypto.createCipheriv('aes-256-gcm', key, iv)
+  const key = deriveEncryptionKey();
+  const iv = crypto.randomBytes(16);
+  const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
 
-  let encrypted = cipher.update(token, 'utf8', 'hex')
-  encrypted += cipher.final('hex')
+  let encrypted = cipher.update(token, 'utf8', 'hex');
+  encrypted += cipher.final('hex');
 
-  const authTag = cipher.getAuthTag()
+  const authTag = cipher.getAuthTag();
 
   // Format: iv:authTag:encrypted (all in hex)
-  return `${iv.toString('hex')}:${authTag.toString('hex')}:${encrypted}`
+  return `${iv.toString('hex')}:${authTag.toString('hex')}:${encrypted}`;
 }
 
 /**
@@ -232,26 +232,26 @@ export function encryptToken(token: string): string {
  */
 export function decryptToken(encryptedToken: string): string | null {
   try {
-    const parts = encryptedToken.split(':')
+    const parts = encryptedToken.split(':');
     if (parts.length !== 3) {
-      return null
+      return null;
     }
 
-    const [ivHex, authTagHex, encrypted] = parts
-    const key = deriveEncryptionKey()
-    const iv = Buffer.from(ivHex, 'hex')
-    const authTag = Buffer.from(authTagHex, 'hex')
+    const [ivHex, authTagHex, encrypted] = parts;
+    const key = deriveEncryptionKey();
+    const iv = Buffer.from(ivHex, 'hex');
+    const authTag = Buffer.from(authTagHex, 'hex');
 
-    const decipher = crypto.createDecipheriv('aes-256-gcm', key, iv)
-    decipher.setAuthTag(authTag)
+    const decipher = crypto.createDecipheriv('aes-256-gcm', key, iv);
+    decipher.setAuthTag(authTag);
 
-    let decrypted = decipher.update(encrypted, 'hex', 'utf8')
-    decrypted += decipher.final('utf8')
+    let decrypted = decipher.update(encrypted, 'hex', 'utf8');
+    decrypted += decipher.final('utf8');
 
-    return decrypted
+    return decrypted;
   }
   catch {
-    return null
+    return null;
   }
 }
 
@@ -264,11 +264,11 @@ export function decryptToken(encryptedToken: string): string | null {
  */
 export interface TokenRefreshResult {
   /** Whether refresh was successful */
-  success: boolean
+  success: boolean;
   /** New token (if successful) */
-  newToken?: string
+  newToken?: string;
   /** Error message (if failed) */
-  error?: string
+  error?: string;
 }
 
 /**
@@ -282,10 +282,10 @@ export interface TokenRefreshResult {
  * @returns Whether the token should be refreshed
  */
 export function shouldRefreshToken(tokenCreatedAt: Date, maxAgeDays: number = 90): boolean {
-  const now = new Date()
-  const ageMs = now.getTime() - tokenCreatedAt.getTime()
-  const ageDays = ageMs / (1000 * 60 * 60 * 24)
-  return ageDays >= maxAgeDays
+  const now = new Date();
+  const ageMs = now.getTime() - tokenCreatedAt.getTime();
+  const ageDays = ageMs / (1000 * 60 * 60 * 24);
+  return ageDays >= maxAgeDays;
 }
 
 // ============================================================================
@@ -303,10 +303,10 @@ export function shouldRefreshToken(tokenCreatedAt: Date, maxAgeDays: number = 90
  */
 export function maskToken(token: string): string {
   if (!token || token.length < 12) {
-    return '***'
+    return '***';
   }
 
-  const prefix = token.slice(0, TOKEN_PREFIX.length + 1) // ccjk_1
-  const suffix = token.slice(-4)
-  return `${prefix}***...***${suffix}`
+  const prefix = token.slice(0, TOKEN_PREFIX.length + 1); // ccjk_1
+  const suffix = token.slice(-4);
+  return `${prefix}***...***${suffix}`;
 }

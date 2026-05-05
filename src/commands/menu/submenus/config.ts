@@ -11,10 +11,10 @@
  * - Context management
  */
 
-import type { MenuDefinition, MenuItem } from '../types'
-import { configureApiFeature, configureDefaultModelFeature, configureEnvPermissionFeature, configureMcpFeature, configureMemoryFeature } from '../../../utils/features'
-import { readZcfConfig } from '../../../utils/ccjk-config'
-import { showContextMenu } from '../../context-menu'
+import type { MenuDefinition, MenuItem } from '../types';
+import { readZcfConfig } from '../../../utils/ccjk-config';
+import { configureApiFeature, configureDefaultModelFeature, configureEnvPermissionFeature, configureMcpFeature, configureMemoryFeature } from '../../../utils/features';
+import { showContextMenu } from '../../context-menu';
 
 /**
  * Configuration submenu items
@@ -30,7 +30,7 @@ export const configMenuItems: MenuItem[] = [
     icon: '🔑',
     shortcut: '1',
     handler: async () => {
-      await configureApiFeature()
+      await configureApiFeature();
     },
   },
   {
@@ -43,7 +43,7 @@ export const configMenuItems: MenuItem[] = [
     icon: '🔌',
     shortcut: '2',
     handler: async () => {
-      await configureMcpFeature()
+      await configureMcpFeature();
     },
   },
   {
@@ -56,7 +56,7 @@ export const configMenuItems: MenuItem[] = [
     icon: '🤖',
     shortcut: '3',
     handler: async () => {
-      await configureDefaultModelFeature(readZcfConfig()?.codeToolType)
+      await configureDefaultModelFeature(readZcfConfig()?.codeToolType);
     },
   },
   {
@@ -69,7 +69,7 @@ export const configMenuItems: MenuItem[] = [
     icon: '🧠',
     shortcut: '4',
     handler: async () => {
-      await configureMemoryFeature()
+      await configureMemoryFeature();
     },
   },
   {
@@ -82,7 +82,7 @@ export const configMenuItems: MenuItem[] = [
     icon: '🛡️',
     shortcut: '5',
     handler: async () => {
-      await configureEnvPermissionFeature()
+      await configureEnvPermissionFeature();
     },
   },
   {
@@ -95,8 +95,8 @@ export const configMenuItems: MenuItem[] = [
     icon: '🔀',
     shortcut: '6',
     handler: async () => {
-      const { configSwitchCommand } = await import('../../config-switch')
-      await configSwitchCommand({ codeType: 'claude-code' })
+      const { configSwitchCommand } = await import('../../config-switch');
+      await configSwitchCommand({ codeType: 'claude-code' });
     },
   },
   {
@@ -109,10 +109,10 @@ export const configMenuItems: MenuItem[] = [
     icon: '📊',
     shortcut: '7',
     handler: async () => {
-      await showContextMenu()
+      await showContextMenu();
     },
   },
-]
+];
 
 /**
  * Get configuration menu definition
@@ -124,5 +124,5 @@ export function getConfigMenu(): MenuDefinition {
     items: configMenuItems,
     showCategories: false,
     maxVisible: 10,
-  }
+  };
 }

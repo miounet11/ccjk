@@ -5,12 +5,12 @@
  * including menu items, categories, complexity levels, and user preferences.
  */
 
-import type { CodeToolType, SupportedLang } from '../../constants'
+import type { CodeToolType, SupportedLang } from '../../constants';
 
 /**
  * Menu item complexity level for progressive disclosure
  */
-export type MenuLevel = 'basic' | 'intermediate' | 'expert'
+export type MenuLevel = 'basic' | 'intermediate' | 'expert';
 
 /**
  * Menu item category for grouping
@@ -22,7 +22,7 @@ export type MenuCategory
     | 'advanced'
     | 'system'
     | 'cloud'
-    | 'extensions'
+    | 'extensions';
 
 /**
  * Menu item action type
@@ -33,56 +33,56 @@ export type MenuAction
     | 'toggle' // Toggle a boolean setting
     | 'input' // Prompt for user input
     | 'back' // Return to previous menu
-    | 'exit' // Exit the menu system
+    | 'exit'; // Exit the menu system
 
 /**
  * Individual menu item definition
  */
 export interface MenuItem {
   /** Unique identifier for the menu item */
-  id: string
+  id: string;
 
   /** Display label (i18n key) */
-  label: string
+  label: string;
 
   /** Short description (i18n key) */
-  description: string
+  description: string;
 
   /** Category for grouping */
-  category: MenuCategory
+  category: MenuCategory;
 
   /** Complexity level for progressive disclosure */
-  level: MenuLevel
+  level: MenuLevel;
 
   /** Action type */
-  action: MenuAction
+  action: MenuAction;
 
   /** Action handler function */
-  handler?: () => Promise<void | boolean> | void | boolean
+  handler?: () => Promise<void | boolean> | void | boolean;
 
   /** Keyboard shortcut (single character) */
-  shortcut?: string
+  shortcut?: string;
 
   /** Icon/emoji for visual emphasis */
-  icon?: string
+  icon?: string;
 
   /** Whether this item requires confirmation before executing */
-  confirm?: boolean
+  confirm?: boolean;
 
   /** Confirmation message (i18n key) */
-  confirmMessage?: string
+  confirmMessage?: string;
 
   /** Whether this item is disabled */
-  disabled?: boolean
+  disabled?: boolean;
 
   /** Disabled reason (i18n key) */
-  disabledReason?: string
+  disabledReason?: string;
 
   /** Restrict visibility to specific code tools */
-  supportedTools?: CodeToolType[]
+  supportedTools?: CodeToolType[];
 
   /** Submenu to navigate to (for action: 'submenu') */
-  submenu?: MenuDefinition
+  submenu?: MenuDefinition;
 }
 
 /**
@@ -90,19 +90,19 @@ export interface MenuItem {
  */
 export interface MenuDefinition {
   /** Menu title (i18n key) */
-  title: string
+  title: string;
 
   /** Menu subtitle/description (i18n key) */
-  subtitle?: string
+  subtitle?: string;
 
   /** Menu items organized by category */
-  items: MenuItem[]
+  items: MenuItem[];
 
   /** Whether to show category headers */
-  showCategories: boolean
+  showCategories: boolean;
 
   /** Maximum visible items before scrolling */
-  maxVisible?: number
+  maxVisible?: number;
 }
 
 /**
@@ -110,22 +110,22 @@ export interface MenuDefinition {
  */
 export interface MenuState {
   /** Current language */
-  language: SupportedLang
+  language: SupportedLang;
 
   /** Current code tool type */
-  codeTool: CodeToolType
+  codeTool: CodeToolType;
 
   /** Current menu level */
-  level: MenuLevel
+  level: MenuLevel;
 
   /** Whether to show advanced options */
-  showAdvanced: boolean
+  showAdvanced: boolean;
 
   /** Menu history for navigation */
-  history: MenuDefinition[]
+  history: MenuDefinition[];
 
   /** Current position in history */
-  historyIndex: number
+  historyIndex: number;
 }
 
 /**
@@ -133,26 +133,26 @@ export interface MenuState {
  */
 export interface MenuRenderOptions {
   /** Whether to show keyboard shortcuts */
-  showShortcuts: boolean
+  showShortcuts: boolean;
 
   /** Whether to show descriptions */
-  showDescriptions: boolean
+  showDescriptions: boolean;
 
   /** Whether to use color (ANSI codes) */
-  useColor: boolean
+  useColor: boolean;
 
   /** Terminal width for layout */
-  terminalWidth: number
+  terminalWidth: number;
 
   /** Whether to show the "More" global command */
-  showMoreCommand?: boolean
+  showMoreCommand?: boolean;
 
   /** Additional global footer commands */
   extraFooterCommands?: Array<{
-    key: string
-    label: string
-    variant?: 'default' | 'danger'
-  }>
+    key: string;
+    label: string;
+    variant?: 'default' | 'danger';
+  }>;
 }
 
 /**
@@ -163,26 +163,26 @@ export type MenuResult
     | 'back' // Go back to previous menu
     | 'exit' // Exit menu system
     | 'switch' // Switch code tool (requires menu reload)
-    | undefined // No action taken, continue
+    | undefined; // No action taken, continue
 
 /**
  * Menu configuration
  */
 export interface MenuConfig {
   /** Default menu level */
-  defaultLevel: MenuLevel
+  defaultLevel: MenuLevel;
 
   /** Whether to remember user's level preference */
-  rememberLevel: boolean
+  rememberLevel: boolean;
 
   /** Whether to show hints and tips */
-  showHints: boolean
+  showHints: boolean;
 
   /** Keyboard navigation enabled */
-  keyboardNav: boolean
+  keyboardNav: boolean;
 
   /** Animation speed in ms */
-  animationSpeed: number
+  animationSpeed: number;
 }
 
 /**
@@ -190,16 +190,16 @@ export interface MenuConfig {
  */
 export interface MenuSection {
   /** Section title (i18n key) */
-  title: string
+  title: string;
 
   /** Section icon */
-  icon?: string
+  icon?: string;
 
   /** Items in this section */
-  items: MenuItem[]
+  items: MenuItem[];
 
   /** Whether this section is collapsed */
-  collapsed?: boolean
+  collapsed?: boolean;
 }
 
 /**
@@ -207,19 +207,19 @@ export interface MenuSection {
  */
 export interface MenuInput {
   /** Raw input string */
-  raw: string
+  raw: string;
 
   /** Normalized input (lowercase, trimmed) */
-  normalized: string
+  normalized: string;
 
   /** Whether input is a shortcut */
-  isShortcut: boolean
+  isShortcut: boolean;
 
   /** Whether input is a number */
-  isNumber: boolean
+  isNumber: boolean;
 
   /** Numeric value if isNumber is true */
-  number?: number
+  number?: number;
 }
 
 /**
@@ -227,20 +227,20 @@ export interface MenuInput {
  */
 export interface MenuItemRenderData {
   /** Menu item */
-  item: MenuItem
+  item: MenuItem;
 
   /** Display number */
-  number: number
+  number: number;
 
   /** Display label */
-  label: string
+  label: string;
 
   /** Display description */
-  description: string
+  description: string;
 
   /** Keyboard shortcut indicator */
-  shortcutIndicator: string
+  shortcutIndicator: string;
 
   /** Whether item is highlighted */
-  highlighted: boolean
+  highlighted: boolean;
 }

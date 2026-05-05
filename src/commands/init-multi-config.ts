@@ -3,17 +3,17 @@
  * Extracted from init.ts — handles multi-API configuration setup,
  * profile conversion, and provider management.
  */
-import type { CodeToolType } from '../constants'
-import type { MyclaudeProviderProfile } from '../types'
-import type { ApiConfigDefinition, ClaudeCodeProfile } from '../types/claude-code-config'
-import type { CodexProvider } from '../utils/code-tools/codex'
-import ansis from 'ansis'
-import { API_DEFAULT_URL } from '../constants'
-import { i18n } from '../i18n'
-import { setMyclaudeProviderProfiles } from '../utils/claude-config'
-import { resolveClaudeFamilyModelSlots } from '../utils/claude-model-slots'
-import { displayError } from '../utils/error-formatter'
-import type { InitOptions } from './init'
+import type { CodeToolType } from '../constants';
+import type { MyclaudeProviderProfile } from '../types';
+import type { ApiConfigDefinition, ClaudeCodeProfile } from '../types/claude-code-config';
+import type { CodexProvider } from '../utils/code-tools/codex';
+import type { InitOptions } from './init';
+import ansis from 'ansis';
+import { API_DEFAULT_URL } from '../constants';
+import { i18n } from '../i18n';
+import { setMyclaudeProviderProfiles } from '../utils/claude-config';
+import { resolveClaudeFamilyModelSlots } from '../utils/claude-model-slots';
+import { displayError } from '../utils/error-formatter';
 
 /**
  * Handle multi-configuration API setup
@@ -24,61 +24,61 @@ export async function handleMultiConfigurations(
   options: InitOptions,
   codeToolType: CodeToolType,
 ): Promise<void> {
-  const { ensureI18nInitialized } = await import('../i18n')
-  ensureI18nInitialized()
+  const { ensureI18nInitialized } = await import('../i18n');
+  ensureI18nInitialized();
 
   try {
-    let configs: ApiConfigDefinition[] = []
+    let configs: ApiConfigDefinition[] = [];
 
     // Parse API configurations from JSON string
     if (options.apiConfigs) {
       try {
-        configs = JSON.parse(options.apiConfigs) as ApiConfigDefinition[]
+        configs = JSON.parse(options.apiConfigs) as ApiConfigDefinition[];
       }
       catch (error) {
         throw new Error(
           i18n.t('multi-config:invalidJson', {
             error: error instanceof Error ? error.message : String(error),
           }),
-        )
+        );
       }
     }
 
     // Parse API configurations from file
     if (options.apiConfigsFile) {
       try {
-        const { readFile } = await import('../utils/fs-operations')
-        const fileContent = readFile(options.apiConfigsFile)
-        configs = JSON.parse(fileContent) as ApiConfigDefinition[]
+        const { readFile } = await import('../utils/fs-operations');
+        const fileContent = readFile(options.apiConfigsFile);
+        configs = JSON.parse(fileContent) as ApiConfigDefinition[];
       }
       catch (error) {
         throw new Error(
           i18n.t('multi-config:fileReadFailed', {
             error: error instanceof Error ? error.message : String(error),
           }),
-        )
+        );
       }
     }
 
     // Validate configurations
-    await validateApiConfigs(configs)
+    await validateApiConfigs(configs);
 
     // Process configurations based on code tool type
     if (codeToolType === 'claude-code') {
-      await handleClaudeCodeConfigs(configs)
+      await handleClaudeCodeConfigs(configs);
     }
     else if (codeToolType === 'clavue') {
-      await handleMyclaudeConfigs(configs)
+      await handleMyclaudeConfigs(configs);
     }
     else if (codeToolType === 'codex') {
-      await handleCodexConfigs(configs)
+      await handleCodexConfigs(configs);
     }
 
-    console.log(ansis.green(`✔ ${i18n.t('multi-config:configsAddedSuccessfully')}`))
+    console.log(ansis.green(`✔ ${i18n.t('multi-config:configsAddedSuccessfully')}`));
   }
   catch (error) {
-    displayError(error as Error, 'Multi-config setup')
-    throw error
+    displayError(error as Error, 'Multi-config setup');
+    throw error;
   }
 }
 
@@ -88,27 +88,27 @@ export async function handleMultiConfigurations(
  */
 export async function validateApiConfigs(configs: ApiConfigDefinition[]): Promise<void> {
   if (!Array.isArray(configs)) {
-    throw new TypeError(i18n.t('multi-config:mustBeArray'))
+    throw new TypeError(i18n.t('multi-config:mustBeArray'));
   }
 
-  const { getValidProviderIds } = await import('../config/api-providers')
-  const validProviders = [...getValidProviderIds(), 'custom']
-  const names = new Set<string>()
+  const { getValidProviderIds } = await import('../config/api-providers');
+  const validProviders = [...getValidProviderIds(), 'custom'];
+  const names = new Set<string>();
 
   for (const config of configs) {
     // Auto-infer type from provider
     if (config.provider && !config.type) {
-      config.type = 'api_key'
+      config.type = 'api_key';
     }
 
     // Auto-generate name from provider
     if (config.provider && !config.name) {
-      config.name = config.provider.toUpperCase()
+      config.name = config.provider.toUpperCase();
     }
 
     // Validate provider or type must be present
     if (!config.provider && !config.type) {
-      throw new Error(i18n.t('multi-config:providerOrTypeRequired'))
+      throw new Error(i18n.t('multi-config:providerOrTypeRequired'));
     }
 
     // Validate provider if specified
@@ -118,28 +118,28 @@ export async function validateApiConfigs(configs: ApiConfigDefinition[]): Promis
           provider: config.provider,
           validProviders: validProviders.join(', '),
         }),
-      )
+      );
     }
 
     // Validate name is present (after auto-generation)
     if (!config.name || typeof config.name !== 'string' || config.name.trim() === '') {
-      throw new Error(i18n.t('multi-config:mustHaveValidName'))
+      throw new Error(i18n.t('multi-config:mustHaveValidName'));
     }
 
     // Validate type is valid
     if (!['api_key', 'auth_token', 'ccr_proxy'].includes(config.type!)) {
-      throw new Error(i18n.t('multi-config:invalidAuthType', { type: config.type }))
+      throw new Error(i18n.t('multi-config:invalidAuthType', { type: config.type }));
     }
 
     // Validate name uniqueness
     if (names.has(config.name)) {
-      throw new Error(i18n.t('multi-config:duplicateName', { name: config.name }))
+      throw new Error(i18n.t('multi-config:duplicateName', { name: config.name }));
     }
-    names.add(config.name)
+    names.add(config.name);
 
     // Validate API key for non-CCR types
     if (config.type !== 'ccr_proxy' && !config.key) {
-      throw new Error(i18n.t('multi-config:configApiKeyRequired', { name: config.name }))
+      throw new Error(i18n.t('multi-config:configApiKeyRequired', { name: config.name }));
     }
   }
 }
@@ -149,54 +149,54 @@ export async function validateApiConfigs(configs: ApiConfigDefinition[]): Promis
  * @param configs - Array of API configurations
  */
 export async function handleClaudeCodeConfigs(configs: ApiConfigDefinition[]): Promise<void> {
-  const { ClaudeCodeConfigManager } = await import('../utils/claude-code-config-manager')
-  const addedProfiles: ClaudeCodeProfile[] = []
+  const { ClaudeCodeConfigManager } = await import('../utils/claude-code-config-manager');
+  const addedProfiles: ClaudeCodeProfile[] = [];
 
   for (const config of configs) {
     if (config.type === 'ccr_proxy') {
-      throw new Error(i18n.t('multi-config:ccrProxyReserved', { name: config.name }))
+      throw new Error(i18n.t('multi-config:ccrProxyReserved', { name: config.name }));
     }
 
-    const profile = await convertToClaudeCodeProfile(config)
-    const result = await ClaudeCodeConfigManager.addProfile(profile)
+    const profile = await convertToClaudeCodeProfile(config);
+    const result = await ClaudeCodeConfigManager.addProfile(profile);
 
     if (!result.success) {
       throw new Error(
         i18n.t('multi-config:configProfileAddFailed', { name: config.name, error: result.error }),
-      )
+      );
     }
 
     const storedProfile
-      = result.addedProfile || ClaudeCodeConfigManager.getProfileByName(config.name!) || profile
-    addedProfiles.push(storedProfile)
+      = result.addedProfile || ClaudeCodeConfigManager.getProfileByName(config.name!) || profile;
+    addedProfiles.push(storedProfile);
 
-    console.log(ansis.green(`✔ ${i18n.t('multi-config:profileAdded', { name: config.name })}`))
+    console.log(ansis.green(`✔ ${i18n.t('multi-config:profileAdded', { name: config.name })}`));
   }
 
   if (addedProfiles.length > 0) {
     const summary = addedProfiles
       .map(profile => `${profile.name} [${profile.authType}]`)
-      .join(', ')
-    console.log(ansis.gray(`  • ${ClaudeCodeConfigManager.CONFIG_FILE}: ${summary}`))
+      .join(', ');
+    console.log(ansis.gray(`  • ${ClaudeCodeConfigManager.CONFIG_FILE}: ${summary}`));
   }
 
   // Set default profile if specified
-  const defaultConfig = configs.find(c => c.default)
+  const defaultConfig = configs.find(c => c.default);
   if (defaultConfig) {
     const profile
       = addedProfiles.find(p => p.name === defaultConfig.name)
-        || ClaudeCodeConfigManager.getProfileByName(defaultConfig.name!)
+        || ClaudeCodeConfigManager.getProfileByName(defaultConfig.name!);
     if (profile && profile.id) {
-      await ClaudeCodeConfigManager.switchProfile(profile.id)
-      await ClaudeCodeConfigManager.applyProfileSettings(profile)
+      await ClaudeCodeConfigManager.switchProfile(profile.id);
+      await ClaudeCodeConfigManager.applyProfileSettings(profile);
       console.log(
         ansis.green(`✔ ${i18n.t('multi-config:defaultProfileSet', { name: defaultConfig.name })}`),
-      )
+      );
     }
   }
 
   // Sync CCR configuration if needed
-  await ClaudeCodeConfigManager.syncCcrProfile()
+  await ClaudeCodeConfigManager.syncCcrProfile();
 }
 
 /**
@@ -204,15 +204,15 @@ export async function handleClaudeCodeConfigs(configs: ApiConfigDefinition[]): P
  * @param configs - Array of API configurations
  */
 export async function handleMyclaudeConfigs(configs: ApiConfigDefinition[]): Promise<void> {
-  const profiles = await Promise.all(configs.map(config => convertToMyclaudeProviderProfile(config)))
-  const activeProfile = profiles.find((_, index) => configs[index]?.default) || profiles[0]
+  const profiles = await Promise.all(configs.map(config => convertToMyclaudeProviderProfile(config)));
+  const activeProfile = profiles.find((_, index) => configs[index]?.default) || profiles[0];
 
-  setMyclaudeProviderProfiles(profiles, activeProfile?.id)
+  setMyclaudeProviderProfiles(profiles, activeProfile?.id);
 
   const summary = profiles
     .map(profile => `${profile.name} [${profile.provider}]`)
-    .join(', ')
-  console.log(ansis.gray(`  • ~/.clavue/.clavue.json: ${summary}`))
+    .join(', ');
+  console.log(ansis.gray(`  • ~/.clavue/.clavue.json: ${summary}`));
 }
 
 /**
@@ -221,22 +221,22 @@ export async function handleMyclaudeConfigs(configs: ApiConfigDefinition[]): Pro
  */
 export async function handleCodexConfigs(configs: ApiConfigDefinition[]): Promise<void> {
   // Import Codex provider management functions
-  const { addProviderToExisting } = await import('../utils/code-tools/codex-provider-manager')
+  const { addProviderToExisting } = await import('../utils/code-tools/codex-provider-manager');
 
-  const addedProviderIds: string[] = []
+  const addedProviderIds: string[] = [];
   for (const config of configs) {
     try {
-      const provider = await convertToCodexProvider(config)
-      const result = await addProviderToExisting(provider, config.key || '')
+      const provider = await convertToCodexProvider(config);
+      const result = await addProviderToExisting(provider, config.key || '');
 
       if (!result.success) {
         throw new Error(
           i18n.t('multi-config:providerAddFailed', { name: config.name, error: result.error }),
-        )
+        );
       }
 
-      addedProviderIds.push(provider.id)
-      console.log(ansis.green(`✔ ${i18n.t('multi-config:providerAdded', { name: config.name })}`))
+      addedProviderIds.push(provider.id);
+      console.log(ansis.green(`✔ ${i18n.t('multi-config:providerAdded', { name: config.name })}`));
     }
     catch (error) {
       console.error(
@@ -246,23 +246,23 @@ export async function handleCodexConfigs(configs: ApiConfigDefinition[]): Promis
             error: error instanceof Error ? error.message : String(error),
           }),
         ),
-      )
-      throw error
+      );
+      throw error;
     }
   }
 
   // Set default provider if specified
-  const defaultConfig = configs.find(c => c.default)
+  const defaultConfig = configs.find(c => c.default);
   if (defaultConfig) {
     // Import and call Codex provider switching function
-    const { switchCodexProvider } = await import('../utils/code-tools/codex')
-    const displayName = defaultConfig.name || defaultConfig.provider || 'custom'
-    const providerId = displayName.toLowerCase().replace(/[^a-z0-9]/g, '-')
+    const { switchToProvider } = await import('../utils/code-tools/codex');
+    const displayName = defaultConfig.name || defaultConfig.provider || 'custom';
+    const providerId = displayName.toLowerCase().replace(/[^a-z0-9]/g, '-');
     if (addedProviderIds.includes(providerId)) {
-      await switchCodexProvider(providerId)
+      await switchToProvider(providerId);
       console.log(
         ansis.green(`✔ ${i18n.t('multi-config:defaultProviderSet', { name: displayName })}`),
-      )
+      );
     }
     else {
       console.log(
@@ -272,7 +272,7 @@ export async function handleCodexConfigs(configs: ApiConfigDefinition[]): Promis
             error: 'provider not added',
           }),
         ),
-      )
+      );
     }
   }
 }
@@ -303,36 +303,36 @@ export async function handleCodexConfigs(configs: ApiConfigDefinition[]): Promis
  * @param options.apiOpusModel - Default Opus model
  */
 export async function saveSingleConfigToToml(
-  apiConfig: { authType: 'api_key' | 'auth_token', key: string, url?: string },
+  apiConfig: { authType: 'api_key' | 'auth_token'; key: string; url?: string },
   provider?: string,
   options?: {
-    apiModel?: string
-    apiHaikuModel?: string
-    apiSonnetModel?: string
-    apiOpusModel?: string
+    apiModel?: string;
+    apiHaikuModel?: string;
+    apiSonnetModel?: string;
+    apiOpusModel?: string;
   },
 ): Promise<void> {
   try {
-    const { ClaudeCodeConfigManager } = await import('../utils/claude-code-config-manager')
-    const profile = await convertSingleConfigToProfile(apiConfig, provider, options)
-    const result = await ClaudeCodeConfigManager.addProfile(profile)
+    const { ClaudeCodeConfigManager } = await import('../utils/claude-code-config-manager');
+    const profile = await convertSingleConfigToProfile(apiConfig, provider, options);
+    const result = await ClaudeCodeConfigManager.addProfile(profile);
 
     if (result.success) {
       const savedProfile
-        = result.addedProfile || ClaudeCodeConfigManager.getProfileByName(profile.name) || profile
+        = result.addedProfile || ClaudeCodeConfigManager.getProfileByName(profile.name) || profile;
       // Set as default and apply settings
       if (savedProfile.id) {
-        await ClaudeCodeConfigManager.switchProfile(savedProfile.id)
-        await ClaudeCodeConfigManager.applyProfileSettings(savedProfile)
+        await ClaudeCodeConfigManager.switchProfile(savedProfile.id);
+        await ClaudeCodeConfigManager.applyProfileSettings(savedProfile);
       }
       console.log(
         ansis.green(`✔ ${i18n.t('configuration:singleConfigSaved', { name: profile.name })}`),
-      )
+      );
     }
     else {
       console.warn(
         ansis.yellow(`${i18n.t('configuration:singleConfigSaveFailed')}: ${result.error}`),
-      )
+      );
     }
   }
   catch (error) {
@@ -340,22 +340,22 @@ export async function saveSingleConfigToToml(
       ansis.yellow(
         `${i18n.t('configuration:singleConfigSaveFailed')}: ${error instanceof Error ? error.message : String(error)}`,
       ),
-    )
+    );
   }
 }
 
 export async function buildClaudeCodeProfile(params: {
-  name: string
-  key: string
-  authType: 'api_key' | 'auth_token'
-  url?: string
-  provider?: string
-  primaryModel?: string
-  defaultHaikuModel?: string
-  defaultSonnetModel?: string
-  defaultOpusModel?: string
+  name: string;
+  key: string;
+  authType: 'api_key' | 'auth_token';
+  url?: string;
+  provider?: string;
+  primaryModel?: string;
+  defaultHaikuModel?: string;
+  defaultSonnetModel?: string;
+  defaultOpusModel?: string;
 }): Promise<ClaudeCodeProfile> {
-  const { ClaudeCodeConfigManager } = await import('../utils/claude-code-config-manager')
+  const { ClaudeCodeConfigManager } = await import('../utils/claude-code-config-manager');
 
   let {
     url: baseUrl,
@@ -364,24 +364,24 @@ export async function buildClaudeCodeProfile(params: {
     defaultHaikuModel,
     defaultSonnetModel,
     defaultOpusModel,
-  } = params
-  baseUrl = baseUrl || API_DEFAULT_URL
+  } = params;
+  baseUrl = baseUrl || API_DEFAULT_URL;
 
   if (params.provider && params.provider !== 'custom') {
-    const { getProviderPreset } = await import('../config/api-providers')
-    const preset = getProviderPreset(params.provider)
+    const { getProviderPreset } = await import('../config/api-providers');
+    const preset = getProviderPreset(params.provider);
 
     if (preset?.claudeCode) {
-      baseUrl = params.url || preset.claudeCode.baseUrl
-      authType = preset.claudeCode.authType
+      baseUrl = params.url || preset.claudeCode.baseUrl;
+      authType = preset.claudeCode.authType;
       const modelSlots = resolveClaudeFamilyModelSlots({
         defaultModels: preset.claudeCode.defaultModels,
         selectedModel: primaryModel,
-      })
-      primaryModel = modelSlots.primaryModel
-      defaultHaikuModel = defaultHaikuModel || modelSlots.haikuModel
-      defaultSonnetModel = defaultSonnetModel || modelSlots.sonnetModel
-      defaultOpusModel = defaultOpusModel || modelSlots.opusModel
+      });
+      primaryModel = modelSlots.primaryModel;
+      defaultHaikuModel = defaultHaikuModel || modelSlots.haikuModel;
+      defaultSonnetModel = defaultSonnetModel || modelSlots.sonnetModel;
+      defaultOpusModel = defaultOpusModel || modelSlots.opusModel;
     }
   }
 
@@ -396,17 +396,17 @@ export async function buildClaudeCodeProfile(params: {
     defaultSonnetModel,
     defaultOpusModel,
     id: ClaudeCodeConfigManager.generateProfileId(params.name),
-  }
+  };
 }
 
 export async function convertSingleConfigToProfile(
-  apiConfig: { authType: 'api_key' | 'auth_token', key: string, url?: string },
+  apiConfig: { authType: 'api_key' | 'auth_token'; key: string; url?: string },
   provider?: string,
   options?: {
-    apiModel?: string
-    apiHaikuModel?: string
-    apiSonnetModel?: string
-    apiOpusModel?: string
+    apiModel?: string;
+    apiHaikuModel?: string;
+    apiSonnetModel?: string;
+    apiOpusModel?: string;
   },
 ): Promise<ClaudeCodeProfile> {
   return buildClaudeCodeProfile({
@@ -419,7 +419,7 @@ export async function convertSingleConfigToProfile(
     defaultHaikuModel: options?.apiHaikuModel,
     defaultSonnetModel: options?.apiSonnetModel,
     defaultOpusModel: options?.apiOpusModel,
-  })
+  });
 }
 
 export async function convertToClaudeCodeProfile(config: ApiConfigDefinition): Promise<ClaudeCodeProfile> {
@@ -433,13 +433,13 @@ export async function convertToClaudeCodeProfile(config: ApiConfigDefinition): P
     defaultHaikuModel: config.defaultHaikuModel,
     defaultSonnetModel: config.defaultSonnetModel,
     defaultOpusModel: config.defaultOpusModel,
-  })
+  });
 }
 
 export async function convertToMyclaudeProviderProfile(
   config: ApiConfigDefinition,
 ): Promise<MyclaudeProviderProfile> {
-  const claudeProfile = await convertToClaudeCodeProfile(config)
+  const claudeProfile = await convertToClaudeCodeProfile(config);
 
   return {
     id: claudeProfile.id || claudeProfile.name,
@@ -454,7 +454,7 @@ export async function convertToMyclaudeProviderProfile(
     defaultHaikuModel: claudeProfile.defaultHaikuModel,
     defaultSonnetModel: claudeProfile.defaultSonnetModel,
     defaultOpusModel: claudeProfile.defaultOpusModel,
-  }
+  };
 }
 
 /**
@@ -463,21 +463,21 @@ export async function convertToMyclaudeProviderProfile(
  */
 export async function convertToCodexProvider(config: ApiConfigDefinition): Promise<CodexProvider> {
   // Apply provider preset if specified
-  const displayName = config.name || config.provider || 'custom'
-  const providerId = displayName.toLowerCase().replace(/[^a-z0-9]/g, '-')
+  const displayName = config.name || config.provider || 'custom';
+  const providerId = displayName.toLowerCase().replace(/[^a-z0-9]/g, '-');
 
-  let baseUrl = config.url || API_DEFAULT_URL
-  let model = config.primaryModel || 'gpt-5-codex'
-  let wireApi: 'responses' | 'chat' = 'responses'
+  let baseUrl = config.url || API_DEFAULT_URL;
+  let model = config.primaryModel || 'gpt-5-codex';
+  let wireApi: 'responses' | 'chat' = 'responses';
 
   if (config.provider && config.provider !== 'custom') {
-    const { getProviderPreset } = await import('../config/api-providers')
-    const preset = getProviderPreset(config.provider)
+    const { getProviderPreset } = await import('../config/api-providers');
+    const preset = getProviderPreset(config.provider);
 
     if (preset?.codex) {
-      baseUrl = config.url || preset.codex.baseUrl
-      model = config.primaryModel || preset.codex.defaultModel || model
-      wireApi = preset.codex.wireApi
+      baseUrl = config.url || preset.codex.baseUrl;
+      model = config.primaryModel || preset.codex.defaultModel || model;
+      wireApi = preset.codex.wireApi;
     }
   }
 
@@ -489,7 +489,7 @@ export async function convertToCodexProvider(config: ApiConfigDefinition): Promi
     tempEnvKey: `${displayName}_API_KEY`.replace(/\W/g, '_').toUpperCase(),
     requiresOpenaiAuth: false,
     model,
-  }
+  };
 }
 
 /**

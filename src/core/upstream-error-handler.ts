@@ -7,8 +7,8 @@
  * @module core/upstream-error-handler
  */
 
-import { triggerHooks } from './hook-skill-bridge'
-import { getLifecycleManager } from './lifecycle-hooks'
+import { triggerHooks } from './hook-skill-bridge';
+import { getLifecycleManager } from './lifecycle-hooks';
 
 // ============================================================================
 // Types
@@ -25,20 +25,20 @@ export type UpstreamErrorType
     | 'authentication' // Auth error
     | 'invalid_request' // Bad request
     | 'server_error' // 5xx errors
-    | 'unknown' // Unknown error
+    | 'unknown'; // Unknown error
 
 /**
  * Parsed upstream error
  */
 export interface UpstreamError {
-  type: UpstreamErrorType
-  message: string
-  code?: string
-  statusCode?: number
-  retryAfter?: number
-  provider?: string
-  recoverable: boolean
-  suggestedAction?: 'compact' | 'retry' | 'wait' | 'reauthenticate' | 'none'
+  type: UpstreamErrorType;
+  message: string;
+  code?: string;
+  statusCode?: number;
+  retryAfter?: number;
+  provider?: string;
+  recoverable: boolean;
+  suggestedAction?: 'compact' | 'retry' | 'wait' | 'reauthenticate' | 'none';
 }
 
 /**
@@ -46,17 +46,17 @@ export interface UpstreamError {
  */
 export interface UpstreamErrorHandlerConfig {
   /** Enable auto-compact on context overflow */
-  autoCompactOnOverflow: boolean
+  autoCompactOnOverflow: boolean;
   /** Enable auto-retry on rate limit */
-  autoRetryOnRateLimit: boolean
+  autoRetryOnRateLimit: boolean;
   /** Maximum retry attempts */
-  maxRetries: number
+  maxRetries: number;
   /** Base delay for exponential backoff (ms) */
-  baseRetryDelay: number
+  baseRetryDelay: number;
   /** Callback when auto-compact is triggered */
-  onAutoCompact?: (error: UpstreamError) => Promise<void> | void
+  onAutoCompact?: (error: UpstreamError) => Promise<void> | void;
   /** Callback when retry is triggered */
-  onRetry?: (error: UpstreamError, attempt: number) => void
+  onRetry?: (error: UpstreamError, attempt: number) => void;
 }
 
 // ============================================================================
@@ -76,7 +76,7 @@ const CONTEXT_OVERFLOW_PATTERNS = [
   /input.?too.?long/i,
   /prompt.?too.?long/i,
   /conversation.?too.?long/i,
-]
+];
 
 /**
  * Patterns to detect rate limit errors
@@ -86,7 +86,7 @@ const RATE_LIMIT_PATTERNS = [
   /too.?many.?requests/i,
   /quota.?exceeded/i,
   /throttl/i,
-]
+];
 
 /**
  * Patterns to detect overloaded errors
@@ -97,7 +97,7 @@ const OVERLOADED_PATTERNS = [
   /busy/i,
   /unavailable/i,
   /try.?again.?later/i,
-]
+];
 
 // ============================================================================
 // Upstream Error Handler
@@ -110,8 +110,8 @@ const OVERLOADED_PATTERNS = [
  * triggering appropriate recovery actions.
  */
 export class UpstreamErrorHandler {
-  private config: UpstreamErrorHandlerConfig
-  private retryCount: Map<string, number> = new Map()
+  private config: UpstreamErrorHandlerConfig;
+  private retryCount: Map<string, number> = new Map();
 
   constructor(config?: Partial<UpstreamErrorHandlerConfig>) {
     this.config = {
@@ -121,7 +121,7 @@ export class UpstreamErrorHandler {
       baseRetryDelay: config?.baseRetryDelay ?? 1000,
       onAutoCompact: config?.onAutoCompact,
       onRetry: config?.onRetry,
-    }
+    };
   }
 
   // ==========================================================================
@@ -132,15 +132,15 @@ export class UpstreamErrorHandler {
    * Parse an error into a structured UpstreamError
    */
   parseError(error: Error | string | unknown): UpstreamError {
-    const message = this.extractMessage(error)
-    const statusCode = this.extractStatusCode(error)
-    const code = this.extractErrorCode(error)
+    const message = this.extractMessage(error);
+    const statusCode = this.extractStatusCode(error);
+    const code = this.extractErrorCode(error);
 
     // Detect error type
-    const type = this.detectErrorType(message, statusCode, code)
+    const type = this.detectErrorType(message, statusCode, code);
 
     // Determine if recoverable and suggested action
-    const { recoverable, suggestedAction } = this.getRecoveryInfo(type, statusCode)
+    const { recoverable, suggestedAction } = this.getRecoveryInfo(type, statusCode);
 
     return {
       type,
@@ -151,7 +151,7 @@ export class UpstreamErrorHandler {
       provider: this.extractProvider(error),
       recoverable,
       suggestedAction,
-    }
+    };
   }
 
   /**
@@ -164,40 +164,40 @@ export class UpstreamErrorHandler {
   ): UpstreamErrorType {
     // Check for context overflow
     if (CONTEXT_OVERFLOW_PATTERNS.some(p => p.test(message))) {
-      return 'context_overflow'
+      return 'context_overflow';
     }
 
     // Check for rate limit
     if (statusCode === 429 || RATE_LIMIT_PATTERNS.some(p => p.test(message))) {
-      return 'rate_limit'
+      return 'rate_limit';
     }
 
     // Check for overloaded
     if (statusCode === 503 || OVERLOADED_PATTERNS.some(p => p.test(message))) {
-      return 'overloaded'
+      return 'overloaded';
     }
 
     // Check for timeout
     if (code === 'ETIMEDOUT' || code === 'ESOCKETTIMEDOUT' || /timeout/i.test(message)) {
-      return 'timeout'
+      return 'timeout';
     }
 
     // Check for authentication
     if (statusCode === 401 || statusCode === 403 || /auth|unauthorized|forbidden/i.test(message)) {
-      return 'authentication'
+      return 'authentication';
     }
 
     // Check for invalid request
     if (statusCode === 400 || /invalid|bad.?request/i.test(message)) {
-      return 'invalid_request'
+      return 'invalid_request';
     }
 
     // Check for server error
     if (statusCode && statusCode >= 500) {
-      return 'server_error'
+      return 'server_error';
     }
 
-    return 'unknown'
+    return 'unknown';
   }
 
   /**
@@ -206,24 +206,24 @@ export class UpstreamErrorHandler {
   private getRecoveryInfo(
     type: UpstreamErrorType,
     _statusCode?: number,
-  ): { recoverable: boolean, suggestedAction: UpstreamError['suggestedAction'] } {
+  ): { recoverable: boolean; suggestedAction: UpstreamError['suggestedAction'] } {
     switch (type) {
       case 'context_overflow':
-        return { recoverable: true, suggestedAction: 'compact' }
+        return { recoverable: true, suggestedAction: 'compact' };
       case 'rate_limit':
-        return { recoverable: true, suggestedAction: 'wait' }
+        return { recoverable: true, suggestedAction: 'wait' };
       case 'overloaded':
-        return { recoverable: true, suggestedAction: 'retry' }
+        return { recoverable: true, suggestedAction: 'retry' };
       case 'timeout':
-        return { recoverable: true, suggestedAction: 'retry' }
+        return { recoverable: true, suggestedAction: 'retry' };
       case 'authentication':
-        return { recoverable: false, suggestedAction: 'reauthenticate' }
+        return { recoverable: false, suggestedAction: 'reauthenticate' };
       case 'invalid_request':
-        return { recoverable: false, suggestedAction: 'none' }
+        return { recoverable: false, suggestedAction: 'none' };
       case 'server_error':
-        return { recoverable: true, suggestedAction: 'retry' }
+        return { recoverable: true, suggestedAction: 'retry' };
       default:
-        return { recoverable: false, suggestedAction: 'none' }
+        return { recoverable: false, suggestedAction: 'none' };
     }
   }
 
@@ -235,35 +235,35 @@ export class UpstreamErrorHandler {
    * Handle an upstream error with appropriate recovery action
    */
   async handleError(error: Error | string | unknown): Promise<{
-    handled: boolean
-    action: string
-    shouldRetry: boolean
-    retryDelay?: number
+    handled: boolean;
+    action: string;
+    shouldRetry: boolean;
+    retryDelay?: number;
   }> {
-    const parsed = this.parseError(error)
+    const parsed = this.parseError(error);
 
     // Trigger error hook
-    await this.triggerErrorHook(parsed)
+    await this.triggerErrorHook(parsed);
 
     // Handle based on error type
     switch (parsed.type) {
       case 'context_overflow':
-        return this.handleContextOverflow(parsed)
+        return this.handleContextOverflow(parsed);
 
       case 'rate_limit':
-        return this.handleRateLimit(parsed)
+        return this.handleRateLimit(parsed);
 
       case 'overloaded':
       case 'timeout':
       case 'server_error':
-        return this.handleRetryableError(parsed)
+        return this.handleRetryableError(parsed);
 
       default:
         return {
           handled: false,
           action: 'none',
           shouldRetry: false,
-        }
+        };
     }
   }
 
@@ -271,23 +271,23 @@ export class UpstreamErrorHandler {
    * Handle context overflow error
    */
   private async handleContextOverflow(error: UpstreamError): Promise<{
-    handled: boolean
-    action: string
-    shouldRetry: boolean
+    handled: boolean;
+    action: string;
+    shouldRetry: boolean;
   }> {
     if (!this.config.autoCompactOnOverflow) {
       return {
         handled: false,
         action: 'none',
         shouldRetry: false,
-      }
+      };
     }
 
-    console.log('🗜️  Context overflow detected, triggering auto-compact...')
+    console.log('🗜️  Context overflow detected, triggering auto-compact...');
 
     // Call custom handler if provided
     if (this.config.onAutoCompact) {
-      await this.config.onAutoCompact(error)
+      await this.config.onAutoCompact(error);
     }
 
     // Trigger auto-compact hook
@@ -300,82 +300,82 @@ export class UpstreamErrorHandler {
         errorType: 'context_overflow',
         action: 'auto_compact',
       },
-    })
+    });
 
     return {
       handled: true,
       action: 'auto_compact',
       shouldRetry: true,
-    }
+    };
   }
 
   /**
    * Handle rate limit error
    */
   private async handleRateLimit(error: UpstreamError): Promise<{
-    handled: boolean
-    action: string
-    shouldRetry: boolean
-    retryDelay?: number
+    handled: boolean;
+    action: string;
+    shouldRetry: boolean;
+    retryDelay?: number;
   }> {
     const retryDelay = error.retryAfter
       ? error.retryAfter * 1000
-      : this.calculateBackoff('rate_limit')
+      : this.calculateBackoff('rate_limit');
 
     if (!this.config.autoRetryOnRateLimit) {
       return {
         handled: false,
         action: 'none',
         shouldRetry: false,
-      }
+      };
     }
 
-    console.log(`⏳ Rate limit hit, waiting ${Math.round(retryDelay / 1000)}s before retry...`)
+    console.log(`⏳ Rate limit hit, waiting ${Math.round(retryDelay / 1000)}s before retry...`);
 
     return {
       handled: true,
       action: 'wait_and_retry',
       shouldRetry: true,
       retryDelay,
-    }
+    };
   }
 
   /**
    * Handle retryable errors (overloaded, timeout, server error)
    */
   private async handleRetryableError(error: UpstreamError): Promise<{
-    handled: boolean
-    action: string
-    shouldRetry: boolean
-    retryDelay?: number
+    handled: boolean;
+    action: string;
+    shouldRetry: boolean;
+    retryDelay?: number;
   }> {
-    const retryKey = error.type
-    const currentRetries = this.retryCount.get(retryKey) || 0
+    const retryKey = error.type;
+    const currentRetries = this.retryCount.get(retryKey) || 0;
 
     if (currentRetries >= this.config.maxRetries) {
-      this.retryCount.delete(retryKey)
+      this.retryCount.delete(retryKey);
       return {
         handled: false,
         action: 'max_retries_exceeded',
         shouldRetry: false,
-      }
+      };
     }
 
-    this.retryCount.set(retryKey, currentRetries + 1)
-    const retryDelay = this.calculateBackoff(retryKey, currentRetries)
+    this.retryCount.set(retryKey, currentRetries + 1);
+    const retryDelay = this.calculateBackoff(retryKey, currentRetries);
 
     if (this.config.onRetry) {
-      this.config.onRetry(error, currentRetries + 1)
+      this.config.onRetry(error, currentRetries + 1);
     }
 
-    console.log(`🔄 ${error.type} error, retry ${currentRetries + 1}/${this.config.maxRetries} in ${Math.round(retryDelay / 1000)}s...`)
+    console.log(`🔄 ${error.type} error, retry ${currentRetries + 1}/${this.config.maxRetries} in ${Math.round(retryDelay / 1000)}s...`);
 
     return {
       handled: true,
       action: 'retry',
       shouldRetry: true,
       retryDelay,
-    }
+    };
   }
 
   // ==========================================================================
@@ -387,14 +387,14 @@ export class UpstreamErrorHandler {
    */
   private extractMessage(error: unknown): string {
     if (typeof error === 'string')
-      return error
+      return error;
     if (error instanceof Error)
-      return error.message
+      return error.message;
     if (error && typeof error === 'object') {
-      const obj = error as Record<string, unknown>
-      return String(obj.message || obj.error || obj.detail || JSON.stringify(error))
+      const obj = error as Record<string, unknown>;
+      return String(obj.message || obj.error || obj.detail || JSON.stringify(error));
     }
-    return String(error)
+    return String(error);
   }
 
   /**
@@ -402,12 +402,12 @@ export class UpstreamErrorHandler {
    */
   private extractStatusCode(error: unknown): number | undefined {
     if (error && typeof error === 'object') {
-      const obj = error as Record<string, unknown>
-      const status = obj.status || obj.statusCode || obj.code
+      const obj = error as Record<string, unknown>;
+      const status = obj.status || obj.statusCode || obj.code;
       if (typeof status === 'number')
-        return status
+        return status;
     }
-    return undefined
+    return undefined;
   }
 
   /**
@@ -415,13 +415,13 @@ export class UpstreamErrorHandler {
    */
   private extractErrorCode(error: unknown): string | undefined {
     if (error && typeof error === 'object') {
-      const obj = error as Record<string, unknown>
+      const obj = error as Record<string, unknown>;
       if (typeof obj.code === 'string')
-        return obj.code
+        return obj.code;
       if (typeof obj.error_code === 'string')
-        return obj.error_code
+        return obj.error_code;
     }
-    return undefined
+    return undefined;
   }
 
   /**
@@ -429,14 +429,14 @@ export class UpstreamErrorHandler {
    */
   private extractRetryAfter(error: unknown): number | undefined {
     if (error && typeof error === 'object') {
-      const obj = error as Record<string, unknown>
-      const retryAfter = obj.retryAfter || obj.retry_after
+      const obj = error as Record<string, unknown>;
+      const retryAfter = obj.retryAfter || obj.retry_after;
       if (typeof retryAfter === 'number')
-        return retryAfter
+        return retryAfter;
       if (typeof retryAfter === 'string')
-        return Number.parseInt(retryAfter, 10)
+        return Number.parseInt(retryAfter, 10);
     }
-    return undefined
+    return undefined;
   }
 
   /**
@@ -444,22 +444,22 @@ export class UpstreamErrorHandler {
    */
   private extractProvider(error: unknown): string | undefined {
     if (error && typeof error === 'object') {
-      const obj = error as Record<string, unknown>
+      const obj = error as Record<string, unknown>;
       if (typeof obj.provider === 'string')
-        return obj.provider
+        return obj.provider;
     }
-    return undefined
+    return undefined;
   }
 
   /**
    * Calculate exponential backoff delay
    */
   private calculateBackoff(key: string, attempt: number = 0): number {
-    const jitter = Math.random() * 0.3 + 0.85 // 0.85-1.15
+    const jitter = Math.random() * 0.3 + 0.85; // 0.85-1.15
     return Math.min(
       this.config.baseRetryDelay * (2 ** attempt) * jitter,
       60000, // Max 60 seconds
-    )
+    );
   }
 
   /**
@@ -467,11 +467,11 @@ export class UpstreamErrorHandler {
    */
   private async triggerErrorHook(error: UpstreamError): Promise<void> {
     try {
-      const lifecycle = getLifecycleManager()
+      const lifecycle = getLifecycleManager();
       await lifecycle.handleError(
         new Error(error.message),
         `upstream:${error.type}`,
-      )
+      );
     }
     catch {
       // Ignore hook errors
@@ -483,10 +483,10 @@ export class UpstreamErrorHandler {
    */
   resetRetryCount(type?: UpstreamErrorType): void {
     if (type) {
-      this.retryCount.delete(type)
+      this.retryCount.delete(type);
     }
     else {
-      this.retryCount.clear()
+      this.retryCount.clear();
     }
   }
 
@@ -494,7 +494,7 @@ export class UpstreamErrorHandler {
    * Update configuration
    */
   setConfig(config: Partial<UpstreamErrorHandlerConfig>): void {
-    this.config = { ...this.config, ...config }
+    this.config = { ...this.config, ...config };
   }
 }
 
@@ -502,16 +502,16 @@ export class UpstreamErrorHandler {
 // Singleton Instance
 // ============================================================================
 
-let handlerInstance: UpstreamErrorHandler | null = null
+let handlerInstance: UpstreamErrorHandler | null = null;
 
 /**
  * Get the singleton upstream error handler
  */
 export function getUpstreamErrorHandler(): UpstreamErrorHandler {
   if (!handlerInstance) {
-    handlerInstance = new UpstreamErrorHandler()
+    handlerInstance = new UpstreamErrorHandler();
   }
-  return handlerInstance
+  return handlerInstance;
 }
 
 /**
@@ -520,8 +520,8 @@ export function getUpstreamErrorHandler(): UpstreamErrorHandler {
 export function initUpstreamErrorHandler(
   config?: Partial<UpstreamErrorHandlerConfig>,
 ): UpstreamErrorHandler {
-  handlerInstance = new UpstreamErrorHandler(config)
-  return handlerInstance
+  handlerInstance = new UpstreamErrorHandler(config);
+  return handlerInstance;
 }
 
 // ============================================================================
@@ -532,29 +532,29 @@ export function initUpstreamErrorHandler(
  * Handle an upstream error
  */
 export async function handleUpstreamError(error: unknown): Promise<{
-  handled: boolean
-  action: string
-  shouldRetry: boolean
-  retryDelay?: number
+  handled: boolean;
+  action: string;
+  shouldRetry: boolean;
+  retryDelay?: number;
 }> {
-  const handler = getUpstreamErrorHandler()
-  return handler.handleError(error)
+  const handler = getUpstreamErrorHandler();
+  return handler.handleError(error);
 }
 
 /**
  * Check if an error is a context overflow error
  */
 export function isContextOverflowError(error: unknown): boolean {
-  const handler = getUpstreamErrorHandler()
-  const parsed = handler.parseError(error)
-  return parsed.type === 'context_overflow'
+  const handler = getUpstreamErrorHandler();
+  const parsed = handler.parseError(error);
+  return parsed.type === 'context_overflow';
 }
 
 /**
  * Check if an error is recoverable
  */
 export function isRecoverableError(error: unknown): boolean {
-  const handler = getUpstreamErrorHandler()
-  const parsed = handler.parseError(error)
-  return parsed.recoverable
+  const handler = getUpstreamErrorHandler();
+  const parsed = handler.parseError(error);
+  return parsed.recoverable;
 }

@@ -2,33 +2,33 @@
  * Main project detector using heuristics and file analysis
  */
 
-import type { BuildSystem, DetectorConfig, FrameworkDetectionResult, LanguageDetection, PackageManager, ProjectAnalysis } from './types.js'
-import { existsSync, promises as fsp } from 'node:fs'
-import consola from 'consola'
-import path from 'pathe'
-import { glob } from 'tinyglobby'
-import { analyzeGoProject } from './go-analyzer.js'
-import { analyzePythonProject } from './python-analyzer.js'
-import { analyzeRustProject } from './rust-analyzer.js'
-import { analyzeTypeScriptProject } from './typescript-analyzer.js'
+import type { BuildSystem, DetectorConfig, FrameworkDetectionResult, LanguageDetection, PackageManager, ProjectAnalysis } from './types.js';
+import { existsSync, promises as fsp } from 'node:fs';
+import consola from 'consola';
+import path from 'pathe';
+import { glob } from 'tinyglobby';
+import { analyzeGoProject } from './go-analyzer.js';
+import { analyzePythonProject } from './python-analyzer.js';
+import { analyzeRustProject } from './rust-analyzer.js';
+import { analyzeTypeScriptProject } from './typescript-analyzer.js';
 
 // fs-extra compatibility helpers
 async function pathExists(p: string): Promise<boolean> {
   try {
-    await fsp.access(p)
-    return true
+    await fsp.access(p);
+    return true;
   }
   catch {
-    return false
+    return false;
   }
 }
 
 async function _readJson(p: string): Promise<any> {
-  const content = await fsp.readFile(p, 'utf-8')
-  return JSON.parse(content)
+  const content = await fsp.readFile(p, 'utf-8');
+  return JSON.parse(content);
 }
 
-const logger = consola.withTag('project-detector')
+const logger = consola.withTag('project-detector');
 
 // Language detection patterns
 const LANGUAGE_PATTERNS = {
@@ -92,7 +92,7 @@ const LANGUAGE_PATTERNS = {
     extensions: ['.dart'],
     indicators: ['.dart_tool'],
   },
-} as const
+} as const;
 
 // Framework detection priority for mixed projects
 const FRAMEWORK_PRIORITY: Record<string, number> = {
@@ -108,7 +108,7 @@ const FRAMEWORK_PRIORITY: Record<string, number> = {
   'vue': 1,
   'angular': 1,
   'react': 0,
-}
+};
 
 /**
  * Main project detection function
@@ -117,61 +117,61 @@ export async function detectProject(
   projectPath: string,
   config: DetectorConfig,
 ): Promise<ProjectAnalysis> {
-  const startTime = Date.now()
-  logger.info(`Detecting project at: ${projectPath}`)
+  const startTime = Date.now();
+  logger.info(`Detecting project at: ${projectPath}`);
 
   // Ensure path is absolute
-  const absolutePath = path.resolve(projectPath)
+  const absolutePath = path.resolve(projectPath);
 
   if (!await pathExists(absolutePath)) {
-    throw new Error(`Project path does not exist: ${absolutePath}`)
+    throw new Error(`Project path does not exist: ${absolutePath}`);
   }
 
   // Scan files
-  const files = await scanProjectFiles(absolutePath, config)
-  logger.debug(`Scanned ${files.length} files`)
+  const files = await scanProjectFiles(absolutePath, config);
+  logger.debug(`Scanned ${files.length} files`);
 
   // Detect languages
-  const languages = await detectLanguages(absolutePath, files, config)
-  logger.debug(`Detected languages: ${languages.map(l => l.language).join(', ')}`)
+  const languages = await detectLanguages(absolutePath, files, config);
+  logger.debug(`Detected languages: ${languages.map(l => l.language).join(', ')}`);
 
   // Sort by confidence
-  languages.sort((a, b) => b.confidence - a.confidence)
+  languages.sort((a, b) => b.confidence - a.confidence);
 
   // Analyze based on primary language
-  const primaryLanguage = languages[0]
-  let frameworks: FrameworkDetectionResult[] = []
+  const primaryLanguage = languages[0];
+  let frameworks: FrameworkDetectionResult[] = [];
 
   if (primaryLanguage) {
     switch (primaryLanguage.language) {
       case 'typescript':
       case 'javascript':
-        frameworks = await analyzeTypeScriptProject(absolutePath, files, languages)
-        break
+        frameworks = await analyzeTypeScriptProject(absolutePath, files, languages);
+        break;
       case 'python':
-        frameworks = await analyzePythonProject(absolutePath, files, languages)
-        break
+        frameworks = await analyzePythonProject(absolutePath, files, languages);
+        break;
       case 'go':
-        frameworks = await analyzeGoProject(absolutePath, files, languages)
-        break
+        frameworks = await analyzeGoProject(absolutePath, files, languages);
+        break;
       case 'rust':
-        frameworks = await analyzeRustProject(absolutePath, files, languages)
-        break
+        frameworks = await analyzeRustProject(absolutePath, files, languages);
+        break;
       // Add more language-specific analyzers as needed
     }
   }
 
   // Detect package manager
-  const packageManager = detectPackageManager(files)
+  const packageManager = detectPackageManager(files);
 
   // Detect build system
-  const buildSystem = detectBuildSystem(files, frameworks)
+  const buildSystem = detectBuildSystem(files, frameworks);
 
   // Find important config files
-  const configFiles = detectConfigFiles(files)
+  const configFiles = detectConfigFiles(files);
 
   // Find important directories
-  const importantDirs = detectImportantDirs(absolutePath)
+  const importantDirs = detectImportantDirs(absolutePath);
 
   // Create analysis result
   const analysis: ProjectAnalysis = {
@@ -190,10 +190,10 @@ export async function detectProject(
       confidence: calculateOverallConfidence(languages, frameworks),
       version: '1.0.0',
     },
-  }
+  };
 
-  logger.info(`Detected project type: ${analysis.projectType}`)
-  return analysis
+  logger.info(`Detected project type: ${analysis.projectType}`);
+  return analysis;
 }
 
 /**
@@ -216,7 +216,7 @@ const ROOT_CONFIG_FILES = [
   'pubspec.yaml',
   'Package.swift',
   'pom.xml',
-]
+];
 
 /**
  * Scan project files with root config prioritization
@@ -226,20 +226,20 @@ async function scanProjectFiles(
   config: DetectorConfig,
 ): Promise<string[]> {
   // First, ensure root config files are included
-  const rootConfigFiles: string[] = []
+  const rootConfigFiles: string[] = [];
   for (const configFile of ROOT_CONFIG_FILES) {
-    const configPath = path.join(projectPath, configFile)
+    const configPath = path.join(projectPath, configFile);
     if (await pathExists(configPath)) {
-      rootConfigFiles.push(configFile)
-      logger.debug(`Found root config: ${configFile}`)
+      rootConfigFiles.push(configFile);
+      logger.debug(`Found root config: ${configFile}`);
     }
   }
 
-  const patterns = ['**/*']
-  const ignore = config.excludePatterns
+  const patterns = ['**/*'];
+  const ignore = config.excludePatterns;
 
   if (!config.includeNodeModules) {
-    ignore.push('node_modules/**')
+    ignore.push('node_modules/**');
   }
 
   // Scan all files
@@ -247,26 +247,26 @@ async function scanProjectFiles(
     cwd: projectPath,
     ignore,
     absolute: false,
-  })
+  });
 
   // Combine root configs with scanned files, removing duplicates
-  const fileSet = new Set([...rootConfigFiles, ...allFiles])
-  const files = Array.from(fileSet)
+  const fileSet = new Set([...rootConfigFiles, ...allFiles]);
+  const files = Array.from(fileSet);
 
   // Limit number of files if needed, but keep root configs
   if (files.length > config.maxFilesToScan) {
-    logger.warn(`Too many files (${files.length}), limiting to ${config.maxFilesToScan}`)
+    logger.warn(`Too many files (${files.length}), limiting to ${config.maxFilesToScan}`);
 
     // Separate root configs from other files
-    const rootConfigs = files.filter(f => ROOT_CONFIG_FILES.includes(f))
-    const otherFiles = files.filter(f => !ROOT_CONFIG_FILES.includes(f))
+    const rootConfigs = files.filter(f => ROOT_CONFIG_FILES.includes(f));
+    const otherFiles = files.filter(f => !ROOT_CONFIG_FILES.includes(f));
 
     // Keep all root configs and limit other files
-    const limitedOthers = otherFiles.slice(0, config.maxFilesToScan - rootConfigs.length)
-    return [...rootConfigs, ...limitedOthers]
+    const limitedOthers = otherFiles.slice(0, config.maxFilesToScan - rootConfigs.length);
+    return [...rootConfigs, ...limitedOthers];
   }
 
-  return files
+  return files;
 }
 
 /**
@@ -277,54 +277,54 @@ async function detectLanguages(
   files: string[],
   config: DetectorConfig,
 ): Promise<LanguageDetection[]> {
-  const languageCounts = new Map<string, number>()
-  const languageIndicators = new Map<string, Set<string>>()
+  const languageCounts = new Map<string, number>();
+  const languageIndicators = new Map<string, Set<string>>();
 
   // Count files by extension and check indicators
   for (const file of files) {
-    const ext = path.extname(file).toLowerCase()
+    const ext = path.extname(file).toLowerCase();
 
     for (const [language, patterns] of Object.entries(LANGUAGE_PATTERNS)) {
-      const extensions = patterns.extensions as readonly string[]
+      const extensions = patterns.extensions as readonly string[];
       if (extensions.includes(ext)) {
-        languageCounts.set(language, (languageCounts.get(language) || 0) + 1)
+        languageCounts.set(language, (languageCounts.get(language) || 0) + 1);
       }
     }
   }
 
   // Check for language-specific files and indicators
-  const fileSet = new Set(files)
+  const fileSet = new Set(files);
 
   for (const [language, patterns] of Object.entries(LANGUAGE_PATTERNS)) {
-    const indicators: string[] = []
+    const indicators: string[] = [];
 
     // Check for specific files
     for (const file of patterns.files) {
       if (fileSet.has(file) || fileSet.has(file.toLowerCase())) {
-        indicators.push(`Found ${file}`)
-        languageCounts.set(language, (languageCounts.get(language) || 0) + 10) // Higher weight for config files
+        indicators.push(`Found ${file}`);
+        languageCounts.set(language, (languageCounts.get(language) || 0) + 10); // Higher weight for config files
       }
     }
 
     // Check for indicators
     for (const indicator of patterns.indicators) {
       if (fileSet.has(indicator) || await pathExists(path.join(projectPath, indicator))) {
-        indicators.push(`Found ${indicator}`)
-        languageCounts.set(language, (languageCounts.get(language) || 0) + 5)
+        indicators.push(`Found ${indicator}`);
+        languageCounts.set(language, (languageCounts.get(language) || 0) + 5);
       }
     }
 
     if (indicators.length > 0) {
-      languageIndicators.set(language, new Set(indicators))
+      languageIndicators.set(language, new Set(indicators));
     }
   }
 
   // Calculate confidence scores
-  const totalFiles = files.length
-  const languages: LanguageDetection[] = []
+  const totalFiles = files.length;
+  const languages: LanguageDetection[] = [];
 
   for (const [language, count] of Array.from(languageCounts.entries())) {
-    const confidence = Math.min(count / totalFiles, 1)
+    const confidence = Math.min(count / totalFiles, 1);
 
     if (confidence >= config.minConfidence) {
       languages.push({
@@ -332,11 +332,11 @@ async function detectLanguages(
         confidence,
         fileCount: count,
         indicators: Array.from(languageIndicators.get(language) || []),
-      })
+      });
     }
   }
 
-  return languages
+  return languages;
 }
 
 /**
@@ -355,15 +355,15 @@ function detectPackageManager(files: string[]): PackageManager | undefined {
     'Cargo.toml': 'cargo',
     'pom.xml': 'maven',
     'build.gradle': 'gradle',
-  }
+  };
 
   for (const [file, manager] of Object.entries(managers)) {
     if (files.includes(file)) {
-      return manager
+      return manager;
     }
   }
 
-  return undefined
+  return undefined;
 }
 
 /**
@@ -373,13 +373,13 @@ function detectBuildSystem(files: string[], frameworks: FrameworkDetectionResult
   // Check for framework-specific build systems first
   for (const framework of frameworks) {
     if (framework.name.includes('next'))
-      return 'next'
+      return 'next';
     if (framework.name.includes('nuxt'))
-      return 'nuxt'
+      return 'nuxt';
     if (framework.name.includes('sveltekit'))
-      return 'svelte'
+      return 'svelte';
     if (framework.name.includes('astro'))
-      return 'unknown'
+      return 'unknown';
   }
 
   // Check for build config files
@@ -398,15 +398,15 @@ function detectBuildSystem(files: string[], frameworks: FrameworkDetectionResult
     'Makefile': 'make',
     'CMakeLists.txt': 'cmake',
     'BUILD': 'bazel',
-  }
+  };
 
   for (const [file, system] of Object.entries(buildFiles)) {
     if (files.includes(file)) {
-      return system
+      return system;
     }
   }
 
-  return undefined
+  return undefined;
 }
 
 /**
@@ -439,9 +439,9 @@ function detectConfigFiles(files: string[]): string[] {
     'readme.md',
     'README.rst',
     'readme.rst',
-  ]
+  ];
 
-  return files.filter(file => configPatterns.includes(file))
+  return files.filter(file => configPatterns.includes(file));
 }
 
 /**
@@ -484,17 +484,17 @@ function detectImportantDirs(projectPath: string): string[] {
     '.github',
     '.vscode',
     '.idea',
-  ]
+  ];
 
-  const foundDirs: string[] = []
+  const foundDirs: string[] = [];
 
   for (const dir of importantDirs) {
     if (existsSync(path.join(projectPath, dir))) {
-      foundDirs.push(dir)
+      foundDirs.push(dir);
     }
   }
 
-  return foundDirs
+  return foundDirs;
 }
 
 /**
@@ -505,23 +505,23 @@ function determineProjectType(
   frameworks: FrameworkDetectionResult[],
 ): string {
   if (languages.length === 0) {
-    return 'unknown'
+    return 'unknown';
   }
 
   // Sort frameworks by priority
   const sortedFrameworks = [...frameworks].sort((a, b) => {
-    const priorityA = FRAMEWORK_PRIORITY[a.name.toLowerCase()] || 0
-    const priorityB = FRAMEWORK_PRIORITY[b.name.toLowerCase()] || 0
-    return priorityB - priorityA
-  })
+    const priorityA = FRAMEWORK_PRIORITY[a.name.toLowerCase()] || 0;
+    const priorityB = FRAMEWORK_PRIORITY[b.name.toLowerCase()] || 0;
+    return priorityB - priorityA;
+  });
 
   // If we have high-confidence frameworks, use them
   if (sortedFrameworks.length > 0 && sortedFrameworks[0].confidence > 0.7) {
-    return sortedFrameworks[0].name
+    return sortedFrameworks[0].name;
   }
 
   // Otherwise, use primary language
-  return languages[0].language
+  return languages[0].language;
 }
 
 /**
@@ -532,19 +532,19 @@ function calculateOverallConfidence(
   frameworks: FrameworkDetectionResult[],
 ): number {
   if (languages.length === 0)
-    return 0
+    return 0;
 
   // Weight language confidence heavily
-  const langConfidence = languages.reduce((sum, lang) => sum + lang.confidence, 0) / languages.length
+  const langConfidence = languages.reduce((sum, lang) => sum + lang.confidence, 0) / languages.length;
 
   // Add framework confidence if available
-  let frameworkConfidence = 0
+  let frameworkConfidence = 0;
   if (frameworks.length > 0) {
-    frameworkConfidence = frameworks.reduce((sum, fw) => sum + fw.confidence, 0) / frameworks.length
+    frameworkConfidence = frameworks.reduce((sum, fw) => sum + fw.confidence, 0) / frameworks.length;
   }
 
   // Combine with language having more weight
   return frameworkConfidence > 0
     ? (langConfidence * 0.7 + frameworkConfidence * 0.3)
-    : langConfidence
+    : langConfidence;
 }

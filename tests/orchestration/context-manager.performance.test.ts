@@ -3,12 +3,12 @@
  * Validates compression effectiveness and speed
  */
 
-import type { Message } from '../../src/types/orchestration'
-import { describe, expect, it } from 'vitest'
-import { OrchestrationContextManager } from '../../src/orchestration/context-manager'
+import type { Message } from '../../src/types/orchestration';
+import { describe, expect, it } from 'vitest';
+import { OrchestrationContextManager } from '../../src/orchestration/context-manager';
 
 describe('context Manager Performance Tests', () => {
-  const manager = new OrchestrationContextManager()
+  const manager = new OrchestrationContextManager();
 
   describe('compression Effectiveness', () => {
     it('should achieve 94%+ compression for 100 messages', async () => {
@@ -17,19 +17,19 @@ describe('context Manager Performance Tests', () => {
         role: i % 2 === 0 ? 'user' : 'assistant',
         content: `Message ${i}: This is a detailed technical discussion about implementing features, debugging errors, and making architectural decisions. The conversation includes code examples, API discussions, and problem-solving strategies. ${'word '.repeat(20)}`,
         timestamp: Date.now() - (100 - i) * 1000,
-      }))
+      }));
 
-      const result = await manager.compress(messages, { strategy: 'aggressive' })
+      const result = await manager.compress(messages, { strategy: 'aggressive' });
 
-      console.log(`\nPerformance Test - 100 Messages:`)
-      console.log(`  Original tokens: ${result.metadata.originalTokens}`)
-      console.log(`  Compressed tokens: ${result.metadata.compressedTokens}`)
-      console.log(`  Compression ratio: ${(result.metadata.compressionRatio * 100).toFixed(2)}%`)
-      console.log(`  Target: 94%+`)
-      console.log(`  Status: ${result.metadata.compressionRatio >= 0.94 ? '✓ PASS' : '✗ FAIL'}`)
+      console.log(`\nPerformance Test - 100 Messages:`);
+      console.log(`  Original tokens: ${result.metadata.originalTokens}`);
+      console.log(`  Compressed tokens: ${result.metadata.compressedTokens}`);
+      console.log(`  Compression ratio: ${(result.metadata.compressionRatio * 100).toFixed(2)}%`);
+      console.log(`  Target: 94%+`);
+      console.log(`  Status: ${result.metadata.compressionRatio >= 0.94 ? '✓ PASS' : '✗ FAIL'}`);
 
-      expect(result.metadata.compressionRatio).toBeGreaterThanOrEqual(0.94)
-    })
+      expect(result.metadata.compressionRatio).toBeGreaterThanOrEqual(0.94);
+    });
 
     it('should process 100 messages in < 2s', async () => {
       const messages: Message[] = Array.from({ length: 100 }, (_, i) => ({
@@ -37,24 +37,24 @@ describe('context Manager Performance Tests', () => {
         role: 'user',
         content: `Message ${i}: ${'x'.repeat(200)}`,
         timestamp: Date.now() + i,
-      }))
+      }));
 
-      const startTime = Date.now()
-      await manager.compress(messages)
-      const duration = Date.now() - startTime
+      const startTime = Date.now();
+      await manager.compress(messages);
+      const duration = Date.now() - startTime;
 
-      console.log(`\nSpeed Test - 100 Messages:`)
-      console.log(`  Processing time: ${duration}ms`)
-      console.log(`  Target: < 2000ms`)
-      console.log(`  Status: ${duration < 2000 ? '✓ PASS' : '✗ FAIL'}`)
+      console.log(`\nSpeed Test - 100 Messages:`);
+      console.log(`  Processing time: ${duration}ms`);
+      console.log(`  Target: < 2000ms`);
+      console.log(`  Status: ${duration < 2000 ? '✓ PASS' : '✗ FAIL'}`);
 
-      expect(duration).toBeLessThan(2000)
-    })
+      expect(duration).toBeLessThan(2000);
+    });
 
     it('should demonstrate scalability from 10 to 1000 messages', async () => {
-      const sizes = [10, 50, 100, 500, 1000]
+      const sizes = [10, 50, 100, 500, 1000];
 
-      console.log('\nScalability Test:')
+      console.log('\nScalability Test:');
 
       for (const size of sizes) {
         const messages: Message[] = Array.from({ length: size }, (_, i) => ({
@@ -62,21 +62,21 @@ describe('context Manager Performance Tests', () => {
           role: i % 2 === 0 ? 'user' : 'assistant',
           content: `Message ${i}: ${'content '.repeat(10)}`,
           timestamp: Date.now() + i,
-        }))
+        }));
 
-        const startTime = Date.now()
-        const result = await manager.compress(messages)
-        const duration = Date.now() - startTime
+        const startTime = Date.now();
+        const result = await manager.compress(messages);
+        const duration = Date.now() - startTime;
 
-        console.log(`  ${size} messages:`)
-        console.log(`    Time: ${duration}ms`)
-        console.log(`    Ratio: ${(result.metadata.compressionRatio * 100).toFixed(2)}%`)
-        console.log(`    Throughput: ${(size / (duration / 1000)).toFixed(0)} msg/s`)
+        console.log(`  ${size} messages:`);
+        console.log(`    Time: ${duration}ms`);
+        console.log(`    Ratio: ${(result.metadata.compressionRatio * 100).toFixed(2)}%`);
+        console.log(`    Throughput: ${(size / (duration / 1000)).toFixed(0)} msg/s`);
 
-        expect(duration).toBeLessThan(5000) // All should complete in < 5s
+        expect(duration).toBeLessThan(5000); // All should complete in < 5s
       }
-    })
-  })
+    });
+  });
 
   describe('compression Quality', () => {
     it('should preserve critical information (decisions, errors, solutions)', async () => {
@@ -86,42 +86,42 @@ describe('context Manager Performance Tests', () => {
         { id: '3', role: 'user', content: 'Error: Cannot find module @types/node', timestamp: Date.now() },
         { id: '4', role: 'assistant', content: 'Solution: Run npm install --save-dev @types/node', timestamp: Date.now() },
         { id: '5', role: 'user', content: 'Great, that fixed it!', timestamp: Date.now() },
-      ]
+      ];
 
       const result = await manager.compress(messages, {
         preserveDecisions: true,
         preserveCode: true,
-      })
+      });
 
-      console.log('\nQuality Test - Information Preservation:')
-      console.log(`  Decisions extracted: ${result.decisions.length}`)
-      console.log(`  Key points extracted: ${result.keyPoints.length}`)
-      console.log(`  Summary: ${result.summary}`)
+      console.log('\nQuality Test - Information Preservation:');
+      console.log(`  Decisions extracted: ${result.decisions.length}`);
+      console.log(`  Key points extracted: ${result.keyPoints.length}`);
+      console.log(`  Summary: ${result.summary}`);
 
-      expect(result.keyPoints.length).toBeGreaterThan(0)
-      expect(result.summary.length).toBeGreaterThan(0)
-    })
+      expect(result.keyPoints.length).toBeGreaterThan(0);
+      expect(result.summary.length).toBeGreaterThan(0);
+    });
 
     it('should deduplicate code snippets effectively', async () => {
-      const code = '```typescript\nconst x = 1\n```'
+      const code = '```typescript\nconst x = 1\n```';
       const messages: Message[] = [
         { id: '1', role: 'assistant', content: code, timestamp: Date.now() },
         { id: '2', role: 'assistant', content: code, timestamp: Date.now() },
         { id: '3', role: 'assistant', content: code, timestamp: Date.now() },
         { id: '4', role: 'assistant', content: code, timestamp: Date.now() },
         { id: '5', role: 'assistant', content: code, timestamp: Date.now() },
-      ]
+      ];
 
-      const result = await manager.compress(messages, { preserveCode: true })
+      const result = await manager.compress(messages, { preserveCode: true });
 
-      console.log('\nDeduplication Test:')
-      console.log(`  Original code blocks: 5`)
-      console.log(`  After deduplication: ${result.codeSnippets.length}`)
-      console.log(`  Reduction: ${((5 - result.codeSnippets.length) / 5 * 100).toFixed(0)}%`)
+      console.log('\nDeduplication Test:');
+      console.log(`  Original code blocks: 5`);
+      console.log(`  After deduplication: ${result.codeSnippets.length}`);
+      console.log(`  Reduction: ${((5 - result.codeSnippets.length) / 5 * 100).toFixed(0)}%`);
 
-      expect(result.codeSnippets.length).toBe(1)
-    })
-  })
+      expect(result.codeSnippets.length).toBe(1);
+    });
+  });
 
   describe('memory Efficiency', () => {
     it('should maintain low memory footprint', async () => {
@@ -130,22 +130,22 @@ describe('context Manager Performance Tests', () => {
         role: 'user',
         content: `Message ${i}: ${'data '.repeat(50)}`,
         timestamp: Date.now() + i,
-      }))
+      }));
 
-      const before = process.memoryUsage().heapUsed
-      await manager.compress(messages)
-      const after = process.memoryUsage().heapUsed
+      const before = process.memoryUsage().heapUsed;
+      await manager.compress(messages);
+      const after = process.memoryUsage().heapUsed;
 
-      const memoryUsed = (after - before) / 1024 / 1024 // Convert to MB
+      const memoryUsed = (after - before) / 1024 / 1024; // Convert to MB
 
-      console.log('\nMemory Efficiency Test - 1000 Messages:')
-      console.log(`  Memory used: ${memoryUsed.toFixed(2)} MB`)
-      console.log(`  Target: < 50 MB`)
-      console.log(`  Status: ${memoryUsed < 50 ? '✓ PASS' : '✗ FAIL'}`)
+      console.log('\nMemory Efficiency Test - 1000 Messages:');
+      console.log(`  Memory used: ${memoryUsed.toFixed(2)} MB`);
+      console.log(`  Target: < 50 MB`);
+      console.log(`  Status: ${memoryUsed < 50 ? '✓ PASS' : '✗ FAIL'}`);
 
-      expect(memoryUsed).toBeLessThan(50)
-    })
-  })
+      expect(memoryUsed).toBeLessThan(50);
+    });
+  });
 
   describe('real-World Scenarios', () => {
     it('should handle typical AI coding session', async () => {
@@ -185,28 +185,28 @@ describe('context Manager Performance Tests', () => {
           content: `Additional discussion point ${i}: Exploring various implementation details and considerations`,
           timestamp: Date.now() - (50 - i) * 10000,
         })),
-      ]
+      ];
 
       const result = await manager.compress(messages, {
         strategy: 'balanced',
         preserveCode: true,
         preserveDecisions: true,
-      })
+      });
 
-      console.log('\nReal-World Scenario - AI Coding Session:')
-      console.log(`  Total messages: ${result.originalMessageCount}`)
-      console.log(`  Session duration: ~1 hour`)
-      console.log(`  Original tokens: ${result.metadata.originalTokens}`)
-      console.log(`  Compressed tokens: ${result.metadata.compressedTokens}`)
-      console.log(`  Compression: ${(result.metadata.compressionRatio * 100).toFixed(2)}%`)
-      console.log(`  Processing time: ${result.metadata.compressionTime}ms`)
-      console.log(`  Key decisions extracted: ${result.decisions.length}`)
-      console.log(`  Code snippets: ${result.codeSnippets.length}`)
-      console.log(`  Key points: ${result.keyPoints.length}`)
+      console.log('\nReal-World Scenario - AI Coding Session:');
+      console.log(`  Total messages: ${result.originalMessageCount}`);
+      console.log(`  Session duration: ~1 hour`);
+      console.log(`  Original tokens: ${result.metadata.originalTokens}`);
+      console.log(`  Compressed tokens: ${result.metadata.compressedTokens}`);
+      console.log(`  Compression: ${(result.metadata.compressionRatio * 100).toFixed(2)}%`);
+      console.log(`  Processing time: ${result.metadata.compressionTime}ms`);
+      console.log(`  Key decisions extracted: ${result.decisions.length}`);
+      console.log(`  Code snippets: ${result.codeSnippets.length}`);
+      console.log(`  Key points: ${result.keyPoints.length}`);
 
-      expect(result.metadata.compressionRatio).toBeGreaterThanOrEqual(0.85)
-      expect(result.metadata.compressionTime).toBeLessThan(1000)
-      expect(result.decisions.length).toBeGreaterThan(0)
-    })
-  })
-})
+      expect(result.metadata.compressionRatio).toBeGreaterThanOrEqual(0.85);
+      expect(result.metadata.compressionTime).toBeLessThan(1000);
+      expect(result.decisions.length).toBeGreaterThan(0);
+    });
+  });
+});

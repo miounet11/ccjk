@@ -5,4 +5,4 @@
  * setup, migration, and update workflows.
  */
 
-export * from './setup-orchestrator'
+export * from './setup-orchestrator';

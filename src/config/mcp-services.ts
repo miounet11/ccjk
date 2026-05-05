@@ -1,11 +1,11 @@
-import type { McpAutoThreshold, McpServerConfig, McpService } from '../types'
-import { execSync } from 'node:child_process'
-import process from 'node:process'
+import type { McpAutoThreshold, McpServerConfig, McpService } from '../types';
+import { execSync } from 'node:child_process';
+import process from 'node:process';
 
-import { ensureI18nInitialized, i18n } from '../i18n'
+import { ensureI18nInitialized, i18n } from '../i18n';
 
 /** Supported platform types for MCP services */
-export type McpPlatform = 'windows' | 'macos' | 'linux' | 'wsl' | 'termux'
+export type McpPlatform = 'windows' | 'macos' | 'linux' | 'wsl' | 'termux';
 
 /**
  * MCP Tool Search configuration for Claude Code CLI 2.1.7+
@@ -21,28 +21,28 @@ export interface McpToolSearchConfig {
    * - 'never': Defer all tools until requested (100% threshold)
    * @default 10 (per Claude Code 2.1.7 spec)
    */
-  mcpAutoEnableThreshold?: McpAutoThreshold
+  mcpAutoEnableThreshold?: McpAutoThreshold;
 
   /**
    * Enable dynamic service discovery
    * Allows runtime addition/removal of MCP services without restart
    * @default true
    */
-  dynamicServiceDiscovery?: boolean
+  dynamicServiceDiscovery?: boolean;
 
   /**
    * Enable list_changed notifications
    * When enabled, Claude receives notifications when available tools change
    * @default true
    */
-  listChangedNotifications?: boolean
+  listChangedNotifications?: boolean;
 
   /**
    * Services excluded from auto-mode (always loaded immediately)
    * Core services like 'mcp-search', 'context7' are always excluded
    * @default ['mcp-search', 'context7']
    */
-  excludedServices?: string[]
+  excludedServices?: string[];
 }
 
 /**
@@ -51,38 +51,38 @@ export interface McpToolSearchConfig {
  */
 export interface McpListChangedNotification {
   /** Type of change */
-  type: 'added' | 'removed' | 'updated'
+  type: 'added' | 'removed' | 'updated';
 
   /** Service ID that changed */
-  serviceId: string
+  serviceId: string;
 
   /** Timestamp of change */
-  timestamp: number
+  timestamp: number;
 
   /** New service configuration (for added/updated) */
-  config?: McpServerConfig
+  config?: McpServerConfig;
 }
 
 /** Platform compatibility requirements for MCP services */
 export interface McpPlatformRequirements {
   /** List of supported platforms. If undefined, all platforms are supported */
-  platforms?: McpPlatform[]
+  platforms?: McpPlatform[];
   /** Whether the service requires a GUI environment (e.g., browser automation) */
-  requiresGui?: boolean
+  requiresGui?: boolean;
   /** Required system commands that must be available */
-  requiredCommands?: string[]
+  requiredCommands?: string[];
 }
 
 // Pure business configuration without any i18n text
 export interface McpServiceConfig {
-  id: string
-  requiresApiKey: boolean
-  apiKeyEnvVar?: string
+  id: string;
+  requiresApiKey: boolean;
+  apiKeyEnvVar?: string;
   /** Pre-select this service during init (default: false) */
-  defaultSelected?: boolean
-  config: McpServerConfig
+  defaultSelected?: boolean;
+  config: McpServerConfig;
   /** Platform compatibility requirements. If undefined, service works on all platforms */
-  platformRequirements?: McpPlatformRequirements
+  platformRequirements?: McpPlatformRequirements;
 }
 
 export const MCP_SERVICE_CONFIGS: McpServiceConfig[] = [
@@ -179,13 +179,13 @@ export const MCP_SERVICE_CONFIGS: McpServiceConfig[] = [
       env: {},
     },
   },
-]
+];
 
 /**
  * Get complete MCP service list with translations
  */
 export async function getMcpServices(): Promise<McpService[]> {
-  ensureI18nInitialized()
+  ensureI18nInitialized();
 
   const mcpServiceList = [
     {
@@ -228,52 +228,52 @@ export async function getMcpServices(): Promise<McpService[]> {
       name: i18n.t('mcp:services.sqlite.name'),
       description: i18n.t('mcp:services.sqlite.description'),
     },
-  ]
+  ];
 
   return MCP_SERVICE_CONFIGS.map((config) => {
-    const serviceInfo = mcpServiceList.find(s => s.id === config.id)
+    const serviceInfo = mcpServiceList.find(s => s.id === config.id);
     const service: McpService = {
       id: config.id,
       name: serviceInfo?.name || config.id,
       description: serviceInfo?.description || '',
       requiresApiKey: config.requiresApiKey,
       config: config.config,
-    }
+    };
 
     if (config.apiKeyEnvVar) {
-      service.apiKeyEnvVar = config.apiKeyEnvVar
+      service.apiKeyEnvVar = config.apiKeyEnvVar;
     }
 
-    return service
-  })
+    return service;
+  });
 }
 
 /**
  * Get specified MCP service by ID
  */
 export async function getMcpService(id: string): Promise<McpService | undefined> {
-  const services = await getMcpServices()
-  return services.find(service => service.id === id)
+  const services = await getMcpServices();
+  return services.find(service => service.id === id);
 }
 
 /**
  * Platform detection utilities for MCP service compatibility
  * Note: Uses McpPlatform type defined above, with 'unknown' for unrecognized platforms
  */
-export type Platform = McpPlatform | 'unknown'
+export type Platform = McpPlatform | 'unknown';
 
 /**
  * Detect current platform with detailed environment info
  */
-export function detectPlatform(): { platform: Platform, hasGui: boolean, isHeadless: boolean } {
-  const platform = process.platform
-  const env = process.env
+export function detectPlatform(): { platform: Platform; hasGui: boolean; isHeadless: boolean } {
+  const platform = process.platform;
+  const env = process.env;
 
   // Check for WSL (Windows Subsystem for Linux)
-  const isWsl = !!(env.WSL_DISTRO_NAME || env.WSLENV || (env.PATH && env.PATH.includes('/mnt/c/')))
+  const isWsl = !!(env.WSL_DISTRO_NAME || env.WSLENV || (env.PATH && env.PATH.includes('/mnt/c/')));
 
   // Check for Termux (Android terminal)
-  const isTermux = !!(env.TERMUX_VERSION || env.PREFIX?.includes('com.termux'))
+  const isTermux = !!(env.TERMUX_VERSION || env.PREFIX?.includes('com.termux'));
 
   // Check for headless/SSH environment
   const isHeadless = !!(
@@ -281,47 +281,47 @@ export function detectPlatform(): { platform: Platform, hasGui: boolean, isHeadl
     || env.SSH_TTY
     || env.SSH_CONNECTION
     || (!env.DISPLAY && platform === 'linux')
-  )
+  );
 
   // Determine if GUI is available
   const hasGui = (() => {
     if (platform === 'darwin')
-      return true // macOS always has GUI
+      return true; // macOS always has GUI
     if (platform === 'win32')
-      return !isHeadless // Windows has GUI unless SSH
+      return !isHeadless; // Windows has GUI unless SSH
     if (isWsl || isTermux)
-      return false // WSL/Termux typically no GUI
+      return false; // WSL/Termux typically no GUI
     if (platform === 'linux')
-      return !!env.DISPLAY || !!env.WAYLAND_DISPLAY // Linux needs X11/Wayland
-    return false
-  })()
+      return !!env.DISPLAY || !!env.WAYLAND_DISPLAY; // Linux needs X11/Wayland
+    return false;
+  })();
 
   // Determine platform type
-  let detectedPlatform: Platform
+  let detectedPlatform: Platform;
   if (platform === 'darwin') {
-    detectedPlatform = 'macos'
+    detectedPlatform = 'macos';
   }
   else if (platform === 'win32') {
-    detectedPlatform = 'windows'
+    detectedPlatform = 'windows';
   }
   else if (isWsl) {
-    detectedPlatform = 'wsl'
+    detectedPlatform = 'wsl';
   }
   else if (isTermux) {
-    detectedPlatform = 'termux'
+    detectedPlatform = 'termux';
   }
   else if (platform === 'linux') {
-    detectedPlatform = 'linux'
+    detectedPlatform = 'linux';
   }
   else {
-    detectedPlatform = 'unknown'
+    detectedPlatform = 'unknown';
   }
 
   return {
     platform: detectedPlatform,
     hasGui,
     isHeadless,
-  }
+  };
 }
 
 /**
@@ -329,29 +329,29 @@ export function detectPlatform(): { platform: Platform, hasGui: boolean, isHeadl
  */
 export function isCommandAvailable(command: string): boolean {
   try {
-    execSync(`which ${command}`, { stdio: 'ignore' })
-    return true
+    execSync(`which ${command}`, { stdio: 'ignore' });
+    return true;
   }
   catch {
-    return false
+    return false;
   }
 }
 
 /**
  * Check if an MCP service is compatible with current platform
  */
-export function isMcpServiceCompatible(serviceId: string): { compatible: boolean, reason?: string } {
-  const config = MCP_SERVICE_CONFIGS.find(c => c.id === serviceId)
+export function isMcpServiceCompatible(serviceId: string): { compatible: boolean; reason?: string } {
+  const config = MCP_SERVICE_CONFIGS.find(c => c.id === serviceId);
   if (!config) {
-    return { compatible: false, reason: 'Service not found' }
+    return { compatible: false, reason: 'Service not found' };
   }
 
-  const requirements = config.platformRequirements
+  const requirements = config.platformRequirements;
   if (!requirements) {
-    return { compatible: true } // No requirements = universal
+    return { compatible: true }; // No requirements = universal
   }
 
-  const { platform, hasGui } = detectPlatform()
+  const { platform, hasGui } = detectPlatform();
 
   // Check platform restriction
   if (requirements.platforms && requirements.platforms.length > 0) {
@@ -360,7 +360,7 @@ export function isMcpServiceCompatible(serviceId: string): { compatible: boolean
       return {
         compatible: false,
         reason: `Not supported on ${platform}. Requires: ${requirements.platforms.join(', ')}`,
-      }
+      };
     }
   }
 
@@ -369,7 +369,7 @@ export function isMcpServiceCompatible(serviceId: string): { compatible: boolean
     return {
       compatible: false,
       reason: 'Requires GUI environment (X11/Wayland/Desktop)',
-    }
+    };
   }
 
   // Check required commands
@@ -379,38 +379,38 @@ export function isMcpServiceCompatible(serviceId: string): { compatible: boolean
         return {
           compatible: false,
           reason: `Required command not found: ${cmd}`,
-        }
+        };
       }
     }
   }
 
-  return { compatible: true }
+  return { compatible: true };
 }
 
 /**
  * Get only platform-compatible MCP services
  */
 export async function getCompatibleMcpServices(): Promise<McpService[]> {
-  const allServices = await getMcpServices()
+  const allServices = await getMcpServices();
   return allServices.filter((service) => {
-    const { compatible } = isMcpServiceCompatible(service.id)
-    return compatible
-  })
+    const { compatible } = isMcpServiceCompatible(service.id);
+    return compatible;
+  });
 }
 
 /**
  * Get MCP services with compatibility info
  */
-export async function getMcpServicesWithCompatibility(): Promise<Array<McpService & { compatible: boolean, incompatibleReason?: string }>> {
-  const allServices = await getMcpServices()
+export async function getMcpServicesWithCompatibility(): Promise<Array<McpService & { compatible: boolean; incompatibleReason?: string }>> {
+  const allServices = await getMcpServices();
   return allServices.map((service) => {
-    const { compatible, reason } = isMcpServiceCompatible(service.id)
+    const { compatible, reason } = isMcpServiceCompatible(service.id);
     return {
       ...service,
       compatible,
       incompatibleReason: reason,
-    }
-  })
+    };
+  });
 }
 
 // ============================================================================
@@ -425,7 +425,7 @@ export const DEFAULT_MCP_TOOL_SEARCH_CONFIG: Required<McpToolSearchConfig> = {
   dynamicServiceDiscovery: true,
   listChangedNotifications: true,
   excludedServices: ['mcp-search', 'context7'],
-}
+};
 
 /**
  * Get MCP tool search configuration
@@ -439,14 +439,14 @@ export const DEFAULT_MCP_TOOL_SEARCH_CONFIG: Required<McpToolSearchConfig> = {
  * @returns Current MCP tool search configuration
  */
 export function getMcpToolSearchConfig(): Required<McpToolSearchConfig> {
-  const env = process.env
+  const env = process.env;
 
   return {
     mcpAutoEnableThreshold: env.MCP_AUTO_THRESHOLD as McpAutoThreshold || DEFAULT_MCP_TOOL_SEARCH_CONFIG.mcpAutoEnableThreshold,
     dynamicServiceDiscovery: env.MCP_DYNAMIC_DISCOVERY !== 'false',
     listChangedNotifications: env.MCP_LIST_CHANGED !== 'false',
     excludedServices: env.MCP_EXCLUDED_SERVICES?.split(',').map(s => s.trim()).filter(Boolean) || DEFAULT_MCP_TOOL_SEARCH_CONFIG.excludedServices,
-  }
+  };
 }
 
 /**
@@ -457,8 +457,8 @@ export function getMcpToolSearchConfig(): Required<McpToolSearchConfig> {
  * @returns True if service should always load immediately
  */
 export function isServiceExcludedFromAutoMode(serviceId: string, config?: McpToolSearchConfig): boolean {
-  const toolSearchConfig = config || getMcpToolSearchConfig()
-  return toolSearchConfig.excludedServices?.includes(serviceId) || DEFAULT_MCP_TOOL_SEARCH_CONFIG.excludedServices.includes(serviceId)
+  const toolSearchConfig = config || getMcpToolSearchConfig();
+  return toolSearchConfig.excludedServices?.includes(serviceId) || DEFAULT_MCP_TOOL_SEARCH_CONFIG.excludedServices.includes(serviceId);
 }
 
 /**
@@ -479,7 +479,7 @@ export function createListChangedNotification(
     serviceId,
     timestamp: Date.now(),
     config,
-  }
+  };
 }
 
 /**
@@ -487,29 +487,29 @@ export function createListChangedNotification(
  * Allows adding/removing MCP services without restart
  */
 class DynamicMcpServiceRegistry {
-  private _services: Map<string, McpServerConfig> = new Map()
-  private _listeners: Set<(notification: McpListChangedNotification) => void> = new Set()
-  private _enabled: boolean = false
+  private _services: Map<string, McpServerConfig> = new Map();
+  private _listeners: Set<(notification: McpListChangedNotification) => void> = new Set();
+  private _enabled: boolean = false;
 
   /**
    * Enable dynamic service discovery
    */
   enable(): void {
-    this._enabled = true
+    this._enabled = true;
   }
 
   /**
    * Disable dynamic service discovery
    */
   disable(): void {
-    this._enabled = false
+    this._enabled = false;
   }
 
   /**
    * Check if dynamic discovery is enabled
    */
   isEnabled(): boolean {
-    return this._enabled
+    return this._enabled;
   }
 
   /**
@@ -517,20 +517,20 @@ class DynamicMcpServiceRegistry {
    */
   addService(serviceId: string, config: McpServerConfig): boolean {
     if (!this._enabled) {
-      return false
+      return false;
     }
 
-    const isUpdate = this._services.has(serviceId)
-    this._services.set(serviceId, config)
+    const isUpdate = this._services.has(serviceId);
+    this._services.set(serviceId, config);
 
     this._notify({
       type: isUpdate ? 'updated' : 'added',
       serviceId,
       timestamp: Date.now(),
       config,
-    })
+    });
 
-    return true
+    return true;
   }
 
   /**
@@ -538,57 +538,57 @@ class DynamicMcpServiceRegistry {
    */
   removeService(serviceId: string): boolean {
     if (!this._enabled || !this._services.has(serviceId)) {
-      return false
+      return false;
     }
 
-    const config = this._services.get(serviceId)
-    this._services.delete(serviceId)
+    const config = this._services.get(serviceId);
+    this._services.delete(serviceId);
 
     this._notify({
       type: 'removed',
       serviceId,
       timestamp: Date.now(),
       config,
-    })
+    });
 
-    return true
+    return true;
   }
 
   /**
    * Get a service configuration
    */
   getService(serviceId: string): McpServerConfig | undefined {
-    return this._services.get(serviceId)
+    return this._services.get(serviceId);
   }
 
   /**
    * List all dynamically registered services
    */
   listServices(): Map<string, McpServerConfig> {
-    return new Map(this._services)
+    return new Map(this._services);
   }
 
   /**
    * Subscribe to list change notifications
    */
   subscribe(listener: (notification: McpListChangedNotification) => void): () => void {
-    this._listeners.add(listener)
-    return () => this._listeners.delete(listener)
+    this._listeners.add(listener);
+    return () => this._listeners.delete(listener);
   }
 
   /**
    * Notify all listeners of a change
    */
   private _notify(notification: McpListChangedNotification): void {
-    const toolSearchConfig = getMcpToolSearchConfig()
+    const toolSearchConfig = getMcpToolSearchConfig();
 
     if (toolSearchConfig.listChangedNotifications) {
       for (const listener of Array.from(this._listeners)) {
         try {
-          listener(notification)
+          listener(notification);
         }
         catch (error) {
-          console.error('Error notifying MCP list change listener:', error)
+          console.error('Error notifying MCP list change listener:', error);
         }
       }
     }
@@ -598,19 +598,19 @@ class DynamicMcpServiceRegistry {
 /**
  * Global dynamic MCP service registry instance
  */
-export const dynamicMcpRegistry = new DynamicMcpServiceRegistry()
+export const dynamicMcpRegistry = new DynamicMcpServiceRegistry();
 
 /**
  * Initialize dynamic service discovery based on configuration
  * Called during CCJK initialization to enable/disable the feature
  */
 export function initializeDynamicServiceDiscovery(): void {
-  const config = getMcpToolSearchConfig()
+  const config = getMcpToolSearchConfig();
 
   if (config.dynamicServiceDiscovery) {
-    dynamicMcpRegistry.enable()
+    dynamicMcpRegistry.enable();
   }
   else {
-    dynamicMcpRegistry.disable()
+    dynamicMcpRegistry.disable();
   }
 }

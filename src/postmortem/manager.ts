@@ -12,12 +12,12 @@ import type {
   PostmortemReport,
   PostmortemSeverity,
   ReleaseSummary,
-} from './types'
-import { execSync } from 'node:child_process'
-import * as fs from 'node:fs'
-import * as path from 'node:path'
-import * as process from 'node:process'
-import { PostmortemAnalyzer } from './analyzer'
+} from './types';
+import { execSync } from 'node:child_process';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import * as process from 'node:process';
+import { PostmortemAnalyzer } from './analyzer';
 
 // ============================================================================
 // Constants
@@ -37,25 +37,25 @@ const DEFAULT_CONFIG: PostmortemConfig = {
   aiAnalysis: {
     provider: 'claude',
   },
-}
+};
 
-const INDEX_FILE = 'index.json'
-const CLAUDE_MD_SECTION_START = '<!-- POSTMORTEM_START -->'
-const CLAUDE_MD_SECTION_END = '<!-- POSTMORTEM_END -->'
+const INDEX_FILE = 'index.json';
+const CLAUDE_MD_SECTION_START = '<!-- POSTMORTEM_START -->';
+const CLAUDE_MD_SECTION_END = '<!-- POSTMORTEM_END -->';
 
 // ============================================================================
 // Postmortem Manager
 // ============================================================================
 
 export class PostmortemManager {
-  private config: PostmortemConfig
-  private projectRoot: string
-  private postmortemDir: string
+  private config: PostmortemConfig;
+  private projectRoot: string;
+  private postmortemDir: string;
 
   constructor(projectRoot: string = process.cwd(), config: Partial<PostmortemConfig> = {}) {
-    this.projectRoot = projectRoot
-    this.config = { ...DEFAULT_CONFIG, ...config }
-    this.postmortemDir = path.join(projectRoot, this.config.directory)
+    this.projectRoot = projectRoot;
+    this.config = { ...DEFAULT_CONFIG, ...config };
+    this.postmortemDir = path.join(projectRoot, this.config.directory);
   }
 
   // ==========================================================================
@@ -65,44 +65,44 @@ export class PostmortemManager {
   /**
    * 初始化 Postmortem 系统
    */
-  async init(): Promise<{ created: number, directory: string }> {
+  async init(): Promise<{ created: number; directory: string }> {
     // 创建目录结构
-    this.ensureDirectories()
+    this.ensureDirectories();
 
     // 分析历史 fix commits
     const commits = PostmortemAnalyzer.getFixCommits({
       limit: 200,
       cwd: this.projectRoot,
-    })
+    });
 
     if (commits.length === 0) {
       // 创建空索引
-      this.saveIndex(this.createEmptyIndex())
-      return { created: 0, directory: this.postmortemDir }
+      this.saveIndex(this.createEmptyIndex());
+      return { created: 0, directory: this.postmortemDir };
     }
 
     // 分析每个 commit
     const analyses = commits.map(commit =>
       PostmortemAnalyzer.analyzeFixCommit(commit, this.projectRoot),
-    )
+    );
 
     // 生成 Postmortem 报告
-    const reports = PostmortemAnalyzer.generatePostmortem(analyses, [])
+    const reports = PostmortemAnalyzer.generatePostmortem(analyses, []);
 
     // 保存报告
     for (const report of reports) {
-      this.saveReport(report)
+      this.saveReport(report);
     }
 
     // 更新索引
-    this.updateIndex()
+    this.updateIndex();
 
     // 同步到 CLAUDE.md
     if (this.config.autoSyncToClaudeMd) {
-      await this.syncToClaudeMd()
+      await this.syncToClaudeMd();
     }
 
-    return { created: reports.length, directory: this.postmortemDir }
+    return { created: reports.length, directory: this.postmortemDir };
   }
 
   /**
@@ -113,11 +113,11 @@ export class PostmortemManager {
       this.postmortemDir,
       path.join(this.postmortemDir, 'categories'),
       path.join(this.postmortemDir, 'summaries'),
-    ]
+    ];
 
     for (const dir of dirs) {
       if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true })
+        fs.mkdirSync(dir, { recursive: true });
       }
     }
   }
@@ -130,35 +130,35 @@ export class PostmortemManager {
    * 保存 Postmortem 报告
    */
   saveReport(report: PostmortemReport): string {
-    const filename = `${report.id}-${this.slugify(report.title)}.md`
-    const filepath = path.join(this.postmortemDir, filename)
+    const filename = `${report.id}-${this.slugify(report.title)}.md`;
+    const filepath = path.join(this.postmortemDir, filename);
 
-    const content = this.renderReportToMarkdown(report)
-    fs.writeFileSync(filepath, content, 'utf-8')
+    const content = this.renderReportToMarkdown(report);
+    fs.writeFileSync(filepath, content, 'utf-8');
 
     // 同时保存 JSON 版本用于程序读取
-    const jsonPath = path.join(this.postmortemDir, `${report.id}.json`)
-    fs.writeFileSync(jsonPath, JSON.stringify(report, null, 2), 'utf-8')
+    const jsonPath = path.join(this.postmortemDir, `${report.id}.json`);
+    fs.writeFileSync(jsonPath, JSON.stringify(report, null, 2), 'utf-8');
 
-    return filepath
+    return filepath;
   }
 
   /**
    * 读取 Postmortem 报告
    */
   getReport(id: string): PostmortemReport | null {
-    const jsonPath = path.join(this.postmortemDir, `${id}.json`)
+    const jsonPath = path.join(this.postmortemDir, `${id}.json`);
 
     if (!fs.existsSync(jsonPath)) {
-      return null
+      return null;
     }
 
     try {
-      const content = fs.readFileSync(jsonPath, 'utf-8')
-      return JSON.parse(content) as PostmortemReport
+      const content = fs.readFileSync(jsonPath, 'utf-8');
+      return JSON.parse(content) as PostmortemReport;
     }
     catch {
-      return null
+      return null;
     }
   }
 
@@ -166,8 +166,8 @@ export class PostmortemManager {
    * 列出所有 Postmortem
    */
   listReports(): PostmortemMeta[] {
-    const index = this.loadIndex()
-    return index?.reports || []
+    const index = this.loadIndex();
+    return index?.reports || [];
   }
 
   /**
@@ -179,7 +179,7 @@ export class PostmortemManager {
       high: '🟠',
       medium: '🟡',
       low: '🟢',
-    }
+    };
 
     return `# ${report.id}: ${report.title}
 
@@ -250,7 +250,7 @@ ${report.tags.map(t => `\`${t}\``).join(' ')}
 
 ---
 *由 CCJK Postmortem System 自动生成*
-`
+`;
   }
 
   /**
@@ -261,7 +261,7 @@ ${report.tags.map(t => `\`${t}\``).join(' ')}
       .toLowerCase()
       .replace(/[^\w\s-]/g, '')
       .replace(/\s+/g, '-')
-      .substring(0, 50)
+      .substring(0, 50);
   }
 
   // ==========================================================================
@@ -294,25 +294,25 @@ ${report.tags.map(t => `\`${t}\``).join(' ')}
         byStatus: { active: 0, resolved: 0, monitoring: 0, archived: 0 },
       },
       reports: [],
-    }
+    };
   }
 
   /**
    * 加载索引
    */
   loadIndex(): PostmortemIndex | null {
-    const indexPath = path.join(this.postmortemDir, INDEX_FILE)
+    const indexPath = path.join(this.postmortemDir, INDEX_FILE);
 
     if (!fs.existsSync(indexPath)) {
-      return null
+      return null;
     }
 
     try {
-      const content = fs.readFileSync(indexPath, 'utf-8')
-      return JSON.parse(content) as PostmortemIndex
+      const content = fs.readFileSync(indexPath, 'utf-8');
+      return JSON.parse(content) as PostmortemIndex;
     }
     catch {
-      return null
+      return null;
     }
   }
 
@@ -320,30 +320,30 @@ ${report.tags.map(t => `\`${t}\``).join(' ')}
    * 保存索引
    */
   private saveIndex(index: PostmortemIndex): void {
-    const indexPath = path.join(this.postmortemDir, INDEX_FILE)
-    fs.writeFileSync(indexPath, JSON.stringify(index, null, 2), 'utf-8')
+    const indexPath = path.join(this.postmortemDir, INDEX_FILE);
+    fs.writeFileSync(indexPath, JSON.stringify(index, null, 2), 'utf-8');
   }
 
   /**
    * 更新索引
    */
   updateIndex(): PostmortemIndex {
-    const index = this.createEmptyIndex()
+    const index = this.createEmptyIndex();
 
     // 扫描所有 JSON 文件
     const files = fs.readdirSync(this.postmortemDir)
-      .filter(f => f.startsWith('PM-') && f.endsWith('.json'))
+      .filter(f => f.startsWith('PM-') && f.endsWith('.json'));
 
     for (const file of files) {
       try {
-        const content = fs.readFileSync(path.join(this.postmortemDir, file), 'utf-8')
-        const report = JSON.parse(content) as PostmortemReport
+        const content = fs.readFileSync(path.join(this.postmortemDir, file), 'utf-8');
+        const report = JSON.parse(content) as PostmortemReport;
 
         // 更新统计
-        index.stats.total++
-        index.stats.bySeverity[report.severity]++
-        index.stats.byCategory[report.category]++
-        index.stats.byStatus[report.status]++
+        index.stats.total++;
+        index.stats.bySeverity[report.severity]++;
+        index.stats.byCategory[report.category]++;
+        index.stats.byStatus[report.status]++;
 
         // 添加元数据
         index.reports.push({
@@ -354,7 +354,7 @@ ${report.tags.map(t => `\`${t}\``).join(' ')}
           status: report.status,
           createdAt: report.createdAt,
           filePath: file.replace('.json', '.md'),
-        })
+        });
       }
       catch {
         // 忽略解析错误
@@ -363,17 +363,17 @@ ${report.tags.map(t => `\`${t}\``).join(' ')}
 
     // 按严重程度和时间排序
     index.reports.sort((a, b) => {
-      const severityOrder = { critical: 0, high: 1, medium: 2, low: 3 }
-      const severityDiff = severityOrder[a.severity] - severityOrder[b.severity]
+      const severityOrder = { critical: 0, high: 1, medium: 2, low: 3 };
+      const severityDiff = severityOrder[a.severity] - severityOrder[b.severity];
       if (severityDiff !== 0)
-        return severityDiff
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    })
+        return severityDiff;
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
 
-    index.lastUpdated = new Date().toISOString()
-    this.saveIndex(index)
+    index.lastUpdated = new Date().toISOString();
+    this.saveIndex(index);
 
-    return index
+    return index;
   }
 
   // ==========================================================================
@@ -383,21 +383,21 @@ ${report.tags.map(t => `\`${t}\``).join(' ')}
   /**
    * 同步到 CLAUDE.md
    */
-  async syncToClaudeMd(): Promise<{ synced: number, claudeMdPath: string }> {
-    const claudeMdPath = path.join(this.projectRoot, 'CLAUDE.md')
-    const injection = this.generateClaudeMdInjection()
+  async syncToClaudeMd(): Promise<{ synced: number; claudeMdPath: string }> {
+    const claudeMdPath = path.join(this.projectRoot, 'CLAUDE.md');
+    const injection = this.generateClaudeMdInjection();
 
-    let content = ''
+    let content = '';
     if (fs.existsSync(claudeMdPath)) {
-      content = fs.readFileSync(claudeMdPath, 'utf-8')
+      content = fs.readFileSync(claudeMdPath, 'utf-8');
     }
 
     // 移除旧的注入内容
-    const startIndex = content.indexOf(CLAUDE_MD_SECTION_START)
-    const endIndex = content.indexOf(CLAUDE_MD_SECTION_END)
+    const startIndex = content.indexOf(CLAUDE_MD_SECTION_START);
+    const endIndex = content.indexOf(CLAUDE_MD_SECTION_END);
 
     if (startIndex !== -1 && endIndex !== -1) {
-      content = content.substring(0, startIndex) + content.substring(endIndex + CLAUDE_MD_SECTION_END.length)
+      content = content.substring(0, startIndex) + content.substring(endIndex + CLAUDE_MD_SECTION_END.length);
     }
 
     // 添加新的注入内容
@@ -405,25 +405,25 @@ ${report.tags.map(t => `\`${t}\``).join(' ')}
 ${CLAUDE_MD_SECTION_START}
 ${injection.content}
 ${CLAUDE_MD_SECTION_END}
-`
+`;
 
     // 在文件末尾添加
-    content = `${content.trim()}\n\n${injectionContent.trim()}\n`
+    content = `${content.trim()}\n\n${injectionContent.trim()}\n`;
 
-    fs.writeFileSync(claudeMdPath, content, 'utf-8')
+    fs.writeFileSync(claudeMdPath, content, 'utf-8');
 
     return {
       synced: injection.sourcePostmortems.length,
       claudeMdPath,
-    }
+    };
   }
 
   /**
    * 生成 CLAUDE.md 注入内容
    */
   generateClaudeMdInjection(): ClaudeMdInjection {
-    const index = this.loadIndex()
-    const reports: PostmortemReport[] = []
+    const index = this.loadIndex();
+    const reports: PostmortemReport[] = [];
 
     if (index) {
       // 获取高优先级的报告
@@ -432,20 +432,20 @@ ${CLAUDE_MD_SECTION_END}
         high: 1,
         medium: 2,
         low: 3,
-      }
+      };
 
-      const minSeverityOrder = severityOrder[this.config.minSyncSeverity]
+      const minSeverityOrder = severityOrder[this.config.minSyncSeverity];
 
       for (const meta of index.reports) {
         if (severityOrder[meta.severity] <= minSeverityOrder && meta.status === 'active') {
-          const report = this.getReport(meta.id)
+          const report = this.getReport(meta.id);
           if (report) {
-            reports.push(report)
+            reports.push(report);
           }
         }
 
         if (reports.length >= this.config.maxSyncItems) {
-          break
+          break;
         }
       }
     }
@@ -456,57 +456,57 @@ ${CLAUDE_MD_SECTION_END}
       '',
       '> 基于历史 bug 分析自动生成，帮助避免重复犯错',
       '',
-    ]
+    ];
 
     if (reports.length === 0) {
-      lines.push('暂无需要关注的问题。')
+      lines.push('暂无需要关注的问题。');
     }
     else {
       // 按严重程度分组
-      const critical = reports.filter(r => r.severity === 'critical')
-      const high = reports.filter(r => r.severity === 'high')
-      const medium = reports.filter(r => r.severity === 'medium')
+      const critical = reports.filter(r => r.severity === 'critical');
+      const high = reports.filter(r => r.severity === 'high');
+      const medium = reports.filter(r => r.severity === 'medium');
 
       if (critical.length > 0) {
-        lines.push('### 🔴 严重')
+        lines.push('### 🔴 严重');
         for (const r of critical) {
-          lines.push(`- **${r.id}**: ${r.title}`)
-          lines.push(`  - ${r.aiDirectives[0] || r.preventionMeasures[0]}`)
+          lines.push(`- **${r.id}**: ${r.title}`);
+          lines.push(`  - ${r.aiDirectives[0] || r.preventionMeasures[0]}`);
         }
-        lines.push('')
+        lines.push('');
       }
 
       if (high.length > 0) {
-        lines.push('### 🟠 高优先级')
+        lines.push('### 🟠 高优先级');
         for (const r of high) {
-          lines.push(`- **${r.id}**: ${r.title}`)
-          lines.push(`  - ${r.aiDirectives[0] || r.preventionMeasures[0]}`)
+          lines.push(`- **${r.id}**: ${r.title}`);
+          lines.push(`  - ${r.aiDirectives[0] || r.preventionMeasures[0]}`);
         }
-        lines.push('')
+        lines.push('');
       }
 
       if (medium.length > 0) {
-        lines.push('### 🟡 中优先级')
+        lines.push('### 🟡 中优先级');
         for (const r of medium) {
-          lines.push(`- **${r.id}**: ${r.title}`)
+          lines.push(`- **${r.id}**: ${r.title}`);
         }
-        lines.push('')
+        lines.push('');
       }
 
       // 添加通用指令
-      lines.push('### 📋 开发指令')
-      const allDirectives = new Set<string>()
+      lines.push('### 📋 开发指令');
+      const allDirectives = new Set<string>();
       for (const r of reports.slice(0, 5)) {
         for (const d of r.aiDirectives.slice(0, 2)) {
-          allDirectives.add(d)
+          allDirectives.add(d);
         }
       }
       for (const d of allDirectives) {
-        lines.push(`- ${d}`)
+        lines.push(`- ${d}`);
       }
-      lines.push('')
+      lines.push('');
 
-      lines.push(`> 详细信息请查看 \`${this.config.directory}/\` 目录`)
+      lines.push(`> 详细信息请查看 \`${this.config.directory}/\` 目录`);
     }
 
     return {
@@ -516,7 +516,7 @@ ${CLAUDE_MD_SECTION_END}
       priority: 100,
       sourcePostmortems: reports.map(r => r.id),
       lastUpdated: new Date().toISOString(),
-    }
+    };
   }
 
   // ==========================================================================
@@ -527,68 +527,68 @@ ${CLAUDE_MD_SECTION_END}
    * 检查代码是否可能触发已知问题
    */
   async checkCode(options: {
-    files?: string[]
-    staged?: boolean
+    files?: string[];
+    staged?: boolean;
   } = {}): Promise<PostmortemCheckReport> {
-    const { files, staged } = options
-    let filesToCheck: string[] = []
+    const { files, staged } = options;
+    let filesToCheck: string[] = [];
 
     if (files && files.length > 0) {
-      filesToCheck = files
+      filesToCheck = files;
     }
     else if (staged) {
-      filesToCheck = this.getStagedFiles()
+      filesToCheck = this.getStagedFiles();
     }
     else {
-      filesToCheck = this.getAllSourceFiles()
+      filesToCheck = this.getAllSourceFiles();
     }
 
-    const issues: CodeCheckResult[] = []
-    const index = this.loadIndex()
+    const issues: CodeCheckResult[] = [];
+    const index = this.loadIndex();
 
     if (!index) {
-      return this.createEmptyCheckReport(filesToCheck.length)
+      return this.createEmptyCheckReport(filesToCheck.length);
     }
 
     // 收集所有检测模式
-    const patterns: Array<{ pattern: import('./types').DetectionPattern, postmortemId: string }> = []
+    const patterns: Array<{ pattern: import('./types').DetectionPattern; postmortemId: string }> = [];
 
     for (const meta of index.reports) {
       if (meta.status !== 'active')
-        continue
+        continue;
 
-      const report = this.getReport(meta.id)
+      const report = this.getReport(meta.id);
       if (!report)
-        continue
+        continue;
 
       for (const pattern of report.detectionPatterns) {
-        patterns.push({ pattern, postmortemId: report.id })
+        patterns.push({ pattern, postmortemId: report.id });
       }
     }
 
     // 检查每个文件
     for (const file of filesToCheck) {
-      const fullPath = path.isAbsolute(file) ? file : path.join(this.projectRoot, file)
+      const fullPath = path.isAbsolute(file) ? file : path.join(this.projectRoot, file);
 
       if (!fs.existsSync(fullPath))
-        continue
+        continue;
 
-      const content = fs.readFileSync(fullPath, 'utf-8')
-      const lines = content.split('\n')
+      const content = fs.readFileSync(fullPath, 'utf-8');
+      const lines = content.split('\n');
 
       for (const { pattern, postmortemId } of patterns) {
         // 检查文件类型
         if (!pattern.fileTypes.some(ft => file.endsWith(ft))) {
-          continue
+          continue;
         }
 
         if (pattern.type === 'regex') {
           try {
-            const regex = new RegExp(pattern.pattern, 'g')
+            const regex = new RegExp(pattern.pattern, 'g');
 
             for (let i = 0; i < lines.length; i++) {
-              const line = lines[i]
-              const matches = line.match(regex)
+              const line = lines[i];
+              const matches = line.match(regex);
 
               if (matches) {
                 issues.push({
@@ -599,7 +599,7 @@ ${CLAUDE_MD_SECTION_END}
                   postmortemId,
                   message: `可能触发 ${postmortemId}: ${pattern.description}`,
                   suggestion: `参考 ${this.config.directory}/${postmortemId}.md`,
-                })
+                });
               }
             }
           }
@@ -616,7 +616,7 @@ ${CLAUDE_MD_SECTION_END}
       high: issues.filter(i => i.pattern.severity === 'high').length,
       medium: issues.filter(i => i.pattern.severity === 'medium').length,
       low: issues.filter(i => i.pattern.severity === 'low').length,
-    }
+    };
 
     return {
       timestamp: new Date().toISOString(),
@@ -624,7 +624,7 @@ ${CLAUDE_MD_SECTION_END}
       issuesFound: issues,
       summary,
       passed: summary.critical === 0 && summary.high === 0,
-    }
+    };
   }
 
   /**
@@ -635,11 +635,11 @@ ${CLAUDE_MD_SECTION_END}
       const output = execSync('git diff --cached --name-only', {
         cwd: this.projectRoot,
         encoding: 'utf-8',
-      })
-      return output.trim().split('\n').filter(Boolean)
+      });
+      return output.trim().split('\n').filter(Boolean);
     }
     catch {
-      return []
+      return [];
     }
   }
 
@@ -647,34 +647,34 @@ ${CLAUDE_MD_SECTION_END}
    * 获取所有源文件
    */
   private getAllSourceFiles(): string[] {
-    const files: string[] = []
+    const files: string[] = [];
 
     const walk = (dir: string): void => {
-      const entries = fs.readdirSync(dir, { withFileTypes: true })
+      const entries = fs.readdirSync(dir, { withFileTypes: true });
 
       for (const entry of entries) {
-        const fullPath = path.join(dir, entry.name)
-        const relativePath = path.relative(this.projectRoot, fullPath)
+        const fullPath = path.join(dir, entry.name);
+        const relativePath = path.relative(this.projectRoot, fullPath);
 
         // 检查排除模式
         if (this.config.detection.excludePatterns.some(p => this.matchGlob(relativePath, p))) {
-          continue
+          continue;
         }
 
         if (entry.isDirectory()) {
-          walk(fullPath)
+          walk(fullPath);
         }
         else if (entry.isFile()) {
           // 检查包含模式
           if (this.config.detection.includePatterns.some(p => this.matchGlob(relativePath, p))) {
-            files.push(relativePath)
+            files.push(relativePath);
           }
         }
       }
-    }
+    };
 
-    walk(this.projectRoot)
-    return files
+    walk(this.projectRoot);
+    return files;
   }
 
   /**
@@ -684,9 +684,9 @@ ${CLAUDE_MD_SECTION_END}
     const regexPattern = pattern
       .replace(/\*\*/g, '.*')
       .replace(/\*/g, '[^/]*')
-      .replace(/\?/g, '.')
+      .replace(/\?/g, '.');
 
-    return new RegExp(`^${regexPattern}$`).test(filepath)
+    return new RegExp(`^${regexPattern}$`).test(filepath);
   }
 
   /**
@@ -699,7 +699,7 @@ ${CLAUDE_MD_SECTION_END}
       issuesFound: [],
       summary: { critical: 0, high: 0, medium: 0, low: 0 },
       passed: true,
-    }
+    };
   }
 
   // ==========================================================================
@@ -710,40 +710,40 @@ ${CLAUDE_MD_SECTION_END}
    * 生成发布摘要
    */
   async generateReleaseSummary(options: {
-    version: string
-    since?: string
-    until?: string
+    version: string;
+    since?: string;
+    until?: string;
   }): Promise<ReleaseSummary> {
-    const { version, since, until } = options
+    const { version, since, until } = options;
 
     // 获取这个版本的 fix commits
     const commits = PostmortemAnalyzer.getFixCommits({
       since,
       until,
       cwd: this.projectRoot,
-    })
+    });
 
     // 分析 commits
     const analyses = commits.map(c =>
       PostmortemAnalyzer.analyzeFixCommit(c, this.projectRoot),
-    )
+    );
 
     // 获取现有的 postmortem IDs
-    const existingIds = this.listReports().map(r => r.id)
+    const existingIds = this.listReports().map(r => r.id);
 
     // 生成新的 postmortems
-    const newReports = PostmortemAnalyzer.generatePostmortem(analyses, existingIds)
+    const newReports = PostmortemAnalyzer.generatePostmortem(analyses, existingIds);
 
     // 保存新报告
-    const newIds: string[] = []
+    const newIds: string[] = [];
     for (const report of newReports) {
-      report.affectedVersions = { from: since || 'unknown', to: version }
-      this.saveReport(report)
-      newIds.push(report.id)
+      report.affectedVersions = { from: since || 'unknown', to: version };
+      this.saveReport(report);
+      newIds.push(report.id);
     }
 
     // 更新索引
-    this.updateIndex()
+    this.updateIndex();
 
     // 生成摘要
     const summary: ReleaseSummary = {
@@ -754,18 +754,18 @@ ${CLAUDE_MD_SECTION_END}
       updatedPostmortems: [],
       summary: this.generateReleaseSummaryText(commits, newReports),
       keyLessons: this.extractKeyLessons(newReports),
-    }
+    };
 
     // 保存摘要
-    const summaryPath = path.join(this.postmortemDir, 'summaries', `${version}.json`)
-    fs.writeFileSync(summaryPath, JSON.stringify(summary, null, 2), 'utf-8')
+    const summaryPath = path.join(this.postmortemDir, 'summaries', `${version}.json`);
+    fs.writeFileSync(summaryPath, JSON.stringify(summary, null, 2), 'utf-8');
 
     // 同步到 CLAUDE.md
     if (this.config.autoSyncToClaudeMd) {
-      await this.syncToClaudeMd()
+      await this.syncToClaudeMd();
     }
 
-    return summary
+    return summary;
   }
 
   /**
@@ -775,35 +775,35 @@ ${CLAUDE_MD_SECTION_END}
     const lines: string[] = [
       `本次发布包含 ${commits.length} 个 bug 修复，生成了 ${reports.length} 个新的 Postmortem 报告。`,
       '',
-    ]
+    ];
 
     if (reports.length > 0) {
-      lines.push('主要问题类型:')
-      const categories = new Map<string, number>()
+      lines.push('主要问题类型:');
+      const categories = new Map<string, number>();
       for (const r of reports) {
-        categories.set(r.category, (categories.get(r.category) || 0) + 1)
+        categories.set(r.category, (categories.get(r.category) || 0) + 1);
       }
       for (const [cat, count] of categories) {
-        lines.push(`- ${cat}: ${count} 个`)
+        lines.push(`- ${cat}: ${count} 个`);
       }
     }
 
-    return lines.join('\n')
+    return lines.join('\n');
   }
 
   /**
    * 提取关键教训
    */
   private extractKeyLessons(reports: PostmortemReport[]): string[] {
-    const lessons = new Set<string>()
+    const lessons = new Set<string>();
 
     for (const report of reports) {
       for (const measure of report.preventionMeasures.slice(0, 2)) {
-        lessons.add(measure)
+        lessons.add(measure);
       }
     }
 
-    return Array.from(lessons).slice(0, 10)
+    return Array.from(lessons).slice(0, 10);
   }
 }
 
@@ -811,11 +811,11 @@ ${CLAUDE_MD_SECTION_END}
 // Export singleton factory
 // ============================================================================
 
-let managerInstance: PostmortemManager | null = null
+let managerInstance: PostmortemManager | null = null;
 
 export function getPostmortemManager(projectRoot?: string, config?: Partial<PostmortemConfig>): PostmortemManager {
   if (!managerInstance || projectRoot) {
-    managerInstance = new PostmortemManager(projectRoot, config)
+    managerInstance = new PostmortemManager(projectRoot, config);
   }
-  return managerInstance
+  return managerInstance;
 }

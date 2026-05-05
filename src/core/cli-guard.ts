@@ -8,27 +8,27 @@
  * - Incompatible environments
  */
 
-import { execSync } from 'node:child_process'
-import { readFile, writeFile } from 'node:fs/promises'
-import ansis from 'ansis'
-import { join } from 'pathe'
-import { exists } from '../utils/fs-operations'
-import { getHomeDir } from '../utils/platform/paths'
+import { execSync } from 'node:child_process';
+import { readFile, writeFile } from 'node:fs/promises';
+import ansis from 'ansis';
+import { join } from 'pathe';
+import { exists } from '../utils/fs-operations';
+import { getHomeDir } from '../utils/platform/paths';
 
-const LOCK_TIMEOUT = 5 * 60 * 1000 // 5 minutes
+const LOCK_TIMEOUT = 5 * 60 * 1000; // 5 minutes
 
 /**
  * Get lock file directory
  */
 function getLockDir(): string {
-  return join(getHomeDir(), '.ccjk')
+  return join(getHomeDir(), '.ccjk');
 }
 
 /**
  * Get lock file path
  */
 function getLockFilePath(): string {
-  return join(getLockDir(), 'ccjk.lock')
+  return join(getLockDir(), 'ccjk.lock');
 }
 
 /**
@@ -41,45 +41,45 @@ export class CliGuard {
   static async checkLockfile(): Promise<boolean> {
     try {
       if (!exists(getLockFilePath())) {
-        return false
+        return false;
       }
 
-      const content = await readFile(getLockFilePath(), 'utf-8')
-      const lock = JSON.parse(content)
+      const content = await readFile(getLockFilePath(), 'utf-8');
+      const lock = JSON.parse(content);
 
       // Check if lock is expired
-      const now = Date.now()
-      const lockTime = lock.timestamp || 0
+      const now = Date.now();
+      const lockTime = lock.timestamp || 0;
 
       if (now - lockTime > LOCK_TIMEOUT) {
         // Lock is stale, remove it
-        await this.releaseLock()
-        return false
+        await this.releaseLock();
+        return false;
       }
 
       // Check if process is still running
       if (lock.pid && process.pid === lock.pid) {
         // Same process, allow it
-        await this.releaseLock()
-        return false
+        await this.releaseLock();
+        return false;
       }
 
       // Process might still be running
       try {
-        process.kill(lock.pid, 0)
+        process.kill(lock.pid, 0);
         // Process is still running
-        return true
+        return true;
       }
       catch {
         // Process is dead, remove lock
-        await this.releaseLock()
-        return false
+        await this.releaseLock();
+        return false;
       }
     }
     catch {
       // Error reading lock file, assume invalid
-      await this.releaseLock()
-      return false
+      await this.releaseLock();
+      return false;
     }
   }
 
@@ -90,12 +90,12 @@ export class CliGuard {
     try {
       // Ensure directory exists
       if (!exists(getLockDir())) {
-        await mkdir(getLockDir(), { recursive: true })
+        await mkdir(getLockDir(), { recursive: true });
       }
 
       // Check if lock already exists
       if (await this.checkLockfile()) {
-        return false
+        return false;
       }
 
       // Create lock file
@@ -105,13 +105,13 @@ export class CliGuard {
         version: await this.getCurrentVersion(),
         platform: process.platform,
         nodeVersion: process.version,
-      }
+      };
 
-      await writeFile(getLockFilePath(), JSON.stringify(lock, null, 2))
-      return true
+      await writeFile(getLockFilePath(), JSON.stringify(lock, null, 2));
+      return true;
     }
     catch {
-      return false
+      return false;
     }
   }
 
@@ -121,8 +121,8 @@ export class CliGuard {
   static async releaseLock(): Promise<void> {
     try {
       if (exists(getLockFilePath())) {
-        const fsp = await import('node:fs/promises')
-        await fsp.unlink(getLockFilePath())
+        const fsp = await import('node:fs/promises');
+        await fsp.unlink(getLockFilePath());
       }
     }
     catch {
@@ -134,39 +134,39 @@ export class CliGuard {
    * Cleanup orphaned files
    */
   static async cleanup(): Promise<void> {
-    const orphaned: string[] = []
+    const orphaned: string[] = [];
 
     // Clean up orphaned lock files
     try {
       if (exists(getLockFilePath())) {
-        const content = await readFile(getLockFilePath(), 'utf-8')
-        const lock = JSON.parse(content)
-        const now = Date.now()
+        const content = await readFile(getLockFilePath(), 'utf-8');
+        const lock = JSON.parse(content);
+        const now = Date.now();
 
         if (now - lock.timestamp > LOCK_TIMEOUT) {
-          orphaned.push(getLockFilePath())
+          orphaned.push(getLockFilePath());
         }
       }
 
       // Clean up temporary files in .ccjk/tmp/
-      const tmpDir = join(getHomeDir(), '.ccjk', 'tmp')
+      const tmpDir = join(getHomeDir(), '.ccjk', 'tmp');
       if (exists(tmpDir)) {
-        const fsp = await import('node:fs/promises')
-        const tmpFiles = await fsp.readdir(tmpDir)
+        const fsp = await import('node:fs/promises');
+        const tmpFiles = await fsp.readdir(tmpDir);
         for (const file of tmpFiles) {
-          const filePath = join(tmpDir, file)
-          const stats = await fsp.stat(filePath)
+          const filePath = join(tmpDir, file);
+          const stats = await fsp.stat(filePath);
           // Remove files older than 1 hour
           if (Date.now() - stats.mtimeMs > 60 * 60 * 1000) {
-            orphaned.push(filePath)
+            orphaned.push(filePath);
           }
         }
       }
 
       // Remove orphaned files
-      const fsExtra = await import('fs-extra')
+      const fsExtra = await import('fs-extra');
       for (const file of orphaned) {
-        await fsExtra.remove(file)
+        await fsExtra.remove(file);
       }
     }
     catch {
@@ -177,18 +177,18 @@ export class CliGuard {
   /**
    * Check version compatibility
    */
-  static async checkVersion(): Promise<{ ok: boolean, current?: string, latest?: string }> {
+  static async checkVersion(): Promise<{ ok: boolean; current?: string; latest?: string }> {
     try {
-      const current = await this.getCurrentVersion()
+      const current = await this.getCurrentVersion();
       // In a real implementation, we would check the latest version from npm
       // For now, just check if version is set
       return {
         ok: !!current,
         current,
-      }
+      };
     }
     catch {
-      return { ok: false }
+      return { ok: false };
     }
   }
 
@@ -197,26 +197,26 @@ export class CliGuard {
    */
   private static async getCurrentVersion(): Promise<string> {
     try {
-      const pkgPath = join(process.cwd(), 'package.json')
-      const pkg = JSON.parse(await readFile(pkgPath, 'utf-8'))
-      return pkg.version
+      const pkgPath = join(process.cwd(), 'package.json');
+      const pkg = JSON.parse(await readFile(pkgPath, 'utf-8'));
+      return pkg.version;
     }
     catch {
-      return 'unknown'
+      return 'unknown';
     }
   }
 
   /**
    * Check environment compatibility
    */
-  static checkEnvironment(): { ok: boolean, issues: string[] } {
-    const issues: string[] = []
+  static checkEnvironment(): { ok: boolean; issues: string[] } {
+    const issues: string[] = [];
 
     // Check Node.js version
-    const nodeVersion = process.version
-    const majorVersion = Number.parseInt(nodeVersion.slice(1).split('.')[0], 10)
+    const nodeVersion = process.version;
+    const majorVersion = Number.parseInt(nodeVersion.slice(1).split('.')[0], 10);
     if (majorVersion < 20) {
-      issues.push(`Node.js v${majorVersion} detected (v20+ required)`)
+      issues.push(`Node.js v${majorVersion} detected (v20+ required)`);
     }
 
     // Check platform
@@ -226,40 +226,40 @@ export class CliGuard {
     }
 
     // Check for required commands
-    const requiredCommands = ['git', 'npm']
+    const requiredCommands = ['git', 'npm'];
     for (const cmd of requiredCommands) {
       try {
-        const result = getCommandVersion(cmd)
+        const result = getCommandVersion(cmd);
         if (!result) {
-          issues.push(`Required command not found: ${cmd}`)
+          issues.push(`Required command not found: ${cmd}`);
         }
       }
       catch {
-        issues.push(`Required command not found: ${cmd}`)
+        issues.push(`Required command not found: ${cmd}`);
       }
     }
 
     return {
       ok: issues.length === 0,
       issues,
-    }
+    };
   }
 
   /**
    * Show startup diagnostics
    */
   static showDiagnostics(): void {
-    const env = this.checkEnvironment()
+    const env = this.checkEnvironment();
 
     if (!env.ok) {
-      console.log(ansis.yellow('\n⚠️  Environment Issues Detected:'))
+      console.log(ansis.yellow('\n⚠️  Environment Issues Detected:'));
       for (const issue of env.issues) {
-        console.log(`  • ${ansis.red(issue)}`)
+        console.log(`  • ${ansis.red(issue)}`);
       }
-      console.log('')
+      console.log('');
     }
 
-    this.showVersion()
+    this.showVersion();
   }
 
   /**
@@ -267,42 +267,42 @@ export class CliGuard {
    */
   static showVersion(): void {
     try {
-      const pkg = join(process.cwd(), 'package.json')
-      const version = JSON.parse(require('node:fs').readFileSync(pkg, 'utf-8')).version
-      console.log(ansis.cyan(`CCJK v${version}`))
+      const pkg = join(process.cwd(), 'package.json');
+      const version = JSON.parse(require('node:fs').readFileSync(pkg, 'utf-8')).version;
+      console.log(ansis.cyan(`CCJK v${version}`));
     }
     catch {
-      console.log(ansis.cyan('CCJK (version unknown)'))
+      console.log(ansis.cyan('CCJK (version unknown)'));
     }
   }
 
   /**
    * Full startup check
    */
-  static async startupCheck(): Promise<{ ok: boolean, warnings: string[] }> {
-    const warnings: string[] = []
+  static async startupCheck(): Promise<{ ok: boolean; warnings: string[] }> {
+    const warnings: string[] = [];
 
     // Show version
-    this.showVersion()
+    this.showVersion();
 
     // Check environment
-    const env = this.checkEnvironment()
+    const env = this.checkEnvironment();
     if (!env.ok) {
-      console.log(ansis.red('\n❌ Environment check failed. Please fix the issues above.'))
-      return { ok: false, warnings }
+      console.log(ansis.red('\n❌ Environment check failed. Please fix the issues above.'));
+      return { ok: false, warnings };
     }
 
     // Check lock file
-    const hasLock = await this.checkLockfile()
+    const hasLock = await this.checkLockfile();
     if (hasLock) {
-      console.log(ansis.yellow('\n⚠️  Another CCJK instance is running.'))
-      warnings.push('Another CCJK instance detected')
+      console.log(ansis.yellow('\n⚠️  Another CCJK instance is running.'));
+      warnings.push('Another CCJK instance detected');
     }
 
     // Cleanup
-    await this.cleanup()
+    await this.cleanup();
 
-    return { ok: true, warnings }
+    return { ok: true, warnings };
   }
 }
 
@@ -311,10 +311,10 @@ export class CliGuard {
  */
 function getCommandVersion(command: string): string | null {
   try {
-    return execSync(`${command} --version`, { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] as any }).trim()
+    return execSync(`${command} --version`, { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] as any }).trim();
   }
   catch {
-    return null
+    return null;
   }
 }
 
@@ -322,6 +322,6 @@ function getCommandVersion(command: string): string | null {
  * mkdir utility
  */
 async function mkdir(path: string, options?: any): Promise<void> {
-  const fsExtra = await import('fs-extra')
-  await fsExtra.mkdir(path, options)
+  const fsExtra = await import('fs-extra');
+  await fsExtra.mkdir(path, options);
 }

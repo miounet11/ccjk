@@ -10,50 +10,50 @@
  * - Dynamic value completion (installed MCP services, etc.)
  */
 
-import type { SupportedLang } from '../constants'
-import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
-import { homedir } from 'node:os'
-import { join } from 'node:path'
-import ansis from 'ansis'
-import { CODE_TOOL_TYPES } from '../constants'
-import { i18n } from '../i18n'
+import type { SupportedLang } from '../constants';
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
+import { homedir } from 'node:os';
+import { join } from 'node:path';
+import ansis from 'ansis';
+import { CODE_TOOL_TYPES } from '../constants';
+import { i18n } from '../i18n';
 
 // ============================================================================
 // Types
 // ============================================================================
 
-export type ShellType = 'bash' | 'zsh' | 'fish' | 'powershell'
+export type ShellType = 'bash' | 'zsh' | 'fish' | 'powershell';
 
 export interface CommandInfo {
-  name: string
-  description: string
-  aliases?: string[]
-  options?: OptionInfo[]
-  subcommands?: SubcommandInfo[]
+  name: string;
+  description: string;
+  aliases?: string[];
+  options?: OptionInfo[];
+  subcommands?: SubcommandInfo[];
 }
 
 export interface OptionInfo {
-  flags: string
-  description: string
-  values?: string[] | (() => Promise<string[]>)
+  flags: string;
+  description: string;
+  values?: string[] | (() => Promise<string[]>);
 }
 
 export interface SubcommandInfo {
-  name: string
-  description: string
-  options?: OptionInfo[]
+  name: string;
+  description: string;
+  options?: OptionInfo[];
 }
 
 export interface CompletionProvider {
-  getCommands: () => CommandInfo[]
-  getOptions: (command: string) => OptionInfo[]
-  getSubcommands: (command: string) => SubcommandInfo[]
-  getValues: (command: string, option: string) => Promise<string[]>
-  generateScript: (shell: ShellType) => Promise<string>
+  getCommands: () => CommandInfo[];
+  getOptions: (command: string) => OptionInfo[];
+  getSubcommands: (command: string) => SubcommandInfo[];
+  getValues: (command: string, option: string) => Promise<string[]>;
+  generateScript: (shell: ShellType) => Promise<string>;
 }
 
 export interface CompletionOptions {
-  lang?: SupportedLang
+  lang?: SupportedLang;
 }
 
 // ============================================================================
@@ -365,7 +365,7 @@ const COMPLETION_COMMANDS: CommandInfo[] = [
   { name: 'uninstall', description: 'Remove CCJK configurations' },
   { name: 'check-updates', description: 'Check for updates', aliases: ['check'] },
   { name: 'config-switch', description: 'Switch configuration', aliases: ['cs'] },
-]
+];
 
 // ============================================================================
 // Completion Provider Implementation
@@ -373,73 +373,73 @@ const COMPLETION_COMMANDS: CommandInfo[] = [
 
 class CCJKCompletionProvider implements CompletionProvider {
   getCommands(): CommandInfo[] {
-    return COMPLETION_COMMANDS
+    return COMPLETION_COMMANDS;
   }
 
   getOptions(command: string): OptionInfo[] {
     const cmd = COMPLETION_COMMANDS.find(
       c => c.name === command || c.aliases?.includes(command),
-    )
-    return cmd?.options || []
+    );
+    return cmd?.options || [];
   }
 
   getSubcommands(command: string): SubcommandInfo[] {
     const cmd = COMPLETION_COMMANDS.find(
       c => c.name === command || c.aliases?.includes(command),
-    )
-    return cmd?.subcommands || []
+    );
+    return cmd?.subcommands || [];
   }
 
   async getValues(command: string, option: string): Promise<string[]> {
     const cmd = COMPLETION_COMMANDS.find(
       c => c.name === command || c.aliases?.includes(command),
-    )
+    );
     if (!cmd?.options)
-      return []
+      return [];
 
-    const opt = cmd.options.find(o => o.flags.includes(option))
+    const opt = cmd.options.find(o => o.flags.includes(option));
     if (!opt?.values)
-      return []
+      return [];
 
     if (typeof opt.values === 'function') {
-      return await opt.values()
+      return await opt.values();
     }
-    return opt.values
+    return opt.values;
   }
 
   async generateScript(shell: ShellType): Promise<string> {
     switch (shell) {
       case 'bash':
-        return await this.generateBashScript()
+        return await this.generateBashScript();
       case 'zsh':
-        return await this.generateZshScript()
+        return await this.generateZshScript();
       case 'fish':
-        return await this.generateFishScript()
+        return await this.generateFishScript();
       case 'powershell':
-        return await this.generatePowerShellScript()
+        return await this.generatePowerShellScript();
       default:
-        throw new Error(`Unsupported shell: ${shell}`)
+        throw new Error(`Unsupported shell: ${shell}`);
     }
   }
 
   private async generateBashScript(): Promise<string> {
-    const { generateBashCompletion } = await import('./completions/bash')
-    return generateBashCompletion(this.getCommands())
+    const { generateBashCompletion } = await import('./completions/bash');
+    return generateBashCompletion(this.getCommands());
   }
 
   private async generateZshScript(): Promise<string> {
-    const { generateZshCompletion } = await import('./completions/zsh')
-    return generateZshCompletion(this.getCommands())
+    const { generateZshCompletion } = await import('./completions/zsh');
+    return generateZshCompletion(this.getCommands());
   }
 
   private async generateFishScript(): Promise<string> {
-    const { generateFishCompletion } = await import('./completions/fish')
-    return generateFishCompletion(this.getCommands())
+    const { generateFishCompletion } = await import('./completions/fish');
+    return generateFishCompletion(this.getCommands());
   }
 
   private async generatePowerShellScript(): Promise<string> {
-    const { generatePowerShellCompletion } = await import('./completions/powershell')
-    return generatePowerShellCompletion(this.getCommands())
+    const { generatePowerShellCompletion } = await import('./completions/powershell');
+    return generatePowerShellCompletion(this.getCommands());
   }
 }
 
@@ -452,12 +452,12 @@ class CCJKCompletionProvider implements CompletionProvider {
  */
 export async function getInstalledMcpServices(): Promise<string[]> {
   try {
-    const { readMcpConfig } = await import('../utils/claude-config')
-    const config = await readMcpConfig()
-    return Object.keys(config?.mcpServers || {})
+    const { readMcpConfig } = await import('../utils/claude-config');
+    const config = await readMcpConfig();
+    return Object.keys(config?.mcpServers || {});
   }
   catch {
-    return []
+    return [];
   }
 }
 
@@ -466,13 +466,13 @@ export async function getInstalledMcpServices(): Promise<string[]> {
  */
 export async function getAvailableSkills(): Promise<string[]> {
   try {
-    const { getSkillRegistry } = await import('../brain/skill-registry')
-    const registry = getSkillRegistry()
-    const skills = registry.getAll()
-    return skills.map(s => s.id)
+    const { getSkillRegistry } = await import('../brain/skill-registry');
+    const registry = getSkillRegistry();
+    const skills = registry.getAll();
+    return skills.map(s => s.id);
   }
   catch {
-    return []
+    return [];
   }
 }
 
@@ -487,11 +487,11 @@ export async function getAvailableAgents(): Promise<string[]> {
       'ccjk-i18n-specialist',
       'ccjk-tools-integration-specialist',
       'ccjk-config-architect',
-    ]
-    return agents
+    ];
+    return agents;
   }
   catch {
-    return []
+    return [];
   }
 }
 
@@ -499,97 +499,97 @@ export async function getAvailableAgents(): Promise<string[]> {
 // Completion Command Handler
 // ============================================================================
 
-const provider = new CCJKCompletionProvider()
+const provider = new CCJKCompletionProvider();
 
 /**
  * Install completion script for specified shell
  */
 export async function installCompletion(shell: ShellType, options: CompletionOptions = {}): Promise<void> {
-  const isZh = (options.lang || i18n.language) === 'zh-CN'
+  const isZh = (options.lang || i18n.language) === 'zh-CN';
 
-  console.log('')
-  console.log(ansis.bold.cyan(isZh ? `Installing ${shell} completion...` : `Installing ${shell} completion...`))
+  console.log('');
+  console.log(ansis.bold.cyan(isZh ? `Installing ${shell} completion...` : `Installing ${shell} completion...`));
 
-  const script = await provider.generateScript(shell)
-  const installPath = getCompletionInstallPath(shell)
+  const script = await provider.generateScript(shell);
+  const installPath = getCompletionInstallPath(shell);
 
   if (!installPath) {
-    console.log(ansis.red(isZh ? `Cannot determine install path for ${shell}` : `Cannot determine install path for ${shell}`))
-    return
+    console.log(ansis.red(isZh ? `Cannot determine install path for ${shell}` : `Cannot determine install path for ${shell}`));
+    return;
   }
 
   // Ensure directory exists
-  const dir = join(installPath, '..')
+  const dir = join(installPath, '..');
   if (!existsSync(dir)) {
-    mkdirSync(dir, { recursive: true })
+    mkdirSync(dir, { recursive: true });
   }
 
   // Write completion script
-  writeFileSync(installPath, script, 'utf-8')
+  writeFileSync(installPath, script, 'utf-8');
 
-  console.log(ansis.green(isZh ? `Completion script installed to: ${installPath}` : `Completion script installed to: ${installPath}`))
-  console.log('')
+  console.log(ansis.green(isZh ? `Completion script installed to: ${installPath}` : `Completion script installed to: ${installPath}`));
+  console.log('');
 
   // Show activation instructions
-  showActivationInstructions(shell, installPath, isZh)
+  showActivationInstructions(shell, installPath, isZh);
 }
 
 /**
  * Uninstall completion script for specified shell
  */
 export async function uninstallCompletion(shell: ShellType, options: CompletionOptions = {}): Promise<void> {
-  const isZh = (options.lang || i18n.language) === 'zh-CN'
-  const installPath = getCompletionInstallPath(shell)
+  const isZh = (options.lang || i18n.language) === 'zh-CN';
+  const installPath = getCompletionInstallPath(shell);
 
   if (!installPath || !existsSync(installPath)) {
-    console.log(ansis.yellow(isZh ? `No completion script found for ${shell}` : `No completion script found for ${shell}`))
-    return
+    console.log(ansis.yellow(isZh ? `No completion script found for ${shell}` : `No completion script found for ${shell}`));
+    return;
   }
 
-  const { unlinkSync } = await import('node:fs')
-  unlinkSync(installPath)
+  const { unlinkSync } = await import('node:fs');
+  unlinkSync(installPath);
 
-  console.log(ansis.green(isZh ? `Completion script removed: ${installPath}` : `Completion script removed: ${installPath}`))
+  console.log(ansis.green(isZh ? `Completion script removed: ${installPath}` : `Completion script removed: ${installPath}`));
 }
 
 /**
  * Show completion script for specified shell
  */
 export async function showCompletion(shell: ShellType, _options: CompletionOptions = {}): Promise<void> {
-  const script = await provider.generateScript(shell)
-  console.log(script)
+  const script = await provider.generateScript(shell);
+  console.log(script);
 }
 
 /**
  * Get completion install path for shell
  */
 function getCompletionInstallPath(shell: ShellType): string | null {
-  const home = homedir()
+  const home = homedir();
 
   switch (shell) {
     case 'bash':
       // Check for bash-completion directory
       if (existsSync('/etc/bash_completion.d')) {
-        return '/etc/bash_completion.d/ccjk'
+        return '/etc/bash_completion.d/ccjk';
       }
-      return join(home, '.bash_completion.d', 'ccjk')
+      return join(home, '.bash_completion.d', 'ccjk');
 
     case 'zsh':
       // Check for oh-my-zsh or standard zsh completion
-      const omzPath = join(home, '.oh-my-zsh', 'completions')
+      const omzPath = join(home, '.oh-my-zsh', 'completions');
       if (existsSync(omzPath)) {
-        return join(omzPath, '_ccjk')
+        return join(omzPath, '_ccjk');
       }
-      return join(home, '.zsh', 'completions', '_ccjk')
+      return join(home, '.zsh', 'completions', '_ccjk');
 
     case 'fish':
-      return join(home, '.config', 'fish', 'completions', 'ccjk.fish')
+      return join(home, '.config', 'fish', 'completions', 'ccjk.fish');
 
     case 'powershell':
-      return join(home, 'Documents', 'PowerShell', 'Scripts', 'ccjk-completion.ps1')
+      return join(home, 'Documents', 'PowerShell', 'Scripts', 'ccjk-completion.ps1');
 
     default:
-      return null
+      return null;
   }
 }
 
@@ -597,46 +597,46 @@ function getCompletionInstallPath(shell: ShellType): string | null {
  * Show activation instructions for shell
  */
 function showActivationInstructions(shell: ShellType, installPath: string, isZh: boolean): void {
-  console.log(ansis.bold(isZh ? 'Activation Instructions:' : 'Activation Instructions:'))
-  console.log('')
+  console.log(ansis.bold(isZh ? 'Activation Instructions:' : 'Activation Instructions:'));
+  console.log('');
 
   switch (shell) {
     case 'bash':
-      console.log(ansis.dim(isZh ? 'Add the following to your ~/.bashrc:' : 'Add the following to your ~/.bashrc:'))
-      console.log('')
-      console.log(ansis.green(`  source ${installPath}`))
-      console.log('')
-      console.log(ansis.dim(isZh ? 'Then reload your shell:' : 'Then reload your shell:'))
-      console.log(ansis.green('  source ~/.bashrc'))
-      break
+      console.log(ansis.dim(isZh ? 'Add the following to your ~/.bashrc:' : 'Add the following to your ~/.bashrc:'));
+      console.log('');
+      console.log(ansis.green(`  source ${installPath}`));
+      console.log('');
+      console.log(ansis.dim(isZh ? 'Then reload your shell:' : 'Then reload your shell:'));
+      console.log(ansis.green('  source ~/.bashrc'));
+      break;
 
     case 'zsh':
-      console.log(ansis.dim(isZh ? 'Add the following to your ~/.zshrc:' : 'Add the following to your ~/.zshrc:'))
-      console.log('')
-      console.log(ansis.green(`  fpath=(${join(installPath, '..')} $fpath)`))
-      console.log(ansis.green('  autoload -Uz compinit && compinit'))
-      console.log('')
-      console.log(ansis.dim(isZh ? 'Then reload your shell:' : 'Then reload your shell:'))
-      console.log(ansis.green('  source ~/.zshrc'))
-      break
+      console.log(ansis.dim(isZh ? 'Add the following to your ~/.zshrc:' : 'Add the following to your ~/.zshrc:'));
+      console.log('');
+      console.log(ansis.green(`  fpath=(${join(installPath, '..')} $fpath)`));
+      console.log(ansis.green('  autoload -Uz compinit && compinit'));
+      console.log('');
+      console.log(ansis.dim(isZh ? 'Then reload your shell:' : 'Then reload your shell:'));
+      console.log(ansis.green('  source ~/.zshrc'));
+      break;
 
     case 'fish':
-      console.log(ansis.dim(isZh ? 'Fish completions are automatically loaded.' : 'Fish completions are automatically loaded.'))
-      console.log(ansis.dim(isZh ? 'Restart your shell or run:' : 'Restart your shell or run:'))
-      console.log(ansis.green('  source ~/.config/fish/config.fish'))
-      break
+      console.log(ansis.dim(isZh ? 'Fish completions are automatically loaded.' : 'Fish completions are automatically loaded.'));
+      console.log(ansis.dim(isZh ? 'Restart your shell or run:' : 'Restart your shell or run:'));
+      console.log(ansis.green('  source ~/.config/fish/config.fish'));
+      break;
 
     case 'powershell':
-      console.log(ansis.dim(isZh ? 'Add the following to your PowerShell profile:' : 'Add the following to your PowerShell profile:'))
-      console.log('')
-      console.log(ansis.green(`  . ${installPath}`))
-      console.log('')
-      console.log(ansis.dim(isZh ? 'To find your profile path, run:' : 'To find your profile path, run:'))
-      console.log(ansis.green('  $PROFILE'))
-      break
+      console.log(ansis.dim(isZh ? 'Add the following to your PowerShell profile:' : 'Add the following to your PowerShell profile:'));
+      console.log('');
+      console.log(ansis.green(`  . ${installPath}`));
+      console.log('');
+      console.log(ansis.dim(isZh ? 'To find your profile path, run:' : 'To find your profile path, run:'));
+      console.log(ansis.green('  $PROFILE'));
+      break;
   }
 
-  console.log('')
+  console.log('');
 }
 
 /**
@@ -647,48 +647,48 @@ export async function completionCommand(
   shell?: string,
   options: CompletionOptions = {},
 ): Promise<void> {
-  const isZh = (options.lang || i18n.language) === 'zh-CN'
+  const isZh = (options.lang || i18n.language) === 'zh-CN';
 
   if (!action) {
-    showCompletionHelp(isZh)
-    return
+    showCompletionHelp(isZh);
+    return;
   }
 
-  const validShells: ShellType[] = ['bash', 'zsh', 'fish', 'powershell']
+  const validShells: ShellType[] = ['bash', 'zsh', 'fish', 'powershell'];
 
   switch (action) {
     case 'install':
       if (!shell || !validShells.includes(shell as ShellType)) {
         console.log(ansis.red(isZh
           ? `Please specify a valid shell: ${validShells.join(', ')}`
-          : `Please specify a valid shell: ${validShells.join(', ')}`))
-        return
+          : `Please specify a valid shell: ${validShells.join(', ')}`));
+        return;
       }
-      await installCompletion(shell as ShellType, options)
-      break
+      await installCompletion(shell as ShellType, options);
+      break;
 
     case 'uninstall':
       if (!shell || !validShells.includes(shell as ShellType)) {
         console.log(ansis.red(isZh
           ? `Please specify a valid shell: ${validShells.join(', ')}`
-          : `Please specify a valid shell: ${validShells.join(', ')}`))
-        return
+          : `Please specify a valid shell: ${validShells.join(', ')}`));
+        return;
       }
-      await uninstallCompletion(shell as ShellType, options)
-      break
+      await uninstallCompletion(shell as ShellType, options);
+      break;
 
     case 'show':
       if (!shell || !validShells.includes(shell as ShellType)) {
         console.log(ansis.red(isZh
           ? `Please specify a valid shell: ${validShells.join(', ')}`
-          : `Please specify a valid shell: ${validShells.join(', ')}`))
-        return
+          : `Please specify a valid shell: ${validShells.join(', ')}`));
+        return;
       }
-      await showCompletion(shell as ShellType, options)
-      break
+      await showCompletion(shell as ShellType, options);
+      break;
 
     default:
-      showCompletionHelp(isZh)
+      showCompletionHelp(isZh);
   }
 }
 
@@ -696,31 +696,31 @@ export async function completionCommand(
  * Show completion help
  */
 function showCompletionHelp(isZh: boolean): void {
-  console.log('')
-  console.log(ansis.bold.cyan(isZh ? 'Shell Completion Commands' : 'Shell Completion Commands'))
-  console.log(ansis.dim('-'.repeat(50)))
-  console.log('')
-  console.log(`  ${ansis.green('ccjk completion install <shell>')}`)
-  console.log(`    ${ansis.dim(isZh ? 'Install completion script' : 'Install completion script')}`)
-  console.log('')
-  console.log(`  ${ansis.green('ccjk completion uninstall <shell>')}`)
-  console.log(`    ${ansis.dim(isZh ? 'Uninstall completion script' : 'Uninstall completion script')}`)
-  console.log('')
-  console.log(`  ${ansis.green('ccjk completion show <shell>')}`)
-  console.log(`    ${ansis.dim(isZh ? 'Show completion script' : 'Show completion script')}`)
-  console.log('')
-  console.log(ansis.bold(isZh ? 'Supported Shells:' : 'Supported Shells:'))
-  console.log(`  ${ansis.yellow('bash')}       - Bash shell`)
-  console.log(`  ${ansis.yellow('zsh')}        - Zsh shell`)
-  console.log(`  ${ansis.yellow('fish')}       - Fish shell`)
-  console.log(`  ${ansis.yellow('powershell')} - PowerShell`)
-  console.log('')
-  console.log(ansis.bold(isZh ? 'Examples:' : 'Examples:'))
-  console.log(ansis.dim('  ccjk completion install bash'))
-  console.log(ansis.dim('  ccjk completion install zsh'))
-  console.log(ansis.dim('  ccjk completion show fish'))
-  console.log('')
+  console.log('');
+  console.log(ansis.bold.cyan(isZh ? 'Shell Completion Commands' : 'Shell Completion Commands'));
+  console.log(ansis.dim('-'.repeat(50)));
+  console.log('');
+  console.log(`  ${ansis.green('ccjk completion install <shell>')}`);
+  console.log(`    ${ansis.dim(isZh ? 'Install completion script' : 'Install completion script')}`);
+  console.log('');
+  console.log(`  ${ansis.green('ccjk completion uninstall <shell>')}`);
+  console.log(`    ${ansis.dim(isZh ? 'Uninstall completion script' : 'Uninstall completion script')}`);
+  console.log('');
+  console.log(`  ${ansis.green('ccjk completion show <shell>')}`);
+  console.log(`    ${ansis.dim(isZh ? 'Show completion script' : 'Show completion script')}`);
+  console.log('');
+  console.log(ansis.bold(isZh ? 'Supported Shells:' : 'Supported Shells:'));
+  console.log(`  ${ansis.yellow('bash')}       - Bash shell`);
+  console.log(`  ${ansis.yellow('zsh')}        - Zsh shell`);
+  console.log(`  ${ansis.yellow('fish')}       - Fish shell`);
+  console.log(`  ${ansis.yellow('powershell')} - PowerShell`);
+  console.log('');
+  console.log(ansis.bold(isZh ? 'Examples:' : 'Examples:'));
+  console.log(ansis.dim('  ccjk completion install bash'));
+  console.log(ansis.dim('  ccjk completion install zsh'));
+  console.log(ansis.dim('  ccjk completion show fish'));
+  console.log('');
 }
 
 // Export provider for external use
-export { provider as completionProvider }
+export { provider as completionProvider };

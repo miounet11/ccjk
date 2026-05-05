@@ -10,7 +10,7 @@
  * - Tab expansion using ArgumentCompleter
  */
 
-import type { CommandInfo } from '../completion'
+import type { CommandInfo } from '../completion';
 
 /**
  * Generate PowerShell completion script
@@ -49,14 +49,14 @@ function Get-CcjkAgents {
 
 # Export functions
 Export-ModuleMember -Function Get-CcjkMcpServices,Get-CcjkSkills,Get-CcjkAgents
-`
+`;
 }
 
 /**
  * Generate completer script block
  */
 function generateCompleterBody(commands: CommandInfo[]): string {
-  const commandMap = generateCommandMap(commands)
+  const commandMap = generateCommandMap(commands);
 
   return `{
     param($wordToComplete, $commandAst, $cursorPosition)
@@ -179,65 +179,65 @@ ${commandMap}
 
     # Default: no completion
     @()
-}`
+}`;
 }
 
 /**
  * Generate command map for PowerShell
  */
 function generateCommandMap(commands: CommandInfo[]): string {
-  const lines: string[] = []
+  const lines: string[] = [];
 
   for (const cmd of commands) {
-    const cmdName = cmd.name
-    const cmdInfo: string[] = []
+    const cmdName = cmd.name;
+    const cmdInfo: string[] = [];
 
     // Description
-    cmdInfo.push(`'Description' = '${escapePowerShellString(cmd.description)}'`)
+    cmdInfo.push(`'Description' = '${escapePowerShellString(cmd.description)}'`);
 
     // Aliases
     if (cmd.aliases && cmd.aliases.length > 0) {
-      cmdInfo.push(`'Aliases' = @('${cmd.aliases.join('\', \'')}')`)
+      cmdInfo.push(`'Aliases' = @('${cmd.aliases.join('\', \'')}')`);
     }
     else {
-      cmdInfo.push(`'Aliases' = @()`)
+      cmdInfo.push(`'Aliases' = @()`);
     }
 
     // Options
     if (cmd.options && cmd.options.length > 0) {
-      const optionEntries: string[] = []
+      const optionEntries: string[] = [];
       for (const opt of cmd.options) {
-        const flags = parseOptionFlags(opt.flags)
+        const flags = parseOptionFlags(opt.flags);
         for (const flag of flags) {
-          optionEntries.push(`'${flag}' = '${escapePowerShellString(opt.description)}'`)
+          optionEntries.push(`'${flag}' = '${escapePowerShellString(opt.description)}'`);
         }
       }
-      cmdInfo.push(`'Options' = @{\n            ${optionEntries.join('\n            ')}\n        }`)
+      cmdInfo.push(`'Options' = @{\n            ${optionEntries.join('\n            ')}\n        }`);
     }
     else {
-      cmdInfo.push(`'Options' = @{}`)
+      cmdInfo.push(`'Options' = @{}`);
     }
 
     // Subcommands
     if (cmd.subcommands && cmd.subcommands.length > 0) {
-      const subEntries: string[] = []
+      const subEntries: string[] = [];
       for (const sub of cmd.subcommands) {
-        subEntries.push(`'${sub.name}' = '${escapePowerShellString(sub.description)}'`)
+        subEntries.push(`'${sub.name}' = '${escapePowerShellString(sub.description)}'`);
       }
-      cmdInfo.push(`'Subcommands' = @{\n            ${subEntries.join('\n            ')}\n        }`)
+      cmdInfo.push(`'Subcommands' = @{\n            ${subEntries.join('\n            ')}\n        }`);
     }
     else {
-      cmdInfo.push(`'Subcommands' = $null`)
+      cmdInfo.push(`'Subcommands' = $null`);
     }
 
-    lines.push(`        '${cmdName}' = @{`)
+    lines.push(`        '${cmdName}' = @{`);
     for (const entry of cmdInfo) {
-      lines.push(`            ${entry}`)
+      lines.push(`            ${entry}`);
     }
-    lines.push('        }')
+    lines.push('        }');
   }
 
-  return lines.join('\n')
+  return lines.join('\n');
 }
 
 /**
@@ -245,7 +245,7 @@ function generateCommandMap(commands: CommandInfo[]): string {
  */
 function parseOptionFlags(flags: string): string[] {
   // Parse flags like "--lang, -l <lang>" or "--force, -f"
-  return flags.split(',').map(f => f.trim().split(/\s+/)[0])
+  return flags.split(',').map(f => f.trim().split(/\s+/)[0]);
 }
 
 /**
@@ -255,5 +255,5 @@ function escapePowerShellString(str: string): string {
   return str
     .replace(/'/g, '\'\'')
     .replace(/`/g, '``')
-    .replace(/\$/g, '`$')
+    .replace(/\$/g, '`$');
 }

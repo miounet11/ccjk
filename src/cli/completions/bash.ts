@@ -9,14 +9,14 @@
  * - Dynamic value completion
  */
 
-import type { CommandInfo } from '../completion'
+import type { CommandInfo } from '../completion';
 
 /**
  * Generate Bash completion script
  */
 export function generateBashCompletion(commands: CommandInfo[]): string {
-  const commandNames = commands.map(c => c.name).join(' ')
-  const aliasMap = buildAliasMap(commands)
+  const commandNames = commands.map(c => c.name).join(' ');
+  const aliasMap = buildAliasMap(commands);
 
   return `#!/bin/bash
 # CCJK CLI Bash Completion
@@ -87,50 +87,50 @@ _ccjk_get_agents() {
 
 # Register completion
 complete -F _ccjk_completions ccjk
-`
+`;
 }
 
 /**
  * Build alias to command mapping
  */
 function buildAliasMap(commands: CommandInfo[]): Map<string, string> {
-  const map = new Map<string, string>()
+  const map = new Map<string, string>();
   for (const cmd of commands) {
     if (cmd.aliases) {
       for (const alias of cmd.aliases) {
-        map.set(alias, cmd.name)
+        map.set(alias, cmd.name);
       }
     }
   }
-  return map
+  return map;
 }
 
 /**
  * Generate alias mapping for bash
  */
 function generateAliasMapping(aliasMap: Map<string, string>): string {
-  const lines = ['    declare -A _ccjk_aliases=(']
+  const lines = ['    declare -A _ccjk_aliases=('];
   for (const [alias, cmd] of Array.from(aliasMap.entries())) {
-    lines.push(`        ["${alias}"]="${cmd}"`)
+    lines.push(`        ["${alias}"]="${cmd}"`);
   }
-  lines.push('    )')
-  return lines.join('\n')
+  lines.push('    )');
+  return lines.join('\n');
 }
 
 /**
  * Generate bash case statements for each command
  */
 function generateBashCommandCases(commands: CommandInfo[]): string {
-  const cases: string[] = []
+  const cases: string[] = [];
 
   for (const cmd of commands) {
     if (!cmd.subcommands && !cmd.options)
-      continue
+      continue;
 
-    const subcommands = cmd.subcommands?.map(s => s.name).join(' ') || ''
-    const options = cmd.options?.map(o => extractOptionFlags(o.flags)).flat().join(' ') || ''
+    const subcommands = cmd.subcommands?.map(s => s.name).join(' ') || '';
+    const options = cmd.options?.map(o => extractOptionFlags(o.flags)).flat().join(' ') || '';
 
-    let caseBody = ''
+    let caseBody = '';
 
     if (cmd.subcommands) {
       caseBody += `
@@ -162,30 +162,30 @@ ${generateSubcommandCases(cmd)}
                         fi
                         ;;
                 esac
-            fi`
+            fi`;
     }
     else if (cmd.options) {
       caseBody = `
             if [[ "$cur" == -* ]]; then
                 COMPREPLY=($(compgen -W "${options} --help" -- "$cur"))
-            fi`
+            fi`;
 
       // Add value completion for options with predefined values
-      const optionsWithValues = cmd.options.filter(o => o.values && Array.isArray(o.values))
+      const optionsWithValues = cmd.options.filter(o => o.values && Array.isArray(o.values));
       if (optionsWithValues.length > 0) {
         caseBody += `
             # Option value completion
             case "$prev" in
 ${generateOptionValueCases(optionsWithValues)}
-            esac`
+            esac`;
       }
     }
 
     cases.push(`        ${cmd.name})${caseBody}
-            ;;`)
+            ;;`);
   }
 
-  return cases.join('\n')
+  return cases.join('\n');
 }
 
 /**
@@ -193,44 +193,44 @@ ${generateOptionValueCases(optionsWithValues)}
  */
 function generateSubcommandCases(cmd: CommandInfo): string {
   if (!cmd.subcommands)
-    return ''
+    return '';
 
-  const cases: string[] = []
+  const cases: string[] = [];
   for (const sub of cmd.subcommands) {
-    const subOptions = sub.options?.map(o => extractOptionFlags(o.flags)).flat().join(' ') || ''
-    const parentOptions = cmd.options?.map(o => extractOptionFlags(o.flags)).flat().join(' ') || ''
-    const allOptions = `${subOptions} ${parentOptions}`.trim()
+    const subOptions = sub.options?.map(o => extractOptionFlags(o.flags)).flat().join(' ') || '';
+    const parentOptions = cmd.options?.map(o => extractOptionFlags(o.flags)).flat().join(' ') || '';
+    const allOptions = `${subOptions} ${parentOptions}`.trim();
 
     cases.push(`                    ${sub.name})
                         if [[ "$cur" == -* ]]; then
                             COMPREPLY=($(compgen -W "${allOptions} --help" -- "$cur"))
                         fi
-                        ;;`)
+                        ;;`);
   }
-  return cases.join('\n')
+  return cases.join('\n');
 }
 
 /**
  * Generate option value completion cases
  */
-function generateOptionValueCases(options: { flags: string, values?: string[] | (() => Promise<string[]>) }[]): string {
-  const cases: string[] = []
+function generateOptionValueCases(options: { flags: string; values?: string[] | (() => Promise<string[]>) }[]): string {
+  const cases: string[] = [];
 
   for (const opt of options) {
     if (!opt.values || typeof opt.values === 'function')
-      continue
+      continue;
 
-    const flags = extractOptionFlags(opt.flags)
-    const values = (opt.values as string[]).join(' ')
+    const flags = extractOptionFlags(opt.flags);
+    const values = (opt.values as string[]).join(' ');
 
     for (const flag of flags) {
       cases.push(`                ${flag})
                     COMPREPLY=($(compgen -W "${values}" -- "$cur"))
-                    ;;`)
+                    ;;`);
     }
   }
 
-  return cases.join('\n')
+  return cases.join('\n');
 }
 
 /**
@@ -238,5 +238,5 @@ function generateOptionValueCases(options: { flags: string, values?: string[] | 
  */
 function extractOptionFlags(flags: string): string[] {
   // Parse flags like "--lang, -l" or "--force, -f"
-  return flags.split(',').map(f => f.trim().split(/\s+/)[0])
+  return flags.split(',').map(f => f.trim().split(/\s+/)[0]);
 }

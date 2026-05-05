@@ -7,7 +7,7 @@
  * @module cloud-client/errors
  */
 
-import { i18n } from '../i18n/index.js'
+import { i18n } from '../i18n/index.js';
 
 /**
  * Standard cloud error codes
@@ -40,15 +40,15 @@ export enum CloudErrorCode {
  */
 export interface CloudErrorMetadata {
   /** HTTP status code if applicable */
-  statusCode?: number
+  statusCode?: number;
   /** Original error object */
-  originalError?: unknown
+  originalError?: unknown;
   /** Additional context data */
-  context?: Record<string, any>
+  context?: Record<string, any>;
   /** Retry attempt number */
-  retryAttempt?: number
+  retryAttempt?: number;
   /** Request ID for tracking */
-  requestId?: string
+  requestId?: string;
 }
 
 /**
@@ -58,44 +58,44 @@ export interface CloudErrorMetadata {
  */
 export class CloudError extends Error {
   /** Error code */
-  readonly code: CloudErrorCode
+  readonly code: CloudErrorCode;
 
   /** HTTP status code if applicable */
-  readonly statusCode?: number
+  readonly statusCode?: number;
 
   /** Original error */
-  readonly originalError?: unknown
+  readonly originalError?: unknown;
 
   /** Additional context */
-  readonly context?: Record<string, any>
+  readonly context?: Record<string, any>;
 
   /** Retry attempt number */
-  readonly retryAttempt?: number
+  readonly retryAttempt?: number;
 
   /** Request ID */
-  readonly requestId?: string
+  readonly requestId?: string;
 
   /** Whether this error is retryable */
-  readonly isRetryable: boolean
+  readonly isRetryable: boolean;
 
   constructor(
     code: CloudErrorCode,
     message: string,
     metadata?: CloudErrorMetadata,
   ) {
-    super(message)
-    this.name = 'CloudError'
-    this.code = code
-    this.statusCode = metadata?.statusCode
-    this.originalError = metadata?.originalError
-    this.context = metadata?.context
-    this.retryAttempt = metadata?.retryAttempt
-    this.requestId = metadata?.requestId
-    this.isRetryable = isRetryableErrorCode(code)
+    super(message);
+    this.name = 'CloudError';
+    this.code = code;
+    this.statusCode = metadata?.statusCode;
+    this.originalError = metadata?.originalError;
+    this.context = metadata?.context;
+    this.retryAttempt = metadata?.retryAttempt;
+    this.requestId = metadata?.requestId;
+    this.isRetryable = isRetryableErrorCode(code);
 
     // Maintain proper stack trace
     if (Error.captureStackTrace) {
-      Error.captureStackTrace(this, CloudError)
+      Error.captureStackTrace(this, CloudError);
     }
   }
 
@@ -103,22 +103,22 @@ export class CloudError extends Error {
    * Get localized error message
    */
   getLocalizedMessage(language?: string): string {
-    const lang = language || i18n.language
-    return i18n.t(`cloud:errors.${this.code}`, { lng: lang }) || this.message
+    const lang = language || i18n.language;
+    return i18n.t(`cloud:errors.${this.code}`, { lng: lang }) || this.message;
   }
 
   /**
    * Get user-friendly error message with context
    */
   getUserMessage(language?: string): string {
-    const localizedMsg = this.getLocalizedMessage(language)
+    const localizedMsg = this.getLocalizedMessage(language);
 
     // Add context if available
     if (this.statusCode) {
-      return `${localizedMsg} (HTTP ${this.statusCode})`
+      return `${localizedMsg} (HTTP ${this.statusCode})`;
     }
 
-    return localizedMsg
+    return localizedMsg;
   }
 
   /**
@@ -135,7 +135,7 @@ export class CloudError extends Error {
       requestId: this.requestId,
       context: this.context,
       stack: this.stack,
-    }
+    };
   }
 }
 
@@ -151,28 +151,28 @@ export const CloudErrorFactory = {
     message: string,
     metadata?: Omit<CloudErrorMetadata, 'statusCode'>,
   ): CloudError {
-    let code: CloudErrorCode
+    let code: CloudErrorCode;
 
     if (statusCode === 401 || statusCode === 403) {
-      code = CloudErrorCode.AUTH_ERROR
+      code = CloudErrorCode.AUTH_ERROR;
     }
     else if (statusCode === 404) {
-      code = CloudErrorCode.NOT_FOUND
+      code = CloudErrorCode.NOT_FOUND;
     }
     else if (statusCode === 429) {
-      code = CloudErrorCode.RATE_LIMIT
+      code = CloudErrorCode.RATE_LIMIT;
     }
     else if (statusCode >= 500) {
-      code = CloudErrorCode.SERVER_ERROR
+      code = CloudErrorCode.SERVER_ERROR;
     }
     else if (statusCode >= 400) {
-      code = CloudErrorCode.API_ERROR
+      code = CloudErrorCode.API_ERROR;
     }
     else {
-      code = CloudErrorCode.UNKNOWN_ERROR
+      code = CloudErrorCode.UNKNOWN_ERROR;
     }
 
-    return new CloudError(code, message, { ...metadata, statusCode })
+    return new CloudError(code, message, { ...metadata, statusCode });
   },
 
   /**
@@ -183,7 +183,7 @@ export const CloudErrorFactory = {
       CloudErrorCode.AUTH_ERROR,
       message || 'Authentication failed',
       { ...metadata, statusCode: metadata?.statusCode || 401 },
-    )
+    );
   },
 
   /**
@@ -194,7 +194,7 @@ export const CloudErrorFactory = {
       CloudErrorCode.RATE_LIMIT,
       message || 'Rate limit exceeded',
       { ...metadata, statusCode: metadata?.statusCode || 429 },
-    )
+    );
   },
 
   /**
@@ -205,7 +205,7 @@ export const CloudErrorFactory = {
       CloudErrorCode.SCHEMA_MISMATCH,
       message || 'Response schema validation failed',
       metadata,
-    )
+    );
   },
 
   /**
@@ -214,13 +214,13 @@ export const CloudErrorFactory = {
   network(error: unknown, metadata?: CloudErrorMetadata): CloudError {
     const message = error instanceof Error
       ? error.message
-      : 'Network connection failed'
+      : 'Network connection failed';
 
     return new CloudError(
       CloudErrorCode.NETWORK_ERROR,
       message,
       { ...metadata, originalError: error },
-    )
+    );
   },
 
   /**
@@ -231,7 +231,7 @@ export const CloudErrorFactory = {
       CloudErrorCode.TIMEOUT,
       `Request timeout after ${timeoutMs}ms`,
       metadata,
-    )
+    );
   },
 
   /**
@@ -242,7 +242,7 @@ export const CloudErrorFactory = {
       CloudErrorCode.SERVER_ERROR,
       message || 'Server error occurred',
       { ...metadata, statusCode: metadata?.statusCode || 500 },
-    )
+    );
   },
 
   /**
@@ -251,13 +251,13 @@ export const CloudErrorFactory = {
   notFound(resource?: string, metadata?: CloudErrorMetadata): CloudError {
     const message = resource
       ? `Resource not found: ${resource}`
-      : 'Resource not found'
+      : 'Resource not found';
 
     return new CloudError(
       CloudErrorCode.NOT_FOUND,
       message,
       { ...metadata, statusCode: metadata?.statusCode || 404 },
-    )
+    );
   },
 
   /**
@@ -268,7 +268,7 @@ export const CloudErrorFactory = {
       CloudErrorCode.VALIDATION_ERROR,
       message,
       { ...metadata, statusCode: metadata?.statusCode || 400 },
-    )
+    );
   },
 
   /**
@@ -277,15 +277,15 @@ export const CloudErrorFactory = {
   unknown(error: unknown, metadata?: CloudErrorMetadata): CloudError {
     const message = error instanceof Error
       ? error.message
-      : 'An unknown error occurred'
+      : 'An unknown error occurred';
 
     return new CloudError(
       CloudErrorCode.UNKNOWN_ERROR,
       message,
       { ...metadata, originalError: error },
-    )
+    );
   },
-}
+};
 
 /**
  * Error handling utilities
@@ -300,7 +300,7 @@ export function isRetryableErrorCode(code: CloudErrorCode): boolean {
     CloudErrorCode.TIMEOUT,
     CloudErrorCode.SERVER_ERROR,
     CloudErrorCode.RATE_LIMIT,
-  ].includes(code)
+  ].includes(code);
 }
 
 /**
@@ -308,12 +308,12 @@ export function isRetryableErrorCode(code: CloudErrorCode): boolean {
  */
 export function isRetryableError(error: unknown): boolean {
   if (error instanceof CloudError) {
-    return error.isRetryable
+    return error.isRetryable;
   }
 
   // Check for network-related errors in regular Error objects
   if (error instanceof Error) {
-    const message = error.message.toLowerCase()
+    const message = error.message.toLowerCase();
     return (
       message.includes('network')
       || message.includes('connection')
@@ -321,10 +321,10 @@ export function isRetryableError(error: unknown): boolean {
       || message.includes('econnrefused')
       || message.includes('enotfound')
       || message.includes('etimedout')
-    )
+    );
   }
 
-  return false
+  return false;
 }
 
 /**
@@ -332,9 +332,9 @@ export function isRetryableError(error: unknown): boolean {
  */
 export function isAuthError(error: unknown): boolean {
   if (error instanceof CloudError) {
-    return error.code === CloudErrorCode.AUTH_ERROR
+    return error.code === CloudErrorCode.AUTH_ERROR;
   }
-  return false
+  return false;
 }
 
 /**
@@ -342,9 +342,9 @@ export function isAuthError(error: unknown): boolean {
  */
 export function isRateLimitError(error: unknown): boolean {
   if (error instanceof CloudError) {
-    return error.code === CloudErrorCode.RATE_LIMIT
+    return error.code === CloudErrorCode.RATE_LIMIT;
   }
-  return false
+  return false;
 }
 
 /**
@@ -353,45 +353,45 @@ export function isRateLimitError(error: unknown): boolean {
 export function handleCloudError(
   error: unknown,
   context?: string,
-  language?: string,
+  _language?: string,
 ): CloudError {
   // Already a CloudError
   if (error instanceof CloudError) {
-    return error
+    return error;
   }
 
   // Convert to CloudError
-  let cloudError: CloudError
+  let cloudError: CloudError;
 
   if (error instanceof Error) {
-    const message = error.message.toLowerCase()
+    const message = error.message.toLowerCase();
 
     // Detect error type from message
     if (message.includes('timeout') || message.includes('timed out')) {
-      cloudError = CloudErrorFactory.timeout(10000, { originalError: error })
+      cloudError = CloudErrorFactory.timeout(10000, { originalError: error });
     }
     else if (
       message.includes('econnrefused')
       || message.includes('enotfound')
       || message.includes('network')
     ) {
-      cloudError = CloudErrorFactory.network(error)
+      cloudError = CloudErrorFactory.network(error);
     }
     else if (message.includes('401') || message.includes('unauthorized')) {
-      cloudError = CloudErrorFactory.auth(error.message, { originalError: error })
+      cloudError = CloudErrorFactory.auth(error.message, { originalError: error });
     }
     else if (message.includes('429') || message.includes('rate limit')) {
-      cloudError = CloudErrorFactory.rateLimit(error.message, { originalError: error })
+      cloudError = CloudErrorFactory.rateLimit(error.message, { originalError: error });
     }
     else if (message.includes('404') || message.includes('not found')) {
-      cloudError = CloudErrorFactory.notFound(undefined, { originalError: error })
+      cloudError = CloudErrorFactory.notFound(undefined, { originalError: error });
     }
     else {
-      cloudError = CloudErrorFactory.unknown(error)
+      cloudError = CloudErrorFactory.unknown(error);
     }
   }
   else {
-    cloudError = CloudErrorFactory.unknown(error)
+    cloudError = CloudErrorFactory.unknown(error);
   }
 
   // Add context if provided (create new error with context)
@@ -406,7 +406,7 @@ export function handleCloudError(
         retryAttempt: cloudError.retryAttempt,
         requestId: cloudError.requestId,
       },
-    )
+    );
   }
   else if (context && cloudError.context) {
     return new CloudError(
@@ -419,10 +419,10 @@ export function handleCloudError(
         retryAttempt: cloudError.retryAttempt,
         requestId: cloudError.requestId,
       },
-    )
+    );
   }
 
-  return cloudError
+  return cloudError;
 }
 
 /**
@@ -432,23 +432,23 @@ export function getRetryDelay(
   error: CloudError,
   attempt: number,
   config?: {
-    initialDelay?: number
-    multiplier?: number
-    maxDelay?: number
+    initialDelay?: number;
+    multiplier?: number;
+    maxDelay?: number;
   },
 ): number {
-  const initialDelay = config?.initialDelay || 100
-  const multiplier = config?.multiplier || 2
-  const maxDelay = config?.maxDelay || 10000
+  const initialDelay = config?.initialDelay || 100;
+  const multiplier = config?.multiplier || 2;
+  const maxDelay = config?.maxDelay || 10000;
 
   // Special handling for rate limit errors
   if (error.code === CloudErrorCode.RATE_LIMIT) {
     // Use longer delays for rate limits
-    return Math.min(initialDelay * 10 * multiplier ** attempt, maxDelay)
+    return Math.min(initialDelay * 10 * multiplier ** attempt, maxDelay);
   }
 
   // Standard exponential backoff
-  return Math.min(initialDelay * multiplier ** attempt, maxDelay)
+  return Math.min(initialDelay * multiplier ** attempt, maxDelay);
 }
 
 /**
@@ -456,7 +456,7 @@ export function getRetryDelay(
  */
 export function formatErrorForLogging(error: unknown): Record<string, any> {
   if (error instanceof CloudError) {
-    return error.toJSON()
+    return error.toJSON();
   }
 
   if (error instanceof Error) {
@@ -464,14 +464,14 @@ export function formatErrorForLogging(error: unknown): Record<string, any> {
       name: error.name,
       message: error.message,
       stack: error.stack,
-    }
+    };
   }
 
   return {
     error: String(error),
-  }
+  };
 }
 
 // Re-export for backward compatibility
-export { CloudError as CloudClientError }
-export type { CloudErrorCode as CloudClientErrorType }
+export { CloudError as CloudClientError };
+export type { CloudErrorCode as CloudClientErrorType };

@@ -1,21 +1,21 @@
-import type { WorkflowConfig, WorkflowDisplayCategory, WorkflowMetadata, WorkflowTag } from '../types/workflow'
-import { ensureI18nInitialized, i18n } from '../i18n'
+import type { WorkflowConfig, WorkflowDisplayCategory, WorkflowMetadata, WorkflowTag } from '../types/workflow';
+import { ensureI18nInitialized, i18n } from '../i18n';
 
 // Re-export types for convenience
-export type { WorkflowDisplayCategory, WorkflowMetadata, WorkflowTag }
+export type { WorkflowDisplayCategory, WorkflowMetadata, WorkflowTag };
 
 // Pure business configuration without any i18n text
 export interface WorkflowConfigBase {
-  id: string
-  defaultSelected: boolean
-  order: number
-  commands: string[]
-  agents: Array<{ id: string, filename: string, required: boolean }>
-  autoInstallAgents: boolean
-  category: 'essential' | 'sixStep' | 'git' | 'interview' | 'specFirstTDD' | 'continuousDelivery' | 'refactoringMaster' | 'linearMethod'
-  displayCategory: WorkflowDisplayCategory
-  outputDir: string
-  metadata: WorkflowMetadata
+  id: string;
+  defaultSelected: boolean;
+  order: number;
+  commands: string[];
+  agents: Array<{ id: string; filename: string; required: boolean }>;
+  autoInstallAgents: boolean;
+  category: 'essential' | 'sixStep' | 'git' | 'interview' | 'specFirstTDD' | 'continuousDelivery' | 'refactoringMaster' | 'linearMethod';
+  displayCategory: WorkflowDisplayCategory;
+  outputDir: string;
+  metadata: WorkflowMetadata;
 }
 
 export const WORKFLOW_CONFIG_BASE: WorkflowConfigBase[] = [
@@ -160,10 +160,10 @@ export const WORKFLOW_CONFIG_BASE: WorkflowConfigBase[] = [
       difficulty: 'intermediate',
     },
   },
-]
+];
 
 export function getWorkflowConfigs(): WorkflowConfig[] {
-  ensureI18nInitialized()
+  ensureI18nInitialized();
 
   // Create static workflow option list for i18n-ally compatibility
   const workflowTranslations = [
@@ -215,72 +215,72 @@ export function getWorkflowConfigs(): WorkflowConfig[] {
       description: i18n.t('workflow:workflowDescription.linearMethod'),
       stats: i18n.t('workflow:workflowStats.linearMethod'),
     },
-  ]
+  ];
 
   // Merge base config with translations
   return WORKFLOW_CONFIG_BASE.map((baseConfig) => {
-    const translation = workflowTranslations.find(t => t.id === baseConfig.id)
+    const translation = workflowTranslations.find(t => t.id === baseConfig.id);
     return {
       ...baseConfig,
       name: translation?.name || baseConfig.id,
       description: translation?.description,
       stats: translation?.stats,
-    }
-  })
+    };
+  });
 }
 
 export function getWorkflowConfig(workflowId: string): WorkflowConfig | undefined {
-  return getWorkflowConfigs().find(config => config.id === workflowId)
+  return getWorkflowConfigs().find(config => config.id === workflowId);
 }
 
 export function getOrderedWorkflows(): WorkflowConfig[] {
-  return getWorkflowConfigs().sort((a, b) => a.order - b.order)
+  return getWorkflowConfigs().sort((a, b) => a.order - b.order);
 }
 
 // Get workflows grouped by display category
 export function getWorkflowsByDisplayCategory(): Map<WorkflowDisplayCategory, WorkflowConfig[]> {
-  const workflows = getOrderedWorkflows()
-  const grouped = new Map<WorkflowDisplayCategory, WorkflowConfig[]>()
+  const workflows = getOrderedWorkflows();
+  const grouped = new Map<WorkflowDisplayCategory, WorkflowConfig[]>();
 
   for (const workflow of workflows) {
-    const category = workflow.displayCategory
+    const category = workflow.displayCategory;
     if (!grouped.has(category)) {
-      grouped.set(category, [])
+      grouped.set(category, []);
     }
-    grouped.get(category)!.push(workflow)
+    grouped.get(category)!.push(workflow);
   }
 
-  return grouped
+  return grouped;
 }
 
 // Get display category order for CLI
 export function getDisplayCategoryOrder(): WorkflowDisplayCategory[] {
-  return ['planning', 'development', 'versionControl', 'quality']
+  return ['planning', 'development', 'versionControl', 'quality'];
 }
 
 // Get translated tag label
 export function getTagLabel(tag: WorkflowTag): string {
-  ensureI18nInitialized()
+  ensureI18nInitialized();
   const tagKeys: Record<WorkflowTag, string> = {
     recommended: 'workflow:tags.recommended',
     popular: 'workflow:tags.popular',
     new: 'workflow:tags.new',
     essential: 'workflow:tags.essential',
     professional: 'workflow:tags.professional',
-  }
-  return i18n.t(tagKeys[tag])
+  };
+  return i18n.t(tagKeys[tag]);
 }
 
 // Get translated category label
 export function getCategoryLabel(category: WorkflowDisplayCategory): string {
-  ensureI18nInitialized()
+  ensureI18nInitialized();
   const categoryKeys: Record<WorkflowDisplayCategory, string> = {
     planning: 'workflow:category.planning',
     development: 'workflow:category.development',
     versionControl: 'workflow:category.versionControl',
     quality: 'workflow:category.quality',
-  }
-  return i18n.t(categoryKeys[category])
+  };
+  return i18n.t(categoryKeys[category]);
 }
 
 // Note: WORKFLOW_CONFIGS should not be used directly in new code

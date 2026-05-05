@@ -13,31 +13,31 @@
  */
 export interface CloudSkill {
   /** Unique skill identifier */
-  id: string
+  id: string;
 
   /** Skill name (same as metadata.name) */
-  name: string
+  name: string;
 
   /** Skill version (semantic version) */
-  version: string
+  version: string;
 
   /** Skill content (markdown with frontmatter) */
-  content: string
+  content: string;
 
   /** Skill metadata */
-  metadata: CloudSkillMetadata
+  metadata: CloudSkillMetadata;
 
   /** Privacy level */
-  privacy: 'private' | 'team' | 'public'
+  privacy: 'private' | 'team' | 'public';
 
   /** Content checksum (SHA-256) */
-  checksum: string
+  checksum: string;
 
   /** Creation timestamp (ISO 8601) */
-  createdAt: string
+  createdAt: string;
 
   /** Last update timestamp (ISO 8601) */
-  updatedAt: string
+  updatedAt: string;
 }
 
 /**
@@ -47,25 +47,25 @@ export interface CloudSkill {
  */
 export interface CloudSkillMetadata {
   /** Author username or ID */
-  author: string
+  author: string;
 
   /** Skill description */
-  description: string
+  description: string;
 
   /** Skill tags for discovery */
-  tags: string[]
+  tags: string[];
 
   /** Skill category */
-  category: string
+  category: string;
 
   /** Download count */
-  downloads?: number
+  downloads?: number;
 
   /** Star/like count */
-  stars?: number
+  stars?: number;
 
   /** Minimum CCJK version required */
-  minCcjkVersion?: string
+  minCcjkVersion?: string;
 }
 
 /**
@@ -75,22 +75,22 @@ export interface CloudSkillMetadata {
  */
 export interface SyncState {
   /** Skill ID */
-  skillId: string
+  skillId: string;
 
   /** Last sync timestamp (ISO 8601) */
-  lastSyncTime: string
+  lastSyncTime: string;
 
   /** Local version */
-  localVersion: string
+  localVersion: string;
 
   /** Remote version */
-  remoteVersion: string
+  remoteVersion: string;
 
   /** Local content checksum */
-  localChecksum: string
+  localChecksum: string;
 
   /** Remote content checksum */
-  remoteChecksum: string
+  remoteChecksum: string;
 
   /**
    * Sync status
@@ -101,10 +101,10 @@ export interface SyncState {
    * - local_only: Skill exists only locally
    * - remote_only: Skill exists only remotely
    */
-  status: 'synced' | 'local_ahead' | 'remote_ahead' | 'conflict' | 'local_only' | 'remote_only'
+  status: 'synced' | 'local_ahead' | 'remote_ahead' | 'conflict' | 'local_only' | 'remote_only';
 
   /** Last sync error (if any) */
-  lastError?: string
+  lastError?: string;
 }
 
 /**
@@ -114,13 +114,13 @@ export interface SyncState {
  */
 export interface SyncStateStorage {
   /** Storage version */
-  version: string
+  version: string;
 
   /** Last global sync timestamp */
-  lastGlobalSync: string
+  lastGlobalSync: string;
 
   /** Sync states by skill ID */
-  skills: Record<string, SyncState>
+  skills: Record<string, SyncState>;
 }
 
 /**
@@ -136,27 +136,27 @@ export interface SyncOptions {
    * - newer: Keep newer version based on timestamp
    * - prompt: Ask user for each conflict
    */
-  conflictResolution?: 'local' | 'remote' | 'newer' | 'prompt'
+  conflictResolution?: 'local' | 'remote' | 'newer' | 'prompt';
 
   /**
    * Whether to perform dry run (no actual changes)
    */
-  dryRun?: boolean
+  dryRun?: boolean;
 
   /**
    * Whether to force sync (ignore conflicts)
    */
-  force?: boolean
+  force?: boolean;
 
   /**
    * Filter by skill IDs (only sync these skills)
    */
-  skillIds?: string[]
+  skillIds?: string[];
 
   /**
    * Filter by privacy level
    */
-  privacy?: 'private' | 'team' | 'public'
+  privacy?: 'private' | 'team' | 'public';
 }
 
 /**
@@ -166,13 +166,13 @@ export interface SyncOptions {
  */
 export interface SkillSyncResult {
   /** Skill ID */
-  skillId: string
+  skillId: string;
 
   /** Skill name */
-  skillName: string
+  skillName: string;
 
   /** Whether sync succeeded */
-  success: boolean
+  success: boolean;
 
   /**
    * Action taken
@@ -183,16 +183,16 @@ export interface SkillSyncResult {
    * - deleted_local: Skill was deleted locally
    * - deleted_remote: Skill was deleted remotely
    */
-  action: 'uploaded' | 'downloaded' | 'skipped' | 'conflict' | 'deleted_local' | 'deleted_remote'
+  action: 'uploaded' | 'downloaded' | 'skipped' | 'conflict' | 'deleted_local' | 'deleted_remote';
 
   /** Previous sync state */
-  previousState?: SyncState
+  previousState?: SyncState;
 
   /** New sync state */
-  newState?: SyncState
+  newState?: SyncState;
 
   /** Error message (if failed) */
-  error?: string
+  error?: string;
 }
 
 /**
@@ -202,37 +202,37 @@ export interface SkillSyncResult {
  */
 export interface SyncResult {
   /** Whether overall sync succeeded */
-  success: boolean
+  success: boolean;
 
   /** Total skills processed */
-  total: number
+  total: number;
 
   /** Number of successful syncs */
-  succeeded: number
+  succeeded: number;
 
   /** Number of failed syncs */
-  failed: number
+  failed: number;
 
   /** Number of conflicts */
-  conflicts: number
+  conflicts: number;
 
   /** Number of skills uploaded */
-  uploaded: number
+  uploaded: number;
 
   /** Number of skills downloaded */
-  downloaded: number
+  downloaded: number;
 
   /** Number of skills skipped */
-  skipped: number
+  skipped: number;
 
   /** Individual skill results */
-  results: SkillSyncResult[]
+  results: SkillSyncResult[];
 
   /** Overall error message (if failed) */
-  error?: string
+  error?: string;
 
   /** Sync duration in milliseconds */
-  durationMs: number
+  durationMs: number;
 }
 
 /**
@@ -240,19 +240,19 @@ export interface SyncResult {
  */
 export interface CloudApiResponse<T = unknown> {
   /** Whether request succeeded */
-  success: boolean
+  success: boolean;
 
   /** Response data */
-  data?: T
+  data?: T;
 
   /** Error message */
-  error?: string
+  error?: string;
 
   /** Error code */
-  code?: string
+  code?: string;
 
   /** Response timestamp */
-  timestamp: string
+  timestamp: string;
 }
 
 /**
@@ -260,28 +260,28 @@ export interface CloudApiResponse<T = unknown> {
  */
 export interface ListSkillsOptions {
   /** Filter by privacy level */
-  privacy?: 'private' | 'team' | 'public'
+  privacy?: 'private' | 'team' | 'public';
 
   /** Filter by author */
-  author?: string
+  author?: string;
 
   /** Filter by tags */
-  tags?: string[]
+  tags?: string[];
 
   /** Search query */
-  query?: string
+  query?: string;
 
   /** Page number (1-based) */
-  page?: number
+  page?: number;
 
   /** Page size */
-  pageSize?: number
+  pageSize?: number;
 
   /** Sort by field */
-  sortBy?: 'name' | 'createdAt' | 'updatedAt' | 'downloads' | 'stars'
+  sortBy?: 'name' | 'createdAt' | 'updatedAt' | 'downloads' | 'stars';
 
   /** Sort direction */
-  sortDir?: 'asc' | 'desc'
+  sortDir?: 'asc' | 'desc';
 }
 
 /**
@@ -289,19 +289,19 @@ export interface ListSkillsOptions {
  */
 export interface ListSkillsResponse {
   /** Skills list */
-  skills: CloudSkill[]
+  skills: CloudSkill[];
 
   /** Total count */
-  total: number
+  total: number;
 
   /** Current page */
-  page: number
+  page: number;
 
   /** Page size */
-  pageSize: number
+  pageSize: number;
 
   /** Total pages */
-  totalPages: number
+  totalPages: number;
 }
 
 /**
@@ -309,22 +309,22 @@ export interface ListSkillsResponse {
  */
 export interface UploadSkillRequest {
   /** Skill name */
-  name: string
+  name: string;
 
   /** Skill version */
-  version: string
+  version: string;
 
   /** Skill content */
-  content: string
+  content: string;
 
   /** Skill metadata */
-  metadata: CloudSkillMetadata
+  metadata: CloudSkillMetadata;
 
   /** Privacy level */
-  privacy: 'private' | 'team' | 'public'
+  privacy: 'private' | 'team' | 'public';
 
   /** Content checksum */
-  checksum: string
+  checksum: string;
 }
 
 /**
@@ -332,10 +332,10 @@ export interface UploadSkillRequest {
  */
 export interface DownloadSkillRequest {
   /** Skill ID */
-  skillId: string
+  skillId: string;
 
   /** Specific version (optional, defaults to latest) */
-  version?: string
+  version?: string;
 }
 
 /**
@@ -343,7 +343,7 @@ export interface DownloadSkillRequest {
  */
 export interface DeleteSkillRequest {
   /** Skill ID */
-  skillId: string
+  skillId: string;
 }
 
 /**
@@ -351,7 +351,7 @@ export interface DeleteSkillRequest {
  */
 export interface ConflictResolution {
   /** Skill ID */
-  skillId: string
+  skillId: string;
 
   /**
    * Resolution choice
@@ -359,5 +359,5 @@ export interface ConflictResolution {
    * - remote: Keep remote version
    * - merge: Attempt to merge (not implemented yet)
    */
-  choice: 'local' | 'remote' | 'merge'
+  choice: 'local' | 'remote' | 'merge';
 }

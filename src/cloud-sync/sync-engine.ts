@@ -1,4 +1,4 @@
-import type { CloudAdapter } from './adapters/index'
+import type { CloudAdapter } from './adapters/index';
 /**
  * Cloud Sync Engine
  *
@@ -24,58 +24,58 @@ import type {
   SyncState,
   SyncStats,
   SyncStatus,
-} from './types'
-import { Buffer } from 'node:buffer'
-import { createHash, randomUUID } from 'node:crypto'
-import { createAdapter } from './adapters/index'
-import { DEFAULT_SYNC_CONFIG, INITIAL_SYNC_STATE } from './types'
+} from './types';
+import { Buffer } from 'node:buffer';
+import { createHash, randomUUID } from 'node:crypto';
+import { createAdapter } from './adapters/index';
+import { DEFAULT_SYNC_CONFIG, INITIAL_SYNC_STATE } from './types';
 
 // ============================================================================
 // Event Emitter Implementation
 // ============================================================================
 
-type EventCallback = (...args: any[]) => void
+type EventCallback = (...args: any[]) => void;
 
 /**
  * Simple typed event emitter for sync events
  */
 class SyncEventEmitter {
-  private listeners: Map<string, Set<EventCallback>> = new Map()
+  private listeners: Map<string, Set<EventCallback>> = new Map();
 
   on<K extends keyof SyncEvents>(event: K, callback: SyncEvents[K]): void {
     if (!this.listeners.has(event)) {
-      this.listeners.set(event, new Set())
+      this.listeners.set(event, new Set());
     }
-    this.listeners.get(event)!.add(callback as EventCallback)
+    this.listeners.get(event)!.add(callback as EventCallback);
   }
 
   off<K extends keyof SyncEvents>(event: K, callback: SyncEvents[K]): void {
-    const callbacks = this.listeners.get(event)
+    const callbacks = this.listeners.get(event);
     if (callbacks) {
-      callbacks.delete(callback as EventCallback)
+      callbacks.delete(callback as EventCallback);
     }
   }
 
   emit<K extends keyof SyncEvents>(event: K, ...args: Parameters<SyncEvents[K]>): void {
-    const callbacks = this.listeners.get(event)
+    const callbacks = this.listeners.get(event);
     if (callbacks) {
       callbacks.forEach((callback) => {
         try {
-          callback(...args)
+          callback(...args);
         }
         catch (error) {
-          console.error(`Error in event listener for ${event}:`, error)
+          console.error(`Error in event listener for ${event}:`, error);
         }
-      })
+      });
     }
   }
 
   removeAllListeners(event?: keyof SyncEvents): void {
     if (event) {
-      this.listeners.delete(event)
+      this.listeners.delete(event);
     }
     else {
-      this.listeners.clear()
+      this.listeners.clear();
     }
   }
 }
@@ -89,15 +89,15 @@ class SyncEventEmitter {
  */
 export interface SyncOptions {
   /** Force sync even if no changes detected */
-  force?: boolean
+  force?: boolean;
   /** Specific item types to sync */
-  itemTypes?: SyncableItemType[]
+  itemTypes?: SyncableItemType[];
   /** Override conflict strategy for this sync */
-  conflictStrategy?: ConflictStrategy
+  conflictStrategy?: ConflictStrategy;
   /** Batch size for sync operations */
-  batchSize?: number
+  batchSize?: number;
   /** Enable delta sync optimization */
-  deltaSync?: boolean
+  deltaSync?: boolean;
 }
 
 /**
@@ -109,7 +109,7 @@ const DEFAULT_SYNC_OPTIONS: Required<SyncOptions> = {
   conflictStrategy: 'newest-wins',
   batchSize: 10,
   deltaSync: true,
-}
+};
 
 // ============================================================================
 // Sync Engine Class
@@ -136,29 +136,29 @@ const DEFAULT_SYNC_OPTIONS: Required<SyncOptions> = {
  */
 export class SyncEngine {
   // Configuration
-  private config: SyncConfig
-  private options: Required<SyncOptions>
+  private config: SyncConfig;
+  private options: Required<SyncOptions>;
 
   // State management
-  private state: SyncState
-  private queue: SyncQueueState
+  private state: SyncState;
+  private queue: SyncQueueState;
 
   // Adapter
-  private adapter: CloudAdapter | null = null
+  private adapter: CloudAdapter | null = null;
 
   // Event emitter
-  private emitter: SyncEventEmitter
+  private emitter: SyncEventEmitter;
 
   // Auto-sync timer
-  private autoSyncTimer: ReturnType<typeof setInterval> | null = null
+  private autoSyncTimer: ReturnType<typeof setInterval> | null = null;
 
   // Pause state
-  private isPaused: boolean = false
-  private pausePromise: Promise<void> | null = null
-  private pauseResolve: (() => void) | null = null
+  private isPaused: boolean = false;
+  private pausePromise: Promise<void> | null = null;
+  private pauseResolve: (() => void) | null = null;
 
   // Local items cache
-  private localItemsCache: Map<string, SyncableItem> = new Map()
+  private localItemsCache: Map<string, SyncableItem> = new Map();
 
   /**
    * Create a new SyncEngine instance
@@ -167,15 +167,15 @@ export class SyncEngine {
    * @param options - Sync options
    */
   constructor(config: Partial<SyncConfig> = {}, options: SyncOptions = {}) {
-    this.config = { ...DEFAULT_SYNC_CONFIG, ...config }
-    this.options = { ...DEFAULT_SYNC_OPTIONS, ...options }
-    this.state = { ...INITIAL_SYNC_STATE }
+    this.config = { ...DEFAULT_SYNC_CONFIG, ...config };
+    this.options = { ...DEFAULT_SYNC_OPTIONS, ...options };
+    this.state = { ...INITIAL_SYNC_STATE };
     this.queue = {
       items: [],
       isProcessing: false,
       currentItem: null,
-    }
-    this.emitter = new SyncEventEmitter()
+    };
+    this.emitter = new SyncEventEmitter();
   }
 
   // ===========================================================================
@@ -189,40 +189,40 @@ export class SyncEngine {
    */
   async initialize(): Promise<void> {
     try {
-      this.updateState({ status: 'syncing' })
+      this.updateState({ status: 'syncing' });
 
       // Create and connect adapter
       const providerType = this.config.provider.type === 'custom'
         ? 'local' // Fallback for custom
         : this.config.provider.type === 's3'
           ? 'webdav' // S3 not yet implemented, fallback
-          : this.config.provider.type
+          : this.config.provider.type;
 
       this.adapter = await createAdapter(providerType as any, {
         provider: providerType,
         ...this.config.provider.credentials,
         ...this.config.provider.options,
-      } as any)
+      } as any);
 
       // Calculate initial local state hash
-      const localHash = await this.calculateLocalStateHash()
+      const localHash = await this.calculateLocalStateHash();
       this.updateState({
         status: 'idle',
         localStateHash: localHash,
-      })
+      });
 
       // Start auto-sync if configured
       if (this.config.autoSyncInterval > 0) {
-        this.startAutoSync()
+        this.startAutoSync();
       }
     }
     catch (error) {
-      const syncError = this.createSyncError(error, 'PROVIDER_ERROR')
+      const syncError = this.createSyncError(error, 'PROVIDER_ERROR');
       this.updateState({
         status: 'error',
         lastError: syncError.message,
-      })
-      throw syncError
+      });
+      throw syncError;
     }
   }
 
@@ -231,20 +231,20 @@ export class SyncEngine {
    */
   async stop(): Promise<void> {
     // Stop auto-sync
-    this.stopAutoSync()
+    this.stopAutoSync();
 
     // Cancel any pending operations
-    this.isPaused = false
+    this.isPaused = false;
     if (this.pauseResolve) {
-      this.pauseResolve()
-      this.pauseResolve = null
-      this.pausePromise = null
+      this.pauseResolve();
+      this.pauseResolve = null;
+      this.pausePromise = null;
     }
 
     // Disconnect adapter
     if (this.adapter) {
-      await this.adapter.disconnect()
-      this.adapter = null
+      await this.adapter.disconnect();
+      this.adapter = null;
     }
 
     // Reset state
@@ -252,10 +252,10 @@ export class SyncEngine {
       status: 'idle',
       progress: 0,
       currentItems: [],
-    })
+    });
 
     // Clear event listeners
-    this.emitter.removeAllListeners()
+    this.emitter.removeAllListeners();
   }
 
   /**
@@ -263,10 +263,10 @@ export class SyncEngine {
    */
   pause(): void {
     if (!this.isPaused) {
-      this.isPaused = true
+      this.isPaused = true;
       this.pausePromise = new Promise((resolve) => {
-        this.pauseResolve = resolve
-      })
+        this.pauseResolve = resolve;
+      });
     }
   }
 
@@ -275,11 +275,11 @@ export class SyncEngine {
    */
   resume(): void {
     if (this.isPaused) {
-      this.isPaused = false
+      this.isPaused = false;
       if (this.pauseResolve) {
-        this.pauseResolve()
-        this.pauseResolve = null
-        this.pausePromise = null
+        this.pauseResolve();
+        this.pauseResolve = null;
+        this.pausePromise = null;
       }
     }
   }
@@ -288,7 +288,7 @@ export class SyncEngine {
    * Check if engine is paused
    */
   get paused(): boolean {
-    return this.isPaused
+    return this.isPaused;
   }
 
   // ===========================================================================
@@ -302,9 +302,9 @@ export class SyncEngine {
    * @returns Sync result with details
    */
   async sync(options: SyncOptions = {}): Promise<SyncResult> {
-    const mergedOptions = { ...this.options, ...options }
-    const startTime = Date.now()
-    const startedAt = new Date().toISOString()
+    const mergedOptions = { ...this.options, ...options };
+    const startTime = Date.now();
+    const startedAt = new Date().toISOString();
 
     const result: SyncResult = {
       success: false,
@@ -316,34 +316,34 @@ export class SyncEngine {
       durationMs: 0,
       startedAt,
       completedAt: '',
-    }
+    };
 
     try {
-      this.ensureInitialized()
-      this.updateState({ status: 'syncing', progress: 0, currentItems: [] })
-      this.emitter.emit('sync:start', this.config.direction, mergedOptions.itemTypes!)
+      this.ensureInitialized();
+      this.updateState({ status: 'syncing', progress: 0, currentItems: [] });
+      this.emitter.emit('sync:start', this.config.direction, mergedOptions.itemTypes!);
 
       // Wait if paused
-      await this.waitIfPaused()
+      await this.waitIfPaused();
 
       // Perform sync based on direction
       switch (this.config.direction) {
         case 'push':
-          await this.performPush(result, mergedOptions)
-          break
+          await this.performPush(result, mergedOptions);
+          break;
         case 'pull':
-          await this.performPull(result, mergedOptions)
-          break
+          await this.performPull(result, mergedOptions);
+          break;
         case 'bidirectional':
-          await this.performBidirectionalSync(result, mergedOptions)
-          break
+          await this.performBidirectionalSync(result, mergedOptions);
+          break;
       }
 
       // Update state on success
-      result.success = result.errors.length === 0
-      const completedAt = new Date().toISOString()
-      result.completedAt = completedAt
-      result.durationMs = Date.now() - startTime
+      result.success = result.errors.length === 0;
+      const completedAt = new Date().toISOString();
+      result.completedAt = completedAt;
+      result.durationMs = Date.now() - startTime;
 
       this.updateState({
         status: result.conflicts.length > 0 ? 'conflict' : 'idle',
@@ -353,27 +353,27 @@ export class SyncEngine {
         currentItems: [],
         conflicts: result.conflicts,
         stats: this.updateStats(result),
-      })
+      });
 
-      this.emitter.emit('sync:complete', result)
+      this.emitter.emit('sync:complete', result);
     }
     catch (error) {
-      const syncError = this.createSyncError(error, 'UNKNOWN_ERROR')
-      result.errors.push(syncError)
-      result.completedAt = new Date().toISOString()
-      result.durationMs = Date.now() - startTime
+      const syncError = this.createSyncError(error, 'UNKNOWN_ERROR');
+      result.errors.push(syncError);
+      result.completedAt = new Date().toISOString();
+      result.durationMs = Date.now() - startTime;
 
       this.updateState({
         status: 'error',
         lastError: syncError.message,
         progress: 0,
         currentItems: [],
-      })
+      });
 
-      this.emitter.emit('sync:error', syncError)
+      this.emitter.emit('sync:error', syncError);
     }
 
-    return result
+    return result;
   }
 
   /**
@@ -383,7 +383,7 @@ export class SyncEngine {
    * @returns Sync result
    */
   async push(options: SyncOptions = {}): Promise<SyncResult> {
-    return this.sync({ ...options, ...{ direction: 'push' } } as any)
+    return this.sync({ ...options, ...{ direction: 'push' } } as any);
   }
 
   /**
@@ -393,7 +393,7 @@ export class SyncEngine {
    * @returns Sync result
    */
   async pull(options: SyncOptions = {}): Promise<SyncResult> {
-    return this.sync({ ...options, ...{ direction: 'pull' } } as any)
+    return this.sync({ ...options, ...{ direction: 'pull' } } as any);
   }
 
   // ===========================================================================
@@ -407,34 +407,34 @@ export class SyncEngine {
     result: SyncResult,
     options: Required<SyncOptions>,
   ): Promise<void> {
-    const localItems = await this.getLocalItems(options.itemTypes)
-    const totalItems = localItems.length
-    let processedItems = 0
+    const localItems = await this.getLocalItems(options.itemTypes);
+    const totalItems = localItems.length;
+    let processedItems = 0;
 
     // Process in batches
-    const batches = this.createBatches(localItems, options.batchSize)
+    const batches = this.createBatches(localItems, options.batchSize);
 
     for (const batch of batches) {
-      await this.waitIfPaused()
+      await this.waitIfPaused();
 
       for (const item of batch) {
         try {
           this.updateState({
             progress: Math.round((processedItems / totalItems) * 100),
             currentItems: [item.id],
-          })
-          this.emitter.emit('sync:progress', this.state.progress, item.name)
+          });
+          this.emitter.emit('sync:progress', this.state.progress, item.name);
 
-          await this.pushItem(item)
-          result.pushed.push(item)
-          this.emitter.emit('sync:pushed', item)
+          await this.pushItem(item);
+          result.pushed.push(item);
+          this.emitter.emit('sync:pushed', item);
         }
         catch (error) {
-          const syncError = this.createSyncError(error, 'PROVIDER_ERROR', item.id)
-          result.errors.push(syncError)
+          const syncError = this.createSyncError(error, 'PROVIDER_ERROR', item.id);
+          result.errors.push(syncError);
         }
 
-        processedItems++
+        processedItems++;
       }
     }
   }
@@ -446,34 +446,34 @@ export class SyncEngine {
     result: SyncResult,
     options: Required<SyncOptions>,
   ): Promise<void> {
-    const remoteItems = await this.getRemoteItems(options.itemTypes)
-    const totalItems = remoteItems.length
-    let processedItems = 0
+    const remoteItems = await this.getRemoteItems(options.itemTypes);
+    const totalItems = remoteItems.length;
+    let processedItems = 0;
 
     // Process in batches
-    const batches = this.createBatches(remoteItems, options.batchSize)
+    const batches = this.createBatches(remoteItems, options.batchSize);
 
     for (const batch of batches) {
-      await this.waitIfPaused()
+      await this.waitIfPaused();
 
       for (const item of batch) {
         try {
           this.updateState({
             progress: Math.round((processedItems / totalItems) * 100),
             currentItems: [item.id],
-          })
-          this.emitter.emit('sync:progress', this.state.progress, item.name)
+          });
+          this.emitter.emit('sync:progress', this.state.progress, item.name);
 
-          await this.pullItem(item)
-          result.pulled.push(item)
-          this.emitter.emit('sync:pulled', item)
+          await this.pullItem(item);
+          result.pulled.push(item);
+          this.emitter.emit('sync:pulled', item);
         }
         catch (error) {
-          const syncError = this.createSyncError(error, 'PROVIDER_ERROR', item.id)
-          result.errors.push(syncError)
+          const syncError = this.createSyncError(error, 'PROVIDER_ERROR', item.id);
+          result.errors.push(syncError);
         }
 
-        processedItems++
+        processedItems++;
       }
     }
   }
@@ -486,109 +486,109 @@ export class SyncEngine {
     options: Required<SyncOptions>,
   ): Promise<void> {
     // Get local and remote items
-    const localItems = await this.getLocalItems(options.itemTypes)
-    const remoteItems = await this.getRemoteItems(options.itemTypes)
+    const localItems = await this.getLocalItems(options.itemTypes);
+    const remoteItems = await this.getRemoteItems(options.itemTypes);
 
     // Build maps for comparison
-    const localMap = new Map(localItems.map(item => [item.id, item]))
-    const remoteMap = new Map(remoteItems.map(item => [item.id, item]))
+    const localMap = new Map(localItems.map(item => [item.id, item]));
+    const remoteMap = new Map(remoteItems.map(item => [item.id, item]));
 
     // Detect changes
-    const changes = this.detectChanges(localMap, remoteMap, options.deltaSync)
+    const changes = this.detectChanges(localMap, remoteMap, options.deltaSync);
 
-    const totalOperations = changes.toPush.length + changes.toPull.length + changes.conflicts.length
-    let processedOperations = 0
+    const totalOperations = changes.toPush.length + changes.toPull.length + changes.conflicts.length;
+    let processedOperations = 0;
 
     // Handle conflicts first
     for (const conflict of changes.conflicts) {
-      await this.waitIfPaused()
+      await this.waitIfPaused();
 
-      const resolution = await this.resolveConflict(conflict, options.conflictStrategy)
+      const resolution = await this.resolveConflict(conflict, options.conflictStrategy);
 
       if (resolution === 'local') {
-        changes.toPush.push(conflict.localItem)
+        changes.toPush.push(conflict.localItem);
       }
       else if (resolution === 'remote') {
-        changes.toPull.push(conflict.remoteItem)
+        changes.toPull.push(conflict.remoteItem);
       }
       else {
         // Manual resolution required
-        result.conflicts.push(conflict)
-        this.emitter.emit('sync:conflict', conflict)
+        result.conflicts.push(conflict);
+        this.emitter.emit('sync:conflict', conflict);
       }
 
-      processedOperations++
+      processedOperations++;
       this.updateState({
         progress: Math.round((processedOperations / totalOperations) * 100),
-      })
+      });
     }
 
     // Push local changes
     for (const item of changes.toPush) {
-      await this.waitIfPaused()
+      await this.waitIfPaused();
 
       try {
         this.updateState({
           progress: Math.round((processedOperations / totalOperations) * 100),
           currentItems: [item.id],
-        })
-        this.emitter.emit('sync:progress', this.state.progress, item.name)
+        });
+        this.emitter.emit('sync:progress', this.state.progress, item.name);
 
-        await this.pushItem(item)
-        result.pushed.push(item)
-        this.emitter.emit('sync:pushed', item)
+        await this.pushItem(item);
+        result.pushed.push(item);
+        this.emitter.emit('sync:pushed', item);
       }
       catch (error) {
-        const syncError = this.createSyncError(error, 'PROVIDER_ERROR', item.id)
-        result.errors.push(syncError)
+        const syncError = this.createSyncError(error, 'PROVIDER_ERROR', item.id);
+        result.errors.push(syncError);
       }
 
-      processedOperations++
+      processedOperations++;
     }
 
     // Pull remote changes
     for (const item of changes.toPull) {
-      await this.waitIfPaused()
+      await this.waitIfPaused();
 
       try {
         this.updateState({
           progress: Math.round((processedOperations / totalOperations) * 100),
           currentItems: [item.id],
-        })
-        this.emitter.emit('sync:progress', this.state.progress, item.name)
+        });
+        this.emitter.emit('sync:progress', this.state.progress, item.name);
 
-        await this.pullItem(item)
-        result.pulled.push(item)
-        this.emitter.emit('sync:pulled', item)
+        await this.pullItem(item);
+        result.pulled.push(item);
+        this.emitter.emit('sync:pulled', item);
       }
       catch (error) {
-        const syncError = this.createSyncError(error, 'PROVIDER_ERROR', item.id)
-        result.errors.push(syncError)
+        const syncError = this.createSyncError(error, 'PROVIDER_ERROR', item.id);
+        result.errors.push(syncError);
       }
 
-      processedOperations++
+      processedOperations++;
     }
 
     // Handle deletions
     for (const itemId of changes.toDeleteRemote) {
-      await this.waitIfPaused()
+      await this.waitIfPaused();
       try {
-        await this.deleteRemoteItem(itemId)
+        await this.deleteRemoteItem(itemId);
       }
       catch (error) {
-        const syncError = this.createSyncError(error, 'PROVIDER_ERROR', itemId)
-        result.errors.push(syncError)
+        const syncError = this.createSyncError(error, 'PROVIDER_ERROR', itemId);
+        result.errors.push(syncError);
       }
     }
 
     for (const itemId of changes.toDeleteLocal) {
-      await this.waitIfPaused()
+      await this.waitIfPaused();
       try {
-        await this.deleteLocalItem(itemId)
+        await this.deleteLocalItem(itemId);
       }
       catch (error) {
-        const syncError = this.createSyncError(error, 'PROVIDER_ERROR', itemId)
-        result.errors.push(syncError)
+        const syncError = this.createSyncError(error, 'PROVIDER_ERROR', itemId);
+        result.errors.push(syncError);
       }
     }
   }
@@ -605,48 +605,48 @@ export class SyncEngine {
     remoteMap: Map<string, SyncableItem>,
     deltaSync: boolean,
   ): {
-    toPush: SyncableItem[]
-    toPull: SyncableItem[]
-    conflicts: SyncConflict[]
-    toDeleteLocal: string[]
-    toDeleteRemote: string[]
+    toPush: SyncableItem[];
+    toPull: SyncableItem[];
+    conflicts: SyncConflict[];
+    toDeleteLocal: string[];
+    toDeleteRemote: string[];
   } {
-    const toPush: SyncableItem[] = []
-    const toPull: SyncableItem[] = []
-    const conflicts: SyncConflict[] = []
-    const toDeleteLocal: string[] = []
-    const toDeleteRemote: string[] = []
+    const toPush: SyncableItem[] = [];
+    const toPull: SyncableItem[] = [];
+    const conflicts: SyncConflict[] = [];
+    const toDeleteLocal: string[] = [];
+    const toDeleteRemote: string[] = [];
 
     // Check local items
     for (const [id, localItem] of localMap) {
-      const remoteItem = remoteMap.get(id)
+      const remoteItem = remoteMap.get(id);
 
       if (!remoteItem) {
         // New local item - push to remote
-        toPush.push(localItem)
+        toPush.push(localItem);
       }
       else if (deltaSync && localItem.contentHash === remoteItem.contentHash) {
         // No changes - skip
-        continue
+        continue;
       }
       else {
         // Both exist - check for conflicts
-        const localTime = new Date(localItem.lastModified).getTime()
-        const remoteTime = new Date(remoteItem.lastModified).getTime()
+        const localTime = new Date(localItem.lastModified).getTime();
+        const remoteTime = new Date(remoteItem.lastModified).getTime();
 
         if (localItem.contentHash !== remoteItem.contentHash) {
           // Content differs - potential conflict
           if (Math.abs(localTime - remoteTime) < 1000) {
             // Modified at nearly the same time - conflict
-            conflicts.push(this.createConflict(localItem, remoteItem))
+            conflicts.push(this.createConflict(localItem, remoteItem));
           }
           else if (localTime > remoteTime) {
             // Local is newer
-            toPush.push(localItem)
+            toPush.push(localItem);
           }
           else {
             // Remote is newer
-            toPull.push(remoteItem)
+            toPull.push(remoteItem);
           }
         }
       }
@@ -655,11 +655,11 @@ export class SyncEngine {
     // Check for remote-only items (new remote items)
     for (const [id, remoteItem] of remoteMap) {
       if (!localMap.has(id)) {
-        toPull.push(remoteItem)
+        toPull.push(remoteItem);
       }
     }
 
-    return { toPush, toPull, conflicts, toDeleteLocal, toDeleteRemote }
+    return { toPush, toPull, conflicts, toDeleteLocal, toDeleteRemote };
   }
 
   // ===========================================================================
@@ -692,7 +692,7 @@ export class SyncEngine {
       },
       detectedAt: new Date().toISOString(),
       resolved: false,
-    }
+    };
   }
 
   /**
@@ -704,30 +704,30 @@ export class SyncEngine {
   ): Promise<'local' | 'remote' | 'manual'> {
     switch (strategy) {
       case 'local-wins':
-        conflict.resolved = true
-        conflict.resolution = 'local'
-        this.emitter.emit('sync:conflict-resolved', conflict, 'local')
-        return 'local'
+        conflict.resolved = true;
+        conflict.resolution = 'local';
+        this.emitter.emit('sync:conflict-resolved', conflict, 'local');
+        return 'local';
 
       case 'remote-wins':
-        conflict.resolved = true
-        conflict.resolution = 'remote'
-        this.emitter.emit('sync:conflict-resolved', conflict, 'remote')
-        return 'remote'
+        conflict.resolved = true;
+        conflict.resolution = 'remote';
+        this.emitter.emit('sync:conflict-resolved', conflict, 'remote');
+        return 'remote';
 
       case 'newest-wins': {
-        const localTime = new Date(conflict.localItem.lastModified).getTime()
-        const remoteTime = new Date(conflict.remoteItem.lastModified).getTime()
-        const winner = localTime >= remoteTime ? 'local' : 'remote'
-        conflict.resolved = true
-        conflict.resolution = winner
-        this.emitter.emit('sync:conflict-resolved', conflict, winner)
-        return winner
+        const localTime = new Date(conflict.localItem.lastModified).getTime();
+        const remoteTime = new Date(conflict.remoteItem.lastModified).getTime();
+        const winner = localTime >= remoteTime ? 'local' : 'remote';
+        conflict.resolved = true;
+        conflict.resolution = winner;
+        this.emitter.emit('sync:conflict-resolved', conflict, winner);
+        return winner;
       }
 
       case 'manual':
       default:
-        return 'manual'
+        return 'manual';
     }
   }
 
@@ -742,32 +742,32 @@ export class SyncEngine {
     resolution: 'local' | 'remote' | 'merged',
     mergedItem?: SyncableItem,
   ): Promise<void> {
-    const conflict = this.state.conflicts.find(c => c.id === conflictId)
+    const conflict = this.state.conflicts.find(c => c.id === conflictId);
     if (!conflict) {
-      throw new Error(`Conflict not found: ${conflictId}`)
+      throw new Error(`Conflict not found: ${conflictId}`);
     }
 
-    conflict.resolved = true
-    conflict.resolution = resolution
+    conflict.resolved = true;
+    conflict.resolution = resolution;
 
     if (resolution === 'local') {
-      await this.pushItem(conflict.localItem)
+      await this.pushItem(conflict.localItem);
     }
     else if (resolution === 'remote') {
-      await this.pullItem(conflict.remoteItem)
+      await this.pullItem(conflict.remoteItem);
     }
     else if (resolution === 'merged' && mergedItem) {
-      await this.pushItem(mergedItem)
-      await this.saveLocalItem(mergedItem)
+      await this.pushItem(mergedItem);
+      await this.saveLocalItem(mergedItem);
     }
 
     // Remove from conflicts list
     this.updateState({
       conflicts: this.state.conflicts.filter(c => c.id !== conflictId),
       status: this.state.conflicts.length <= 1 ? 'idle' : 'conflict',
-    })
+    });
 
-    this.emitter.emit('sync:conflict-resolved', conflict, resolution)
+    this.emitter.emit('sync:conflict-resolved', conflict, resolution);
   }
 
   // ===========================================================================
@@ -778,43 +778,43 @@ export class SyncEngine {
    * Push a single item to remote
    */
   private async pushItem(item: SyncableItem): Promise<void> {
-    this.ensureInitialized()
+    this.ensureInitialized();
 
-    const key = this.getItemKey(item)
-    const data = Buffer.from(JSON.stringify(item), 'utf-8')
+    const key = this.getItemKey(item);
+    const data = Buffer.from(JSON.stringify(item), 'utf-8');
 
     await this.withRetry(async () => {
       await this.adapter!.upload(key, data, {
         type: item.type,
         version: item.version,
         contentHash: item.contentHash,
-      })
-    })
+      });
+    });
   }
 
   /**
    * Pull a single item from remote
    */
   private async pullItem(item: SyncableItem): Promise<void> {
-    this.ensureInitialized()
+    this.ensureInitialized();
 
     // Save to local storage
-    await this.saveLocalItem(item)
+    await this.saveLocalItem(item);
   }
 
   /**
    * Delete an item from remote
    */
   private async deleteRemoteItem(itemId: string): Promise<void> {
-    this.ensureInitialized()
+    this.ensureInitialized();
 
     // Find item type from cache or try all types
-    const cachedItem = this.localItemsCache.get(itemId)
+    const cachedItem = this.localItemsCache.get(itemId);
     if (cachedItem) {
-      const key = this.getItemKey(cachedItem)
+      const key = this.getItemKey(cachedItem);
       await this.withRetry(async () => {
-        await this.adapter!.delete(key)
-      })
+        await this.adapter!.delete(key);
+      });
     }
   }
 
@@ -822,7 +822,7 @@ export class SyncEngine {
    * Delete an item from local storage
    */
   private async deleteLocalItem(itemId: string): Promise<void> {
-    this.localItemsCache.delete(itemId)
+    this.localItemsCache.delete(itemId);
     // Actual file deletion would be implemented based on item type
   }
 
@@ -830,7 +830,7 @@ export class SyncEngine {
    * Save an item to local storage
    */
   private async saveLocalItem(item: SyncableItem): Promise<void> {
-    this.localItemsCache.set(item.id, item)
+    this.localItemsCache.set(item.id, item);
     // Actual file saving would be implemented based on item type
   }
 
@@ -838,7 +838,7 @@ export class SyncEngine {
    * Get the storage key for an item
    */
   private getItemKey(item: SyncableItem): string {
-    return `${item.type}/${item.id}.json`
+    return `${item.type}/${item.id}.json`;
   }
 
   // ===========================================================================
@@ -850,42 +850,42 @@ export class SyncEngine {
    */
   private async getLocalItems(types: SyncableItemType[]): Promise<SyncableItem[]> {
     // Return cached items filtered by type
-    const items: SyncableItem[] = []
+    const items: SyncableItem[] = [];
     for (const item of this.localItemsCache.values()) {
       if (types.includes(item.type)) {
-        items.push(item)
+        items.push(item);
       }
     }
-    return items
+    return items;
   }
 
   /**
    * Get remote items by type
    */
   private async getRemoteItems(types: SyncableItemType[]): Promise<SyncableItem[]> {
-    this.ensureInitialized()
+    this.ensureInitialized();
 
-    const items: SyncableItem[] = []
+    const items: SyncableItem[] = [];
 
     for (const type of types) {
-      const remoteList = await this.adapter!.list(`${type}/`)
+      const remoteList = await this.adapter!.list(`${type}/`);
 
       for (const remoteItem of remoteList) {
         try {
-          const result = await this.adapter!.download(remoteItem.key)
-          const item = JSON.parse(result.data.toString('utf-8')) as SyncableItem
-          items.push(item)
+          const result = await this.adapter!.download(remoteItem.key);
+          const item = JSON.parse(result.data.toString('utf-8')) as SyncableItem;
+          items.push(item);
         }
         catch (error) {
           // Skip invalid items
           if (this.config.verbose) {
-            console.warn(`Failed to parse remote item: ${remoteItem.key}`, error)
+            console.warn(`Failed to parse remote item: ${remoteItem.key}`, error);
           }
         }
       }
     }
 
-    return items
+    return items;
   }
 
   // ===========================================================================
@@ -900,30 +900,30 @@ export class SyncEngine {
     maxRetries: number = this.config.maxRetries,
     baseDelay: number = this.config.retryDelayMs,
   ): Promise<T> {
-    let lastError: Error | null = null
+    let lastError: Error | null = null;
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        return await operation()
+        return await operation();
       }
       catch (error) {
-        lastError = error instanceof Error ? error : new Error(String(error))
+        lastError = error instanceof Error ? error : new Error(String(error));
 
         if (attempt < maxRetries) {
-          const syncError = this.createSyncError(lastError, 'NETWORK_ERROR')
-          this.emitter.emit('sync:retry', attempt, maxRetries, syncError)
+          const syncError = this.createSyncError(lastError, 'NETWORK_ERROR');
+          this.emitter.emit('sync:retry', attempt, maxRetries, syncError);
 
           // Exponential backoff with jitter
           const delay = Math.min(
             baseDelay * 2 ** (attempt - 1) + Math.random() * 1000,
             30000,
-          )
-          await this.sleep(delay)
+          );
+          await this.sleep(delay);
         }
       }
     }
 
-    throw lastError
+    throw lastError;
   }
 
   // ===========================================================================
@@ -935,23 +935,23 @@ export class SyncEngine {
    */
   private startAutoSync(): void {
     if (this.autoSyncTimer) {
-      return
+      return;
     }
 
     this.autoSyncTimer = setInterval(async () => {
       if (this.state.status === 'idle' && !this.isPaused) {
-        this.emitter.emit('sync:auto-triggered')
+        this.emitter.emit('sync:auto-triggered');
         try {
-          await this.sync()
+          await this.sync();
         }
         catch (error) {
           // Auto-sync errors are logged but don't throw
           if (this.config.verbose) {
-            console.error('Auto-sync failed:', error)
+            console.error('Auto-sync failed:', error);
           }
         }
       }
-    }, this.config.autoSyncInterval)
+    }, this.config.autoSyncInterval);
   }
 
   /**
@@ -959,8 +959,8 @@ export class SyncEngine {
    */
   private stopAutoSync(): void {
     if (this.autoSyncTimer) {
-      clearInterval(this.autoSyncTimer)
-      this.autoSyncTimer = null
+      clearInterval(this.autoSyncTimer);
+      this.autoSyncTimer = null;
     }
   }
 
@@ -970,11 +970,11 @@ export class SyncEngine {
    * @param interval - New interval in milliseconds (0 to disable)
    */
   setAutoSyncInterval(interval: number): void {
-    this.config.autoSyncInterval = interval
-    this.stopAutoSync()
+    this.config.autoSyncInterval = interval;
+    this.stopAutoSync();
 
     if (interval > 0) {
-      this.startAutoSync()
+      this.startAutoSync();
     }
   }
 
@@ -993,10 +993,10 @@ export class SyncEngine {
       priority: this.getItemPriority(item),
       retryCount: 0,
       queuedAt: new Date().toISOString(),
-    }
+    };
 
-    this.queue.items.push(queueItem)
-    this.queue.items.sort((a, b) => a.priority - b.priority)
+    this.queue.items.push(queueItem);
+    this.queue.items.sort((a, b) => a.priority - b.priority);
   }
 
   /**
@@ -1004,46 +1004,46 @@ export class SyncEngine {
    */
   async processQueue(): Promise<void> {
     if (this.queue.isProcessing || this.queue.items.length === 0) {
-      return
+      return;
     }
 
-    this.queue.isProcessing = true
+    this.queue.isProcessing = true;
 
     while (this.queue.items.length > 0) {
-      await this.waitIfPaused()
+      await this.waitIfPaused();
 
-      const queueItem = this.queue.items.shift()!
-      this.queue.currentItem = queueItem
+      const queueItem = this.queue.items.shift()!;
+      this.queue.currentItem = queueItem;
 
       try {
         switch (queueItem.operation) {
           case 'push':
-            await this.pushItem(queueItem.item)
-            break
+            await this.pushItem(queueItem.item);
+            break;
           case 'pull':
-            await this.pullItem(queueItem.item)
-            break
+            await this.pullItem(queueItem.item);
+            break;
           case 'delete':
-            await this.deleteRemoteItem(queueItem.item.id)
-            break
+            await this.deleteRemoteItem(queueItem.item.id);
+            break;
         }
       }
       catch (error) {
-        queueItem.retryCount++
-        queueItem.lastAttemptAt = new Date().toISOString()
-        queueItem.lastError = this.createSyncError(error, 'PROVIDER_ERROR', queueItem.item.id)
+        queueItem.retryCount++;
+        queueItem.lastAttemptAt = new Date().toISOString();
+        queueItem.lastError = this.createSyncError(error, 'PROVIDER_ERROR', queueItem.item.id);
 
         if (queueItem.retryCount < this.config.maxRetries) {
           // Re-queue with lower priority
-          queueItem.priority += 10
-          this.queue.items.push(queueItem)
-          this.queue.items.sort((a, b) => a.priority - b.priority)
+          queueItem.priority += 10;
+          this.queue.items.push(queueItem);
+          this.queue.items.sort((a, b) => a.priority - b.priority);
         }
       }
     }
 
-    this.queue.isProcessing = false
-    this.queue.currentItem = null
+    this.queue.isProcessing = false;
+    this.queue.currentItem = null;
   }
 
   /**
@@ -1056,23 +1056,23 @@ export class SyncEngine {
       'skills': 3,
       'workflows': 4,
       'memories': 5,
-    }
-    return priorities[item.type] || 6
+    };
+    return priorities[item.type] || 6;
   }
 
   /**
    * Clear the sync queue
    */
   clearQueue(): void {
-    this.queue.items = []
-    this.queue.currentItem = null
+    this.queue.items = [];
+    this.queue.currentItem = null;
   }
 
   /**
    * Get current queue state
    */
   getQueueState(): SyncQueueState {
-    return { ...this.queue }
+    return { ...this.queue };
   }
 
   // ===========================================================================
@@ -1086,7 +1086,7 @@ export class SyncEngine {
    * @param callback - Event callback
    */
   on<K extends keyof SyncEvents>(event: K, callback: SyncEvents[K]): void {
-    this.emitter.on(event, callback)
+    this.emitter.on(event, callback);
   }
 
   /**
@@ -1096,7 +1096,7 @@ export class SyncEngine {
    * @param callback - Event callback
    */
   off<K extends keyof SyncEvents>(event: K, callback: SyncEvents[K]): void {
-    this.emitter.off(event, callback)
+    this.emitter.off(event, callback);
   }
 
   /**
@@ -1108,9 +1108,9 @@ export class SyncEngine {
   once<K extends keyof SyncEvents>(event: K, callback: SyncEvents[K]): void {
     const wrapper = ((...args: any[]) => {
       this.emitter.off(event, wrapper as any)
-      ;(callback as any)(...args)
-    }) as SyncEvents[K]
-    this.emitter.on(event, wrapper)
+      ;(callback as any)(...args);
+    }) as SyncEvents[K];
+    this.emitter.on(event, wrapper);
   }
 
   // ===========================================================================
@@ -1121,35 +1121,35 @@ export class SyncEngine {
    * Get current sync state
    */
   getState(): SyncState {
-    return { ...this.state }
+    return { ...this.state };
   }
 
   /**
    * Get current sync status
    */
   getStatus(): SyncStatus {
-    return this.state.status
+    return this.state.status;
   }
 
   /**
    * Get sync statistics
    */
   getStats(): SyncStats {
-    return { ...this.state.stats }
+    return { ...this.state.stats };
   }
 
   /**
    * Get pending conflicts
    */
   getConflicts(): SyncConflict[] {
-    return [...this.state.conflicts]
+    return [...this.state.conflicts];
   }
 
   /**
    * Update sync state
    */
   private updateState(updates: Partial<SyncState>): void {
-    this.state = { ...this.state, ...updates }
+    this.state = { ...this.state, ...updates };
   }
 
   /**
@@ -1164,7 +1164,7 @@ export class SyncEngine {
         + result.conflicts.filter(c => c.resolved).length,
       failures: this.state.stats.failures + result.errors.length,
       totalDurationMs: this.state.stats.totalDurationMs + result.durationMs,
-    }
+    };
   }
 
   // ===========================================================================
@@ -1175,7 +1175,7 @@ export class SyncEngine {
    * Get current configuration
    */
   getConfig(): SyncConfig {
-    return { ...this.config }
+    return { ...this.config };
   }
 
   /**
@@ -1184,13 +1184,13 @@ export class SyncEngine {
    * @param updates - Configuration updates
    */
   updateConfig(updates: Partial<SyncConfig>): void {
-    this.config = { ...this.config, ...updates }
+    this.config = { ...this.config, ...updates };
 
     // Handle auto-sync interval changes
     if ('autoSyncInterval' in updates) {
-      this.stopAutoSync()
+      this.stopAutoSync();
       if (this.config.autoSyncInterval > 0) {
-        this.startAutoSync()
+        this.startAutoSync();
       }
     }
   }
@@ -1201,9 +1201,9 @@ export class SyncEngine {
    * @param items - Items to set
    */
   setLocalItems(items: SyncableItem[]): void {
-    this.localItemsCache.clear()
+    this.localItemsCache.clear();
     for (const item of items) {
-      this.localItemsCache.set(item.id, item)
+      this.localItemsCache.set(item.id, item);
     }
   }
 
@@ -1213,7 +1213,7 @@ export class SyncEngine {
    * @param item - Item to add
    */
   addLocalItem(item: SyncableItem): void {
-    this.localItemsCache.set(item.id, item)
+    this.localItemsCache.set(item.id, item);
   }
 
   /**
@@ -1222,7 +1222,7 @@ export class SyncEngine {
    * @param itemId - ID of item to remove
    */
   removeLocalItem(itemId: string): void {
-    this.localItemsCache.delete(itemId)
+    this.localItemsCache.delete(itemId);
   }
 
   /**
@@ -1231,7 +1231,7 @@ export class SyncEngine {
    * @param itemId - Item ID
    */
   getLocalItem(itemId: string): SyncableItem | undefined {
-    return this.localItemsCache.get(itemId)
+    return this.localItemsCache.get(itemId);
   }
 
   // ===========================================================================
@@ -1243,7 +1243,7 @@ export class SyncEngine {
    */
   private ensureInitialized(): void {
     if (!this.adapter) {
-      throw new Error('SyncEngine not initialized. Call initialize() first.')
+      throw new Error('SyncEngine not initialized. Call initialize() first.');
     }
   }
 
@@ -1252,7 +1252,7 @@ export class SyncEngine {
    */
   private async waitIfPaused(): Promise<void> {
     if (this.isPaused && this.pausePromise) {
-      await this.pausePromise
+      await this.pausePromise;
     }
   }
 
@@ -1260,32 +1260,32 @@ export class SyncEngine {
    * Sleep for specified milliseconds
    */
   private sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms))
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
   /**
    * Create batches from array
    */
   private createBatches<T>(items: T[], batchSize: number): T[][] {
-    const batches: T[][] = []
+    const batches: T[][] = [];
     for (let i = 0; i < items.length; i += batchSize) {
-      batches.push(items.slice(i, i + batchSize))
+      batches.push(items.slice(i, i + batchSize));
     }
-    return batches
+    return batches;
   }
 
   /**
    * Calculate local state hash
    */
   private async calculateLocalStateHash(): Promise<string> {
-    const items = Array.from(this.localItemsCache.values())
-    const sortedItems = items.sort((a, b) => a.id.localeCompare(b.id))
+    const items = Array.from(this.localItemsCache.values());
+    const sortedItems = items.sort((a, b) => a.id.localeCompare(b.id));
     const content = JSON.stringify(sortedItems.map(i => ({
       id: i.id,
       hash: i.contentHash,
       modified: i.lastModified,
-    })))
-    return createHash('sha256').update(content).digest('hex')
+    })));
+    return createHash('sha256').update(content).digest('hex');
   }
 
   /**
@@ -1296,13 +1296,13 @@ export class SyncEngine {
     code: SyncErrorCode,
     itemId?: string,
   ): SyncError {
-    const message = error instanceof Error ? error.message : String(error)
+    const message = error instanceof Error ? error.message : String(error);
     return {
       code,
       message,
       itemId,
       cause: error instanceof Error ? error : undefined,
-    }
+    };
   }
 
   /**
@@ -1312,53 +1312,53 @@ export class SyncEngine {
    */
   async testConnection(): Promise<boolean> {
     if (!this.adapter) {
-      return false
+      return false;
     }
 
     try {
       // Try to list items to verify connection
-      await this.adapter.list('')
-      return true
+      await this.adapter.list('');
+      return true;
     }
     catch {
-      return false
+      return false;
     }
   }
 
   /**
    * Get sync progress information
    */
-  getProgress(): { progress: number, currentItems: string[] } {
+  getProgress(): { progress: number; currentItems: string[] } {
     return {
       progress: this.state.progress,
       currentItems: [...this.state.currentItems],
-    }
+    };
   }
 
   /**
    * Check if sync is in progress
    */
   isSyncing(): boolean {
-    return this.state.status === 'syncing'
+    return this.state.status === 'syncing';
   }
 
   /**
    * Check if there are unresolved conflicts
    */
   hasConflicts(): boolean {
-    return this.state.conflicts.length > 0
+    return this.state.conflicts.length > 0;
   }
 
   /**
    * Reset sync state (for recovery)
    */
   resetState(): void {
-    this.state = { ...INITIAL_SYNC_STATE }
+    this.state = { ...INITIAL_SYNC_STATE };
     this.queue = {
       items: [],
       isProcessing: false,
       currentItem: null,
-    }
+    };
   }
 }
 
@@ -1387,7 +1387,7 @@ export class SyncEngine {
  * ```
  */
 export function createSyncEngine(config: Partial<SyncConfig> = {}): SyncEngine {
-  return new SyncEngine(config)
+  return new SyncEngine(config);
 }
 
 /**
@@ -1408,7 +1408,7 @@ export function createGitHubGistSyncEngine(
       credentials: { token },
       ...options.provider,
     },
-  })
+  });
 }
 
 /**
@@ -1434,7 +1434,7 @@ export function createWebDAVSyncEngine(
       credentials: { username, password },
       ...options.provider,
     },
-  })
+  });
 }
 
 /**
@@ -1457,7 +1457,7 @@ export function createLocalSyncEngine(
       options: { baseDir },
       ...options.provider,
     },
-  })
+  });
 }
 
 // ============================================================================

@@ -4,33 +4,33 @@
  * Migration scripts for converting legacy config formats to the new unified system
  */
 
-import type { ClaudeSettings } from '../../../types/config'
-import type { ZcfTomlConfig } from '../../../types/toml-config'
-import type { CcjkConfig, ConfigScope } from '../types'
-import type { LegacyConfig, MigrationOptions, MigrationResult, MigrationStep } from './types'
+import type { ClaudeSettings } from '../../../types/config';
+import type { ZcfTomlConfig } from '../../../types/toml-config';
+import type { CcjkConfig, ConfigScope } from '../types';
+import type { LegacyConfig, MigrationOptions, MigrationResult, MigrationStep } from './types';
 
-import { existsSync } from 'node:fs'
-import { homedir } from 'node:os'
-import dayjs from 'dayjs'
-import { join } from 'pathe'
-import { parse } from 'smol-toml'
+import { existsSync } from 'node:fs';
+import { homedir } from 'node:os';
+import dayjs from 'dayjs';
+import { join } from 'pathe';
+import { parse } from 'smol-toml';
 import {
   CCJK_CONFIG_FILE,
   CLAUDE_DIR,
   LEGACY_ZCF_CONFIG_FILES,
   SETTINGS_FILE,
-} from '../../../constants'
-import { copyFile, ensureDir, readFile } from '../../../utils/fs-operations'
-import { readJsonConfig } from '../../../utils/json-config'
-import { writeCcjkConfig } from '../ccjk-config'
-import { writeClaudeConfig } from '../claude-config'
-import { createDefaultState, STATE_FILE, writeState } from '../state-manager'
+} from '../../../constants';
+import { copyFile, ensureDir, readFile } from '../../../utils/fs-operations';
+import { readJsonConfig } from '../../../utils/json-config';
+import { writeCcjkConfig } from '../ccjk-config';
+import { writeClaudeConfig } from '../claude-config';
+import { createDefaultState, STATE_FILE, writeState } from '../state-manager';
 
 /**
  * Detect legacy configuration files
  */
 export function detectLegacyConfigs(): LegacyConfig[] {
-  const legacy: LegacyConfig[] = []
+  const legacy: LegacyConfig[] = [];
 
   // Check for legacy ZCF JSON configs
   for (const path of LEGACY_ZCF_CONFIG_FILES) {
@@ -38,7 +38,7 @@ export function detectLegacyConfigs(): LegacyConfig[] {
       legacy.push({
         type: path.endsWith('.json') ? 'zcf-json' : 'zcf-toml',
         path,
-      })
+      });
     }
   }
 
@@ -46,60 +46,60 @@ export function detectLegacyConfigs(): LegacyConfig[] {
   const legacyClaudePaths = [
     join(homedir(), '.claude', 'config.json'),
     join(homedir(), '.claude.json'),
-  ]
+  ];
   for (const path of legacyClaudePaths) {
     if (existsSync(path)) {
       legacy.push({
         type: 'claude-settings',
         path,
-      })
+      });
     }
   }
 
-  return legacy
+  return legacy;
 }
 
 /**
  * Create backup before migration
  */
 export function createMigrationBackup(scopes: ConfigScope[]): string | null {
-  const timestamp = dayjs().format('YYYY-MM-DD_HH-mm-ss')
-  const backupDir = join(CLAUDE_DIR, 'backup', `migration_${timestamp}`)
+  const timestamp = dayjs().format('YYYY-MM-DD_HH-mm-ss');
+  const backupDir = join(CLAUDE_DIR, 'backup', `migration_${timestamp}`);
 
   try {
-    ensureDir(backupDir)
+    ensureDir(backupDir);
 
-    const backups: string[] = []
+    const backups: string[] = [];
 
     if (scopes.includes('ccjk') || scopes.includes('all')) {
       if (existsSync(CCJK_CONFIG_FILE)) {
-        const backupPath = join(backupDir, 'config.toml')
-        copyFile(CCJK_CONFIG_FILE, backupPath)
-        backups.push(backupPath)
+        const backupPath = join(backupDir, 'config.toml');
+        copyFile(CCJK_CONFIG_FILE, backupPath);
+        backups.push(backupPath);
       }
     }
 
     if (scopes.includes('claude') || scopes.includes('all')) {
       if (existsSync(SETTINGS_FILE)) {
-        const backupPath = join(backupDir, 'settings.json')
-        copyFile(SETTINGS_FILE, backupPath)
-        backups.push(backupPath)
+        const backupPath = join(backupDir, 'settings.json');
+        copyFile(SETTINGS_FILE, backupPath);
+        backups.push(backupPath);
       }
     }
 
     if (scopes.includes('state') || scopes.includes('all')) {
       if (existsSync(STATE_FILE)) {
-        const backupPath = join(backupDir, 'state.json')
-        copyFile(STATE_FILE, backupPath)
-        backups.push(backupPath)
+        const backupPath = join(backupDir, 'state.json');
+        copyFile(STATE_FILE, backupPath);
+        backups.push(backupPath);
       }
     }
 
-    return backups.length > 0 ? backupDir : null
+    return backups.length > 0 ? backupDir : null;
   }
   catch (error) {
-    console.error('Failed to create migration backup:', error)
-    return null
+    console.error('Failed to create migration backup:', error);
+    return null;
   }
 }
 
@@ -110,19 +110,19 @@ export async function migrateZcfJsonToCcjk(
   legacyPath: string,
   options: MigrationOptions = {},
 ): Promise<MigrationResult> {
-  const errors: string[] = []
-  const warnings: string[] = []
+  const errors: string[] = [];
+  const warnings: string[] = [];
 
   try {
     // Read legacy config
-    const legacyData = readJsonConfig<any>(legacyPath)
+    const legacyData = readJsonConfig<any>(legacyPath);
     if (!legacyData) {
       return {
         success: false,
         migratedScopes: [],
         errors: ['Failed to read legacy ZCF config'],
         warnings,
-      }
+      };
     }
 
     // Create new config from legacy data
@@ -152,30 +152,30 @@ export async function migrateZcfJsonToCcjk(
       storage: {
         memory: {},
       },
-    }
+    };
 
     // Write new config
     if (!options.dryRun) {
-      writeCcjkConfig(newConfig)
+      writeCcjkConfig(newConfig);
     }
 
-    warnings.push(`Migrated ZCF config from ${legacyPath}`)
+    warnings.push(`Migrated ZCF config from ${legacyPath}`);
 
     return {
       success: true,
       migratedScopes: ['ccjk'],
       errors,
       warnings,
-    }
+    };
   }
   catch (error) {
-    errors.push(error instanceof Error ? error.message : String(error))
+    errors.push(error instanceof Error ? error.message : String(error));
     return {
       success: false,
       migratedScopes: [],
       errors,
       warnings,
-    }
+    };
   }
 }
 
@@ -186,13 +186,13 @@ export async function migrateZcfTomlToCcjk(
   legacyPath: string,
   options: MigrationOptions = {},
 ): Promise<MigrationResult> {
-  const errors: string[] = []
-  const warnings: string[] = []
+  const errors: string[] = [];
+  const warnings: string[] = [];
 
   try {
     // Read legacy TOML config
-    const content = readFile(legacyPath)
-    const legacyData = parse(content) as unknown as ZcfTomlConfig
+    const content = readFile(legacyPath);
+    const legacyData = parse(content) as unknown as ZcfTomlConfig;
 
     if (!legacyData) {
       return {
@@ -200,7 +200,7 @@ export async function migrateZcfTomlToCcjk(
         migratedScopes: [],
         errors: ['Failed to parse legacy ZCF TOML config'],
         warnings,
-      }
+      };
     }
 
     // Create new config from legacy TOML data
@@ -237,30 +237,30 @@ export async function migrateZcfTomlToCcjk(
           ccjkDir: legacyData.storage?.memory?.ccjkDir,
         },
       },
-    }
+    };
 
     // Write new config
     if (!options.dryRun) {
-      writeCcjkConfig(newConfig)
+      writeCcjkConfig(newConfig);
     }
 
-    warnings.push(`Migrated ZCF TOML config from ${legacyPath}`)
+    warnings.push(`Migrated ZCF TOML config from ${legacyPath}`);
 
     return {
       success: true,
       migratedScopes: ['ccjk'],
       errors,
       warnings,
-    }
+    };
   }
   catch (error) {
-    errors.push(error instanceof Error ? error.message : String(error))
+    errors.push(error instanceof Error ? error.message : String(error));
     return {
       success: false,
       migratedScopes: [],
       errors,
       warnings,
-    }
+    };
   }
 }
 
@@ -271,43 +271,43 @@ export async function migrateClaudeSettings(
   legacyPath: string,
   options: MigrationOptions = {},
 ): Promise<MigrationResult> {
-  const errors: string[] = []
-  const warnings: string[] = []
+  const errors: string[] = [];
+  const warnings: string[] = [];
 
   try {
     // Read legacy settings
-    const legacyData = readJsonConfig<ClaudeSettings>(legacyPath)
+    const legacyData = readJsonConfig<ClaudeSettings>(legacyPath);
     if (!legacyData) {
       return {
         success: false,
         migratedScopes: [],
         errors: ['Failed to read legacy Claude settings'],
         warnings,
-      }
+      };
     }
 
     // Copy settings to new location
     if (!options.dryRun) {
-      writeClaudeConfig(legacyData)
+      writeClaudeConfig(legacyData);
     }
 
-    warnings.push(`Migrated Claude settings from ${legacyPath}`)
+    warnings.push(`Migrated Claude settings from ${legacyPath}`);
 
     return {
       success: true,
       migratedScopes: ['claude'],
       errors,
       warnings,
-    }
+    };
   }
   catch (error) {
-    errors.push(error instanceof Error ? error.message : String(error))
+    errors.push(error instanceof Error ? error.message : String(error));
     return {
       success: false,
       migratedScopes: [],
       errors,
       warnings,
-    }
+    };
   }
 }
 
@@ -317,59 +317,59 @@ export async function migrateClaudeSettings(
 export async function runMigrations(
   options: MigrationOptions = {},
 ): Promise<MigrationResult> {
-  const errors: string[] = []
-  const warnings: string[] = []
-  const migratedScopes: ConfigScope[] = []
+  const errors: string[] = [];
+  const warnings: string[] = [];
+  const migratedScopes: ConfigScope[] = [];
 
   // Detect legacy configs
-  const legacyConfigs = detectLegacyConfigs()
+  const legacyConfigs = detectLegacyConfigs();
 
   if (legacyConfigs.length === 0) {
-    warnings.push('No legacy configurations detected')
+    warnings.push('No legacy configurations detected');
     return {
       success: true,
       migratedScopes: [],
       errors: [],
       warnings,
-    }
+    };
   }
 
   // Create backup
   const backupPath = options.backup !== false
     ? createMigrationBackup(['ccjk', 'claude', 'state']) ?? undefined
-    : undefined
+    : undefined;
 
   // Run migrations for each legacy config
   for (const legacy of legacyConfigs) {
-    let result: MigrationResult
+    let result: MigrationResult;
 
     switch (legacy.type) {
       case 'zcf-json':
-        result = await migrateZcfJsonToCcjk(legacy.path, options)
-        break
+        result = await migrateZcfJsonToCcjk(legacy.path, options);
+        break;
       case 'zcf-toml':
-        result = await migrateZcfTomlToCcjk(legacy.path, options)
-        break
+        result = await migrateZcfTomlToCcjk(legacy.path, options);
+        break;
       case 'claude-settings':
-        result = await migrateClaudeSettings(legacy.path, options)
-        break
+        result = await migrateClaudeSettings(legacy.path, options);
+        break;
       default:
-        continue
+        continue;
     }
 
     if (result.success) {
-      migratedScopes.push(...result.migratedScopes)
-      warnings.push(...result.warnings)
+      migratedScopes.push(...result.migratedScopes);
+      warnings.push(...result.warnings);
     }
     else {
-      errors.push(...result.errors)
+      errors.push(...result.errors);
     }
   }
 
   // Initialize state if it doesn't exist
   if (!existsSync(STATE_FILE) && !options.dryRun) {
-    writeState(createDefaultState())
-    migratedScopes.push('state')
+    writeState(createDefaultState());
+    migratedScopes.push('state');
   }
 
   return {
@@ -378,57 +378,57 @@ export async function runMigrations(
     backupPath: backupPath ?? undefined,
     errors,
     warnings,
-  }
+  };
 }
 
 /**
  * Check if migration is needed
  */
 export function needsMigration(): boolean {
-  const legacyConfigs = detectLegacyConfigs()
-  return legacyConfigs.length > 0
+  const legacyConfigs = detectLegacyConfigs();
+  return legacyConfigs.length > 0;
 }
 
 /**
  * Get migration status
  */
 export function getMigrationStatus(): {
-  needsMigration: boolean
-  legacyConfigs: LegacyConfig[]
-  canMigrate: boolean
+  needsMigration: boolean;
+  legacyConfigs: LegacyConfig[];
+  canMigrate: boolean;
 } {
-  const legacyConfigs = detectLegacyConfigs()
+  const legacyConfigs = detectLegacyConfigs();
   return {
     needsMigration: legacyConfigs.length > 0,
     legacyConfigs,
     canMigrate: true, // Always can migrate if legacy configs exist
-  }
+  };
 }
 
 /**
  * Clean up legacy config files after successful migration
  */
 export function cleanupLegacyConfigs(legacyPaths: string[]): {
-  deleted: string[]
-  failed: string[]
+  deleted: string[];
+  failed: string[];
 } {
-  const { unlinkSync, existsSync } = require('node:fs')
-  const deleted: string[] = []
-  const failed: string[] = []
+  const { unlinkSync, existsSync } = require('node:fs');
+  const deleted: string[] = [];
+  const failed: string[] = [];
 
   for (const path of legacyPaths) {
     try {
       if (existsSync(path)) {
-        unlinkSync(path)
-        deleted.push(path)
+        unlinkSync(path);
+        deleted.push(path);
       }
     }
     catch {
-      failed.push(path)
+      failed.push(path);
     }
   }
 
-  return { deleted, failed }
+  return { deleted, failed };
 }
 
 /**
@@ -441,11 +441,11 @@ export const MIGRATION_STEPS: MigrationStep[] = [
     version: '4.0.0',
     detect: () => detectLegacyConfigs().some(c => c.type === 'zcf-json'),
     migrate: async () => {
-      const zcfJson = detectLegacyConfigs().find(c => c.type === 'zcf-json')
+      const zcfJson = detectLegacyConfigs().find(c => c.type === 'zcf-json');
       if (!zcfJson) {
-        return { success: true, migratedScopes: [], errors: [], warnings: [] }
+        return { success: true, migratedScopes: [], errors: [], warnings: [] };
       }
-      return migrateZcfJsonToCcjk(zcfJson.path)
+      return migrateZcfJsonToCcjk(zcfJson.path);
     },
   },
   {
@@ -454,11 +454,11 @@ export const MIGRATION_STEPS: MigrationStep[] = [
     version: '4.0.0',
     detect: () => detectLegacyConfigs().some(c => c.type === 'zcf-toml'),
     migrate: async () => {
-      const zcfToml = detectLegacyConfigs().find(c => c.type === 'zcf-toml')
+      const zcfToml = detectLegacyConfigs().find(c => c.type === 'zcf-toml');
       if (!zcfToml) {
-        return { success: true, migratedScopes: [], errors: [], warnings: [] }
+        return { success: true, migratedScopes: [], errors: [], warnings: [] };
       }
-      return migrateZcfTomlToCcjk(zcfToml.path)
+      return migrateZcfTomlToCcjk(zcfToml.path);
     },
   },
   {
@@ -467,11 +467,11 @@ export const MIGRATION_STEPS: MigrationStep[] = [
     version: '4.0.0',
     detect: () => detectLegacyConfigs().some(c => c.type === 'claude-settings'),
     migrate: async () => {
-      const claudeSettings = detectLegacyConfigs().find(c => c.type === 'claude-settings')
+      const claudeSettings = detectLegacyConfigs().find(c => c.type === 'claude-settings');
       if (!claudeSettings) {
-        return { success: true, migratedScopes: [], errors: [], warnings: [] }
+        return { success: true, migratedScopes: [], errors: [], warnings: [] };
       }
-      return migrateClaudeSettings(claudeSettings.path)
+      return migrateClaudeSettings(claudeSettings.path);
     },
   },
-]
+];

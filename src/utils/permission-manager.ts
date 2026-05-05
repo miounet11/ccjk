@@ -1,10 +1,10 @@
-import { existsSync, mkdirSync, readFileSync } from 'node:fs'
-import process from 'node:process'
-import ansis from 'ansis'
-import { join } from 'pathe'
-import { CCJK_CONFIG_DIR, CLAVUE_DIR, SETTINGS_FILE } from '../constants'
-import { STATUS } from './banner'
-import { writeFileAtomic } from './fs-operations'
+import { existsSync, mkdirSync, readFileSync } from 'node:fs';
+import process from 'node:process';
+import ansis from 'ansis';
+import { join } from 'pathe';
+import { CCJK_CONFIG_DIR, CLAVUE_DIR, SETTINGS_FILE } from '../constants';
+import { STATUS } from './banner';
+import { writeFileAtomic } from './fs-operations';
 
 /**
  * Permission types
@@ -18,35 +18,35 @@ export type PermissionType
     | 'node-execution'
     | 'system-commands'
     | 'network-access'
-    | 'mcp-server'
+    | 'mcp-server';
 
 /**
  * Permission set
  */
 export interface PermissionSet {
-  allowed: PermissionType[]
-  denied: PermissionType[]
-  trustedDirectories: string[]
-  autoApprovePatterns: string[]
+  allowed: PermissionType[];
+  denied: PermissionType[];
+  trustedDirectories: string[];
+  autoApprovePatterns: string[];
 }
 
 /**
  * Permission template
  */
 export interface PermissionTemplate {
-  id: string
-  name: string
-  description: string
-  permissions: PermissionSet
+  id: string;
+  name: string;
+  description: string;
+  permissions: PermissionSet;
 }
 
 /**
  * Permission config file path
  */
-const PERMISSION_CONFIG_FILE = join(CCJK_CONFIG_DIR, 'permissions.json')
+const PERMISSION_CONFIG_FILE = join(CCJK_CONFIG_DIR, 'permissions.json');
 
 function stringArray(value: unknown): string[] {
-  return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : []
+  return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
 }
 
 function permissionArray(value: unknown): PermissionType[] {
@@ -62,56 +62,56 @@ function permissionArray(value: unknown): PermissionType[] {
       'network-access',
       'mcp-server',
     ].includes(item as PermissionType),
-  )
+  );
 }
 
 function mapClaudeRuleToPermission(rule: string): PermissionType | null {
-  const normalized = rule.toLowerCase()
+  const normalized = rule.toLowerCase();
   if (normalized.startsWith('read(')) {
-    return 'file-read'
+    return 'file-read';
   }
   if (normalized.startsWith('edit(') || normalized.startsWith('write(') || normalized.startsWith('notebookedit(')) {
-    return 'file-write'
+    return 'file-write';
   }
   if (normalized.startsWith('bash(')) {
     if (/\b(git|gh)\b/.test(normalized)) {
-      return 'git-operations'
+      return 'git-operations';
     }
     if (/\b(npm|pnpm|yarn|bun)\b/.test(normalized)) {
-      return 'npm-commands'
+      return 'npm-commands';
     }
     if (/\b(node|tsx|ts-node)\b/.test(normalized)) {
-      return 'node-execution'
+      return 'node-execution';
     }
     if (/\b(curl|wget|scp|ssh)\b/.test(normalized)) {
-      return 'network-access'
+      return 'network-access';
     }
     if (/\b(rm|trash|unlink|rmdir|mv)\b/.test(normalized)) {
-      return 'file-delete'
+      return 'file-delete';
     }
-    return 'system-commands'
+    return 'system-commands';
   }
   if (normalized.startsWith('webfetch(') || normalized.startsWith('websearch(')) {
-    return 'network-access'
+    return 'network-access';
   }
   if (normalized.startsWith('mcp__')) {
-    return 'mcp-server'
+    return 'mcp-server';
   }
-  return null
+  return null;
 }
 
 function mapClaudeRulesToPermissions(rules: string[]): PermissionType[] {
-  return [...new Set(rules.map(mapClaudeRuleToPermission).filter((item): item is PermissionType => Boolean(item)))]
+  return [...new Set(rules.map(mapClaudeRuleToPermission).filter((item): item is PermissionType => Boolean(item)))];
 }
 
 function sortedArray<T extends string>(items: T[]): T[] {
-  return [...items].sort()
+  return [...items].sort();
 }
 
 export function normalizePermissions(input: unknown): PermissionSet {
   const obj = input && typeof input === 'object' && !Array.isArray(input)
     ? input as Record<string, unknown>
-    : {}
+    : {};
 
   return {
     allowed: [
@@ -127,11 +127,11 @@ export function normalizePermissions(input: unknown): PermissionSet {
       ...stringArray(obj.additionalDirectories),
     ].filter((item, index, array) => array.indexOf(item) === index),
     autoApprovePatterns: stringArray(obj.autoApprovePatterns),
-  }
+  };
 }
 
 function getClavueSettingsFile(): string {
-  return join(process.env.CLAVUE_CONFIG_DIR || CLAVUE_DIR, 'settings.json')
+  return join(process.env.CLAVUE_CONFIG_DIR || CLAVUE_DIR, 'settings.json');
 }
 
 function shouldPreferClavueSettings(): boolean {
@@ -140,24 +140,24 @@ function shouldPreferClavueSettings(): boolean {
     || process.env.CLAVUE_DISABLE_LEGACY_CLAUDE_CONFIG
     || process.env.CLAVUE_DISABLE_LEGACY_CLAUDE_COMMANDS
     || existsSync(getClavueSettingsFile()),
-  )
+  );
 }
 
 function readJsonFile(path: string): Record<string, unknown> | null {
   try {
-    return JSON.parse(readFileSync(path, 'utf-8')) as Record<string, unknown>
+    return JSON.parse(readFileSync(path, 'utf-8')) as Record<string, unknown>;
   }
   catch {
-    return null
+    return null;
   }
 }
 
 function getPermissionFallbackFiles(): string[] {
-  const clavueSettingsFile = getClavueSettingsFile()
+  const clavueSettingsFile = getClavueSettingsFile();
   const orderedFiles = shouldPreferClavueSettings()
     ? [clavueSettingsFile, SETTINGS_FILE]
-    : [SETTINGS_FILE, clavueSettingsFile]
-  return [...new Set(orderedFiles)]
+    : [SETTINGS_FILE, clavueSettingsFile];
+  return [...new Set(orderedFiles)];
 }
 
 /**
@@ -208,7 +208,7 @@ export const PERMISSION_TEMPLATES: PermissionTemplate[] = [
       autoApprovePatterns: [],
     },
   },
-]
+];
 
 /**
  * Read current permissions
@@ -216,24 +216,24 @@ export const PERMISSION_TEMPLATES: PermissionTemplate[] = [
 export function readPermissions(): PermissionSet {
   // Try CCJK config first
   if (existsSync(PERMISSION_CONFIG_FILE)) {
-    const permissions = readJsonFile(PERMISSION_CONFIG_FILE)
+    const permissions = readJsonFile(PERMISSION_CONFIG_FILE);
     if (permissions) {
-      return normalizePermissions(permissions)
+      return normalizePermissions(permissions);
     }
   }
 
   // Try runtime settings, preferring Clavue when its config root is active.
   for (const settingsFile of getPermissionFallbackFiles()) {
     if (existsSync(settingsFile)) {
-      const settings = readJsonFile(settingsFile)
+      const settings = readJsonFile(settingsFile);
       if (settings?.permissions) {
-        return normalizePermissions(settings.permissions)
+        return normalizePermissions(settings.permissions);
       }
     }
   }
 
   // Return default (development template)
-  return PERMISSION_TEMPLATES.find(t => t.id === 'development')!.permissions
+  return PERMISSION_TEMPLATES.find(t => t.id === 'development')!.permissions;
 }
 
 /**
@@ -241,19 +241,19 @@ export function readPermissions(): PermissionSet {
  */
 export function writePermissions(permissions: PermissionSet): boolean {
   try {
-    const normalizedPermissions = normalizePermissions(permissions)
+    const normalizedPermissions = normalizePermissions(permissions);
     // Ensure config directory exists
     if (!existsSync(CCJK_CONFIG_DIR)) {
-      mkdirSync(CCJK_CONFIG_DIR, { recursive: true })
+      mkdirSync(CCJK_CONFIG_DIR, { recursive: true });
     }
 
     // Write to CCJK config
-    writeFileAtomic(PERMISSION_CONFIG_FILE, JSON.stringify(normalizedPermissions, null, 2))
+    writeFileAtomic(PERMISSION_CONFIG_FILE, JSON.stringify(normalizedPermissions, null, 2));
 
-    return true
+    return true;
   }
   catch {
-    return false
+    return false;
   }
 }
 
@@ -261,102 +261,102 @@ export function writePermissions(permissions: PermissionSet): boolean {
  * Apply a permission template
  */
 export function applyTemplate(templateId: string): boolean {
-  const template = PERMISSION_TEMPLATES.find(t => t.id === templateId)
+  const template = PERMISSION_TEMPLATES.find(t => t.id === templateId);
   if (!template)
-    return false
+    return false;
 
-  return writePermissions(template.permissions)
+  return writePermissions(template.permissions);
 }
 
 /**
  * Trust a directory
  */
 export function trustDirectory(path: string): boolean {
-  const permissions = readPermissions()
+  const permissions = readPermissions();
 
   if (!permissions.trustedDirectories.includes(path)) {
-    permissions.trustedDirectories.push(path)
-    return writePermissions(permissions)
+    permissions.trustedDirectories.push(path);
+    return writePermissions(permissions);
   }
 
-  return true
+  return true;
 }
 
 /**
  * Untrust a directory
  */
 export function untrustDirectory(path: string): boolean {
-  const permissions = readPermissions()
+  const permissions = readPermissions();
 
-  permissions.trustedDirectories = permissions.trustedDirectories.filter(d => d !== path)
-  return writePermissions(permissions)
+  permissions.trustedDirectories = permissions.trustedDirectories.filter(d => d !== path);
+  return writePermissions(permissions);
 }
 
 /**
  * Check if a permission is allowed
  */
 export function isPermissionAllowed(permission: PermissionType): boolean {
-  const permissions = readPermissions()
-  return permissions.allowed.includes(permission) && !permissions.denied.includes(permission)
+  const permissions = readPermissions();
+  return permissions.allowed.includes(permission) && !permissions.denied.includes(permission);
 }
 
 /**
  * Check if a directory is trusted
  */
 export function isDirectoryTrusted(path: string): boolean {
-  const permissions = readPermissions()
-  return permissions.trustedDirectories.some(d => path.startsWith(d))
+  const permissions = readPermissions();
+  return permissions.trustedDirectories.some(d => path.startsWith(d));
 }
 
 /**
  * Add auto-approve pattern
  */
 export function addAutoApprovePattern(pattern: string): boolean {
-  const permissions = readPermissions()
+  const permissions = readPermissions();
 
   if (!permissions.autoApprovePatterns.includes(pattern)) {
-    permissions.autoApprovePatterns.push(pattern)
-    return writePermissions(permissions)
+    permissions.autoApprovePatterns.push(pattern);
+    return writePermissions(permissions);
   }
 
-  return true
+  return true;
 }
 
 /**
  * Remove auto-approve pattern
  */
 export function removeAutoApprovePattern(pattern: string): boolean {
-  const permissions = readPermissions()
+  const permissions = readPermissions();
 
-  permissions.autoApprovePatterns = permissions.autoApprovePatterns.filter(p => p !== pattern)
-  return writePermissions(permissions)
+  permissions.autoApprovePatterns = permissions.autoApprovePatterns.filter(p => p !== pattern);
+  return writePermissions(permissions);
 }
 
 /**
  * Reset permissions to default
  */
 export function resetPermissions(): boolean {
-  return applyTemplate('development')
+  return applyTemplate('development');
 }
 
 /**
  * Repair CCJK bridge permissions without mutating Claude/Clavue runtime settings.
  */
 export function repairPermissions(trustedDirectory: string = process.cwd()): boolean {
-  const template = PERMISSION_TEMPLATES.find(t => t.id === 'development')!
-  const permissions = normalizePermissions(template.permissions)
+  const template = PERMISSION_TEMPLATES.find(t => t.id === 'development')!;
+  const permissions = normalizePermissions(template.permissions);
   if (trustedDirectory && !permissions.trustedDirectories.includes(trustedDirectory)) {
-    permissions.trustedDirectories.push(trustedDirectory)
+    permissions.trustedDirectories.push(trustedDirectory);
   }
-  return writePermissions(permissions)
+  return writePermissions(permissions);
 }
 
 /**
  * Export permissions to JSON
  */
 export function exportPermissions(): string {
-  const permissions = readPermissions()
-  return JSON.stringify(permissions, null, 2)
+  const permissions = readPermissions();
+  return JSON.stringify(permissions, null, 2);
 }
 
 /**
@@ -364,11 +364,11 @@ export function exportPermissions(): string {
  */
 export function importPermissions(json: string): boolean {
   try {
-    const permissions = JSON.parse(json) as PermissionSet
-    return writePermissions(permissions)
+    const permissions = JSON.parse(json) as PermissionSet;
+    return writePermissions(permissions);
   }
   catch {
-    return false
+    return false;
   }
 }
 
@@ -376,43 +376,43 @@ export function importPermissions(json: string): boolean {
  * Get current template ID (if matching)
  */
 export function getCurrentTemplateId(): string | null {
-  const permissions = readPermissions()
+  const permissions = readPermissions();
 
   for (const template of PERMISSION_TEMPLATES) {
     if (
       JSON.stringify(sortedArray(permissions.allowed)) === JSON.stringify(sortedArray(template.permissions.allowed))
       && JSON.stringify(sortedArray(permissions.denied)) === JSON.stringify(sortedArray(template.permissions.denied))
     ) {
-      return template.id
+      return template.id;
     }
   }
 
-  return null
+  return null;
 }
 
 /**
  * Display permissions dashboard
  */
 export function displayPermissions(): void {
-  const permissions = readPermissions()
-  const templateId = getCurrentTemplateId()
+  const permissions = readPermissions();
+  const templateId = getCurrentTemplateId();
 
-  console.log(ansis.green('\n═══════════ Claude Code Permissions ═══════════\n'))
+  console.log(ansis.green('\n═══════════ Claude Code Permissions ═══════════\n'));
 
   // Trusted directories
-  console.log(ansis.white.bold('Trusted Directories:'))
+  console.log(ansis.white.bold('Trusted Directories:'));
   if (permissions.trustedDirectories.length === 0) {
-    console.log(ansis.gray('  (none)'))
+    console.log(ansis.gray('  (none)'));
   }
   else {
     for (const dir of permissions.trustedDirectories) {
-      console.log(STATUS.success(dir))
+      console.log(STATUS.success(dir));
     }
   }
-  console.log('')
+  console.log('');
 
   // Pre-authorized operations
-  console.log(ansis.white.bold('Pre-authorized Operations:'))
+  console.log(ansis.white.bold('Pre-authorized Operations:'));
   const allPermissions: PermissionType[] = [
     'file-read',
     'file-write',
@@ -423,30 +423,30 @@ export function displayPermissions(): void {
     'system-commands',
     'network-access',
     'mcp-server',
-  ]
+  ];
 
   for (const perm of allPermissions) {
-    const label = perm.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
+    const label = perm.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
     if (permissions.allowed.includes(perm)) {
-      console.log(STATUS.success(label))
+      console.log(STATUS.success(label));
     }
     else if (permissions.denied.includes(perm)) {
-      console.log(STATUS.error(`${label} (denied)`))
+      console.log(STATUS.error(`${label} (denied)`));
     }
     else {
-      console.log(STATUS.warning(`${label} (requires confirmation)`))
+      console.log(STATUS.warning(`${label} (requires confirmation)`));
     }
   }
-  console.log('')
+  console.log('');
 
   // Current template
   if (templateId) {
-    const template = PERMISSION_TEMPLATES.find(t => t.id === templateId)
-    console.log(ansis.gray(`Template: ${ansis.green(template?.name || templateId)}`))
+    const template = PERMISSION_TEMPLATES.find(t => t.id === templateId);
+    console.log(ansis.gray(`Template: ${ansis.green(template?.name || templateId)}`));
   }
   else {
-    console.log(ansis.gray('Template: custom'))
+    console.log(ansis.gray('Template: custom'));
   }
 
-  console.log('')
+  console.log('');
 }

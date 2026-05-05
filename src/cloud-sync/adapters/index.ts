@@ -6,19 +6,19 @@
  * @module cloud-sync/adapters
  */
 
-import type { CloudAdapter } from './base-adapter'
-import type { CloudProvider, ProviderConfig } from './types'
-import { GitHubGistAdapter } from './github-gist-adapter'
-import { LocalAdapter } from './local-adapter'
-import { AdapterError } from './types'
-import { WebDAVAdapter } from './webdav-adapter'
+import type { CloudAdapter } from './base-adapter';
+import type { CloudProvider, ProviderConfig } from './types';
+import { GitHubGistAdapter } from './github-gist-adapter';
+import { LocalAdapter } from './local-adapter';
+import { AdapterError } from './types';
+import { WebDAVAdapter } from './webdav-adapter';
 
 // Re-export classes
-export { CloudAdapter } from './base-adapter'
+export { CloudAdapter } from './base-adapter';
 
-export { GitHubGistAdapter } from './github-gist-adapter'
+export { GitHubGistAdapter } from './github-gist-adapter';
 
-export { LocalAdapter } from './local-adapter'
+export { LocalAdapter } from './local-adapter';
 // Re-export types
 export type {
   CloudProvider,
@@ -32,10 +32,10 @@ export type {
   RemoteItem,
   UploadResult,
   WebDAVConfig,
-} from './types'
-export type { AdapterErrorCode } from './types'
-export { AdapterError } from './types'
-export { WebDAVAdapter } from './webdav-adapter'
+} from './types';
+export type { AdapterErrorCode } from './types';
+export { AdapterError } from './types';
+export { WebDAVAdapter } from './webdav-adapter';
 
 /**
  * Adapter registry mapping providers to their adapter classes
@@ -44,7 +44,7 @@ const ADAPTER_REGISTRY: Record<CloudProvider, new () => CloudAdapter<any>> = {
   'github-gist': GitHubGistAdapter,
   'webdav': WebDAVAdapter,
   'local': LocalAdapter,
-}
+};
 
 /**
  * Create a cloud storage adapter for the specified provider
@@ -82,14 +82,14 @@ export async function createAdapter(
   provider: CloudProvider,
   config: ProviderConfig,
 ): Promise<CloudAdapter> {
-  const AdapterClass = ADAPTER_REGISTRY[provider]
+  const AdapterClass = ADAPTER_REGISTRY[provider];
 
   if (!AdapterClass) {
     throw new AdapterError(
       `Unknown cloud provider: ${provider}`,
       'INVALID_CONFIG',
       provider,
-    )
+    );
   }
 
   if (config.provider !== provider) {
@@ -97,13 +97,13 @@ export async function createAdapter(
       `Config provider mismatch: expected ${provider}, got ${config.provider}`,
       'INVALID_CONFIG',
       provider,
-    )
+    );
   }
 
-  const adapter = new AdapterClass()
-  await adapter.connect(config)
+  const adapter = new AdapterClass();
+  await adapter.connect(config);
 
-  return adapter
+  return adapter;
 }
 
 /**
@@ -120,17 +120,17 @@ export async function createAdapter(
  * ```
  */
 export function createAdapterInstance(provider: CloudProvider): CloudAdapter {
-  const AdapterClass = ADAPTER_REGISTRY[provider]
+  const AdapterClass = ADAPTER_REGISTRY[provider];
 
   if (!AdapterClass) {
     throw new AdapterError(
       `Unknown cloud provider: ${provider}`,
       'INVALID_CONFIG',
       provider,
-    )
+    );
   }
 
-  return new AdapterClass()
+  return new AdapterClass();
 }
 
 /**
@@ -139,7 +139,7 @@ export function createAdapterInstance(provider: CloudProvider): CloudAdapter {
  * @returns Array of supported provider names
  */
 export function getSupportedProviders(): CloudProvider[] {
-  return Object.keys(ADAPTER_REGISTRY) as CloudProvider[]
+  return Object.keys(ADAPTER_REGISTRY) as CloudProvider[];
 }
 
 /**
@@ -149,18 +149,18 @@ export function getSupportedProviders(): CloudProvider[] {
  * @returns True if provider is supported
  */
 export function isProviderSupported(provider: string): provider is CloudProvider {
-  return provider in ADAPTER_REGISTRY
+  return provider in ADAPTER_REGISTRY;
 }
 
 /**
  * Provider display information
  */
 export interface ProviderInfo {
-  id: CloudProvider
-  name: string
-  description: string
-  requiresAuth: boolean
-  configFields: string[]
+  id: CloudProvider;
+  name: string;
+  description: string;
+  requiresAuth: boolean;
+  configFields: string[];
 }
 
 /**
@@ -191,5 +191,5 @@ export function getProviderInfo(): ProviderInfo[] {
       requiresAuth: false,
       configFields: ['baseDir'],
     },
-  ]
+  ];
 }

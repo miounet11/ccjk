@@ -2,9 +2,9 @@
  * Codex adapter
  */
 
-import type { ICodeGenTool } from '../core/interfaces'
-import type { ExecutionResult, ToolMetadata } from '../core/types'
-import { BaseCodeTool } from '../core/base-tool'
+import type { ICodeGenTool } from '../core/interfaces';
+import type { ExecutionResult, ToolMetadata } from '../core/types';
+import { BaseCodeTool } from '../core/base-tool';
 
 /**
  * OpenAI Codex tool adapter
@@ -51,29 +51,29 @@ export class CodexTool extends BaseCodeTool implements ICodeGenTool {
           doctor: true,
         },
       },
-    }
+    };
   }
 
   protected getInstallCheckCommand(): string {
-    return 'codex --version'
+    return 'codex --version';
   }
 
   protected getInstallCommand(): string {
-    return 'pip install openai-codex'
+    return 'pip install openai-codex';
   }
 
   protected getUninstallCommand(): string {
-    return 'pip uninstall -y openai-codex'
+    return 'pip uninstall -y openai-codex';
   }
 
   /**
    * Generate code
    */
   async generateCode(prompt: string, outputPath?: string): Promise<ExecutionResult> {
-    const args = ['generate', prompt]
+    const args = ['generate', prompt];
     if (outputPath) {
-      args.push('--output', outputPath)
+      args.push('--output', outputPath);
     }
-    return this.execute('codex', args)
+    return this.execute('codex', args);
   }
 }

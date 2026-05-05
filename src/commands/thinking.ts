@@ -15,209 +15,209 @@
  * @module commands/thinking
  */
 
-import type { ThinkingCommandOptions, ThinkingTaskComplexity } from '../types/thinking'
-import ansis from 'ansis'
-import inquirer from 'inquirer'
+import type { ThinkingCommandOptions, ThinkingTaskComplexity } from '../types/thinking';
+import ansis from 'ansis';
+import inquirer from 'inquirer';
 import {
   getThinkingManager,
   MAX_BUDGET_TOKENS,
   MIN_BUDGET_TOKENS,
   shouldUseThinkingMode,
-} from '../brain/thinking-mode'
-import { i18n } from '../i18n'
-import { handleExitPromptError, handleGeneralError } from '../utils/error-handler'
+} from '../brain/thinking-mode';
+import { i18n } from '../i18n';
+import { handleExitPromptError, handleGeneralError } from '../utils/error-handler';
 
 /**
  * Display thinking mode status
  */
 export async function thinkingStatus(_options: ThinkingCommandOptions = {}): Promise<void> {
-  const isZh = i18n.language === 'zh-CN'
+  const isZh = i18n.language === 'zh-CN';
 
-  console.log('')
-  console.log(ansis.bold.cyan(isZh ? '🧠 Thinking Mode Status' : '🧠 Thinking Mode Status'))
-  console.log(ansis.dim('─'.repeat(60)))
+  console.log('');
+  console.log(ansis.bold.cyan(isZh ? '🧠 Thinking Mode Status' : '🧠 Thinking Mode Status'));
+  console.log(ansis.dim('─'.repeat(60)));
 
-  const manager = getThinkingManager()
-  const status = manager.getStatus()
+  const manager = getThinkingManager();
+  const status = manager.getStatus();
 
-  console.log('')
+  console.log('');
 
   // Status indicator
-  const statusIcon = status.enabled ? ansis.green('●') : ansis.gray('○')
+  const statusIcon = status.enabled ? ansis.green('●') : ansis.gray('○');
   const statusText = status.enabled
     ? isZh ? 'Enabled' : 'Enabled'
-    : isZh ? 'Disabled' : 'Disabled'
+    : isZh ? 'Disabled' : 'Disabled';
 
-  console.log(`  ${statusIcon} ${ansis.bold(isZh ? 'Status:' : 'Status:')} ${statusText}`)
-  console.log('')
+  console.log(`  ${statusIcon} ${ansis.bold(isZh ? 'Status:' : 'Status:')} ${statusText}`);
+  console.log('');
 
   // Budget tokens
-  console.log(`  ${ansis.green('💰')} ${ansis.bold(isZh ? 'Budget Tokens:' : 'Budget Tokens:')} ${ansis.yellow(status.budgetTokens.toLocaleString())}`)
+  console.log(`  ${ansis.green('💰')} ${ansis.bold(isZh ? 'Budget Tokens:' : 'Budget Tokens:')} ${ansis.yellow(status.budgetTokens.toLocaleString())}`);
 
   // Sub-agent inheritance
-  const inheritIcon = status.inheritForSubAgents ? ansis.green('✓') : ansis.gray('○')
-  console.log(`  ${inheritIcon} ${ansis.bold(isZh ? 'Sub-agent Inheritance:' : 'Sub-agent Inheritance:')} ${status.inheritForSubAgents ? (isZh ? 'Enabled' : 'Enabled') : (isZh ? 'Disabled' : 'Disabled')}`)
+  const inheritIcon = status.inheritForSubAgents ? ansis.green('✓') : ansis.gray('○');
+  console.log(`  ${inheritIcon} ${ansis.bold(isZh ? 'Sub-agent Inheritance:' : 'Sub-agent Inheritance:')} ${status.inheritForSubAgents ? (isZh ? 'Enabled' : 'Enabled') : (isZh ? 'Disabled' : 'Disabled')}`);
 
   if (status.inheritForSubAgents) {
-    console.log(`     ${ansis.dim(isZh ? `→ Sub-agents get ${status.subAgentBudget.toLocaleString()} tokens` : `→ Sub-agents get ${status.subAgentBudget.toLocaleString()} tokens`)}`)
+    console.log(`     ${ansis.dim(isZh ? `→ Sub-agents get ${status.subAgentBudget.toLocaleString()} tokens` : `→ Sub-agents get ${status.subAgentBudget.toLocaleString()} tokens`)}`);
   }
 
   // Always use thinking
-  const alwaysIcon = status.alwaysUseThinking ? ansis.green('✓') : ansis.gray('○')
-  console.log(`  ${alwaysIcon} ${ansis.bold(isZh ? 'Always Use Thinking:' : 'Always Use Thinking:')} ${status.alwaysUseThinking ? (isZh ? 'Yes' : 'Yes') : (isZh ? 'No (medium/complex only)' : 'No (medium/complex only)')}`)
+  const alwaysIcon = status.alwaysUseThinking ? ansis.green('✓') : ansis.gray('○');
+  console.log(`  ${alwaysIcon} ${ansis.bold(isZh ? 'Always Use Thinking:' : 'Always Use Thinking:')} ${status.alwaysUseThinking ? (isZh ? 'Yes' : 'Yes') : (isZh ? 'No (medium/complex only)' : 'No (medium/complex only)')}`);
 
-  console.log('')
+  console.log('');
 
   // Supported models
-  console.log(ansis.green(isZh ? '📋 Supported Models:' : '📋 Supported Models:'))
+  console.log(ansis.green(isZh ? '📋 Supported Models:' : '📋 Supported Models:'));
   for (const model of status.supportedModels) {
-    console.log(`  ${ansis.dim('•')} ${model}`)
+    console.log(`  ${ansis.dim('•')} ${model}`);
   }
 
-  console.log('')
+  console.log('');
   console.log(ansis.dim(isZh
     ? '💡 Tip: Use "ccjk thinking enable/disable" to toggle thinking mode'
-    : '💡 Tip: Use "ccjk thinking enable/disable" to toggle thinking mode'))
-  console.log('')
+    : '💡 Tip: Use "ccjk thinking enable/disable" to toggle thinking mode'));
+  console.log('');
 }
 
 /**
  * Enable thinking mode
  */
 export async function thinkingEnable(_options: ThinkingCommandOptions = {}): Promise<void> {
-  const isZh = i18n.language === 'zh-CN'
+  const isZh = i18n.language === 'zh-CN';
 
-  const manager = getThinkingManager()
+  const manager = getThinkingManager();
 
   if (manager.isEnabled()) {
-    console.log('')
-    console.log(ansis.yellow(isZh ? '⚠️  Thinking Mode is already enabled' : '⚠️  Thinking Mode is already enabled'))
-    console.log('')
-    return
+    console.log('');
+    console.log(ansis.yellow(isZh ? '⚠️  Thinking Mode is already enabled' : '⚠️  Thinking Mode is already enabled'));
+    console.log('');
+    return;
   }
 
-  manager.setEnabled(true)
+  manager.setEnabled(true);
 
-  console.log('')
-  console.log(ansis.green(isZh ? '✅ Thinking Mode enabled' : '✅ Thinking Mode enabled'))
+  console.log('');
+  console.log(ansis.green(isZh ? '✅ Thinking Mode enabled' : '✅ Thinking Mode enabled'));
   console.log(ansis.dim(isZh
     ? `Budget: ${manager.getBudgetTokens().toLocaleString()} tokens`
-    : `Budget: ${manager.getBudgetTokens().toLocaleString()} tokens`))
-  console.log('')
+    : `Budget: ${manager.getBudgetTokens().toLocaleString()} tokens`));
+  console.log('');
 }
 
 /**
  * Disable thinking mode
  */
 export async function thinkingDisable(_options: ThinkingCommandOptions = {}): Promise<void> {
-  const isZh = i18n.language === 'zh-CN'
+  const isZh = i18n.language === 'zh-CN';
 
-  const manager = getThinkingManager()
+  const manager = getThinkingManager();
 
   if (!manager.isEnabled()) {
-    console.log('')
-    console.log(ansis.yellow(isZh ? '⚠️  Thinking Mode is already disabled' : '⚠️  Thinking Mode is already disabled'))
-    console.log('')
-    return
+    console.log('');
+    console.log(ansis.yellow(isZh ? '⚠️  Thinking Mode is already disabled' : '⚠️  Thinking Mode is already disabled'));
+    console.log('');
+    return;
   }
 
-  manager.setEnabled(false)
+  manager.setEnabled(false);
 
-  console.log('')
-  console.log(ansis.green(isZh ? '✅ Thinking Mode disabled' : '✅ Thinking Mode disabled'))
-  console.log('')
+  console.log('');
+  console.log(ansis.green(isZh ? '✅ Thinking Mode disabled' : '✅ Thinking Mode disabled'));
+  console.log('');
 }
 
 /**
  * Toggle thinking mode
  */
 export async function thinkingToggle(_options: ThinkingCommandOptions = {}): Promise<void> {
-  const isZh = i18n.language === 'zh-CN'
+  const isZh = i18n.language === 'zh-CN';
 
-  const manager = getThinkingManager()
-  const newState = !manager.isEnabled()
+  const manager = getThinkingManager();
+  const newState = !manager.isEnabled();
 
-  manager.setEnabled(newState)
+  manager.setEnabled(newState);
 
-  console.log('')
+  console.log('');
   console.log(ansis.green(newState
     ? (isZh ? '✅ Thinking Mode enabled' : '✅ Thinking Mode enabled')
-    : (isZh ? '✅ Thinking Mode disabled' : '✅ Thinking Mode disabled')))
-  console.log('')
+    : (isZh ? '✅ Thinking Mode disabled' : '✅ Thinking Mode disabled')));
+  console.log('');
 }
 
 /**
  * Set budget tokens
  */
 export async function thinkingBudget(tokens: string, _options: ThinkingCommandOptions = {}): Promise<void> {
-  const isZh = i18n.language === 'zh-CN'
+  const isZh = i18n.language === 'zh-CN';
 
-  const tokenValue = Number.parseInt(tokens, 10)
+  const tokenValue = Number.parseInt(tokens, 10);
 
   if (Number.isNaN(tokenValue)) {
-    console.log('')
-    console.log(ansis.red(isZh ? '❌ Invalid token value' : '❌ Invalid token value'))
+    console.log('');
+    console.log(ansis.red(isZh ? '❌ Invalid token value' : '❌ Invalid token value'));
     console.log(ansis.dim(isZh
       ? `Budget must be a number between ${MIN_BUDGET_TOKENS} and ${MAX_BUDGET_TOKENS}`
-      : `Budget must be a number between ${MIN_BUDGET_TOKENS} and ${MAX_BUDGET_TOKENS}`))
-    console.log('')
-    return
+      : `Budget must be a number between ${MIN_BUDGET_TOKENS} and ${MAX_BUDGET_TOKENS}`));
+    console.log('');
+    return;
   }
 
-  const manager = getThinkingManager()
-  const result = manager.setBudgetTokens(tokenValue)
+  const manager = getThinkingManager();
+  const result = manager.setBudgetTokens(tokenValue);
 
   if (!result.success) {
-    console.log('')
-    console.log(ansis.red(isZh ? '❌ Failed to set budget' : '❌ Failed to set budget'))
-    console.log(ansis.dim(result.error))
-    console.log('')
-    return
+    console.log('');
+    console.log(ansis.red(isZh ? '❌ Failed to set budget' : '❌ Failed to set budget'));
+    console.log(ansis.dim(result.error));
+    console.log('');
+    return;
   }
 
-  console.log('')
-  console.log(ansis.green(isZh ? '✅ Budget tokens updated' : '✅ Budget tokens updated'))
+  console.log('');
+  console.log(ansis.green(isZh ? '✅ Budget tokens updated' : '✅ Budget tokens updated'));
   console.log(ansis.dim(isZh
     ? `New budget: ${tokenValue.toLocaleString()} tokens`
-    : `New budget: ${tokenValue.toLocaleString()} tokens`))
+    : `New budget: ${tokenValue.toLocaleString()} tokens`));
 
   if (manager.isInheritForSubAgents()) {
     console.log(ansis.dim(isZh
       ? `Sub-agent budget: ${manager.calculateSubAgentBudget().toLocaleString()} tokens`
-      : `Sub-agent budget: ${manager.calculateSubAgentBudget().toLocaleString()} tokens`))
+      : `Sub-agent budget: ${manager.calculateSubAgentBudget().toLocaleString()} tokens`));
   }
 
-  console.log('')
+  console.log('');
 }
 
 /**
  * Configure sub-agent inheritance
  */
 export async function thinkingInheritance(enabled: boolean, _options: ThinkingCommandOptions = {}): Promise<void> {
-  const isZh = i18n.language === 'zh-CN'
+  const isZh = i18n.language === 'zh-CN';
 
-  const manager = getThinkingManager()
-  manager.setInheritForSubAgents(enabled)
+  const manager = getThinkingManager();
+  manager.setInheritForSubAgents(enabled);
 
-  console.log('')
+  console.log('');
   console.log(ansis.green(enabled
     ? (isZh ? '✅ Sub-agent inheritance enabled' : '✅ Sub-agent inheritance enabled')
-    : (isZh ? '✅ Sub-agent inheritance disabled' : '✅ Sub-agent inheritance disabled')))
+    : (isZh ? '✅ Sub-agent inheritance disabled' : '✅ Sub-agent inheritance disabled')));
 
   if (enabled) {
     console.log(ansis.dim(isZh
       ? `Sub-agents will receive ${manager.calculateSubAgentBudget().toLocaleString()} tokens`
-      : `Sub-agents will receive ${manager.calculateSubAgentBudget().toLocaleString()} tokens`))
+      : `Sub-agents will receive ${manager.calculateSubAgentBudget().toLocaleString()} tokens`));
   }
 
-  console.log('')
+  console.log('');
 }
 
 /**
  * Reset thinking mode to defaults
  */
 export async function thinkingReset(_options: ThinkingCommandOptions = {}): Promise<void> {
-  const isZh = i18n.language === 'zh-CN'
+  const isZh = i18n.language === 'zh-CN';
 
   // Confirm reset
   const { confirm } = await inquirer.prompt<{ confirm: boolean }>({
@@ -227,45 +227,45 @@ export async function thinkingReset(_options: ThinkingCommandOptions = {}): Prom
       ? 'Reset thinking mode to default settings?'
       : 'Reset thinking mode to default settings?',
     default: false,
-  })
+  });
 
   if (!confirm) {
-    console.log('')
-    console.log(ansis.yellow(isZh ? 'Cancelled' : 'Cancelled'))
-    console.log('')
-    return
+    console.log('');
+    console.log(ansis.yellow(isZh ? 'Cancelled' : 'Cancelled'));
+    console.log('');
+    return;
   }
 
-  const manager = getThinkingManager()
-  manager.resetToDefaults()
+  const manager = getThinkingManager();
+  manager.resetToDefaults();
 
-  console.log('')
-  console.log(ansis.green(isZh ? '✅ Thinking mode reset to defaults' : '✅ Thinking mode reset to defaults'))
+  console.log('');
+  console.log(ansis.green(isZh ? '✅ Thinking mode reset to defaults' : '✅ Thinking mode reset to defaults'));
   console.log(ansis.dim(isZh
     ? `Enabled: ${manager.isEnabled()}`
-    : `Enabled: ${manager.isEnabled()}`))
+    : `Enabled: ${manager.isEnabled()}`));
   console.log(ansis.dim(isZh
     ? `Budget: ${manager.getBudgetTokens().toLocaleString()} tokens`
-    : `Budget: ${manager.getBudgetTokens().toLocaleString()} tokens`))
-  console.log('')
+    : `Budget: ${manager.getBudgetTokens().toLocaleString()} tokens`));
+  console.log('');
 }
 
 /**
  * Interactive configuration menu
  */
 export async function thinkingConfig(options: ThinkingCommandOptions = {}): Promise<void> {
-  const isZh = i18n.language === 'zh-CN'
+  const isZh = i18n.language === 'zh-CN';
 
-  const manager = getThinkingManager()
-  const currentConfig = manager.getConfig()
+  const manager = getThinkingManager();
+  const currentConfig = manager.getConfig();
 
-  console.log('')
-  console.log(ansis.bold.cyan(isZh ? '🧠 Thinking Mode Configuration' : '🧠 Thinking Mode Configuration'))
-  console.log(ansis.dim('─'.repeat(60)))
-  console.log('')
+  console.log('');
+  console.log(ansis.bold.cyan(isZh ? '🧠 Thinking Mode Configuration' : '🧠 Thinking Mode Configuration'));
+  console.log(ansis.dim('─'.repeat(60)));
+  console.log('');
 
   const { action } = await inquirer.prompt<{
-    action: 'toggle' | 'budget' | 'inheritance' | 'always' | 'reduction' | 'reset' | 'done'
+    action: 'toggle' | 'budget' | 'inheritance' | 'always' | 'reduction' | 'reset' | 'done';
   }>({
     type: 'list',
     name: 'action',
@@ -308,15 +308,15 @@ export async function thinkingConfig(options: ThinkingCommandOptions = {}): Prom
         short: isZh ? 'Done' : 'Done',
       },
     ],
-  })
+  });
 
   if (action === 'done') {
-    await thinkingStatus(options)
-    return
+    await thinkingStatus(options);
+    return;
   }
 
   if (action === 'toggle') {
-    await thinkingToggle(options)
+    await thinkingToggle(options);
   }
   else if (action === 'budget') {
     const { tokens } = await inquirer.prompt<{ tokens: string }>({
@@ -327,19 +327,19 @@ export async function thinkingConfig(options: ThinkingCommandOptions = {}): Prom
         : `Enter budget tokens (${MIN_BUDGET_TOKENS} - ${MAX_BUDGET_TOKENS}):`,
       default: currentConfig.budgetTokens.toString(),
       validate: (value) => {
-        const num = Number.parseInt(value, 10)
+        const num = Number.parseInt(value, 10);
         if (Number.isNaN(num)) {
-          return isZh ? 'Please enter a valid number' : 'Please enter a valid number'
+          return isZh ? 'Please enter a valid number' : 'Please enter a valid number';
         }
         if (num < MIN_BUDGET_TOKENS || num > MAX_BUDGET_TOKENS) {
           return isZh
             ? `Must be between ${MIN_BUDGET_TOKENS} and ${MAX_BUDGET_TOKENS}`
-            : `Must be between ${MIN_BUDGET_TOKENS} and ${MAX_BUDGET_TOKENS}`
+            : `Must be between ${MIN_BUDGET_TOKENS} and ${MAX_BUDGET_TOKENS}`;
         }
-        return true
+        return true;
       },
-    })
-    await thinkingBudget(tokens, options)
+    });
+    await thinkingBudget(tokens, options);
   }
   else if (action === 'inheritance') {
     const { enabled } = await inquirer.prompt<{ enabled: boolean }>({
@@ -347,8 +347,8 @@ export async function thinkingConfig(options: ThinkingCommandOptions = {}): Prom
       name: 'enabled',
       message: isZh ? 'Enable sub-agent inheritance?' : 'Enable sub-agent inheritance?',
       default: currentConfig.inheritForSubAgents,
-    })
-    await thinkingInheritance(enabled, options)
+    });
+    await thinkingInheritance(enabled, options);
   }
   else if (action === 'reduction') {
     const { reduction } = await inquirer.prompt<{ reduction: string }>({
@@ -357,36 +357,36 @@ export async function thinkingConfig(options: ThinkingCommandOptions = {}): Prom
       message: isZh ? 'Enter reduction factor (0.1 - 1.0):' : 'Enter reduction factor (0.1 - 1.0):',
       default: currentConfig.subAgentReduction.toString(),
       validate: (value) => {
-        const num = Number.parseFloat(value)
+        const num = Number.parseFloat(value);
         if (Number.isNaN(num)) {
-          return isZh ? 'Please enter a valid number' : 'Please enter a valid number'
+          return isZh ? 'Please enter a valid number' : 'Please enter a valid number';
         }
         if (num < 0.1 || num > 1.0) {
-          return isZh ? 'Must be between 0.1 and 1.0' : 'Must be between 0.1 and 1.0'
+          return isZh ? 'Must be between 0.1 and 1.0' : 'Must be between 0.1 and 1.0';
         }
-        return true
+        return true;
       },
-    })
+    });
 
-    const manager = getThinkingManager()
-    const result = manager.setSubAgentReduction(Number.parseFloat(reduction))
+    const manager = getThinkingManager();
+    const result = manager.setSubAgentReduction(Number.parseFloat(reduction));
 
     if (!result.success) {
-      console.log('')
-      console.log(ansis.red(result.error))
-      console.log('')
-      return
+      console.log('');
+      console.log(ansis.red(result.error));
+      console.log('');
+      return;
     }
 
-    console.log('')
-    console.log(ansis.green(isZh ? '✅ Reduction factor updated' : '✅ Reduction factor updated'))
+    console.log('');
+    console.log(ansis.green(isZh ? '✅ Reduction factor updated' : '✅ Reduction factor updated'));
     console.log(ansis.dim(isZh
       ? `New reduction: ${(Number.parseFloat(reduction) * 100).toFixed(0)}%`
-      : `New reduction: ${(Number.parseFloat(reduction) * 100).toFixed(0)}%`))
+      : `New reduction: ${(Number.parseFloat(reduction) * 100).toFixed(0)}%`));
     console.log(ansis.dim(isZh
       ? `Sub-agent budget: ${manager.calculateSubAgentBudget().toLocaleString()} tokens`
-      : `Sub-agent budget: ${manager.calculateSubAgentBudget().toLocaleString()} tokens`))
-    console.log('')
+      : `Sub-agent budget: ${manager.calculateSubAgentBudget().toLocaleString()} tokens`));
+    console.log('');
   }
   else if (action === 'always') {
     const { always } = await inquirer.prompt<{ always: boolean }>({
@@ -394,59 +394,59 @@ export async function thinkingConfig(options: ThinkingCommandOptions = {}): Prom
       name: 'always',
       message: isZh ? 'Always use thinking mode (even for simple tasks)?' : 'Always use thinking mode (even for simple tasks)?',
       default: currentConfig.alwaysUseThinking,
-    })
-    const manager = getThinkingManager()
-    manager.setAlwaysUseThinking(always)
+    });
+    const manager = getThinkingManager();
+    manager.setAlwaysUseThinking(always);
 
-    console.log('')
+    console.log('');
     console.log(ansis.green(always
       ? (isZh ? '✅ Always use thinking enabled' : '✅ Always use thinking enabled')
-      : (isZh ? '✅ Always use thinking disabled' : '✅ Always use thinking disabled')))
-    console.log('')
+      : (isZh ? '✅ Always use thinking disabled' : '✅ Always use thinking disabled')));
+    console.log('');
   }
   else if (action === 'reset') {
-    await thinkingReset(options)
+    await thinkingReset(options);
   }
 
   // Continue with configuration
-  await thinkingConfig(options)
+  await thinkingConfig(options);
 }
 
 /**
  * Check if thinking mode should be used for a task
  */
 export function thinkingCheck(complexity: ThinkingTaskComplexity, model?: string): void {
-  const isZh = i18n.language === 'zh-CN'
-  const useThinking = shouldUseThinkingMode(complexity, model)
+  const isZh = i18n.language === 'zh-CN';
+  const useThinking = shouldUseThinkingMode(complexity, model);
 
   const complexityText = {
     simple: isZh ? '简单' : 'simple',
     medium: isZh ? '中等' : 'medium',
     complex: isZh ? '复杂' : 'complex',
-  }[complexity]
+  }[complexity];
 
-  console.log('')
-  console.log(ansis.bold(isZh ? '🧠 Thinking Mode Check' : '🧠 Thinking Mode Check'))
-  console.log(ansis.dim('─'.repeat(60)))
-  console.log('')
-  console.log(`  ${isZh ? '任务复杂度' : 'Task Complexity'}: ${complexityText}`)
+  console.log('');
+  console.log(ansis.bold(isZh ? '🧠 Thinking Mode Check' : '🧠 Thinking Mode Check'));
+  console.log(ansis.dim('─'.repeat(60)));
+  console.log('');
+  console.log(`  ${isZh ? '任务复杂度' : 'Task Complexity'}: ${complexityText}`);
   if (model) {
-    console.log(`  ${isZh ? '模型' : 'Model'}: ${model}`)
+    console.log(`  ${isZh ? '模型' : 'Model'}: ${model}`);
   }
-  console.log(`  ${isZh ? '使用 Thinking Mode' : 'Use Thinking Mode'}: ${useThinking ? ansis.green('Yes') : ansis.yellow('No')}`)
-  console.log('')
+  console.log(`  ${isZh ? '使用 Thinking Mode' : 'Use Thinking Mode'}: ${useThinking ? ansis.green('Yes') : ansis.yellow('No')}`);
+  console.log('');
 }
 
 /**
  * Show thinking mode help
  */
 export function thinkingHelp(_options: ThinkingCommandOptions = {}): void {
-  const isZh = i18n.language === 'zh-CN'
+  const isZh = i18n.language === 'zh-CN';
 
-  console.log('')
-  console.log(ansis.bold.cyan(isZh ? '🧠 Thinking Mode Commands' : '🧠 Thinking Mode Commands'))
-  console.log(ansis.dim('─'.repeat(60)))
-  console.log('')
+  console.log('');
+  console.log(ansis.bold.cyan(isZh ? '🧠 Thinking Mode Commands' : '🧠 Thinking Mode Commands'));
+  console.log(ansis.dim('─'.repeat(60)));
+  console.log('');
 
   const commands = [
     {
@@ -481,21 +481,21 @@ export function thinkingHelp(_options: ThinkingCommandOptions = {}): void {
       cmd: 'ccjk thinking reset',
       desc: isZh ? 'Reset to default settings' : 'Reset to default settings',
     },
-  ]
+  ];
 
   for (const { cmd, desc } of commands) {
-    console.log(`  ${ansis.green(cmd)}`)
-    console.log(`    ${ansis.dim(desc)}`)
-    console.log('')
+    console.log(`  ${ansis.green(cmd)}`);
+    console.log(`    ${ansis.dim(desc)}`);
+    console.log('');
   }
 
   console.log(ansis.dim(isZh
     ? '💡 Thinking Mode is enabled by default for Opus 4.5'
-    : '💡 Thinking Mode is enabled by default for Opus 4.5'))
+    : '💡 Thinking Mode is enabled by default for Opus 4.5'));
   console.log(ansis.dim(isZh
     ? '   It provides extended reasoning for complex tasks.'
-    : '   It provides extended reasoning for complex tasks.'))
-  console.log('')
+    : '   It provides extended reasoning for complex tasks.'));
+  console.log('');
 }
 
 /**
@@ -509,70 +509,70 @@ export async function thinking(
   try {
     switch (action) {
       case 'enable':
-        await thinkingEnable(options)
-        break
+        await thinkingEnable(options);
+        break;
 
       case 'disable':
-        await thinkingDisable(options)
-        break
+        await thinkingDisable(options);
+        break;
 
       case 'toggle':
-        await thinkingToggle(options)
-        break
+        await thinkingToggle(options);
+        break;
 
       case 'budget':
         if (args.length === 0) {
-          const isZh = i18n.language === 'zh-CN'
-          console.log('')
-          console.log(ansis.yellow(isZh ? '⚠️  Please specify token amount' : '⚠️  Please specify token amount'))
-          console.log(ansis.dim(isZh ? 'Usage: ccjk thinking budget <tokens>' : 'Usage: ccjk thinking budget <tokens>'))
-          console.log('')
-          return
+          const isZh = i18n.language === 'zh-CN';
+          console.log('');
+          console.log(ansis.yellow(isZh ? '⚠️  Please specify token amount' : '⚠️  Please specify token amount'));
+          console.log(ansis.dim(isZh ? 'Usage: ccjk thinking budget <tokens>' : 'Usage: ccjk thinking budget <tokens>'));
+          console.log('');
+          return;
         }
-        await thinkingBudget(args[0], options)
-        break
+        await thinkingBudget(args[0], options);
+        break;
 
       case 'inherit':
-        await thinkingInheritance(true, options)
-        break
+        await thinkingInheritance(true, options);
+        break;
 
       case 'no-inherit':
-        await thinkingInheritance(false, options)
-        break
+        await thinkingInheritance(false, options);
+        break;
 
       case 'config':
-        await thinkingConfig(options)
-        break
+        await thinkingConfig(options);
+        break;
 
       case 'check':
         if (args.length === 0) {
-          thinkingCheck('complex')
+          thinkingCheck('complex');
         }
         else {
           const complexity = ['simple', 'medium', 'complex'].includes(args[0])
             ? args[0] as ThinkingTaskComplexity
-            : 'complex'
-          thinkingCheck(complexity)
+            : 'complex';
+          thinkingCheck(complexity);
         }
-        break
+        break;
 
       case 'reset':
-        await thinkingReset(options)
-        break
+        await thinkingReset(options);
+        break;
 
       case 'help':
-        thinkingHelp(options)
-        break
+        thinkingHelp(options);
+        break;
 
       case 'status':
       default:
-        await thinkingStatus(options)
-        break
+        await thinkingStatus(options);
+        break;
     }
   }
   catch (error) {
     if (!handleExitPromptError(error)) {
-      handleGeneralError(error)
+      handleGeneralError(error);
     }
   }
 }

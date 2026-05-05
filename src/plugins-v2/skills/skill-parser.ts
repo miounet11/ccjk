@@ -22,9 +22,9 @@ import type {
   SkillExample,
   SkillRule,
   SkillSection,
-} from '../types'
-import { existsSync, readdirSync, readFileSync } from 'node:fs'
-import { basename, dirname, join } from 'pathe'
+} from '../types';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { basename, dirname, join } from 'pathe';
 
 // ============================================================================
 // Constants
@@ -43,7 +43,7 @@ const PRIORITY_KEYWORDS: Record<string, SkillRule['priority']> = {
   low: 'low',
   LOW: 'low',
   低: 'low',
-}
+};
 
 // ============================================================================
 // Skill Parser Class
@@ -62,8 +62,8 @@ export class SkillParser {
    * @returns Parsed skill document
    */
   parse(filePath: string): SkillDocument {
-    const content = readFileSync(filePath, 'utf-8')
-    return this.parseContent(content, dirname(filePath))
+    const content = readFileSync(filePath, 'utf-8');
+    return this.parseContent(content, dirname(filePath));
   }
 
   /**
@@ -74,25 +74,25 @@ export class SkillParser {
    * @returns Parsed skill document
    */
   parseContent(content: string, basePath?: string): SkillDocument {
-    const lines = content.split('\n')
+    const lines = content.split('\n');
 
     // Extract title (first H1)
-    const title = this.extractTitle(lines)
+    const title = this.extractTitle(lines);
 
     // Extract description (content after title, before first H2)
-    const description = this.extractDescription(lines)
+    const description = this.extractDescription(lines);
 
     // Extract applicability
-    const applicability = this.extractApplicability(content)
+    const applicability = this.extractApplicability(content);
 
     // Extract sections
-    const sections = this.extractSections(content)
+    const sections = this.extractSections(content);
 
     // Extract rules
-    const rules = this.extractRules(content, basePath)
+    const rules = this.extractRules(content, basePath);
 
     // Extract examples
-    const examples = this.extractExamples(content)
+    const examples = this.extractExamples(content);
 
     return {
       title,
@@ -102,7 +102,7 @@ export class SkillParser {
       rules,
       examples,
       rawContent: content,
-    }
+    };
   }
 
   /**
@@ -112,21 +112,21 @@ export class SkillParser {
    * @returns Parsed skill document with references
    */
   parseDirectory(dirPath: string): SkillDocument & { references: ReferenceDocument[] } {
-    const skillPath = join(dirPath, 'SKILL.md')
+    const skillPath = join(dirPath, 'SKILL.md');
 
     if (!existsSync(skillPath)) {
-      throw new Error(`SKILL.md not found in ${dirPath}`)
+      throw new Error(`SKILL.md not found in ${dirPath}`);
     }
 
-    const skill = this.parse(skillPath)
+    const skill = this.parse(skillPath);
 
     // Load references
-    const references = this.loadReferences(dirPath)
+    const references = this.loadReferences(dirPath);
 
     return {
       ...skill,
       references,
-    }
+    };
   }
 
   // ==========================================================================
@@ -138,39 +138,39 @@ export class SkillParser {
    */
   private extractTitle(lines: string[]): string {
     for (const line of lines) {
-      const match = line.match(/^#\s+(.+)$/)
+      const match = line.match(/^#\s+(.+)$/);
       if (match) {
-        return match[1].trim()
+        return match[1].trim();
       }
     }
-    return 'Untitled Skill'
+    return 'Untitled Skill';
   }
 
   /**
    * Extract description from markdown
    */
   private extractDescription(lines: string[]): string {
-    let inDescription = false
-    const descLines: string[] = []
+    let inDescription = false;
+    const descLines: string[] = [];
 
     for (const line of lines) {
       // Start after first H1
       if (line.match(/^#\s+/)) {
-        inDescription = true
-        continue
+        inDescription = true;
+        continue;
       }
 
       // Stop at first H2
       if (line.match(/^##\s+/)) {
-        break
+        break;
       }
 
       if (inDescription && line.trim()) {
-        descLines.push(line)
+        descLines.push(line);
       }
     }
 
-    return descLines.join('\n').trim()
+    return descLines.join('\n').trim();
   }
 
   /**
@@ -181,22 +181,22 @@ export class SkillParser {
       taskTypes: [],
       fileTypes: [],
       contexts: [],
-    }
+    };
 
     // Look for "When to Apply" or "Applicability" section
     const applicabilityMatch = content.match(
       /##\s*(?:When to Apply|Applicability|适用场景|何时使用)[^\n]*\n([\s\S]*?)(?=\n##|\n$|$)/i,
-    )
+    );
 
     if (applicabilityMatch) {
-      const section = applicabilityMatch[1]
+      const section = applicabilityMatch[1];
 
       // Extract task types from bullet points
-      const taskMatches = section.matchAll(/[-*]\s*(.+)/g)
+      const taskMatches = section.matchAll(/[-*]\s*(.+)/g);
       for (const match of taskMatches) {
-        const task = match[1].trim()
+        const task = match[1].trim();
         if (task) {
-          applicability.taskTypes.push(task)
+          applicability.taskTypes.push(task);
         }
       }
     }
@@ -204,37 +204,37 @@ export class SkillParser {
     // Look for file types
     const fileTypeMatch = content.match(
       /(?:file types?|文件类型)[:\s]*([^\n]+)/i,
-    )
+    );
     if (fileTypeMatch) {
       applicability.fileTypes = fileTypeMatch[1]
         .split(/[,，]/)
         .map(t => t.trim())
-        .filter(Boolean)
+        .filter(Boolean);
     }
 
-    return applicability
+    return applicability;
   }
 
   /**
    * Extract sections from markdown
    */
   private extractSections(content: string): SkillSection[] {
-    const sections: SkillSection[] = []
-    const lines = content.split('\n')
+    const sections: SkillSection[] = [];
+    const lines = content.split('\n');
 
-    let currentSection: SkillSection | null = null
-    let currentContent: string[] = []
-    let currentSubsections: SkillSection[] = []
+    let currentSection: SkillSection | null = null;
+    let currentContent: string[] = [];
+    let currentSubsections: SkillSection[] = [];
 
     for (const line of lines) {
       // H2 - Main section
-      const h2Match = line.match(/^##\s+(.+)$/)
+      const h2Match = line.match(/^##\s+(.+)$/);
       if (h2Match) {
         // Save previous section
         if (currentSection) {
-          currentSection.content = currentContent.join('\n').trim()
-          currentSection.subsections = currentSubsections.length > 0 ? currentSubsections : undefined
-          sections.push(currentSection)
+          currentSection.content = currentContent.join('\n').trim();
+          currentSection.subsections = currentSubsections.length > 0 ? currentSubsections : undefined;
+          sections.push(currentSection);
         }
 
         // Start new section
@@ -242,74 +242,74 @@ export class SkillParser {
           title: h2Match[1].trim(),
           content: '',
           priority: this.detectPriority(h2Match[1]),
-        }
-        currentContent = []
-        currentSubsections = []
-        continue
+        };
+        currentContent = [];
+        currentSubsections = [];
+        continue;
       }
 
       // H3 - Subsection
-      const h3Match = line.match(/^###\s+(.+)$/)
+      const h3Match = line.match(/^###\s+(.+)$/);
       if (h3Match && currentSection) {
         currentSubsections.push({
           title: h3Match[1].trim(),
           content: '', // Will be filled by subsequent lines
           priority: this.detectPriority(h3Match[1]),
-        })
-        continue
+        });
+        continue;
       }
 
       // Content line
       if (currentSection) {
-        currentContent.push(line)
+        currentContent.push(line);
       }
     }
 
     // Save last section
     if (currentSection) {
-      currentSection.content = currentContent.join('\n').trim()
-      currentSection.subsections = currentSubsections.length > 0 ? currentSubsections : undefined
-      sections.push(currentSection)
+      currentSection.content = currentContent.join('\n').trim();
+      currentSection.subsections = currentSubsections.length > 0 ? currentSubsections : undefined;
+      sections.push(currentSection);
     }
 
-    return sections
+    return sections;
   }
 
   /**
    * Extract rules from markdown
    */
   private extractRules(content: string, basePath?: string): SkillRule[] {
-    const rules: SkillRule[] = []
+    const rules: SkillRule[] = [];
 
     // Pattern 1: Rules with IDs like `async-001`, `bundle-002`
-    const rulePattern = /###?\s*(?:`([a-z]+-\d+)`|(\w+-\d+))[:\s]*(.+?)(?=\n###?|\n##|$)/gs
+    const rulePattern = /##?\s*(?:`([a-z]+-\d+)`|(\w+-\d+))[:\s]*(.+?)(?=\n##?|\n##|$)/gs;
 
-    let match
+    let match;
     while ((match = rulePattern.exec(content)) !== null) {
-      const id = match[1] || match[2]
-      const titleAndContent = match[3]
+      const id = match[1] || match[2];
+      const titleAndContent = match[3];
 
       // Extract title (first line)
-      const titleMatch = titleAndContent.match(/^[:\s]*(.+)(?:\n|$)/)
-      const title = titleMatch ? titleMatch[1].trim() : id
+      const titleMatch = titleAndContent.match(/^[:\s]*(.+)(?:\n|$)/);
+      const title = titleMatch ? titleMatch[1].trim() : id;
 
       // Detect category from ID prefix
-      const category = id.split('-')[0]
+      const category = id.split('-')[0];
 
       // Detect priority
-      const priority = this.detectPriority(titleAndContent)
+      const priority = this.detectPriority(titleAndContent);
 
       // Extract description
       const description = titleAndContent
         .replace(/^[:\s]*(.+)(?:\n|$)/, '')
-        .trim()
+        .trim();
 
       // Check for reference file
-      let referencePath: string | undefined
+      let referencePath: string | undefined;
       if (basePath) {
-        const refPath = join(basePath, 'references', 'rules', `${id}.md`)
+        const refPath = join(basePath, 'references', 'rules', `${id}.md`);
         if (existsSync(refPath)) {
-          referencePath = refPath
+          referencePath = refPath;
         }
       }
 
@@ -320,19 +320,19 @@ export class SkillParser {
         priority,
         description,
         referencePath,
-      })
+      });
     }
 
     // Pattern 2: Numbered rules like "1. Rule Name"
-    const numberedPattern = /(?:^|\n)(\d+)\.\s+\*\*(.+?)\*\*[:\s]*(.+?)(?=\n\d+\.|\n##|$)/gs
+    const numberedPattern = /(?:^|\n)(\d+)\.\s+\*\*(.+?)\*\*[:\s]*(.+?)(?=\n\d+\.|\n##|$)/gs;
 
     while ((match = numberedPattern.exec(content)) !== null) {
-      const num = match[1]
-      const title = match[2].trim()
-      const description = match[3].trim()
+      const num = match[1];
+      const title = match[2].trim();
+      const description = match[3].trim();
 
       // Generate ID from title
-      const id = `rule-${num.padStart(3, '0')}`
+      const id = `rule-${num.padStart(3, '0')}`;
 
       rules.push({
         id,
@@ -340,110 +340,110 @@ export class SkillParser {
         category: 'general',
         priority: this.detectPriority(description),
         description,
-      })
+      });
     }
 
-    return rules
+    return rules;
   }
 
   /**
    * Extract code examples from markdown
    */
   private extractExamples(content: string): SkillExample[] {
-    const examples: SkillExample[] = []
+    const examples: SkillExample[] = [];
 
     // Look for example sections
-    const examplePattern = /###?\s*(?:Example|示例|案例)[:\s]*(.+?)(?=\n###?|\n##|$)/gis
+    const examplePattern = /##?\s*(?:Example|示例|案例)[:\s]*(.+?)(?=\n##?|\n##|$)/gis;
 
-    let match
+    let match;
     while ((match = examplePattern.exec(content)) !== null) {
-      const exampleContent = match[1]
+      const exampleContent = match[1];
 
       // Extract input/output
-      const inputMatch = exampleContent.match(/(?:Input|输入)[:\s]*(.+?)(?=Output|输出|$)/is)
-      const outputMatch = exampleContent.match(/(?:Output|输出)[:\s]*(.+)$/is)
+      const inputMatch = exampleContent.match(/(?:Input|输入)[:\s]*(.+?)(?=Output|输出|$)/is);
+      const outputMatch = exampleContent.match(/(?:Output|输出)[:\s]*(.+)$/is);
 
       if (inputMatch || outputMatch) {
         examples.push({
           title: 'Example',
           input: inputMatch ? inputMatch[1].trim() : '',
           output: outputMatch ? outputMatch[1].trim() : '',
-        })
+        });
       }
     }
 
-    return examples
+    return examples;
   }
 
   /**
    * Extract code blocks from content
    */
   extractCodeBlocks(content: string): CodeExample[] {
-    const blocks: CodeExample[] = []
+    const blocks: CodeExample[] = [];
 
-    const codePattern = /```(\w+)?\n([\s\S]*?)```/g
+    const codePattern = /```(\w+)?\n([\s\S]*?)```/g;
 
-    let match
+    let match;
     while ((match = codePattern.exec(content)) !== null) {
       blocks.push({
         language: match[1] || 'text',
         code: match[2].trim(),
-      })
+      });
     }
 
-    return blocks
+    return blocks;
   }
 
   /**
    * Load reference documents from references/ directory
    */
   private loadReferences(dirPath: string): ReferenceDocument[] {
-    const references: ReferenceDocument[] = []
-    const refsPath = join(dirPath, 'references')
+    const references: ReferenceDocument[] = [];
+    const refsPath = join(dirPath, 'references');
 
     if (!existsSync(refsPath)) {
-      return references
+      return references;
     }
 
     const loadDir = (dir: string, prefix = '') => {
-      const entries = readdirSync(dir, { withFileTypes: true })
+      const entries = readdirSync(dir, { withFileTypes: true });
 
       for (const entry of entries) {
-        const fullPath = join(dir, entry.name)
+        const fullPath = join(dir, entry.name);
 
         if (entry.isDirectory()) {
-          loadDir(fullPath, `${prefix}${entry.name}/`)
+          loadDir(fullPath, `${prefix}${entry.name}/`);
         }
         else if (entry.name.endsWith('.md')) {
-          const content = readFileSync(fullPath, 'utf-8')
-          const title = this.extractTitle(content.split('\n')) || basename(entry.name, '.md')
+          const content = readFileSync(fullPath, 'utf-8');
+          const title = this.extractTitle(content.split('\n')) || basename(entry.name, '.md');
 
           references.push({
             path: `${prefix}${entry.name}`,
             title,
             content,
-          })
+          });
         }
       }
-    }
+    };
 
-    loadDir(refsPath)
-    return references
+    loadDir(refsPath);
+    return references;
   }
 
   /**
    * Detect priority from text
    */
   private detectPriority(text: string): SkillRule['priority'] {
-    const lowerText = text.toLowerCase()
+    const lowerText = text.toLowerCase();
 
     for (const [keyword, priority] of Object.entries(PRIORITY_KEYWORDS)) {
       if (lowerText.includes(keyword.toLowerCase())) {
-        return priority
+        return priority;
       }
     }
 
-    return 'medium'
+    return 'medium';
   }
 }
 
@@ -459,45 +459,45 @@ export class SkillGenerator {
    * Generate SKILL.md content
    */
   generate(skill: Partial<SkillDocument> & { title: string }): string {
-    const lines: string[] = []
+    const lines: string[] = [];
 
     // Title
-    lines.push(`# ${skill.title}`)
-    lines.push('')
+    lines.push(`# ${skill.title}`);
+    lines.push('');
 
     // Description
     if (skill.description) {
-      lines.push(skill.description)
-      lines.push('')
+      lines.push(skill.description);
+      lines.push('');
     }
 
     // Applicability
     if (skill.applicability && skill.applicability.taskTypes.length > 0) {
-      lines.push('## When to Apply')
-      lines.push('')
+      lines.push('## When to Apply');
+      lines.push('');
       for (const task of skill.applicability.taskTypes) {
-        lines.push(`- ${task}`)
+        lines.push(`- ${task}`);
       }
-      lines.push('')
+      lines.push('');
     }
 
     // Sections
     if (skill.sections) {
       for (const section of skill.sections) {
-        lines.push(`## ${section.title}`)
-        lines.push('')
+        lines.push(`## ${section.title}`);
+        lines.push('');
         if (section.content) {
-          lines.push(section.content)
-          lines.push('')
+          lines.push(section.content);
+          lines.push('');
         }
 
         if (section.subsections) {
           for (const sub of section.subsections) {
-            lines.push(`### ${sub.title}`)
-            lines.push('')
+            lines.push(`### ${sub.title}`);
+            lines.push('');
             if (sub.content) {
-              lines.push(sub.content)
-              lines.push('')
+              lines.push(sub.content);
+              lines.push('');
             }
           }
         }
@@ -506,53 +506,53 @@ export class SkillGenerator {
 
     // Rules
     if (skill.rules && skill.rules.length > 0) {
-      lines.push('## Rules')
-      lines.push('')
+      lines.push('## Rules');
+      lines.push('');
 
       // Group by category
-      const byCategory = new Map<string, SkillRule[]>()
+      const byCategory = new Map<string, SkillRule[]>();
       for (const rule of skill.rules) {
-        const cat = rule.category || 'general'
+        const cat = rule.category || 'general';
         if (!byCategory.has(cat)) {
-          byCategory.set(cat, [])
+          byCategory.set(cat, []);
         }
-        byCategory.get(cat)!.push(rule)
+        byCategory.get(cat)!.push(rule);
       }
 
       for (const [category, categoryRules] of byCategory) {
-        lines.push(`### ${this.formatCategory(category)}`)
-        lines.push('')
+        lines.push(`### ${this.formatCategory(category)}`);
+        lines.push('');
 
         for (const rule of categoryRules) {
-          lines.push(`#### \`${rule.id}\`: ${rule.title}`)
-          lines.push('')
-          lines.push(`**Priority**: ${rule.priority.toUpperCase()}`)
-          lines.push('')
+          lines.push(`#### \`${rule.id}\`: ${rule.title}`);
+          lines.push('');
+          lines.push(`**Priority**: ${rule.priority.toUpperCase()}`);
+          lines.push('');
           if (rule.description) {
-            lines.push(rule.description)
-            lines.push('')
+            lines.push(rule.description);
+            lines.push('');
           }
 
           if (rule.badExample) {
-            lines.push('**❌ Bad:**')
-            lines.push(`\`\`\`${rule.badExample.language}`)
-            lines.push(rule.badExample.code)
-            lines.push('```')
+            lines.push('**❌ Bad:**');
+            lines.push(`\`\`\`${rule.badExample.language}`);
+            lines.push(rule.badExample.code);
+            lines.push('```');
             if (rule.badExample.explanation) {
-              lines.push(rule.badExample.explanation)
+              lines.push(rule.badExample.explanation);
             }
-            lines.push('')
+            lines.push('');
           }
 
           if (rule.goodExample) {
-            lines.push('**✅ Good:**')
-            lines.push(`\`\`\`${rule.goodExample.language}`)
-            lines.push(rule.goodExample.code)
-            lines.push('```')
+            lines.push('**✅ Good:**');
+            lines.push(`\`\`\`${rule.goodExample.language}`);
+            lines.push(rule.goodExample.code);
+            lines.push('```');
             if (rule.goodExample.explanation) {
-              lines.push(rule.goodExample.explanation)
+              lines.push(rule.goodExample.explanation);
             }
-            lines.push('')
+            lines.push('');
           }
         }
       }
@@ -560,22 +560,22 @@ export class SkillGenerator {
 
     // Examples
     if (skill.examples && skill.examples.length > 0) {
-      lines.push('## Examples')
-      lines.push('')
+      lines.push('## Examples');
+      lines.push('');
 
       for (const example of skill.examples) {
-        lines.push(`### ${example.title}`)
-        lines.push('')
-        lines.push('**Input:**')
-        lines.push(example.input)
-        lines.push('')
-        lines.push('**Output:**')
-        lines.push(example.output)
-        lines.push('')
+        lines.push(`### ${example.title}`);
+        lines.push('');
+        lines.push('**Input:**');
+        lines.push(example.input);
+        lines.push('');
+        lines.push('**Output:**');
+        lines.push(example.output);
+        lines.push('');
       }
     }
 
-    return lines.join('\n')
+    return lines.join('\n');
   }
 
   /**
@@ -585,7 +585,7 @@ export class SkillGenerator {
     return category
       .split('-')
       .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ')
+      .join(' ');
   }
 }
 
@@ -593,17 +593,17 @@ export class SkillGenerator {
 // Singleton Instances
 // ============================================================================
 
-let parserInstance: SkillParser | null = null
-let generatorInstance: SkillGenerator | null = null
+let parserInstance: SkillParser | null = null;
+let generatorInstance: SkillGenerator | null = null;
 
 /**
  * Get the singleton SkillParser instance
  */
 export function getSkillParser(): SkillParser {
   if (!parserInstance) {
-    parserInstance = new SkillParser()
+    parserInstance = new SkillParser();
   }
-  return parserInstance
+  return parserInstance;
 }
 
 /**
@@ -611,9 +611,9 @@ export function getSkillParser(): SkillParser {
  */
 export function getSkillGenerator(): SkillGenerator {
   if (!generatorInstance) {
-    generatorInstance = new SkillGenerator()
+    generatorInstance = new SkillGenerator();
   }
-  return generatorInstance
+  return generatorInstance;
 }
 
 // ============================================================================
@@ -624,7 +624,7 @@ export function getSkillGenerator(): SkillGenerator {
  * Check if a directory contains a valid skill
  */
 export function isValidSkillDirectory(dirPath: string): boolean {
-  return existsSync(join(dirPath, 'SKILL.md'))
+  return existsSync(join(dirPath, 'SKILL.md'));
 }
 
 /**
@@ -641,5 +641,5 @@ export function isValidSkillDirectory(dirPath: string): boolean {
  * @see {@link @/brain/skill-parser#isSkillFile} for the canonical implementation
  */
 export function isSkillFile(filePath: string): boolean {
-  return basename(filePath).toUpperCase() === 'SKILL.MD'
+  return basename(filePath).toUpperCase() === 'SKILL.MD';
 }

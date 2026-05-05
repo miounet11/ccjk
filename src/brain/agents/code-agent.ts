@@ -3,86 +3,86 @@
  * Specialized agent for code analysis, review, and refactoring
  */
 
-import type { AgentCapability, AgentContext, AgentResult } from './base-agent'
-import { AgentState, BaseAgent } from './base-agent'
+import type { AgentCapability, AgentContext, AgentResult } from './base-agent';
+import { AgentState, BaseAgent } from './base-agent';
 
 export interface CodeAnalysisResult {
-  issues: CodeIssue[]
-  metrics: CodeMetrics
-  suggestions: CodeSuggestion[]
+  issues: CodeIssue[];
+  metrics: CodeMetrics;
+  suggestions: CodeSuggestion[];
 }
 
 export interface CodeIssue {
-  severity: 'error' | 'warning' | 'info'
-  type: 'syntax' | 'style' | 'performance' | 'security' | 'maintainability'
-  message: string
-  file: string
-  line?: number
-  column?: number
-  code?: string
+  severity: 'error' | 'warning' | 'info';
+  type: 'syntax' | 'style' | 'performance' | 'security' | 'maintainability';
+  message: string;
+  file: string;
+  line?: number;
+  column?: number;
+  code?: string;
 }
 
 export interface CodeMetrics {
-  linesOfCode: number
-  complexity: number
-  maintainabilityIndex: number
-  testCoverage?: number
-  dependencies: number
-  technicalDebt?: string
+  linesOfCode: number;
+  complexity: number;
+  maintainabilityIndex: number;
+  testCoverage?: number;
+  dependencies: number;
+  technicalDebt?: string;
 }
 
 export interface CodeSuggestion {
-  type: 'refactor' | 'optimize' | 'modernize' | 'simplify'
-  priority: 'high' | 'medium' | 'low'
-  description: string
-  file: string
-  before?: string
-  after?: string
-  impact: string
+  type: 'refactor' | 'optimize' | 'modernize' | 'simplify';
+  priority: 'high' | 'medium' | 'low';
+  description: string;
+  file: string;
+  before?: string;
+  after?: string;
+  impact: string;
 }
 
 export interface RefactoringPlan {
-  steps: RefactoringStep[]
-  estimatedTime: string
-  risks: string[]
-  benefits: string[]
+  steps: RefactoringStep[];
+  estimatedTime: string;
+  risks: string[];
+  benefits: string[];
 }
 
 export interface RefactoringStep {
-  order: number
-  action: string
-  description: string
-  files: string[]
-  automated: boolean
+  order: number;
+  action: string;
+  description: string;
+  files: string[];
+  automated: boolean;
 }
 
 export interface PerformanceAnalysis {
-  bottlenecks: PerformanceBottleneck[]
-  recommendations: PerformanceRecommendation[]
-  estimatedImprovement: string
+  bottlenecks: PerformanceBottleneck[];
+  recommendations: PerformanceRecommendation[];
+  estimatedImprovement: string;
 }
 
 export interface PerformanceBottleneck {
-  location: string
-  type: 'cpu' | 'memory' | 'io' | 'network'
-  severity: 'critical' | 'high' | 'medium' | 'low'
-  description: string
-  currentMetric?: string
+  location: string;
+  type: 'cpu' | 'memory' | 'io' | 'network';
+  severity: 'critical' | 'high' | 'medium' | 'low';
+  description: string;
+  currentMetric?: string;
 }
 
 export interface PerformanceRecommendation {
-  title: string
-  description: string
-  implementation: string
-  expectedGain: string
-  effort: 'low' | 'medium' | 'high'
+  title: string;
+  description: string;
+  implementation: string;
+  expectedGain: string;
+  effort: 'low' | 'medium' | 'high';
 }
 
 /**
  * Code Agent Implementation
  */
 export class CodeAgent extends BaseAgent {
-  private analysisCache: Map<string, CodeAnalysisResult> = new Map()
+  private analysisCache: Map<string, CodeAnalysisResult> = new Map();
 
   constructor(context: AgentContext) {
     const capabilities: AgentCapability[] = [
@@ -111,7 +111,7 @@ export class CodeAgent extends BaseAgent {
         description: 'Calculate code metrics',
         parameters: { files: 'string[]', metrics: 'string[]' },
       },
-    ]
+    ];
 
     super(
       {
@@ -123,29 +123,29 @@ export class CodeAgent extends BaseAgent {
         verbose: true,
       },
       context,
-    )
+    );
   }
 
   /**
    * Initialize code agent
    */
   async initialize(): Promise<void> {
-    this.setState(AgentState.THINKING)
-    this.log('Initializing Code Agent...')
+    this.setState(AgentState.THINKING);
+    this.log('Initializing Code Agent...');
 
     try {
       // Initialize analysis tools
-      await this.loadAnalysisTools()
+      await this.loadAnalysisTools();
 
       // Validate project structure
-      await this.validateProjectStructure()
+      await this.validateProjectStructure();
 
-      this.setState(AgentState.IDLE)
-      this.log('Code Agent initialized successfully')
+      this.setState(AgentState.IDLE);
+      this.log('Code Agent initialized successfully');
     }
     catch (error) {
-      this.setState(AgentState.ERROR)
-      throw error
+      this.setState(AgentState.ERROR);
+      throw error;
     }
   }
 
@@ -153,52 +153,52 @@ export class CodeAgent extends BaseAgent {
    * Process code analysis request
    */
   async process(message: string, metadata?: Record<string, unknown>): Promise<AgentResult<CodeAnalysisResult>> {
-    this.setState(AgentState.THINKING)
-    this.addMessage({ role: 'user', content: message, metadata })
+    this.setState(AgentState.THINKING);
+    this.addMessage({ role: 'user', content: message, metadata });
 
     try {
-      const action = metadata?.action as string || 'analyze'
-      const files = metadata?.files as string[] || []
+      const action = metadata?.action as string || 'analyze';
+      const files = metadata?.files as string[] || [];
 
-      this.log(`Processing ${action} request for ${files.length} files`)
+      this.log(`Processing ${action} request for ${files.length} files`);
 
-      let result: CodeAnalysisResult
+      let result: CodeAnalysisResult;
 
       switch (action) {
         case 'analyze':
-          result = await this.analyzeCode(files)
-          break
+          result = await this.analyzeCode(files);
+          break;
         case 'review':
-          result = await this.reviewCode(files, metadata?.standards as string[])
-          break
+          result = await this.reviewCode(files, metadata?.standards as string[]);
+          break;
         case 'refactor':
-          result = await this.generateRefactoringSuggestions(files)
-          break
+          result = await this.generateRefactoringSuggestions(files);
+          break;
         case 'performance':
-          result = await this.analyzePerformance(files)
-          break
+          result = await this.analyzePerformance(files);
+          break;
         case 'metrics':
-          result = await this.calculateMetrics(files)
-          break
+          result = await this.calculateMetrics(files);
+          break;
         default:
-          throw new Error(`Unknown action: ${action}`)
+          throw new Error(`Unknown action: ${action}`);
       }
 
-      this.setState(AgentState.COMPLETED)
+      this.setState(AgentState.COMPLETED);
       this.addMessage({
         role: 'agent',
         content: `Completed ${action} analysis`,
         metadata: { result },
-      })
+      });
 
       return {
         success: true,
         data: result,
         message: `Code ${action} completed successfully`,
-      }
+      };
     }
     catch (error) {
-      return await this.handleError(error instanceof Error ? error : new Error(String(error))) as AgentResult<CodeAnalysisResult>
+      return await this.handleError(error instanceof Error ? error : new Error(String(error))) as AgentResult<CodeAnalysisResult>;
     }
   }
 
@@ -206,160 +206,160 @@ export class CodeAgent extends BaseAgent {
    * Analyze code quality
    */
   private async analyzeCode(files: string[]): Promise<CodeAnalysisResult> {
-    this.setState(AgentState.EXECUTING)
-    this.log(`Analyzing ${files.length} files...`)
+    this.setState(AgentState.EXECUTING);
+    this.log(`Analyzing ${files.length} files...`);
 
     return this.executeWithRetry(async () => {
-      const issues: CodeIssue[] = []
-      const suggestions: CodeSuggestion[] = []
+      const issues: CodeIssue[] = [];
+      const suggestions: CodeSuggestion[] = [];
 
       for (const file of files) {
         // Check cache first
-        const cached = this.analysisCache.get(file)
+        const cached = this.analysisCache.get(file);
         if (cached) {
-          issues.push(...cached.issues)
-          suggestions.push(...cached.suggestions)
-          continue
+          issues.push(...cached.issues);
+          suggestions.push(...cached.suggestions);
+          continue;
         }
 
         // Perform analysis
-        const fileIssues = await this.analyzeFile(file)
-        const fileSuggestions = await this.generateSuggestions(file)
+        const fileIssues = await this.analyzeFile(file);
+        const fileSuggestions = await this.generateSuggestions(file);
 
-        issues.push(...fileIssues)
-        suggestions.push(...fileSuggestions)
+        issues.push(...fileIssues);
+        suggestions.push(...fileSuggestions);
       }
 
-      const metrics = await this.calculateCodeMetrics(files)
+      const metrics = await this.calculateCodeMetrics(files);
 
       const result: CodeAnalysisResult = {
         issues,
         metrics,
         suggestions,
-      }
+      };
 
       // Cache result
       for (const file of files) {
-        this.analysisCache.set(file, result)
+        this.analysisCache.set(file, result);
       }
 
-      return result
-    })
+      return result;
+    });
   }
 
   /**
    * Review code against standards
    */
   private async reviewCode(files: string[], standards?: string[]): Promise<CodeAnalysisResult> {
-    this.setState(AgentState.EXECUTING)
-    this.log(`Reviewing ${files.length} files against ${standards?.length || 0} standards...`)
+    this.setState(AgentState.EXECUTING);
+    this.log(`Reviewing ${files.length} files against ${standards?.length || 0} standards...`);
 
     return this.executeWithRetry(async () => {
-      const issues: CodeIssue[] = []
-      const suggestions: CodeSuggestion[] = []
+      const issues: CodeIssue[] = [];
+      const suggestions: CodeSuggestion[] = [];
 
       for (const file of files) {
         // Check coding standards
-        const standardIssues = await this.checkStandards(file, standards)
-        issues.push(...standardIssues)
+        const standardIssues = await this.checkStandards(file, standards);
+        issues.push(...standardIssues);
 
         // Check best practices
-        const practiceIssues = await this.checkBestPractices(file)
-        issues.push(...practiceIssues)
+        const practiceIssues = await this.checkBestPractices(file);
+        issues.push(...practiceIssues);
 
         // Generate improvement suggestions
-        const improvements = await this.generateImprovements(file)
-        suggestions.push(...improvements)
+        const improvements = await this.generateImprovements(file);
+        suggestions.push(...improvements);
       }
 
-      const metrics = await this.calculateCodeMetrics(files)
+      const metrics = await this.calculateCodeMetrics(files);
 
       return {
         issues,
         metrics,
         suggestions,
-      }
-    })
+      };
+    });
   }
 
   /**
    * Generate refactoring suggestions
    */
   private async generateRefactoringSuggestions(files: string[]): Promise<CodeAnalysisResult> {
-    this.setState(AgentState.EXECUTING)
-    this.log(`Generating refactoring suggestions for ${files.length} files...`)
+    this.setState(AgentState.EXECUTING);
+    this.log(`Generating refactoring suggestions for ${files.length} files...`);
 
     return this.executeWithRetry(async () => {
-      const suggestions: CodeSuggestion[] = []
+      const suggestions: CodeSuggestion[] = [];
 
       for (const file of files) {
         // Detect code smells
-        const smells = await this.detectCodeSmells(file)
+        const smells = await this.detectCodeSmells(file);
 
         // Generate refactoring suggestions
         for (const smell of smells) {
-          const suggestion = await this.createRefactoringSuggestion(file, smell)
-          suggestions.push(suggestion)
+          const suggestion = await this.createRefactoringSuggestion(file, smell);
+          suggestions.push(suggestion);
         }
       }
 
-      const metrics = await this.calculateCodeMetrics(files)
+      const metrics = await this.calculateCodeMetrics(files);
 
       return {
         issues: [],
         metrics,
         suggestions,
-      }
-    })
+      };
+    });
   }
 
   /**
    * Analyze performance
    */
   private async analyzePerformance(files: string[]): Promise<CodeAnalysisResult> {
-    this.setState(AgentState.EXECUTING)
-    this.log(`Analyzing performance for ${files.length} files...`)
+    this.setState(AgentState.EXECUTING);
+    this.log(`Analyzing performance for ${files.length} files...`);
 
     return this.executeWithRetry(async () => {
-      const issues: CodeIssue[] = []
-      const suggestions: CodeSuggestion[] = []
+      const issues: CodeIssue[] = [];
+      const suggestions: CodeSuggestion[] = [];
 
       for (const file of files) {
         // Detect performance issues
-        const perfIssues = await this.detectPerformanceIssues(file)
-        issues.push(...perfIssues)
+        const perfIssues = await this.detectPerformanceIssues(file);
+        issues.push(...perfIssues);
 
         // Generate optimization suggestions
-        const optimizations = await this.generateOptimizations(file)
-        suggestions.push(...optimizations)
+        const optimizations = await this.generateOptimizations(file);
+        suggestions.push(...optimizations);
       }
 
-      const metrics = await this.calculateCodeMetrics(files)
+      const metrics = await this.calculateCodeMetrics(files);
 
       return {
         issues,
         metrics,
         suggestions,
-      }
-    })
+      };
+    });
   }
 
   /**
    * Calculate code metrics
    */
   private async calculateMetrics(files: string[]): Promise<CodeAnalysisResult> {
-    this.setState(AgentState.EXECUTING)
-    this.log(`Calculating metrics for ${files.length} files...`)
+    this.setState(AgentState.EXECUTING);
+    this.log(`Calculating metrics for ${files.length} files...`);
 
     return this.executeWithRetry(async () => {
-      const metrics = await this.calculateCodeMetrics(files)
+      const metrics = await this.calculateCodeMetrics(files);
 
       return {
         issues: [],
         metrics,
         suggestions: [],
-      }
-    })
+      };
+    });
   }
 
   /**
@@ -367,8 +367,8 @@ export class CodeAgent extends BaseAgent {
    */
   private async analyzeFile(file: string): Promise<CodeIssue[]> {
     // Placeholder implementation
-    this.log(`Analyzing file: ${file}`)
-    return []
+    this.log(`Analyzing file: ${file}`);
+    return [];
   }
 
   /**
@@ -376,8 +376,8 @@ export class CodeAgent extends BaseAgent {
    */
   private async generateSuggestions(file: string): Promise<CodeSuggestion[]> {
     // Placeholder implementation
-    this.log(`Generating suggestions for: ${file}`)
-    return []
+    this.log(`Generating suggestions for: ${file}`);
+    return [];
   }
 
   /**
@@ -385,13 +385,13 @@ export class CodeAgent extends BaseAgent {
    */
   private async calculateCodeMetrics(files: string[]): Promise<CodeMetrics> {
     // Placeholder implementation
-    this.log(`Calculating metrics for ${files.length} files`)
+    this.log(`Calculating metrics for ${files.length} files`);
     return {
       linesOfCode: 0,
       complexity: 0,
       maintainabilityIndex: 0,
       dependencies: 0,
-    }
+    };
   }
 
   /**
@@ -399,8 +399,8 @@ export class CodeAgent extends BaseAgent {
    */
   private async checkStandards(file: string, _standards?: string[]): Promise<CodeIssue[]> {
     // Placeholder implementation
-    this.log(`Checking standards for: ${file}`)
-    return []
+    this.log(`Checking standards for: ${file}`);
+    return [];
   }
 
   /**
@@ -408,8 +408,8 @@ export class CodeAgent extends BaseAgent {
    */
   private async checkBestPractices(file: string): Promise<CodeIssue[]> {
     // Placeholder implementation
-    this.log(`Checking best practices for: ${file}`)
-    return []
+    this.log(`Checking best practices for: ${file}`);
+    return [];
   }
 
   /**
@@ -417,8 +417,8 @@ export class CodeAgent extends BaseAgent {
    */
   private async generateImprovements(file: string): Promise<CodeSuggestion[]> {
     // Placeholder implementation
-    this.log(`Generating improvements for: ${file}`)
-    return []
+    this.log(`Generating improvements for: ${file}`);
+    return [];
   }
 
   /**
@@ -426,8 +426,8 @@ export class CodeAgent extends BaseAgent {
    */
   private async detectCodeSmells(file: string): Promise<string[]> {
     // Placeholder implementation
-    this.log(`Detecting code smells in: ${file}`)
-    return []
+    this.log(`Detecting code smells in: ${file}`);
+    return [];
   }
 
   /**
@@ -441,7 +441,7 @@ export class CodeAgent extends BaseAgent {
       description: `Refactor ${smell} in ${file}`,
       file,
       impact: 'Improves code maintainability',
-    }
+    };
   }
 
   /**
@@ -449,8 +449,8 @@ export class CodeAgent extends BaseAgent {
    */
   private async detectPerformanceIssues(file: string): Promise<CodeIssue[]> {
     // Placeholder implementation
-    this.log(`Detecting performance issues in: ${file}`)
-    return []
+    this.log(`Detecting performance issues in: ${file}`);
+    return [];
   }
 
   /**
@@ -458,15 +458,15 @@ export class CodeAgent extends BaseAgent {
    */
   private async generateOptimizations(file: string): Promise<CodeSuggestion[]> {
     // Placeholder implementation
-    this.log(`Generating optimizations for: ${file}`)
-    return []
+    this.log(`Generating optimizations for: ${file}`);
+    return [];
   }
 
   /**
    * Load analysis tools
    */
   private async loadAnalysisTools(): Promise<void> {
-    this.log('Loading analysis tools...')
+    this.log('Loading analysis tools...');
     // Placeholder for tool initialization
   }
 
@@ -474,7 +474,7 @@ export class CodeAgent extends BaseAgent {
    * Validate project structure
    */
   private async validateProjectStructure(): Promise<void> {
-    this.log('Validating project structure...')
+    this.log('Validating project structure...');
     // Placeholder for structure validation
   }
 
@@ -482,28 +482,28 @@ export class CodeAgent extends BaseAgent {
    * Cleanup resources
    */
   async cleanup(): Promise<void> {
-    this.log('Cleaning up Code Agent resources...')
-    this.analysisCache.clear()
-    this.setState(AgentState.IDLE)
+    this.log('Cleaning up Code Agent resources...');
+    this.analysisCache.clear();
+    this.setState(AgentState.IDLE);
   }
 
   /**
    * Handle errors
    */
   override async handleError(error: Error): Promise<AgentResult> {
-    this.setState(AgentState.ERROR)
-    this.log(`Error: ${error.message}`, 'error')
+    this.setState(AgentState.ERROR);
+    this.log(`Error: ${error.message}`, 'error');
 
     this.addMessage({
       role: 'system',
       content: `Error occurred: ${error.message}`,
       metadata: { error: error.stack },
-    })
+    });
 
     return {
       success: false,
       error,
       message: `Code analysis failed: ${error.message}`,
-    }
+    };
   }
 }

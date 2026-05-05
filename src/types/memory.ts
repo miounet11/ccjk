@@ -13,32 +13,32 @@ export type MemoryType
     | 'context' // Project context
     | 'learning' // Learned insights
     | 'error' // Error patterns and solutions
-    | 'workflow' // Workflow patterns
+    | 'workflow'; // Workflow patterns
 
 /**
  * Memory entry importance levels
  */
-export type MemoryImportance = 'critical' | 'high' | 'medium' | 'low'
+export type MemoryImportance = 'critical' | 'high' | 'medium' | 'low';
 
 /**
  * Memory entry scope
  */
-export type MemoryScope = 'global' | 'project' | 'session'
+export type MemoryScope = 'global' | 'project' | 'session';
 
 /**
  * Source of memory entry
  */
 export interface MemorySource {
   /** Session ID where memory was captured */
-  sessionId: string
+  sessionId: string;
   /** Timestamp of capture */
-  timestamp: number
+  timestamp: number;
   /** File path if applicable */
-  filePath?: string
+  filePath?: string;
   /** Command that triggered capture */
-  command?: string
+  command?: string;
   /** Project name */
-  project?: string
+  project?: string;
 }
 
 /**
@@ -46,11 +46,11 @@ export interface MemorySource {
  */
 export interface MemoryEmbedding {
   /** Vector representation */
-  vector: number[]
+  vector: number[];
   /** Model used for embedding */
-  model: string
+  model: string;
   /** Timestamp of embedding generation */
-  generatedAt: number
+  generatedAt: number;
 }
 
 /**
@@ -58,37 +58,37 @@ export interface MemoryEmbedding {
  */
 export interface MemoryEntry {
   /** Unique identifier */
-  id: string
+  id: string;
   /** Memory type */
-  type: MemoryType
+  type: MemoryType;
   /** Memory scope */
-  scope: MemoryScope
+  scope: MemoryScope;
   /** Importance level */
-  importance: MemoryImportance
+  importance: MemoryImportance;
   /** Main content */
-  content: string
+  content: string;
   /** Summary for quick reference */
-  summary: string
+  summary: string;
   /** Tags for categorization */
-  tags: string[]
+  tags: string[];
   /** Source information */
-  source: MemorySource
+  source: MemorySource;
   /** Embedding for semantic search */
-  embedding?: MemoryEmbedding
+  embedding?: MemoryEmbedding;
   /** Related memory IDs */
-  relatedIds: string[]
+  relatedIds: string[];
   /** Access count for relevance scoring */
-  accessCount: number
+  accessCount: number;
   /** Last accessed timestamp */
-  lastAccessed: number
+  lastAccessed: number;
   /** Creation timestamp */
-  createdAt: number
+  createdAt: number;
   /** Update timestamp */
-  updatedAt: number
+  updatedAt: number;
   /** Whether memory is archived */
-  archived: boolean
+  archived: boolean;
   /** Custom metadata */
-  metadata: Record<string, unknown>
+  metadata: Record<string, unknown>;
 }
 
 /**
@@ -96,17 +96,17 @@ export interface MemoryEntry {
  */
 export interface MemoryIndex {
   /** Index by type */
-  byType: Record<MemoryType, string[]>
+  byType: Record<MemoryType, string[]>;
   /** Index by scope */
-  byScope: Record<MemoryScope, string[]>
+  byScope: Record<MemoryScope, string[]>;
   /** Index by tag */
-  byTag: Record<string, string[]>
+  byTag: Record<string, string[]>;
   /** Index by project */
-  byProject: Record<string, string[]>
+  byProject: Record<string, string[]>;
   /** Index by importance */
-  byImportance: Record<MemoryImportance, string[]>
+  byImportance: Record<MemoryImportance, string[]>;
   /** Last updated timestamp */
-  updatedAt: number
+  updatedAt: number;
 }
 
 /**
@@ -114,25 +114,25 @@ export interface MemoryIndex {
  */
 export interface MemoryConfig {
   /** Enable memory system */
-  enabled: boolean
+  enabled: boolean;
   /** Storage directory path */
-  storagePath: string
+  storagePath: string;
   /** Maximum memories to store */
-  maxMemories: number
+  maxMemories: number;
   /** Auto-capture enabled */
-  autoCapture: boolean
+  autoCapture: boolean;
   /** Auto-inject relevant memories */
-  autoInject: boolean
+  autoInject: boolean;
   /** Maximum memories to inject per query */
-  maxInjectCount: number
+  maxInjectCount: number;
   /** Minimum similarity score for retrieval (0-1) */
-  minSimilarity: number
+  minSimilarity: number;
   /** Embedding model to use */
-  embeddingModel: 'local' | 'openai' | 'anthropic'
+  embeddingModel: 'local' | 'openai' | 'anthropic';
   /** Archive memories older than (days) */
-  archiveAfterDays: number
+  archiveAfterDays: number;
   /** Delete archived memories after (days) */
-  deleteArchivedAfterDays: number
+  deleteArchivedAfterDays: number;
 }
 
 /**
@@ -140,23 +140,23 @@ export interface MemoryConfig {
  */
 export interface MemoryQuery {
   /** Text query for semantic search */
-  text?: string
+  text?: string;
   /** Filter by types */
-  types?: MemoryType[]
+  types?: MemoryType[];
   /** Filter by scopes */
-  scopes?: MemoryScope[]
+  scopes?: MemoryScope[];
   /** Filter by tags */
-  tags?: string[]
+  tags?: string[];
   /** Filter by project */
-  project?: string
+  project?: string;
   /** Filter by importance */
-  importance?: MemoryImportance[]
+  importance?: MemoryImportance[];
   /** Maximum results */
-  limit?: number
+  limit?: number;
   /** Include archived */
-  includeArchived?: boolean
+  includeArchived?: boolean;
   /** Minimum similarity score */
-  minSimilarity?: number
+  minSimilarity?: number;
 }
 
 /**
@@ -164,11 +164,11 @@ export interface MemoryQuery {
  */
 export interface MemoryResult {
   /** Memory entry */
-  entry: MemoryEntry
+  entry: MemoryEntry;
   /** Similarity score (0-1) */
-  score: number
+  score: number;
   /** Match reason */
-  matchReason: 'semantic' | 'tag' | 'type' | 'project' | 'combined'
+  matchReason: 'semantic' | 'tag' | 'type' | 'project' | 'combined';
 }
 
 /**
@@ -176,19 +176,19 @@ export interface MemoryResult {
  */
 export interface MemoryStats {
   /** Total memory count */
-  totalCount: number
+  totalCount: number;
   /** Count by type */
-  byType: Record<MemoryType, number>
+  byType: Record<MemoryType, number>;
   /** Count by scope */
-  byScope: Record<MemoryScope, number>
+  byScope: Record<MemoryScope, number>;
   /** Count by importance */
-  byImportance: Record<MemoryImportance, number>
+  byImportance: Record<MemoryImportance, number>;
   /** Archived count */
-  archivedCount: number
+  archivedCount: number;
   /** Storage size in bytes */
-  storageSizeBytes: number
+  storageSizeBytes: number;
   /** Last updated */
-  lastUpdated: number
+  lastUpdated: number;
 }
 
 /**
@@ -196,19 +196,19 @@ export interface MemoryStats {
  */
 export interface CapturePattern {
   /** Pattern name */
-  name: string
+  name: string;
   /** Regex pattern to match */
-  pattern: RegExp
+  pattern: RegExp;
   /** Memory type to assign */
-  type: MemoryType
+  type: MemoryType;
   /** Default importance */
-  importance: MemoryImportance
+  importance: MemoryImportance;
   /** Default scope */
-  scope: MemoryScope
+  scope: MemoryScope;
   /** Tags to add */
-  tags: string[]
+  tags: string[];
   /** Whether pattern is enabled */
-  enabled: boolean
+  enabled: boolean;
 }
 
 /**
@@ -216,15 +216,15 @@ export interface CapturePattern {
  */
 export interface MemoryExport {
   /** Export version */
-  version: string
+  version: string;
   /** Export timestamp */
-  exportedAt: number
+  exportedAt: number;
   /** Memories */
-  memories: MemoryEntry[]
+  memories: MemoryEntry[];
   /** Index */
-  index: MemoryIndex
+  index: MemoryIndex;
   /** Config used */
-  config: MemoryConfig
+  config: MemoryConfig;
 }
 
 /**
@@ -232,15 +232,15 @@ export interface MemoryExport {
  */
 export interface MemoryInjectionContext {
   /** Current query/prompt */
-  query: string
+  query: string;
   /** Current project */
-  project?: string
+  project?: string;
   /** Current file */
-  currentFile?: string
+  currentFile?: string;
   /** Session ID */
-  sessionId: string
+  sessionId: string;
   /** Additional context */
-  additionalContext?: string
+  additionalContext?: string;
 }
 
 /**
@@ -248,11 +248,11 @@ export interface MemoryInjectionContext {
  */
 export interface MemoryInjection {
   /** Injected memories */
-  memories: MemoryResult[]
+  memories: MemoryResult[];
   /** Formatted context string */
-  contextString: string
+  contextString: string;
   /** Token estimate */
-  tokenEstimate: number
+  tokenEstimate: number;
 }
 
 /**
@@ -269,4 +269,4 @@ export const DEFAULT_MEMORY_CONFIG: MemoryConfig = {
   embeddingModel: 'local',
   archiveAfterDays: 90,
   deleteArchivedAfterDays: 365,
-}
+};

@@ -10,7 +10,7 @@
  * - Condition-based completion
  */
 
-import type { CommandInfo } from '../completion'
+import type { CommandInfo } from '../completion';
 
 /**
  * Generate Fish completion script
@@ -85,61 +85,61 @@ export function generateFishCompletion(commands: CommandInfo[]): string {
     'complete -c ccjk -s l -l lang -d "Display language" -xa "zh-CN en"',
     '',
     '# Commands',
-  ]
+  ];
 
   // Generate command completions
   for (const cmd of commands) {
-    lines.push('')
-    lines.push(`# ${cmd.name} command`)
+    lines.push('');
+    lines.push(`# ${cmd.name} command`);
 
     // Main command
-    lines.push(`complete -c ccjk -n __fish_ccjk_needs_command -a ${cmd.name} -d "${escapeFishString(cmd.description)}"`)
+    lines.push(`complete -c ccjk -n __fish_ccjk_needs_command -a ${cmd.name} -d "${escapeFishString(cmd.description)}"`);
 
     // Aliases
     if (cmd.aliases) {
       for (const alias of cmd.aliases) {
-        lines.push(`complete -c ccjk -n __fish_ccjk_needs_command -a ${alias} -d "${escapeFishString(cmd.description)} (alias)"`)
+        lines.push(`complete -c ccjk -n __fish_ccjk_needs_command -a ${alias} -d "${escapeFishString(cmd.description)} (alias)"`);
       }
     }
 
     // Command options
     if (cmd.options) {
       for (const opt of cmd.options) {
-        const optLines = generateFishOption(cmd.name, opt, cmd.aliases)
-        lines.push(...optLines)
+        const optLines = generateFishOption(cmd.name, opt, cmd.aliases);
+        lines.push(...optLines);
       }
     }
 
     // Subcommands
     if (cmd.subcommands) {
-      lines.push('')
-      lines.push(`# ${cmd.name} subcommands`)
+      lines.push('');
+      lines.push(`# ${cmd.name} subcommands`);
 
       for (const sub of cmd.subcommands) {
         // Subcommand completion
-        const condition = `__fish_ccjk_using_command ${cmd.name}`
-        lines.push(`complete -c ccjk -n "${condition}" -a ${sub.name} -d "${escapeFishString(sub.description)}"`)
+        const condition = `__fish_ccjk_using_command ${cmd.name}`;
+        lines.push(`complete -c ccjk -n "${condition}" -a ${sub.name} -d "${escapeFishString(sub.description)}"`);
 
         // Also add for aliases
         if (cmd.aliases) {
           for (const alias of cmd.aliases) {
-            const aliasCondition = `__fish_ccjk_using_command ${alias}`
-            lines.push(`complete -c ccjk -n "${aliasCondition}" -a ${sub.name} -d "${escapeFishString(sub.description)}"`)
+            const aliasCondition = `__fish_ccjk_using_command ${alias}`;
+            lines.push(`complete -c ccjk -n "${aliasCondition}" -a ${sub.name} -d "${escapeFishString(sub.description)}"`);
           }
         }
 
         // Subcommand options
         if (sub.options) {
           for (const opt of sub.options) {
-            const subOptLines = generateFishSubcommandOption(cmd.name, sub.name, opt, cmd.aliases)
-            lines.push(...subOptLines)
+            const subOptLines = generateFishSubcommandOption(cmd.name, sub.name, opt, cmd.aliases);
+            lines.push(...subOptLines);
           }
         }
       }
     }
   }
 
-  return lines.join('\n')
+  return lines.join('\n');
 }
 
 /**
@@ -147,53 +147,53 @@ export function generateFishCompletion(commands: CommandInfo[]): string {
  */
 function generateFishOption(
   cmdName: string,
-  opt: { flags: string, description: string, values?: string[] | (() => Promise<string[]>) },
+  opt: { flags: string; description: string; values?: string[] | (() => Promise<string[]>) },
   aliases?: string[],
 ): string[] {
-  const lines: string[] = []
-  const flags = parseOptionFlags(opt.flags)
-  const desc = escapeFishString(opt.description)
+  const lines: string[] = [];
+  const flags = parseOptionFlags(opt.flags);
+  const desc = escapeFishString(opt.description);
 
-  const condition = `__fish_ccjk_using_command ${cmdName}`
-  let optSpec = `-n "${condition}"`
+  const condition = `__fish_ccjk_using_command ${cmdName}`;
+  let optSpec = `-n "${condition}"`;
 
   // Add short flag
-  const shortFlag = flags.find(f => f.startsWith('-') && !f.startsWith('--'))
+  const shortFlag = flags.find(f => f.startsWith('-') && !f.startsWith('--'));
   if (shortFlag) {
-    optSpec += ` -s ${shortFlag.replace('-', '')}`
+    optSpec += ` -s ${shortFlag.replace('-', '')}`;
   }
 
   // Add long flag
-  const longFlag = flags.find(f => f.startsWith('--'))
+  const longFlag = flags.find(f => f.startsWith('--'));
   if (longFlag) {
-    optSpec += ` -l ${longFlag.replace('--', '')}`
+    optSpec += ` -l ${longFlag.replace('--', '')}`;
   }
 
   // Add description
-  optSpec += ` -d "${desc}"`
+  optSpec += ` -d "${desc}"`;
 
   // Add values
   if (opt.values) {
     if (typeof opt.values === 'function') {
-      optSpec += ' -r'
+      optSpec += ' -r';
     }
     else {
-      optSpec += ` -xa "${opt.values.join(' ')}"`
+      optSpec += ` -xa "${opt.values.join(' ')}"`;
     }
   }
 
-  lines.push(`complete -c ccjk ${optSpec}`)
+  lines.push(`complete -c ccjk ${optSpec}`);
 
   // Also add for aliases
   if (aliases) {
     for (const alias of aliases) {
-      const aliasCondition = `__fish_ccjk_using_command ${alias}`
-      const aliasOptSpec = optSpec.replace(condition, aliasCondition)
-      lines.push(`complete -c ccjk ${aliasOptSpec}`)
+      const aliasCondition = `__fish_ccjk_using_command ${alias}`;
+      const aliasOptSpec = optSpec.replace(condition, aliasCondition);
+      lines.push(`complete -c ccjk ${aliasOptSpec}`);
     }
   }
 
-  return lines
+  return lines;
 }
 
 /**
@@ -202,53 +202,53 @@ function generateFishOption(
 function generateFishSubcommandOption(
   cmdName: string,
   subName: string,
-  opt: { flags: string, description: string, values?: string[] | (() => Promise<string[]>) },
+  opt: { flags: string; description: string; values?: string[] | (() => Promise<string[]>) },
   aliases?: string[],
 ): string[] {
-  const lines: string[] = []
-  const flags = parseOptionFlags(opt.flags)
-  const desc = escapeFishString(opt.description)
+  const lines: string[] = [];
+  const flags = parseOptionFlags(opt.flags);
+  const desc = escapeFishString(opt.description);
 
-  const condition = `__fish_ccjk_using_subcommand ${cmdName} ${subName}`
-  let optSpec = `-n "${condition}"`
+  const condition = `__fish_ccjk_using_subcommand ${cmdName} ${subName}`;
+  let optSpec = `-n "${condition}"`;
 
   // Add short flag
-  const shortFlag = flags.find(f => f.startsWith('-') && !f.startsWith('--'))
+  const shortFlag = flags.find(f => f.startsWith('-') && !f.startsWith('--'));
   if (shortFlag) {
-    optSpec += ` -s ${shortFlag.replace('-', '')}`
+    optSpec += ` -s ${shortFlag.replace('-', '')}`;
   }
 
   // Add long flag
-  const longFlag = flags.find(f => f.startsWith('--'))
+  const longFlag = flags.find(f => f.startsWith('--'));
   if (longFlag) {
-    optSpec += ` -l ${longFlag.replace('--', '')}`
+    optSpec += ` -l ${longFlag.replace('--', '')}`;
   }
 
   // Add description
-  optSpec += ` -d "${desc}"`
+  optSpec += ` -d "${desc}"`;
 
   // Add values
   if (opt.values) {
     if (typeof opt.values === 'function') {
-      optSpec += ' -r'
+      optSpec += ' -r';
     }
     else {
-      optSpec += ` -xa "${opt.values.join(' ')}"`
+      optSpec += ` -xa "${opt.values.join(' ')}"`;
     }
   }
 
-  lines.push(`complete -c ccjk ${optSpec}`)
+  lines.push(`complete -c ccjk ${optSpec}`);
 
   // Also add for aliases
   if (aliases) {
     for (const alias of aliases) {
-      const aliasCondition = `__fish_ccjk_using_subcommand ${alias} ${subName}`
-      const aliasOptSpec = optSpec.replace(condition, aliasCondition)
-      lines.push(`complete -c ccjk ${aliasOptSpec}`)
+      const aliasCondition = `__fish_ccjk_using_subcommand ${alias} ${subName}`;
+      const aliasOptSpec = optSpec.replace(condition, aliasCondition);
+      lines.push(`complete -c ccjk ${aliasOptSpec}`);
     }
   }
 
-  return lines
+  return lines;
 }
 
 /**
@@ -256,7 +256,7 @@ function generateFishSubcommandOption(
  */
 function parseOptionFlags(flags: string): string[] {
   // Parse flags like "--lang, -l <lang>" or "--force, -f"
-  return flags.split(',').map(f => f.trim().split(/\s+/)[0])
+  return flags.split(',').map(f => f.trim().split(/\s+/)[0]);
 }
 
 /**
@@ -266,5 +266,5 @@ function escapeFishString(str: string): string {
   return str
     .replace(/\\/g, '\\\\')
     .replace(/"/g, '\\"')
-    .replace(/\$/g, '\\$')
+    .replace(/\$/g, '\\$');
 }

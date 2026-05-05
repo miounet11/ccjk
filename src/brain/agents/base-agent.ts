@@ -3,13 +3,13 @@
  * Provides core Agent interface, lifecycle management, and state handling
  */
 
-import type { AgentContext, AgentMessage, BaseAgentCapability } from '../orchestrator-types.js'
+import type { AgentContext, AgentMessage, BaseAgentCapability } from '../orchestrator-types.js';
 
 // Re-export for convenience
-export type { AgentContext, AgentMessage, BaseAgentCapability }
+export type { AgentContext, AgentMessage, BaseAgentCapability };
 
 // Alias for backward compatibility
-export type AgentCapability = BaseAgentCapability
+export type AgentCapability = BaseAgentCapability;
 
 export enum AgentState {
   IDLE = 'idle',
@@ -21,20 +21,20 @@ export enum AgentState {
 }
 
 export interface AgentResult<T = unknown> {
-  success: boolean
-  data?: T
-  error?: Error
-  message?: string
-  metadata?: Record<string, unknown>
+  success: boolean;
+  data?: T;
+  error?: Error;
+  message?: string;
+  metadata?: Record<string, unknown>;
 }
 
 export interface AgentConfig {
-  name: string
-  description: string
-  capabilities: AgentCapability[]
-  maxRetries?: number
-  timeout?: number
-  verbose?: boolean
+  name: string;
+  description: string;
+  capabilities: AgentCapability[];
+  maxRetries?: number;
+  timeout?: number;
+  verbose?: boolean;
 }
 
 /**
@@ -42,10 +42,10 @@ export interface AgentConfig {
  * All specialized agents should extend this class
  */
 export abstract class BaseAgent {
-  protected state: AgentState = AgentState.IDLE
-  protected context: AgentContext
-  protected config: AgentConfig
-  protected messageHistory: AgentMessage[] = []
+  protected state: AgentState = AgentState.IDLE;
+  protected context: AgentContext;
+  protected config: AgentConfig;
+  protected messageHistory: AgentMessage[] = [];
 
   constructor(config: AgentConfig, context: AgentContext) {
     this.config = {
@@ -53,51 +53,51 @@ export abstract class BaseAgent {
       timeout: 30000,
       verbose: false,
       ...config,
-    }
-    this.context = context
+    };
+    this.context = context;
   }
 
   /**
    * Get agent name
    */
   getName(): string {
-    return this.config.name
+    return this.config.name;
   }
 
   /**
    * Get agent description
    */
   getDescription(): string {
-    return this.config.description
+    return this.config.description;
   }
 
   /**
    * Get agent capabilities
    */
   getCapabilities(): AgentCapability[] {
-    return this.config.capabilities
+    return this.config.capabilities;
   }
 
   /**
    * Get current agent state
    */
   getState(): AgentState {
-    return this.state
+    return this.state;
   }
 
   /**
    * Set agent state
    */
   protected setState(state: AgentState): void {
-    this.state = state
-    this.log(`State changed to: ${state}`)
+    this.state = state;
+    this.log(`State changed to: ${state}`);
   }
 
   /**
    * Get message history
    */
   getHistory(): AgentMessage[] {
-    return [...this.messageHistory]
+    return [...this.messageHistory];
   }
 
   /**
@@ -108,16 +108,16 @@ export abstract class BaseAgent {
       ...message,
       id: this.generateMessageId(),
       timestamp: Date.now(),
-    }
-    this.messageHistory.push(fullMessage)
-    this.context.history.push(fullMessage)
+    };
+    this.messageHistory.push(fullMessage);
+    this.context.history.push(fullMessage);
   }
 
   /**
    * Generate unique message ID
    */
   protected generateMessageId(): string {
-    return `${this.config.name}-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
+    return `${this.config.name}-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
   }
 
   /**
@@ -125,16 +125,16 @@ export abstract class BaseAgent {
    */
   protected log(message: string, level: 'info' | 'warn' | 'error' = 'info'): void {
     if (this.config.verbose) {
-      const prefix = `[${this.config.name}]`
+      const prefix = `[${this.config.name}]`;
       switch (level) {
         case 'warn':
-          console.warn(`${prefix} ${message}`)
-          break
+          console.warn(`${prefix} ${message}`);
+          break;
         case 'error':
-          console.error(`${prefix} ${message}`)
-          break
+          console.error(`${prefix} ${message}`);
+          break;
         default:
-          console.log(`${prefix} ${message}`)
+          console.log(`${prefix} ${message}`);
       }
     }
   }
@@ -146,26 +146,26 @@ export abstract class BaseAgent {
     task: () => Promise<T>,
     retries: number = this.config.maxRetries || 3,
   ): Promise<T> {
-    let lastError: Error | undefined
+    let lastError: Error | undefined;
 
     for (let attempt = 1; attempt <= retries; attempt++) {
       try {
-        this.log(`Attempt ${attempt}/${retries}`)
-        return await this.executeWithTimeout(task)
+        this.log(`Attempt ${attempt}/${retries}`);
+        return await this.executeWithTimeout(task);
       }
       catch (error) {
-        lastError = error instanceof Error ? error : new Error(String(error))
-        this.log(`Attempt ${attempt} failed: ${lastError.message}`, 'warn')
+        lastError = error instanceof Error ? error : new Error(String(error));
+        this.log(`Attempt ${attempt} failed: ${lastError.message}`, 'warn');
 
         if (attempt < retries) {
-          const delay = Math.min(1000 * 2 ** (attempt - 1), 10000)
-          this.log(`Retrying in ${delay}ms...`)
-          await this.sleep(delay)
+          const delay = Math.min(1000 * 2 ** (attempt - 1), 10000);
+          this.log(`Retrying in ${delay}ms...`);
+          await this.sleep(delay);
         }
       }
     }
 
-    throw lastError || new Error('Task failed after all retries')
+    throw lastError || new Error('Task failed after all retries');
   }
 
   /**
@@ -180,14 +180,14 @@ export abstract class BaseAgent {
       new Promise<T>((_, reject) =>
         setTimeout(() => reject(new Error(`Task timeout after ${timeout}ms`)), timeout),
       ),
-    ])
+    ]);
   }
 
   /**
    * Sleep utility
    */
   protected sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms))
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
   /**
@@ -196,48 +196,48 @@ export abstract class BaseAgent {
   protected validateInput(input: unknown, schema: Record<string, unknown>): boolean {
     // Basic validation - can be extended with more sophisticated validation
     if (typeof input !== 'object' || input === null) {
-      return false
+      return false;
     }
 
-    const inputObj = input as Record<string, unknown>
+    const inputObj = input as Record<string, unknown>;
     for (const key in schema) {
       if (!(key in inputObj)) {
-        this.log(`Missing required parameter: ${key}`, 'error')
-        return false
+        this.log(`Missing required parameter: ${key}`, 'error');
+        return false;
       }
     }
 
-    return true
+    return true;
   }
 
   /**
    * Abstract method: Initialize agent
    * Must be implemented by subclasses
    */
-  abstract initialize(): Promise<void>
+  abstract initialize(): Promise<void>;
 
   /**
    * Abstract method: Process message
    * Must be implemented by subclasses
    */
-  abstract process(message: string, metadata?: Record<string, unknown>): Promise<AgentResult>
+  abstract process(message: string, metadata?: Record<string, unknown>): Promise<AgentResult>;
 
   /**
    * Abstract method: Cleanup resources
    * Must be implemented by subclasses
    */
-  abstract cleanup(): Promise<void>
+  abstract cleanup(): Promise<void>;
 
   /**
    * Handle errors - can be overridden by subclasses
    */
   async handleError(error: Error): Promise<AgentResult> {
-    this.log(`Error: ${error.message}`, 'error')
+    this.log(`Error: ${error.message}`, 'error');
     return {
       success: false,
       error,
       message: error.message,
-    }
+    };
   }
 }
 
@@ -245,61 +245,61 @@ export abstract class BaseAgent {
  * Agent Factory Interface
  */
 export interface AgentFactory {
-  createAgent: (type: string, context: AgentContext) => BaseAgent
+  createAgent: (type: string, context: AgentContext) => BaseAgent;
 }
 
 /**
  * Agent Registry for managing multiple agents
  */
 export class AgentRegistry {
-  private agents: Map<string, BaseAgent> = new Map()
+  private agents: Map<string, BaseAgent> = new Map();
 
   /**
    * Register an agent
    */
   register(agent: BaseAgent): void {
-    this.agents.set(agent.getName(), agent)
+    this.agents.set(agent.getName(), agent);
   }
 
   /**
    * Unregister an agent
    */
   unregister(name: string): void {
-    this.agents.delete(name)
+    this.agents.delete(name);
   }
 
   /**
    * Get agent by name
    */
   get(name: string): BaseAgent | undefined {
-    return this.agents.get(name)
+    return this.agents.get(name);
   }
 
   /**
    * Get all registered agents
    */
   getAll(): BaseAgent[] {
-    return Array.from(this.agents.values())
+    return Array.from(this.agents.values());
   }
 
   /**
    * Check if agent exists
    */
   has(name: string): boolean {
-    return this.agents.has(name)
+    return this.agents.has(name);
   }
 
   /**
    * Clear all agents
    */
   clear(): void {
-    this.agents.clear()
+    this.agents.clear();
   }
 
   /**
    * Get agent count
    */
   size(): number {
-    return this.agents.size
+    return this.agents.size;
   }
 }

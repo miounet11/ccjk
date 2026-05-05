@@ -1,1 +1,1 @@
-export * from './config-generator'
+export * from './config-generator';

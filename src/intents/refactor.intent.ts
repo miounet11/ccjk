@@ -6,7 +6,7 @@
  * @module intents/refactor
  */
 
-import type { Intent } from '../types/intent'
+import type { Intent } from '../types/intent';
 
 /**
  * Refactor Intent
@@ -120,4 +120,4 @@ export const refactorIntent: Intent = {
     category: 'development',
     estimatedTokens: 3000,
   },
-}
+};

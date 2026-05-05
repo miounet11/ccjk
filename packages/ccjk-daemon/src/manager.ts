@@ -1,11 +1,12 @@
-import { io, Socket } from 'socket.io-client';
 import type { SessionEnvelope } from '@ccjk/wire';
-import { encryptJson, decryptJson } from '@ccjk/wire';
-import type { DaemonConfig, SessionHandler, RemoteCommand, DaemonState } from './types';
+import type { Socket } from 'socket.io-client';
+import type { DaemonConfig, DaemonState, RemoteCommand, SessionHandler } from './types';
+import { decryptJson, encryptJson } from '@ccjk/wire';
+import chalk from 'chalk';
+import { io } from 'socket.io-client';
 import { ClaudeCodeInterceptor } from './claude-interceptor';
 import { DeviceSwitcher } from './device-switcher';
 import { logger } from './logger';
-import chalk from 'chalk';
 
 /**
  * Daemon manager - handles connection to ccjk-server and session management
@@ -24,7 +25,7 @@ export class DaemonManager {
   private static readonly REMOTE_API_CANDIDATES = [
     'https://remote-api.claudehome.cn',
     'http://remote-api.claudehome.cn',
-  ]
+  ];
 
   constructor(config: DaemonConfig) {
     this.config = config;
@@ -137,7 +138,6 @@ export class DaemonManager {
       logger.info(`Stopped device switcher for session ${sessionId}`);
     }
   }
-  }
 
   /**
    * Unregister a session handler
@@ -171,7 +171,8 @@ export class DaemonManager {
       if (this.config.logLevel === 'debug') {
         console.log(chalk.gray(`   Sent event: ${event.ev.t}`));
       }
-    } catch (error) {
+    }
+    catch (error) {
       console.error(chalk.red('Failed to send event:'), error);
     }
   }
@@ -180,9 +181,9 @@ export class DaemonManager {
    * Connect to ccjk-server
    */
   private async connectToServer(): Promise<void> {
-    const resolvedServerUrl = await this.resolveServerUrl()
+    const resolvedServerUrl = await this.resolveServerUrl();
     console.log(chalk.blue('🔌 Connecting to server...'));
-    console.log(chalk.gray(`   Resolved endpoint: ${resolvedServerUrl}`))
+    console.log(chalk.gray(`   Resolved endpoint: ${resolvedServerUrl}`));
 
     this.socket = io(resolvedServerUrl, {
       auth: {
@@ -232,7 +233,8 @@ export class DaemonManager {
 
         console.log(chalk.blue(`📱 Remote command: ${decrypted.type}`));
         await handler.handleRemoteCommand(decrypted);
-      } catch (error) {
+      }
+      catch (error) {
         console.error(chalk.red('Failed to handle remote command:'), error);
       }
     });
@@ -256,7 +258,8 @@ export class DaemonManager {
 
         // Forward event to session handler
         await handler.sendEvent(decrypted);
-      } catch (error) {
+      }
+      catch (error) {
         console.error(chalk.red('Failed to handle session event:'), error);
       }
     });
@@ -271,42 +274,42 @@ export class DaemonManager {
       logger.info(`Received approval response: ${requestId} = ${approved}`);
 
       // Forward to all interceptors (they will check if it's their request)
-      for (const [sessionId, interceptor] of this.interceptors) {
+      for (const [, interceptor] of this.interceptors) {
         interceptor.handleApprovalResponse(requestId, approved);
       }
     });
   }
 
   private async resolveServerUrl(): Promise<string> {
-    const configured = this.config.serverUrl.replace(/\/$/, '')
+    const configured = this.config.serverUrl.replace(/\/$/, '');
 
     if (!configured.includes('remote-api.claudehome.cn')) {
-      return configured
+      return configured;
     }
 
     for (const candidate of DaemonManager.REMOTE_API_CANDIDATES) {
-      const healthy = await this.probeHealth(candidate)
+      const healthy = await this.probeHealth(candidate);
       if (healthy) {
-        return candidate
+        return candidate;
       }
     }
 
-    return configured
+    return configured;
   }
 
   private async probeHealth(baseUrl: string): Promise<boolean> {
     try {
       const response = await fetch(`${baseUrl}/health`, {
         signal: AbortSignal.timeout(5000),
-      })
+      });
       if (!response.ok) {
-        return false
+        return false;
       }
-      const data = await response.json().catch(() => null) as { status?: string } | null
-      return data?.status === 'ok'
+      const data = await response.json().catch(() => null) as { status?: string } | null;
+      return data?.status === 'ok';
     }
     catch {
-      return false
+      return false;
     }
   }
 }

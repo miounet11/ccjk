@@ -13,9 +13,9 @@ export class BaseError extends Error {
     public readonly statusCode?: number,
     public readonly details?: any,
   ) {
-    super(message)
-    this.name = this.constructor.name
-    Error.captureStackTrace(this, this.constructor)
+    super(message);
+    this.name = this.constructor.name;
+    Error.captureStackTrace(this, this.constructor);
   }
 
   toJSON() {
@@ -26,7 +26,7 @@ export class BaseError extends Error {
       statusCode: this.statusCode,
       details: this.details,
       stack: this.stack,
-    }
+    };
   }
 }
 
@@ -35,7 +35,7 @@ export class BaseError extends Error {
  */
 export class ValidationError extends BaseError {
   constructor(message: string, details?: any) {
-    super(message, 'VALIDATION_ERROR', 400, details)
+    super(message, 'VALIDATION_ERROR', 400, details);
   }
 }
 
@@ -44,7 +44,7 @@ export class ValidationError extends BaseError {
  */
 export class NotFoundError extends BaseError {
   constructor(message: string, details?: any) {
-    super(message, 'NOT_FOUND', 404, details)
+    super(message, 'NOT_FOUND', 404, details);
   }
 }
 
@@ -53,7 +53,7 @@ export class NotFoundError extends BaseError {
  */
 export class UnauthorizedError extends BaseError {
   constructor(message: string, details?: any) {
-    super(message, 'UNAUTHORIZED', 401, details)
+    super(message, 'UNAUTHORIZED', 401, details);
   }
 }
 
@@ -62,7 +62,7 @@ export class UnauthorizedError extends BaseError {
  */
 export class ForbiddenError extends BaseError {
   constructor(message: string, details?: any) {
-    super(message, 'FORBIDDEN', 403, details)
+    super(message, 'FORBIDDEN', 403, details);
   }
 }
 
@@ -71,7 +71,7 @@ export class ForbiddenError extends BaseError {
  */
 export class ConflictError extends BaseError {
   constructor(message: string, details?: any) {
-    super(message, 'CONFLICT', 409, details)
+    super(message, 'CONFLICT', 409, details);
   }
 }
 
@@ -80,7 +80,7 @@ export class ConflictError extends BaseError {
  */
 export class TimeoutError extends BaseError {
   constructor(message: string, details?: any) {
-    super(message, 'TIMEOUT', 408, details)
+    super(message, 'TIMEOUT', 408, details);
   }
 }
 
@@ -89,7 +89,7 @@ export class TimeoutError extends BaseError {
  */
 export class InternalError extends BaseError {
   constructor(message: string, details?: any) {
-    super(message, 'INTERNAL_ERROR', 500, details)
+    super(message, 'INTERNAL_ERROR', 500, details);
   }
 }
 
@@ -98,7 +98,7 @@ export class InternalError extends BaseError {
  */
 export class ConfigurationError extends BaseError {
   constructor(message: string, details?: any) {
-    super(message, 'CONFIGURATION_ERROR', 500, details)
+    super(message, 'CONFIGURATION_ERROR', 500, details);
   }
 }
 
@@ -107,7 +107,7 @@ export class ConfigurationError extends BaseError {
  */
 export class NetworkError extends BaseError {
   constructor(message: string, details?: any) {
-    super(message, 'NETWORK_ERROR', 503, details)
+    super(message, 'NETWORK_ERROR', 503, details);
   }
 }
 
@@ -118,7 +118,7 @@ export function isErrorType<T extends Error>(
   error: unknown,
   errorClass: new (...args: any[]) => T,
 ): error is T {
-  return error instanceof errorClass
+  return error instanceof errorClass;
 }
 
 /**
@@ -126,12 +126,12 @@ export function isErrorType<T extends Error>(
  */
 export function getErrorMessage(error: unknown): string {
   if (error instanceof Error) {
-    return error.message
+    return error.message;
   }
   if (typeof error === 'string') {
-    return error
+    return error;
   }
-  return 'An unknown error occurred'
+  return 'An unknown error occurred';
 }
 
 /**
@@ -139,21 +139,21 @@ export function getErrorMessage(error: unknown): string {
  */
 export function getErrorStack(error: unknown): string | undefined {
   if (error instanceof Error) {
-    return error.stack
+    return error.stack;
   }
-  return undefined
+  return undefined;
 }
 
 /**
  * Format error for logging
  */
 export function formatError(error: unknown): {
-  message: string
-  name?: string
-  code?: string
-  statusCode?: number
-  stack?: string
-  details?: any
+  message: string;
+  name?: string;
+  code?: string;
+  statusCode?: number;
+  stack?: string;
+  details?: any;
 } {
   if (error instanceof BaseError) {
     return {
@@ -163,7 +163,7 @@ export function formatError(error: unknown): {
       statusCode: error.statusCode,
       stack: error.stack,
       details: error.details,
-    }
+    };
   }
 
   if (error instanceof Error) {
@@ -171,12 +171,12 @@ export function formatError(error: unknown): {
       message: error.message,
       name: error.name,
       stack: error.stack,
-    }
+    };
   }
 
   return {
     message: String(error),
-  }
+  };
 }
 
 /**
@@ -187,8 +187,8 @@ export function wrapError(
   message: string,
   code?: string,
 ): BaseError {
-  const originalMessage = getErrorMessage(error)
-  const fullMessage = `${message}: ${originalMessage}`
+  const originalMessage = getErrorMessage(error);
+  const fullMessage = `${message}: ${originalMessage}`;
 
   if (error instanceof BaseError) {
     return new BaseError(
@@ -196,10 +196,10 @@ export function wrapError(
       code || error.code,
       error.statusCode,
       error.details,
-    )
+    );
   }
 
-  return new BaseError(fullMessage, code)
+  return new BaseError(fullMessage, code);
 }
 
 /**
@@ -207,16 +207,16 @@ export function wrapError(
  */
 export function tryCatch<T>(
   fn: () => T,
-): { success: true, data: T } | { success: false, error: Error } {
+): { success: true; data: T } | { success: false; error: Error } {
   try {
-    const data = fn()
-    return { success: true, data }
+    const data = fn();
+    return { success: true, data };
   }
   catch (error) {
     return {
       success: false,
       error: error instanceof Error ? error : new Error(String(error)),
-    }
+    };
   }
 }
 
@@ -225,16 +225,16 @@ export function tryCatch<T>(
  */
 export async function tryCatchAsync<T>(
   fn: () => Promise<T>,
-): Promise<{ success: true, data: T } | { success: false, error: Error }> {
+): Promise<{ success: true; data: T } | { success: false; error: Error }> {
   try {
-    const data = await fn()
-    return { success: true, data }
+    const data = await fn();
+    return { success: true, data };
   }
   catch (error) {
     return {
       success: false,
       error: error instanceof Error ? error : new Error(String(error)),
-    }
+    };
   }
 }
 
@@ -247,7 +247,7 @@ export function assert(
   ErrorClass: new (message: string) => Error = Error,
 ): asserts condition {
   if (!condition) {
-    throw new ErrorClass(message)
+    throw new ErrorClass(message);
   }
 }
 
@@ -260,18 +260,18 @@ export function createErrorHandler(
 ): (error: unknown) => void {
   return (error: unknown) => {
     if (error instanceof BaseError && error.code && handlers[error.code]) {
-      handlers[error.code](error)
+      handlers[error.code](error);
     }
     else if (error instanceof Error && handlers[error.name]) {
-      handlers[error.name](error)
+      handlers[error.name](error);
     }
     else if (defaultHandler) {
-      defaultHandler(error instanceof Error ? error : new Error(String(error)))
+      defaultHandler(error instanceof Error ? error : new Error(String(error)));
     }
     else {
-      throw error
+      throw error;
     }
-  }
+  };
 }
 
 /**
@@ -282,14 +282,14 @@ export class AggregateError extends BaseError {
     public readonly errors: Error[],
     message: string = 'Multiple errors occurred',
   ) {
-    super(message, 'AGGREGATE_ERROR', 500, { errors })
+    super(message, 'AGGREGATE_ERROR', 500, { errors });
   }
 
   static fromErrors(errors: Error[]): AggregateError {
     const message = `${errors.length} error(s) occurred: ${errors
       .map(e => e.message)
-      .join(', ')}`
-    return new AggregateError(errors, message)
+      .join(', ')}`;
+    return new AggregateError(errors, message);
   }
 }
 
@@ -299,10 +299,10 @@ export class AggregateError extends BaseError {
 export async function retryWithErrorHandling<T>(
   fn: () => Promise<T>,
   options: {
-    maxAttempts?: number
-    delay?: number
-    shouldRetry?: (error: Error) => boolean
-    onError?: (error: Error, attempt: number) => void
+    maxAttempts?: number;
+    delay?: number;
+    shouldRetry?: (error: Error) => boolean;
+    onError?: (error: Error, attempt: number) => void;
   } = {},
 ): Promise<T> {
   const {
@@ -310,29 +310,29 @@ export async function retryWithErrorHandling<T>(
     delay = 1000,
     shouldRetry = () => true,
     onError,
-  } = options
+  } = options;
 
-  let lastError: Error
+  let lastError: Error;
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
-      return await fn()
+      return await fn();
     }
     catch (error) {
-      lastError = error instanceof Error ? error : new Error(String(error))
+      lastError = error instanceof Error ? error : new Error(String(error));
 
       if (onError) {
-        onError(lastError, attempt)
+        onError(lastError, attempt);
       }
 
       if (attempt < maxAttempts && shouldRetry(lastError)) {
-        await new Promise(resolve => setTimeout(resolve, delay))
+        await new Promise(resolve => setTimeout(resolve, delay));
       }
       else {
-        throw lastError
+        throw lastError;
       }
     }
   }
 
-  throw lastError!
+  throw lastError!;
 }

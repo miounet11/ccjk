@@ -5,20 +5,20 @@
  * This replaces the functionality from ccjk-config.ts with a cleaner API
  */
 
-import type { CodeToolType, SupportedLang } from '../../constants'
-import type { ClaudeCodeProfile } from '../../types/claude-code-config'
-import type { ZcfTomlConfig } from '../../types/toml-config'
-import type { CcjkConfig, ClaudeCodeToolConfig, CodexToolConfig, GeneralConfig, PartialCcjkConfig } from './types'
+import type { CodeToolType, SupportedLang } from '../../constants';
+import type { ClaudeCodeProfile } from '../../types/claude-code-config';
+import type { ZcfTomlConfig } from '../../types/toml-config';
+import type { CcjkConfig, ClaudeCodeToolConfig, CodexToolConfig, GeneralConfig, PartialCcjkConfig } from './types';
 
-import { dirname } from 'pathe'
-import { parse, stringify } from 'smol-toml'
-import { CCJK_CONFIG_DIR, CCJK_CONFIG_FILE, DEFAULT_CODE_TOOL_TYPE, SUPPORTED_LANGS } from '../../constants'
-import { ensureDir, exists, readFile, writeFileAtomic } from '../../utils/fs-operations'
+import { dirname } from 'pathe';
+import { parse, stringify } from 'smol-toml';
+import { CCJK_CONFIG_DIR, CCJK_CONFIG_FILE, DEFAULT_CODE_TOOL_TYPE, SUPPORTED_LANGS } from '../../constants';
+import { ensureDir, exists, readFile, writeFileAtomic } from '../../utils/fs-operations';
 
 /**
  * Default CCJK configuration version
  */
-const DEFAULT_CONFIG_VERSION = '4.0.0'
+const DEFAULT_CONFIG_VERSION = '4.0.0';
 
 /**
  * Create default CCJK configuration
@@ -53,7 +53,7 @@ export function createDefaultCcjkConfig(
     storage: {
       memory: {},
     },
-  }
+  };
 }
 
 /**
@@ -62,18 +62,18 @@ export function createDefaultCcjkConfig(
 export function readCcjkConfig(configPath: string = CCJK_CONFIG_FILE): CcjkConfig | null {
   try {
     if (!exists(configPath)) {
-      return null
+      return null;
     }
 
-    const content = readFile(configPath)
-    const parsed = parse(content) as unknown as ZcfTomlConfig
+    const content = readFile(configPath);
+    const parsed = parse(content) as unknown as ZcfTomlConfig;
 
     // Convert legacy ZcfTomlConfig to new CcjkConfig
-    return convertTomlToCcjkConfig(parsed)
+    return convertTomlToCcjkConfig(parsed);
   }
   catch (error) {
-    console.error(`Failed to read CCJK config from ${configPath}:`, error)
-    return null
+    console.error(`Failed to read CCJK config from ${configPath}:`, error);
+    return null;
   }
 }
 
@@ -86,19 +86,19 @@ export function writeCcjkConfig(
 ): void {
   try {
     // Ensure parent directory exists
-    const configDir = dirname(configPath)
-    ensureDir(configDir)
+    const configDir = dirname(configPath);
+    ensureDir(configDir);
 
     // Update timestamp
-    config.lastUpdated = new Date().toISOString()
+    config.lastUpdated = new Date().toISOString();
 
     // Serialize to TOML and write atomically
-    const tomlContent = stringify(config as unknown as Record<string, unknown>)
-    writeFileAtomic(configPath, tomlContent)
+    const tomlContent = stringify(config as unknown as Record<string, unknown>);
+    writeFileAtomic(configPath, tomlContent);
   }
   catch (error) {
-    console.error(`Failed to write CCJK config to ${configPath}:`, error)
-    throw new Error(`Failed to write CCJK config: ${error instanceof Error ? error.message : String(error)}`)
+    console.error(`Failed to write CCJK config to ${configPath}:`, error);
+    throw new Error(`Failed to write CCJK config: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
 
@@ -109,7 +109,7 @@ export function updateCcjkConfig(
   updates: PartialCcjkConfig,
   configPath: string = CCJK_CONFIG_FILE,
 ): CcjkConfig {
-  const existingConfig = readCcjkConfig(configPath) || createDefaultCcjkConfig()
+  const existingConfig = readCcjkConfig(configPath) || createDefaultCcjkConfig();
 
   const updatedConfig: CcjkConfig = {
     version: updates.version || existingConfig.version,
@@ -138,71 +138,71 @@ export function updateCcjkConfig(
         ...updates.storage?.memory,
       },
     },
-  }
+  };
 
-  writeCcjkConfig(updatedConfig, configPath)
-  return updatedConfig
+  writeCcjkConfig(updatedConfig, configPath);
+  return updatedConfig;
 }
 
 /**
  * Get or create CCJK configuration
  */
 export function getCcjkConfig(configPath: string = CCJK_CONFIG_FILE): CcjkConfig {
-  const config = readCcjkConfig(configPath)
-  return config || createDefaultCcjkConfig()
+  const config = readCcjkConfig(configPath);
+  return config || createDefaultCcjkConfig();
 }
 
 /**
  * Validate CCJK configuration
  */
-export function validateCcjkConfig(config: unknown): { valid: boolean, errors: string[] } {
-  const errors: string[] = []
+export function validateCcjkConfig(config: unknown): { valid: boolean; errors: string[] } {
+  const errors: string[] = [];
 
   if (!config || typeof config !== 'object') {
-    return { valid: false, errors: ['Configuration must be an object'] }
+    return { valid: false, errors: ['Configuration must be an object'] };
   }
 
-  const cfg = config as Partial<CcjkConfig>
+  const cfg = config as Partial<CcjkConfig>;
 
   // Validate version
   if (!cfg.version || typeof cfg.version !== 'string') {
-    errors.push('Invalid or missing version')
+    errors.push('Invalid or missing version');
   }
 
   // Validate general section
   if (!cfg.general || typeof cfg.general !== 'object') {
-    errors.push('Invalid or missing general section')
+    errors.push('Invalid or missing general section');
   }
   else {
     if (!cfg.general.preferredLang || !SUPPORTED_LANGS.includes(cfg.general.preferredLang as SupportedLang)) {
-      errors.push(`Invalid preferredLang: ${cfg.general.preferredLang}`)
+      errors.push(`Invalid preferredLang: ${cfg.general.preferredLang}`);
     }
     if (cfg.general.templateLang && !SUPPORTED_LANGS.includes(cfg.general.templateLang as SupportedLang)) {
-      errors.push(`Invalid templateLang: ${cfg.general.templateLang}`)
+      errors.push(`Invalid templateLang: ${cfg.general.templateLang}`);
     }
   }
 
   // Validate tools section
   if (!cfg.tools || typeof cfg.tools !== 'object') {
-    errors.push('Invalid or missing tools section')
+    errors.push('Invalid or missing tools section');
   }
   else {
     if (!cfg.tools.claudeCode || typeof cfg.tools.claudeCode !== 'object') {
-      errors.push('Invalid or missing claudeCode tool config')
+      errors.push('Invalid or missing claudeCode tool config');
     }
     if (!cfg.tools.codex || typeof cfg.tools.codex !== 'object') {
-      errors.push('Invalid or missing codex tool config')
+      errors.push('Invalid or missing codex tool config');
     }
   }
 
   if (!cfg.storage || typeof cfg.storage !== 'object') {
-    errors.push('Invalid or missing storage section')
+    errors.push('Invalid or missing storage section');
   }
 
   return {
     valid: errors.length === 0,
     errors,
-  }
+  };
 }
 
 /**
@@ -210,7 +210,7 @@ export function validateCcjkConfig(config: unknown): { valid: boolean, errors: s
  */
 function convertTomlToCcjkConfig(tomlConfig: ZcfTomlConfig | null): CcjkConfig | null {
   if (!tomlConfig) {
-    return null
+    return null;
   }
 
   return {
@@ -246,7 +246,7 @@ function convertTomlToCcjkConfig(tomlConfig: ZcfTomlConfig | null): CcjkConfig |
         ccjkDir: tomlConfig.storage?.memory?.ccjkDir,
       },
     },
-  }
+  };
 }
 
 /**
@@ -284,68 +284,68 @@ export function convertCcjkConfigToToml(ccjkConfig: CcjkConfig): ZcfTomlConfig {
         ccjkDir: ccjkConfig.storage.memory.ccjkDir,
       },
     },
-  }
+  };
 }
 
 /**
  * Get general configuration values
  */
 export function getGeneralConfig(): GeneralConfig {
-  const config = getCcjkConfig()
-  return config.general
+  const config = getCcjkConfig();
+  return config.general;
 }
 
 /**
  * Update general configuration
  */
 export function updateGeneralConfig(updates: Partial<GeneralConfig>): void {
-  const config = getCcjkConfig()
-  updateCcjkConfig({ general: { ...config.general, ...updates } })
+  const config = getCcjkConfig();
+  updateCcjkConfig({ general: { ...config.general, ...updates } });
 }
 
 /**
  * Get current tool type
  */
 export function getCurrentTool(): CodeToolType {
-  const config = getCcjkConfig()
-  return config.general.currentTool
+  const config = getCcjkConfig();
+  return config.general.currentTool;
 }
 
 /**
  * Set current tool type
  */
 export function setCurrentTool(tool: CodeToolType): void {
-  updateGeneralConfig({ currentTool: tool })
+  updateGeneralConfig({ currentTool: tool });
 }
 
 /**
  * Get preferred language
  */
 export function getPreferredLang(): SupportedLang {
-  const config = getCcjkConfig()
-  return config.general.preferredLang
+  const config = getCcjkConfig();
+  return config.general.preferredLang;
 }
 
 /**
  * Set preferred language
  */
 export function setPreferredLang(lang: SupportedLang): void {
-  updateGeneralConfig({ preferredLang: lang })
+  updateGeneralConfig({ preferredLang: lang });
 }
 
 /**
  * Get Claude Code tool configuration
  */
 export function getClaudeCodeToolConfig(): ClaudeCodeToolConfig {
-  const config = getCcjkConfig()
-  return config.tools.claudeCode
+  const config = getCcjkConfig();
+  return config.tools.claudeCode;
 }
 
 /**
  * Update Claude Code tool configuration
  */
 export function updateClaudeCodeToolConfig(updates: Partial<ClaudeCodeToolConfig>): void {
-  const existing = getCcjkConfig()
+  const existing = getCcjkConfig();
   updateCcjkConfig({
     tools: {
       ...existing.tools,
@@ -354,22 +354,22 @@ export function updateClaudeCodeToolConfig(updates: Partial<ClaudeCodeToolConfig
         ...updates,
       },
     },
-  })
+  });
 }
 
 /**
  * Get Codex tool configuration
  */
 export function getCodexToolConfig(): CodexToolConfig {
-  const config = getCcjkConfig()
-  return config.tools.codex
+  const config = getCcjkConfig();
+  return config.tools.codex;
 }
 
 /**
  * Update Codex tool configuration
  */
 export function updateCodexToolConfig(updates: Partial<CodexToolConfig>): void {
-  const existing = getCcjkConfig()
+  const existing = getCcjkConfig();
   updateCcjkConfig({
     tools: {
       ...existing.tools,
@@ -378,27 +378,27 @@ export function updateCodexToolConfig(updates: Partial<CodexToolConfig>): void {
         ...updates,
       },
     },
-  })
+  });
 }
 
 /**
  * Backup CCJK configuration
  */
 export function backupCcjkConfig(configPath: string = CCJK_CONFIG_FILE): string | null {
-  const config = readCcjkConfig(configPath)
+  const config = readCcjkConfig(configPath);
   if (!config) {
-    return null
+    return null;
   }
 
-  const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5)
-  const backupPath = `${configPath}.backup.${timestamp}`
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+  const backupPath = `${configPath}.backup.${timestamp}`;
 
   try {
-    writeCcjkConfig(config, backupPath)
-    return backupPath
+    writeCcjkConfig(config, backupPath);
+    return backupPath;
   }
   catch {
-    return null
+    return null;
   }
 }
 
@@ -406,5 +406,5 @@ export function backupCcjkConfig(configPath: string = CCJK_CONFIG_FILE): string 
  * Ensure CCJK config directory exists
  */
 export function ensureCcjkConfigDir(): void {
-  ensureDir(CCJK_CONFIG_DIR)
+  ensureDir(CCJK_CONFIG_DIR);
 }

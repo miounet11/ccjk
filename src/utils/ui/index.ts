@@ -1,2 +1,2 @@
 // CCJK UI Components
-export * from './menu-builder'
+export * from './menu-builder';

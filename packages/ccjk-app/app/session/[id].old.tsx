@@ -1,17 +1,16 @@
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  FlatList,
   ActivityIndicator,
-  TouchableOpacity,
   Alert,
+  FlatList,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
-import { useSessionsStore } from '../../src/store/sessions';
 import { socketClient } from '../../src/api/socket';
-import { decryptJson } from '@ccjk/wire';
+import { useSessionsStore } from '../../src/store/sessions';
 
 export default function SessionDetail() {
   const router = useRouter();
@@ -38,10 +37,12 @@ export default function SessionDetail() {
       setIsLoading(true);
       await fetchSession(id!);
       await fetchMessages(id!);
-    } catch (error) {
+    }
+    catch (error) {
       console.error('Failed to load session:', error);
       Alert.alert('Error', 'Failed to load session');
-    } finally {
+    }
+    finally {
       setIsLoading(false);
     }
   };
@@ -58,7 +59,10 @@ export default function SessionDetail() {
         <Text style={styles.messageTime}>
           {new Date(item.createdAt).toLocaleTimeString()}
         </Text>
-        <Text style={styles.messageContent}>Message #{item.seq}</Text>
+        <Text style={styles.messageContent}>
+          Message #
+          {item.seq}
+        </Text>
       </View>
     );
   };
@@ -113,7 +117,7 @@ export default function SessionDetail() {
         <FlatList
           data={pendingApprovals}
           renderItem={renderApproval}
-          keyExtractor={(item) => item.requestId}
+          keyExtractor={item => item.requestId}
           style={styles.approvalsList}
         />
       )}
@@ -121,7 +125,7 @@ export default function SessionDetail() {
       <FlatList
         data={messages}
         renderItem={renderMessage}
-        keyExtractor={(item) => item.id}
+        keyExtractor={item => item.id}
         contentContainerStyle={styles.messagesList}
         inverted
       />

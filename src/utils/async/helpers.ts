@@ -7,7 +7,7 @@
  * Sleep for specified milliseconds
  */
 export function sleep(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms))
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 /**
@@ -16,10 +16,10 @@ export function sleep(ms: number): Promise<void> {
 export async function retry<T>(
   fn: () => Promise<T>,
   options: {
-    maxAttempts?: number
-    delay?: number
-    backoff?: number
-    onRetry?: (error: Error, attempt: number) => void
+    maxAttempts?: number;
+    delay?: number;
+    backoff?: number;
+    onRetry?: (error: Error, attempt: number) => void;
   } = {},
 ): Promise<T> {
   const {
@@ -27,29 +27,29 @@ export async function retry<T>(
     delay = 1000,
     backoff = 2,
     onRetry,
-  } = options
+  } = options;
 
-  let lastError: Error
+  let lastError: Error;
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
-      return await fn()
+      return await fn();
     }
     catch (error) {
-      lastError = error as Error
+      lastError = error as Error;
 
       if (attempt < maxAttempts) {
         if (onRetry) {
-          onRetry(lastError, attempt)
+          onRetry(lastError, attempt);
         }
 
-        const waitTime = delay * backoff ** (attempt - 1)
-        await sleep(waitTime)
+        const waitTime = delay * backoff ** (attempt - 1);
+        await sleep(waitTime);
       }
     }
   }
 
-  throw lastError!
+  throw lastError!;
 }
 
 /**
@@ -60,17 +60,17 @@ export async function timeout<T>(
   ms: number,
   errorMessage: string = 'Operation timed out',
 ): Promise<T> {
-  let timeoutId: NodeJS.Timeout
+  let timeoutId: NodeJS.Timeout;
 
   const timeoutPromise = new Promise<never>((_, reject) => {
-    timeoutId = setTimeout(() => reject(new Error(errorMessage)), ms)
-  })
+    timeoutId = setTimeout(() => reject(new Error(errorMessage)), ms);
+  });
 
   try {
-    return await Promise.race([promise, timeoutPromise])
+    return await Promise.race([promise, timeoutPromise]);
   }
   finally {
-    clearTimeout(timeoutId!)
+    clearTimeout(timeoutId!);
   }
 }
 
@@ -81,34 +81,34 @@ export function debounce<T extends (...args: any[]) => Promise<any>>(
   fn: T,
   delay: number,
 ): (...args: Parameters<T>) => Promise<ReturnType<T>> {
-  let timeoutId: NodeJS.Timeout | null = null
-  let pendingPromise: Promise<ReturnType<T>> | null = null
+  let timeoutId: NodeJS.Timeout | null = null;
+  let pendingPromise: Promise<ReturnType<T>> | null = null;
 
   return (...args: Parameters<T>): Promise<ReturnType<T>> => {
     if (timeoutId) {
-      clearTimeout(timeoutId)
+      clearTimeout(timeoutId);
     }
 
     if (!pendingPromise) {
       pendingPromise = new Promise((resolve, reject) => {
         timeoutId = setTimeout(async () => {
           try {
-            const result = await fn(...args)
-            resolve(result)
+            const result = await fn(...args);
+            resolve(result);
           }
           catch (error) {
-            reject(error)
+            reject(error);
           }
           finally {
-            pendingPromise = null
-            timeoutId = null
+            pendingPromise = null;
+            timeoutId = null;
           }
-        }, delay)
-      })
+        }, delay);
+      });
     }
 
-    return pendingPromise
-  }
+    return pendingPromise;
+  };
 }
 
 /**
@@ -118,38 +118,38 @@ export function throttle<T extends (...args: any[]) => Promise<any>>(
   fn: T,
   delay: number,
 ): (...args: Parameters<T>) => Promise<ReturnType<T>> {
-  let lastCall = 0
-  let pendingPromise: Promise<ReturnType<T>> | null = null
+  let lastCall = 0;
+  let pendingPromise: Promise<ReturnType<T>> | null = null;
 
   return (...args: Parameters<T>): Promise<ReturnType<T>> => {
-    const now = Date.now()
+    const now = Date.now();
 
     if (now - lastCall >= delay) {
-      lastCall = now
-      pendingPromise = fn(...args)
-      return pendingPromise
+      lastCall = now;
+      pendingPromise = fn(...args);
+      return pendingPromise;
     }
 
     if (!pendingPromise) {
       pendingPromise = new Promise((resolve, reject) => {
         setTimeout(async () => {
-          lastCall = Date.now()
+          lastCall = Date.now();
           try {
-            const result = await fn(...args)
-            resolve(result)
+            const result = await fn(...args);
+            resolve(result);
           }
           catch (error) {
-            reject(error)
+            reject(error);
           }
           finally {
-            pendingPromise = null
+            pendingPromise = null;
           }
-        }, delay - (now - lastCall))
-      })
+        }, delay - (now - lastCall));
+      });
     }
 
-    return pendingPromise
-  }
+    return pendingPromise;
+  };
 }
 
 /**
@@ -159,27 +159,27 @@ export async function parallelLimit<T>(
   tasks: (() => Promise<T>)[],
   limit: number,
 ): Promise<T[]> {
-  const results: T[] = []
-  const executing: Promise<void>[] = []
+  const results: T[] = [];
+  const executing: Promise<void>[] = [];
 
   for (const [index, task] of tasks.entries()) {
     const promise = task().then((result) => {
-      results[index] = result
-    })
+      results[index] = result;
+    });
 
-    executing.push(promise)
+    executing.push(promise);
 
     if (executing.length >= limit) {
-      await Promise.race(executing)
+      await Promise.race(executing);
       executing.splice(
         executing.findIndex(p => p === promise),
         1,
-      )
+      );
     }
   }
 
-  await Promise.all(executing)
-  return results
+  await Promise.all(executing);
+  return results;
 }
 
 /**
@@ -188,13 +188,13 @@ export async function parallelLimit<T>(
 export async function sequence<T>(
   tasks: (() => Promise<T>)[],
 ): Promise<T[]> {
-  const results: T[] = []
+  const results: T[] = [];
 
   for (const task of tasks) {
-    results.push(await task())
+    results.push(await task());
   }
 
-  return results
+  return results;
 }
 
 /**
@@ -202,8 +202,8 @@ export async function sequence<T>(
  */
 export async function allSettled<T>(
   promises: Promise<T>[],
-): Promise<Array<{ status: 'fulfilled', value: T } | { status: 'rejected', reason: any }>> {
-  return Promise.allSettled(promises)
+): Promise<Array<{ status: 'fulfilled'; value: T } | { status: 'rejected'; reason: any }>> {
+  return Promise.allSettled(promises);
 }
 
 /**
@@ -213,7 +213,7 @@ export async function raceWithTimeout<T>(
   promises: Promise<T>[],
   ms: number,
 ): Promise<T> {
-  return timeout(Promise.race(promises), ms)
+  return timeout(Promise.race(promises), ms);
 }
 
 /**
@@ -222,49 +222,49 @@ export async function raceWithTimeout<T>(
 export function memoize<T extends (...args: any[]) => Promise<any>>(
   fn: T,
   options: {
-    keyGenerator?: (...args: Parameters<T>) => string
-    ttl?: number
+    keyGenerator?: (...args: Parameters<T>) => string;
+    ttl?: number;
   } = {},
 ): T {
-  const cache = new Map<string, { value: any, timestamp: number }>()
-  const { keyGenerator = (...args) => JSON.stringify(args), ttl } = options
+  const cache = new Map<string, { value: any; timestamp: number }>();
+  const { keyGenerator = (...args) => JSON.stringify(args), ttl } = options;
 
   return (async (...args: Parameters<T>) => {
-    const key = keyGenerator(...args)
-    const cached = cache.get(key)
+    const key = keyGenerator(...args);
+    const cached = cache.get(key);
 
     if (cached) {
       if (!ttl || Date.now() - cached.timestamp < ttl) {
-        return cached.value
+        return cached.value;
       }
-      cache.delete(key)
+      cache.delete(key);
     }
 
-    const value = await fn(...args)
-    cache.set(key, { value, timestamp: Date.now() })
-    return value
-  }) as T
+    const value = await fn(...args);
+    cache.set(key, { value, timestamp: Date.now() });
+    return value;
+  }) as T;
 }
 
 /**
  * Create a deferred promise
  */
 export interface Deferred<T> {
-  promise: Promise<T>
-  resolve: (value: T) => void
-  reject: (reason?: any) => void
+  promise: Promise<T>;
+  resolve: (value: T) => void;
+  reject: (reason?: any) => void;
 }
 
 export function defer<T>(): Deferred<T> {
-  let resolve!: (value: T) => void
-  let reject!: (reason?: any) => void
+  let resolve!: (value: T) => void;
+  let reject!: (reason?: any) => void;
 
   const promise = new Promise<T>((res, rej) => {
-    resolve = res
-    reject = rej
-  })
+    resolve = res;
+    reject = rej;
+  });
 
-  return { promise, resolve, reject }
+  return { promise, resolve, reject };
 }
 
 /**
@@ -273,29 +273,29 @@ export function defer<T>(): Deferred<T> {
 export async function waitFor(
   condition: () => boolean | Promise<boolean>,
   options: {
-    timeout?: number
-    interval?: number
-    timeoutMessage?: string
+    timeout?: number;
+    interval?: number;
+    timeoutMessage?: string;
   } = {},
 ): Promise<void> {
   const {
     timeout: timeoutMs = 5000,
     interval = 100,
     timeoutMessage = 'Condition not met within timeout',
-  } = options
+  } = options;
 
-  const startTime = Date.now()
+  const startTime = Date.now();
 
   while (true) {
-    const result = await condition()
+    const result = await condition();
     if (result)
-      return
+      return;
 
     if (Date.now() - startTime >= timeoutMs) {
-      throw new Error(timeoutMessage)
+      throw new Error(timeoutMessage);
     }
 
-    await sleep(interval)
+    await sleep(interval);
   }
 }
 
@@ -303,37 +303,37 @@ export async function waitFor(
  * Execute function with mutex lock
  */
 export class Mutex {
-  private locked = false
-  private queue: Array<() => void> = []
+  private locked = false;
+  private queue: Array<() => void> = [];
 
   async acquire(): Promise<void> {
     if (!this.locked) {
-      this.locked = true
-      return
+      this.locked = true;
+      return;
     }
 
     return new Promise((resolve) => {
-      this.queue.push(resolve)
-    })
+      this.queue.push(resolve);
+    });
   }
 
   release(): void {
     if (this.queue.length > 0) {
-      const resolve = this.queue.shift()!
-      resolve()
+      const resolve = this.queue.shift()!;
+      resolve();
     }
     else {
-      this.locked = false
+      this.locked = false;
     }
   }
 
   async runExclusive<T>(fn: () => Promise<T>): Promise<T> {
-    await this.acquire()
+    await this.acquire();
     try {
-      return await fn()
+      return await fn();
     }
     finally {
-      this.release()
+      this.release();
     }
   }
 }
@@ -342,41 +342,41 @@ export class Mutex {
  * Create a semaphore for limiting concurrent operations
  */
 export class Semaphore {
-  private permits: number
-  private queue: Array<() => void> = []
+  private permits: number;
+  private queue: Array<() => void> = [];
 
   constructor(permits: number) {
-    this.permits = permits
+    this.permits = permits;
   }
 
   async acquire(): Promise<void> {
     if (this.permits > 0) {
-      this.permits--
-      return
+      this.permits--;
+      return;
     }
 
     return new Promise((resolve) => {
-      this.queue.push(resolve)
-    })
+      this.queue.push(resolve);
+    });
   }
 
   release(): void {
     if (this.queue.length > 0) {
-      const resolve = this.queue.shift()!
-      resolve()
+      const resolve = this.queue.shift()!;
+      resolve();
     }
     else {
-      this.permits++
+      this.permits++;
     }
   }
 
   async runExclusive<T>(fn: () => Promise<T>): Promise<T> {
-    await this.acquire()
+    await this.acquire();
     try {
-      return await fn()
+      return await fn();
     }
     finally {
-      this.release()
+      this.release();
     }
   }
 }
@@ -389,15 +389,15 @@ export async function batch<T, R>(
   batchSize: number,
   processor: (batch: T[]) => Promise<R[]>,
 ): Promise<R[]> {
-  const results: R[] = []
+  const results: R[] = [];
 
   for (let i = 0; i < items.length; i += batchSize) {
-    const batch = items.slice(i, i + batchSize)
-    const batchResults = await processor(batch)
-    results.push(...batchResults)
+    const batch = items.slice(i, i + batchSize);
+    const batchResults = await processor(batch);
+    results.push(...batchResults);
   }
 
-  return results
+  return results;
 }
 
 /**
@@ -406,26 +406,26 @@ export async function batch<T, R>(
 export async function poll<T>(
   fn: () => Promise<T>,
   options: {
-    interval?: number
-    timeout?: number
-    validate?: (result: T) => boolean
+    interval?: number;
+    timeout?: number;
+    validate?: (result: T) => boolean;
   } = {},
 ): Promise<T> {
-  const { interval = 1000, timeout: timeoutMs = 30000, validate } = options
+  const { interval = 1000, timeout: timeoutMs = 30000, validate } = options;
 
-  const startTime = Date.now()
+  const startTime = Date.now();
 
   while (true) {
-    const result = await fn()
+    const result = await fn();
 
     if (!validate || validate(result)) {
-      return result
+      return result;
     }
 
     if (Date.now() - startTime >= timeoutMs) {
-      throw new Error('Polling timeout exceeded')
+      throw new Error('Polling timeout exceeded');
     }
 
-    await sleep(interval)
+    await sleep(interval);
   }
 }

@@ -7,7 +7,7 @@
  * @module types/marketplace
  */
 
-import type { SupportedLang } from '../constants.js'
+import type { SupportedLang } from '../constants.js';
 
 /**
  * Package category types
@@ -21,7 +21,7 @@ export type PackageCategory
     | 'agent' // Agent definitions
     | 'mcp-service' // MCP service configurations
     | 'output-style' // Output style templates
-    | 'bundle' // Collection of multiple items
+    | 'bundle'; // Collection of multiple items
 
 /**
  * Package verification status
@@ -31,7 +31,7 @@ export type PackageCategory
 export type VerificationStatus
   = | 'verified' // Officially verified by CCJK team
     | 'community' // Community contributed and reviewed
-    | 'unverified' // Not yet reviewed
+    | 'unverified'; // Not yet reviewed
 
 /**
  * Marketplace package metadata
@@ -65,82 +65,82 @@ export type VerificationStatus
  */
 export interface MarketplacePackage {
   /** Unique package identifier (kebab-case) */
-  id: string
+  id: string;
 
   /** Display name */
-  name: string
+  name: string;
 
   /** Semantic version (e.g., "1.2.0") */
-  version: string
+  version: string;
 
   /** Localized descriptions */
-  description: Record<SupportedLang, string>
+  description: Record<SupportedLang, string>;
 
   /** Package author */
-  author: string
+  author: string;
 
   /** Author email */
-  authorEmail?: string
+  authorEmail?: string;
 
   /** Repository URL (GitHub, GitLab, etc.) */
-  repository?: string
+  repository?: string;
 
   /** Homepage URL */
-  homepage?: string
+  homepage?: string;
 
   /** License identifier (SPDX format) */
-  license: string
+  license: string;
 
   /** Search keywords */
-  keywords: string[]
+  keywords: string[];
 
   /** Package category */
-  category: PackageCategory
+  category: PackageCategory;
 
   /** Total download count */
-  downloads: number
+  downloads: number;
 
   /** Average rating (1-5) */
-  rating: number
+  rating: number;
 
   /** Number of ratings */
-  ratingCount: number
+  ratingCount: number;
 
   /** Verification status */
-  verified: VerificationStatus
+  verified: VerificationStatus;
 
   /** Creation timestamp (ISO 8601) */
-  createdAt: string
+  createdAt: string;
 
   /** Last update timestamp (ISO 8601) */
-  updatedAt: string
+  updatedAt: string;
 
   /** Package dependencies (package-id: version) */
-  dependencies?: Record<string, string>
+  dependencies?: Record<string, string>;
 
   /** Minimum CCJK version required (semver range) */
-  ccjkVersion: string
+  ccjkVersion: string;
 
   /** Supported code tools */
-  supportedTools?: ('claude-code' | 'codex' | 'aider')[]
+  supportedTools?: ('claude-code' | 'codex' | 'aider')[];
 
   /** Package size in bytes */
-  size?: number
+  size?: number;
 
   /** SHA256 checksum for integrity verification */
-  checksum?: string
+  checksum?: string;
 
   /** Preview images (URLs) */
-  screenshots?: string[]
+  screenshots?: string[];
 
   /** Changelog URL or markdown */
-  changelog?: string
+  changelog?: string;
 
   /** README content (markdown) */
-  readme?: string
+  readme?: string;
 
   /** Download URL for package archive */
-  downloadUrl?: string
+  downloadUrl?: string;
 }
 
 /**
@@ -162,40 +162,40 @@ export interface MarketplacePackage {
  */
 export interface MarketplaceSearchOptions {
   /** Search query (matches name, description, keywords) */
-  query?: string
+  query?: string;
 
   /** Filter by category */
-  category?: PackageCategory
+  category?: PackageCategory;
 
   /** Filter by author */
-  author?: string
+  author?: string;
 
   /** Filter by verification status */
-  verified?: VerificationStatus
+  verified?: VerificationStatus;
 
   /** Filter by supported tool */
-  supportedTool?: 'claude-code' | 'codex' | 'aider'
+  supportedTool?: 'claude-code' | 'codex' | 'aider';
 
   /** Sort field */
-  sortBy?: 'downloads' | 'rating' | 'updated' | 'name' | 'created'
+  sortBy?: 'downloads' | 'rating' | 'updated' | 'name' | 'created';
 
   /** Sort direction */
-  sortDir?: 'asc' | 'desc'
+  sortDir?: 'asc' | 'desc';
 
   /** Results limit */
-  limit?: number
+  limit?: number;
 
   /** Results offset (for pagination) */
-  offset?: number
+  offset?: number;
 
   /** Filter by keywords (AND logic) */
-  keywords?: string[]
+  keywords?: string[];
 
   /** Minimum rating (1-5) */
-  minRating?: number
+  minRating?: number;
 
   /** Minimum CCJK version compatibility */
-  minCcjkVersion?: string
+  minCcjkVersion?: string;
 }
 
 /**
@@ -205,22 +205,22 @@ export interface MarketplaceSearchOptions {
  */
 export interface MarketplaceSearchResult {
   /** Matching packages */
-  packages: MarketplacePackage[]
+  packages: MarketplacePackage[];
 
   /** Total count (before pagination) */
-  total: number
+  total: number;
 
   /** Current offset */
-  offset: number
+  offset: number;
 
   /** Current limit */
-  limit: number
+  limit: number;
 
   /** Search query used */
-  query?: string
+  query?: string;
 
   /** Applied filters */
-  filters?: Partial<MarketplaceSearchOptions>
+  filters?: Partial<MarketplaceSearchOptions>;
 }
 
 /**
@@ -231,35 +231,35 @@ export interface MarketplaceSearchResult {
  */
 export interface MarketplaceRegistry {
   /** Registry version (semantic version) */
-  version: string
+  version: string;
 
   /** Last updated timestamp (ISO 8601) */
-  lastUpdated: string
+  lastUpdated: string;
 
   /** Registry URL */
-  url: string
+  url: string;
 
   /** All packages */
-  packages: MarketplacePackage[]
+  packages: MarketplacePackage[];
 
   /** Featured package IDs */
-  featured?: string[]
+  featured?: string[];
 
   /** Categories with package counts */
-  categories: Record<PackageCategory, number>
+  categories: Record<PackageCategory, number>;
 
   /** Total downloads across all packages */
-  totalDownloads?: number
+  totalDownloads?: number;
 
   /** Registry metadata */
   metadata?: {
     /** Registry name */
-    name: string
+    name: string;
     /** Registry description */
-    description: string
+    description: string;
     /** Registry maintainer */
-    maintainer: string
-  }
+    maintainer: string;
+  };
 }
 
 /**
@@ -279,28 +279,28 @@ export interface MarketplaceRegistry {
  */
 export interface PackageInstallOptions {
   /** Specific version to install (defaults to latest) */
-  version?: string
+  version?: string;
 
   /** Force reinstall even if already installed */
-  force?: boolean
+  force?: boolean;
 
   /** Install dependencies automatically */
-  installDependencies?: boolean
+  installDependencies?: boolean;
 
   /** Skip verification check */
-  skipVerification?: boolean
+  skipVerification?: boolean;
 
   /** Target directory (defaults to ~/.ccjk/packages) */
-  targetDir?: string
+  targetDir?: string;
 
   /** Language for templates and messages */
-  lang?: SupportedLang
+  lang?: SupportedLang;
 
   /** Code tool type for compatibility check */
-  codeToolType?: 'claude-code' | 'codex' | 'aider'
+  codeToolType?: 'claude-code' | 'codex' | 'aider';
 
   /** Skip checksum verification */
-  skipChecksum?: boolean
+  skipChecksum?: boolean;
 }
 
 /**
@@ -310,28 +310,28 @@ export interface PackageInstallOptions {
  */
 export interface PackageInstallResult {
   /** Whether installation succeeded */
-  success: boolean
+  success: boolean;
 
   /** Installed package */
-  package: MarketplacePackage
+  package: MarketplacePackage;
 
   /** Installation path */
-  installedPath?: string
+  installedPath?: string;
 
   /** Installed dependencies */
-  dependencies?: PackageInstallResult[]
+  dependencies?: PackageInstallResult[];
 
   /** Error message (if failed) */
-  error?: string
+  error?: string;
 
   /** Warnings during installation */
-  warnings?: string[]
+  warnings?: string[];
 
   /** Installation duration in milliseconds */
-  durationMs?: number
+  durationMs?: number;
 
   /** Whether package was already installed */
-  alreadyInstalled?: boolean
+  alreadyInstalled?: boolean;
 }
 
 /**
@@ -341,28 +341,28 @@ export interface PackageInstallResult {
  */
 export interface InstalledPackage {
   /** Package metadata */
-  package: MarketplacePackage
+  package: MarketplacePackage;
 
   /** Installation path */
-  path: string
+  path: string;
 
   /** Installation timestamp (ISO 8601) */
-  installedAt: string
+  installedAt: string;
 
   /** Installation source */
-  source: 'marketplace' | 'local' | 'git'
+  source: 'marketplace' | 'local' | 'git';
 
   /** Whether package is enabled */
-  enabled: boolean
+  enabled: boolean;
 
   /** User configuration overrides */
-  config?: Record<string, unknown>
+  config?: Record<string, unknown>;
 
   /** Last used timestamp */
-  lastUsed?: string
+  lastUsed?: string;
 
   /** Usage count */
-  usageCount?: number
+  usageCount?: number;
 }
 
 /**
@@ -372,25 +372,25 @@ export interface InstalledPackage {
  */
 export interface PackageUpdateInfo {
   /** Package ID */
-  id: string
+  id: string;
 
   /** Current version */
-  currentVersion: string
+  currentVersion: string;
 
   /** Latest version */
-  latestVersion: string
+  latestVersion: string;
 
   /** Whether update has breaking changes */
-  breaking: boolean
+  breaking: boolean;
 
   /** Changelog summary */
-  changelog?: string
+  changelog?: string;
 
   /** Update size in bytes */
-  size?: number
+  size?: number;
 
   /** Release date */
-  releaseDate?: string
+  releaseDate?: string;
 }
 
 /**
@@ -418,70 +418,70 @@ export interface PackageUpdateInfo {
  */
 export interface PackageManifest {
   /** JSON schema URL for validation */
-  $schema?: string
+  $schema?: string;
 
   /** Package name (must match package ID) */
-  name: string
+  name: string;
 
   /** Package version (semantic version) */
-  version: string
+  version: string;
 
   /** Package description */
-  description: string
+  description: string;
 
   /** Minimum CCJK version required */
-  ccjkVersion: string
+  ccjkVersion: string;
 
   /** Package type */
-  type: PackageCategory
+  type: PackageCategory;
 
   /** Package author */
-  author?: string
+  author?: string;
 
   /** License identifier */
-  license?: string
+  license?: string;
 
   /** Repository URL */
-  repository?: string
+  repository?: string;
 
   /** Main entry point (for plugins) */
-  main?: string
+  main?: string;
 
   /** Skill files glob pattern */
-  skills?: string[]
+  skills?: string[];
 
   /** Agent files glob pattern */
-  agents?: string[]
+  agents?: string[];
 
   /** Workflow files glob pattern */
-  workflows?: string[]
+  workflows?: string[];
 
   /** Output style files glob pattern */
-  outputStyles?: string[]
+  outputStyles?: string[];
 
   /** MCP service configurations */
-  mcpServices?: string[]
+  mcpServices?: string[];
 
   /** i18n files (language: path) */
-  i18n?: Record<SupportedLang, string>
+  i18n?: Record<SupportedLang, string>;
 
   /** Post-install script (relative path) */
-  postInstall?: string
+  postInstall?: string;
 
   /** Pre-uninstall script (relative path) */
-  preUninstall?: string
+  preUninstall?: string;
 
   /** Package dependencies */
-  dependencies?: Record<string, string>
+  dependencies?: Record<string, string>;
 
   /** Files to include (glob patterns) */
-  files?: string[]
+  files?: string[];
 
   /** Files to exclude (glob patterns) */
-  exclude?: string[]
+  exclude?: string[];
 
   /** Package configuration schema */
-  configSchema?: Record<string, unknown>
+  configSchema?: Record<string, unknown>;
 }
 
 /**
@@ -491,19 +491,19 @@ export interface PackageManifest {
  */
 export interface RegistryCacheConfig {
   /** Cache directory */
-  cacheDir: string
+  cacheDir: string;
 
   /** Cache TTL in seconds */
-  ttl: number
+  ttl: number;
 
   /** Whether to use cache */
-  enabled: boolean
+  enabled: boolean;
 
   /** Maximum cache size in bytes */
-  maxSize?: number
+  maxSize?: number;
 
   /** Cache strategy */
-  strategy?: 'memory' | 'disk' | 'hybrid'
+  strategy?: 'memory' | 'disk' | 'hybrid';
 }
 
 /**
@@ -513,27 +513,27 @@ export interface RegistryCacheConfig {
  */
 export interface MarketplaceClientOptions {
   /** Registry URL */
-  registryUrl: string
+  registryUrl: string;
 
   /** Request timeout in milliseconds */
-  timeout?: number
+  timeout?: number;
 
   /** Cache configuration */
-  cache?: RegistryCacheConfig
+  cache?: RegistryCacheConfig;
 
   /** User agent string */
-  userAgent?: string
+  userAgent?: string;
 
   /** API authentication token */
-  authToken?: string
+  authToken?: string;
 
   /** Retry configuration */
   retry?: {
     /** Maximum retry attempts */
-    maxAttempts: number
+    maxAttempts: number;
     /** Delay between retries in milliseconds */
-    delay: number
-  }
+    delay: number;
+  };
 }
 
 /**
@@ -543,22 +543,22 @@ export interface MarketplaceClientOptions {
  */
 export interface PackageRating {
   /** Package ID */
-  packageId: string
+  packageId: string;
 
   /** Rating value (1-5) */
-  rating: number
+  rating: number;
 
   /** Optional review text */
-  review?: string
+  review?: string;
 
   /** Reviewer ID (anonymous if not provided) */
-  reviewerId?: string
+  reviewerId?: string;
 
   /** Review timestamp */
-  timestamp?: string
+  timestamp?: string;
 
   /** Reviewer name (for display) */
-  reviewerName?: string
+  reviewerName?: string;
 }
 
 /**
@@ -578,25 +578,25 @@ export interface PackageRating {
  */
 export interface PackagePublishOptions {
   /** Package directory containing ccjk.json */
-  packageDir: string
+  packageDir: string;
 
   /** Registry URL (defaults to official registry) */
-  registryUrl?: string
+  registryUrl?: string;
 
   /** Authentication token */
-  authToken?: string
+  authToken?: string;
 
   /** Dry run (validate only, don't publish) */
-  dryRun?: boolean
+  dryRun?: boolean;
 
   /** Access level */
-  access?: 'public' | 'private'
+  access?: 'public' | 'private';
 
   /** Skip validation checks */
-  skipValidation?: boolean
+  skipValidation?: boolean;
 
   /** Tag for this release (e.g., 'latest', 'beta') */
-  tag?: string
+  tag?: string;
 }
 
 /**
@@ -606,22 +606,22 @@ export interface PackagePublishOptions {
  */
 export interface PackagePublishResult {
   /** Whether publish succeeded */
-  success: boolean
+  success: boolean;
 
   /** Published package info */
-  package?: MarketplacePackage
+  package?: MarketplacePackage;
 
   /** Package URL in marketplace */
-  url?: string
+  url?: string;
 
   /** Error message (if failed) */
-  error?: string
+  error?: string;
 
   /** Validation warnings */
-  warnings?: string[]
+  warnings?: string[];
 
   /** Publish duration in milliseconds */
-  durationMs?: number
+  durationMs?: number;
 }
 
 /**
@@ -631,16 +631,16 @@ export interface PackagePublishResult {
  */
 export interface PackageValidationResult {
   /** Whether package is valid */
-  valid: boolean
+  valid: boolean;
 
   /** Validation errors (prevent installation/publish) */
-  errors: PackageValidationError[]
+  errors: PackageValidationError[];
 
   /** Validation warnings (allow but notify) */
-  warnings: PackageValidationWarning[]
+  warnings: PackageValidationWarning[];
 
   /** Package manifest (if parsed successfully) */
-  manifest?: PackageManifest
+  manifest?: PackageManifest;
 }
 
 /**
@@ -650,16 +650,16 @@ export interface PackageValidationResult {
  */
 export interface PackageValidationError {
   /** Error field (e.g., "manifest.version") */
-  field: string
+  field: string;
 
   /** Human-readable error message */
-  message: string
+  message: string;
 
   /** Error code for programmatic handling */
-  code: string
+  code: string;
 
   /** Suggested fix (if available) */
-  fix?: string
+  fix?: string;
 }
 
 /**
@@ -669,16 +669,16 @@ export interface PackageValidationError {
  */
 export interface PackageValidationWarning {
   /** Warning field (e.g., "manifest.license") */
-  field: string
+  field: string;
 
   /** Human-readable warning message */
-  message: string
+  message: string;
 
   /** Warning code for programmatic handling */
-  code: string
+  code: string;
 
   /** Suggested improvement (if available) */
-  suggestion?: string
+  suggestion?: string;
 }
 
 /**
@@ -688,16 +688,16 @@ export interface PackageValidationWarning {
  */
 export interface PackageUninstallOptions {
   /** Remove dependencies if not used by other packages */
-  removeDependencies?: boolean
+  removeDependencies?: boolean;
 
   /** Force uninstall even if other packages depend on it */
-  force?: boolean
+  force?: boolean;
 
   /** Keep user configuration */
-  keepConfig?: boolean
+  keepConfig?: boolean;
 
   /** Language for messages */
-  lang?: SupportedLang
+  lang?: SupportedLang;
 }
 
 /**
@@ -707,19 +707,19 @@ export interface PackageUninstallOptions {
  */
 export interface PackageUninstallResult {
   /** Whether uninstall succeeded */
-  success: boolean
+  success: boolean;
 
   /** Uninstalled package ID */
-  packageId: string
+  packageId: string;
 
   /** Uninstalled dependencies */
-  dependencies?: string[]
+  dependencies?: string[];
 
   /** Error message (if failed) */
-  error?: string
+  error?: string;
 
   /** Warnings during uninstall */
-  warnings?: string[]
+  warnings?: string[];
 }
 
 /**
@@ -729,28 +729,28 @@ export interface PackageUninstallResult {
  */
 export interface PackageStatistics {
   /** Package ID */
-  packageId: string
+  packageId: string;
 
   /** Total downloads */
-  downloads: number
+  downloads: number;
 
   /** Downloads in last 7 days */
-  downloadsWeek: number
+  downloadsWeek: number;
 
   /** Downloads in last 30 days */
-  downloadsMonth: number
+  downloadsMonth: number;
 
   /** Average rating */
-  rating: number
+  rating: number;
 
   /** Number of ratings */
-  ratingCount: number
+  ratingCount: number;
 
   /** Number of active installations */
-  activeInstalls: number
+  activeInstalls: number;
 
   /** Last updated timestamp */
-  lastUpdated: string
+  lastUpdated: string;
 }
 
 /**
@@ -760,19 +760,19 @@ export interface PackageStatistics {
  */
 export interface MarketplaceCategoryInfo {
   /** Category identifier */
-  id: PackageCategory
+  id: PackageCategory;
 
   /** Localized category name */
-  name: Record<SupportedLang, string>
+  name: Record<SupportedLang, string>;
 
   /** Localized category description */
-  description: Record<SupportedLang, string>
+  description: Record<SupportedLang, string>;
 
   /** Number of packages in category */
-  packageCount: number
+  packageCount: number;
 
   /** Category icon (emoji or URL) */
-  icon?: string
+  icon?: string;
 }
 
 /**
@@ -782,16 +782,16 @@ export interface MarketplaceCategoryInfo {
  */
 export interface PackageDependencyTree {
   /** Root package */
-  package: MarketplacePackage
+  package: MarketplacePackage;
 
   /** Direct dependencies */
-  dependencies: PackageDependencyNode[]
+  dependencies: PackageDependencyNode[];
 
   /** Total dependency count (including transitive) */
-  totalCount: number
+  totalCount: number;
 
   /** Whether there are circular dependencies */
-  hasCircular: boolean
+  hasCircular: boolean;
 }
 
 /**
@@ -801,14 +801,14 @@ export interface PackageDependencyTree {
  */
 export interface PackageDependencyNode {
   /** Package info */
-  package: MarketplacePackage
+  package: MarketplacePackage;
 
   /** Required version range */
-  versionRange: string
+  versionRange: string;
 
   /** Nested dependencies */
-  dependencies: PackageDependencyNode[]
+  dependencies: PackageDependencyNode[];
 
   /** Whether this is a circular dependency */
-  circular?: boolean
+  circular?: boolean;
 }

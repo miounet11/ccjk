@@ -19,7 +19,7 @@ const INVALID_PERMISSION_NAMES = new Set([
   'AllowFileSystemAccess',
   'AllowShellAccess',
   'AllowHttpAccess',
-])
+]);
 
 /**
  * Check if a permission string is valid for Claude Code.
@@ -33,21 +33,21 @@ const INVALID_PERMISSION_NAMES = new Set([
 function isValidPermission(perm: string): boolean {
   // Invalid "Allow*" names from old templates
   if (INVALID_PERMISSION_NAMES.has(perm)) {
-    return false
+    return false;
   }
 
   // Invalid wildcard MCP patterns (bare wildcards, not tool-scoped)
   if (['mcp__.*', 'mcp__*', 'mcp__(*)'].includes(perm)) {
-    return false
+    return false;
   }
 
   // Lowercase bare words are not valid (e.g., "bash", "npm")
   // Exception: mcp__ prefixed names are valid
   if (/^[a-z]/.test(perm) && !perm.startsWith('mcp__')) {
-    return false
+    return false;
   }
 
-  return true
+  return true;
 }
 
 /**
@@ -57,25 +57,25 @@ function isValidPermission(perm: string): boolean {
  */
 function isCoveredByWildcard(perm: string, wildcardPerm: string): boolean {
   // Only handle Bash(*) wildcard patterns
-  const wildcardMatch = wildcardPerm.match(/^(\w+)\((.+)\)$/)
+  const wildcardMatch = wildcardPerm.match(/^(\w+)\((.+)\)$/);
   if (!wildcardMatch)
-    return false
+    return false;
 
-  const [, tool, wildcardArg] = wildcardMatch
+  const [, tool, wildcardArg] = wildcardMatch;
   if (!wildcardArg.includes('*'))
-    return false
+    return false;
 
-  const permMatch = perm.match(/^(\w+)\((.+)\)$/)
+  const permMatch = perm.match(/^(\w+)\((.+)\)$/);
   if (!permMatch)
-    return false
+    return false;
 
-  const [, permTool, permArg] = permMatch
+  const [, permTool, permArg] = permMatch;
   if (tool !== permTool)
-    return false
+    return false;
 
   // Convert wildcard pattern to regex: "npm *" → /^npm .+$/
-  const regexStr = wildcardArg.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.+')
-  return new RegExp(`^${regexStr}$`).test(permArg)
+  const regexStr = wildcardArg.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.+');
+  return new RegExp(`^${regexStr}$`).test(permArg);
 }
 
 /**
@@ -86,37 +86,37 @@ function isCoveredByWildcard(perm: string, wildcardPerm: string): boolean {
  */
 export function cleanupPermissions(templatePermissions: string[], userPermissions: string[]): string[] {
   // Create a set for template permissions for O(1) lookup
-  const templateSet = new Set(templatePermissions)
+  const templateSet = new Set(templatePermissions);
 
   // Filter user permissions
   const cleanedPermissions = userPermissions.filter((permission) => {
     if (!isValidPermission(permission)) {
-      return false
+      return false;
     }
 
     // Check if this permission is redundant (covered by a template permission)
     for (const templatePerm of templatePermissions) {
       if (permission === templatePerm) {
-        continue
+        continue;
       }
       if (permission.startsWith(templatePerm)) {
-        return false
+        return false;
       }
     }
 
-    return true
-  })
+    return true;
+  });
 
   // Merge template and cleaned user permissions, removing duplicates
-  const merged = [...templateSet]
+  const merged = [...templateSet];
 
   for (const permission of cleanedPermissions) {
     if (!templateSet.has(permission)) {
-      merged.push(permission)
+      merged.push(permission);
     }
   }
 
-  return merged
+  return merged;
 }
 
 /**
@@ -130,44 +130,44 @@ export function mergeAndCleanPermissions(
   templatePermissions: string[] | undefined,
   userPermissions: string[] | undefined,
 ): string[] {
-  const template = templatePermissions || []
-  const user = userPermissions || []
+  const template = templatePermissions || [];
+  const user = userPermissions || [];
 
   // Start with template permissions (they are the source of truth)
-  const result = [...template]
+  const result = [...template];
 
   // Add valid user permissions that don't exist in template
   for (const perm of user) {
     // Skip if already in result
     if (result.includes(perm)) {
-      continue
+      continue;
     }
 
     // Skip invalid permissions
     if (!isValidPermission(perm)) {
-      continue
+      continue;
     }
 
     // Check for redundant permissions (e.g., "Bash(git status)" when "Bash(git *)" exists)
     // Also handles wildcard patterns like "Bash(npm *)" covering "Bash(npm install)"
-    let isRedundant = false
+    let isRedundant = false;
     for (const templatePerm of template) {
       if (perm.startsWith(`${templatePerm}(`)) {
-        isRedundant = true
-        break
+        isRedundant = true;
+        break;
       }
       if (isCoveredByWildcard(perm, templatePerm)) {
-        isRedundant = true
-        break
+        isRedundant = true;
+        break;
       }
     }
 
     if (!isRedundant) {
-      result.push(perm)
+      result.push(perm);
     }
   }
 
-  return result
+  return result;
 }
 
 /**
@@ -178,8 +178,8 @@ export function mergeAndCleanPermissions(
 export function repairPermissions(permissions: string[]): string[] {
   return permissions.filter((perm) => {
     if (!isValidPermission(perm)) {
-      return false
+      return false;
     }
-    return true
-  })
+    return true;
+  });
 }

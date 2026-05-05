@@ -1,6 +1,7 @@
-import { spawn, ChildProcess } from 'child_process';
-import { createEnvelope } from '@ccjk/wire';
+import type { ChildProcess } from 'node:child_process';
 import type { DaemonManager } from './manager';
+import { spawn } from 'node:child_process';
+import { createEnvelope } from '@ccjk/wire';
 import { logger } from './logger';
 
 /**
@@ -116,7 +117,7 @@ export class ClaudeCodeInterceptor {
    */
   sendInput(text: string): void {
     if (this.process?.stdin) {
-      this.process.stdin.write(text + '\n');
+      this.process.stdin.write(`${text}\n`);
     }
   }
 
@@ -140,7 +141,8 @@ export class ClaudeCodeInterceptor {
    */
   private processLine(line: string): void {
     const trimmed = line.trim();
-    if (!trimmed) return;
+    if (!trimmed)
+      return;
 
     // 1. Detect thinking mode (Claude's internal reasoning)
     if (this.isThinkingLine(line)) {
@@ -187,7 +189,7 @@ export class ClaudeCodeInterceptor {
 
     // 4. Buffer tool call output
     if (this.inToolCall) {
-      this.toolCallBuffer += line + '\n';
+      this.toolCallBuffer += `${line}\n`;
       return;
     }
 
@@ -232,11 +234,11 @@ export class ClaudeCodeInterceptor {
    */
   private isThinkingLine(line: string): boolean {
     return (
-      line.includes('🤔') ||
-      line.startsWith('> ') ||
-      line.includes('thinking') ||
-      line.includes('Thinking...') ||
-      /^\s*\[thinking\]/i.test(line)
+      line.includes('🤔')
+      || line.startsWith('> ')
+      || line.includes('thinking')
+      || line.includes('Thinking...')
+      || /^\s*\[thinking\]/i.test(line)
     );
   }
 
@@ -275,7 +277,7 @@ export class ClaudeCodeInterceptor {
     }
 
     // Pattern 4: "🔧 Read"
-    match = line.match(/🔧\s+(\w+)/i);
+    match = line.match(/🔧\s+(\w+)/);
     if (match) {
       return {
         name: match[1],
@@ -370,11 +372,11 @@ export class ClaudeCodeInterceptor {
    */
   private isErrorLine(line: string): boolean {
     return (
-      line.includes('Error:') ||
-      line.includes('Failed') ||
-      line.includes('❌') ||
-      /^\s*Error\b/i.test(line) ||
-      /\bfailed\b/i.test(line)
+      line.includes('Error:')
+      || line.includes('Failed')
+      || line.includes('❌')
+      || /^\s*Error\b/i.test(line)
+      || /\bfailed\b/i.test(line)
     );
   }
 
@@ -432,7 +434,8 @@ export class ClaudeCodeInterceptor {
     if (approved) {
       logger.info(`Permission approved: ${request.tool} ${request.pattern}`);
       this.sendInput('y');
-    } else {
+    }
+    else {
       logger.info(`Permission denied: ${request.tool} ${request.pattern}`);
       this.sendInput('n');
     }
@@ -488,7 +491,7 @@ export class ClaudeCodeInterceptor {
       event,
       {
         turnId: this.currentTurnId || undefined,
-      }
+      },
     );
 
     await this.manager.sendEvent(this.config.sessionId, envelope);

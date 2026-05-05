@@ -29,9 +29,9 @@
  */
 
 // Imports for initializeHooksSystem
-import { registerBuiltinHooks } from './builtin-hooks.js'
-import { createHookExecutor } from './executor.js'
-import { getGlobalRegistry } from './registry.js'
+import { registerBuiltinHooks } from './builtin-hooks.js';
+import { createHookExecutor } from './executor.js';
+import { getGlobalRegistry } from './registry.js';
 
 // Export built-in hooks
 export {
@@ -50,13 +50,13 @@ export {
   taskStartNotification,
   workflowCompleteCleanup,
   workflowStartInitialization,
-} from './builtin-hooks.js'
+} from './builtin-hooks.js';
 
 // Export executor
 export {
   createHookExecutor,
   HookExecutor,
-} from './executor.js'
+} from './executor.js';
 
 // Export registry
 export {
@@ -64,7 +64,7 @@ export {
   getGlobalRegistry,
   HookRegistry,
   resetGlobalRegistry,
-} from './registry.js'
+} from './registry.js';
 
 // Export types
 export type {
@@ -83,12 +83,12 @@ export type {
   HookStatistics,
   HookStatus,
   HookType,
-} from './types.js'
+} from './types.js';
 
 export {
   HookError,
   HookTimeoutError,
-} from './types.js'
+} from './types.js';
 
 /**
  * Initialize the hooks system
@@ -118,18 +118,18 @@ export function initializeHooksSystem(options?: {
    * Whether to register built-in hooks
    * @default true
    */
-  registerBuiltins?: boolean
+  registerBuiltins?: boolean;
 }): {
-  registry: import('./registry.js').HookRegistry
-  executor: import('./executor.js').HookExecutor
+  registry: import('./registry.js').HookRegistry;
+  executor: import('./executor.js').HookExecutor;
 } {
-  const registry = getGlobalRegistry()
-  const executor = createHookExecutor()
+  const registry = getGlobalRegistry();
+  const executor = createHookExecutor();
 
   // Register built-in hooks by default
   if (options?.registerBuiltins !== false) {
-    registerBuiltinHooks(registry)
+    registerBuiltinHooks(registry);
   }
 
-  return { registry, executor }
+  return { registry, executor };
 }

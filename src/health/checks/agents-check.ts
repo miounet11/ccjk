@@ -1,9 +1,9 @@
-import type { HealthCheck, HealthResult } from '../types'
+import type { HealthCheck, HealthResult } from '../types';
 /**
  * Agents Health Check
  */
-import { existsSync, readdirSync } from 'node:fs'
-import { CLAUDE_AGENTS_DIR } from '../../constants'
+import { existsSync, readdirSync } from 'node:fs';
+import { CLAUDE_AGENTS_DIR } from '../../constants';
 
 export const agentsCheck: HealthCheck = {
   name: 'Agents',
@@ -19,11 +19,11 @@ export const agentsCheck: HealthCheck = {
           message: 'No agents directory',
           fix: 'Create agents for specialized tasks',
           command: 'ccjk agents',
-        }
+        };
       }
 
-      const files = readdirSync(CLAUDE_AGENTS_DIR).filter(f => f.endsWith('.md'))
-      const agentCount = files.length
+      const files = readdirSync(CLAUDE_AGENTS_DIR).filter(f => f.endsWith('.md'));
+      const agentCount = files.length;
 
       if (agentCount === 0) {
         return {
@@ -34,10 +34,10 @@ export const agentsCheck: HealthCheck = {
           message: 'No agents configured',
           fix: 'Create agents for your project',
           command: 'ccjk agents',
-        }
+        };
       }
 
-      const score = Math.min(100, 40 + agentCount * 15)
+      const score = Math.min(100, 40 + agentCount * 15);
       return {
         name: this.name,
         status: score >= 60 ? 'pass' : 'warn',
@@ -45,10 +45,10 @@ export const agentsCheck: HealthCheck = {
         weight: this.weight,
         message: `${agentCount} agent${agentCount > 1 ? 's' : ''} configured`,
         details: files.slice(0, 5).map(f => `  ${f.replace('.md', '')}`),
-      }
+      };
     }
     catch {
-      return { name: this.name, status: 'fail', score: 0, weight: this.weight, message: 'Failed to read agents' }
+      return { name: this.name, status: 'fail', score: 0, weight: this.weight, message: 'Failed to read agents' };
     }
   },
-}
+};

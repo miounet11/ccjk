@@ -19,12 +19,12 @@ import type {
   IntentRule,
   LocalizedString,
   PluginPackage,
-} from '../types'
-import { existsSync, readFileSync } from 'node:fs'
-import { homedir } from 'node:os'
-import process from 'node:process'
-import { join } from 'pathe'
-import { getIntentEngine } from '../intent/intent-engine'
+} from '../types';
+import { existsSync, readFileSync } from 'node:fs';
+import { homedir } from 'node:os';
+import process from 'node:process';
+import { join } from 'pathe';
+import { getIntentEngine } from '../intent/intent-engine';
 
 // ============================================================================
 // Types
@@ -33,24 +33,24 @@ import { getIntentEngine } from '../intent/intent-engine'
 /**
  * Shell types supported for hook generation
  */
-export type ShellType = 'bash' | 'zsh' | 'fish' | 'unknown'
+export type ShellType = 'bash' | 'zsh' | 'fish' | 'unknown';
 
 /**
  * Interception result from analyzing user input
  */
 export interface InterceptionResult {
   /** Whether an intent was detected */
-  detected: boolean
+  detected: boolean;
   /** The matched intent (if any) */
-  match?: IntentMatch
+  match?: IntentMatch;
   /** Suggested skill to execute */
-  suggestedSkill?: SuggestedSkill
+  suggestedSkill?: SuggestedSkill;
   /** Prompt for Claude Code */
-  claudePrompt?: string
+  claudePrompt?: string;
   /** Whether to auto-execute */
-  autoExecute: boolean
+  autoExecute: boolean;
   /** Confidence level */
-  confidence: number
+  confidence: number;
 }
 
 /**
@@ -58,17 +58,17 @@ export interface InterceptionResult {
  */
 export interface SuggestedSkill {
   /** Plugin ID */
-  pluginId: string
+  pluginId: string;
   /** Skill ID (if specific) */
-  skillId?: string
+  skillId?: string;
   /** Skill name (localized) */
-  name: LocalizedString
+  name: LocalizedString;
   /** Description of what the skill does */
-  description: LocalizedString
+  description: LocalizedString;
   /** Command to execute */
-  command: string
+  command: string;
   /** Arguments to pass */
-  args?: string[]
+  args?: string[];
 }
 
 /**
@@ -76,13 +76,13 @@ export interface SuggestedSkill {
  */
 export interface ShellHookConfig {
   /** Shell type */
-  shellType: ShellType
+  shellType: ShellType;
   /** Hook script content */
-  hookScript: string
+  hookScript: string;
   /** RC file path */
-  rcFile: string
+  rcFile: string;
   /** Whether intent interception is enabled */
-  intentEnabled: boolean
+  intentEnabled: boolean;
 }
 
 /**
@@ -90,25 +90,25 @@ export interface ShellHookConfig {
  */
 export interface HookInstallResult {
   /** Whether installation succeeded */
-  success: boolean
+  success: boolean;
   /** Shell type */
-  shellType: ShellType
+  shellType: ShellType;
   /** RC file path */
-  rcFile: string
+  rcFile: string;
   /** Message */
-  message: string
+  message: string;
   /** Error (if any) */
-  error?: string
+  error?: string;
 }
 
 // ============================================================================
 // Constants
 // ============================================================================
 
-const HOOK_MARKER = '# CCJK Intent Interceptor Hook'
-const HOOK_END_MARKER = '# END CCJK Intent Interceptor Hook'
-const MIN_CONFIDENCE_FOR_SUGGESTION = 0.5
-const MIN_CONFIDENCE_FOR_AUTO_EXECUTE = 0.85
+const HOOK_MARKER = '# CCJK Intent Interceptor Hook';
+const HOOK_END_MARKER = '# END CCJK Intent Interceptor Hook';
+const MIN_CONFIDENCE_FOR_SUGGESTION = 0.5;
+const MIN_CONFIDENCE_FOR_AUTO_EXECUTE = 0.85;
 
 // ============================================================================
 // Intent Interceptor Class
@@ -120,12 +120,12 @@ const MIN_CONFIDENCE_FOR_AUTO_EXECUTE = 0.85
  * Analyzes user input and generates shell hooks for skill interception
  */
 export class IntentInterceptor {
-  private installedSkills: Map<string, PluginPackage> = new Map()
-  private customRules: IntentRule[] = []
-  private lang: 'en' | 'zh-CN' = 'en'
+  private installedSkills: Map<string, PluginPackage> = new Map();
+  private customRules: IntentRule[] = [];
+  private lang: 'en' | 'zh-CN' = 'en';
 
   constructor(lang: 'en' | 'zh-CN' = 'en') {
-    this.lang = lang
+    this.lang = lang;
   }
 
   // ==========================================================================
@@ -140,21 +140,21 @@ export class IntentInterceptor {
    * @returns Interception result with suggestions
    */
   async analyze(userInput: string, cwd: string = process.cwd()): Promise<InterceptionResult> {
-    const engine = getIntentEngine()
+    const engine = getIntentEngine();
 
     // Detect intents
-    const matches = await engine.detect(userInput, cwd)
+    const matches = await engine.detect(userInput, cwd);
 
     if (matches.length === 0) {
       return {
         detected: false,
         autoExecute: false,
         confidence: 0,
-      }
+      };
     }
 
     // Get the best match
-    const bestMatch = matches[0]
+    const bestMatch = matches[0];
 
     // Check confidence thresholds
     if (bestMatch.confidence < MIN_CONFIDENCE_FOR_SUGGESTION) {
@@ -162,14 +162,14 @@ export class IntentInterceptor {
         detected: false,
         autoExecute: false,
         confidence: bestMatch.confidence,
-      }
+      };
     }
 
     // Build suggested skill
-    const suggestedSkill = this.buildSuggestedSkill(bestMatch)
+    const suggestedSkill = this.buildSuggestedSkill(bestMatch);
 
     // Generate Claude prompt
-    const claudePrompt = this.generateClaudePrompt(bestMatch, suggestedSkill)
+    const claudePrompt = this.generateClaudePrompt(bestMatch, suggestedSkill);
 
     return {
       detected: true,
@@ -178,17 +178,17 @@ export class IntentInterceptor {
       claudePrompt,
       autoExecute: bestMatch.confidence >= MIN_CONFIDENCE_FOR_AUTO_EXECUTE && bestMatch.autoExecute,
       confidence: bestMatch.confidence,
-    }
+    };
   }
 
   /**
    * Build suggested skill from intent match
    */
   private buildSuggestedSkill(match: IntentMatch): SuggestedSkill {
-    const plugin = this.installedSkills.get(match.pluginId)
+    const plugin = this.installedSkills.get(match.pluginId);
 
     // Default command based on plugin ID
-    const command = `ccjk plugin run ${match.pluginId}`
+    const command = `ccjk plugin run ${match.pluginId}`;
 
     return {
       pluginId: match.pluginId,
@@ -197,7 +197,7 @@ export class IntentInterceptor {
       description: this.getSkillDescription(match, plugin),
       command,
       args: [],
-    }
+    };
   }
 
   /**
@@ -205,7 +205,7 @@ export class IntentInterceptor {
    */
   private getSkillDescription(match: IntentMatch, plugin?: PluginPackage): LocalizedString {
     if (plugin?.manifest.description) {
-      return plugin.manifest.description
+      return plugin.manifest.description;
     }
 
     // Generate description based on intent
@@ -238,21 +238,21 @@ export class IntentInterceptor {
         'en': 'Refactor and optimize code',
         'zh-CN': '重构和优化代码',
       },
-    }
+    };
 
     return descriptions[match.intentId] || {
       'en': 'Execute skill action',
       'zh-CN': '执行技能操作',
-    }
+    };
   }
 
   /**
    * Generate Claude Code-friendly prompt
    */
   private generateClaudePrompt(match: IntentMatch, skill: SuggestedSkill): string {
-    const name = skill.name[this.lang] || skill.name.en
-    const description = skill.description[this.lang] || skill.description.en
-    const confidencePercent = Math.round(match.confidence * 100)
+    const name = skill.name[this.lang] || skill.name.en;
+    const description = skill.description[this.lang] || skill.description.en;
+    const confidencePercent = Math.round(match.confidence * 100);
 
     if (this.lang === 'zh-CN') {
       return `
@@ -266,7 +266,7 @@ export class IntentInterceptor {
 建议执行: ${skill.command}
 
 是否要执行此技能？回复 "是" 或 "y" 确认，或继续输入其他指令。
-`.trim()
+`.trim();
     }
 
     return `
@@ -280,7 +280,7 @@ Matched context signals: ${match.matchedSignals.join(', ') || 'none'}
 Suggested command: ${skill.command}
 
 Would you like to execute this skill? Reply "yes" or "y" to confirm, or continue with other instructions.
-`.trim()
+`.trim();
   }
 
   // ==========================================================================
@@ -291,40 +291,40 @@ Would you like to execute this skill? Reply "yes" or "y" to confirm, or continue
    * Detect the current shell type
    */
   detectShellType(): ShellType {
-    const shell = process.env.SHELL || ''
+    const shell = process.env.SHELL || '';
 
     if (shell.includes('bash'))
-      return 'bash'
+      return 'bash';
     if (shell.includes('zsh'))
-      return 'zsh'
+      return 'zsh';
     if (shell.includes('fish'))
-      return 'fish'
+      return 'fish';
 
-    return 'unknown'
+    return 'unknown';
   }
 
   /**
    * Get the RC file path for a given shell type
    */
   getShellRcFile(shellType: ShellType): string {
-    const home = homedir()
+    const home = homedir();
 
     switch (shellType) {
       case 'bash':
         // Prefer .bashrc, fallback to .bash_profile
         if (existsSync(join(home, '.bashrc'))) {
-          return join(home, '.bashrc')
+          return join(home, '.bashrc');
         }
-        return join(home, '.bash_profile')
+        return join(home, '.bash_profile');
 
       case 'zsh':
-        return join(home, '.zshrc')
+        return join(home, '.zshrc');
 
       case 'fish':
-        return join(home, '.config', 'fish', 'config.fish')
+        return join(home, '.config', 'fish', 'config.fish');
 
       default:
-        return join(home, '.profile')
+        return join(home, '.profile');
     }
   }
 
@@ -338,30 +338,30 @@ Would you like to execute this skill? Reply "yes" or "y" to confirm, or continue
   generateHookScript(
     shellType: ShellType = this.detectShellType(),
     options: {
-      enableIntentDetection?: boolean
-      ccjkPath?: string
+      enableIntentDetection?: boolean;
+      ccjkPath?: string;
     } = {},
   ): ShellHookConfig {
     const {
       enableIntentDetection = true,
       ccjkPath = 'npx ccjk',
-    } = options
+    } = options;
 
-    const rcFile = this.getShellRcFile(shellType)
-    let hookScript: string
+    const rcFile = this.getShellRcFile(shellType);
+    let hookScript: string;
 
     switch (shellType) {
       case 'bash':
       case 'zsh':
-        hookScript = this.generateBashZshHook(ccjkPath, enableIntentDetection)
-        break
+        hookScript = this.generateBashZshHook(ccjkPath, enableIntentDetection);
+        break;
 
       case 'fish':
-        hookScript = this.generateFishHook(ccjkPath, enableIntentDetection)
-        break
+        hookScript = this.generateFishHook(ccjkPath, enableIntentDetection);
+        break;
 
       default:
-        hookScript = this.generateBashZshHook(ccjkPath, enableIntentDetection)
+        hookScript = this.generateBashZshHook(ccjkPath, enableIntentDetection);
     }
 
     return {
@@ -369,7 +369,7 @@ Would you like to execute this skill? Reply "yes" or "y" to confirm, or continue
       hookScript,
       rcFile,
       intentEnabled: enableIntentDetection,
-    }
+    };
   }
 
   /**
@@ -391,7 +391,7 @@ Would you like to execute this skill? Reply "yes" or "y" to confirm, or continue
       fi
     fi
   fi`
-      : ''
+      : '';
 
     return `
 ${HOOK_MARKER}
@@ -445,7 +445,7 @@ ${intentCheck}
 # Alias claude to use intent interceptor
 alias claude='ccjk_claude'
 ${HOOK_END_MARKER}
-`
+`;
   }
 
   /**
@@ -467,7 +467,7 @@ ${HOOK_END_MARKER}
       end
     end
   end`
-      : ''
+      : '';
 
     return `
 ${HOOK_MARKER}
@@ -520,7 +520,7 @@ end
 # Alias claude to use intent interceptor
 alias claude='ccjk_claude'
 ${HOOK_END_MARKER}
-`
+`;
   }
 
   // ==========================================================================
@@ -531,12 +531,12 @@ ${HOOK_END_MARKER}
    * Register an installed skill for intent matching
    */
   registerSkill(plugin: PluginPackage): void {
-    this.installedSkills.set(plugin.manifest.id, plugin)
+    this.installedSkills.set(plugin.manifest.id, plugin);
 
     // Register plugin intents with the engine
     if (plugin.intents) {
-      const engine = getIntentEngine()
-      engine.registerRules(plugin.intents)
+      const engine = getIntentEngine();
+      engine.registerRules(plugin.intents);
     }
   }
 
@@ -544,27 +544,27 @@ ${HOOK_END_MARKER}
    * Unregister a skill
    */
   unregisterSkill(pluginId: string): void {
-    this.installedSkills.delete(pluginId)
+    this.installedSkills.delete(pluginId);
 
-    const engine = getIntentEngine()
-    engine.unregisterPluginRules(pluginId)
+    const engine = getIntentEngine();
+    engine.unregisterPluginRules(pluginId);
   }
 
   /**
    * Register custom intent rules
    */
   registerCustomRules(rules: IntentRule[]): void {
-    this.customRules.push(...rules)
+    this.customRules.push(...rules);
 
-    const engine = getIntentEngine()
-    engine.registerRules(rules)
+    const engine = getIntentEngine();
+    engine.registerRules(rules);
   }
 
   /**
    * Get all registered skills
    */
   getRegisteredSkills(): PluginPackage[] {
-    return Array.from(this.installedSkills.values())
+    return Array.from(this.installedSkills.values());
   }
 
   // ==========================================================================
@@ -575,21 +575,21 @@ ${HOOK_END_MARKER}
    * Check if intent hook is installed
    */
   isHookInstalled(shellType: ShellType = this.detectShellType()): boolean {
-    const rcFile = this.getShellRcFile(shellType)
+    const rcFile = this.getShellRcFile(shellType);
 
     if (!existsSync(rcFile)) {
-      return false
+      return false;
     }
 
-    const content = readFileSync(rcFile, 'utf-8')
-    return content.includes(HOOK_MARKER)
+    const content = readFileSync(rcFile, 'utf-8');
+    return content.includes(HOOK_MARKER);
   }
 
   /**
    * Get hook installation instructions
    */
   getInstallInstructions(shellType: ShellType = this.detectShellType()): string {
-    const config = this.generateHookScript(shellType)
+    const config = this.generateHookScript(shellType);
 
     if (this.lang === 'zh-CN') {
       return `
@@ -600,7 +600,7 @@ ${config.hookScript}
 然后运行: source ${config.rcFile}
 
 或者运行: npx ccjk hook install
-`.trim()
+`.trim();
     }
 
     return `
@@ -611,7 +611,7 @@ ${config.hookScript}
 Then run: source ${config.rcFile}
 
 Or run: npx ccjk hook install
-`.trim()
+`.trim();
   }
 
   // ==========================================================================
@@ -622,14 +622,14 @@ Or run: npx ccjk hook install
    * Set language for prompts
    */
   setLanguage(lang: 'en' | 'zh-CN'): void {
-    this.lang = lang
+    this.lang = lang;
   }
 
   /**
    * Get current language
    */
   getLanguage(): 'en' | 'zh-CN' {
-    return this.lang
+    return this.lang;
   }
 
   /**
@@ -637,10 +637,10 @@ Or run: npx ccjk hook install
    */
   formatResult(result: InterceptionResult): string {
     if (!result.detected) {
-      return ''
+      return '';
     }
 
-    return result.claudePrompt || ''
+    return result.claudePrompt || '';
   }
 
   /**
@@ -667,10 +667,10 @@ Or run: npx ccjk hook install
       '文档',
       '修复',
       '优化',
-    ]
+    ];
 
-    const inputLower = input.toLowerCase()
-    return skillKeywords.some(keyword => inputLower.includes(keyword.toLowerCase()))
+    const inputLower = input.toLowerCase();
+    return skillKeywords.some(keyword => inputLower.includes(keyword.toLowerCase()));
   }
 }
 
@@ -678,23 +678,23 @@ Or run: npx ccjk hook install
 // Singleton Instance
 // ============================================================================
 
-let interceptorInstance: IntentInterceptor | null = null
+let interceptorInstance: IntentInterceptor | null = null;
 
 /**
  * Get the singleton IntentInterceptor instance
  */
 export function getIntentInterceptor(lang: 'en' | 'zh-CN' = 'en'): IntentInterceptor {
   if (!interceptorInstance) {
-    interceptorInstance = new IntentInterceptor(lang)
+    interceptorInstance = new IntentInterceptor(lang);
   }
-  return interceptorInstance
+  return interceptorInstance;
 }
 
 /**
  * Reset the interceptor instance (for testing)
  */
 export function resetIntentInterceptor(): void {
-  interceptorInstance = null
+  interceptorInstance = null;
 }
 
 // ============================================================================
@@ -709,8 +709,8 @@ export async function analyzeIntent(
   cwd?: string,
   lang: 'en' | 'zh-CN' = 'en',
 ): Promise<InterceptionResult> {
-  const interceptor = getIntentInterceptor(lang)
-  return interceptor.analyze(userInput, cwd)
+  const interceptor = getIntentInterceptor(lang);
+  return interceptor.analyze(userInput, cwd);
 }
 
 /**
@@ -718,16 +718,16 @@ export async function analyzeIntent(
  */
 export function generateShellHook(
   shellType?: ShellType,
-  options?: { enableIntentDetection?: boolean, ccjkPath?: string },
+  options?: { enableIntentDetection?: boolean; ccjkPath?: string },
 ): ShellHookConfig {
-  const interceptor = getIntentInterceptor()
-  return interceptor.generateHookScript(shellType, options)
+  const interceptor = getIntentInterceptor();
+  return interceptor.generateHookScript(shellType, options);
 }
 
 /**
  * Check if hook is installed
  */
 export function isIntentHookInstalled(shellType?: ShellType): boolean {
-  const interceptor = getIntentInterceptor()
-  return interceptor.isHookInstalled(shellType)
+  const interceptor = getIntentInterceptor();
+  return interceptor.isHookInstalled(shellType);
 }

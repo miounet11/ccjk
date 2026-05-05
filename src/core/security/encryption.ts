@@ -5,8 +5,8 @@
  * @description AES-256-GCM 加密实现，支持 PBKDF2 密钥派生
  */
 
-import type { EncryptedData, EncryptionConfig, IEncryptionService } from './types'
-import * as crypto from 'node:crypto'
+import type { EncryptedData, EncryptionConfig, IEncryptionService } from './types';
+import * as crypto from 'node:crypto';
 
 /**
  * 默认加密配置
@@ -17,12 +17,12 @@ const DEFAULT_CONFIG: EncryptionConfig = {
   ivLength: 12, // 96 bits (GCM 推荐)
   keyLength: 32, // 256 bits (AES-256)
   authTagLength: 16, // 128 bits
-}
+};
 
 /**
  * 当前加密数据格式版本
  */
-const CURRENT_VERSION = 1
+const CURRENT_VERSION = 1;
 
 /**
  * AES-256-GCM 加密服务
@@ -46,14 +46,14 @@ const CURRENT_VERSION = 1
  * ```
  */
 export class EncryptionService implements IEncryptionService {
-  private readonly config: EncryptionConfig
+  private readonly config: EncryptionConfig;
 
   /**
    * 创建加密服务实例
    * @param config - 加密配置 (可选)
    */
   constructor(config: Partial<EncryptionConfig> = {}) {
-    this.config = { ...DEFAULT_CONFIG, ...config }
+    this.config = { ...DEFAULT_CONFIG, ...config };
   }
 
   /**
@@ -73,25 +73,25 @@ export class EncryptionService implements IEncryptionService {
    */
   async encrypt(plaintext: string, masterKey: string): Promise<EncryptedData> {
     // 生成随机盐值和 IV
-    const salt = crypto.randomBytes(this.config.saltLength)
-    const iv = crypto.randomBytes(this.config.ivLength)
+    const salt = crypto.randomBytes(this.config.saltLength);
+    const iv = crypto.randomBytes(this.config.ivLength);
 
     // 使用 PBKDF2 派生密钥
-    const key = await this.deriveKey(masterKey, salt)
+    const key = await this.deriveKey(masterKey, salt);
 
     // 创建加密器
     const cipher = crypto.createCipheriv('aes-256-gcm', key, iv, {
       authTagLength: this.config.authTagLength,
-    })
+    });
 
     // 加密数据
     const encrypted = Buffer.concat([
       cipher.update(plaintext, 'utf8'),
       cipher.final(),
-    ])
+    ]);
 
     // 获取认证标签
-    const authTag = cipher.getAuthTag()
+    const authTag = cipher.getAuthTag();
 
     return {
       algorithm: 'aes-256-gcm',
@@ -101,7 +101,7 @@ export class EncryptionService implements IEncryptionService {
       salt: salt.toString('base64'),
       iterations: this.config.iterations,
       version: CURRENT_VERSION,
-    }
+    };
   }
 
   /**
@@ -121,39 +121,39 @@ export class EncryptionService implements IEncryptionService {
   async decrypt(encrypted: EncryptedData, masterKey: string): Promise<string> {
     // 验证数据格式
     if (!this.validate(encrypted)) {
-      throw new Error('Invalid encrypted data format')
+      throw new Error('Invalid encrypted data format');
     }
 
     // 解码 Base64 数据
-    const salt = Buffer.from(encrypted.salt, 'base64')
-    const iv = Buffer.from(encrypted.iv, 'base64')
-    const ciphertext = Buffer.from(encrypted.ciphertext, 'base64')
-    const authTag = Buffer.from(encrypted.authTag, 'base64')
+    const salt = Buffer.from(encrypted.salt, 'base64');
+    const iv = Buffer.from(encrypted.iv, 'base64');
+    const ciphertext = Buffer.from(encrypted.ciphertext, 'base64');
+    const authTag = Buffer.from(encrypted.authTag, 'base64');
 
     // 使用 PBKDF2 派生密钥 (使用存储的迭代次数)
-    const key = await this.deriveKey(masterKey, salt, encrypted.iterations)
+    const key = await this.deriveKey(masterKey, salt, encrypted.iterations);
 
     // 创建解密器
     const decipher = crypto.createDecipheriv('aes-256-gcm', key, iv, {
       authTagLength: this.config.authTagLength,
-    })
+    });
 
     // 设置认证标签
-    decipher.setAuthTag(authTag)
+    decipher.setAuthTag(authTag);
 
     // 解密数据
     try {
       const decrypted = Buffer.concat([
         decipher.update(ciphertext),
         decipher.final(),
-      ])
-      return decrypted.toString('utf8')
+      ]);
+      return decrypted.toString('utf8');
     }
     catch (error) {
       if (error instanceof Error && error.message.includes('Unsupported state')) {
-        throw new Error('Decryption failed: authentication tag mismatch (data may be corrupted or tampered)')
+        throw new Error('Decryption failed: authentication tag mismatch (data may be corrupted or tampered)');
       }
-      throw error
+      throw error;
     }
   }
 
@@ -167,7 +167,7 @@ export class EncryptionService implements IEncryptionService {
    * @returns Base64 编码的随机密钥
    */
   generateKey(length: number = 32): string {
-    return crypto.randomBytes(length).toString('base64')
+    return crypto.randomBytes(length).toString('base64');
   }
 
   /**
@@ -181,7 +181,7 @@ export class EncryptionService implements IEncryptionService {
    */
   validate(encrypted: EncryptedData): boolean {
     if (!encrypted || typeof encrypted !== 'object') {
-      return false
+      return false;
     }
 
     // 检查必要字段
@@ -193,41 +193,41 @@ export class EncryptionService implements IEncryptionService {
       'salt',
       'iterations',
       'version',
-    ]
+    ];
 
     for (const field of requiredFields) {
       if (!(field in encrypted)) {
-        return false
+        return false;
       }
     }
 
     // 验证算法
     if (encrypted.algorithm !== 'aes-256-gcm') {
-      return false
+      return false;
     }
 
     // 验证版本
     if (typeof encrypted.version !== 'number' || encrypted.version < 1) {
-      return false
+      return false;
     }
 
     // 验证迭代次数
     if (typeof encrypted.iterations !== 'number' || encrypted.iterations < 1000) {
-      return false
+      return false;
     }
 
     // 验证 Base64 字符串
-    const base64Regex = /^[A-Z0-9+/]*={0,2}$/i
+    const base64Regex = /^[A-Z0-9+/]*={0,2}$/i;
     if (
       !base64Regex.test(encrypted.iv)
       || !base64Regex.test(encrypted.ciphertext)
       || !base64Regex.test(encrypted.authTag)
       || !base64Regex.test(encrypted.salt)
     ) {
-      return false
+      return false;
     }
 
-    return true
+    return true;
   }
 
   /**
@@ -252,14 +252,14 @@ export class EncryptionService implements IEncryptionService {
         'sha256',
         (err, derivedKey) => {
           if (err) {
-            reject(err)
+            reject(err);
           }
           else {
-            resolve(derivedKey)
+            resolve(derivedKey);
           }
         },
-      )
-    })
+      );
+    });
   }
 
   /**
@@ -269,7 +269,7 @@ export class EncryptionService implements IEncryptionService {
    * @returns 十六进制编码的哈希值
    */
   static hash(data: string): string {
-    return crypto.createHash('sha256').update(data).digest('hex')
+    return crypto.createHash('sha256').update(data).digest('hex');
   }
 
   /**
@@ -280,22 +280,22 @@ export class EncryptionService implements IEncryptionService {
    * @returns 两个字符串是否相等
    */
   static secureCompare(a: string, b: string): boolean {
-    const bufA = Buffer.from(a)
-    const bufB = Buffer.from(b)
+    const bufA = Buffer.from(a);
+    const bufB = Buffer.from(b);
 
     if (bufA.length !== bufB.length) {
       // 仍然执行比较以防止时序攻击
-      crypto.timingSafeEqual(bufA, bufA)
-      return false
+      crypto.timingSafeEqual(bufA, bufA);
+      return false;
     }
 
-    return crypto.timingSafeEqual(bufA, bufB)
+    return crypto.timingSafeEqual(bufA, bufB);
   }
 }
 
 /**
  * 默认加密服务实例
  */
-export const encryptionService = new EncryptionService()
+export const encryptionService = new EncryptionService();
 
-export default EncryptionService
+export default EncryptionService;

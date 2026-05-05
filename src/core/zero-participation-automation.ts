@@ -15,14 +15,14 @@
  * @module core/zero-participation-automation
  */
 
-import type { AutoSaveEvent, AutoSessionSaver, AutoSessionSaverConfig, CrashRecoveryData } from '../brain/auto-session-saver'
-import type { ContextOverflowConfig, OverflowPrediction, PredictiveContextDetector, UsageStats } from '../brain/context-overflow-detector'
-import type { SessionHistoryEntry } from '../brain/session-manager'
-import type { AutoCompactManager, AutoCompactManagerConfig, CompactResult } from './auto-compact-manager'
-import { EventEmitter } from 'node:events'
-import { getAutoSessionSaver } from '../brain/auto-session-saver'
-import { getContextDetector } from '../brain/context-overflow-detector'
-import { getAutoCompactManager } from './auto-compact-manager'
+import type { AutoSaveEvent, AutoSessionSaver, AutoSessionSaverConfig, CrashRecoveryData } from '../brain/auto-session-saver';
+import type { ContextOverflowConfig, OverflowPrediction, PredictiveContextDetector, UsageStats } from '../brain/context-overflow-detector';
+import type { SessionHistoryEntry } from '../brain/session-manager';
+import type { AutoCompactManager, AutoCompactManagerConfig, CompactResult } from './auto-compact-manager';
+import { EventEmitter } from 'node:events';
+import { getAutoSessionSaver } from '../brain/auto-session-saver';
+import { getContextDetector } from '../brain/context-overflow-detector';
+import { getAutoCompactManager } from './auto-compact-manager';
 
 // ============================================================================
 // Types
@@ -41,15 +41,15 @@ export type ZPAEventType
     | 'compact-error'
     | 'crash-recovery-available'
     | 'crash-recovered'
-    | 'prediction-updated'
+    | 'prediction-updated';
 
 /**
  * ZPA event data
  */
 export interface ZPAEvent {
-  type: ZPAEventType
-  timestamp: number
-  data: unknown
+  type: ZPAEventType;
+  timestamp: number;
+  data: unknown;
 }
 
 /**
@@ -57,56 +57,56 @@ export interface ZPAEvent {
  */
 export interface ZPAConfig {
   /** Enable auto session saving (default: true) */
-  enableAutoSave?: boolean
+  enableAutoSave?: boolean;
 
   /** Enable auto context compaction (default: true) */
-  enableAutoCompact?: boolean
+  enableAutoCompact?: boolean;
 
   /** Enable crash recovery (default: true) */
-  enableCrashRecovery?: boolean
+  enableCrashRecovery?: boolean;
 
   /** Auto session saver configuration */
-  autoSaveConfig?: AutoSessionSaverConfig
+  autoSaveConfig?: AutoSessionSaverConfig;
 
   /** Auto compact manager configuration */
-  autoCompactConfig?: AutoCompactManagerConfig
+  autoCompactConfig?: AutoCompactManagerConfig;
 
   /** Context overflow detector configuration */
-  contextDetectorConfig?: ContextOverflowConfig
+  contextDetectorConfig?: ContextOverflowConfig;
 
   /** Callback for ZPA events */
-  onEvent?: (event: ZPAEvent) => void
+  onEvent?: (event: ZPAEvent) => void;
 
   /** Callback for user notifications */
-  onNotify?: (message: string, level: 'info' | 'warning' | 'error') => void
+  onNotify?: (message: string, level: 'info' | 'warning' | 'error') => void;
 }
 
 /**
  * ZPA status
  */
 export interface ZPAStatus {
-  isRunning: boolean
-  currentSessionId: string | null
-  autoSaveEnabled: boolean
-  autoCompactEnabled: boolean
-  crashRecoveryEnabled: boolean
-  lastSaveTime: number | null
-  lastCompactTime: number | null
-  pendingMessages: number
-  contextUsage: UsageStats | null
-  prediction: OverflowPrediction | null
+  isRunning: boolean;
+  currentSessionId: string | null;
+  autoSaveEnabled: boolean;
+  autoCompactEnabled: boolean;
+  crashRecoveryEnabled: boolean;
+  lastSaveTime: number | null;
+  lastCompactTime: number | null;
+  pendingMessages: number;
+  contextUsage: UsageStats | null;
+  prediction: OverflowPrediction | null;
 }
 
 /**
  * ZPA statistics
  */
 export interface ZPAStats {
-  totalSaves: number
-  totalCompactions: number
-  totalCrashRecoveries: number
-  tokensSaved: number
-  messagesSummarized: number
-  uptime: number
+  totalSaves: number;
+  totalCompactions: number;
+  totalCrashRecoveries: number;
+  tokensSaved: number;
+  messagesSummarized: number;
+  uptime: number;
 }
 
 // ============================================================================
@@ -138,17 +138,17 @@ export interface ZPAStats {
  * ```
  */
 export class ZeroParticipationAutomation extends EventEmitter {
-  private config: Required<Omit<ZPAConfig, 'autoSaveConfig' | 'autoCompactConfig' | 'contextDetectorConfig' | 'onEvent' | 'onNotify'>>
-  private callbacks: Pick<ZPAConfig, 'onEvent' | 'onNotify'>
+  private config: Required<Omit<ZPAConfig, 'autoSaveConfig' | 'autoCompactConfig' | 'contextDetectorConfig' | 'onEvent' | 'onNotify'>>;
+  private callbacks: Pick<ZPAConfig, 'onEvent' | 'onNotify'>;
 
-  private autoSaver: AutoSessionSaver
-  private autoCompactManager: AutoCompactManager
-  private contextDetector: PredictiveContextDetector
+  private autoSaver: AutoSessionSaver;
+  private autoCompactManager: AutoCompactManager;
+  private contextDetector: PredictiveContextDetector;
 
-  private isRunning = false
-  private currentSessionId: string | null = null
-  private startTime: number | null = null
-  private messageHistory: SessionHistoryEntry[] = []
+  private isRunning = false;
+  private currentSessionId: string | null = null;
+  private startTime: number | null = null;
+  private messageHistory: SessionHistoryEntry[] = [];
 
   private stats: ZPAStats = {
     totalSaves: 0,
@@ -157,21 +157,21 @@ export class ZeroParticipationAutomation extends EventEmitter {
     tokensSaved: 0,
     messagesSummarized: 0,
     uptime: 0,
-  }
+  };
 
   constructor(config: ZPAConfig = {}) {
-    super()
+    super();
 
     this.config = {
       enableAutoSave: config.enableAutoSave ?? true,
       enableAutoCompact: config.enableAutoCompact ?? true,
       enableCrashRecovery: config.enableCrashRecovery ?? true,
-    }
+    };
 
     this.callbacks = {
       onEvent: config.onEvent,
       onNotify: config.onNotify,
-    }
+    };
 
     // Initialize components
     this.autoSaver = getAutoSessionSaver({
@@ -179,20 +179,20 @@ export class ZeroParticipationAutomation extends EventEmitter {
       enableCrashRecovery: this.config.enableCrashRecovery,
       onAutoSave: this.handleAutoSave.bind(this),
       onCrashRecoveryAvailable: this.handleCrashRecoveryAvailable.bind(this),
-    })
+    });
 
     this.autoCompactManager = getAutoCompactManager({
       ...config.autoCompactConfig,
       onCompact: this.handleCompact.bind(this),
       onWarning: this.handleContextWarning.bind(this),
-    })
+    });
 
     this.contextDetector = getContextDetector({
       ...config.contextDetectorConfig,
       onWarning: this.handleContextWarning.bind(this),
       onCritical: this.handleContextCritical.bind(this),
       onAutoCompact: this.handleAutoCompactTrigger.bind(this),
-    })
+    });
   }
 
   // ==========================================================================
@@ -204,24 +204,24 @@ export class ZeroParticipationAutomation extends EventEmitter {
    */
   async start(sessionId: string): Promise<void> {
     if (this.isRunning) {
-      await this.stop()
+      await this.stop();
     }
 
-    this.currentSessionId = sessionId
-    this.startTime = Date.now()
-    this.messageHistory = []
-    this.isRunning = true
+    this.currentSessionId = sessionId;
+    this.startTime = Date.now();
+    this.messageHistory = [];
+    this.isRunning = true;
 
     // Start auto saver
     if (this.config.enableAutoSave) {
-      await this.autoSaver.start(sessionId)
+      await this.autoSaver.start(sessionId);
     }
 
     // Reset context detector
-    this.contextDetector.reset()
+    this.contextDetector.reset();
 
-    this.notify('ZPA started', 'info')
-    this.emit('started', { sessionId })
+    this.notify('ZPA started', 'info');
+    this.emit('started', { sessionId });
   }
 
   /**
@@ -229,25 +229,25 @@ export class ZeroParticipationAutomation extends EventEmitter {
    */
   async stop(): Promise<void> {
     if (!this.isRunning) {
-      return
+      return;
     }
 
     // Stop auto saver
     if (this.config.enableAutoSave) {
-      await this.autoSaver.stop()
+      await this.autoSaver.stop();
     }
 
     // Update uptime
     if (this.startTime) {
-      this.stats.uptime += Date.now() - this.startTime
+      this.stats.uptime += Date.now() - this.startTime;
     }
 
-    this.isRunning = false
-    this.currentSessionId = null
-    this.startTime = null
+    this.isRunning = false;
+    this.currentSessionId = null;
+    this.startTime = null;
 
-    this.notify('ZPA stopped', 'info')
-    this.emit('stopped')
+    this.notify('ZPA stopped', 'info');
+    this.emit('stopped');
   }
 
   // ==========================================================================
@@ -259,15 +259,15 @@ export class ZeroParticipationAutomation extends EventEmitter {
    */
   async onMessage(message: SessionHistoryEntry): Promise<void> {
     if (!this.isRunning) {
-      return
+      return;
     }
 
     // Add to history
-    this.messageHistory.push(message)
+    this.messageHistory.push(message);
 
     // Track with auto saver
     if (this.config.enableAutoSave) {
-      await this.autoSaver.onMessage(message)
+      await this.autoSaver.onMessage(message);
     }
 
     // Track with context detector
@@ -275,21 +275,21 @@ export class ZeroParticipationAutomation extends EventEmitter {
       // Find the paired message
       const lastUserMsg = this.messageHistory
         .filter(m => m.role === 'user')
-        .pop()
+        .pop();
       const lastAssistantMsg = this.messageHistory
         .filter(m => m.role === 'assistant')
-        .pop()
+        .pop();
 
       if (lastUserMsg && lastAssistantMsg) {
-        this.contextDetector.trackUsage(lastUserMsg.content, lastAssistantMsg.content)
+        this.contextDetector.trackUsage(lastUserMsg.content, lastAssistantMsg.content);
 
         // Check for auto-compact
         if (this.config.enableAutoCompact) {
-          const prediction = this.contextDetector.predictOverflow()
-          this.emitEvent('prediction-updated', prediction)
+          const prediction = this.contextDetector.predictOverflow();
+          this.emitEvent('prediction-updated', prediction);
 
           if (prediction.recommendation === 'compact_now') {
-            await this.triggerAutoCompact()
+            await this.triggerAutoCompact();
           }
         }
       }
@@ -304,16 +304,16 @@ export class ZeroParticipationAutomation extends EventEmitter {
       timestamp: new Date(),
       role: 'user',
       content: userMessage,
-    }
+    };
 
     const assistantEntry: SessionHistoryEntry = {
       timestamp: new Date(),
       role: 'assistant',
       content: assistantMessage,
-    }
+    };
 
-    await this.onMessage(userEntry)
-    await this.onMessage(assistantEntry)
+    await this.onMessage(userEntry);
+    await this.onMessage(assistantEntry);
   }
 
   // ==========================================================================
@@ -325,44 +325,44 @@ export class ZeroParticipationAutomation extends EventEmitter {
    */
   async triggerAutoCompact(): Promise<CompactResult | null> {
     if (!this.config.enableAutoCompact || this.messageHistory.length === 0) {
-      return null
+      return null;
     }
 
-    this.notify('Auto-compacting context...', 'info')
+    this.notify('Auto-compacting context...', 'info');
 
     const result = await this.autoCompactManager.compact(this.messageHistory, {
       preserveRecent: 5,
       summarizeHistory: true,
       saveToSession: this.config.enableAutoSave,
-    })
+    });
 
     if (result.success) {
       // Update message history with compacted version
-      this.messageHistory = result.preservedMessages
+      this.messageHistory = result.preservedMessages;
 
       // Reset context detector with new baseline
-      this.contextDetector.reset()
+      this.contextDetector.reset();
 
       // Re-track preserved messages
       for (let i = 0; i < this.messageHistory.length - 1; i += 2) {
-        const user = this.messageHistory[i]
-        const assistant = this.messageHistory[i + 1]
+        const user = this.messageHistory[i];
+        const assistant = this.messageHistory[i + 1];
         if (user && assistant) {
-          this.contextDetector.trackUsage(user.content, assistant.content)
+          this.contextDetector.trackUsage(user.content, assistant.content);
         }
       }
 
-      this.stats.totalCompactions++
-      this.stats.tokensSaved += result.tokensBefore - result.tokensAfter
-      this.stats.messagesSummarized += result.messagesBefore - result.messagesAfter
+      this.stats.totalCompactions++;
+      this.stats.tokensSaved += result.tokensBefore - result.tokensAfter;
+      this.stats.messagesSummarized += result.messagesBefore - result.messagesAfter;
 
-      this.notify(`Context compacted: ${result.messagesBefore} → ${result.messagesAfter} messages`, 'info')
+      this.notify(`Context compacted: ${result.messagesBefore} → ${result.messagesAfter} messages`, 'info');
     }
     else {
-      this.notify(`Compact failed: ${result.error?.message}`, 'error')
+      this.notify(`Compact failed: ${result.error?.message}`, 'error');
     }
 
-    return result
+    return result;
   }
 
   /**
@@ -370,9 +370,9 @@ export class ZeroParticipationAutomation extends EventEmitter {
    */
   async forceSave(): Promise<boolean> {
     if (!this.config.enableAutoSave) {
-      return false
+      return false;
     }
-    return this.autoSaver.forceSave()
+    return this.autoSaver.forceSave();
   }
 
   /**
@@ -380,17 +380,17 @@ export class ZeroParticipationAutomation extends EventEmitter {
    */
   async recoverFromCrash(): Promise<boolean> {
     if (!this.currentSessionId || !this.config.enableCrashRecovery) {
-      return false
+      return false;
     }
 
-    const recovered = await this.autoSaver.recoverFromCrash(this.currentSessionId)
+    const recovered = await this.autoSaver.recoverFromCrash(this.currentSessionId);
 
     if (recovered) {
-      this.stats.totalCrashRecoveries++
-      this.notify('Session recovered from crash', 'info')
+      this.stats.totalCrashRecoveries++;
+      this.notify('Session recovered from crash', 'info');
     }
 
-    return recovered
+    return recovered;
   }
 
   // ==========================================================================
@@ -402,11 +402,11 @@ export class ZeroParticipationAutomation extends EventEmitter {
    */
   private handleAutoSave(event: AutoSaveEvent): void {
     if (event.success) {
-      this.stats.totalSaves++
-      this.emitEvent('session-saved', event)
+      this.stats.totalSaves++;
+      this.emitEvent('session-saved', event);
     }
     else {
-      this.emitEvent('session-save-error', event)
+      this.emitEvent('session-save-error', event);
     }
   }
 
@@ -414,32 +414,32 @@ export class ZeroParticipationAutomation extends EventEmitter {
    * Handle crash recovery available
    */
   private handleCrashRecoveryAvailable(data: CrashRecoveryData): void {
-    this.notify('Crash recovery data available', 'warning')
-    this.emitEvent('crash-recovery-available', data)
+    this.notify('Crash recovery data available', 'warning');
+    this.emitEvent('crash-recovery-available', data);
   }
 
   /**
    * Handle context warning
    */
   private handleContextWarning(stats: UsageStats): void {
-    this.notify(`Context usage at ${stats.usagePercentage.toFixed(1)}%`, 'warning')
-    this.emitEvent('context-warning', stats)
+    this.notify(`Context usage at ${stats.usagePercentage.toFixed(1)}%`, 'warning');
+    this.emitEvent('context-warning', stats);
   }
 
   /**
    * Handle context critical
    */
   private handleContextCritical(stats: UsageStats): void {
-    this.notify(`Context usage critical: ${stats.usagePercentage.toFixed(1)}%`, 'error')
-    this.emitEvent('context-critical', stats)
+    this.notify(`Context usage critical: ${stats.usagePercentage.toFixed(1)}%`, 'error');
+    this.emitEvent('context-critical', stats);
   }
 
   /**
    * Handle auto compact trigger
    */
   private async handleAutoCompactTrigger(stats: UsageStats): Promise<void> {
-    this.emitEvent('compact-triggered', stats)
-    await this.triggerAutoCompact()
+    this.emitEvent('compact-triggered', stats);
+    await this.triggerAutoCompact();
   }
 
   /**
@@ -447,10 +447,10 @@ export class ZeroParticipationAutomation extends EventEmitter {
    */
   private handleCompact(result: CompactResult): void {
     if (result.success) {
-      this.emitEvent('compact-completed', result)
+      this.emitEvent('compact-completed', result);
     }
     else {
-      this.emitEvent('compact-error', result)
+      this.emitEvent('compact-error', result);
     }
   }
 
@@ -466,17 +466,17 @@ export class ZeroParticipationAutomation extends EventEmitter {
       type,
       timestamp: Date.now(),
       data,
-    }
+    };
 
-    this.emit(type, event)
-    this.callbacks.onEvent?.(event)
+    this.emit(type, event);
+    this.callbacks.onEvent?.(event);
   }
 
   /**
    * Send notification
    */
   private notify(message: string, level: 'info' | 'warning' | 'error'): void {
-    this.callbacks.onNotify?.(message, level)
+    this.callbacks.onNotify?.(message, level);
   }
 
   // ==========================================================================
@@ -487,8 +487,8 @@ export class ZeroParticipationAutomation extends EventEmitter {
    * Get current status
    */
   getStatus(): ZPAStatus {
-    const contextStats = this.contextDetector.getUsageStats()
-    const prediction = this.contextDetector.predictOverflow()
+    const contextStats = this.contextDetector.getUsageStats();
+    const prediction = this.contextDetector.predictOverflow();
 
     return {
       isRunning: this.isRunning,
@@ -501,7 +501,7 @@ export class ZeroParticipationAutomation extends EventEmitter {
       pendingMessages: this.autoSaver.getPendingMessageCount(),
       contextUsage: contextStats,
       prediction,
-    }
+    };
   }
 
   /**
@@ -509,15 +509,15 @@ export class ZeroParticipationAutomation extends EventEmitter {
    */
   getStats(): ZPAStats {
     // Update uptime if running
-    let uptime = this.stats.uptime
+    let uptime = this.stats.uptime;
     if (this.isRunning && this.startTime) {
-      uptime += Date.now() - this.startTime
+      uptime += Date.now() - this.startTime;
     }
 
     return {
       ...this.stats,
       uptime,
-    }
+    };
   }
 
   /**
@@ -531,29 +531,29 @@ export class ZeroParticipationAutomation extends EventEmitter {
       tokensSaved: 0,
       messagesSummarized: 0,
       uptime: 0,
-    }
-    this.startTime = this.isRunning ? Date.now() : null
+    };
+    this.startTime = this.isRunning ? Date.now() : null;
   }
 
   /**
    * Get context prediction
    */
   getPrediction(): OverflowPrediction {
-    return this.contextDetector.predictOverflow()
+    return this.contextDetector.predictOverflow();
   }
 
   /**
    * Get context usage stats
    */
   getContextUsage(): UsageStats {
-    return this.contextDetector.getUsageStats()
+    return this.contextDetector.getUsageStats();
   }
 
   /**
    * Check if ZPA is active
    */
   isActive(): boolean {
-    return this.isRunning
+    return this.isRunning;
   }
 
   /**
@@ -561,25 +561,25 @@ export class ZeroParticipationAutomation extends EventEmitter {
    */
   updateConfig(config: Partial<ZPAConfig>): void {
     if (config.enableAutoSave !== undefined) {
-      this.config.enableAutoSave = config.enableAutoSave
+      this.config.enableAutoSave = config.enableAutoSave;
     }
     if (config.enableAutoCompact !== undefined) {
-      this.config.enableAutoCompact = config.enableAutoCompact
+      this.config.enableAutoCompact = config.enableAutoCompact;
     }
     if (config.enableCrashRecovery !== undefined) {
-      this.config.enableCrashRecovery = config.enableCrashRecovery
+      this.config.enableCrashRecovery = config.enableCrashRecovery;
     }
     if (config.onEvent !== undefined) {
-      this.callbacks.onEvent = config.onEvent
+      this.callbacks.onEvent = config.onEvent;
     }
     if (config.onNotify !== undefined) {
-      this.callbacks.onNotify = config.onNotify
+      this.callbacks.onNotify = config.onNotify;
     }
     if (config.autoSaveConfig) {
-      this.autoSaver.updateConfig(config.autoSaveConfig)
+      this.autoSaver.updateConfig(config.autoSaveConfig);
     }
     if (config.autoCompactConfig) {
-      this.autoCompactManager.updateConfig(config.autoCompactConfig)
+      this.autoCompactManager.updateConfig(config.autoCompactConfig);
     }
   }
 }
@@ -588,16 +588,16 @@ export class ZeroParticipationAutomation extends EventEmitter {
 // Singleton Instance
 // ============================================================================
 
-let zpaInstance: ZeroParticipationAutomation | null = null
+let zpaInstance: ZeroParticipationAutomation | null = null;
 
 /**
  * Get the singleton ZPA instance
  */
 export function getZPA(config?: ZPAConfig): ZeroParticipationAutomation {
   if (!zpaInstance) {
-    zpaInstance = new ZeroParticipationAutomation(config)
+    zpaInstance = new ZeroParticipationAutomation(config);
   }
-  return zpaInstance
+  return zpaInstance;
 }
 
 /**
@@ -605,8 +605,8 @@ export function getZPA(config?: ZPAConfig): ZeroParticipationAutomation {
  */
 export function resetZPA(): void {
   if (zpaInstance) {
-    zpaInstance.stop().catch(() => {})
-    zpaInstance = null
+    zpaInstance.stop().catch(() => {});
+    zpaInstance = null;
   }
 }
 
@@ -614,13 +614,13 @@ export function resetZPA(): void {
  * Create a new ZPA instance
  */
 export function createZPA(config?: ZPAConfig): ZeroParticipationAutomation {
-  return new ZeroParticipationAutomation(config)
+  return new ZeroParticipationAutomation(config);
 }
 
 // ============================================================================
 // Convenience Exports
 // ============================================================================
 
-export { AutoSessionSaver, getAutoSessionSaver } from '../brain/auto-session-saver'
-export { getContextDetector, PredictiveContextDetector } from '../brain/context-overflow-detector'
-export { AutoCompactManager, getAutoCompactManager } from './auto-compact-manager'
+export { AutoSessionSaver, getAutoSessionSaver } from '../brain/auto-session-saver';
+export { getContextDetector, PredictiveContextDetector } from '../brain/context-overflow-detector';
+export { AutoCompactManager, getAutoCompactManager } from './auto-compact-manager';

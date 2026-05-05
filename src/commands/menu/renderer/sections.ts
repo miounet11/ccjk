@@ -5,11 +5,11 @@
  * Sections are organized by category and can be dynamically shown/hidden.
  */
 
-import type { CodeToolType } from '../../../constants'
-import type { MenuCategory, MenuItem, MenuLevel, MenuSection } from '../types'
-import { i18n } from '../../../i18n/index'
-import { getItemsByCategory } from '../main-menu'
-import { getCategoryIcon } from './layout'
+import type { CodeToolType } from '../../../constants';
+import type { MenuCategory, MenuItem, MenuLevel, MenuSection } from '../types';
+import { i18n } from '../../../i18n/index';
+import { getItemsByCategory } from '../main-menu';
+import { getCategoryIcon } from './layout';
 
 /**
  * Get translated category title
@@ -23,14 +23,14 @@ function getCategoryTitle(category: MenuCategory): string {
     system: 'menu:menuSections.systemSettings',
     cloud: 'menu:menuSections.cloudServices',
     extensions: 'menu:menuSections.smartFeatures',
-  }
+  };
 
-  const key = titles[category] || category
+  const key = titles[category] || category;
   try {
-    return i18n.t(key) !== key ? i18n.t(key) : category
+    return i18n.t(key) !== key ? i18n.t(key) : category;
   }
   catch {
-    return category
+    return category;
   }
 }
 
@@ -43,14 +43,14 @@ export function createSection(
   codeTool: CodeToolType = 'claude-code',
   collapsed = false,
 ): MenuSection {
-  const items = getItemsByCategory(category, level, codeTool)
+  const items = getItemsByCategory(category, level, codeTool);
 
   return {
     title: getCategoryTitle(category),
     icon: getCategoryIcon(category),
     items,
     collapsed,
-  }
+  };
 }
 
 /**
@@ -60,24 +60,24 @@ export function createAllSections(
   level: MenuLevel = 'basic',
   codeTool: CodeToolType = 'claude-code',
 ): MenuSection[] {
-  const categories: MenuCategory[] = ['quick', 'config', 'extensions', 'tools', 'cloud', 'system']
-  const sections: MenuSection[] = []
+  const categories: MenuCategory[] = ['quick', 'config', 'extensions', 'tools', 'cloud', 'system'];
+  const sections: MenuSection[] = [];
 
   for (const category of categories) {
-    const section = createSection(category, level, codeTool)
+    const section = createSection(category, level, codeTool);
     if (section.items.length > 0) {
-      sections.push(section)
+      sections.push(section);
     }
   }
 
-  return sections
+  return sections;
 }
 
 /**
  * Get visible items count across all sections
  */
 export function getVisibleItemCount(sections: MenuSection[]): number {
-  return sections.reduce((total, section) => total + (section.collapsed ? 0 : section.items.length), 0)
+  return sections.reduce((total, section) => total + (section.collapsed ? 0 : section.items.length), 0);
 }
 
 /**
@@ -88,30 +88,30 @@ export function filterSectionsByItemLimit(
   sections: MenuSection[],
   maxItems: number,
 ): MenuSection[] {
-  const result: MenuSection[] = []
-  let count = 0
+  const result: MenuSection[] = [];
+  let count = 0;
 
   for (const section of sections) {
-    const sectionItemCount = section.items.length
+    const sectionItemCount = section.items.length;
 
     if (count + sectionItemCount <= maxItems) {
-      result.push(section)
-      count += sectionItemCount
+      result.push(section);
+      count += sectionItemCount;
     }
     else {
       // Partial section - show items up to limit
-      const remaining = maxItems - count
+      const remaining = maxItems - count;
       if (remaining > 0) {
         result.push({
           ...section,
           items: section.items.slice(0, remaining),
-        })
+        });
       }
-      break
+      break;
     }
   }
 
-  return result
+  return result;
 }
 
 /**
@@ -119,12 +119,12 @@ export function filterSectionsByItemLimit(
  */
 export function findItemById(sections: MenuSection[], id: string): MenuItem | undefined {
   for (const section of sections) {
-    const item = section.items.find(i => i.id === id)
+    const item = section.items.find(i => i.id === id);
     if (item) {
-      return item
+      return item;
     }
   }
-  return undefined
+  return undefined;
 }
 
 /**
@@ -132,56 +132,56 @@ export function findItemById(sections: MenuSection[], id: string): MenuItem | un
  */
 export function findItemByShortcut(sections: MenuSection[], shortcut: string): MenuItem | undefined {
   for (const section of sections) {
-    const item = section.items.find(i => i.shortcut === shortcut.toLowerCase())
+    const item = section.items.find(i => i.shortcut === shortcut.toLowerCase());
     if (item) {
-      return item
+      return item;
     }
   }
-  return undefined
+  return undefined;
 }
 
 /**
  * Get item number across all sections
  */
 export function getItemNumber(sections: MenuSection[], itemId: string): number | undefined {
-  let number = 1
+  let number = 1;
 
   for (const section of sections) {
     if (section.collapsed) {
-      continue
+      continue;
     }
 
     for (const item of section.items) {
       if (item.id === itemId) {
-        return number
+        return number;
       }
-      number++
+      number++;
     }
   }
 
-  return undefined
+  return undefined;
 }
 
 /**
  * Get item by number across all sections
  */
 export function getItemByNumber(sections: MenuSection[], number: number): MenuItem | undefined {
-  let current = 1
+  let current = 1;
 
   for (const section of sections) {
     if (section.collapsed) {
-      continue
+      continue;
     }
 
     for (const item of section.items) {
       if (current === number) {
-        return item
+        return item;
       }
-      current++
+      current++;
     }
   }
 
-  return undefined
+  return undefined;
 }
 
 /**
@@ -195,17 +195,17 @@ export const sectionPriority: Record<MenuCategory, number> = {
   cloud: 5,
   system: 6,
   advanced: 7,
-}
+};
 
 /**
  * Sort sections by priority
  */
 export function sortSectionsByPriority(sections: MenuSection[]): MenuSection[] {
   return [...sections].sort((a, b) => {
-    const aCategory = getCategoryFromTitle(a.title)
-    const bCategory = getCategoryFromTitle(b.title)
-    return (sectionPriority[aCategory] || 99) - (sectionPriority[bCategory] || 99)
-  })
+    const aCategory = getCategoryFromTitle(a.title);
+    const bCategory = getCategoryFromTitle(b.title);
+    return (sectionPriority[aCategory] || 99) - (sectionPriority[bCategory] || 99);
+  });
 }
 
 /**
@@ -220,12 +220,12 @@ function getCategoryFromTitle(title: string): MenuCategory {
     system: 'menu:menuSections.systemSettings',
     cloud: 'menu:menuSections.cloudServices',
     extensions: 'menu:menuSections.smartFeatures',
-  }
+  };
 
   for (const [category, key] of Object.entries(allTitles)) {
     try {
       if (i18n.t(key) === title) {
-        return category as MenuCategory
+        return category as MenuCategory;
       }
     }
     catch {
@@ -233,7 +233,7 @@ function getCategoryFromTitle(title: string): MenuCategory {
     }
   }
 
-  return 'system'
+  return 'system';
 }
 
 /**
@@ -242,17 +242,17 @@ function getCategoryFromTitle(title: string): MenuCategory {
 export function toggleSectionCollapsed(sections: MenuSection[], sectionIndex: number): MenuSection[] {
   return sections.map((section, index) => {
     if (index === sectionIndex) {
-      return { ...section, collapsed: !section.collapsed }
+      return { ...section, collapsed: !section.collapsed };
     }
-    return section
-  })
+    return section;
+  });
 }
 
 /**
  * Expand all sections
  */
 export function expandAllSections(sections: MenuSection[]): MenuSection[] {
-  return sections.map(section => ({ ...section, collapsed: false }))
+  return sections.map(section => ({ ...section, collapsed: false }));
 }
 
 /**
@@ -262,5 +262,5 @@ export function collapseSecondarySections(sections: MenuSection[]): MenuSection[
   return sections.map((section, index) => ({
     ...section,
     collapsed: index > 0,
-  }))
+  }));
 }

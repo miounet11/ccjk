@@ -10,10 +10,10 @@ import type {
   PostmortemCategory,
   PostmortemReport,
   PostmortemSeverity,
-} from './types'
-import { execSync } from 'node:child_process'
-import * as path from 'node:path'
-import * as process from 'node:process'
+} from './types';
+import { execSync } from 'node:child_process';
+import * as path from 'node:path';
+import * as process from 'node:process';
 
 // ============================================================================
 // Git Analysis
@@ -23,27 +23,27 @@ import * as process from 'node:process'
  * 获取 fix 类型的 commits
  */
 export function getFixCommits(options: {
-  since?: string
-  until?: string
-  limit?: number
-  cwd?: string
+  since?: string;
+  until?: string;
+  limit?: number;
+  cwd?: string;
 }): CommitInfo[] {
-  const { since, until, limit = 100, cwd = process.cwd() } = options
+  const { since, until, limit = 100, cwd = process.cwd() } = options;
 
-  let gitCmd = 'git log --pretty=format:"%H|%h|%s|%an|%ai" --name-only'
+  let gitCmd = 'git log --pretty=format:"%H|%h|%s|%an|%ai" --name-only';
 
   if (since) {
-    gitCmd += ` ${since}..${until || 'HEAD'}`
+    gitCmd += ` ${since}..${until || 'HEAD'}`;
   }
 
-  gitCmd += ` -n ${limit}`
+  gitCmd += ` -n ${limit}`;
 
   try {
-    const output = execSync(gitCmd, { cwd, encoding: 'utf-8' })
-    return parseGitLog(output)
+    const output = execSync(gitCmd, { cwd, encoding: 'utf-8' });
+    return parseGitLog(output);
   }
   catch {
-    return []
+    return [];
   }
 }
 
@@ -51,22 +51,22 @@ export function getFixCommits(options: {
  * 解析 git log 输出
  */
 function parseGitLog(output: string): CommitInfo[] {
-  const commits: CommitInfo[] = []
-  const entries = output.trim().split('\n\n')
+  const commits: CommitInfo[] = [];
+  const entries = output.trim().split('\n\n');
 
   for (const entry of entries) {
-    const lines = entry.split('\n')
+    const lines = entry.split('\n');
     if (lines.length === 0)
-      continue
+      continue;
 
-    const [firstLine, ...fileLines] = lines
-    const parts = firstLine.split('|')
+    const [firstLine, ...fileLines] = lines;
+    const parts = firstLine.split('|');
 
     if (parts.length < 5)
-      continue
+      continue;
 
-    const [hash, shortHash, message, author, date] = parts
-    const files = fileLines.filter(f => f.trim())
+    const [hash, shortHash, message, author, date] = parts;
+    const files = fileLines.filter(f => f.trim());
 
     // 只保留 fix 类型的 commits
     if (isFixCommit(message)) {
@@ -77,11 +77,11 @@ function parseGitLog(output: string): CommitInfo[] {
         author,
         date,
         files,
-      })
+      });
     }
   }
 
-  return commits
+  return commits;
 }
 
 /**
@@ -101,9 +101,9 @@ function isFixCommit(message: string): boolean {
     /修正/,
     /解决/,
     /bug/i,
-  ]
+  ];
 
-  return fixPatterns.some(p => p.test(message))
+  return fixPatterns.some(p => p.test(message));
 }
 
 // ============================================================================
@@ -115,22 +115,22 @@ function isFixCommit(message: string): boolean {
  */
 export function analyzeFixCommit(commit: CommitInfo, cwd: string = process.cwd()): FixCommitAnalysis {
   // 获取 commit 的 diff
-  const diff = getCommitDiff(commit.hash, cwd)
+  const diff = getCommitDiff(commit.hash, cwd);
 
   // 分析 bug 类型
-  const bugType = detectBugType(commit.message, diff)
+  const bugType = detectBugType(commit.message, diff);
 
   // 分析严重程度
-  const severity = detectSeverity(commit.message, diff, commit.files)
+  const severity = detectSeverity(commit.message, diff, commit.files);
 
   // 提取根本原因
-  const rootCause = extractRootCause(commit.message, diff)
+  const rootCause = extractRootCause(commit.message, diff);
 
   // 提取解决方案
-  const solution = extractSolution(diff)
+  const solution = extractSolution(diff);
 
   // 生成预防建议
-  const preventionSuggestions = generatePreventionSuggestions(bugType, diff)
+  const preventionSuggestions = generatePreventionSuggestions(bugType, diff);
 
   return {
     commit,
@@ -140,7 +140,7 @@ export function analyzeFixCommit(commit: CommitInfo, cwd: string = process.cwd()
     solution,
     preventionSuggestions,
     relatedPostmortems: [],
-  }
+  };
 }
 
 /**
@@ -152,10 +152,10 @@ function getCommitDiff(hash: string, cwd: string): string {
       cwd,
       encoding: 'utf-8',
       maxBuffer: 1024 * 1024 * 10, // 10MB
-    })
+    });
   }
   catch {
-    return ''
+    return '';
   }
 }
 
@@ -163,9 +163,9 @@ function getCommitDiff(hash: string, cwd: string): string {
  * 检测 bug 类型
  */
 function detectBugType(message: string, diff: string): PostmortemCategory {
-  const content = `${message}\n${diff}`.toLowerCase()
+  const content = `${message}\n${diff}`.toLowerCase();
 
-  const patterns: Array<{ category: PostmortemCategory, patterns: RegExp[] }> = [
+  const patterns: Array<{ category: PostmortemCategory; patterns: RegExp[] }> = [
     {
       category: 'type-safety',
       patterns: [
@@ -235,29 +235,29 @@ function detectBugType(message: string, diff: string): PostmortemCategory {
         /依赖|版本|升级/,
       ],
     },
-  ]
+  ];
 
   for (const { category, patterns: categoryPatterns } of patterns) {
     if (categoryPatterns.some(p => p.test(content))) {
-      return category
+      return category;
     }
   }
 
-  return 'other'
+  return 'other';
 }
 
 /**
  * 检测严重程度
  */
 function detectSeverity(message: string, diff: string, files: string[]): PostmortemSeverity {
-  const content = `${message}\n${diff}`.toLowerCase()
+  const content = `${message}\n${diff}`.toLowerCase();
 
   // Critical 指标
   if (
     /critical|crash|data.*loss|security.*vuln/i.test(content)
     || files.some(f => /auth|security|payment/i.test(f))
   ) {
-    return 'critical'
+    return 'critical';
   }
 
   // High 指标
@@ -265,7 +265,7 @@ function detectSeverity(message: string, diff: string, files: string[]): Postmor
     /breaking|major|important|urgent/i.test(content)
     || files.length > 10
   ) {
-    return 'high'
+    return 'high';
   }
 
   // Medium 指标
@@ -273,10 +273,10 @@ function detectSeverity(message: string, diff: string, files: string[]): Postmor
     /moderate|minor.*issue/i.test(content)
     || files.length > 3
   ) {
-    return 'medium'
+    return 'medium';
   }
 
-  return 'low'
+  return 'low';
 }
 
 /**
@@ -291,41 +291,41 @@ function extractRootCause(message: string, diff: string): string {
     /due to[:\s]+(.+)/i,
     /原因[：:]\s*(.+)/,
     /由于\s*(.+)/,
-  ]
+  ];
 
   for (const pattern of causePatterns) {
-    const match = message.match(pattern)
+    const match = message.match(pattern);
     if (match) {
-      return match[1].trim()
+      return match[1].trim();
     }
   }
 
   // 从 diff 分析
-  const removedLines = diff.match(/^-[^-].*/gm) || []
-  const addedLines = diff.match(/^\+[^+].*/gm) || []
+  const removedLines = diff.match(/^-[^-].*/gm) || [];
+  const addedLines = diff.match(/^\+[^+].*/gm) || [];
 
   if (removedLines.length > 0 && addedLines.length > 0) {
-    return `代码变更: 移除 ${removedLines.length} 行, 新增 ${addedLines.length} 行`
+    return `代码变更: 移除 ${removedLines.length} 行, 新增 ${addedLines.length} 行`;
   }
 
-  return '需要进一步分析'
+  return '需要进一步分析';
 }
 
 /**
  * 提取解决方案
  */
 function extractSolution(diff: string): string {
-  const addedLines = diff.match(/^\+[^+].*/gm) || []
+  const addedLines = diff.match(/^\+[^+].*/gm) || [];
 
   if (addedLines.length === 0) {
-    return '删除了问题代码'
+    return '删除了问题代码';
   }
 
   if (addedLines.length <= 5) {
-    return addedLines.map(l => l.substring(1)).join('\n')
+    return addedLines.map(l => l.substring(1)).join('\n');
   }
 
-  return `新增 ${addedLines.length} 行代码修复问题`
+  return `新增 ${addedLines.length} 行代码修复问题`;
 }
 
 /**
@@ -398,9 +398,9 @@ function generatePreventionSuggestions(bugType: PostmortemCategory, _diff: strin
       '实施代码审查',
       '完善文档',
     ],
-  }
+  };
 
-  return suggestions[bugType] || suggestions.other
+  return suggestions[bugType] || suggestions.other;
 }
 
 // ============================================================================
@@ -415,17 +415,17 @@ export function generatePostmortem(
   existingIds: string[],
 ): PostmortemReport[] {
   // 按类型分组
-  const grouped = groupByCategory(analyses)
-  const reports: PostmortemReport[] = []
+  const grouped = groupByCategory(analyses);
+  const reports: PostmortemReport[] = [];
 
-  let nextId = getNextId(existingIds)
+  let nextId = getNextId(existingIds);
 
   for (const [category, categoryAnalyses] of Object.entries(grouped)) {
     // 合并相似的分析
-    const merged = mergeAnalyses(categoryAnalyses)
+    const merged = mergeAnalyses(categoryAnalyses);
 
     for (const analysis of merged) {
-      const id = `PM-${String(nextId++).padStart(3, '0')}`
+      const id = `PM-${String(nextId++).padStart(3, '0')}`;
 
       const report: PostmortemReport = {
         id,
@@ -454,30 +454,30 @@ export function generatePostmortem(
           generatedBy: 'ccjk-postmortem',
           version: '1.0.0',
         },
-      }
+      };
 
-      reports.push(report)
+      reports.push(report);
     }
   }
 
-  return reports
+  return reports;
 }
 
 /**
  * 按类别分组
  */
 function groupByCategory(analyses: FixCommitAnalysis[]): Record<string, FixCommitAnalysis[]> {
-  const grouped: Record<string, FixCommitAnalysis[]> = {}
+  const grouped: Record<string, FixCommitAnalysis[]> = {};
 
   for (const analysis of analyses) {
-    const category = analysis.bugType
+    const category = analysis.bugType;
     if (!grouped[category]) {
-      grouped[category] = []
+      grouped[category] = [];
     }
-    grouped[category].push(analysis)
+    grouped[category].push(analysis);
   }
 
-  return grouped
+  return grouped;
 }
 
 /**
@@ -485,36 +485,36 @@ function groupByCategory(analyses: FixCommitAnalysis[]): Record<string, FixCommi
  */
 function mergeAnalyses(analyses: FixCommitAnalysis[]): FixCommitAnalysis[] {
   // 简单实现：如果文件重叠超过 50%，则合并
-  const merged: FixCommitAnalysis[] = []
+  const merged: FixCommitAnalysis[] = [];
 
   for (const analysis of analyses) {
     const similar = merged.find(m =>
       calculateFileOverlap(m.commit.files, analysis.commit.files) > 0.5,
-    )
+    );
 
     if (similar) {
       // 合并到已有的分析
-      similar.commit.files = Array.from(new Set([...similar.commit.files, ...analysis.commit.files]))
-      similar.preventionSuggestions = Array.from(new Set([...similar.preventionSuggestions, ...analysis.preventionSuggestions]))
+      similar.commit.files = Array.from(new Set([...similar.commit.files, ...analysis.commit.files]));
+      similar.preventionSuggestions = Array.from(new Set([...similar.preventionSuggestions, ...analysis.preventionSuggestions]));
     }
     else {
-      merged.push({ ...analysis })
+      merged.push({ ...analysis });
     }
   }
 
-  return merged
+  return merged;
 }
 
 /**
  * 计算文件重叠率
  */
 function calculateFileOverlap(files1: string[], files2: string[]): number {
-  const set1 = new Set(files1)
-  const set2 = new Set(files2)
-  const intersection = Array.from(set1).filter(f => set2.has(f))
-  const union = new Set([...files1, ...files2])
+  const set1 = new Set(files1);
+  const set2 = new Set(files2);
+  const intersection = Array.from(set1).filter(f => set2.has(f));
+  const union = new Set([...files1, ...files2]);
 
-  return intersection.length / union.size
+  return intersection.length / union.size;
 }
 
 /**
@@ -523,9 +523,9 @@ function calculateFileOverlap(files1: string[], files2: string[]): number {
 function getNextId(existingIds: string[]): number {
   const numbers = existingIds
     .map(id => Number.parseInt(id.replace('PM-', ''), 10))
-    .filter(n => !Number.isNaN(n))
+    .filter(n => !Number.isNaN(n));
 
-  return numbers.length > 0 ? Math.max(...numbers) + 1 : 1
+  return numbers.length > 0 ? Math.max(...numbers) + 1 : 1;
 }
 
 /**
@@ -544,19 +544,19 @@ function generateTitle(analysis: FixCommitAnalysis): string {
     'dependency': '依赖问题',
     'memory-leak': '内存泄漏',
     'other': '其他问题',
-  }
+  };
 
-  const baseTitle = categoryTitles[analysis.bugType] || '未分类问题'
+  const baseTitle = categoryTitles[analysis.bugType] || '未分类问题';
 
   // 从 commit message 提取更具体的描述
-  const message = analysis.commit.message
-  const specificPart = message.replace(/^(fix|bugfix|hotfix)[(:]\s*/i, '').split('\n')[0]
+  const message = analysis.commit.message;
+  const specificPart = message.replace(/^(fix|bugfix|hotfix)[(:]\s*/i, '').split('\n')[0];
 
   if (specificPart && specificPart.length < 50) {
-    return `${baseTitle}: ${specificPart}`
+    return `${baseTitle}: ${specificPart}`;
   }
 
-  return baseTitle
+  return baseTitle;
 }
 
 /**
@@ -572,14 +572,14 @@ function generateDescription(analysis: FixCommitAnalysis): string {
 ${analysis.commit.files.map(f => `- ${f}`).join('\n')}
 
 **根本原因**: ${analysis.rootCause}
-`.trim()
+`.trim();
 }
 
 /**
  * 生成 AI 指令
  */
 function generateAiDirectives(analysis: FixCommitAnalysis): string[] {
-  const directives: string[] = []
+  const directives: string[] = [];
 
   // 基于类别的通用指令
   const categoryDirectives: Record<PostmortemCategory, string[]> = {
@@ -637,28 +637,28 @@ function generateAiDirectives(analysis: FixCommitAnalysis): string[] {
       '仔细审查代码变更',
       '添加适当的测试',
     ],
-  }
+  };
 
-  directives.push(...(categoryDirectives[analysis.bugType] || categoryDirectives.other))
+  directives.push(...(categoryDirectives[analysis.bugType] || categoryDirectives.other));
 
   // 基于文件的特定指令
   for (const file of analysis.commit.files) {
     if (file.includes('api') || file.includes('service')) {
-      directives.push(`修改 ${path.basename(file)} 时注意 API 兼容性`)
+      directives.push(`修改 ${path.basename(file)} 时注意 API 兼容性`);
     }
     if (file.includes('config')) {
-      directives.push(`修改配置文件时确保向后兼容`)
+      directives.push(`修改配置文件时确保向后兼容`);
     }
   }
 
-  return Array.from(new Set(directives))
+  return Array.from(new Set(directives));
 }
 
 /**
  * 生成检测模式
  */
 function generateDetectionPatterns(analysis: FixCommitAnalysis): DetectionPattern[] {
-  const patterns: DetectionPattern[] = []
+  const patterns: DetectionPattern[] = [];
 
   const categoryPatterns: Record<PostmortemCategory, DetectionPattern[]> = {
     'type-safety': [
@@ -733,11 +733,11 @@ function generateDetectionPatterns(analysis: FixCommitAnalysis): DetectionPatter
       },
     ],
     'other': [],
-  }
+  };
 
-  patterns.push(...(categoryPatterns[analysis.bugType] || []))
+  patterns.push(...(categoryPatterns[analysis.bugType] || []));
 
-  return patterns
+  return patterns;
 }
 
 // ============================================================================
@@ -748,4 +748,4 @@ export const PostmortemAnalyzer = {
   getFixCommits,
   analyzeFixCommit,
   generatePostmortem,
-}
+};

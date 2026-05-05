@@ -3,21 +3,21 @@
  * 通过自然语言识别自动触发对应的 skills
  */
 
-import type { SupportedLang } from '../constants'
+import type { SupportedLang } from '../constants';
 
 export interface SkillTrigger {
-  skillName: string
-  patterns: RegExp[]
-  keywords: string[]
-  priority: number
-  description: string
+  skillName: string;
+  patterns: RegExp[];
+  keywords: string[];
+  priority: number;
+  description: string;
 }
 
 export interface TriggerMatch {
-  skillName: string
-  confidence: number
-  matchedPattern?: string
-  extractedParams?: Record<string, string>
+  skillName: string;
+  confidence: number;
+  matchedPattern?: string;
+  extractedParams?: Record<string, string>;
 }
 
 /**
@@ -164,85 +164,85 @@ export const SKILL_TRIGGERS: SkillTrigger[] = [
     priority: 10,
     description: '测试驱动开发',
   },
-]
+];
 
 /**
  * 智能技能触发器
  */
 export class SkillTriggerEngine {
-  private lang: SupportedLang
+  private lang: SupportedLang;
 
   constructor(lang: SupportedLang = 'zh-CN') {
-    this.lang = lang
+    this.lang = lang;
   }
 
   /**
    * 分析用户输入，匹配对应的技能
    */
   analyze(userInput: string): TriggerMatch[] {
-    const matches: TriggerMatch[] = []
+    const matches: TriggerMatch[] = [];
 
     for (const trigger of SKILL_TRIGGERS) {
-      const match = this.matchTrigger(userInput, trigger)
+      const match = this.matchTrigger(userInput, trigger);
       if (match) {
-        matches.push(match)
+        matches.push(match);
       }
     }
 
     // 按置信度和优先级排序
     return matches.sort((a, b) => {
       if (a.confidence !== b.confidence) {
-        return b.confidence - a.confidence
+        return b.confidence - a.confidence;
       }
-      const aPriority = SKILL_TRIGGERS.find(t => t.skillName === a.skillName)?.priority || 0
-      const bPriority = SKILL_TRIGGERS.find(t => t.skillName === b.skillName)?.priority || 0
-      return bPriority - aPriority
-    })
+      const aPriority = SKILL_TRIGGERS.find(t => t.skillName === a.skillName)?.priority || 0;
+      const bPriority = SKILL_TRIGGERS.find(t => t.skillName === b.skillName)?.priority || 0;
+      return bPriority - aPriority;
+    });
   }
 
   /**
    * 匹配单个触发器
    */
   private matchTrigger(userInput: string, trigger: SkillTrigger): TriggerMatch | null {
-    let confidence = 0
-    let matchedPattern: string | undefined
-    const extractedParams: Record<string, string> = {}
+    let confidence = 0;
+    let matchedPattern: string | undefined;
+    const extractedParams: Record<string, string> = {};
 
     // 1. 正则模式匹配（高权重）
     for (const pattern of trigger.patterns) {
-      const match = userInput.match(pattern)
+      const match = userInput.match(pattern);
       if (match) {
-        confidence += 0.6
-        matchedPattern = pattern.source
+        confidence += 0.6;
+        matchedPattern = pattern.source;
 
         // 提取参数
         if (match[1]) {
-          extractedParams.param1 = match[1].trim()
+          extractedParams.param1 = match[1].trim();
         }
         if (match[2]) {
-          extractedParams.param2 = match[2].trim()
+          extractedParams.param2 = match[2].trim();
         }
 
-        break
+        break;
       }
     }
 
     // 2. 关键词匹配（中权重）
-    const lowerInput = userInput.toLowerCase()
-    let keywordMatches = 0
+    const lowerInput = userInput.toLowerCase();
+    let keywordMatches = 0;
     for (const keyword of trigger.keywords) {
       if (lowerInput.includes(keyword.toLowerCase())) {
-        keywordMatches++
+        keywordMatches++;
       }
     }
 
     if (keywordMatches > 0) {
-      confidence += Math.min(keywordMatches * 0.15, 0.4)
+      confidence += Math.min(keywordMatches * 0.15, 0.4);
     }
 
     // 3. 置信度阈值
     if (confidence < 0.3) {
-      return null
+      return null;
     }
 
     return {
@@ -250,37 +250,37 @@ export class SkillTriggerEngine {
       confidence: Math.min(confidence, 1),
       matchedPattern,
       extractedParams,
-    }
+    };
   }
 
   /**
    * 获取最佳匹配
    */
   getBestMatch(userInput: string): TriggerMatch | null {
-    const matches = this.analyze(userInput)
-    return matches.length > 0 ? matches[0] : null
+    const matches = this.analyze(userInput);
+    return matches.length > 0 ? matches[0] : null;
   }
 
   /**
    * 生成技能调用建议
    */
   generateSuggestion(match: TriggerMatch): string {
-    const trigger = SKILL_TRIGGERS.find(t => t.skillName === match.skillName)
+    const trigger = SKILL_TRIGGERS.find(t => t.skillName === match.skillName);
     if (!trigger) {
-      return ''
+      return '';
     }
 
-    const confidence = Math.round(match.confidence * 100)
+    const confidence = Math.round(match.confidence * 100);
 
     if (this.lang === 'zh-CN') {
       return `💡 检测到你可能想要 **${trigger.description}** (置信度: ${confidence}%)\n`
         + `建议使用: \`/${match.skillName}\`\n${
-          match.extractedParams?.param1 ? `参数: ${match.extractedParams.param1}\n` : ''}`
+          match.extractedParams?.param1 ? `参数: ${match.extractedParams.param1}\n` : ''}`;
     }
     else {
       return `💡 Detected you might want to **${trigger.description}** (confidence: ${confidence}%)\n`
         + `Suggest using: \`/${match.skillName}\`\n${
-          match.extractedParams?.param1 ? `Params: ${match.extractedParams.param1}\n` : ''}`
+          match.extractedParams?.param1 ? `Params: ${match.extractedParams.param1}\n` : ''}`;
     }
   }
 
@@ -289,19 +289,19 @@ export class SkillTriggerEngine {
    */
   shouldAutoExecute(match: TriggerMatch): boolean {
     // 置信度 > 0.8 且有明确参数时自动执行
-    return match.confidence > 0.8 && !!match.extractedParams?.param1
+    return match.confidence > 0.8 && !!match.extractedParams?.param1;
   }
 
   /**
    * 生成技能调用命令
    */
   generateSkillCommand(match: TriggerMatch): string {
-    const params = match.extractedParams?.param1 || ''
-    return `/${match.skillName} ${params}`.trim()
+    const params = match.extractedParams?.param1 || '';
+    return `/${match.skillName} ${params}`.trim();
   }
 }
 
 /**
  * 全局单例
  */
-export const skillTrigger = new SkillTriggerEngine()
+export const skillTrigger = new SkillTriggerEngine();

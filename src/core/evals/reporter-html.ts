@@ -1,19 +1,19 @@
-import type { EvalScenarioReport } from './types.js'
-import { mkdirSync, writeFileSync } from 'node:fs'
-import { dirname } from 'node:path'
+import type { EvalScenarioReport } from './types.js';
+import { mkdirSync, writeFileSync } from 'node:fs';
+import { dirname } from 'node:path';
 
 export function writeHtmlDashboard(reports: EvalScenarioReport[], outputPath: string): void {
-  const html = generateHtml(reports)
-  mkdirSync(dirname(outputPath), { recursive: true })
-  writeFileSync(outputPath, html, 'utf-8')
+  const html = generateHtml(reports);
+  mkdirSync(dirname(outputPath), { recursive: true });
+  writeFileSync(outputPath, html, 'utf-8');
 }
 
 function generateHtml(reports: EvalScenarioReport[]): string {
-  const timestamp = new Date().toISOString()
-  const totalScenarios = reports.length
-  const passedScenarios = reports.filter(r => r.successRate === 1).length
-  const failedScenarios = totalScenarios - passedScenarios
-  const avgDuration = reports.reduce((sum, r) => sum + r.averageDurationMs, 0) / totalScenarios
+  const timestamp = new Date().toISOString();
+  const totalScenarios = reports.length;
+  const passedScenarios = reports.filter(r => r.successRate === 1).length;
+  const failedScenarios = totalScenarios - passedScenarios;
+  const avgDuration = reports.reduce((sum, r) => sum + r.averageDurationMs, 0) / totalScenarios;
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -112,5 +112,5 @@ ${reports.map(r => `      <tr>
     </tbody>
   </table>
 </body>
-</html>`
+</html>`;
 }

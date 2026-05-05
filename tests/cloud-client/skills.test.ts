@@ -5,17 +5,17 @@
  * authentication and error handling.
  */
 
-import type { CloudApiGateway } from '../../src/cloud-client/gateway'
+import type { CloudApiGateway } from '../../src/cloud-client/gateway';
 import type {
   SkillDeleteResponse,
   SkillDownloadResponse,
   SkillGetResponse,
   SkillListResponse,
   SkillUploadResponse,
-} from '../../src/cloud-client/skills/types'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { CloudError, CloudErrorCode } from '../../src/cloud-client/errors'
-import { createSkillsClient } from '../../src/cloud-client/skills/client'
+} from '../../src/cloud-client/skills/types';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { CloudError, CloudErrorCode } from '../../src/cloud-client/errors';
+import { createSkillsClient } from '../../src/cloud-client/skills/client';
 
 // ============================================================================
 // Mock Gateway
@@ -30,7 +30,7 @@ function createMockGateway(): CloudApiGateway {
       authToken: 'test-token',
       enableVersionFallback: true,
     })),
-  } as unknown as CloudApiGateway
+  } as unknown as CloudApiGateway;
 }
 
 // ============================================================================
@@ -52,7 +52,7 @@ const mockSkillDetails = {
   checksum: 'abc123',
   createdAt: '2024-01-01T00:00:00Z',
   updatedAt: '2024-01-01T00:00:00Z',
-}
+};
 
 const mockSkillSummary = {
   id: 'test-skill',
@@ -66,20 +66,20 @@ const mockSkillSummary = {
   checksum: 'abc123',
   createdAt: '2024-01-01T00:00:00Z',
   updatedAt: '2024-01-01T00:00:00Z',
-}
+};
 
 // ============================================================================
 // List Skills Tests
 // ============================================================================
 
 describe('skillsApiClient - list', () => {
-  let gateway: CloudApiGateway
-  let client: ReturnType<typeof createSkillsClient>
+  let gateway: CloudApiGateway;
+  let client: ReturnType<typeof createSkillsClient>;
 
   beforeEach(() => {
-    gateway = createMockGateway()
-    client = createSkillsClient(gateway)
-  })
+    gateway = createMockGateway();
+    client = createSkillsClient(gateway);
+  });
 
   it('should list skills successfully', async () => {
     const mockResponse: SkillListResponse = {
@@ -88,21 +88,21 @@ describe('skillsApiClient - list', () => {
       page: 1,
       pageSize: 20,
       totalPages: 1,
-    }
+    };
 
     vi.mocked(gateway.request).mockResolvedValue({
       success: true,
       data: mockResponse,
-    })
+    });
 
     const response = await client.list({
       privacy: 'private',
       page: 1,
       pageSize: 20,
-    })
+    });
 
-    expect(response.success).toBe(true)
-    expect(response.data).toEqual(mockResponse)
+    expect(response.success).toBe(true);
+    expect(response.data).toEqual(mockResponse);
     expect(gateway.request).toHaveBeenCalledWith('skills.list', {
       method: 'GET',
       query: {
@@ -110,8 +110,8 @@ describe('skillsApiClient - list', () => {
         page: 1,
         pageSize: 20,
       },
-    })
-  })
+    });
+  });
 
   it('should handle list with filters', async () => {
     const mockResponse: SkillListResponse = {
@@ -120,12 +120,12 @@ describe('skillsApiClient - list', () => {
       page: 1,
       pageSize: 20,
       totalPages: 0,
-    }
+    };
 
     vi.mocked(gateway.request).mockResolvedValue({
       success: true,
       data: mockResponse,
-    })
+    });
 
     await client.list({
       privacy: 'public',
@@ -134,7 +134,7 @@ describe('skillsApiClient - list', () => {
       query: 'search term',
       sortBy: 'name',
       sortDir: 'asc',
-    })
+    });
 
     expect(gateway.request).toHaveBeenCalledWith('skills.list', {
       method: 'GET',
@@ -146,81 +146,81 @@ describe('skillsApiClient - list', () => {
         sortBy: 'name',
         sortDir: 'asc',
       },
-    })
-  })
+    });
+  });
 
   it('should throw CloudError on invalid response format', async () => {
     vi.mocked(gateway.request).mockResolvedValue({
       success: true,
       data: { invalid: 'format' },
-    })
+    });
 
-    await expect(client.list()).rejects.toThrow(CloudError)
+    await expect(client.list()).rejects.toThrow(CloudError);
     await expect(client.list()).rejects.toMatchObject({
       code: CloudErrorCode.SCHEMA_MISMATCH,
-    })
-  })
+    });
+  });
 
   it('should handle network errors', async () => {
     vi.mocked(gateway.request).mockRejectedValue(
       new Error('Network error'),
-    )
+    );
 
-    await expect(client.list()).rejects.toThrow(CloudError)
-  })
-})
+    await expect(client.list()).rejects.toThrow(CloudError);
+  });
+});
 
 // ============================================================================
 // Get Skill Tests
 // ============================================================================
 
 describe('skillsApiClient - get', () => {
-  let gateway: CloudApiGateway
-  let client: ReturnType<typeof createSkillsClient>
+  let gateway: CloudApiGateway;
+  let client: ReturnType<typeof createSkillsClient>;
 
   beforeEach(() => {
-    gateway = createMockGateway()
-    client = createSkillsClient(gateway)
-  })
+    gateway = createMockGateway();
+    client = createSkillsClient(gateway);
+  });
 
   it('should get skill successfully', async () => {
     const mockResponse: SkillGetResponse = {
       skill: mockSkillDetails,
-    }
+    };
 
     vi.mocked(gateway.request).mockResolvedValue({
       success: true,
       data: mockResponse,
-    })
+    });
 
     const response = await client.get({
       skillId: 'test-skill',
-    })
+    });
 
-    expect(response.success).toBe(true)
-    expect(response.data).toEqual(mockResponse)
+    expect(response.success).toBe(true);
+    expect(response.data).toEqual(mockResponse);
     expect(gateway.request).toHaveBeenCalledWith('skills.download', {
       method: 'GET',
       query: {
         skillId: 'test-skill',
       },
-    })
-  })
+    });
+  });
 
   it('should get skill with version', async () => {
     const mockResponse: SkillGetResponse = {
       skill: mockSkillDetails,
-    }
+    };
 
     vi.mocked(gateway.request).mockResolvedValue({
       success: true,
       data: mockResponse,
-    })
+    });
 
     await client.get({
       skillId: 'test-skill',
       version: '1.0.0',
-    })
+    });
 
     expect(gateway.request).toHaveBeenCalledWith('skills.download', {
       method: 'GET',
@@ -228,58 +228,58 @@ describe('skillsApiClient - get', () => {
         skillId: 'test-skill',
         version: '1.0.0',
       },
-    })
-  })
+    });
+  });
 
   it('should validate skill ID', async () => {
     await expect(
       client.get({ skillId: '' }),
-    ).rejects.toThrow(CloudError)
+    ).rejects.toThrow(CloudError);
 
     await expect(
       client.get({ skillId: '' }),
     ).rejects.toMatchObject({
       code: CloudErrorCode.VALIDATION_ERROR,
-    })
-  })
+    });
+  });
 
   it('should handle not found errors', async () => {
     vi.mocked(gateway.request).mockResolvedValue({
       success: false,
       error: 'Skill not found',
       code: 'NOT_FOUND',
-    })
+    });
 
-    const response = await client.get({ skillId: 'nonexistent' })
+    const response = await client.get({ skillId: 'nonexistent' });
 
-    expect(response.success).toBe(false)
-    expect(response.error).toBe('Skill not found')
-  })
-})
+    expect(response.success).toBe(false);
+    expect(response.error).toBe('Skill not found');
+  });
+});
 
 // ============================================================================
 // Upload Skill Tests
 // ============================================================================
 
 describe('skillsApiClient - upload', () => {
-  let gateway: CloudApiGateway
-  let client: ReturnType<typeof createSkillsClient>
+  let gateway: CloudApiGateway;
+  let client: ReturnType<typeof createSkillsClient>;
 
   beforeEach(() => {
-    gateway = createMockGateway()
-    client = createSkillsClient(gateway)
-  })
+    gateway = createMockGateway();
+    client = createSkillsClient(gateway);
+  });
 
   it('should upload skill successfully', async () => {
     const mockResponse: SkillUploadResponse = {
       skill: mockSkillDetails,
       message: 'Skill uploaded successfully',
-    }
+    };
 
     vi.mocked(gateway.request).mockResolvedValue({
       success: true,
       data: mockResponse,
-    })
+    });
 
     const response = await client.upload({
       name: 'Test Skill',
@@ -291,18 +291,18 @@ describe('skillsApiClient - upload', () => {
       },
       privacy: 'private',
       checksum: 'abc123',
-    })
+    });
 
-    expect(response.success).toBe(true)
-    expect(response.data).toEqual(mockResponse)
+    expect(response.success).toBe(true);
+    expect(response.data).toEqual(mockResponse);
     expect(gateway.request).toHaveBeenCalledWith('skills.upload', {
       method: 'POST',
       body: expect.objectContaining({
         name: 'Test Skill',
         version: '1.0.0',
       }),
-    })
-  })
+    });
+  });
 
   it('should validate required fields', async () => {
     await expect(
@@ -314,7 +314,7 @@ describe('skillsApiClient - upload', () => {
         privacy: 'private',
         checksum: 'abc',
       }),
-    ).rejects.toThrow(CloudError)
+    ).rejects.toThrow(CloudError);
 
     await expect(
       client.upload({
@@ -325,7 +325,7 @@ describe('skillsApiClient - upload', () => {
         privacy: 'private',
         checksum: 'abc',
       }),
-    ).rejects.toThrow(CloudError)
+    ).rejects.toThrow(CloudError);
 
     await expect(
       client.upload({
@@ -336,15 +336,15 @@ describe('skillsApiClient - upload', () => {
         privacy: 'private',
         checksum: 'abc',
       }),
-    ).rejects.toThrow(CloudError)
-  })
+    ).rejects.toThrow(CloudError);
+  });
 
   it('should handle authentication errors', async () => {
     vi.mocked(gateway.request).mockResolvedValue({
       success: false,
       error: 'Unauthorized',
       code: 'AUTH_ERROR',
-    })
+    });
 
     const response = await client.upload({
       name: 'Test',
@@ -353,63 +353,63 @@ describe('skillsApiClient - upload', () => {
       metadata: { author: 'author' },
       privacy: 'private',
       checksum: 'abc',
-    })
+    });
 
-    expect(response.success).toBe(false)
-    expect(response.code).toBe('AUTH_ERROR')
-  })
-})
+    expect(response.success).toBe(false);
+    expect(response.code).toBe('AUTH_ERROR');
+  });
+});
 
 // ============================================================================
 // Download Skill Tests
 // ============================================================================
 
 describe('skillsApiClient - download', () => {
-  let gateway: CloudApiGateway
-  let client: ReturnType<typeof createSkillsClient>
+  let gateway: CloudApiGateway;
+  let client: ReturnType<typeof createSkillsClient>;
 
   beforeEach(() => {
-    gateway = createMockGateway()
-    client = createSkillsClient(gateway)
-  })
+    gateway = createMockGateway();
+    client = createSkillsClient(gateway);
+  });
 
   it('should download skill successfully', async () => {
     const mockResponse: SkillDownloadResponse = {
       skill: mockSkillDetails,
-    }
+    };
 
     vi.mocked(gateway.request).mockResolvedValue({
       success: true,
       data: mockResponse,
-    })
+    });
 
     const response = await client.download({
       skillId: 'test-skill',
-    })
+    });
 
-    expect(response.success).toBe(true)
-    expect(response.data?.skill.content).toBe(mockSkillDetails.content)
-  })
+    expect(response.success).toBe(true);
+    expect(response.data?.skill.content).toBe(mockSkillDetails.content);
+  });
 
   it('should validate skill ID', async () => {
     await expect(
       client.download({ skillId: '' }),
-    ).rejects.toThrow(CloudError)
-  })
-})
+    ).rejects.toThrow(CloudError);
+  });
+});
 
 // ============================================================================
 // Update Skill Tests
 // ============================================================================
 
 describe('skillsApiClient - update', () => {
-  let gateway: CloudApiGateway
-  let client: ReturnType<typeof createSkillsClient>
+  let gateway: CloudApiGateway;
+  let client: ReturnType<typeof createSkillsClient>;
 
   beforeEach(() => {
-    gateway = createMockGateway()
-    client = createSkillsClient(gateway)
-  })
+    gateway = createMockGateway();
+    client = createSkillsClient(gateway);
+  });
 
   it('should update skill successfully', async () => {
     vi.mocked(gateway.request).mockResolvedValue({
@@ -418,122 +418,122 @@ describe('skillsApiClient - update', () => {
         skill: mockSkillDetails,
         message: 'Updated',
       },
-    })
+    });
 
     const response = await client.update({
       skillId: 'test-skill',
       version: '1.1.0',
       content: '# Updated content',
-    })
+    });
 
-    expect(response.success).toBe(true)
+    expect(response.success).toBe(true);
     expect(gateway.request).toHaveBeenCalledWith('skills.upload', {
       method: 'PUT',
       body: expect.objectContaining({
         skillId: 'test-skill',
         version: '1.1.0',
       }),
-    })
-  })
+    });
+  });
 
   it('should validate skill ID', async () => {
     await expect(
       client.update({ skillId: '', version: '1.0.0' }),
-    ).rejects.toThrow(CloudError)
-  })
-})
+    ).rejects.toThrow(CloudError);
+  });
+});
 
 // ============================================================================
 // Delete Skill Tests
 // ============================================================================
 
 describe('skillsApiClient - delete', () => {
-  let gateway: CloudApiGateway
-  let client: ReturnType<typeof createSkillsClient>
+  let gateway: CloudApiGateway;
+  let client: ReturnType<typeof createSkillsClient>;
 
   beforeEach(() => {
-    gateway = createMockGateway()
-    client = createSkillsClient(gateway)
-  })
+    gateway = createMockGateway();
+    client = createSkillsClient(gateway);
+  });
 
   it('should delete skill successfully', async () => {
     const mockResponse: SkillDeleteResponse = {
       success: true,
       message: 'Skill deleted',
-    }
+    };
 
     vi.mocked(gateway.request).mockResolvedValue({
       success: true,
       data: mockResponse,
-    })
+    });
 
     const response = await client.delete({
       skillId: 'test-skill',
-    })
+    });
 
-    expect(response.success).toBe(true)
+    expect(response.success).toBe(true);
     expect(gateway.request).toHaveBeenCalledWith('skills.upload', {
       method: 'DELETE',
       query: {
         skillId: 'test-skill',
       },
-    })
-  })
+    });
+  });
 
   it('should validate skill ID', async () => {
     await expect(
       client.delete({ skillId: '' }),
-    ).rejects.toThrow(CloudError)
-  })
-})
+    ).rejects.toThrow(CloudError);
+  });
+});
 
 // ============================================================================
 // Error Handling Tests
 // ============================================================================
 
 describe('skillsApiClient - error handling', () => {
-  let gateway: CloudApiGateway
-  let client: ReturnType<typeof createSkillsClient>
+  let gateway: CloudApiGateway;
+  let client: ReturnType<typeof createSkillsClient>;
 
   beforeEach(() => {
-    gateway = createMockGateway()
-    client = createSkillsClient(gateway)
-  })
+    gateway = createMockGateway();
+    client = createSkillsClient(gateway);
+  });
 
   it('should handle rate limit errors', async () => {
     vi.mocked(gateway.request).mockResolvedValue({
       success: false,
       error: 'Rate limit exceeded',
       code: 'RATE_LIMIT',
-    })
+    });
 
-    const response = await client.list()
+    const response = await client.list();
 
-    expect(response.success).toBe(false)
-    expect(response.code).toBe('RATE_LIMIT')
-  })
+    expect(response.success).toBe(false);
+    expect(response.code).toBe('RATE_LIMIT');
+  });
 
   it('should handle server errors', async () => {
     vi.mocked(gateway.request).mockResolvedValue({
       success: false,
       error: 'Internal server error',
       code: 'SERVER_ERROR',
-    })
+    });
 
-    const response = await client.list()
+    const response = await client.list();
 
-    expect(response.success).toBe(false)
-    expect(response.code).toBe('SERVER_ERROR')
-  })
+    expect(response.success).toBe(false);
+    expect(response.code).toBe('SERVER_ERROR');
+  });
 
   it('should wrap unknown errors in CloudError', async () => {
     vi.mocked(gateway.request).mockRejectedValue(
       new Error('Unknown error'),
-    )
+    );
 
-    await expect(client.list()).rejects.toThrow(CloudError)
+    await expect(client.list()).rejects.toThrow(CloudError);
     await expect(client.list()).rejects.toMatchObject({
       code: CloudErrorCode.UNKNOWN_ERROR,
-    })
-  })
-})
+    });
+  });
+});

@@ -9,49 +9,49 @@
  * - Retry logic
  */
 
-import type { OrchestratorMessage } from '../types/agent.js'
+import type { OrchestratorMessage } from '../types/agent.js';
 
 // Extended message interface for enhanced features
 interface AgentMessage extends OrchestratorMessage {
-  id: string
-  status: 'pending' | 'sent' | 'processed' | 'failed'
-  retries: number
-  deliveredAt?: number
-  processedAt?: number
-  error?: string
+  id: string;
+  status: 'pending' | 'sent' | 'processed' | 'failed';
+  retries: number;
+  deliveredAt?: number;
+  processedAt?: number;
+  error?: string;
 }
 
-type MessageHandler = (message: AgentMessage) => void | Promise<void>
-type MessageQueue = Map<string, AgentMessage[]>
+type MessageHandler = (message: AgentMessage) => void | Promise<void>;
+type MessageQueue = Map<string, AgentMessage[]>;
 
 interface CommunicationConfig {
-  maxRetries: number
-  timeout: number
-  enableBroadcasting: boolean
+  maxRetries: number;
+  timeout: number;
+  enableBroadcasting: boolean;
 }
 
 const DEFAULT_CONFIG: CommunicationConfig = {
   maxRetries: 3,
   timeout: 30000,
   enableBroadcasting: true,
-}
+};
 
 export class AgentCommunication {
-  private config: CommunicationConfig
-  private messageQueue: MessageQueue = new Map()
-  private handlers: Map<string, MessageHandler[]> = new Map()
-  private messageHistory: AgentMessage[] = []
-  private legacyQueue: AgentMessage[] = [] // For backward compatibility
+  private config: CommunicationConfig;
+  private messageQueue: MessageQueue = new Map();
+  private handlers: Map<string, MessageHandler[]> = new Map();
+  private messageHistory: AgentMessage[] = [];
+  private legacyQueue: AgentMessage[] = []; // For backward compatibility
 
   constructor(config: Partial<CommunicationConfig> = {}) {
-    this.config = { ...DEFAULT_CONFIG, ...config }
+    this.config = { ...DEFAULT_CONFIG, ...config };
   }
 
   /**
    * Send a message (backward compatible with original API)
    */
   send(from: string, to: string, type: 'request' | 'response' | 'notification', payload: any): void {
-    this.sendMessage(from, to, type, payload).catch(console.error)
+    this.sendMessage(from, to, type, payload).catch(console.error);
   }
 
   /**
@@ -72,30 +72,30 @@ export class AgentCommunication {
       timestamp: Date.now(),
       status: 'pending',
       retries: 0,
-    }
+    };
 
     // Add to queue
     if (!this.messageQueue.has(to)) {
-      this.messageQueue.set(to, [])
+      this.messageQueue.set(to, []);
     }
-    this.messageQueue.get(to)!.push(message)
+    this.messageQueue.get(to)!.push(message);
 
     // Add to legacy queue for backward compatibility
-    this.legacyQueue.push(message)
+    this.legacyQueue.push(message);
 
     // Add to history
-    this.messageHistory.push(message)
+    this.messageHistory.push(message);
 
     // Trigger handlers
-    await this.triggerHandlers(to, message)
+    await this.triggerHandlers(to, message);
 
     // Update message status only if not already failed by handlers
     if (message.status !== 'failed') {
-      message.status = 'sent'
-      message.deliveredAt = Date.now()
+      message.status = 'sent';
+      message.deliveredAt = Date.now();
     }
 
-    return message
+    return message;
   }
 
   /**
@@ -108,12 +108,12 @@ export class AgentCommunication {
     exclude: string[] = [],
   ): Promise<AgentMessage[]> {
     if (!this.config.enableBroadcasting) {
-      throw new Error('Broadcasting is disabled')
+      throw new Error('Broadcasting is disabled');
     }
 
     const recipients = Array.from(this.handlers.keys()).filter(
       agent => agent !== from && !exclude.includes(agent),
-    )
+    );
 
     const messages = await Promise.all(
       recipients.map(to =>
@@ -123,16 +123,16 @@ export class AgentCommunication {
           recipientCount: recipients.length,
         } as Record<string, unknown>),
       ),
-    )
+    );
 
-    return messages
+    return messages;
   }
 
   /**
    * Subscribe to messages (backward compatible with original API)
    */
   subscribe(agentId: string, handler: (msg: OrchestratorMessage) => void): void {
-    this.registerHandler(agentId, handler as MessageHandler)
+    this.registerHandler(agentId, handler as MessageHandler);
   }
 
   /**
@@ -140,20 +140,20 @@ export class AgentCommunication {
    */
   registerHandler(agentId: string, handler: MessageHandler): void {
     if (!this.handlers.has(agentId)) {
-      this.handlers.set(agentId, [])
+      this.handlers.set(agentId, []);
     }
-    this.handlers.get(agentId)!.push(handler)
+    this.handlers.get(agentId)!.push(handler);
   }
 
   /**
    * Unregister a message handler
    */
   unregisterHandler(agentId: string, handler: MessageHandler): void {
-    const handlers = this.handlers.get(agentId)
+    const handlers = this.handlers.get(agentId);
     if (handlers) {
-      const index = handlers.indexOf(handler)
+      const index = handlers.indexOf(handler);
       if (index > -1) {
-        handlers.splice(index, 1)
+        handlers.splice(index, 1);
       }
     }
   }
@@ -163,25 +163,25 @@ export class AgentCommunication {
    */
   getMessages(agentId: string): OrchestratorMessage[] {
     // Return messages from legacy queue for backward compatibility
-    return this.legacyQueue.filter(msg => msg.to === agentId || msg.from === agentId)
+    return this.legacyQueue.filter(msg => msg.to === agentId || msg.from === agentId);
   }
 
   /**
    * Get pending messages for an agent (not yet processed)
    */
   getPendingMessages(agentId: string): AgentMessage[] {
-    const messages = this.messageQueue.get(agentId) || []
-    return messages.filter(msg => msg.status === 'pending' || msg.status === 'sent')
+    const messages = this.messageQueue.get(agentId) || [];
+    return messages.filter(msg => msg.status === 'pending' || msg.status === 'sent');
   }
 
   /**
    * Mark a message as processed
    */
   async markProcessed(messageId: string): Promise<void> {
-    const message = this.findMessage(messageId)
+    const message = this.findMessage(messageId);
     if (message) {
-      message.status = 'processed'
-      message.processedAt = Date.now()
+      message.status = 'processed';
+      message.processedAt = Date.now();
     }
   }
 
@@ -194,15 +194,15 @@ export class AgentCommunication {
     type: string,
     payload: unknown,
   ): Promise<AgentMessage> {
-    const originalMessage = this.findMessage(originalMessageId)
+    const originalMessage = this.findMessage(originalMessageId);
     if (!originalMessage) {
-      throw new Error(`Message ${originalMessageId} not found`)
+      throw new Error(`Message ${originalMessageId} not found`);
     }
 
     return this.sendMessage(from, originalMessage.from, type, {
       ...(typeof payload === 'object' && payload !== null ? payload : { data: payload }),
       inReplyTo: originalMessageId,
-    } as Record<string, unknown>)
+    } as Record<string, unknown>);
   }
 
   /**
@@ -211,7 +211,7 @@ export class AgentCommunication {
   getStats(agentId?: string) {
     const relevantMessages = agentId
       ? this.messageHistory.filter(m => m.from === agentId || m.to === agentId)
-      : this.messageHistory
+      : this.messageHistory;
 
     return {
       totalMessages: relevantMessages.length,
@@ -221,7 +221,7 @@ export class AgentCommunication {
       failedMessages: relevantMessages.filter(m => m.status === 'failed').length,
       averageDeliveryTime: this.calculateAverageDeliveryTime(relevantMessages),
       messageTypes: this.getMessageTypeBreakdown(relevantMessages),
-    }
+    };
   }
 
   /**
@@ -230,40 +230,40 @@ export class AgentCommunication {
   getMessageHistory(agentId?: string, limit?: number): AgentMessage[] {
     let messages = agentId
       ? this.messageHistory.filter(m => m.from === agentId || m.to === agentId)
-      : this.messageHistory
+      : this.messageHistory;
 
     if (limit) {
-      messages = messages.slice(-limit)
+      messages = messages.slice(-limit);
     }
 
-    return messages
+    return messages;
   }
 
   /**
    * Clear message queue for an agent
    */
   clearQueue(agentId: string): void {
-    this.messageQueue.delete(agentId)
+    this.messageQueue.delete(agentId);
     // Also remove from legacy queue for backward compatibility
-    this.legacyQueue = this.legacyQueue.filter(msg => msg.to !== agentId && msg.from !== agentId)
+    this.legacyQueue = this.legacyQueue.filter(msg => msg.to !== agentId && msg.from !== agentId);
   }
 
   /**
    * Clear all message queues (backward compatible with original API)
    */
   clear(): void {
-    this.legacyQueue = []
-    this.messageQueue.clear()
-    this.messageHistory = []
+    this.legacyQueue = [];
+    this.messageQueue.clear();
+    this.messageHistory = [];
   }
 
   /**
    * Clear all queues
    */
   clearAllQueues(): void {
-    this.legacyQueue = []
-    this.messageQueue.clear()
-    this.messageHistory = []
+    this.legacyQueue = [];
+    this.messageQueue.clear();
+    this.messageHistory = [];
   }
 
   /**
@@ -275,12 +275,12 @@ export class AgentCommunication {
         (msg.to === agentId || msg.from === agentId)
         && msg.status === 'failed'
         && msg.retries < this.config.maxRetries,
-    )
+    );
 
     for (const message of messages) {
-      message.retries++
-      message.status = 'pending'
-      await this.triggerHandlers(agentId, message)
+      message.retries++;
+      message.status = 'pending';
+      await this.triggerHandlers(agentId, message);
     }
   }
 
@@ -288,16 +288,16 @@ export class AgentCommunication {
    * Private: Deliver message (backward compatible)
    */
   private deliver(message: OrchestratorMessage): void {
-    const handlers = this.handlers.get(message.to)
+    const handlers = this.handlers.get(message.to);
     if (handlers) {
       handlers.forEach((handler) => {
         try {
-          handler(message as AgentMessage)
+          handler(message as AgentMessage);
         }
         catch (error) {
-          console.error(`Handler error for agent ${message.to}:`, error)
+          console.error(`Handler error for agent ${message.to}:`, error);
         }
-      })
+      });
     }
   }
 
@@ -305,16 +305,16 @@ export class AgentCommunication {
    * Private: Trigger handlers for a message
    */
   private async triggerHandlers(agentId: string, message: AgentMessage): Promise<void> {
-    const handlers = this.handlers.get(agentId)
+    const handlers = this.handlers.get(agentId);
     if (handlers) {
       for (const handler of handlers) {
         try {
-          await handler(message)
+          await handler(message);
         }
         catch (error) {
-          console.error(`Handler error for agent ${agentId}:`, error)
-          message.status = 'failed'
-          message.error = error instanceof Error ? error.message : String(error)
+          console.error(`Handler error for agent ${agentId}:`, error);
+          message.status = 'failed';
+          message.error = error instanceof Error ? error.message : String(error);
         }
       }
     }
@@ -324,40 +324,40 @@ export class AgentCommunication {
    * Private: Find a message by ID
    */
   private findMessage(messageId: string): AgentMessage | undefined {
-    return this.messageHistory.find(m => m.id === messageId)
+    return this.messageHistory.find(m => m.id === messageId);
   }
 
   /**
    * Private: Generate unique message ID
    */
   private generateMessageId(): string {
-    return `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    return `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 
   /**
    * Private: Calculate average delivery time
    */
   private calculateAverageDeliveryTime(messages: AgentMessage[]): number {
-    const deliveredMessages = messages.filter(m => m.deliveredAt && m.timestamp)
+    const deliveredMessages = messages.filter(m => m.deliveredAt && m.timestamp);
     if (deliveredMessages.length === 0)
-      return 0
+      return 0;
 
     const totalTime = deliveredMessages.reduce(
       (sum, m) => sum + (m.deliveredAt! - m.timestamp),
       0,
-    )
-    return totalTime / deliveredMessages.length
+    );
+    return totalTime / deliveredMessages.length;
   }
 
   /**
    * Private: Get message type breakdown
    */
   private getMessageTypeBreakdown(messages: AgentMessage[]): Record<string, number> {
-    const breakdown: Record<string, number> = {}
+    const breakdown: Record<string, number> = {};
     for (const message of messages) {
-      breakdown[message.type] = (breakdown[message.type] || 0) + 1
+      breakdown[message.type] = (breakdown[message.type] || 0) + 1;
     }
-    return breakdown
+    return breakdown;
   }
 }
 
@@ -365,7 +365,7 @@ export class AgentCommunication {
  * Create a communication protocol instance with default configuration
  */
 export function createCommunication(config?: Partial<CommunicationConfig>): AgentCommunication {
-  return new AgentCommunication(config)
+  return new AgentCommunication(config);
 }
 
 /**
@@ -381,4 +381,4 @@ export const MESSAGE_TYPES = Object.freeze({
   RESULT_SHARE: 'result_share',
   FEEDBACK: 'feedback',
   HEARTBEAT: 'heartbeat',
-} as const)
+} as const);

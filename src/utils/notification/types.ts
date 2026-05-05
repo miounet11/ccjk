@@ -9,7 +9,7 @@
 // Imports
 // ============================================================================
 
-import { CLOUD_ENDPOINTS } from '../../constants'
+import { CLOUD_ENDPOINTS } from '../../constants';
 
 // ============================================================================
 // Notification Channels
@@ -18,12 +18,12 @@ import { CLOUD_ENDPOINTS } from '../../constants'
 /**
  * Supported notification channels
  */
-export type NotificationChannel = 'feishu' | 'wechat' | 'email' | 'sms'
+export type NotificationChannel = 'feishu' | 'wechat' | 'email' | 'sms';
 
 /**
  * Notification priority levels
  */
-export type NotificationPriority = 'low' | 'normal' | 'high' | 'urgent'
+export type NotificationPriority = 'low' | 'normal' | 'high' | 'urgent';
 
 /**
  * Notification types
@@ -34,7 +34,7 @@ export type NotificationType
     | 'task_completed'
     | 'task_failed'
     | 'task_cancelled'
-    | 'system'
+    | 'system';
 
 // ============================================================================
 // Channel Configurations
@@ -44,54 +44,54 @@ export type NotificationType
  * Feishu (Lark) channel configuration
  */
 export interface FeishuConfig {
-  enabled: boolean
+  enabled: boolean;
   /** Feishu bot webhook URL */
-  webhookUrl: string
+  webhookUrl: string;
   /** Optional: Webhook secret for signature verification */
-  secret?: string
+  secret?: string;
 }
 
 /**
  * WeChat Work channel configuration
  */
 export interface WechatConfig {
-  enabled: boolean
+  enabled: boolean;
   /** WeChat Work Corp ID */
-  corpId: string
+  corpId: string;
   /** WeChat Work Agent ID */
-  agentId: string
+  agentId: string;
   /** WeChat Work Agent Secret */
-  secret: string
+  secret: string;
 }
 
 /**
  * Email channel configuration
  */
 export interface EmailConfig {
-  enabled: boolean
+  enabled: boolean;
   /** Email address to receive notifications */
-  address: string
+  address: string;
 }
 
 /**
  * SMS channel configuration
  */
 export interface SmsConfig {
-  enabled: boolean
+  enabled: boolean;
   /** Phone number to receive SMS */
-  phone: string
+  phone: string;
   /** Country code (default: +86) */
-  countryCode?: string
+  countryCode?: string;
 }
 
 /**
  * All channel configurations
  */
 export interface ChannelConfigs {
-  feishu?: FeishuConfig
-  wechat?: WechatConfig
-  email?: EmailConfig
-  sms?: SmsConfig
+  feishu?: FeishuConfig;
+  wechat?: WechatConfig;
+  email?: EmailConfig;
+  sms?: SmsConfig;
 }
 
 // ============================================================================
@@ -103,30 +103,30 @@ export interface ChannelConfigs {
  */
 export interface NotificationConfig {
   /** Whether notification system is enabled */
-  enabled: boolean
+  enabled: boolean;
   /** Device token for cloud service authentication */
-  deviceToken: string
+  deviceToken: string;
   /** Task duration threshold in minutes before sending notification */
-  threshold: number
+  threshold: number;
   /** Cloud service API endpoint */
-  cloudEndpoint?: string
+  cloudEndpoint?: string;
   /** Channel configurations */
-  channels: ChannelConfigs
+  channels: ChannelConfigs;
   /** Quiet hours configuration */
-  quietHours?: QuietHoursConfig
+  quietHours?: QuietHoursConfig;
 }
 
 /**
  * Quiet hours configuration - no notifications during these hours
  */
 export interface QuietHoursConfig {
-  enabled: boolean
+  enabled: boolean;
   /** Start hour (0-23) */
-  startHour: number
+  startHour: number;
   /** End hour (0-23) */
-  endHour: number
+  endHour: number;
   /** Timezone (e.g., 'Asia/Shanghai') */
-  timezone?: string
+  timezone?: string;
 }
 
 /**
@@ -143,7 +143,7 @@ export const DEFAULT_NOTIFICATION_CONFIG: NotificationConfig = {
     startHour: 22,
     endHour: 8,
   },
-}
+};
 
 // ============================================================================
 // Task Status
@@ -152,28 +152,28 @@ export const DEFAULT_NOTIFICATION_CONFIG: NotificationConfig = {
 /**
  * Task execution status
  */
-export type TaskStatusType = 'running' | 'completed' | 'failed' | 'cancelled' | 'paused'
+export type TaskStatusType = 'running' | 'completed' | 'failed' | 'cancelled' | 'paused';
 
 /**
  * Task status information
  */
 export interface TaskStatus {
   /** Unique task identifier */
-  taskId: string
+  taskId: string;
   /** Task description (from user prompt) */
-  description: string
+  description: string;
   /** Task start time */
-  startTime: Date
+  startTime: Date;
   /** Current task status */
-  status: TaskStatusType
+  status: TaskStatusType;
   /** Task duration in milliseconds */
-  duration?: number
+  duration?: number;
   /** Task result summary */
-  result?: string
+  result?: string;
   /** Error message if failed */
-  error?: string
+  error?: string;
   /** Additional metadata */
-  metadata?: Record<string, unknown>
+  metadata?: Record<string, unknown>;
 }
 
 // ============================================================================
@@ -185,13 +185,13 @@ export interface TaskStatus {
  */
 export interface NotificationAction {
   /** Action identifier */
-  id: string
+  id: string;
   /** Button label */
-  label: string
+  label: string;
   /** Action value to send back */
-  value: string
+  value: string;
   /** Whether this is the primary action */
-  primary?: boolean
+  primary?: boolean;
 }
 
 /**
@@ -199,17 +199,17 @@ export interface NotificationAction {
  */
 export interface NotificationMessage {
   /** Message type */
-  type: NotificationType
+  type: NotificationType;
   /** Task status information */
-  task: TaskStatus
+  task: TaskStatus;
   /** Optional action buttons */
-  actions?: NotificationAction[]
+  actions?: NotificationAction[];
   /** Message priority */
-  priority?: NotificationPriority
+  priority?: NotificationPriority;
   /** Custom title override (auto-generated from type if not provided) */
-  title?: string
+  title?: string;
   /** Custom body/message content (auto-generated from task if not provided) */
-  body?: string
+  body?: string;
 }
 
 /**
@@ -217,15 +217,15 @@ export interface NotificationMessage {
  */
 export interface NotificationResult {
   /** Whether notification was sent successfully */
-  success: boolean
+  success: boolean;
   /** Channel used */
-  channel: NotificationChannel
+  channel: NotificationChannel;
   /** Timestamp when sent */
-  sentAt: Date
+  sentAt: Date;
   /** Error message if failed */
-  error?: string
+  error?: string;
   /** Message ID from the channel */
-  messageId?: string
+  messageId?: string;
 }
 
 // ============================================================================
@@ -237,23 +237,23 @@ export interface NotificationResult {
  */
 export interface UserReply {
   /** Related task ID */
-  taskId: string
+  taskId: string;
   /** Reply content */
-  content: string
+  content: string;
   /** Channel the reply came from */
-  channel: NotificationChannel
+  channel: NotificationChannel;
   /** Reply timestamp */
-  timestamp: Date
+  timestamp: Date;
   /** Action ID if user clicked a button */
-  actionId?: string
+  actionId?: string;
   /** Raw reply data from channel */
-  rawData?: Record<string, unknown>
+  rawData?: Record<string, unknown>;
 }
 
 /**
  * Reply handler callback
  */
-export type ReplyHandler = (reply: UserReply) => Promise<void> | void
+export type ReplyHandler = (reply: UserReply) => Promise<void> | void;
 
 // ============================================================================
 // Cloud Service Types
@@ -264,13 +264,13 @@ export type ReplyHandler = (reply: UserReply) => Promise<void> | void
  */
 export interface DeviceRegisterRequest {
   /** Device name (optional) */
-  name?: string
+  name?: string;
   /** Operating system platform */
-  platform: string
+  platform: string;
   /** CCJK version */
-  version: string
+  version: string;
   /** Initial configuration */
-  config?: Partial<NotificationConfig>
+  config?: Partial<NotificationConfig>;
 }
 
 /**
@@ -278,11 +278,11 @@ export interface DeviceRegisterRequest {
  */
 export interface DeviceRegisterResponse {
   /** Generated device token */
-  token: string
+  token: string;
   /** Device ID */
-  deviceId: string
+  deviceId: string;
   /** Registration timestamp */
-  registeredAt: string
+  registeredAt: string;
 }
 
 /**
@@ -290,9 +290,9 @@ export interface DeviceRegisterResponse {
  */
 export interface TaskReportRequest {
   /** Task status */
-  task: TaskStatus
+  task: TaskStatus;
   /** Channels to notify */
-  channels: NotificationChannel[]
+  channels: NotificationChannel[];
 }
 
 /**
@@ -303,11 +303,11 @@ export interface TaskReportRequest {
  */
 export interface CloudChannelConfig {
   /** Channel type identifier */
-  type: NotificationChannel
+  type: NotificationChannel;
   /** Whether the channel is enabled */
-  enabled: boolean
+  enabled: boolean;
   /** Channel-specific configuration data */
-  config: Record<string, unknown>
+  config: Record<string, unknown>;
 }
 
 /**
@@ -317,15 +317,15 @@ export interface CloudChannelConfig {
  */
 export interface CloudDeviceInfo {
   /** Device ID */
-  deviceId: string
+  deviceId: string;
   /** Device name */
-  name: string
+  name: string;
   /** Operating system platform */
-  platform: string
+  platform: string;
   /** Enabled channel types */
-  channels: NotificationChannel[]
+  channels: NotificationChannel[];
   /** Last seen timestamp */
-  lastSeen: string
+  lastSeen: string;
 }
 
 /**
@@ -333,13 +333,13 @@ export interface CloudDeviceInfo {
  */
 export interface CloudApiResponse<T = unknown> {
   /** Whether request was successful */
-  success: boolean
+  success: boolean;
   /** Response data */
-  data?: T
+  data?: T;
   /** Error message if failed */
-  error?: string
+  error?: string;
   /** Error code */
-  code?: string
+  code?: string;
 }
 
 // ============================================================================
@@ -354,21 +354,21 @@ export type WebSocketEventType
     | 'disconnected'
     | 'reply'
     | 'notification_sent'
-    | 'error'
+    | 'error';
 
 /**
  * WebSocket event payload
  */
 export interface WebSocketEvent {
-  type: WebSocketEventType
-  data?: unknown
-  timestamp: Date
+  type: WebSocketEventType;
+  data?: unknown;
+  timestamp: Date;
 }
 
 /**
  * WebSocket connection state
  */
-export type WebSocketState = 'connecting' | 'connected' | 'disconnected' | 'reconnecting'
+export type WebSocketState = 'connecting' | 'connected' | 'disconnected' | 'reconnecting';
 
 // ============================================================================
 // Configuration Validation
@@ -379,11 +379,11 @@ export type WebSocketState = 'connecting' | 'connected' | 'disconnected' | 'reco
  */
 export interface ConfigValidationResult {
   /** Whether configuration is valid */
-  valid: boolean
+  valid: boolean;
   /** Validation errors */
-  errors: ConfigValidationError[]
+  errors: ConfigValidationError[];
   /** Validation warnings */
-  warnings: string[]
+  warnings: string[];
 }
 
 /**
@@ -391,19 +391,19 @@ export interface ConfigValidationResult {
  */
 export interface ConfigValidationError {
   /** Field path (e.g., 'channels.feishu.webhookUrl') */
-  field: string
+  field: string;
   /** Error message */
-  message: string
+  message: string;
   /** Error code */
-  code: string
+  code: string;
 }
 
 /**
  * Validate notification configuration
  */
 export function validateNotificationConfig(config: Partial<NotificationConfig>): ConfigValidationResult {
-  const errors: ConfigValidationError[] = []
-  const warnings: string[] = []
+  const errors: ConfigValidationError[] = [];
+  const warnings: string[] = [];
 
   // Check threshold
   if (config.threshold !== undefined) {
@@ -412,10 +412,10 @@ export function validateNotificationConfig(config: Partial<NotificationConfig>):
         field: 'threshold',
         message: 'Threshold must be at least 1 minute',
         code: 'THRESHOLD_TOO_LOW',
-      })
+      });
     }
     if (config.threshold > 1440) {
-      warnings.push('Threshold is set to more than 24 hours')
+      warnings.push('Threshold is set to more than 24 hours');
     }
   }
 
@@ -426,14 +426,14 @@ export function validateNotificationConfig(config: Partial<NotificationConfig>):
         field: 'channels.feishu.webhookUrl',
         message: 'Feishu webhook URL is required when enabled',
         code: 'FEISHU_WEBHOOK_REQUIRED',
-      })
+      });
     }
     else if (!config.channels.feishu.webhookUrl.startsWith('https://')) {
       errors.push({
         field: 'channels.feishu.webhookUrl',
         message: 'Feishu webhook URL must use HTTPS',
         code: 'FEISHU_WEBHOOK_INVALID',
-      })
+      });
     }
   }
 
@@ -444,21 +444,21 @@ export function validateNotificationConfig(config: Partial<NotificationConfig>):
         field: 'channels.wechat.corpId',
         message: 'WeChat Work Corp ID is required when enabled',
         code: 'WECHAT_CORPID_REQUIRED',
-      })
+      });
     }
     if (!config.channels.wechat.agentId) {
       errors.push({
         field: 'channels.wechat.agentId',
         message: 'WeChat Work Agent ID is required when enabled',
         code: 'WECHAT_AGENTID_REQUIRED',
-      })
+      });
     }
     if (!config.channels.wechat.secret) {
       errors.push({
         field: 'channels.wechat.secret',
         message: 'WeChat Work Secret is required when enabled',
         code: 'WECHAT_SECRET_REQUIRED',
-      })
+      });
     }
   }
 
@@ -469,14 +469,14 @@ export function validateNotificationConfig(config: Partial<NotificationConfig>):
         field: 'channels.email.address',
         message: 'Email address is required when enabled',
         code: 'EMAIL_ADDRESS_REQUIRED',
-      })
+      });
     }
     else if (!/^[^\s@]+@[^\s@][^\s.@]*\.[^\s@]+$/.test(config.channels.email.address)) {
       errors.push({
         field: 'channels.email.address',
         message: 'Invalid email address format',
         code: 'EMAIL_ADDRESS_INVALID',
-      })
+      });
     }
   }
 
@@ -487,14 +487,14 @@ export function validateNotificationConfig(config: Partial<NotificationConfig>):
         field: 'channels.sms.phone',
         message: 'Phone number is required when enabled',
         code: 'SMS_PHONE_REQUIRED',
-      })
+      });
     }
     else if (!/^\d{10,15}$/.test(config.channels.sms.phone.replace(/\D/g, ''))) {
       errors.push({
         field: 'channels.sms.phone',
         message: 'Invalid phone number format',
         code: 'SMS_PHONE_INVALID',
-      })
+      });
     }
   }
 
@@ -505,14 +505,14 @@ export function validateNotificationConfig(config: Partial<NotificationConfig>):
         field: 'quietHours.startHour',
         message: 'Start hour must be between 0 and 23',
         code: 'QUIET_HOURS_INVALID',
-      })
+      });
     }
     if (config.quietHours.endHour < 0 || config.quietHours.endHour > 23) {
       errors.push({
         field: 'quietHours.endHour',
         message: 'End hour must be between 0 and 23',
         code: 'QUIET_HOURS_INVALID',
-      })
+      });
     }
   }
 
@@ -520,5 +520,5 @@ export function validateNotificationConfig(config: Partial<NotificationConfig>):
     valid: errors.length === 0,
     errors,
     warnings,
-  }
+  };
 }

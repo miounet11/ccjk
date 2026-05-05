@@ -8,7 +8,7 @@
  * - Logging integration
  */
 
-import ansis from 'ansis'
+import ansis from 'ansis';
 
 /**
  * Base CCJK Error class
@@ -20,9 +20,9 @@ export class CcjkError extends Error {
     public context?: string,
     public originalError?: Error,
   ) {
-    super(message)
-    this.name = 'CcjkError'
-    Error.captureStackTrace(this, this.constructor)
+    super(message);
+    this.name = 'CcjkError';
+    Error.captureStackTrace(this, this.constructor);
   }
 
   toJSON() {
@@ -33,15 +33,15 @@ export class CcjkError extends Error {
       context: this.context,
       originalError: this.originalError?.message,
       stack: this.stack,
-    }
+    };
   }
 
   toString() {
-    let output = `[${this.code}] ${this.message}`
+    let output = `[${this.code}] ${this.message}`;
     if (this.context) {
-      output += ` (context: ${this.context})`
+      output += ` (context: ${this.context})`;
     }
-    return output
+    return output;
   }
 }
 
@@ -64,43 +64,43 @@ export type ErrorCode
     | 'LOCK_FILE_EXISTS'
     | 'VERSION_INCOMPATIBLE'
     | 'DEPENDENCY_MISSING'
-    | 'UNKNOWN_ERROR'
+    | 'UNKNOWN_ERROR';
 
 /**
  * Specific error types
  */
 export class ConfigError extends CcjkError {
   constructor(message: string, context?: string) {
-    super('CONFIG_INVALID', message, context)
-    this.name = 'ConfigError'
+    super('CONFIG_INVALID', message, context);
+    this.name = 'ConfigError';
   }
 }
 
 export class ApiKeyError extends CcjkError {
   constructor(message: string, context?: string) {
-    super('API_KEY_MISSING', message, context)
-    this.name = 'ApiKeyError'
+    super('API_KEY_MISSING', message, context);
+    this.name = 'ApiKeyError';
   }
 }
 
 export class NetworkError extends CcjkError {
   constructor(message: string, context?: string, originalError?: Error) {
-    super('NETWORK_ERROR', message, context, originalError)
-    this.name = 'NetworkError'
+    super('NETWORK_ERROR', message, context, originalError);
+    this.name = 'NetworkError';
   }
 }
 
 export class FileNotFoundError extends CcjkError {
   constructor(path: string, context?: string) {
-    super('FILE_NOT_FOUND', `File not found: ${path}`, context)
-    this.name = 'FileNotFoundError'
+    super('FILE_NOT_FOUND', `File not found: ${path}`, context);
+    this.name = 'FileNotFoundError';
   }
 }
 
 export class ValidationError extends CcjkError {
   constructor(message: string, context?: string) {
-    super('VALIDATION_ERROR', message, context)
-    this.name = 'ValidationError'
+    super('VALIDATION_ERROR', message, context);
+    this.name = 'ValidationError';
   }
 }
 
@@ -114,8 +114,8 @@ export class ErrorBoundary {
   static handle(error: unknown, context: string): never {
     // Already a CcjkError
     if (error instanceof CcjkError) {
-      this.log(error)
-      throw error
+      this.log(error);
+      throw error;
     }
 
     // Standard Error
@@ -125,9 +125,9 @@ export class ErrorBoundary {
         error.message,
         context,
         error,
-      )
-      this.log(ccjkError)
-      throw ccjkError
+      );
+      this.log(ccjkError);
+      throw ccjkError;
     }
 
     // Unknown error type
@@ -135,9 +135,9 @@ export class ErrorBoundary {
       'UNKNOWN_ERROR',
       String(error),
       context,
-    )
-    this.log(ccjkError)
-    throw ccjkError
+    );
+    this.log(ccjkError);
+    throw ccjkError;
   }
 
   /**
@@ -145,12 +145,12 @@ export class ErrorBoundary {
    */
   static wrap<T>(fn: () => T, context: string): T {
     try {
-      return fn()
+      return fn();
     }
     catch (error) {
-      ErrorBoundary.handle(error, context)
+      ErrorBoundary.handle(error, context);
       // Never reached, handle always throws
-      throw new Error('Unreachable')
+      throw new Error('Unreachable');
     }
   }
 
@@ -159,12 +159,12 @@ export class ErrorBoundary {
    */
   static async wrapAsync<T>(fn: () => Promise<T>, context: string): Promise<T> {
     try {
-      return await fn()
+      return await fn();
     }
     catch (error) {
-      ErrorBoundary.handle(error, context)
+      ErrorBoundary.handle(error, context);
       // Never reached, handle always throws
-      throw new Error('Unreachable')
+      throw new Error('Unreachable');
     }
   }
 
@@ -172,15 +172,15 @@ export class ErrorBoundary {
    * Log error with formatting
    */
   private static log(error: CcjkError): void {
-    const timestamp = new Date().toISOString()
-    const logMessage = `[${timestamp}] ${error.toString()}`
+    const timestamp = new Date().toISOString();
+    const logMessage = `[${timestamp}] ${error.toString()}`;
 
     // Console error with color
-    console.error(ansis.red(logMessage))
+    console.error(ansis.red(logMessage));
 
     // Debug logging in development
     if (process.env.CCJK_DEBUG) {
-      console.error(ansis.gray('Stack:'), error.stack)
+      console.error(ansis.gray('Stack:'), error.stack);
     }
   }
 
@@ -205,32 +205,32 @@ export class ErrorBoundary {
       VERSION_INCOMPATIBLE: `Update CCJK: npm update -g ccjk`,
       DEPENDENCY_MISSING: 'Run `ccjk doctor` to check dependencies',
       UNKNOWN_ERROR: 'Run `ccjk doctor` for diagnostic information',
-    }
+    };
 
-    return suggestions[error.code as ErrorCode] || suggestions.UNKNOWN_ERROR
+    return suggestions[error.code as ErrorCode] || suggestions.UNKNOWN_ERROR;
   }
 
   /**
    * Format error for user display
    */
   static format(error: CcjkError): string {
-    const parts: string[] = []
+    const parts: string[] = [];
 
     // Error code with color
-    parts.push(ansis.red(`[${error.code}]`))
+    parts.push(ansis.red(`[${error.code}]`));
 
     // Error message
-    parts.push(ansis.white(error.message))
+    parts.push(ansis.white(error.message));
 
     // Context
     if (error.context) {
-      parts.push(ansis.gray(`(${error.context})`))
+      parts.push(ansis.gray(`(${error.context})`));
     }
 
     // Suggestion
-    const suggestion = ErrorBoundary.getSuggestion(error)
-    parts.push(ansis.yellow(`\n💡 ${suggestion}`))
+    const suggestion = ErrorBoundary.getSuggestion(error);
+    parts.push(ansis.yellow(`\n💡 ${suggestion}`));
 
-    return parts.join(' ')
+    return parts.join(' ');
   }
 }

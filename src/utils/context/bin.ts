@@ -17,9 +17,9 @@
  *   ccjk --help                    # Show help
  */
 
-import process from 'node:process'
-import { CLIWrapper } from './cli-wrapper'
-import { createContextManager } from './context-manager'
+import process from 'node:process';
+import { CLIWrapper } from './cli-wrapper';
+import { createContextManager } from './context-manager';
 
 /**
  * ANSI color codes for terminal output
@@ -35,18 +35,18 @@ const colors = {
   magenta: '\x1B[35m',
   cyan: '\x1B[36m',
   white: '\x1B[37m',
-}
+};
 
 /**
  * Format bytes to human-readable string
  */
 function formatBytes(bytes: number): string {
   if (bytes === 0)
-    return '0 B'
-  const k = 1024
-  const sizes = ['B', 'KB', 'MB', 'GB']
-  const i = Math.floor(Math.log(bytes) / Math.log(k))
-  return `${Number.parseFloat((bytes / k ** i).toFixed(2))} ${sizes[i]}`
+    return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return `${Number.parseFloat((bytes / k ** i).toFixed(2))} ${sizes[i]}`;
 }
 
 /**
@@ -54,67 +54,67 @@ function formatBytes(bytes: number): string {
  */
 function formatRelativeTime(timestamp: number | null): string {
   if (!timestamp)
-    return 'Never'
+    return 'Never';
 
-  const now = Date.now()
-  const diff = now - timestamp
-  const seconds = Math.floor(diff / 1000)
-  const minutes = Math.floor(seconds / 60)
-  const hours = Math.floor(minutes / 60)
-  const days = Math.floor(hours / 24)
+  const now = Date.now();
+  const diff = now - timestamp;
+  const seconds = Math.floor(diff / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
 
   if (days > 0)
-    return `${days}d ago`
+    return `${days}d ago`;
   if (hours > 0)
-    return `${hours}h ago`
+    return `${hours}h ago`;
   if (minutes > 0)
-    return `${minutes}m ago`
-  return `${seconds}s ago`
+    return `${minutes}m ago`;
+  return `${seconds}s ago`;
 }
 
 /**
  * Print colored message
  */
 function print(message: string, color?: keyof typeof colors): void {
-  const colorCode = color ? colors[color] : ''
-  console.log(`${colorCode}${message}${colors.reset}`)
+  const colorCode = color ? colors[color] : '';
+  console.log(`${colorCode}${message}${colors.reset}`);
 }
 
 /**
  * Print error message
  */
 function printError(message: string): void {
-  console.error(`${colors.red}${colors.bright}Error:${colors.reset} ${colors.red}${message}${colors.reset}`)
+  console.error(`${colors.red}${colors.bright}Error:${colors.reset} ${colors.red}${message}${colors.reset}`);
 }
 
 /**
  * Print success message
  */
 function printSuccess(message: string): void {
-  console.log(`${colors.green}${colors.bright}✓${colors.reset} ${colors.green}${message}${colors.reset}`)
+  console.log(`${colors.green}${colors.bright}✓${colors.reset} ${colors.green}${message}${colors.reset}`);
 }
 
 /**
  * Print warning message
  */
 function printWarning(message: string): void {
-  console.log(`${colors.yellow}${colors.bright}⚠${colors.reset} ${colors.yellow}${message}${colors.reset}`)
+  console.log(`${colors.yellow}${colors.bright}⚠${colors.reset} ${colors.yellow}${message}${colors.reset}`);
 }
 
 /**
  * Print info message
  */
 function printInfo(message: string): void {
-  console.log(`${colors.cyan}${colors.bright}ℹ${colors.reset} ${colors.cyan}${message}${colors.reset}`)
+  console.log(`${colors.cyan}${colors.bright}ℹ${colors.reset} ${colors.cyan}${message}${colors.reset}`);
 }
 
 /**
  * Print section header
  */
 function printHeader(title: string): void {
-  console.log()
-  console.log(`${colors.bright}${colors.blue}━━━ ${title} ━━━${colors.reset}`)
-  console.log()
+  console.log();
+  console.log(`${colors.bright}${colors.blue}━━━ ${title} ━━━${colors.reset}`);
+  console.log();
 }
 
 /**
@@ -166,7 +166,7 @@ ${colors.bright}COMPRESSION:${colors.reset}
 ${colors.bright}MORE INFO:${colors.reset}
   Documentation: https://github.com/your-repo/ccjk
   Issues: https://github.com/your-repo/ccjk/issues
-`)
+`);
 }
 
 /**
@@ -174,39 +174,39 @@ ${colors.bright}MORE INFO:${colors.reset}
  */
 async function showStatus(): Promise<void> {
   try {
-    const manager = createContextManager({ debug: false })
-    await manager.initialize()
+    const manager = createContextManager({ debug: false });
+    await manager.initialize();
 
-    const session = manager.getCurrentSession()
-    const stats = manager.getStats()
+    const session = manager.getCurrentSession();
+    const stats = manager.getStats();
 
-    printHeader('Session Status')
+    printHeader('Session Status');
 
     if (!session) {
-      printWarning('No active session')
-      return
+      printWarning('No active session');
+      return;
     }
 
-    console.log(`${colors.bright}Session ID:${colors.reset}       ${session.id}`)
-    console.log(`${colors.bright}Project:${colors.reset}          ${session.projectPath}`)
-    console.log(`${colors.bright}Started:${colors.reset}          ${new Date(session.startTime).toLocaleString()}`)
-    console.log(`${colors.bright}Token Count:${colors.reset}      ${session.tokenCount.toLocaleString()}`)
-    console.log(`${colors.bright}FC Count:${colors.reset}         ${session.fcCount}`)
-    console.log(`${colors.bright}Context Usage:${colors.reset}    ${(stats.contextUsage * 100).toFixed(1)}%`)
+    console.log(`${colors.bright}Session ID:${colors.reset}       ${session.id}`);
+    console.log(`${colors.bright}Project:${colors.reset}          ${session.projectPath}`);
+    console.log(`${colors.bright}Started:${colors.reset}          ${new Date(session.startTime).toLocaleString()}`);
+    console.log(`${colors.bright}Token Count:${colors.reset}      ${session.tokenCount.toLocaleString()}`);
+    console.log(`${colors.bright}FC Count:${colors.reset}         ${session.fcCount}`);
+    console.log(`${colors.bright}Context Usage:${colors.reset}    ${(stats.contextUsage * 100).toFixed(1)}%`);
 
     // Show threshold level with color
     const thresholdColor = stats.thresholdLevel === 'critical'
       ? 'red'
       : stats.thresholdLevel === 'warning'
         ? 'yellow'
-        : 'green'
-    console.log(`${colors.bright}Threshold:${colors.reset}        ${colors[thresholdColor]}${stats.thresholdLevel}${colors.reset}`)
+        : 'green';
+    console.log(`${colors.bright}Threshold:${colors.reset}        ${colors[thresholdColor]}${stats.thresholdLevel}${colors.reset}`);
 
-    console.log()
+    console.log();
   }
   catch (error) {
-    printError(`Failed to get status: ${error instanceof Error ? error.message : String(error)}`)
-    process.exit(1)
+    printError(`Failed to get status: ${error instanceof Error ? error.message : String(error)}`);
+    process.exit(1);
   }
 }
 
@@ -215,30 +215,30 @@ async function showStatus(): Promise<void> {
  */
 async function triggerCompression(): Promise<void> {
   try {
-    const manager = createContextManager({ debug: false })
-    await manager.initialize()
+    const manager = createContextManager({ debug: false });
+    await manager.initialize();
 
-    const session = manager.getCurrentSession()
+    const session = manager.getCurrentSession();
     if (!session) {
-      printWarning('No active session to compress')
-      return
+      printWarning('No active session to compress');
+      return;
     }
 
-    printInfo('Starting compression...')
+    printInfo('Starting compression...');
 
-    const summary = await manager.compress()
+    const summary = await manager.compress();
 
-    printSuccess('Compression completed')
-    console.log()
-    console.log(`${colors.bright}Original Tokens:${colors.reset}   ${summary.originalTokens.toLocaleString()}`)
-    console.log(`${colors.bright}Compressed:${colors.reset}        ${summary.compressedTokens.toLocaleString()}`)
-    console.log(`${colors.bright}Ratio:${colors.reset}             ${(summary.compressionRatio * 100).toFixed(1)}%`)
-    console.log(`${colors.bright}Saved:${colors.reset}             ${(summary.originalTokens - summary.compressedTokens).toLocaleString()} tokens`)
-    console.log()
+    printSuccess('Compression completed');
+    console.log();
+    console.log(`${colors.bright}Original Tokens:${colors.reset}   ${summary.originalTokens.toLocaleString()}`);
+    console.log(`${colors.bright}Compressed:${colors.reset}        ${summary.compressedTokens.toLocaleString()}`);
+    console.log(`${colors.bright}Ratio:${colors.reset}             ${(summary.compressionRatio * 100).toFixed(1)}%`);
+    console.log(`${colors.bright}Saved:${colors.reset}             ${(summary.originalTokens - summary.compressedTokens).toLocaleString()} tokens`);
+    console.log();
   }
   catch (error) {
-    printError(`Failed to compress: ${error instanceof Error ? error.message : String(error)}`)
-    process.exit(1)
+    printError(`Failed to compress: ${error instanceof Error ? error.message : String(error)}`);
+    process.exit(1);
   }
 }
 
@@ -247,40 +247,40 @@ async function triggerCompression(): Promise<void> {
  */
 async function listSessions(): Promise<void> {
   try {
-    const manager = createContextManager({ debug: false })
-    await manager.initialize()
+    const manager = createContextManager({ debug: false });
+    await manager.initialize();
 
-    const storageManager = manager.getStorageManager()
-    const sessions = await storageManager.listSessions({ projectHash: undefined })
+    const storageManager = manager.getStorageManager();
+    const sessions = await storageManager.listSessions({ projectHash: undefined });
 
-    printHeader('Sessions')
+    printHeader('Sessions');
 
     if (sessions.length === 0) {
-      printWarning('No sessions found')
-      return
+      printWarning('No sessions found');
+      return;
     }
 
-    console.log(`${colors.dim}Total: ${sessions.length} sessions${colors.reset}`)
-    console.log()
+    console.log(`${colors.dim}Total: ${sessions.length} sessions${colors.reset}`);
+    console.log();
 
     for (const session of sessions.slice(0, 20)) {
-      const status = session.status === 'active' ? colors.green : colors.dim
-      console.log(`${status}●${colors.reset} ${colors.bright}${session.id}${colors.reset}`)
-      console.log(`  ${colors.dim}Project:${colors.reset} ${session.projectPath}`)
-      console.log(`  ${colors.dim}Started:${colors.reset} ${new Date(session.startTime).toLocaleString()}`)
+      const status = session.status === 'active' ? colors.green : colors.dim;
+      console.log(`${status}●${colors.reset} ${colors.bright}${session.id}${colors.reset}`);
+      console.log(`  ${colors.dim}Project:${colors.reset} ${session.projectPath}`);
+      console.log(`  ${colors.dim}Started:${colors.reset} ${new Date(session.startTime).toLocaleString()}`);
       if (session.endTime) {
-        console.log(`  ${colors.dim}Ended:${colors.reset}   ${new Date(session.endTime).toLocaleString()}`)
+        console.log(`  ${colors.dim}Ended:${colors.reset}   ${new Date(session.endTime).toLocaleString()}`);
       }
-      console.log()
+      console.log();
     }
 
     if (sessions.length > 20) {
-      console.log(`${colors.dim}... and ${sessions.length - 20} more${colors.reset}`)
+      console.log(`${colors.dim}... and ${sessions.length - 20} more${colors.reset}`);
     }
   }
   catch (error) {
-    printError(`Failed to list sessions: ${error instanceof Error ? error.message : String(error)}`)
-    process.exit(1)
+    printError(`Failed to list sessions: ${error instanceof Error ? error.message : String(error)}`);
+    process.exit(1);
   }
 }
 
@@ -289,34 +289,34 @@ async function listSessions(): Promise<void> {
  */
 async function showStats(): Promise<void> {
   try {
-    const manager = createContextManager({ debug: false })
-    await manager.initialize()
+    const manager = createContextManager({ debug: false });
+    await manager.initialize();
 
-    const stats = manager.getStats()
+    const stats = manager.getStats();
 
-    printHeader('Statistics')
+    printHeader('Statistics');
 
-    console.log(`${colors.bright}Current Tokens:${colors.reset}       ${stats.currentTokens.toLocaleString()}`)
-    console.log(`${colors.bright}Compressed Tokens:${colors.reset}    ${stats.compressedTokens.toLocaleString()}`)
-    console.log(`${colors.bright}Compression Ratio:${colors.reset}    ${(stats.compressionRatio * 100).toFixed(1)}%`)
-    console.log(`${colors.bright}Total Sessions:${colors.reset}       ${stats.sessionCount}`)
-    console.log(`${colors.bright}Total Messages:${colors.reset}       ${stats.totalMessages.toLocaleString()}`)
-    console.log(`${colors.bright}Last Compression:${colors.reset}     ${formatRelativeTime(stats.lastCompression)}`)
-    console.log(`${colors.bright}Context Usage:${colors.reset}        ${(stats.contextUsage * 100).toFixed(1)}%`)
+    console.log(`${colors.bright}Current Tokens:${colors.reset}       ${stats.currentTokens.toLocaleString()}`);
+    console.log(`${colors.bright}Compressed Tokens:${colors.reset}    ${stats.compressedTokens.toLocaleString()}`);
+    console.log(`${colors.bright}Compression Ratio:${colors.reset}    ${(stats.compressionRatio * 100).toFixed(1)}%`);
+    console.log(`${colors.bright}Total Sessions:${colors.reset}       ${stats.sessionCount}`);
+    console.log(`${colors.bright}Total Messages:${colors.reset}       ${stats.totalMessages.toLocaleString()}`);
+    console.log(`${colors.bright}Last Compression:${colors.reset}     ${formatRelativeTime(stats.lastCompression)}`);
+    console.log(`${colors.bright}Context Usage:${colors.reset}        ${(stats.contextUsage * 100).toFixed(1)}%`);
 
     // Show threshold level with color
     const thresholdColor = stats.thresholdLevel === 'critical'
       ? 'red'
       : stats.thresholdLevel === 'warning'
         ? 'yellow'
-        : 'green'
-    console.log(`${colors.bright}Threshold Level:${colors.reset}      ${colors[thresholdColor]}${stats.thresholdLevel}${colors.reset}`)
+        : 'green';
+    console.log(`${colors.bright}Threshold Level:${colors.reset}      ${colors[thresholdColor]}${stats.thresholdLevel}${colors.reset}`);
 
-    console.log()
+    console.log();
   }
   catch (error) {
-    printError(`Failed to get stats: ${error instanceof Error ? error.message : String(error)}`)
-    process.exit(1)
+    printError(`Failed to get stats: ${error instanceof Error ? error.message : String(error)}`);
+    process.exit(1);
   }
 }
 
@@ -325,30 +325,30 @@ async function showStats(): Promise<void> {
  */
 async function showConfig(): Promise<void> {
   try {
-    const manager = createContextManager({ debug: false })
-    await manager.initialize()
+    const manager = createContextManager({ debug: false });
+    await manager.initialize();
 
-    const configManager = manager.getConfigManager()
-    const config = await configManager.get()
+    const configManager = manager.getConfigManager();
+    const config = await configManager.get();
 
-    printHeader('Configuration')
+    printHeader('Configuration');
 
-    console.log(`${colors.bright}Enabled:${colors.reset}              ${config.enabled ? `${colors.green}Yes` : `${colors.red}No`}${colors.reset}`)
-    console.log(`${colors.bright}Max Context Tokens:${colors.reset}   ${config.maxContextTokens.toLocaleString()}`)
-    console.log(`${colors.bright}Context Threshold:${colors.reset}    ${config.contextThreshold.toLocaleString()}`)
-    console.log(`${colors.bright}Summary Model:${colors.reset}        ${config.summaryModel}`)
-    console.log(`${colors.bright}Auto Summarize:${colors.reset}       ${config.autoSummarize ? `${colors.green}Yes` : `${colors.red}No`}${colors.reset}`)
-    console.log(`${colors.bright}Cloud Sync:${colors.reset}           ${config.cloudSync.enabled ? `${colors.green}Yes` : `${colors.red}No`}${colors.reset}`)
+    console.log(`${colors.bright}Enabled:${colors.reset}              ${config.enabled ? `${colors.green}Yes` : `${colors.red}No`}${colors.reset}`);
+    console.log(`${colors.bright}Max Context Tokens:${colors.reset}   ${config.maxContextTokens.toLocaleString()}`);
+    console.log(`${colors.bright}Context Threshold:${colors.reset}    ${config.contextThreshold.toLocaleString()}`);
+    console.log(`${colors.bright}Summary Model:${colors.reset}        ${config.summaryModel}`);
+    console.log(`${colors.bright}Auto Summarize:${colors.reset}       ${config.autoSummarize ? `${colors.green}Yes` : `${colors.red}No`}${colors.reset}`);
+    console.log(`${colors.bright}Cloud Sync:${colors.reset}           ${config.cloudSync.enabled ? `${colors.green}Yes` : `${colors.red}No`}${colors.reset}`);
 
     if (config.cloudSync.enabled) {
-      console.log(`${colors.bright}Sync Endpoint:${colors.reset}        ${config.cloudSync.endpoint || 'default'}`)
+      console.log(`${colors.bright}Sync Endpoint:${colors.reset}        ${config.cloudSync.endpoint || 'default'}`);
     }
 
-    console.log()
+    console.log();
   }
   catch (error) {
-    printError(`Failed to get config: ${error instanceof Error ? error.message : String(error)}`)
-    process.exit(1)
+    printError(`Failed to get config: ${error instanceof Error ? error.message : String(error)}`);
+    process.exit(1);
   }
 }
 
@@ -357,20 +357,20 @@ async function showConfig(): Promise<void> {
  */
 async function cleanupSessions(maxAgeDays: number = 30): Promise<void> {
   try {
-    const manager = createContextManager({ debug: false })
-    await manager.initialize()
+    const manager = createContextManager({ debug: false });
+    await manager.initialize();
 
-    printInfo(`Cleaning up sessions older than ${maxAgeDays} days...`)
+    printInfo(`Cleaning up sessions older than ${maxAgeDays} days...`);
 
-    const result = await manager.cleanupOldSessions(maxAgeDays)
+    const result = await manager.cleanupOldSessions(maxAgeDays);
 
-    printSuccess(`Cleaned up ${result.sessionsRemoved} sessions`)
-    console.log(`${colors.dim}Freed ${formatBytes(result.bytesFreed)}${colors.reset}`)
-    console.log()
+    printSuccess(`Cleaned up ${result.sessionsRemoved} sessions`);
+    console.log(`${colors.dim}Freed ${formatBytes(result.bytesFreed)}${colors.reset}`);
+    console.log();
   }
   catch (error) {
-    printError(`Failed to cleanup: ${error instanceof Error ? error.message : String(error)}`)
-    process.exit(1)
+    printError(`Failed to cleanup: ${error instanceof Error ? error.message : String(error)}`);
+    process.exit(1);
   }
 }
 
@@ -378,39 +378,39 @@ async function cleanupSessions(maxAgeDays: number = 30): Promise<void> {
  * Start Claude Code with compression proxy
  */
 async function startProxy(args: string[], options: {
-  disableCompression?: boolean
-  verbose?: boolean
-  projectPath?: string
+  disableCompression?: boolean;
+  verbose?: boolean;
+  projectPath?: string;
 }): Promise<void> {
   try {
     const wrapper = new CLIWrapper({
       disableCompression: options.disableCompression,
       verbose: options.verbose,
       projectPath: options.projectPath,
-    })
+    });
 
     // Setup event listeners for user feedback
     wrapper.getSessionManager().on('threshold_warning', (event) => {
-      printWarning(`Context usage: ${event.data.usage.toFixed(1)}% (${event.data.remaining} tokens remaining)`)
-    })
+      printWarning(`Context usage: ${event.data.usage.toFixed(1)}% (${event.data.remaining} tokens remaining)`);
+    });
 
     wrapper.getSessionManager().on('threshold_critical', (event) => {
-      printError(`Critical: Context usage at ${event.data.usage.toFixed(1)}%`)
-      printInfo('Triggering automatic compression...')
-    })
+      printError(`Critical: Context usage at ${event.data.usage.toFixed(1)}%`);
+      printInfo('Triggering automatic compression...');
+    });
 
     wrapper.getSessionManager().on('fc_summarized', (event) => {
       if (options.verbose) {
-        printSuccess(`Summarized: ${event.data.summary.fcName}`)
+        printSuccess(`Summarized: ${event.data.summary.fcName}`);
       }
-    })
+    });
 
     // Start the wrapper
-    await wrapper.start(args)
+    await wrapper.start(args);
   }
   catch (error) {
-    printError(`Failed to start: ${error instanceof Error ? error.message : String(error)}`)
-    process.exit(1)
+    printError(`Failed to start: ${error instanceof Error ? error.message : String(error)}`);
+    process.exit(1);
   }
 }
 
@@ -418,75 +418,75 @@ async function startProxy(args: string[], options: {
  * Main entry point
  */
 async function main(): Promise<void> {
-  const args = process.argv.slice(2)
+  const args = process.argv.slice(2);
 
   // Parse options
-  let disableCompression = false
-  let verbose = false
-  let projectPath: string | undefined
+  let disableCompression = false;
+  let verbose = false;
+  let projectPath: string | undefined;
 
   // Handle management commands
   if (args.length === 0 || args[0] === '--help' || args[0] === '-h') {
-    showHelp()
-    return
+    showHelp();
+    return;
   }
 
   if (args[0] === '--status') {
-    await showStatus()
-    return
+    await showStatus();
+    return;
   }
 
   if (args[0] === '--compress') {
-    await triggerCompression()
-    return
+    await triggerCompression();
+    return;
   }
 
   if (args[0] === '--sessions') {
-    await listSessions()
-    return
+    await listSessions();
+    return;
   }
 
   if (args[0] === '--stats') {
-    await showStats()
-    return
+    await showStats();
+    return;
   }
 
   if (args[0] === '--config') {
-    await showConfig()
-    return
+    await showConfig();
+    return;
   }
 
   if (args[0] === '--cleanup') {
-    const maxAgeDays = args[1] ? Number.parseInt(args[1], 10) : 30
+    const maxAgeDays = args[1] ? Number.parseInt(args[1], 10) : 30;
     if (Number.isNaN(maxAgeDays) || maxAgeDays <= 0) {
-      printError('Invalid cleanup days. Must be a positive number.')
-      process.exit(1)
+      printError('Invalid cleanup days. Must be a positive number.');
+      process.exit(1);
     }
-    await cleanupSessions(maxAgeDays)
-    return
+    await cleanupSessions(maxAgeDays);
+    return;
   }
 
   if (args[0] === '--sync') {
-    printWarning('Cloud sync not yet implemented')
-    return
+    printWarning('Cloud sync not yet implemented');
+    return;
   }
 
   // Parse flags for proxy mode
-  const claudeArgs: string[] = []
+  const claudeArgs: string[] = [];
   for (let i = 0; i < args.length; i++) {
-    const arg = args[i]
+    const arg = args[i];
 
     if (arg === '--disable-compression') {
-      disableCompression = true
+      disableCompression = true;
     }
     else if (arg === '--verbose') {
-      verbose = true
+      verbose = true;
     }
     else if (arg === '--project') {
-      projectPath = args[++i]
+      projectPath = args[++i];
     }
     else {
-      claudeArgs.push(arg)
+      claudeArgs.push(arg);
     }
   }
 
@@ -495,14 +495,14 @@ async function main(): Promise<void> {
     disableCompression,
     verbose,
     projectPath,
-  })
+  });
 }
 
 // Run main function
 main().catch((error) => {
-  printError(`Unexpected error: ${error instanceof Error ? error.message : String(error)}`)
+  printError(`Unexpected error: ${error instanceof Error ? error.message : String(error)}`);
   if (error instanceof Error && error.stack) {
-    console.error(colors.dim + error.stack + colors.reset)
+    console.error(colors.dim + error.stack + colors.reset);
   }
-  process.exit(1)
-})
+  process.exit(1);
+});

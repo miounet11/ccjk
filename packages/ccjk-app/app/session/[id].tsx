@@ -1,25 +1,25 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  FlatList,
   ActivityIndicator,
-  TouchableOpacity,
   Alert,
+  FlatList,
   RefreshControl,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
-import { useSessionsStore } from '../../src/store/sessions';
 import { socketClient } from '../../src/api/socket';
-import { decryptMessage, getSessionKey } from '../../src/utils/encryption';
 import {
-  TextMessage,
-  ToolCallMessage,
   PermissionCard,
   StatusMessage,
+  TextMessage,
+  ToolCallMessage,
 } from '../../src/components/messages';
 import { RemoteControl } from '../../src/components/RemoteControl';
+import { useSessionsStore } from '../../src/store/sessions';
+import { decryptMessage, getSessionKey } from '../../src/utils/encryption';
 
 export default function SessionDetail() {
   const router = useRouter();
@@ -73,10 +73,12 @@ export default function SessionDetail() {
       if (key) {
         setSessionKey(key);
       }
-    } catch (error) {
+    }
+    catch (error) {
       console.error('Failed to load session:', error);
       Alert.alert('Error', 'Failed to load session');
-    } finally {
+    }
+    finally {
       setIsLoading(false);
     }
   };
@@ -87,7 +89,8 @@ export default function SessionDetail() {
 
     // Listen for real-time events
     const handleSessionEvent = (data: any) => {
-      if (data.sessionId !== id) return;
+      if (data.sessionId !== id)
+        return;
 
       // Decrypt event
       if (sessionKey) {
@@ -135,7 +138,7 @@ export default function SessionDetail() {
     // Handle different event types
     switch (event.t) {
       case 'permission-request':
-        setPendingApprovals((prev) => [...prev, event]);
+        setPendingApprovals(prev => [...prev, event]);
         break;
 
       case 'tool-call-start':
@@ -163,11 +166,11 @@ export default function SessionDetail() {
       approved,
     });
 
-    setPendingApprovals((prev) => prev.filter((a) => a.requestId !== requestId));
+    setPendingApprovals(prev => prev.filter(a => a.requestId !== requestId));
 
     Alert.alert(
       'Response Sent',
-      approved ? 'Permission approved' : 'Permission denied'
+      approved ? 'Permission approved' : 'Permission denied',
     );
   };
 
@@ -244,7 +247,10 @@ export default function SessionDetail() {
       default:
         return (
           <View style={styles.unknownEvent}>
-            <Text style={styles.unknownEventText}>Unknown event: {item.t}</Text>
+            <Text style={styles.unknownEventText}>
+              Unknown event:
+              {item.t}
+            </Text>
           </View>
         );
     }
@@ -291,7 +297,10 @@ export default function SessionDetail() {
           )}
         </View>
         <Text style={styles.subtitle}>
-          {currentSession?.machine.hostname} • {currentSession?.machine.platform}
+          {currentSession?.machine.hostname}
+          {' '}
+          •
+          {currentSession?.machine.platform}
         </Text>
       </View>
 
@@ -299,9 +308,14 @@ export default function SessionDetail() {
       {pendingApprovals.length > 0 && (
         <View style={styles.approvalsContainer}>
           <Text style={styles.approvalsTitle}>
-            ⚠️ {pendingApprovals.length} Pending Approval{pendingApprovals.length > 1 ? 's' : ''}
+            ⚠️
+            {' '}
+            {pendingApprovals.length}
+            {' '}
+            Pending Approval
+            {pendingApprovals.length > 1 ? 's' : ''}
           </Text>
-          {pendingApprovals.map((approval) => (
+          {pendingApprovals.map(approval => (
             <PermissionCard
               key={approval.requestId}
               requestId={approval.requestId}
@@ -325,7 +339,7 @@ export default function SessionDetail() {
         refreshControl={
           <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
         }
-        ListEmptyComponent={
+        ListEmptyComponent={(
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyIcon}>💬</Text>
             <Text style={styles.emptyText}>No messages yet</Text>
@@ -333,7 +347,7 @@ export default function SessionDetail() {
               Start coding and messages will appear here
             </Text>
           </View>
-        }
+        )}
       />
 
       {/* Remote Control */}

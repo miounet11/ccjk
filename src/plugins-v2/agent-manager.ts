@@ -4,20 +4,20 @@
  * Manages agent registration, lifecycle, and execution
  */
 
-import type { AgentDefinition, CloudAgent } from '../types/agent'
-import { existsSync, readFileSync, writeFileSync } from 'node:fs'
-import { join } from 'pathe'
-import { CLAUDE_AGENTS_DIR } from '../constants'
+import type { AgentDefinition, CloudAgent } from '../types/agent';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { join } from 'pathe';
+import { CLAUDE_AGENTS_DIR } from '../constants';
 
 /** Agents directory - uses ~/.claude/agents for Claude Code compatibility */
-const AGENTS_DIR = CLAUDE_AGENTS_DIR
+const AGENTS_DIR = CLAUDE_AGENTS_DIR;
 
 /**
  * Register an agent
  */
 export async function registerAgent(agent: Partial<CloudAgent> | AgentDefinition | any): Promise<void> {
-  const agentId = 'id' in agent ? agent.id! : generateAgentId(agent)
-  const _agentPath = join(AGENTS_DIR, `${agentId}.json`)
+  const agentId = 'id' in agent ? agent.id! : generateAgentId(agent);
+  const _agentPath = join(AGENTS_DIR, `${agentId}.json`);
 
   // Ensure agents directory exists
   if (!existsSync(AGENTS_DIR)) {
@@ -26,12 +26,12 @@ export async function registerAgent(agent: Partial<CloudAgent> | AgentDefinition
 
   // Agent is already written by writeAgentFile
   // This function just tracks it in the registry
-  const registryPath = join(AGENTS_DIR, 'registry.json')
-  let registry: Record<string, any> = {}
+  const registryPath = join(AGENTS_DIR, 'registry.json');
+  let registry: Record<string, any> = {};
 
   if (existsSync(registryPath)) {
     try {
-      registry = JSON.parse(readFileSync(registryPath, 'utf-8'))
+      registry = JSON.parse(readFileSync(registryPath, 'utf-8'));
     }
     catch {
       // Invalid registry, start fresh
@@ -41,27 +41,27 @@ export async function registerAgent(agent: Partial<CloudAgent> | AgentDefinition
   registry[agentId] = {
     registeredAt: new Date().toISOString(),
     version: 'version' in agent ? agent.version : '1.0.0',
-  }
+  };
 
-  writeFileSync(registryPath, JSON.stringify(registry, null, 2))
+  writeFileSync(registryPath, JSON.stringify(registry, null, 2));
 }
 
 /**
  * List all registered agents
  */
 export function listAgents(): string[] {
-  const registryPath = join(AGENTS_DIR, 'registry.json')
+  const registryPath = join(AGENTS_DIR, 'registry.json');
 
   if (!existsSync(registryPath)) {
-    return []
+    return [];
   }
 
   try {
-    const registry = JSON.parse(readFileSync(registryPath, 'utf-8'))
-    return Object.keys(registry)
+    const registry = JSON.parse(readFileSync(registryPath, 'utf-8'));
+    return Object.keys(registry);
   }
   catch {
-    return []
+    return [];
   }
 }
 
@@ -69,17 +69,17 @@ export function listAgents(): string[] {
  * Get agent by ID
  */
 export function getAgent(agentId: string): Partial<CloudAgent> | null {
-  const agentPath = join(AGENTS_DIR, `${agentId}.json`)
+  const agentPath = join(AGENTS_DIR, `${agentId}.json`);
 
   if (!existsSync(agentPath)) {
-    return null
+    return null;
   }
 
   try {
-    return JSON.parse(readFileSync(agentPath, 'utf-8'))
+    return JSON.parse(readFileSync(agentPath, 'utf-8'));
   }
   catch {
-    return null
+    return null;
   }
 }
 
@@ -87,16 +87,16 @@ export function getAgent(agentId: string): Partial<CloudAgent> | null {
  * Unregister an agent
  */
 export async function unregisterAgent(agentId: string): Promise<void> {
-  const registryPath = join(AGENTS_DIR, 'registry.json')
+  const registryPath = join(AGENTS_DIR, 'registry.json');
 
   if (!existsSync(registryPath)) {
-    return
+    return;
   }
 
   try {
-    const registry = JSON.parse(readFileSync(registryPath, 'utf-8'))
-    delete registry[agentId]
-    writeFileSync(registryPath, JSON.stringify(registry, null, 2))
+    const registry = JSON.parse(readFileSync(registryPath, 'utf-8'));
+    delete registry[agentId];
+    writeFileSync(registryPath, JSON.stringify(registry, null, 2));
   }
   catch {
     // Ignore errors
@@ -104,6 +104,6 @@ export async function unregisterAgent(agentId: string): Promise<void> {
 }
 
 function generateAgentId(agent: any): string {
-  const name = agent.name || agent.role || 'agent'
-  return `${name.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}`
+  const name = agent.name || agent.role || 'agent';
+  return `${name.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}`;
 }

@@ -4,8 +4,8 @@
  * 使用 agent-browser 作为底层实现，提供零配置的浏览器自动化能力
  */
 
-import process from 'node:process'
-import ansis from 'ansis'
+import process from 'node:process';
+import ansis from 'ansis';
 import {
   close,
   getAgentBrowserStatus,
@@ -15,52 +15,52 @@ import {
   screenshot,
   showAgentBrowserMenu,
   snapshot,
-} from '../utils/agent-browser'
-import * as commands from '../utils/agent-browser/commands'
+} from '../utils/agent-browser';
+import * as commands from '../utils/agent-browser/commands';
 
 // ============================================================================
 // 类型定义
 // ============================================================================
 
 export interface BrowserCommandResult {
-  success: boolean
-  output?: string
-  error?: string
+  success: boolean;
+  output?: string;
+  error?: string;
 }
 
 export interface BrowserSession {
-  id: string
-  url?: string
-  active: boolean
+  id: string;
+  url?: string;
+  active: boolean;
 }
 
 // ============================================================================
 // agent-browser 检测与安装
 // ============================================================================
 
-let agentBrowserInstalled: boolean | null = null
+let agentBrowserInstalled: boolean | null = null;
 
 export async function isAgentBrowserInstalled(): Promise<boolean> {
   if (agentBrowserInstalled !== null) {
-    return agentBrowserInstalled
+    return agentBrowserInstalled;
   }
 
-  const status = await getAgentBrowserStatus()
-  agentBrowserInstalled = status.isInstalled
-  return status.isInstalled
+  const status = await getAgentBrowserStatus();
+  agentBrowserInstalled = status.isInstalled;
+  return status.isInstalled;
 }
 
 export async function ensureAgentBrowser(): Promise<boolean> {
   if (await isAgentBrowserInstalled()) {
-    return true
+    return true;
   }
 
-  console.log('📦 Installing agent-browser...')
-  const success = await installAgentBrowser()
+  console.log('📦 Installing agent-browser...');
+  const success = await installAgentBrowser();
   if (success) {
-    agentBrowserInstalled = true
+    agentBrowserInstalled = true;
   }
-  return success
+  return success;
 }
 
 // ============================================================================
@@ -70,74 +70,74 @@ export async function ensureAgentBrowser(): Promise<boolean> {
 /**
  * 打开 URL
  */
-export async function browserOpen(url: string, options?: { headed?: boolean, session?: string }): Promise<BrowserCommandResult> {
+export async function browserOpen(url: string, options?: { headed?: boolean; session?: string }): Promise<BrowserCommandResult> {
   const result = await open(url, {
     headed: options?.headed,
     session: options?.session,
-  })
+  });
   return {
     success: result.success,
     output: result.output,
     error: result.error,
-  }
+  };
 }
 
 /**
  * 获取页面快照（AI 优化）
  */
 export async function browserSnapshot(options?: {
-  interactive?: boolean
-  compact?: boolean
-  depth?: number
-  json?: boolean
+  interactive?: boolean;
+  compact?: boolean;
+  depth?: number;
+  json?: boolean;
 }): Promise<BrowserCommandResult> {
   const result = await snapshot({
     interactive: options?.interactive,
     compact: options?.compact,
     depth: options?.depth,
     json: options?.json,
-  })
+  });
   return {
     success: result.success,
     output: result.output,
     error: result.error,
-  }
+  };
 }
 
 /**
  * 点击元素
  */
 export async function browserClick(ref: string): Promise<BrowserCommandResult> {
-  const result = await commands.click(ref)
+  const result = await commands.click(ref);
   return {
     success: result.success,
     output: result.output,
     error: result.error,
-  }
+  };
 }
 
 /**
  * 填充输入
  */
 export async function browserFill(ref: string, text: string): Promise<BrowserCommandResult> {
-  const result = await commands.fill(ref, text)
+  const result = await commands.fill(ref, text);
   return {
     success: result.success,
     output: result.output,
     error: result.error,
-  }
+  };
 }
 
 /**
  * 获取文本
  */
 export async function browserGetText(ref: string): Promise<BrowserCommandResult> {
-  const result = await commands.getText(ref)
+  const result = await commands.getText(ref);
   return {
     success: result.success,
     output: result.output,
     error: result.error,
-  }
+  };
 }
 
 /**
@@ -146,45 +146,45 @@ export async function browserGetText(ref: string): Promise<BrowserCommandResult>
 export async function browserScreenshot(path?: string, options?: { full?: boolean }): Promise<BrowserCommandResult> {
   const result = await screenshot(path, {
     fullPage: options?.full,
-  })
+  });
   return {
     success: result.success,
     output: result.output,
     error: result.error,
-  }
+  };
 }
 
 /**
  * 等待
  */
 export async function browserWait(condition: string | number): Promise<BrowserCommandResult> {
-  let result
+  let result;
   if (typeof condition === 'number') {
-    result = await commands.wait(condition)
+    result = await commands.wait(condition);
   }
   else if (condition.startsWith('@')) {
-    result = await commands.waitForSelector(condition)
+    result = await commands.waitForSelector(condition);
   }
   else {
-    result = await commands.waitForText(condition)
+    result = await commands.waitForText(condition);
   }
   return {
     success: result.success,
     output: result.output,
     error: result.error,
-  }
+  };
 }
 
 /**
  * 关闭浏览器
  */
 export async function browserClose(): Promise<BrowserCommandResult> {
-  const result = await close()
+  const result = await close();
   return {
     success: result.success,
     output: result.output,
     error: result.error,
-  }
+  };
 }
 
 // ============================================================================
@@ -192,11 +192,11 @@ export async function browserClose(): Promise<BrowserCommandResult> {
 // ============================================================================
 
 export async function listBrowserSessions(): Promise<BrowserCommandResult> {
-  const sessions = await listSessions()
+  const sessions = await listSessions();
   return {
     success: true,
     output: sessions.map(s => `${s.name}${s.isActive ? ' (active)' : ''}`).join('\n'),
-  }
+  };
 }
 
 // ============================================================================
@@ -204,130 +204,130 @@ export async function listBrowserSessions(): Promise<BrowserCommandResult> {
 // ============================================================================
 
 export async function browserCLI(args: string[]): Promise<void> {
-  const command = args[0]
+  const command = args[0];
 
   // 特殊命令处理
   if (command === 'install' || command === 'setup') {
-    const success = await ensureAgentBrowser()
-    process.exit(success ? 0 : 1)
+    const success = await ensureAgentBrowser();
+    process.exit(success ? 0 : 1);
   }
 
   // 交互式菜单
   if (command === 'menu' || command === 'manage' || !command) {
-    await showAgentBrowserMenu()
-    return
+    await showAgentBrowserMenu();
+    return;
   }
 
   if (command === 'help' || command === '--help') {
-    printHelp()
-    return
+    printHelp();
+    return;
   }
 
   // 确保已安装
   if (!(await isAgentBrowserInstalled())) {
-    console.log(ansis.yellow('⚠️  agent-browser not found'))
-    console.log('')
-    console.log('Installing automatically...')
-    const success = await ensureAgentBrowser()
+    console.log(ansis.yellow('⚠️  agent-browser not found'));
+    console.log('');
+    console.log('Installing automatically...');
+    const success = await ensureAgentBrowser();
     if (!success) {
-      process.exit(1)
+      process.exit(1);
     }
   }
 
   // 执行命令
-  let result: BrowserCommandResult
+  let result: BrowserCommandResult;
 
   switch (command) {
     case 'open':
       result = await browserOpen(args[1], {
         headed: args.includes('--headed'),
         session: getArgValue(args, '--session'),
-      })
-      break
+      });
+      break;
 
     case 'snapshot':
       result = await browserSnapshot({
         interactive: args.includes('-i') || args.includes('--interactive'),
         compact: args.includes('-c') || args.includes('--compact'),
         json: args.includes('--json'),
-      })
-      break
+      });
+      break;
 
     case 'click':
-      result = await browserClick(args[1])
-      break
+      result = await browserClick(args[1]);
+      break;
 
     case 'fill':
-      result = await browserFill(args[1], args.slice(2).join(' '))
-      break
+      result = await browserFill(args[1], args.slice(2).join(' '));
+      break;
 
     case 'get':
       if (args[1] === 'text') {
-        result = await browserGetText(args[2])
+        result = await browserGetText(args[2]);
       }
       else {
-        result = { success: false, error: `Unknown get command: ${args[1]}` }
+        result = { success: false, error: `Unknown get command: ${args[1]}` };
       }
-      break
+      break;
 
     case 'screenshot':
       result = await browserScreenshot(args[1], {
         full: args.includes('--full'),
-      })
-      break
+      });
+      break;
 
     case 'wait':
       if (args.includes('--text')) {
-        const textIdx = args.indexOf('--text')
-        result = await browserWait(args[textIdx + 1])
+        const textIdx = args.indexOf('--text');
+        result = await browserWait(args[textIdx + 1]);
       }
       else {
-        const val = args[1]
-        result = await browserWait(Number.isNaN(Number(val)) ? val : Number(val))
+        const val = args[1];
+        result = await browserWait(Number.isNaN(Number(val)) ? val : Number(val));
       }
-      break
+      break;
 
     case 'close':
-      result = await browserClose()
-      break
+      result = await browserClose();
+      break;
 
     case 'session':
       if (args[1] === 'list') {
-        result = await listBrowserSessions()
+        result = await listBrowserSessions();
       }
       else {
-        result = { success: false, error: `Unknown session command: ${args[1]}` }
+        result = { success: false, error: `Unknown session command: ${args[1]}` };
       }
-      break
+      break;
 
     default: {
       // 尝试直接传递给 agent-browser
-      const cmdResult = await commands.open(args.join(' '))
+      const cmdResult = await commands.open(args.join(' '));
       result = {
         success: cmdResult.success,
         output: cmdResult.output,
         error: cmdResult.error,
-      }
+      };
     }
   }
 
   if (result.success) {
     if (result.output) {
-      console.log(result.output)
+      console.log(result.output);
     }
   }
   else {
-    console.error(ansis.red(`❌ ${result.error}`))
-    process.exit(1)
+    console.error(ansis.red(`❌ ${result.error}`));
+    process.exit(1);
   }
 }
 
 function getArgValue(args: string[], flag: string): string | undefined {
-  const idx = args.indexOf(flag)
+  const idx = args.indexOf(flag);
   if (idx !== -1 && idx + 1 < args.length) {
-    return args[idx + 1]
+    return args[idx + 1];
   }
-  return undefined
+  return undefined;
 }
 
 function printHelp(): void {
@@ -389,7 +389,7 @@ ${ansis.bold('EXAMPLES:')}
   ccjk browser open example.com --headed
 
 For more: https://github.com/vercel-labs/agent-browser
-`)
+`);
 }
 
 // ============================================================================
@@ -419,6 +419,6 @@ export const Browser = {
 
   // CLI
   cli: browserCLI,
-}
+};
 
-export default Browser
+export default Browser;

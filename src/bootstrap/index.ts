@@ -14,13 +14,13 @@ export {
   createZeroConfigModule,
   getDefaultModules,
   registerDefaultModules,
-} from '../utils/startup-orchestrator'
+} from '../utils/startup-orchestrator';
 
 // Re-export orchestrator for advanced usage
 export {
   createDefaultOrchestrator,
   StartupOrchestrator,
-} from '../utils/startup-orchestrator/orchestrator'
+} from '../utils/startup-orchestrator/orchestrator';
 
 // Re-export types from startup-orchestrator for convenience
 export type {
@@ -33,7 +33,7 @@ export type {
   StartupModule,
   StartupResult,
   StartupStatus,
-} from '../utils/startup-orchestrator/types'
+} from '../utils/startup-orchestrator/types';
 
 // Event Bus
 export {
@@ -45,7 +45,7 @@ export {
   onStartupEvent,
   resetStartupEventBus,
   StartupEventBus,
-} from './event-bus'
+} from './event-bus';
 
 // Intelligent Bootstrap
 export {
@@ -56,4 +56,4 @@ export {
   type IntelligentBootstrapResult,
   quickBootstrap,
   resetIntelligentBootstrap,
-} from './intelligent-bootstrap'
+} from './intelligent-bootstrap';

@@ -13,36 +13,36 @@
 /**
  * Skill privacy level
  */
-export type SkillPrivacy = 'public' | 'private' | 'team' | 'unlisted'
+export type SkillPrivacy = 'public' | 'private' | 'team' | 'unlisted';
 
 /**
  * Skill category
  */
-export type SkillCategory = string
+export type SkillCategory = string;
 
 /**
  * Sort direction
  */
-export type SortDirection = 'asc' | 'desc'
+export type SortDirection = 'asc' | 'desc';
 
 /**
  * Skill metadata
  */
 export interface SkillMetadata {
   /** Author name */
-  author: string
+  author: string;
   /** Description */
-  description: string
+  description: string;
   /** Tags */
-  tags: string[]
+  tags: string[];
   /** Category */
-  category: string
+  category: string;
   /** Download count */
-  downloads?: number
+  downloads?: number;
   /** Star/like count */
-  stars?: number
+  stars?: number;
   /** Minimum CCJK version required */
-  minCcjkVersion?: string
+  minCcjkVersion?: string;
 }
 
 // ============================================================================
@@ -54,21 +54,21 @@ export interface SkillMetadata {
  */
 export interface SkillListRequest {
   /** Filter by privacy level */
-  privacy?: SkillPrivacy
+  privacy?: SkillPrivacy;
   /** Filter by author */
-  author?: string
+  author?: string;
   /** Filter by tags */
-  tags?: string[]
+  tags?: string[];
   /** Search query */
-  query?: string
+  query?: string;
   /** Page number (1-indexed) */
-  page?: number
+  page?: number;
   /** Page size */
-  pageSize?: number
+  pageSize?: number;
   /** Sort by field */
-  sortBy?: 'name' | 'createdAt' | 'updatedAt' | 'version' | 'downloads' | 'stars'
+  sortBy?: 'name' | 'createdAt' | 'updatedAt' | 'version' | 'downloads' | 'stars';
   /** Sort direction */
-  sortDir?: SortDirection
+  sortDir?: SortDirection;
 }
 
 /**
@@ -76,23 +76,23 @@ export interface SkillListRequest {
  */
 export interface SkillSummary {
   /** Skill ID */
-  id: string
+  id: string;
   /** Skill name */
-  name: string
+  name: string;
   /** Version */
-  version: string
+  version: string;
   /** Content (SKILL.md) */
-  content: string
+  content: string;
   /** Metadata */
-  metadata: SkillMetadata
+  metadata: SkillMetadata;
   /** Privacy level */
-  privacy: SkillPrivacy
+  privacy: SkillPrivacy;
   /** Checksum */
-  checksum: string
+  checksum: string;
   /** Created timestamp */
-  createdAt: string
+  createdAt: string;
   /** Updated timestamp */
-  updatedAt: string
+  updatedAt: string;
 }
 
 /**
@@ -100,15 +100,15 @@ export interface SkillSummary {
  */
 export interface SkillListResponse {
   /** Array of skills */
-  skills: SkillSummary[]
+  skills: SkillSummary[];
   /** Total count */
-  total: number
+  total: number;
   /** Current page */
-  page: number
+  page: number;
   /** Page size */
-  pageSize: number
+  pageSize: number;
   /** Total pages */
-  totalPages: number
+  totalPages: number;
 }
 
 // ============================================================================
@@ -120,9 +120,9 @@ export interface SkillListResponse {
  */
 export interface SkillGetRequest {
   /** Skill ID */
-  skillId: string
+  skillId: string;
   /** Specific version (optional) */
-  version?: string
+  version?: string;
 }
 
 /**
@@ -130,23 +130,23 @@ export interface SkillGetRequest {
  */
 export interface SkillDetails {
   /** Skill ID */
-  id: string
+  id: string;
   /** Skill name */
-  name: string
+  name: string;
   /** Version */
-  version: string
+  version: string;
   /** Content (SKILL.md) */
-  content: string
+  content: string;
   /** Metadata */
-  metadata: SkillMetadata
+  metadata: SkillMetadata;
   /** Privacy level */
-  privacy: SkillPrivacy
+  privacy: SkillPrivacy;
   /** Checksum */
-  checksum: string
+  checksum: string;
   /** Created timestamp */
-  createdAt: string
+  createdAt: string;
   /** Updated timestamp */
-  updatedAt: string
+  updatedAt: string;
 }
 
 /**
@@ -154,7 +154,7 @@ export interface SkillDetails {
  */
 export interface SkillGetResponse {
   /** Skill details */
-  skill: SkillDetails
+  skill: SkillDetails;
 }
 
 // ============================================================================
@@ -166,17 +166,17 @@ export interface SkillGetResponse {
  */
 export interface SkillUploadRequest {
   /** Skill name */
-  name: string
+  name: string;
   /** Version */
-  version: string
+  version: string;
   /** Content (SKILL.md) */
-  content: string
+  content: string;
   /** Metadata */
-  metadata: SkillMetadata
+  metadata: SkillMetadata;
   /** Privacy level */
-  privacy: SkillPrivacy
+  privacy: SkillPrivacy;
   /** Checksum */
-  checksum: string
+  checksum: string;
 }
 
 /**
@@ -184,9 +184,9 @@ export interface SkillUploadRequest {
  */
 export interface SkillUploadResponse {
   /** Uploaded skill details */
-  skill: SkillDetails
+  skill: SkillDetails;
   /** Success message */
-  message?: string
+  message?: string;
 }
 
 // ============================================================================
@@ -198,9 +198,9 @@ export interface SkillUploadResponse {
  */
 export interface SkillDownloadRequest {
   /** Skill ID */
-  skillId: string
+  skillId: string;
   /** Specific version (optional) */
-  version?: string
+  version?: string;
 }
 
 /**
@@ -208,7 +208,7 @@ export interface SkillDownloadRequest {
  */
 export interface SkillDownloadResponse {
   /** Skill details with content */
-  skill: SkillDetails
+  skill: SkillDetails;
 }
 
 // ============================================================================
@@ -220,17 +220,17 @@ export interface SkillDownloadResponse {
  */
 export interface SkillUpdateRequest {
   /** Skill ID */
-  skillId: string
+  skillId: string;
   /** New version (optional) */
-  version?: string
+  version?: string;
   /** New content (optional) */
-  content?: string
+  content?: string;
   /** New metadata (optional) */
-  metadata?: Partial<SkillMetadata>
+  metadata?: Partial<SkillMetadata>;
   /** New privacy level (optional) */
-  privacy?: SkillPrivacy
+  privacy?: SkillPrivacy;
   /** New checksum (optional) */
-  checksum?: string
+  checksum?: string;
 }
 
 /**
@@ -238,9 +238,9 @@ export interface SkillUpdateRequest {
  */
 export interface SkillUpdateResponse {
   /** Updated skill details */
-  skill: SkillDetails
+  skill: SkillDetails;
   /** Success message */
-  message?: string
+  message?: string;
 }
 
 // ============================================================================
@@ -252,7 +252,7 @@ export interface SkillUpdateResponse {
  */
 export interface SkillDeleteRequest {
   /** Skill ID */
-  skillId: string
+  skillId: string;
 }
 
 /**
@@ -260,9 +260,9 @@ export interface SkillDeleteRequest {
  */
 export interface SkillDeleteResponse {
   /** Success indicator */
-  success: boolean
+  success: boolean;
   /** Success message */
-  message?: string
+  message?: string;
 }
 
 // ============================================================================
@@ -274,9 +274,9 @@ export interface SkillDeleteResponse {
  */
 export function validateSkillListResponse(data: unknown): data is SkillListResponse {
   if (!data || typeof data !== 'object')
-    return false
+    return false;
 
-  const obj = data as Record<string, unknown>
+  const obj = data as Record<string, unknown>;
 
   return (
     Array.isArray(obj.skills)
@@ -284,7 +284,7 @@ export function validateSkillListResponse(data: unknown): data is SkillListRespo
     && typeof obj.page === 'number'
     && typeof obj.pageSize === 'number'
     && typeof obj.totalPages === 'number'
-  )
+  );
 }
 
 /**
@@ -292,15 +292,15 @@ export function validateSkillListResponse(data: unknown): data is SkillListRespo
  */
 export function validateSkillGetResponse(data: unknown): data is SkillGetResponse {
   if (!data || typeof data !== 'object')
-    return false
+    return false;
 
-  const obj = data as Record<string, unknown>
+  const obj = data as Record<string, unknown>;
 
   return (
     obj.skill !== undefined
     && typeof obj.skill === 'object'
     && obj.skill !== null
-  )
+  );
 }
 
 /**
@@ -308,15 +308,15 @@ export function validateSkillGetResponse(data: unknown): data is SkillGetRespons
  */
 export function validateSkillUploadResponse(data: unknown): data is SkillUploadResponse {
   if (!data || typeof data !== 'object')
-    return false
+    return false;
 
-  const obj = data as Record<string, unknown>
+  const obj = data as Record<string, unknown>;
 
   return (
     obj.skill !== undefined
     && typeof obj.skill === 'object'
     && obj.skill !== null
-  )
+  );
 }
 
 /**
@@ -324,15 +324,15 @@ export function validateSkillUploadResponse(data: unknown): data is SkillUploadR
  */
 export function validateSkillDownloadResponse(data: unknown): data is SkillDownloadResponse {
   if (!data || typeof data !== 'object')
-    return false
+    return false;
 
-  const obj = data as Record<string, unknown>
+  const obj = data as Record<string, unknown>;
 
   return (
     obj.skill !== undefined
     && typeof obj.skill === 'object'
     && obj.skill !== null
-  )
+  );
 }
 
 /**
@@ -340,9 +340,9 @@ export function validateSkillDownloadResponse(data: unknown): data is SkillDownl
  */
 export function validateSkillDetails(data: unknown): data is SkillDetails {
   if (!data || typeof data !== 'object')
-    return false
+    return false;
 
-  const obj = data as Record<string, unknown>
+  const obj = data as Record<string, unknown>;
 
   return (
     typeof obj.id === 'string'
@@ -350,5 +350,5 @@ export function validateSkillDetails(data: unknown): data is SkillDetails {
     && typeof obj.version === 'string'
     && typeof obj.content === 'string'
     && typeof obj.checksum === 'string'
-  )
+  );
 }

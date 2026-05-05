@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest'
-import { cleanupZcfNamespace } from '../../src/utils/cleanup-migration'
+import { describe, expect, it } from 'vitest';
+import { cleanupZcfNamespace } from '../../src/utils/cleanup-migration';
 
 /**
  * Integration test verifying that cleanupZcfNamespace is properly integrated
@@ -9,27 +9,27 @@ import { cleanupZcfNamespace } from '../../src/utils/cleanup-migration'
 describe('init command - cleanup migration integration', () => {
   it('should have cleanupZcfNamespace available for import', () => {
     // Verify the function exists and is callable
-    expect(cleanupZcfNamespace).toBeDefined()
-    expect(typeof cleanupZcfNamespace).toBe('function')
-  })
+    expect(cleanupZcfNamespace).toBeDefined();
+    expect(typeof cleanupZcfNamespace).toBe('function');
+  });
 
   it('should return expected structure from cleanupZcfNamespace', () => {
     // Call the function and verify it returns the expected structure
-    const result = cleanupZcfNamespace()
+    const result = cleanupZcfNamespace();
 
-    expect(result).toHaveProperty('removed')
-    expect(Array.isArray(result.removed)).toBe(true)
-  })
+    expect(result).toHaveProperty('removed');
+    expect(Array.isArray(result.removed)).toBe(true);
+  });
 
   it('should be safe to call cleanupZcfNamespace multiple times', () => {
     // Verify idempotency - calling multiple times should not throw
     expect(() => {
-      cleanupZcfNamespace()
-      cleanupZcfNamespace()
-      cleanupZcfNamespace()
-    }).not.toThrow()
-  })
-})
+      cleanupZcfNamespace();
+      cleanupZcfNamespace();
+      cleanupZcfNamespace();
+    }).not.toThrow();
+  });
+});
 
 /**
  * Note: Full end-to-end testing of init() calling cleanupZcfNamespace()

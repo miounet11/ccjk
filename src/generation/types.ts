@@ -4,11 +4,11 @@
  * Type definitions for intelligent Agent/Skills generation based on project analysis
  */
 
-import type { ProjectAnalysis as AnalyzerProjectAnalysis } from '../analyzers/types'
-import type { SupportedLang } from '../constants'
+import type { ProjectAnalysis as AnalyzerProjectAnalysis } from '../analyzers/types';
+import type { SupportedLang } from '../constants';
 
 // Re-export for convenience
-export type { SupportedLang }
+export type { SupportedLang };
 
 /**
  * Project type classification
@@ -26,18 +26,18 @@ export type ProjectType
     | 'monorepo'
     | 'frontend'
     | 'backend'
-    | 'unknown'
+    | 'unknown';
 
 /**
  * Technology stack information
  */
 export interface TechStack {
   /** Primary programming languages */
-  languages: string[]
+  languages: string[];
   /** Runtime environment */
-  runtime: string
+  runtime: string;
   /** Package manager */
-  packageManager?: string
+  packageManager?: string;
 }
 
 /**
@@ -45,35 +45,35 @@ export interface TechStack {
  */
 export interface ProjectAnalysis {
   /** Project root directory */
-  projectRoot: string
+  projectRoot: string;
   /** Detected project type */
-  projectType: ProjectType
+  projectType: ProjectType;
   /** Technology stack */
-  techStack: TechStack
+  techStack: TechStack;
   /** Detected frameworks */
-  frameworks: string[]
+  frameworks: string[];
   /** Build tool */
-  buildTool?: string
+  buildTool?: string;
   /** Has test setup */
-  hasTests: boolean
+  hasTests: boolean;
   /** Has database */
-  hasDatabase: boolean
+  hasDatabase: boolean;
   /** Has API */
-  hasApi: boolean
+  hasApi: boolean;
   /** CI/CD systems */
-  cicd: string[]
+  cicd: string[];
   /** Detected patterns */
-  patterns: string[]
+  patterns: string[];
   /** Analysis confidence (0-1) */
-  confidence: number
+  confidence: number;
   /** Package.json content (if available) */
-  packageJson?: Record<string, unknown>
+  packageJson?: Record<string, unknown>;
 }
 
 /**
  * Re-export analyzer's ProjectAnalysis as a separate type
  */
-export type { AnalyzerProjectAnalysis }
+export type { AnalyzerProjectAnalysis };
 
 // ============================================================================
 // Template Selection Types
@@ -84,11 +84,11 @@ export type { AnalyzerProjectAnalysis }
  */
 export interface TemplateSelection {
   /** Selected agent templates */
-  agents: AgentTemplate[]
+  agents: AgentTemplate[];
   /** Selected skill templates */
-  skills: SkillTemplate[]
+  skills: SkillTemplate[];
   /** Selection reasoning */
-  reasoning: string
+  reasoning: string;
 }
 
 /**
@@ -96,21 +96,21 @@ export interface TemplateSelection {
  */
 export interface SkillTemplate {
   /** Template ID */
-  id: string
+  id: string;
   /** Template name */
-  name: string
+  name: string;
   /** Template description */
-  description: string
+  description: string;
   /** Skill category */
-  category: SkillCategory
+  category: SkillCategory;
   /** Template file name */
-  file: string
+  file: string;
   /** Applicable project types */
-  projectTypes: string[]
+  projectTypes: string[];
   /** Applicable frameworks */
-  frameworks: string[]
+  frameworks: string[];
   /** Priority for selection */
-  priority: number
+  priority: number;
 }
 
 /**
@@ -118,11 +118,11 @@ export interface SkillTemplate {
  */
 export interface GeneratedConfig {
   /** Generated agent configurations */
-  agents: Array<{ id: string, path: string, content: string }>
+  agents: Array<{ id: string; path: string; content: string }>;
   /** Generated skill configurations */
-  skills: Array<{ id: string, path: string, content: string }>
+  skills: Array<{ id: string; path: string; content: string }>;
   /** Generation summary */
-  summary: string
+  summary: string;
 }
 
 // ============================================================================
@@ -134,84 +134,84 @@ export interface GeneratedConfig {
  */
 export interface GeneratedAgent {
   /** Unique identifier */
-  id: string
+  id: string;
   /** Display name */
-  name: string
+  name: string;
   /** Agent description */
-  description: string
+  description: string;
   /** Model to use (opus, sonnet, haiku) */
-  model: 'opus' | 'sonnet' | 'haiku'
+  model: 'opus' | 'sonnet' | 'haiku';
   /** Agent specialization area */
-  specialization: string
+  specialization: string;
   /** Core competencies */
-  competencies: AgentCompetency[]
+  competencies: AgentCompetency[];
   /** Workflow steps */
-  workflow: WorkflowStep[]
+  workflow: WorkflowStep[];
   /** Output format specification */
-  outputFormat?: OutputFormat
+  outputFormat?: OutputFormat;
   /** Best practices */
-  bestPractices: string[]
+  bestPractices: string[];
   /** Integration points with other agents */
-  integrationPoints?: IntegrationPoint[]
+  integrationPoints?: IntegrationPoint[];
   /** Quality standards */
-  qualityStandards?: QualityStandard[]
+  qualityStandards?: QualityStandard[];
   /** Category for grouping */
-  category: string
+  category: string;
   /** Priority (1-10, higher = more important) */
-  priority: number
+  priority: number;
   /** Tags for filtering */
-  tags: string[]
+  tags: string[];
   /** Source of generation */
-  source: 'smart-analysis' | 'template' | 'custom'
+  source: 'smart-analysis' | 'template' | 'custom';
 }
 
 export interface AgentCompetency {
   /** Competency name */
-  name: string
+  name: string;
   /** Detailed description */
-  description: string
+  description: string;
   /** Sub-skills */
-  skills: string[]
+  skills: string[];
 }
 
 export interface WorkflowStep {
   /** Step number */
-  step: number
+  step: number;
   /** Step name */
-  name: string
+  name: string;
   /** Step description */
-  description: string
+  description: string;
   /** Expected inputs */
-  inputs?: string[]
+  inputs?: string[];
   /** Expected outputs */
-  outputs?: string[]
+  outputs?: string[];
 }
 
 export interface OutputFormat {
   /** Format type (json, markdown, code, etc.) */
-  type: 'json' | 'markdown' | 'code' | 'mixed'
+  type: 'json' | 'markdown' | 'code' | 'mixed';
   /** Schema or template */
-  schema?: Record<string, unknown>
+  schema?: Record<string, unknown>;
   /** Example output */
-  example?: string
+  example?: string;
 }
 
 export interface IntegrationPoint {
   /** Target agent ID */
-  agentId: string
+  agentId: string;
   /** Type of integration */
-  type: 'input' | 'output' | 'collaboration'
+  type: 'input' | 'output' | 'collaboration';
   /** Data exchanged */
-  dataFlow: string
+  dataFlow: string;
 }
 
 export interface QualityStandard {
   /** Standard name */
-  name: string
+  name: string;
   /** Minimum threshold */
-  threshold: number
+  threshold: number;
   /** Measurement method */
-  measurement: string
+  measurement: string;
 }
 
 // ============================================================================
@@ -223,25 +223,25 @@ export interface QualityStandard {
  */
 export interface GeneratedSkill {
   /** Unique identifier */
-  id: string
+  id: string;
   /** Display name */
-  name: Record<SupportedLang, string>
+  name: Record<SupportedLang, string>;
   /** Skill description */
-  description: Record<SupportedLang, string>
+  description: Record<SupportedLang, string>;
   /** Skill category */
-  category: SkillCategory
+  category: SkillCategory;
   /** Trigger patterns */
-  triggers: SkillTrigger[]
+  triggers: SkillTrigger[];
   /** Skill actions */
-  actions: SkillAction[]
+  actions: SkillAction[];
   /** Required tools/MCP servers */
-  requirements?: SkillRequirement[]
+  requirements?: SkillRequirement[];
   /** Priority (1-10) */
-  priority: number
+  priority: number;
   /** Tags for filtering */
-  tags: string[]
+  tags: string[];
   /** Source of generation */
-  source: 'smart-analysis' | 'template' | 'custom'
+  source: 'smart-analysis' | 'template' | 'custom';
 }
 
 export type SkillCategory
@@ -254,44 +254,44 @@ export type SkillCategory
     | 'security'
     | 'performance'
     | 'git'
-    | 'custom'
+    | 'custom';
 
 export interface SkillTrigger {
   /** Trigger type */
-  type: 'command' | 'pattern' | 'event' | 'auto'
+  type: 'command' | 'pattern' | 'event' | 'auto';
   /** Trigger value (command name, regex pattern, event name) */
-  value: string
+  value: string;
   /** Trigger description */
-  description?: string
+  description?: string;
 }
 
 export interface SkillAction {
   /** Action type */
-  type: 'bash' | 'tool' | 'prompt' | 'workflow'
+  type: 'bash' | 'tool' | 'prompt' | 'workflow';
   /** Action content */
-  content: string
+  content: string;
   /** Action description */
-  description?: string
+  description?: string;
   /** Conditions for execution */
-  conditions?: ActionCondition[]
+  conditions?: ActionCondition[];
 }
 
 export interface ActionCondition {
   /** Condition type */
-  type: 'file-exists' | 'env-var' | 'project-type' | 'custom'
+  type: 'file-exists' | 'env-var' | 'project-type' | 'custom';
   /** Condition value */
-  value: string
+  value: string;
   /** Negate condition */
-  negate?: boolean
+  negate?: boolean;
 }
 
 export interface SkillRequirement {
   /** Requirement type */
-  type: 'tool' | 'mcp' | 'env' | 'file'
+  type: 'tool' | 'mcp' | 'env' | 'file';
   /** Requirement name */
-  name: string
+  name: string;
   /** Whether optional */
-  optional?: boolean
+  optional?: boolean;
 }
 
 // ============================================================================
@@ -304,38 +304,38 @@ export interface SkillRequirement {
  */
 export interface GenerationContext {
   /** Project analysis results from the analyzer */
-  analysis: AnalyzerProjectAnalysis
+  analysis: AnalyzerProjectAnalysis;
   /** User preferences */
-  preferences: GenerationPreferences
+  preferences: GenerationPreferences;
   /** Existing agents (to avoid duplicates) */
-  existingAgents: string[]
+  existingAgents: string[];
   /** Existing skills (to avoid duplicates) */
-  existingSkills: string[]
+  existingSkills: string[];
   /** Target directory */
-  targetDir: string
+  targetDir: string;
 }
 
 export interface GenerationPreferences {
   /** Preferred language */
-  language: SupportedLang
+  language: SupportedLang;
   /** Preferred model for agents */
-  defaultModel: 'opus' | 'sonnet' | 'haiku'
+  defaultModel: 'opus' | 'sonnet' | 'haiku';
   /** Include testing agents */
-  includeTesting: boolean
+  includeTesting: boolean;
   /** Include deployment agents */
-  includeDeployment: boolean
+  includeDeployment: boolean;
   /** Include documentation agents */
-  includeDocumentation: boolean
+  includeDocumentation: boolean;
   /** Include security agents */
-  includeSecurity: boolean
+  includeSecurity: boolean;
   /** Include performance agents */
-  includePerformance: boolean
+  includePerformance: boolean;
   /** Custom agent categories to include */
-  customCategories?: string[]
+  customCategories?: string[];
   /** Maximum number of agents to generate */
-  maxAgents?: number
+  maxAgents?: number;
   /** Maximum number of skills to generate */
-  maxSkills?: number
+  maxSkills?: number;
 }
 
 // ============================================================================
@@ -347,76 +347,76 @@ export interface GenerationPreferences {
  */
 export interface GenerationResult {
   /** Generated agents */
-  agents: GeneratedAgent[]
+  agents: GeneratedAgent[];
   /** Generated skills */
-  skills: GeneratedSkill[]
+  skills: GeneratedSkill[];
   /** Generation metadata */
-  metadata: GenerationMetadata
+  metadata: GenerationMetadata;
   /** Validation results */
-  validation: ValidationResult
+  validation: ValidationResult;
   /** Recommendations for manual review */
-  recommendations: GenerationRecommendation[]
+  recommendations: GenerationRecommendation[];
 }
 
 export interface GenerationMetadata {
   /** Generation timestamp */
-  timestamp: Date
+  timestamp: Date;
   /** Generation duration in ms */
-  duration: number
+  duration: number;
   /** Project type detected */
-  projectType: string
+  projectType: string;
   /** Frameworks detected */
-  frameworks: string[]
+  frameworks: string[];
   /** Languages detected */
-  languages: string[]
+  languages: string[];
   /** Generation version */
-  version: string
+  version: string;
 }
 
 export interface ValidationResult {
   /** Overall validation status */
-  valid: boolean
+  valid: boolean;
   /** Validation errors */
-  errors: ValidationError[]
+  errors: ValidationError[];
   /** Validation warnings */
-  warnings: ValidationWarning[]
+  warnings: ValidationWarning[];
   /** Validation score (0-100) */
-  score: number
+  score: number;
 }
 
 export interface ValidationError {
   /** Error code */
-  code: string
+  code: string;
   /** Error message */
-  message: string
+  message: string;
   /** Affected item (agent/skill ID) */
-  item?: string
+  item?: string;
   /** Suggested fix */
-  fix?: string
+  fix?: string;
 }
 
 export interface ValidationWarning {
   /** Warning code */
-  code: string
+  code: string;
   /** Warning message */
-  message: string
+  message: string;
   /** Affected item */
-  item?: string
+  item?: string;
   /** Suggestion */
-  suggestion?: string
+  suggestion?: string;
 }
 
 export interface GenerationRecommendation {
   /** Recommendation type */
-  type: 'add' | 'modify' | 'remove' | 'review'
+  type: 'add' | 'modify' | 'remove' | 'review';
   /** Target (agent/skill ID) */
-  target: string
+  target: string;
   /** Recommendation description */
-  description: string
+  description: string;
   /** Priority (1-10) */
-  priority: number
+  priority: number;
   /** Reason for recommendation */
-  reason: string
+  reason: string;
 }
 
 // ============================================================================
@@ -428,38 +428,38 @@ export interface GenerationRecommendation {
  */
 export interface AgentTemplate {
   /** Template ID */
-  id: string
+  id: string;
   /** Template name */
-  name: string
+  name: string;
   /** Template description */
-  description?: string
+  description?: string;
   /** Agent category */
-  category: string
+  category: string;
   /** Template file name */
-  file: string
+  file: string;
   /** Applicable project types */
-  projectTypes: string[]
+  projectTypes: string[];
   /** Applicable frameworks */
-  frameworks: string[]
+  frameworks: string[];
   /** Applicable languages */
-  languages: string[]
+  languages: string[];
   /** Agent definition template */
-  template?: Partial<GeneratedAgent>
+  template?: Partial<GeneratedAgent>;
   /** Variables to replace */
-  variables?: TemplateVariable[]
+  variables?: TemplateVariable[];
   /** Priority for selection */
-  priority: number
+  priority: number;
 }
 
 export interface TemplateVariable {
   /** Variable name */
-  name: string
+  name: string;
   /** Variable description */
-  description: string
+  description: string;
   /** Default value */
-  defaultValue: string
+  defaultValue: string;
   /** Value resolver function name */
-  resolver?: string
+  resolver?: string;
 }
 
 // ============================================================================
@@ -468,31 +468,31 @@ export interface TemplateVariable {
 
 export interface SmartGenerationOptions {
   /** Target directory */
-  targetDir?: string
+  targetDir?: string;
   /** Language preference */
-  lang?: SupportedLang
+  lang?: SupportedLang;
   /** Dry run mode */
-  dryRun?: boolean
+  dryRun?: boolean;
   /** JSON output */
-  json?: boolean
+  json?: boolean;
   /** Force overwrite existing */
-  force?: boolean
+  force?: boolean;
   /** Interactive mode */
-  interactive?: boolean
+  interactive?: boolean;
   /** Categories to include */
-  categories?: string[]
+  categories?: string[];
   /** Categories to exclude */
-  excludeCategories?: string[]
+  excludeCategories?: string[];
   /** Maximum agents */
-  maxAgents?: number
+  maxAgents?: number;
   /** Maximum skills */
-  maxSkills?: number
+  maxSkills?: number;
   /** Default model */
-  defaultModel?: 'opus' | 'sonnet' | 'haiku'
+  defaultModel?: 'opus' | 'sonnet' | 'haiku';
   /** Output directory for agents */
-  agentsDir?: string
+  agentsDir?: string;
   /** Output directory for skills */
-  skillsDir?: string
+  skillsDir?: string;
   /** Validation level */
-  validationLevel?: 'strict' | 'normal' | 'relaxed'
+  validationLevel?: 'strict' | 'normal' | 'relaxed';
 }

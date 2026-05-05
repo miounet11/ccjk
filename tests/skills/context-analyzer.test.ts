@@ -2,17 +2,17 @@
  * Context analyzer tests
  */
 
-import type { CcjkSkill } from '../../src/skills/types'
-import { existsSync, readdirSync, readFileSync } from 'node:fs'
-import { describe, expect, it, vi } from 'vitest'
-import { analyzeProjectContext, recommendSkillsForContext } from '../../src/skills/context-analyzer'
+import type { CcjkSkill } from '../../src/skills/types';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { describe, expect, it, vi } from 'vitest';
+import { analyzeProjectContext, recommendSkillsForContext } from '../../src/skills/context-analyzer';
 
 // Mock fs functions
 vi.mock('node:fs', () => ({
   existsSync: vi.fn(),
   readdirSync: vi.fn(),
   readFileSync: vi.fn(),
-}))
+}));
 
 describe('context Analyzer', () => {
   const mockSkills: CcjkSkill[] = [
@@ -60,74 +60,74 @@ describe('context Analyzer', () => {
       version: '1.0.0',
       tags: ['docs'],
     },
-  ]
+  ];
 
   describe('analyzeProjectContext', () => {
     it('should detect Git project', () => {
       vi.mocked(existsSync).mockImplementation((path: any) => {
-        return path.includes('.git')
-      })
-      vi.mocked(readdirSync).mockReturnValue([])
+        return path.includes('.git');
+      });
+      vi.mocked(readdirSync).mockReturnValue([]);
 
-      const context = analyzeProjectContext('/test')
-      expect(context.hasGit).toBe(true)
-    })
+      const context = analyzeProjectContext('/test');
+      expect(context.hasGit).toBe(true);
+    });
 
     it('should detect TypeScript project', () => {
-      vi.mocked(existsSync).mockReturnValue(false)
-      vi.mocked(readdirSync).mockReturnValue(['index.ts', 'tsconfig.json'] as any)
+      vi.mocked(existsSync).mockReturnValue(false);
+      vi.mocked(readdirSync).mockReturnValue(['index.ts', 'tsconfig.json'] as any);
 
-      const context = analyzeProjectContext('/test')
-      expect(context.languages).toContain('typescript')
-    })
+      const context = analyzeProjectContext('/test');
+      expect(context.languages).toContain('typescript');
+    });
 
     it('should detect Python project', () => {
-      vi.mocked(existsSync).mockReturnValue(false)
-      vi.mocked(readdirSync).mockReturnValue(['main.py', 'requirements.txt'] as any)
+      vi.mocked(existsSync).mockReturnValue(false);
+      vi.mocked(readdirSync).mockReturnValue(['main.py', 'requirements.txt'] as any);
 
-      const context = analyzeProjectContext('/test')
-      expect(context.languages).toContain('python')
-    })
+      const context = analyzeProjectContext('/test');
+      expect(context.languages).toContain('python');
+    });
 
     it('should detect package manager', () => {
       vi.mocked(existsSync).mockImplementation((path: any) => {
-        return path.includes('pnpm-lock.yaml')
-      })
-      vi.mocked(readdirSync).mockReturnValue([])
+        return path.includes('pnpm-lock.yaml');
+      });
+      vi.mocked(readdirSync).mockReturnValue([]);
 
-      const context = analyzeProjectContext('/test')
-      expect(context.packageManager).toBe('pnpm')
-    })
+      const context = analyzeProjectContext('/test');
+      expect(context.packageManager).toBe('pnpm');
+    });
 
     it('should detect test files', () => {
-      vi.mocked(existsSync).mockReturnValue(false)
-      vi.mocked(readdirSync).mockReturnValue(['index.test.ts', 'vitest.config.ts'] as any)
+      vi.mocked(existsSync).mockReturnValue(false);
+      vi.mocked(readdirSync).mockReturnValue(['index.test.ts', 'vitest.config.ts'] as any);
 
-      const context = analyzeProjectContext('/test')
-      expect(context.hasTests).toBe(true)
-    })
+      const context = analyzeProjectContext('/test');
+      expect(context.hasTests).toBe(true);
+    });
 
     it('should detect documentation', () => {
-      vi.mocked(existsSync).mockReturnValue(false)
-      vi.mocked(readdirSync).mockReturnValue(['README.md', 'docs'] as any)
+      vi.mocked(existsSync).mockReturnValue(false);
+      vi.mocked(readdirSync).mockReturnValue(['README.md', 'docs'] as any);
 
-      const context = analyzeProjectContext('/test')
-      expect(context.hasDocs).toBe(true)
-    })
+      const context = analyzeProjectContext('/test');
+      expect(context.hasDocs).toBe(true);
+    });
 
     it('should detect React framework', () => {
       vi.mocked(existsSync).mockImplementation((path: any) => {
-        return path.includes('package.json')
-      })
-      vi.mocked(readdirSync).mockReturnValue(['package.json'] as any)
+        return path.includes('package.json');
+      });
+      vi.mocked(readdirSync).mockReturnValue(['package.json'] as any);
       vi.mocked(readFileSync).mockReturnValue(JSON.stringify({
         dependencies: { react: '^18.0.0' },
-      }))
+      }));
 
-      const context = analyzeProjectContext('/test')
-      expect(context.frameworks).toContain('react')
-    })
-  })
+      const context = analyzeProjectContext('/test');
+      expect(context.frameworks).toContain('react');
+    });
+  });
 
   describe('recommendSkillsForContext', () => {
     it('should recommend Git skills for Git projects', () => {
@@ -137,11 +137,11 @@ describe('context Analyzer', () => {
         frameworks: [],
         hasTests: false,
         hasDocs: false,
-      }
+      };
 
-      const recommended = recommendSkillsForContext(context, mockSkills)
-      expect(recommended.some(s => s.id === 'git-commit')).toBe(true)
-    })
+      const recommended = recommendSkillsForContext(context, mockSkills);
+      expect(recommended.some(s => s.id === 'git-commit')).toBe(true);
+    });
 
     it('should recommend TypeScript skills for TS projects', () => {
       const context = {
@@ -150,11 +150,11 @@ describe('context Analyzer', () => {
         frameworks: [],
         hasTests: false,
         hasDocs: false,
-      }
+      };
 
-      const recommended = recommendSkillsForContext(context, mockSkills)
-      expect(recommended.some(s => s.id === 'ts-debug')).toBe(true)
-    })
+      const recommended = recommendSkillsForContext(context, mockSkills);
+      expect(recommended.some(s => s.id === 'ts-debug')).toBe(true);
+    });
 
     it('should recommend testing skills for projects with tests', () => {
       const context = {
@@ -163,11 +163,11 @@ describe('context Analyzer', () => {
         frameworks: [],
         hasTests: true,
         hasDocs: false,
-      }
+      };
 
-      const recommended = recommendSkillsForContext(context, mockSkills)
-      expect(recommended.some(s => s.id === 'write-tests')).toBe(true)
-    })
+      const recommended = recommendSkillsForContext(context, mockSkills);
+      expect(recommended.some(s => s.id === 'write-tests')).toBe(true);
+    });
 
     it('should recommend docs skills for projects without docs', () => {
       const context = {
@@ -176,11 +176,11 @@ describe('context Analyzer', () => {
         frameworks: [],
         hasTests: false,
         hasDocs: false,
-      }
+      };
 
-      const recommended = recommendSkillsForContext(context, mockSkills)
-      expect(recommended.some(s => s.id === 'write-docs')).toBe(true)
-    })
+      const recommended = recommendSkillsForContext(context, mockSkills);
+      expect(recommended.some(s => s.id === 'write-docs')).toBe(true);
+    });
 
     it('should skip disabled skills', () => {
       const context = {
@@ -189,11 +189,11 @@ describe('context Analyzer', () => {
         frameworks: [],
         hasTests: false,
         hasDocs: false,
-      }
+      };
 
-      const disabledSkills = mockSkills.map(s => ({ ...s, enabled: false }))
-      const recommended = recommendSkillsForContext(context, disabledSkills)
-      expect(recommended).toEqual([])
-    })
-  })
-})
+      const disabledSkills = mockSkills.map(s => ({ ...s, enabled: false }));
+      const recommended = recommendSkillsForContext(context, disabledSkills);
+      expect(recommended).toEqual([]);
+    });
+  });
+});

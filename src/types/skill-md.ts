@@ -7,7 +7,7 @@
  * @module types/skill-md
  */
 
-import type { SupportedLang } from '../constants.js'
+import type { SupportedLang } from '../constants.js';
 
 /**
  * Skill category types for organization and discovery
@@ -21,18 +21,18 @@ export type SkillCategory
     | 'devops' // DevOps operations
     | 'planning' // Planning and design
     | 'debugging' // Debugging workflows
-    | 'custom' // User-defined
+    | 'custom'; // User-defined
 
 /**
  * Skill difficulty levels for user guidance
  */
-export type SkillDifficulty = 'beginner' | 'intermediate' | 'advanced'
+export type SkillDifficulty = 'beginner' | 'intermediate' | 'advanced';
 
 /**
  * Skill priority (1-10, higher = more priority)
  * Used to resolve conflicts when multiple skills match
  */
-export type SkillPriority = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10
+export type SkillPriority = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
 
 /**
  * Subagent execution context mode
@@ -40,7 +40,7 @@ export type SkillPriority = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10
  * - `fork`: Execute in isolated context (new conversation)
  * - `inherit`: Execute in parent context (shared conversation)
  */
-export type SubagentContextMode = 'fork' | 'inherit'
+export type SubagentContextMode = 'fork' | 'inherit';
 
 /**
  * Hook types for skill lifecycle events
@@ -55,7 +55,7 @@ export type HookType
     | 'SubagentStop' // When a subagent stops
     | 'PermissionRequest' // When permission is requested
     | 'SkillActivate' // When skill is activated
-    | 'SkillComplete' // When skill completes
+    | 'SkillComplete'; // When skill completes
 
 /**
  * Hook definition for skill lifecycle events
@@ -74,25 +74,25 @@ export type HookType
  */
 export interface Hook {
   /** Hook type (lifecycle event) */
-  type: HookType
+  type: HookType;
 
   /**
    * Pattern to match for conditional execution
    * Supports wildcards (e.g., "Bash(npm *)", "mcp__*")
    */
-  matcher?: string
+  matcher?: string;
 
   /** Shell command to execute */
-  command?: string
+  command?: string;
 
   /** Inline script to execute */
-  script?: string
+  script?: string;
 
   /**
    * Timeout in seconds
    * @default 30
    */
-  timeout?: number
+  timeout?: number;
 }
 
 /**
@@ -114,28 +114,28 @@ export interface Hook {
  */
 export interface SkillArgument {
   /** Argument name (for documentation) */
-  name: string
+  name: string;
 
   /** Argument description */
-  description?: string
+  description?: string;
 
   /**
    * Whether argument is required
    * @default false
    */
-  required?: boolean
+  required?: boolean;
 
   /** Default value if not provided */
-  default?: string
+  default?: string;
 
   /**
    * Argument type for validation
    * @default "string"
    */
-  type?: 'string' | 'number' | 'boolean' | 'path' | 'url'
+  type?: 'string' | 'number' | 'boolean' | 'path' | 'url';
 
   /** Validation pattern (regex) */
-  pattern?: string
+  pattern?: string;
 }
 
 /**
@@ -155,7 +155,7 @@ export interface SkillArgument {
  */
 export interface SkillOutput {
   /** Output name (identifier) */
-  name: string
+  name: string;
 
   /**
    * Output type
@@ -163,13 +163,13 @@ export interface SkillOutput {
    * - `variable`: Variable/environment output
    * - `artifact`: Artifact output
    */
-  type: 'file' | 'variable' | 'artifact'
+  type: 'file' | 'variable' | 'artifact';
 
   /** Output path (for file type) */
-  path?: string
+  path?: string;
 
   /** Output description */
-  description?: string
+  description?: string;
 }
 
 /**
@@ -180,29 +180,29 @@ export interface SkillOutput {
  */
 export interface SubagentContext {
   /** Unique subagent ID */
-  id: string
+  id: string;
 
   /** Parent subagent ID (if nested) */
-  parentId?: string
+  parentId?: string;
 
   /**
    * Execution mode
    * - `fork`: Isolated execution
    * - `inherit`: Shared context with parent
    */
-  mode: SubagentContextMode
+  mode: SubagentContextMode;
 
   /** Skill being executed */
-  skill: SkillMdFile
+  skill: SkillMdFile;
 
   /** Conversation transcript */
-  transcript: string[]
+  transcript: string[];
 
   /** Execution start time */
-  startedAt: Date
+  startedAt: Date;
 
   /** Execution end time (if completed) */
-  endedAt?: Date
+  endedAt?: Date;
 }
 
 /**
@@ -245,25 +245,25 @@ export interface SubagentContext {
  */
 export interface SkillMdMetadata {
   /** Unique skill identifier (kebab-case) */
-  name: string
+  name: string;
 
   /** Brief description of the skill */
-  description: string
+  description: string;
 
   /** Semantic version (e.g., "1.0.0") */
-  version: string
+  version: string;
 
   /** Skill author */
-  author?: string
+  author?: string;
 
   /** Skill category for organization */
-  category: SkillCategory
+  category: SkillCategory;
 
   /**
    * Command triggers (e.g., ['/commit', '/gc'])
    * These are explicit commands users can type to activate the skill
    */
-  triggers: string[]
+  triggers: string[];
 
   /**
    * Superpowers-style activation conditions
@@ -272,45 +272,45 @@ export interface SkillMdMetadata {
    * @example
    * ["User wants to commit changes", "When working on git operations"]
    */
-  use_when: string[]
+  use_when: string[];
 
   /**
    * Whether skill can auto-activate based on context
    * If true, the skill can be suggested/activated automatically
    * when use_when conditions match
    */
-  auto_activate?: boolean
+  auto_activate?: boolean;
 
   /**
    * Priority for activation conflicts (1-10)
    * Higher priority skills are preferred when multiple skills match
    * @default 5
    */
-  priority?: SkillPriority
+  priority?: SkillPriority;
 
   /**
    * Required agent IDs
    * List of CCJK agents that should be active for this skill
    */
-  agents?: string[]
+  agents?: string[];
 
   /** Skill difficulty level */
-  difficulty?: SkillDifficulty
+  difficulty?: SkillDifficulty;
 
   /**
    * Related skill IDs
    * Skills that are commonly used together or are alternatives
    */
-  related_skills?: string[]
+  related_skills?: string[];
 
   /**
    * Minimum CCJK version required
    * Semantic version string (e.g., "3.5.0")
    */
-  ccjk_version?: string
+  ccjk_version?: string;
 
   /** Tags for discovery and search */
-  tags?: string[]
+  tags?: string[];
 
   /**
    * Allowed tools for this skill
@@ -321,7 +321,7 @@ export interface SkillMdMetadata {
    * @example
    * ["Bash(npm *)", "Bash(git *)", "mcp__*", "Read", "Write"]
    */
-  allowed_tools?: string[]
+  allowed_tools?: string[];
 
   /**
    * Subagent execution context mode
@@ -331,7 +331,7 @@ export interface SkillMdMetadata {
    *
    * @default "inherit"
    */
-  context?: SubagentContextMode
+  context?: SubagentContextMode;
 
   /**
    * Agent type to execute this skill
@@ -341,7 +341,7 @@ export interface SkillMdMetadata {
    *
    * @example "typescript-expert", "python-specialist"
    */
-  agent?: string
+  agent?: string;
 
   /**
    * Whether skill is user-invocable
@@ -351,7 +351,7 @@ export interface SkillMdMetadata {
    *
    * @default true
    */
-  user_invocable?: boolean
+  user_invocable?: boolean;
 
   /**
    * Execution hooks
@@ -369,7 +369,7 @@ export interface SkillMdMetadata {
    *     script: "npm config list"
    * ```
    */
-  hooks?: Hook[]
+  hooks?: Hook[];
 
   /**
    * Permission rules
@@ -380,7 +380,7 @@ export interface SkillMdMetadata {
    * @example
    * ["file:read", "file:write", "network:http", "bash:execute"]
    */
-  permissions?: string[]
+  permissions?: string[];
 
   /**
    * Execution timeout in seconds
@@ -390,7 +390,7 @@ export interface SkillMdMetadata {
    *
    * @default 300 (5 minutes)
    */
-  timeout?: number
+  timeout?: number;
 
   /**
    * Argument definitions for parameter shorthand
@@ -411,7 +411,7 @@ export interface SkillMdMetadata {
    *
    * In content: "Edit $0 with message: $1"
    */
-  args?: SkillArgument[]
+  args?: SkillArgument[];
 
   /**
    * Skill outputs
@@ -429,7 +429,7 @@ export interface SkillMdMetadata {
    *     type: variable
    * ```
    */
-  outputs?: SkillOutput[]
+  outputs?: SkillOutput[];
 }
 
 /**
@@ -440,16 +440,16 @@ export interface SkillMdMetadata {
  */
 export interface SkillMdFile {
   /** Parsed frontmatter metadata */
-  metadata: SkillMdMetadata
+  metadata: SkillMdMetadata;
 
   /** Markdown content (without frontmatter) */
-  content: string
+  content: string;
 
   /** Original file path */
-  filePath: string
+  filePath: string;
 
   /** File modification time */
-  modifiedAt?: Date
+  modifiedAt?: Date;
 }
 
 /**
@@ -460,28 +460,28 @@ export interface SkillMdFile {
  */
 export interface SkillActivationContext {
   /** User's message or command */
-  userMessage: string
+  userMessage: string;
 
   /** Current file being edited */
-  currentFile?: string
+  currentFile?: string;
 
   /** Detected project type (e.g., "typescript", "python") */
-  projectType?: string
+  projectType?: string;
 
   /** Recent commands executed */
-  recentCommands?: string[]
+  recentCommands?: string[];
 
   /** Current git branch */
-  gitBranch?: string
+  gitBranch?: string;
 
   /** Whether in a git repository */
-  isGitRepo?: boolean
+  isGitRepo?: boolean;
 
   /** Current working directory */
-  cwd?: string
+  cwd?: string;
 
   /** User's preferred language */
-  lang?: SupportedLang
+  lang?: SupportedLang;
 }
 
 /**
@@ -492,25 +492,25 @@ export interface SkillActivationContext {
  */
 export interface SkillActivationResult {
   /** Whether a skill should be activated */
-  shouldActivate: boolean
+  shouldActivate: boolean;
 
   /** The matched skill (if any) */
-  matchedSkill?: SkillMdFile
+  matchedSkill?: SkillMdFile;
 
   /** The trigger that matched (if any) */
-  matchedTrigger?: string
+  matchedTrigger?: string;
 
   /** The use_when condition that matched (if any) */
-  matchedUseWhen?: string
+  matchedUseWhen?: string;
 
   /**
    * Confidence score (0-1)
    * Higher scores indicate stronger matches
    */
-  confidence: number
+  confidence: number;
 
   /** Reason for activation/non-activation */
-  reason?: string
+  reason?: string;
 }
 
 /**
@@ -520,13 +520,13 @@ export interface SkillActivationResult {
  */
 export interface SkillValidationResult {
   /** Whether the skill is valid */
-  valid: boolean
+  valid: boolean;
 
   /** Validation errors (prevent installation) */
-  errors: SkillValidationError[]
+  errors: SkillValidationError[];
 
   /** Validation warnings (allow installation but notify user) */
-  warnings: SkillValidationWarning[]
+  warnings: SkillValidationWarning[];
 }
 
 /**
@@ -537,13 +537,13 @@ export interface SkillValidationResult {
  */
 export interface SkillValidationError {
   /** Error field (e.g., "metadata.name") */
-  field: string
+  field: string;
 
   /** Human-readable error message */
-  message: string
+  message: string;
 
   /** Error code for programmatic handling */
-  code: string
+  code: string;
 }
 
 /**
@@ -554,13 +554,13 @@ export interface SkillValidationError {
  */
 export interface SkillValidationWarning {
   /** Warning field (e.g., "metadata.priority") */
-  field: string
+  field: string;
 
   /** Human-readable warning message */
-  message: string
+  message: string;
 
   /** Warning code for programmatic handling */
-  code: string
+  code: string;
 }
 
 /**
@@ -573,22 +573,22 @@ export interface SkillInstallOptions {
    * Target directory for installation
    * @default "~/.claude/skills"
    */
-  targetDir?: string
+  targetDir?: string;
 
   /**
    * Overwrite existing skill with same name
    * @default false
    */
-  overwrite?: boolean
+  overwrite?: boolean;
 
   /**
    * Install skill dependencies (if any)
    * @default true
    */
-  installDependencies?: boolean
+  installDependencies?: boolean;
 
   /** Language for templates and messages */
-  lang?: SupportedLang
+  lang?: SupportedLang;
 }
 
 /**
@@ -598,16 +598,16 @@ export interface SkillInstallOptions {
  */
 export interface SkillInstallResult {
   /** Whether installation succeeded */
-  success: boolean
+  success: boolean;
 
   /** Installed skill (if successful) */
-  skill?: SkillMdFile
+  skill?: SkillMdFile;
 
   /** Installation path (if successful) */
-  installedPath?: string
+  installedPath?: string;
 
   /** Error message (if failed) */
-  error?: string
+  error?: string;
 }
 
 /**
@@ -617,34 +617,34 @@ export interface SkillInstallResult {
  */
 export interface SkillSearchOptions {
   /** Search query (matches name, description, tags) */
-  query?: string
+  query?: string;
 
   /** Filter by category */
-  category?: SkillCategory
+  category?: SkillCategory;
 
   /** Filter by tags (AND logic) */
-  tags?: string[]
+  tags?: string[];
 
   /** Filter by auto_activate capability */
-  autoActivate?: boolean
+  autoActivate?: boolean;
 
   /**
    * Sort by field
    * @default "name"
    */
-  sortBy?: 'name' | 'priority' | 'category'
+  sortBy?: 'name' | 'priority' | 'category';
 
   /**
    * Sort direction
    * @default "asc"
    */
-  sortDir?: 'asc' | 'desc'
+  sortDir?: 'asc' | 'desc';
 
   /**
    * Limit results
    * @default undefined (no limit)
    */
-  limit?: number
+  limit?: number;
 }
 
 /**
@@ -654,25 +654,25 @@ export interface SkillSearchOptions {
  */
 export interface SkillRegistryEntry {
   /** Skill ID (same as metadata.name) */
-  id: string
+  id: string;
 
   /** Skill metadata */
-  metadata: SkillMdMetadata
+  metadata: SkillMdMetadata;
 
   /** File path */
-  filePath: string
+  filePath: string;
 
   /**
    * Whether skill is enabled
    * Disabled skills are not considered for activation
    */
-  enabled: boolean
+  enabled: boolean;
 
   /** Installation source */
-  source: 'builtin' | 'marketplace' | 'local'
+  source: 'builtin' | 'marketplace' | 'local';
 
   /** Installation date */
-  installedAt: Date
+  installedAt: Date;
 }
 
 /**
@@ -682,13 +682,13 @@ export interface SkillRegistryEntry {
  */
 export interface SkillRegistry {
   /** Registry version (semantic version) */
-  version: string
+  version: string;
 
   /** Last updated timestamp (ISO 8601) */
-  lastUpdated: string
+  lastUpdated: string;
 
   /** Registered skills */
-  skills: SkillRegistryEntry[]
+  skills: SkillRegistryEntry[];
 }
 
 /**
@@ -698,16 +698,16 @@ export interface SkillRegistry {
  */
 export interface SkillExecutionContext {
   /** Skill being executed */
-  skill: SkillMdFile
+  skill: SkillMdFile;
 
   /** Arguments passed to skill (raw string) */
-  arguments: string
+  arguments: string;
 
   /** Activation context */
-  activationContext: SkillActivationContext
+  activationContext: SkillActivationContext;
 
   /** Execution start time */
-  startedAt: Date
+  startedAt: Date;
 }
 
 /**
@@ -717,22 +717,22 @@ export interface SkillExecutionContext {
  */
 export interface SkillExecutionResult {
   /** Whether execution succeeded */
-  success: boolean
+  success: boolean;
 
   /** Execution context */
-  context: SkillExecutionContext
+  context: SkillExecutionContext;
 
   /** Execution end time */
-  endedAt: Date
+  endedAt: Date;
 
   /** Duration in milliseconds */
-  durationMs: number
+  durationMs: number;
 
   /** Output (if any) */
-  output?: string
+  output?: string;
 
   /** Error (if failed) */
-  error?: string
+  error?: string;
 }
 
 /**
@@ -742,31 +742,31 @@ export interface SkillExecutionResult {
  */
 export interface SkillMarketplaceEntry {
   /** Skill ID */
-  id: string
+  id: string;
 
   /** Skill metadata */
-  metadata: SkillMdMetadata
+  metadata: SkillMdMetadata;
 
   /** Download URL */
-  downloadUrl: string
+  downloadUrl: string;
 
   /** Repository URL (if available) */
-  repositoryUrl?: string
+  repositoryUrl?: string;
 
   /** Number of downloads */
-  downloads: number
+  downloads: number;
 
   /** Average rating (1-5) */
-  rating?: number
+  rating?: number;
 
   /** Number of ratings */
-  ratingCount?: number
+  ratingCount?: number;
 
   /** Last updated timestamp */
-  lastUpdated: string
+  lastUpdated: string;
 
   /** Whether skill is verified */
-  verified: boolean
+  verified: boolean;
 }
 
 /**
@@ -776,10 +776,10 @@ export interface SkillMarketplaceEntry {
  */
 export interface SkillUpdateCheckResult {
   /** Whether updates are available */
-  hasUpdates: boolean
+  hasUpdates: boolean;
 
   /** Skills with available updates */
-  updates: SkillUpdateInfo[]
+  updates: SkillUpdateInfo[];
 }
 
 /**
@@ -789,17 +789,17 @@ export interface SkillUpdateCheckResult {
  */
 export interface SkillUpdateInfo {
   /** Skill ID */
-  skillId: string
+  skillId: string;
 
   /** Current version */
-  currentVersion: string
+  currentVersion: string;
 
   /** Latest version */
-  latestVersion: string
+  latestVersion: string;
 
   /** Update description */
-  description?: string
+  description?: string;
 
   /** Whether update is breaking */
-  breaking: boolean
+  breaking: boolean;
 }

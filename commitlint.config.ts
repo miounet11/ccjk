@@ -1,5 +1,5 @@
-import type { UserConfig } from '@commitlint/types'
-import { RuleConfigSeverity } from '@commitlint/types'
+import type { UserConfig } from '@commitlint/types';
+import { RuleConfigSeverity } from '@commitlint/types';
 
 /**
  * Commitlint configuration for CCJK project
@@ -38,6 +38,6 @@ const config: UserConfig = {
     // Footer configuration (optional)
     'footer-leading-blank': [RuleConfigSeverity.Warning, 'always'],
   },
-}
+};
 
-export default config
+export default config;

@@ -16,47 +16,47 @@ import type {
   SuggestionsResponse,
   TrendingParams,
   TrendingResponse,
-} from './skills-marketplace-types'
-import { CLOUD_ENDPOINTS } from '../constants'
+} from './skills-marketplace-types';
+import { CLOUD_ENDPOINTS } from '../constants';
 
 /** Base URL for the CCJK API */
-const API_BASE_URL = `${CLOUD_ENDPOINTS.MAIN.BASE_URL}${CLOUD_ENDPOINTS.MAIN.API_VERSION}`
+const API_BASE_URL = `${CLOUD_ENDPOINTS.MAIN.BASE_URL}${CLOUD_ENDPOINTS.MAIN.API_VERSION}`;
 
 /** Default cache TTL in milliseconds (5 minutes) */
-const DEFAULT_CACHE_TTL = 5 * 60 * 1000
+const DEFAULT_CACHE_TTL = 5 * 60 * 1000;
 
 /** Cache entry interface */
 interface CacheEntry<T> {
-  data: T
-  timestamp: number
-  ttl: number
+  data: T;
+  timestamp: number;
+  ttl: number;
 }
 
 /** Request options interface */
 interface RequestOptions {
   /** AbortController signal for request cancellation */
-  signal?: AbortSignal
+  signal?: AbortSignal;
   /** Cache TTL in milliseconds. Set to 0 to disable caching */
-  cacheTtl?: number
+  cacheTtl?: number;
   /** Force refresh, bypassing cache */
-  forceRefresh?: boolean
+  forceRefresh?: boolean;
 }
 
 /** API Error class for marketplace errors */
 export class SkillsMarketplaceApiError extends Error {
   /** HTTP status code */
-  public readonly status: number
+  public readonly status: number;
   /** Error code from API response */
-  public readonly code?: string
+  public readonly code?: string;
   /** Original response data */
-  public readonly data?: unknown
+  public readonly data?: unknown;
 
   constructor(message: string, status: number, code?: string, data?: unknown) {
-    super(message)
-    this.name = 'SkillsMarketplaceApiError'
-    this.status = status
-    this.code = code
-    this.data = data
+    super(message);
+    this.name = 'SkillsMarketplaceApiError';
+    this.status = status;
+    this.code = code;
+    this.data = data;
   }
 }
 
@@ -64,7 +64,7 @@ export class SkillsMarketplaceApiError extends Error {
  * Simple in-memory cache for API responses
  */
 class ResponseCache {
-  private cache = new Map<string, CacheEntry<unknown>>()
+  private cache = new Map<string, CacheEntry<unknown>>();
 
   /**
    * Get cached data if valid
@@ -72,18 +72,18 @@ class ResponseCache {
    * @returns Cached data or undefined if not found/expired
    */
   get<T>(key: string): T | undefined {
-    const entry = this.cache.get(key) as CacheEntry<T> | undefined
+    const entry = this.cache.get(key) as CacheEntry<T> | undefined;
     if (!entry) {
-      return undefined
+      return undefined;
     }
 
-    const now = Date.now()
+    const now = Date.now();
     if (now - entry.timestamp > entry.ttl) {
-      this.cache.delete(key)
-      return undefined
+      this.cache.delete(key);
+      return undefined;
     }
 
-    return entry.data
+    return entry.data;
   }
 
   /**
@@ -97,14 +97,14 @@ class ResponseCache {
       data,
       timestamp: Date.now(),
       ttl,
-    })
+    });
   }
 
   /**
    * Clear all cache entries
    */
   clear(): void {
-    this.cache.clear()
+    this.cache.clear();
   }
 
   /**
@@ -112,7 +112,7 @@ class ResponseCache {
    * @param key - Cache key to delete
    */
   delete(key: string): void {
-    this.cache.delete(key)
+    this.cache.delete(key);
   }
 
   /**
@@ -120,12 +120,12 @@ class ResponseCache {
    * @returns Number of cached entries
    */
   get size(): number {
-    return this.cache.size
+    return this.cache.size;
   }
 }
 
 /** Global response cache instance */
-const responseCache = new ResponseCache()
+const responseCache = new ResponseCache();
 
 /**
  * Generate cache key from endpoint and params
@@ -140,15 +140,15 @@ function generateCacheKey(endpoint: string, params?: Record<string, unknown>): s
         .reduce(
           (acc, key) => {
             if (params[key] !== undefined && params[key] !== null) {
-              acc[key] = params[key]
+              acc[key] = params[key];
             }
-            return acc
+            return acc;
           },
           {} as Record<string, unknown>,
         )
-    : {}
+    : {};
 
-  return `${endpoint}:${JSON.stringify(sortedParams)}`
+  return `${endpoint}:${JSON.stringify(sortedParams)}`;
 }
 
 /**
@@ -158,17 +158,17 @@ function generateCacheKey(endpoint: string, params?: Record<string, unknown>): s
  * @returns Full URL with query string
  */
 function buildUrl(endpoint: string, params?: Record<string, unknown>): string {
-  const url = new URL(`${API_BASE_URL}${endpoint}`)
+  const url = new URL(`${API_BASE_URL}${endpoint}`);
 
   if (params) {
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined && value !== null) {
-        url.searchParams.append(key, String(value))
+        url.searchParams.append(key, String(value));
       }
-    })
+    });
   }
 
-  return url.toString()
+  return url.toString();
 }
 
 /**
@@ -184,18 +184,18 @@ async function fetchApi<T>(
   params?: Record<string, unknown>,
   options: RequestOptions = {},
 ): Promise<T> {
-  const { signal, cacheTtl = DEFAULT_CACHE_TTL, forceRefresh = false } = options
+  const { signal, cacheTtl = DEFAULT_CACHE_TTL, forceRefresh = false } = options;
 
   // Check cache first (unless force refresh)
   if (cacheTtl > 0 && !forceRefresh) {
-    const cacheKey = generateCacheKey(endpoint, params)
-    const cached = responseCache.get<T>(cacheKey)
+    const cacheKey = generateCacheKey(endpoint, params);
+    const cached = responseCache.get<T>(cacheKey);
     if (cached !== undefined) {
-      return cached
+      return cached;
     }
   }
 
-  const url = buildUrl(endpoint, params)
+  const url = buildUrl(endpoint, params);
 
   try {
     const response = await fetch(url, {
@@ -205,22 +205,22 @@ async function fetchApi<T>(
         'Content-Type': 'application/json',
       },
       signal,
-    })
+    });
 
     if (!response.ok) {
-      let errorData: unknown
-      let errorMessage = `HTTP ${response.status}: ${response.statusText}`
-      let errorCode: string | undefined
+      let errorData: unknown;
+      let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+      let errorCode: string | undefined;
 
       try {
-        errorData = await response.json()
+        errorData = await response.json();
         if (typeof errorData === 'object' && errorData !== null) {
-          const err = errorData as Record<string, unknown>
+          const err = errorData as Record<string, unknown>;
           if (typeof err.message === 'string') {
-            errorMessage = err.message
+            errorMessage = err.message;
           }
           if (typeof err.code === 'string') {
-            errorCode = err.code
+            errorCode = err.code;
           }
         }
       }
@@ -228,28 +228,28 @@ async function fetchApi<T>(
         // Ignore JSON parse errors for error response
       }
 
-      throw new SkillsMarketplaceApiError(errorMessage, response.status, errorCode, errorData)
+      throw new SkillsMarketplaceApiError(errorMessage, response.status, errorCode, errorData);
     }
 
-    const data = (await response.json()) as T
+    const data = (await response.json()) as T;
 
     // Cache successful response
     if (cacheTtl > 0) {
-      const cacheKey = generateCacheKey(endpoint, params)
-      responseCache.set(cacheKey, data, cacheTtl)
+      const cacheKey = generateCacheKey(endpoint, params);
+      responseCache.set(cacheKey, data, cacheTtl);
     }
 
-    return data
+    return data;
   }
   catch (error) {
     // Re-throw API errors
     if (error instanceof SkillsMarketplaceApiError) {
-      throw error
+      throw error;
     }
 
     // Handle abort errors
     if (error instanceof Error && error.name === 'AbortError') {
-      throw new SkillsMarketplaceApiError('Request was cancelled', 0, 'ABORT_ERROR')
+      throw new SkillsMarketplaceApiError('Request was cancelled', 0, 'ABORT_ERROR');
     }
 
     // Handle network errors
@@ -258,7 +258,7 @@ async function fetchApi<T>(
         'Network error: Unable to connect to the API',
         0,
         'NETWORK_ERROR',
-      )
+      );
     }
 
     // Handle other errors
@@ -266,7 +266,7 @@ async function fetchApi<T>(
       error instanceof Error ? error.message : 'Unknown error occurred',
       0,
       'UNKNOWN_ERROR',
-    )
+    );
   }
 }
 
@@ -301,7 +301,7 @@ export async function getMarketplace(
   params: MarketplaceParams = {},
   options: RequestOptions = {},
 ): Promise<MarketplaceResponse> {
-  return fetchApi<MarketplaceResponse>('/skills/marketplace', params as unknown as Record<string, unknown>, options)
+  return fetchApi<MarketplaceResponse>('/skills/marketplace', params as unknown as Record<string, unknown>, options);
 }
 
 /**
@@ -340,10 +340,10 @@ export async function searchSkills(
       'Search query (q) is required',
       400,
       'INVALID_PARAMS',
-    )
+    );
   }
 
-  return fetchApi<SearchResponse>('/skills/search', params as unknown as Record<string, unknown>, options)
+  return fetchApi<SearchResponse>('/skills/search', params as unknown as Record<string, unknown>, options);
 }
 
 /**
@@ -371,20 +371,20 @@ export async function getSearchSuggestions(
       'Search query (q) is required',
       400,
       'INVALID_PARAMS',
-    )
+    );
   }
 
   // Use shorter cache TTL for suggestions (1 minute)
   const suggestionOptions = {
     ...options,
     cacheTtl: options.cacheTtl ?? 60 * 1000,
-  }
+  };
 
   return fetchApi<SuggestionsResponse>(
     '/skills/search/suggestions',
     params as unknown as Record<string, unknown>,
     suggestionOptions,
-  )
+  );
 }
 
 /**
@@ -410,13 +410,13 @@ export async function getTrendingKeywords(
   const trendingOptions = {
     ...options,
     cacheTtl: options.cacheTtl ?? 10 * 60 * 1000,
-  }
+  };
 
   return fetchApi<TrendingResponse>(
     '/skills/search/trending',
     params as unknown as Record<string, unknown>,
     trendingOptions,
-  )
+  );
 }
 
 /**
@@ -429,7 +429,7 @@ export async function getTrendingKeywords(
  * ```
  */
 export function clearCache(): void {
-  responseCache.clear()
+  responseCache.clear();
 }
 
 /**
@@ -443,7 +443,7 @@ export function clearCache(): void {
  * ```
  */
 export function getCacheSize(): number {
-  return responseCache.size
+  return responseCache.size;
 }
 
 /**
@@ -472,7 +472,7 @@ export function getCacheSize(): number {
  * ```
  */
 export function createAbortController(): AbortController {
-  return new AbortController()
+  return new AbortController();
 }
 
 /**
@@ -508,6 +508,6 @@ export const skillsMarketplaceApi = {
   clearCache,
   getCacheSize,
   createAbortController,
-}
+};
 
-export default skillsMarketplaceApi
+export default skillsMarketplaceApi;

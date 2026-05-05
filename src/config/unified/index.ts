@@ -31,39 +31,39 @@
  * ```
  */
 
-import type { ClaudeSettings as ClaudeSettingsType } from '../../types/config'
+import type { ClaudeSettings as ClaudeSettingsType } from '../../types/config';
 // Type exports - re-export from types module
-import type { CcjkConfig, RuntimeState } from './types'
+import type { CcjkConfig, RuntimeState } from './types';
 
-import { createDefaultCcjkConfig, getCcjkConfig, readCcjkConfig, updateCcjkConfig, validateCcjkConfig, writeCcjkConfig } from './ccjk-config'
-import { getClaudeConfig, mergeClaudeSettings as mergeClaudeSettingsImpl, readClaudeConfig, updateClaudeConfig, validateClaudeConfig, writeClaudeConfig } from './claude-config'
-import { deleteCredential, hasCredential, initializeCredentials, listCredentials, retrieveCredential, storeCredential } from './credentials'
-import { mergeConfigs, validateMergedConfig } from './merger'
-import { detectLegacyConfigs, getMigrationStatus, needsMigration, runMigrations } from './migration'
-import { createDefaultState, getState, readState, updateState, validateState, writeState } from './state-manager'
+import { createDefaultCcjkConfig, getCcjkConfig, readCcjkConfig, updateCcjkConfig, validateCcjkConfig, writeCcjkConfig } from './ccjk-config';
+import { getClaudeConfig, mergeClaudeSettings as mergeClaudeSettingsImpl, readClaudeConfig, updateClaudeConfig, validateClaudeConfig, writeClaudeConfig } from './claude-config';
+import { deleteCredential, hasCredential, initializeCredentials, listCredentials, retrieveCredential, storeCredential } from './credentials';
+import { mergeConfigs, validateMergedConfig } from './merger';
+import { detectLegacyConfigs, getMigrationStatus, needsMigration, runMigrations } from './migration';
+import { createDefaultState, getState, readState, updateState, validateState, writeState } from './state-manager';
 
 // Re-export ClaudeSettings from existing types
-export type { ClaudeSettings } from '../../types/config'
+export type { ClaudeSettings } from '../../types/config';
 
 // CCJK Configuration Manager (config.toml)
-export * from './ccjk-config'
+export * from './ccjk-config';
 
 // Claude Code Configuration Manager (settings.json)
-export { getClaudeConfig, readClaudeConfig, updateClaudeConfig, validateClaudeConfig, writeClaudeConfig } from './claude-config'
+export { getClaudeConfig, readClaudeConfig, updateClaudeConfig, validateClaudeConfig, writeClaudeConfig } from './claude-config';
 
 // Credential Manager
-export * from './credentials'
+export * from './credentials';
 
 // Smart Configuration Merger
-export * from './merger'
+export * from './merger';
 
 // Migration System
-export { detectLegacyConfigs, getMigrationStatus, needsMigration, runMigrations } from './migration'
+export { detectLegacyConfigs, getMigrationStatus, needsMigration, runMigrations } from './migration';
 
 // Runtime State Manager (state.json)
-export * from './state-manager'
+export * from './state-manager';
 
-export * from './types'
+export * from './types';
 
 /**
  * Unified Configuration Manager
@@ -256,9 +256,9 @@ export const config = {
    * Unified read across all scopes
    */
   readAll: (): {
-    ccjk: CcjkConfig | null
-    claude: ClaudeSettingsType | null
-    state: RuntimeState | null
+    ccjk: CcjkConfig | null;
+    claude: ClaudeSettingsType | null;
+    state: RuntimeState | null;
   } => ({
     ccjk: readCcjkConfig(),
     claude: readClaudeConfig(),
@@ -269,62 +269,62 @@ export const config = {
    * Check if initialization is needed
    */
   needsInit: (): boolean => {
-    return !readCcjkConfig() && !readClaudeConfig()
+    return !readCcjkConfig() && !readClaudeConfig();
   },
 
   /**
    * Initialize all configuration files with defaults
    */
-  init: async (options: { lang?: 'zh-CN' | 'en', force?: boolean } = {}): Promise<void> => {
-    const { lang = 'en', force = false } = options
+  init: async (options: { lang?: 'zh-CN' | 'en'; force?: boolean } = {}): Promise<void> => {
+    const { lang = 'en', force = false } = options;
 
     // Run migrations first if needed
     if (needsMigration()) {
-      await runMigrations({ backup: true })
+      await runMigrations({ backup: true });
     }
 
     // Initialize CCJK config if missing or forced
     if (!readCcjkConfig() || force) {
-      writeCcjkConfig(createDefaultCcjkConfig(lang))
+      writeCcjkConfig(createDefaultCcjkConfig(lang));
     }
 
     // Initialize Claude config if missing or forced
     if (!readClaudeConfig() || force) {
-      writeClaudeConfig({})
+      writeClaudeConfig({});
     }
 
     // Initialize state if missing or forced
     if (!readState() || force) {
-      writeState(createDefaultState())
+      writeState(createDefaultState());
     }
 
     // Initialize credentials
-    await initializeCredentials()
+    await initializeCredentials();
   },
 
   /**
    * Validate all configuration files
    */
   validate: (): {
-    ccjk: ReturnType<typeof validateCcjkConfig>
-    claude: ReturnType<typeof validateClaudeConfig>
-    state: ReturnType<typeof validateState>
-    valid: boolean
+    ccjk: ReturnType<typeof validateCcjkConfig>;
+    claude: ReturnType<typeof validateClaudeConfig>;
+    state: ReturnType<typeof validateState>;
+    valid: boolean;
   } => {
-    const ccjkValidation = validateCcjkConfig(readCcjkConfig())
-    const claudeValidation = validateClaudeConfig(readClaudeConfig())
-    const stateValidation = validateState(readState())
+    const ccjkValidation = validateCcjkConfig(readCcjkConfig());
+    const claudeValidation = validateClaudeConfig(readClaudeConfig());
+    const stateValidation = validateState(readState());
 
     return {
       ccjk: ccjkValidation,
       claude: claudeValidation,
       state: stateValidation,
       valid: ccjkValidation.valid && claudeValidation.valid && stateValidation.valid,
-    }
+    };
   },
-}
+};
 
 /**
  * Default export for convenience
  */
-export default config
+export default config;

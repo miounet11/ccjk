@@ -52,9 +52,9 @@ export {
   wait,
   waitForSelector,
   waitForText,
-} from './commands'
+} from './commands';
 
-export type { CommandOptions, CommandResult, SnapshotOptions } from './commands'
+export type { CommandOptions, CommandResult, SnapshotOptions } from './commands';
 
 // Installer exports
 export {
@@ -65,12 +65,12 @@ export {
   installBrowser,
   uninstallAgentBrowser,
   updateAgentBrowser,
-} from './installer'
+} from './installer';
 
-export type { AgentBrowserInstallStatus } from './installer'
+export type { AgentBrowserInstallStatus } from './installer';
 
 // Menu exports
-export { recommendAgentBrowser, showAgentBrowserMenu } from './menu'
+export { recommendAgentBrowser, showAgentBrowserMenu } from './menu';
 
 // Session exports
 export {
@@ -82,9 +82,9 @@ export {
   getCurrentSession,
   getSessionStatus,
   listSessions,
-} from './session'
+} from './session';
 
-export type { BrowserSession, SessionCreateOptions } from './session'
+export type { BrowserSession, SessionCreateOptions } from './session';
 
 // Skill exports
-export { browserSkill, getBrowserSkill, getBrowserSkillTemplate } from './skill'
+export { browserSkill, getBrowserSkill, getBrowserSkillTemplate } from './skill';

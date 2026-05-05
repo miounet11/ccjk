@@ -4,20 +4,20 @@
  * Validates the integrity of CCJK command files in ~/.claude/commands/ccjk/
  */
 
-import type { CommandFileInfo, ValidationResult } from './types'
-import { access, stat } from 'node:fs/promises'
-import { join } from 'pathe'
+import type { CommandFileInfo, ValidationResult } from './types';
+import { access, stat } from 'node:fs/promises';
+import { join } from 'pathe';
 
 /**
  * Check if a file exists
  */
 async function exists(path: string): Promise<boolean> {
   try {
-    await access(path)
-    return true
+    await access(path);
+    return true;
   }
   catch {
-    return false
+    return false;
   }
 }
 
@@ -32,7 +32,7 @@ export const EXPECTED_COMMAND_FILES = [
   'git-cleanBranches.md',
   'git-rollback.md',
   'init-project.md',
-] as const
+] as const;
 
 /**
  * ConfigValidator class
@@ -40,7 +40,7 @@ export const EXPECTED_COMMAND_FILES = [
  * Validates CCJK command file integrity and detects missing files
  */
 export class ConfigValidator {
-  private commandsDir: string
+  private commandsDir: string;
 
   /**
    * Create a new ConfigValidator instance
@@ -48,7 +48,7 @@ export class ConfigValidator {
    * @param commandsDir - Path to ~/.claude/commands/ccjk/ directory
    */
   constructor(commandsDir: string) {
-    this.commandsDir = commandsDir
+    this.commandsDir = commandsDir;
   }
 
   /**
@@ -57,40 +57,40 @@ export class ConfigValidator {
    * @returns Validation result with detailed file information
    */
   async validate(): Promise<ValidationResult> {
-    const expectedFiles: CommandFileInfo[] = []
-    const missingFiles: CommandFileInfo[] = []
-    const existingFiles: CommandFileInfo[] = []
+    const expectedFiles: CommandFileInfo[] = [];
+    const missingFiles: CommandFileInfo[] = [];
+    const existingFiles: CommandFileInfo[] = [];
 
     for (const fileName of EXPECTED_COMMAND_FILES) {
-      const filePath = join(this.commandsDir, fileName)
-      const fileExists = await exists(filePath)
+      const filePath = join(this.commandsDir, fileName);
+      const fileExists = await exists(filePath);
 
       const fileInfo: CommandFileInfo = {
         name: fileName,
         path: filePath,
         exists: fileExists,
-      }
+      };
 
       if (fileExists) {
         try {
-          const stats = await stat(filePath)
-          fileInfo.size = stats.size
-          fileInfo.lastModified = stats.mtime
-          existingFiles.push(fileInfo)
+          const stats = await stat(filePath);
+          fileInfo.size = stats.size;
+          fileInfo.lastModified = stats.mtime;
+          existingFiles.push(fileInfo);
         }
         catch {
           // If stat fails, treat as missing
-          missingFiles.push(fileInfo)
+          missingFiles.push(fileInfo);
         }
       }
       else {
-        missingFiles.push(fileInfo)
+        missingFiles.push(fileInfo);
       }
 
-      expectedFiles.push(fileInfo)
+      expectedFiles.push(fileInfo);
     }
 
-    const valid = missingFiles.length === 0
+    const valid = missingFiles.length === 0;
 
     return {
       valid,
@@ -98,7 +98,7 @@ export class ConfigValidator {
       missingFiles,
       existingFiles,
       timestamp: new Date(),
-    }
+    };
   }
 
   /**
@@ -108,8 +108,8 @@ export class ConfigValidator {
    * @returns True if file exists, false otherwise
    */
   async checkFile(fileName: string): Promise<boolean> {
-    const filePath = join(this.commandsDir, fileName)
-    return await exists(filePath)
+    const filePath = join(this.commandsDir, fileName);
+    return await exists(filePath);
   }
 
   /**
@@ -119,27 +119,27 @@ export class ConfigValidator {
    * @returns Command file information
    */
   async getFileInfo(fileName: string): Promise<CommandFileInfo> {
-    const filePath = join(this.commandsDir, fileName)
-    const fileExists = await exists(filePath)
+    const filePath = join(this.commandsDir, fileName);
+    const fileExists = await exists(filePath);
 
     const fileInfo: CommandFileInfo = {
       name: fileName,
       path: filePath,
       exists: fileExists,
-    }
+    };
 
     if (fileExists) {
       try {
-        const stats = await stat(filePath)
-        fileInfo.size = stats.size
-        fileInfo.lastModified = stats.mtime
+        const stats = await stat(filePath);
+        fileInfo.size = stats.size;
+        fileInfo.lastModified = stats.mtime;
       }
       catch {
         // Ignore stat errors
       }
     }
 
-    return fileInfo
+    return fileInfo;
   }
 
   /**
@@ -148,6 +148,6 @@ export class ConfigValidator {
    * @returns True if directory exists, false otherwise
    */
   async checkDirectory(): Promise<boolean> {
-    return await exists(this.commandsDir)
+    return await exists(this.commandsDir);
   }
 }

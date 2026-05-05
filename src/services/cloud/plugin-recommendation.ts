@@ -8,25 +8,25 @@
  * @module services/cloud/plugin-recommendation
  */
 
-import type { SupportedLang } from '../../constants'
-import { CLOUD_ENDPOINTS } from '../../constants'
-import type { PackageCategory } from '../../types/marketplace'
-import type { CloudApiResponse } from './api-client'
-import { existsSync, mkdirSync, readFileSync, unlinkSync } from 'node:fs'
-import { homedir, platform } from 'node:os'
-import { join } from 'pathe'
-import { writeFileAtomic } from '../../utils/fs-operations'
-import { CloudApiClient } from './api-client'
+import type { SupportedLang } from '../../constants';
+import type { PackageCategory } from '../../types/marketplace';
+import type { CloudApiResponse } from './api-client';
+import { existsSync, mkdirSync, readFileSync, unlinkSync } from 'node:fs';
+import { homedir, platform } from 'node:os';
+import { join } from 'pathe';
+import { CLOUD_ENDPOINTS } from '../../constants';
+import { writeFileAtomic } from '../../utils/fs-operations';
+import { CloudApiClient } from './api-client';
 
 // ============================================================================
 // Constants
 // ============================================================================
 
-const CLOUD_API_BASE_URL = CLOUD_ENDPOINTS.MAIN.BASE_URL
-const CACHE_DIR = join(homedir(), '.ccjk', 'cache')
-const CACHE_FILE = join(CACHE_DIR, 'plugin-recommendations.json')
-const CACHE_TTL = 24 * 60 * 60 * 1000 // 24 hours in milliseconds
-const DEFAULT_TIMEOUT = 10000 // 10 seconds
+const CLOUD_API_BASE_URL = CLOUD_ENDPOINTS.MAIN.BASE_URL;
+const CACHE_DIR = join(homedir(), '.ccjk', 'cache');
+const CACHE_FILE = join(CACHE_DIR, 'plugin-recommendations.json');
+const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+const DEFAULT_TIMEOUT = 10000; // 10 seconds
 
 // ============================================================================
 // Types
@@ -39,44 +39,44 @@ const DEFAULT_TIMEOUT = 10000 // 10 seconds
  */
 export interface PluginRecommendation {
   /** Unique plugin identifier */
-  id: string
+  id: string;
   /** Plugin display name */
-  name: string
+  name: string;
   /** Localized descriptions */
-  description: Record<SupportedLang, string>
+  description: Record<SupportedLang, string>;
   /** Plugin category */
-  category: PackageCategory
+  category: PackageCategory;
   /** Popularity score (0-100) */
-  popularity: number
+  popularity: number;
   /** Average rating (1-5) */
-  rating: number
+  rating: number;
   /** Number of ratings */
-  ratingCount: number
+  ratingCount: number;
   /** Search tags */
-  tags: string[]
+  tags: string[];
   /** Installation command */
-  installCommand: string
+  installCommand: string;
   /** Compatibility information */
   compatibility: {
     /** Supported operating systems */
-    os: string[]
+    os: string[];
     /** Supported code tools */
-    codeTools: string[]
-  }
+    codeTools: string[];
+  };
   /** Plugin version */
-  version?: string
+  version?: string;
   /** Author name */
-  author?: string
+  author?: string;
   /** Repository URL */
-  repository?: string
+  repository?: string;
   /** Download count */
-  downloads?: number
+  downloads?: number;
   /** Whether plugin is verified */
-  verified?: boolean
+  verified?: boolean;
   /** Recommendation score (0-100) */
-  recommendationScore?: number
+  recommendationScore?: number;
   /** Reason for recommendation */
-  recommendationReason?: Record<SupportedLang, string>
+  recommendationReason?: Record<SupportedLang, string>;
 }
 
 /**
@@ -86,19 +86,19 @@ export interface PluginRecommendation {
  */
 export interface RecommendationRequest {
   /** Operating system (darwin, linux, win32) */
-  os: string
+  os: string;
   /** Code tool type (claude-code, codex, aider) */
-  codeTool: string
+  codeTool: string;
   /** List of already installed plugin IDs */
-  installedPlugins: string[]
+  installedPlugins: string[];
   /** Preferred language */
-  preferredLang: SupportedLang
+  preferredLang: SupportedLang;
   /** User-specified tags for filtering */
-  userTags?: string[]
+  userTags?: string[];
   /** Category filter */
-  category?: PackageCategory
+  category?: PackageCategory;
   /** Maximum number of recommendations */
-  limit?: number
+  limit?: number;
 }
 
 /**
@@ -108,15 +108,15 @@ export interface RecommendationRequest {
  */
 export interface RecommendationResponse {
   /** Recommended plugins */
-  recommendations: PluginRecommendation[]
+  recommendations: PluginRecommendation[];
   /** Total available recommendations */
-  total: number
+  total: number;
   /** Whether results are from cache */
-  fromCache: boolean
+  fromCache: boolean;
   /** Cache timestamp */
-  cacheTimestamp?: string
+  cacheTimestamp?: string;
   /** Recommendation algorithm version */
-  algorithmVersion?: string
+  algorithmVersion?: string;
 }
 
 /**
@@ -126,13 +126,13 @@ export interface RecommendationResponse {
  */
 interface CachedRecommendations {
   /** Cached recommendations */
-  data: PluginRecommendation[]
+  data: PluginRecommendation[];
   /** Cache creation timestamp */
-  timestamp: string
+  timestamp: string;
   /** Request parameters used for caching */
-  request: RecommendationRequest
+  request: RecommendationRequest;
   /** Cache expiration timestamp */
-  expiresAt: string
+  expiresAt: string;
 }
 
 // ============================================================================
@@ -160,8 +160,8 @@ interface CachedRecommendations {
  * ```
  */
 export class PluginRecommendationService {
-  private apiClient: CloudApiClient
-  private fallbackData: PluginRecommendation[]
+  private apiClient: CloudApiClient;
+  private fallbackData: PluginRecommendation[];
 
   /**
    * Create a new PluginRecommendationService instance
@@ -177,8 +177,8 @@ export class PluginRecommendationService {
       baseUrl,
       timeout: DEFAULT_TIMEOUT,
       userAgent: 'CCJK-PluginRecommendation/1.0',
-    })
-    this.fallbackData = fallbackData
+    });
+    this.fallbackData = fallbackData;
   }
 
   // ==========================================================================
@@ -198,47 +198,47 @@ export class PluginRecommendationService {
     request: RecommendationRequest,
   ): Promise<RecommendationResponse> {
     // Try to get from cache first
-    const cached = this.getCachedRecommendations(request)
+    const cached = this.getCachedRecommendations(request);
     if (cached) {
       return {
         recommendations: cached.data,
         total: cached.data.length,
         fromCache: true,
         cacheTimestamp: cached.timestamp,
-      }
+      };
     }
 
     // Try to fetch from cloud API
     try {
-      const response = await this.fetchFromCloud(request)
+      const response = await this.fetchFromCloud(request);
       if (response.success && response.data) {
         // Cache the results
-        this.cacheRecommendations(request, response.data.recommendations)
+        this.cacheRecommendations(request, response.data.recommendations);
 
         return {
           recommendations: response.data.recommendations,
           total: response.data.total || response.data.recommendations.length,
           fromCache: false,
           algorithmVersion: response.data.algorithmVersion,
-        }
+        };
       }
     }
     catch (error) {
       // Cloud API failed, fall through to local fallback
-      console.warn('Cloud API request failed:', error)
+      console.warn('Cloud API request failed:', error);
     }
 
     // Fallback to local data
-    const localRecommendations = this.getLocalRecommendations(request)
+    const localRecommendations = this.getLocalRecommendations(request);
 
     // Cache the local recommendations too
-    this.cacheRecommendations(request, localRecommendations)
+    this.cacheRecommendations(request, localRecommendations);
 
     return {
       recommendations: localRecommendations,
       total: localRecommendations.length,
       fromCache: false,
-    }
+    };
   }
 
   /**
@@ -249,11 +249,11 @@ export class PluginRecommendationService {
   clearCache(): void {
     try {
       if (existsSync(CACHE_FILE)) {
-        unlinkSync(CACHE_FILE)
+        unlinkSync(CACHE_FILE);
       }
     }
     catch (error) {
-      console.warn('Failed to clear cache:', error)
+      console.warn('Failed to clear cache:', error);
     }
   }
 
@@ -263,30 +263,30 @@ export class PluginRecommendationService {
    * Returns information about the current cache state.
    */
   getCacheStatus(): {
-    exists: boolean
-    timestamp?: string
-    expiresAt?: string
-    isValid?: boolean
+    exists: boolean;
+    timestamp?: string;
+    expiresAt?: string;
+    isValid?: boolean;
   } {
     try {
       if (!existsSync(CACHE_FILE)) {
-        return { exists: false }
+        return { exists: false };
       }
 
-      const data = readFileSync(CACHE_FILE, 'utf-8')
-      const cached: CachedRecommendations = JSON.parse(data)
+      const data = readFileSync(CACHE_FILE, 'utf-8');
+      const cached: CachedRecommendations = JSON.parse(data);
 
-      const isValid = new Date(cached.expiresAt).getTime() > Date.now()
+      const isValid = new Date(cached.expiresAt).getTime() > Date.now();
 
       return {
         exists: true,
         timestamp: cached.timestamp,
         expiresAt: cached.expiresAt,
         isValid,
-      }
+      };
     }
     catch {
-      return { exists: false }
+      return { exists: false };
     }
   }
 
@@ -298,7 +298,7 @@ export class PluginRecommendationService {
    * @param data - Fallback plugin recommendations
    */
   setFallbackData(data: PluginRecommendation[]): void {
-    this.fallbackData = data
+    this.fallbackData = data;
   }
 
   // ==========================================================================
@@ -315,26 +315,26 @@ export class PluginRecommendationService {
   ): CachedRecommendations | null {
     try {
       if (!existsSync(CACHE_FILE)) {
-        return null
+        return null;
       }
 
-      const data = readFileSync(CACHE_FILE, 'utf-8')
-      const cached: CachedRecommendations = JSON.parse(data)
+      const data = readFileSync(CACHE_FILE, 'utf-8');
+      const cached: CachedRecommendations = JSON.parse(data);
 
       // Check if cache is expired
       if (new Date(cached.expiresAt).getTime() < Date.now()) {
-        return null
+        return null;
       }
 
       // Check if request parameters match
       if (!this.requestMatches(cached.request, request)) {
-        return null
+        return null;
       }
 
-      return cached
+      return cached;
     }
     catch {
-      return null
+      return null;
     }
   }
 
@@ -350,23 +350,23 @@ export class PluginRecommendationService {
     try {
       // Ensure cache directory exists
       if (!existsSync(CACHE_DIR)) {
-        mkdirSync(CACHE_DIR, { recursive: true })
+        mkdirSync(CACHE_DIR, { recursive: true });
       }
 
-      const now = new Date()
-      const expiresAt = new Date(now.getTime() + CACHE_TTL)
+      const now = new Date();
+      const expiresAt = new Date(now.getTime() + CACHE_TTL);
 
       const cached: CachedRecommendations = {
         data: recommendations,
         timestamp: now.toISOString(),
         request,
         expiresAt: expiresAt.toISOString(),
-      }
+      };
 
-      writeFileAtomic(CACHE_FILE, JSON.stringify(cached, null, 2), 'utf-8')
+      writeFileAtomic(CACHE_FILE, JSON.stringify(cached, null, 2), 'utf-8');
     }
     catch (error) {
-      console.warn('Failed to cache recommendations:', error)
+      console.warn('Failed to cache recommendations:', error);
     }
   }
 
@@ -385,7 +385,7 @@ export class PluginRecommendationService {
       && cached.preferredLang === current.preferredLang
       && cached.category === current.category
       && JSON.stringify(cached.userTags || []) === JSON.stringify(current.userTags || [])
-    )
+    );
   }
 
   // ==========================================================================
@@ -400,9 +400,9 @@ export class PluginRecommendationService {
   private async fetchFromCloud(
     request: RecommendationRequest,
   ): Promise<CloudApiResponse<{
-    recommendations: PluginRecommendation[]
-    total: number
-    algorithmVersion?: string
+    recommendations: PluginRecommendation[];
+    total: number;
+    algorithmVersion?: string;
   }>> {
     return this.apiClient.post('/plugins/recommend', {
       os: request.os,
@@ -412,7 +412,7 @@ export class PluginRecommendationService {
       userTags: request.userTags,
       category: request.category,
       limit: request.limit || 10,
-    })
+    });
   }
 
   // ==========================================================================
@@ -429,56 +429,56 @@ export class PluginRecommendationService {
   private getLocalRecommendations(
     request: RecommendationRequest,
   ): PluginRecommendation[] {
-    let recommendations = [...this.fallbackData]
+    let recommendations = [...this.fallbackData];
 
     // Filter by OS compatibility
     recommendations = recommendations.filter(plugin =>
       plugin.compatibility.os.includes(request.os)
       || plugin.compatibility.os.includes('all'),
-    )
+    );
 
     // Filter by code tool compatibility
     recommendations = recommendations.filter(plugin =>
       plugin.compatibility.codeTools.includes(request.codeTool)
       || plugin.compatibility.codeTools.includes('all'),
-    )
+    );
 
     // Filter by category if specified
     if (request.category) {
       recommendations = recommendations.filter(
         plugin => plugin.category === request.category,
-      )
+      );
     }
 
     // Filter by user tags if specified
     if (request.userTags && request.userTags.length > 0) {
       recommendations = recommendations.filter(plugin =>
         request.userTags!.some(tag => plugin.tags.includes(tag)),
-      )
+      );
     }
 
     // Exclude already installed plugins
     recommendations = recommendations.filter(
       plugin => !request.installedPlugins.includes(plugin.id),
-    )
+    );
 
     // Calculate recommendation scores
     recommendations = recommendations.map((plugin) => {
-      const score = this.calculateRecommendationScore(plugin, request)
+      const score = this.calculateRecommendationScore(plugin, request);
       return {
         ...plugin,
         recommendationScore: score,
-      }
-    })
+      };
+    });
 
     // Sort by recommendation score
     recommendations.sort((a, b) =>
       (b.recommendationScore || 0) - (a.recommendationScore || 0),
-    )
+    );
 
     // Apply limit
-    const limit = request.limit || 10
-    return recommendations.slice(0, limit)
+    const limit = request.limit || 10;
+    return recommendations.slice(0, limit);
   }
 
   /**
@@ -492,31 +492,31 @@ export class PluginRecommendationService {
     plugin: PluginRecommendation,
     request: RecommendationRequest,
   ): number {
-    let score = 0
+    let score = 0;
 
     // Popularity weight (0-40 points)
-    score += (plugin.popularity / 100) * 40
+    score += (plugin.popularity / 100) * 40;
 
     // Rating weight (0-30 points)
-    score += (plugin.rating / 5) * 30
+    score += (plugin.rating / 5) * 30;
 
     // Tag relevance weight (0-20 points)
     if (request.userTags && request.userTags.length > 0) {
       const matchingTags = plugin.tags.filter(tag =>
         request.userTags!.includes(tag),
-      ).length
-      score += (matchingTags / request.userTags.length) * 20
+      ).length;
+      score += (matchingTags / request.userTags.length) * 20;
     }
     else {
-      score += 10 // Default bonus if no tags specified
+      score += 10; // Default bonus if no tags specified
     }
 
     // Verification bonus (0-10 points)
     if (plugin.verified) {
-      score += 10
+      score += 10;
     }
 
-    return Math.round(score)
+    return Math.round(score);
   }
 }
 
@@ -524,7 +524,7 @@ export class PluginRecommendationService {
 // Singleton Instance
 // ============================================================================
 
-let serviceInstance: PluginRecommendationService | null = null
+let serviceInstance: PluginRecommendationService | null = null;
 
 /**
  * Get the singleton PluginRecommendationService instance
@@ -539,19 +539,19 @@ export function getPluginRecommendationService(
     serviceInstance = new PluginRecommendationService(
       CLOUD_API_BASE_URL,
       fallbackData,
-    )
+    );
   }
   else if (fallbackData) {
-    serviceInstance.setFallbackData(fallbackData)
+    serviceInstance.setFallbackData(fallbackData);
   }
-  return serviceInstance
+  return serviceInstance;
 }
 
 /**
  * Reset the singleton instance (for testing)
  */
 export function resetPluginRecommendationService(): void {
-  serviceInstance = null
+  serviceInstance = null;
 }
 
 // ============================================================================
@@ -579,8 +579,8 @@ export function resetPluginRecommendationService(): void {
 export async function getRecommendations(
   request: RecommendationRequest,
 ): Promise<RecommendationResponse> {
-  const service = getPluginRecommendationService()
-  return service.getRecommendations(request)
+  const service = getPluginRecommendationService();
+  return service.getRecommendations(request);
 }
 
 /**
@@ -589,8 +589,8 @@ export async function getRecommendations(
  * Convenience function for clearing the cache.
  */
 export function clearRecommendationCache(): void {
-  const service = getPluginRecommendationService()
-  service.clearCache()
+  const service = getPluginRecommendationService();
+  service.clearCache();
 }
 
 /**
@@ -599,15 +599,15 @@ export function clearRecommendationCache(): void {
  * Returns a normalized platform string for recommendation requests.
  */
 export function getCurrentPlatform(): string {
-  const p = platform()
+  const p = platform();
   switch (p) {
     case 'darwin':
-      return 'darwin'
+      return 'darwin';
     case 'win32':
-      return 'win32'
+      return 'win32';
     case 'linux':
-      return 'linux'
+      return 'linux';
     default:
-      return 'linux'
+      return 'linux';
   }
 }

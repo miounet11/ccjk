@@ -1,18 +1,18 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const backupMcpConfig = vi.fn()
-const readMcpConfig = vi.fn()
-const writeMcpConfig = vi.fn()
+const backupMcpConfig = vi.fn();
+const readMcpConfig = vi.fn();
+const writeMcpConfig = vi.fn();
 
-const backupCodexComplete = vi.fn()
-const readCodexConfig = vi.fn()
-const writeCodexConfig = vi.fn()
+const backupCodexComplete = vi.fn();
+const readCodexConfig = vi.fn();
+const writeCodexConfig = vi.fn();
 
 vi.mock('../../src/i18n', () => ({
   i18n: {
     language: 'en',
   },
-}))
+}));
 
 vi.mock('../../src/config/mcp-services', () => ({
   MCP_SERVICE_CONFIGS: [
@@ -42,38 +42,38 @@ vi.mock('../../src/config/mcp-services', () => ({
       },
     },
   ],
-}))
+}));
 
 vi.mock('../../src/utils/claude-config', () => ({
   backupMcpConfig,
   readMcpConfig,
   writeMcpConfig,
-}))
+}));
 
 vi.mock('../../src/utils/ccjk-config', () => ({
   readZcfConfig: vi.fn(() => ({ codeToolType: 'claude-code' })),
-}))
+}));
 
 vi.mock('../../src/utils/code-tools/codex', () => ({
   backupCodexComplete,
   readCodexConfig,
   writeCodexConfig,
-}))
+}));
 
 vi.mock('../../src/utils/code-tools/codex-platform', () => ({
   applyCodexPlatformCommand: vi.fn(),
-}))
+}));
 
 vi.mock('../../src/utils/platform', () => ({
   getSystemRoot: vi.fn(() => null),
   isWindows: vi.fn(() => false),
-}))
+}));
 
 describe('mcp-profile codex support', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
+    vi.clearAllMocks();
 
-    backupCodexComplete.mockReturnValue('/tmp/codex-backup')
+    backupCodexComplete.mockReturnValue('/tmp/codex-backup');
     readCodexConfig.mockReturnValue({
       model: 'gpt-5',
       modelProvider: 'openai',
@@ -83,20 +83,20 @@ describe('mcp-profile codex support', () => {
       features: { goals: true },
       otherConfig: ['approval_policy = "on-request"'],
       modelProviderCommented: true,
-    })
+    });
 
-    readMcpConfig.mockReturnValue({ mcpServers: { legacy: { command: 'legacy' } } })
-  })
+    readMcpConfig.mockReturnValue({ mcpServers: { legacy: { command: 'legacy' } } });
+  });
 
   it('writes the selected profile into Codex config instead of Claude config', async () => {
-    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
-    const { useProfile } = await import('../../src/commands/mcp-profile')
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const { useProfile } = await import('../../src/commands/mcp-profile');
 
-    await useProfile('minimal', { tool: 'codex', lang: 'en' })
+    await useProfile('minimal', { tool: 'codex', lang: 'en' });
 
-    expect(backupCodexComplete).toHaveBeenCalledTimes(1)
-    expect(writeMcpConfig).not.toHaveBeenCalled()
-    expect(writeCodexConfig).toHaveBeenCalledTimes(1)
+    expect(backupCodexComplete).toHaveBeenCalledTimes(1);
+    expect(writeMcpConfig).not.toHaveBeenCalled();
+    expect(writeCodexConfig).toHaveBeenCalledTimes(1);
     expect(writeCodexConfig).toHaveBeenCalledWith({
       model: 'gpt-5',
       modelProvider: 'openai',
@@ -121,14 +121,14 @@ describe('mcp-profile codex support', () => {
       features: { goals: true },
       otherConfig: ['approval_policy = "on-request"'],
       modelProviderCommented: true,
-    })
+    });
 
-    logSpy.mockRestore()
-  })
+    logSpy.mockRestore();
+  });
 
   it('reads current services from Codex config when showing profile status', async () => {
-    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
-    const { showCurrentProfile } = await import('../../src/commands/mcp-profile')
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const { showCurrentProfile } = await import('../../src/commands/mcp-profile');
 
     readCodexConfig.mockReturnValue({
       model: 'gpt-5',
@@ -140,14 +140,14 @@ describe('mcp-profile codex support', () => {
       ],
       managed: true,
       otherConfig: [],
-    })
+    });
 
-    await showCurrentProfile({ tool: 'codex', lang: 'en' })
+    await showCurrentProfile({ tool: 'codex', lang: 'en' });
 
-    const output = logSpy.mock.calls.flat().join('\n')
-    expect(output).toContain('Current Codex MCP Configuration')
-    expect(output).toContain('Matched Profile')
+    const output = logSpy.mock.calls.flat().join('\n');
+    expect(output).toContain('Current Codex MCP Configuration');
+    expect(output).toContain('Matched Profile');
 
-    logSpy.mockRestore()
-  })
-})
+    logSpy.mockRestore();
+  });
+});

@@ -1,7 +1,7 @@
-import type { AnalyzedIntent } from '../router/intent-router'
-import { describe, expect, it, vi } from 'vitest'
-import { AutoExecutor } from '../router/auto-executor'
-import { ExecutionTelemetry } from '../router/execution-telemetry'
+import type { AnalyzedIntent } from '../router/intent-router';
+import { describe, expect, it, vi } from 'vitest';
+import { AutoExecutor } from '../router/auto-executor';
+import { ExecutionTelemetry } from '../router/execution-telemetry';
 
 function createIntent(overrides: Partial<AnalyzedIntent> = {}): AnalyzedIntent {
   return {
@@ -15,7 +15,7 @@ function createIntent(overrides: Partial<AnalyzedIntent> = {}): AnalyzedIntent {
     requiresMultipleAgents: true,
     estimatedSteps: 8,
     ...overrides,
-  }
+  };
 }
 
 describe('autoExecutor routing improvements', () => {
@@ -23,7 +23,7 @@ describe('autoExecutor routing improvements', () => {
     const askUserQuestion = vi.fn().mockResolvedValue({
       value: 'direct',
       source: 'option',
-    })
+    });
 
     const intentRouter = {
       route: vi.fn().mockResolvedValue({
@@ -32,9 +32,9 @@ describe('autoExecutor routing improvements', () => {
         shouldExecute: true,
         message: 'feature route',
       }),
-    }
+    };
 
-    const telemetry = new ExecutionTelemetry()
+    const telemetry = new ExecutionTelemetry();
     const executor = new AutoExecutor({
       autoCreateSkills: false,
       autoCreateAgents: false,
@@ -43,19 +43,19 @@ describe('autoExecutor routing improvements', () => {
       askUserQuestion,
       intentRouter,
       telemetry,
-    })
+    });
 
-    const result = await executor.execute('Implement auth API and design workflow')
+    const result = await executor.execute('Implement auth API and design workflow');
 
-    expect(result.route).toBe('direct')
-    expect(result.intent.suggestedRoute).toBe('direct')
-    expect(result.insights?.decisionProfile).toBe('user_guided')
-    expect(result.insights?.routeDecision.initial).toBe('feature')
-    expect(result.insights?.routeDecision.final).toBe('direct')
-    expect(result.insights?.routeDecision.userSelectedRoute).toBe(true)
-    expect(askUserQuestion).toHaveBeenCalledOnce()
-    expect(executor.getTelemetryEvents(20).some(event => event.phase === 'elicitation')).toBe(true)
-  })
+    expect(result.route).toBe('direct');
+    expect(result.intent.suggestedRoute).toBe('direct');
+    expect(result.insights?.decisionProfile).toBe('user_guided');
+    expect(result.insights?.routeDecision.initial).toBe('feature');
+    expect(result.insights?.routeDecision.final).toBe('direct');
+    expect(result.insights?.routeDecision.userSelectedRoute).toBe(true);
+    expect(askUserQuestion).toHaveBeenCalledOnce();
+    expect(executor.getTelemetryEvents(20).some(event => event.phase === 'elicitation')).toBe(true);
+  });
 
   it('limits MCP selection to top scored tools and records telemetry', async () => {
     const intentRouter = {
@@ -71,7 +71,7 @@ describe('autoExecutor routing improvements', () => {
         shouldExecute: true,
         message: 'direct route',
       }),
-    }
+    };
 
     const executor = new AutoExecutor({
       autoCreateSkills: false,
@@ -81,20 +81,20 @@ describe('autoExecutor routing improvements', () => {
       maxMcpTools: 2,
       intentRouter,
       telemetry: new ExecutionTelemetry(),
-    })
+    });
 
     const result = await executor.execute(
       'Search docs for this library package, inspect github repository, and check lint errors in files',
-    )
+    );
 
-    expect(result.mcpToolsUsed.length).toBe(2)
-    expect(new Set(result.mcpToolsUsed).size).toBe(2)
-    expect(result.insights?.mcpSelection.selected.length).toBe(2)
-    expect(result.insights?.mcpSelection.truncated).toBe(true)
-    expect(result.insights?.telemetry.eventCount).toBeGreaterThan(0)
+    expect(result.mcpToolsUsed.length).toBe(2);
+    expect(new Set(result.mcpToolsUsed).size).toBe(2);
+    expect(result.insights?.mcpSelection.selected.length).toBe(2);
+    expect(result.insights?.mcpSelection.truncated).toBe(true);
+    expect(result.insights?.telemetry.eventCount).toBeGreaterThan(0);
 
-    const summary = executor.getTelemetrySummary()
-    expect(summary.totalEvents).toBeGreaterThan(0)
-    expect(summary.phaseStats.mcp.calls).toBeGreaterThan(0)
-  })
-})
+    const summary = executor.getTelemetrySummary();
+    expect(summary.totalEvents).toBeGreaterThan(0);
+    expect(summary.phaseStats.mcp.calls).toBeGreaterThan(0);
+  });
+});

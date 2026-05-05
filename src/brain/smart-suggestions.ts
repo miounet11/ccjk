@@ -3,44 +3,44 @@
  * 在合适的时机主动提示用户使用高级功能
  */
 
-import type { SupportedLang } from '../constants'
-import type { ConversationContext, GitStatus } from './practice-enforcer'
+import type { SupportedLang } from '../constants';
+import type { ConversationContext, GitStatus } from './practice-enforcer';
 
 export interface Suggestion {
-  actionId: number
-  actionName: string
-  reason: string
-  priority: 'HIGH' | 'MEDIUM' | 'LOW'
-  icon: string
+  actionId: number;
+  actionName: string;
+  reason: string;
+  priority: 'HIGH' | 'MEDIUM' | 'LOW';
+  icon: string;
 }
 
 export interface ContextAnalysis {
-  complexity: number // 0-1
-  hasTests: boolean
-  linesChanged: number
-  filesChanged: number
-  failedAttempts: number
-  isDebugging: boolean
-  isPreparingToCommit: boolean
-  isLargeFeature: boolean
+  complexity: number; // 0-1
+  hasTests: boolean;
+  linesChanged: number;
+  filesChanged: number;
+  failedAttempts: number;
+  isDebugging: boolean;
+  isPreparingToCommit: boolean;
+  isLargeFeature: boolean;
 }
 
 /**
  * 智能提示系统
  */
 export class SmartSuggestions {
-  private lang: SupportedLang
+  private lang: SupportedLang;
 
   constructor(lang: SupportedLang = 'zh-CN') {
-    this.lang = lang
+    this.lang = lang;
   }
 
   /**
    * 分析当前情况并生成建议
    */
   async analyze(context: ConversationContext): Promise<Suggestion[]> {
-    const analysis = await this.analyzeContext(context)
-    const suggestions: Suggestion[] = []
+    const analysis = await this.analyzeContext(context);
+    const suggestions: Suggestion[] = [];
 
     // 规则 1: 多次修复失败 → 系统性调试
     if (analysis.failedAttempts >= 2) {
@@ -50,7 +50,7 @@ export class SmartSuggestions {
         reason: this.t('suggestions.debug.multipleFailures', { count: analysis.failedAttempts }),
         priority: 'HIGH',
         icon: '🐛',
-      })
+      });
     }
 
     // 规则 2: 复杂功能 → 计划驱动开发
@@ -61,7 +61,7 @@ export class SmartSuggestions {
         reason: this.t('suggestions.plan.complexFeature'),
         priority: 'MEDIUM',
         icon: '📋',
-      })
+      });
     }
 
     // 规则 3: 大量变更 → 代码审查
@@ -72,7 +72,7 @@ export class SmartSuggestions {
         reason: this.t('suggestions.review.largeChanges', { lines: analysis.linesChanged }),
         priority: 'MEDIUM',
         icon: '🔍',
-      })
+      });
     }
 
     // 规则 4: 新代码无测试 → TDD
@@ -83,7 +83,7 @@ export class SmartSuggestions {
         reason: this.t('suggestions.test.noTests'),
         priority: 'HIGH',
         icon: '✅',
-      })
+      });
     }
 
     // 规则 5: 正在调试 → 系统性调试
@@ -94,7 +94,7 @@ export class SmartSuggestions {
         reason: this.t('suggestions.debug.systematic'),
         priority: 'LOW',
         icon: '🐛',
-      })
+      });
     }
 
     // 规则 6: 准备提交 → 验证代码
@@ -105,42 +105,42 @@ export class SmartSuggestions {
         reason: this.t('suggestions.verify.beforeCommit'),
         priority: 'MEDIUM',
         icon: '✓',
-      })
+      });
     }
 
     // 按优先级排序
-    return this.sortByPriority(suggestions)
+    return this.sortByPriority(suggestions);
   }
 
   /**
    * 分析上下文
    */
   private async analyzeContext(context: ConversationContext): Promise<ContextAnalysis> {
-    const conversation = context.messages.map(m => m.content).join('\n').toLowerCase()
+    const conversation = context.messages.map(m => m.content).join('\n').toLowerCase();
 
     // 计算复杂度
-    const complexity = this.estimateComplexity(conversation)
+    const complexity = this.estimateComplexity(conversation);
 
     // 检查是否有测试
     const hasTests = context.recentFiles.some(f =>
       f.includes('.test.') || f.includes('.spec.'),
-    )
+    );
 
     // 计算变更量
-    const linesChanged = await this.estimateLinesChanged(context.gitStatus)
-    const filesChanged = context.recentFiles.length
+    const linesChanged = await this.estimateLinesChanged(context.gitStatus);
+    const filesChanged = context.recentFiles.length;
 
     // 检测失败次数
-    const failedAttempts = context.failedAttempts || 0
+    const failedAttempts = context.failedAttempts || 0;
 
     // 检测是否在调试
-    const isDebugging = this.detectDebugging(conversation)
+    const isDebugging = this.detectDebugging(conversation);
 
     // 检测是否准备提交
-    const isPreparingToCommit = this.detectPreparingToCommit(conversation)
+    const isPreparingToCommit = this.detectPreparingToCommit(conversation);
 
     // 检测是否是大型功能
-    const isLargeFeature = this.detectLargeFeature(conversation, filesChanged)
+    const isLargeFeature = this.detectLargeFeature(conversation, filesChanged);
 
     return {
       complexity,
@@ -151,14 +151,14 @@ export class SmartSuggestions {
       isDebugging,
       isPreparingToCommit,
       isLargeFeature,
-    }
+    };
   }
 
   /**
    * 估算复杂度 (0-1)
    */
   private estimateComplexity(conversation: string): number {
-    let score = 0
+    let score = 0;
 
     // 关键词权重
     const complexityIndicators = [
@@ -167,15 +167,15 @@ export class SmartSuggestions {
       { keywords: ['integration', 'api', 'database', '集成', '数据库'], weight: 0.2 },
       { keywords: ['authentication', 'authorization', '认证', '授权'], weight: 0.2 },
       { keywords: ['async', 'concurrent', 'parallel', '异步', '并发'], weight: 0.1 },
-    ]
+    ];
 
     for (const indicator of complexityIndicators) {
       if (indicator.keywords.some(k => conversation.includes(k))) {
-        score += indicator.weight
+        score += indicator.weight;
       }
     }
 
-    return Math.min(score, 1)
+    return Math.min(score, 1);
   }
 
   /**
@@ -183,14 +183,14 @@ export class SmartSuggestions {
    */
   private async estimateLinesChanged(gitStatus?: GitStatus): Promise<number> {
     if (!gitStatus)
-      return 0
+      return 0;
 
     // 简化估算：每个文件平均 50 行
     const totalFiles = gitStatus.modified.length
       + gitStatus.added.length
-      + gitStatus.deleted.length
+      + gitStatus.deleted.length;
 
-    return totalFiles * 50
+    return totalFiles * 50;
   }
 
   /**
@@ -208,9 +208,9 @@ export class SmartSuggestions {
       '问题',
       '修复',
       '调试',
-    ]
+    ];
 
-    return debugKeywords.some(k => conversation.includes(k))
+    return debugKeywords.some(k => conversation.includes(k));
   }
 
   /**
@@ -226,9 +226,9 @@ export class SmartSuggestions {
       '提交',
       '推送',
       '合并',
-    ]
+    ];
 
-    return commitKeywords.some(k => conversation.includes(k))
+    return commitKeywords.some(k => conversation.includes(k));
   }
 
   /**
@@ -246,23 +246,23 @@ export class SmartSuggestions {
       '构建',
       '创建',
       '系统',
-    ]
+    ];
 
-    const hasLargeFeatureKeyword = largeFeatureKeywords.some(k => conversation.includes(k))
-    const hasManyFiles = filesChanged > 3
+    const hasLargeFeatureKeyword = largeFeatureKeywords.some(k => conversation.includes(k));
+    const hasManyFiles = filesChanged > 3;
 
-    return hasLargeFeatureKeyword && hasManyFiles
+    return hasLargeFeatureKeyword && hasManyFiles;
   }
 
   /**
    * 按优先级排序
    */
   private sortByPriority(suggestions: Suggestion[]): Suggestion[] {
-    const priorityOrder = { HIGH: 0, MEDIUM: 1, LOW: 2 }
+    const priorityOrder = { HIGH: 0, MEDIUM: 1, LOW: 2 };
 
     return suggestions.sort((a, b) => {
-      return priorityOrder[a.priority] - priorityOrder[b.priority]
-    })
+      return priorityOrder[a.priority] - priorityOrder[b.priority];
+    });
   }
 
   /**
@@ -270,18 +270,18 @@ export class SmartSuggestions {
    */
   formatSuggestions(suggestions: Suggestion[]): string {
     if (suggestions.length === 0) {
-      return ''
+      return '';
     }
 
-    let message = `${this.t('suggestions.header')}\n\n`
+    let message = `${this.t('suggestions.header')}\n\n`;
 
     for (const suggestion of suggestions) {
-      const priority = this.formatPriority(suggestion.priority)
-      message += `${suggestion.icon} ${priority} **${suggestion.actionName}** (输入 ${suggestion.actionId})\n`
-      message += `   ${suggestion.reason}\n\n`
+      const priority = this.formatPriority(suggestion.priority);
+      message += `${suggestion.icon} ${priority} **${suggestion.actionName}** (输入 ${suggestion.actionId})\n`;
+      message += `   ${suggestion.reason}\n\n`;
     }
 
-    return message
+    return message;
   }
 
   /**
@@ -299,9 +299,9 @@ export class SmartSuggestions {
         MEDIUM: '🟡 Medium Priority',
         LOW: '🟢 Low Priority',
       },
-    }
+    };
 
-    return priorities[this.lang]?.[priority] || priority
+    return priorities[this.lang]?.[priority] || priority;
   }
 
   /**
@@ -327,13 +327,13 @@ export class SmartSuggestions {
         'suggestions.test.noTests': 'New code without tests detected, suggest using TDD',
         'suggestions.verify.beforeCommit': 'Suggest verifying code quality before commit',
       },
-    }
+    };
 
-    return messages[this.lang]?.[key] || key
+    return messages[this.lang]?.[key] || key;
   }
 }
 
 /**
  * 全局单例
  */
-export const smartSuggestions = new SmartSuggestions()
+export const smartSuggestions = new SmartSuggestions();

@@ -1,5 +1,5 @@
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, Alert } from 'react-native';
 import { useState } from 'react';
+import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { socketClient } from '../api/socket';
 
 interface RemoteControlProps {
@@ -12,7 +12,8 @@ export function RemoteControl({ sessionId, isActive }: RemoteControlProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const handleSendInput = () => {
-    if (!inputText.trim()) return;
+    if (!inputText.trim())
+      return;
 
     socketClient.sendInput(sessionId, inputText);
     setInputText('');
@@ -34,7 +35,7 @@ export function RemoteControl({ sessionId, isActive }: RemoteControlProps) {
             Alert.alert('Interrupt Sent', 'Ctrl+C sent to Claude Code');
           },
         },
-      ]
+      ],
     );
   };
 
@@ -52,7 +53,7 @@ export function RemoteControl({ sessionId, isActive }: RemoteControlProps) {
             Alert.alert('Control Taken', 'You now have control of this session');
           },
         },
-      ]
+      ],
     );
   };
 

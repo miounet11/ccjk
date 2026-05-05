@@ -7,16 +7,16 @@
  * @module context/migrations-example
  */
 
-import type Database from 'better-sqlite3'
+import type Database from 'better-sqlite3';
 
 /**
  * Migration template
  */
 export interface Migration {
-  version: number
-  description: string
-  up: (db: Database.Database) => void
-  down?: (db: Database.Database) => void // Optional rollback
+  version: number;
+  description: string;
+  up: (db: Database.Database) => void;
+  down?: (db: Database.Database) => void; // Optional rollback
 }
 
 /**
@@ -26,7 +26,7 @@ export const exampleMigrations: Migration[] = [
   {
     version: 1,
     description: 'Initial schema (already applied in persistence.ts)',
-    up: (db) => {
+    up: (_db) => {
       // This migration is already applied by ContextPersistence
       // Included here for reference only
     },
@@ -39,13 +39,13 @@ export const exampleMigrations: Migration[] = [
       db.exec(`
         ALTER TABLE contexts ADD COLUMN tags TEXT DEFAULT '[]';
         CREATE INDEX idx_contexts_tags ON contexts(tags);
-      `)
+      `);
     },
     down: (db) => {
       db.exec(`
         DROP INDEX IF EXISTS idx_contexts_tags;
         ALTER TABLE contexts DROP COLUMN tags;
-      `)
+      `);
     },
   },
 
@@ -56,13 +56,13 @@ export const exampleMigrations: Migration[] = [
       db.exec(`
         ALTER TABLE contexts ADD COLUMN quality_score REAL DEFAULT 0.0;
         CREATE INDEX idx_contexts_quality ON contexts(quality_score);
-      `)
+      `);
     },
     down: (db) => {
       db.exec(`
         DROP INDEX IF EXISTS idx_contexts_quality;
         ALTER TABLE contexts DROP COLUMN quality_score;
-      `)
+      `);
     },
   },
 
@@ -85,10 +85,10 @@ export const exampleMigrations: Migration[] = [
         CREATE INDEX idx_relationships_parent ON context_relationships(parent_id);
         CREATE INDEX idx_relationships_child ON context_relationships(child_id);
         CREATE INDEX idx_relationships_type ON context_relationships(relationship_type);
-      `)
+      `);
     },
     down: (db) => {
-      db.exec('DROP TABLE IF EXISTS context_relationships')
+      db.exec('DROP TABLE IF EXISTS context_relationships');
     },
   },
 
@@ -123,7 +123,7 @@ export const exampleMigrations: Migration[] = [
           INSERT INTO contexts_fts(rowid, content, compressed)
           VALUES (new.rowid, new.content, new.compressed);
         END;
-      `)
+      `);
     },
     down: (db) => {
       db.exec(`
@@ -131,7 +131,7 @@ export const exampleMigrations: Migration[] = [
         DROP TRIGGER IF EXISTS contexts_fts_delete;
         DROP TRIGGER IF EXISTS contexts_fts_insert;
         DROP TABLE IF EXISTS contexts_fts;
-      `)
+      `);
     },
   },
 
@@ -155,10 +155,10 @@ export const exampleMigrations: Migration[] = [
         -- Populate from existing data
         INSERT INTO context_stats (context_id, total_accesses, last_accessed)
         SELECT id, access_count, last_accessed FROM contexts;
-      `)
+      `);
     },
     down: (db) => {
-      db.exec('DROP TABLE IF EXISTS context_stats')
+      db.exec('DROP TABLE IF EXISTS context_stats');
     },
   },
 
@@ -170,14 +170,14 @@ export const exampleMigrations: Migration[] = [
         ALTER TABLE contexts ADD COLUMN algorithm_version TEXT DEFAULT '1.0';
         ALTER TABLE contexts ADD COLUMN decompression_hint TEXT;
         CREATE INDEX idx_contexts_algo_version ON contexts(algorithm_version);
-      `)
+      `);
     },
     down: (db) => {
       db.exec(`
         DROP INDEX IF EXISTS idx_contexts_algo_version;
         ALTER TABLE contexts DROP COLUMN decompression_hint;
         ALTER TABLE contexts DROP COLUMN algorithm_version;
-      `)
+      `);
     },
   },
 
@@ -194,7 +194,7 @@ export const exampleMigrations: Migration[] = [
         CREATE INDEX idx_projects_language ON projects(language);
         CREATE INDEX idx_projects_framework ON projects(framework);
         CREATE INDEX idx_projects_health ON projects(health_status);
-      `)
+      `);
     },
     down: (db) => {
       db.exec(`
@@ -205,7 +205,7 @@ export const exampleMigrations: Migration[] = [
         ALTER TABLE projects DROP COLUMN last_health_check;
         ALTER TABLE projects DROP COLUMN framework;
         ALTER TABLE projects DROP COLUMN language;
-      `)
+      `);
     },
   },
 
@@ -228,7 +228,7 @@ export const exampleMigrations: Migration[] = [
         -- Create active contexts view
         CREATE VIEW IF NOT EXISTS active_contexts AS
         SELECT * FROM contexts WHERE archived = 0;
-      `)
+      `);
     },
     down: (db) => {
       db.exec(`
@@ -239,7 +239,7 @@ export const exampleMigrations: Migration[] = [
         ALTER TABLE contexts DROP COLUMN archive_reason;
         ALTER TABLE contexts DROP COLUMN archived_at;
         ALTER TABLE contexts DROP COLUMN archived;
-      `)
+      `);
     },
   },
 
@@ -264,7 +264,7 @@ export const exampleMigrations: Migration[] = [
 
         -- Analyze tables for query optimizer
         ANALYZE;
-      `)
+      `);
     },
     down: (db) => {
       db.exec(`
@@ -272,10 +272,10 @@ export const exampleMigrations: Migration[] = [
         DROP INDEX IF EXISTS idx_contexts_project_ratio;
         DROP INDEX IF EXISTS idx_contexts_project_accessed;
         DROP INDEX IF EXISTS idx_contexts_project_timestamp;
-      `)
+      `);
     },
   },
-]
+];
 
 /**
  * Apply migrations to database
@@ -298,17 +298,17 @@ export async function applyExampleMigrations(
   startVersion?: number,
   endVersion?: number,
 ): Promise<any> {
-  let migrations = exampleMigrations
+  let migrations = exampleMigrations;
 
   // Filter by version range
   if (startVersion !== undefined) {
-    migrations = migrations.filter(m => m.version >= startVersion)
+    migrations = migrations.filter(m => m.version >= startVersion);
   }
   if (endVersion !== undefined) {
-    migrations = migrations.filter(m => m.version <= endVersion)
+    migrations = migrations.filter(m => m.version <= endVersion);
   }
 
-  return await monitor.applyMigrations(migrations)
+  return await monitor.applyMigrations(migrations);
 }
 
 /**
@@ -326,17 +326,17 @@ export async function applyExampleMigrations(
  * ```
  */
 export function createMigration(config: {
-  version: number
-  description: string
-  up: (db: Database.Database) => void
-  down?: (db: Database.Database) => void
+  version: number;
+  description: string;
+  up: (db: Database.Database) => void;
+  down?: (db: Database.Database) => void;
 }): Migration {
   return {
     version: config.version,
     description: config.description,
     up: config.up,
     down: config.down,
-  }
+  };
 }
 
 /**
@@ -345,34 +345,34 @@ export function createMigration(config: {
  * Ensures migrations are in order and have no gaps
  */
 export function validateMigrations(migrations: Migration[]): {
-  valid: boolean
-  errors: string[]
+  valid: boolean;
+  errors: string[];
 } {
-  const errors: string[] = []
-  const versions = migrations.map(m => m.version).sort((a, b) => a - b)
+  const errors: string[] = [];
+  const versions = migrations.map(m => m.version).sort((a, b) => a - b);
 
   // Check for duplicates
-  const duplicates = versions.filter((v, i) => versions.indexOf(v) !== i)
+  const duplicates = versions.filter((v, i) => versions.indexOf(v) !== i);
   if (duplicates.length > 0) {
-    errors.push(`Duplicate versions: ${duplicates.join(', ')}`)
+    errors.push(`Duplicate versions: ${duplicates.join(', ')}`);
   }
 
   // Check for gaps
   for (let i = 1; i < versions.length; i++) {
     if (versions[i] !== versions[i - 1] + 1) {
-      errors.push(`Gap in versions: ${versions[i - 1]} -> ${versions[i]}`)
+      errors.push(`Gap in versions: ${versions[i - 1]} -> ${versions[i]}`);
     }
   }
 
   // Check for missing descriptions
   migrations.forEach((m) => {
     if (!m.description || m.description.trim() === '') {
-      errors.push(`Migration v${m.version} missing description`)
+      errors.push(`Migration v${m.version} missing description`);
     }
-  })
+  });
 
   return {
     valid: errors.length === 0,
     errors,
-  }
+  };
 }

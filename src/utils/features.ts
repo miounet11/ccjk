@@ -1,17 +1,17 @@
-import type { CodeToolType, SupportedLang } from '../constants'
-import type { McpServerConfig } from '../types'
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
-import { homedir } from 'node:os'
-import process from 'node:process'
-import ansis from 'ansis'
-import inquirer from 'inquirer'
-import { join } from 'pathe'
-import { getMcpServices } from '../config/mcp-services'
-import { LANG_LABELS, SUPPORTED_LANGS } from '../constants'
-import { changeLanguage, ensureI18nInitialized, i18n } from '../i18n'
-import { readZcfConfig, updateZcfConfig } from './ccjk-config'
-import { setupCcrConfiguration } from './ccr/config'
-import { installCcr, isCcrInstalled } from './ccr/installer'
+import type { CodeToolType, SupportedLang } from '../constants';
+import type { McpServerConfig } from '../types';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { homedir } from 'node:os';
+import process from 'node:process';
+import ansis from 'ansis';
+import inquirer from 'inquirer';
+import { join } from 'pathe';
+import { getMcpServices } from '../config/mcp-services';
+import { LANG_LABELS, SUPPORTED_LANGS } from '../constants';
+import { changeLanguage, ensureI18nInitialized, i18n } from '../i18n';
+import { readZcfConfig, updateZcfConfig } from './ccjk-config';
+import { setupCcrConfiguration } from './ccr/config';
+import { installCcr, isCcrInstalled } from './ccr/installer';
 import {
   backupMcpConfig,
   buildMcpServerConfig,
@@ -20,8 +20,8 @@ import {
   readMcpConfig,
   syncClavueActiveProviderModelSelection,
   writeMcpConfig,
-} from './claude-config'
-import { normalizeClaudeFamilySettings } from './claude-settings-normalizer'
+} from './claude-config';
+import { normalizeClaudeFamilySettings } from './claude-settings-normalizer';
 import {
   applyAiLanguageDirective,
   configureApi,
@@ -32,17 +32,17 @@ import {
   switchToOfficialLogin,
   updateCustomModel,
   updateDefaultModel,
-} from './config'
-import { modifyApiConfigPartially } from './config-operations'
-import { selectMcpServices } from './mcp-selector'
-import { configureOutputStyle } from './output-style'
-import { isWindows } from './platform'
-import { addNumbersToChoices } from './prompt-helpers'
-import { importRecommendedEnv, importRecommendedPermissions, openSettingsJson } from './simple-config'
-import { promptBoolean } from './toggle-prompt'
-import { formatApiKeyDisplay, validateApiKey } from './validator'
+} from './config';
+import { modifyApiConfigPartially } from './config-operations';
+import { selectMcpServices } from './mcp-selector';
+import { configureOutputStyle } from './output-style';
+import { isWindows } from './platform';
+import { addNumbersToChoices } from './prompt-helpers';
+import { importRecommendedEnv, importRecommendedPermissions, openSettingsJson } from './simple-config';
+import { promptBoolean } from './toggle-prompt';
+import { formatApiKeyDisplay, validateApiKey } from './validator';
 
-export const DEFAULT_MODEL_CHOICES: Array<{ nameKey: string, fallback: string, value: 'default' | 'opus' | 'sonnet' | 'sonnet[1m]' | 'custom' }> = [
+export const DEFAULT_MODEL_CHOICES: Array<{ nameKey: string; fallback: string; value: 'default' | 'opus' | 'sonnet' | 'sonnet[1m]' | 'custom' }> = [
   {
     nameKey: 'configuration:defaultModelOption',
     fallback: 'Default - Let Claude Code choose',
@@ -68,12 +68,12 @@ export const DEFAULT_MODEL_CHOICES: Array<{ nameKey: string, fallback: string, v
     fallback: 'Custom - Specify custom model names',
     value: 'custom',
   },
-]
+];
 
-export type CodexStableModel = 'gpt-5-codex' | 'codex-mini-latest' | 'gpt-5'
-export type CodexModelChoice = CodexStableModel | 'custom'
+export type CodexStableModel = 'gpt-5-codex' | 'codex-mini-latest' | 'gpt-5';
+export type CodexModelChoice = CodexStableModel | 'custom';
 
-export const CODEX_MODEL_CHOICES: Array<{ nameKey: string, fallback: string, value: CodexModelChoice }> = [
+export const CODEX_MODEL_CHOICES: Array<{ nameKey: string; fallback: string; value: CodexModelChoice }> = [
   {
     nameKey: 'configuration:codexModelOptions.gpt5Codex',
     fallback: 'GPT-5-Codex - Recommended default for serious coding work',
@@ -94,84 +94,84 @@ export const CODEX_MODEL_CHOICES: Array<{ nameKey: string, fallback: string, val
     fallback: 'Custom - Specify custom model names',
     value: 'custom',
   },
-]
+];
 
 export function formatCodexModelLabel(model: string): string {
-  const predefined = CODEX_MODEL_CHOICES.find(choice => choice.value === model)
+  const predefined = CODEX_MODEL_CHOICES.find(choice => choice.value === model);
   if (predefined) {
-    return i18n.t(predefined.nameKey) || predefined.fallback
+    return i18n.t(predefined.nameKey) || predefined.fallback;
   }
 
-  return model
+  return model;
 }
 
 // Helper function to handle cancelled operations
 async function handleCancellation(): Promise<void> {
-  ensureI18nInitialized()
-  console.log(ansis.yellow(i18n.t('common:cancelled')))
+  ensureI18nInitialized();
+  console.log(ansis.yellow(i18n.t('common:cancelled')));
 }
 
 // Ensure custom model compatibility keys stay in sync
 async function ensureModelConfigPriority(): Promise<void> {
-  const { readJsonConfig, writeJsonConfig } = await import('./json-config')
-  const { SETTINGS_FILE } = await import('../constants')
+  const { readJsonConfig, writeJsonConfig } = await import('./json-config');
+  const { SETTINGS_FILE } = await import('../constants');
 
-  const settings = readJsonConfig<any>(SETTINGS_FILE)
+  const settings = readJsonConfig<any>(SETTINGS_FILE);
   if (!settings)
-    return
+    return;
 
   if (
     settings.env?.ANTHROPIC_DEFAULT_HAIKU_MODEL
     && settings.env.ANTHROPIC_SMALL_FAST_MODEL !== settings.env.ANTHROPIC_DEFAULT_HAIKU_MODEL
   ) {
-    settings.env.ANTHROPIC_SMALL_FAST_MODEL = settings.env.ANTHROPIC_DEFAULT_HAIKU_MODEL
-    normalizeClaudeFamilySettings(settings)
-    writeJsonConfig(SETTINGS_FILE, settings)
+    settings.env.ANTHROPIC_SMALL_FAST_MODEL = settings.env.ANTHROPIC_DEFAULT_HAIKU_MODEL;
+    normalizeClaudeFamilySettings(settings);
+    writeJsonConfig(SETTINGS_FILE, settings);
   }
 }
 
 // Handle official login mode
 async function handleOfficialLoginMode(): Promise<void> {
-  ensureI18nInitialized()
-  const success = switchToOfficialLogin()
+  ensureI18nInitialized();
+  const success = switchToOfficialLogin();
   if (success) {
-    console.log(ansis.green(`✔ ${i18n.t('api:officialLoginConfigured')}`))
+    console.log(ansis.green(`✔ ${i18n.t('api:officialLoginConfigured')}`));
   }
   else {
-    console.log(ansis.red(i18n.t('api:officialLoginFailed')))
+    console.log(ansis.red(i18n.t('api:officialLoginFailed')));
   }
 }
 
 // Handle custom API configuration mode
 export async function handleCustomApiMode(): Promise<void> {
-  ensureI18nInitialized()
+  ensureI18nInitialized();
 
   // Get current code tool type from CCJK config
-  const zcfConfig = readZcfConfig()
-  const codeToolType = zcfConfig?.codeToolType || 'claude-code'
+  const zcfConfig = readZcfConfig();
+  const codeToolType = zcfConfig?.codeToolType || 'claude-code';
 
   // For Claude-family runtimes, use the new incremental configuration management
   if (codeToolType === 'claude-code' || codeToolType === 'clavue') {
-    const { configureIncrementalManagement } = await import('../utils/claude-code-incremental-manager')
-    await configureIncrementalManagement()
-    return
+    const { configureIncrementalManagement } = await import('../utils/claude-code-incremental-manager');
+    await configureIncrementalManagement();
+    return;
   }
 
   // For other tools, keep the existing logic
-  const existingConfig = getExistingApiConfig()
+  const existingConfig = getExistingApiConfig();
 
   if (existingConfig) {
     // Use common configuration action selection
-    const configAction = await promptApiConfigurationAction()
+    const configAction = await promptApiConfigurationAction();
 
     if (configAction === 'keep-existing') {
-      console.log(ansis.green(`✔ ${i18n.t('api:keepExistingConfig')}`))
-      return
+      console.log(ansis.green(`✔ ${i18n.t('api:keepExistingConfig')}`));
+      return;
     }
     else if (configAction === 'modify-partial') {
       // Call existing partial configuration modification function
-      await modifyApiConfigPartially(existingConfig)
-      return
+      await modifyApiConfigPartially(existingConfig);
+      return;
     }
     // For 'modify-all', continue with full reconfiguration
   }
@@ -193,11 +193,11 @@ export async function handleCustomApiMode(): Promise<void> {
       },
       { name: i18n.t('api:skipApi'), value: 'skip' },
     ]),
-  })
+  });
 
   if (!apiChoice || apiChoice === 'skip') {
-    await handleCancellation()
-    return
+    await handleCancellation();
+    return;
   }
 
   const { url } = await inquirer.prompt<{ url: string }>({
@@ -206,90 +206,90 @@ export async function handleCustomApiMode(): Promise<void> {
     message: `${i18n.t('api:enterApiUrl')}${i18n.t('common:emptyToSkip')}`,
     validate: (value) => {
       if (!value) {
-        return true
+        return true;
       }
       try {
-        void new URL(value)
-        return true
+        void new URL(value);
+        return true;
       }
       catch {
-        return i18n.t('api:invalidUrl')
+        return i18n.t('api:invalidUrl');
       }
     },
-  })
+  });
 
   if (url === undefined || !url) {
-    await handleCancellation()
-    return
+    await handleCancellation();
+    return;
   }
 
   const keyMessage = apiChoice === 'auth_token'
     ? `${i18n.t('api:enterAuthToken')}${i18n.t('common:emptyToSkip')}`
-    : `${i18n.t('api:enterApiKey')}${i18n.t('common:emptyToSkip')}`
+    : `${i18n.t('api:enterApiKey')}${i18n.t('common:emptyToSkip')}`;
   const { key } = await inquirer.prompt<{ key: string }>({
     type: 'input',
     name: 'key',
     message: keyMessage,
     validate: (value) => {
       if (!value) {
-        return true
+        return true;
       }
 
-      const validation = validateApiKey(value)
+      const validation = validateApiKey(value);
       if (!validation.isValid) {
-        return validation.error || i18n.t('api:invalidKeyFormat')
+        return validation.error || i18n.t('api:invalidKeyFormat');
       }
 
-      return true
+      return true;
     },
-  })
+  });
 
   if (key === undefined || !key) {
-    await handleCancellation()
-    return
+    await handleCancellation();
+    return;
   }
 
-  const apiConfig = { url, key, authType: apiChoice as 'auth_token' | 'api_key' }
-  const configuredApi = configureApi(apiConfig)
+  const apiConfig = { url, key, authType: apiChoice as 'auth_token' | 'api_key' };
+  const configuredApi = configureApi(apiConfig);
 
   if (configuredApi) {
-    console.log(ansis.green(`✔ ${i18n.t('api:apiConfigSuccess')}`))
-    console.log(ansis.gray(`  URL: ${configuredApi.url}`))
-    console.log(ansis.gray(`  Key: ${formatApiKeyDisplay(configuredApi.key)}`))
+    console.log(ansis.green(`✔ ${i18n.t('api:apiConfigSuccess')}`));
+    console.log(ansis.gray(`  URL: ${configuredApi.url}`));
+    console.log(ansis.gray(`  Key: ${formatApiKeyDisplay(configuredApi.key)}`));
   }
 }
 
 // Handle CCR proxy mode
 async function handleCcrProxyMode(): Promise<void> {
-  ensureI18nInitialized()
+  ensureI18nInitialized();
 
-  const ccrStatus = await isCcrInstalled()
+  const ccrStatus = await isCcrInstalled();
   if (!ccrStatus.hasCorrectPackage) {
-    await installCcr()
+    await installCcr();
   }
   else {
-    console.log(ansis.green(`✔ ${i18n.t('ccr:ccrAlreadyInstalled')}`))
+    console.log(ansis.green(`✔ ${i18n.t('ccr:ccrAlreadyInstalled')}`));
   }
 
   // Setup CCR configuration
-  const ccrConfigured = await setupCcrConfiguration()
+  const ccrConfigured = await setupCcrConfiguration();
   if (ccrConfigured) {
-    console.log(ansis.green(`✔ ${i18n.t('ccr:ccrSetupComplete')}`))
+    console.log(ansis.green(`✔ ${i18n.t('ccr:ccrSetupComplete')}`));
   }
 }
 
 // Handle switch config mode
 async function handleSwitchConfigMode(): Promise<void> {
-  ensureI18nInitialized()
+  ensureI18nInitialized();
 
   // Import and call the interactive switch function from config-switch command
-  const { configSwitchCommand } = await import('../commands/config-switch')
-  await configSwitchCommand({ codeType: 'claude-code' })
+  const { configSwitchCommand } = await import('../commands/config-switch');
+  await configSwitchCommand({ codeType: 'claude-code' });
 }
 
 // Configure API
 export async function configureApiFeature(): Promise<void> {
-  ensureI18nInitialized()
+  ensureI18nInitialized();
 
   // New API configuration mode selection
   const { mode } = await inquirer.prompt<{ mode: string }>({
@@ -303,77 +303,77 @@ export async function configureApiFeature(): Promise<void> {
       { name: i18n.t('api:apiModeSwitch'), value: 'switch' },
       { name: i18n.t('api:apiModeSkip'), value: 'skip' },
     ]),
-  })
+  });
 
   if (!mode || mode === 'skip') {
     // Even when skipping, ensure model config priority is correct
-    await ensureModelConfigPriority()
-    await handleCancellation()
-    return
+    await ensureModelConfigPriority();
+    await handleCancellation();
+    return;
   }
 
   switch (mode) {
     case 'official':
-      await handleOfficialLoginMode()
-      break
+      await handleOfficialLoginMode();
+      break;
     case 'custom':
-      await handleCustomApiMode()
-      break
+      await handleCustomApiMode();
+      break;
     case 'ccr':
-      await handleCcrProxyMode()
-      break
+      await handleCcrProxyMode();
+      break;
     case 'switch':
-      await handleSwitchConfigMode()
-      break
+      await handleSwitchConfigMode();
+      break;
     default:
-      await handleCancellation()
-      break
+      await handleCancellation();
+      break;
   }
 
   // Ensure model config priority after any configuration change
-  await ensureModelConfigPriority()
+  await ensureModelConfigPriority();
 }
 
 // Configure MCP
 export async function configureMcpFeature(): Promise<void> {
-  ensureI18nInitialized()
+  ensureI18nInitialized();
 
   // Check if Windows needs fix
   if (isWindows()) {
     const fixWindows = await promptBoolean({
       message: i18n.t('configuration:fixWindowsMcp') || 'Fix Windows MCP configuration?',
       defaultValue: true,
-    })
+    });
 
     if (fixWindows) {
-      const existingConfig = readMcpConfig() || { mcpServers: {} }
-      const fixedConfig = fixWindowsMcpConfig(existingConfig)
-      writeMcpConfig(fixedConfig)
-      console.log(ansis.green(`✔ ${i18n.t('configuration:windowsMcpConfigFixed')}`))
+      const existingConfig = readMcpConfig() || { mcpServers: {} };
+      const fixedConfig = fixWindowsMcpConfig(existingConfig);
+      writeMcpConfig(fixedConfig);
+      console.log(ansis.green(`✔ ${i18n.t('configuration:windowsMcpConfigFixed')}`));
     }
   }
 
   // Use common MCP selector
-  const selectedServices = await selectMcpServices()
+  const selectedServices = await selectMcpServices();
 
   if (!selectedServices) {
-    return
+    return;
   }
 
   if (selectedServices.length > 0) {
-    const mcpBackupPath = backupMcpConfig()
+    const mcpBackupPath = backupMcpConfig();
     if (mcpBackupPath) {
-      console.log(ansis.gray(`✔ ${i18n.t('mcp:mcpBackupSuccess')}: ${mcpBackupPath}`))
+      console.log(ansis.gray(`✔ ${i18n.t('mcp:mcpBackupSuccess')}: ${mcpBackupPath}`));
     }
 
-    const newServers: Record<string, McpServerConfig> = {}
+    const newServers: Record<string, McpServerConfig> = {};
 
     for (const serviceId of selectedServices) {
-      const service = (await getMcpServices()).find(s => s.id === serviceId)
+      const service = (await getMcpServices()).find(s => s.id === serviceId);
       if (!service)
-        continue
+        continue;
 
-      let config = service.config
+      let config = service.config;
 
       if (service.requiresApiKey) {
         const { apiKey } = await inquirer.prompt<{ apiKey: string }>({
@@ -381,54 +381,54 @@ export async function configureMcpFeature(): Promise<void> {
           name: 'apiKey',
           message: service.apiKeyPrompt!,
           validate: async (value: string) => !!value || i18n.t('api:keyRequired'),
-        })
+        });
 
         if (apiKey) {
-          config = buildMcpServerConfig(service.config, apiKey, service.apiKeyPlaceholder, service.apiKeyEnvVar)
+          config = buildMcpServerConfig(service.config, apiKey, service.apiKeyPlaceholder, service.apiKeyEnvVar);
         }
         else {
-          continue
+          continue;
         }
       }
 
-      newServers[service.id] = config
+      newServers[service.id] = config;
     }
 
-    const existingConfig = readMcpConfig()
-    let mergedConfig = mergeMcpServers(existingConfig, newServers)
-    mergedConfig = fixWindowsMcpConfig(mergedConfig)
+    const existingConfig = readMcpConfig();
+    let mergedConfig = mergeMcpServers(existingConfig, newServers);
+    mergedConfig = fixWindowsMcpConfig(mergedConfig);
 
-    writeMcpConfig(mergedConfig)
-    console.log(ansis.green(`✔ ${i18n.t('mcp:mcpConfigSuccess')}`))
+    writeMcpConfig(mergedConfig);
+    console.log(ansis.green(`✔ ${i18n.t('mcp:mcpConfigSuccess')}`));
   }
 }
 
 // Configure default model
 export async function configureDefaultModelFeature(codeTool?: CodeToolType): Promise<void> {
-  ensureI18nInitialized()
-  const codeToolType = codeTool || readZcfConfig()?.codeToolType || 'claude-code'
+  ensureI18nInitialized();
+  const codeToolType = codeTool || readZcfConfig()?.codeToolType || 'claude-code';
 
   // Check for existing model configuration
-  const existingModel = getExistingModelConfig(codeToolType)
+  const existingModel = getExistingModelConfig(codeToolType);
 
   if (existingModel) {
     // Display existing configuration
-    console.log(`\n${ansis.green(`ℹ ${i18n.t('configuration:existingModelConfig') || 'Existing model configuration'}`)}`)
+    console.log(`\n${ansis.green(`ℹ ${i18n.t('configuration:existingModelConfig') || 'Existing model configuration'}`)}`);
     const modelDisplay
       = existingModel === 'default'
         ? i18n.t('configuration:defaultModelOption') || 'Default (Let Claude Code choose)'
-        : existingModel.charAt(0).toUpperCase() + existingModel.slice(1)
-    console.log(ansis.gray(`  ${i18n.t('configuration:currentModel') || 'Current model'}: ${modelDisplay}\n`))
+        : existingModel.charAt(0).toUpperCase() + existingModel.slice(1);
+    console.log(ansis.gray(`  ${i18n.t('configuration:currentModel') || 'Current model'}: ${modelDisplay}\n`));
 
     // Ask user what to do with existing config
     const modify = await promptBoolean({
       message: i18n.t('configuration:modifyModel') || 'Modify model configuration?',
       defaultValue: false,
-    })
+    });
 
     if (!modify) {
-      console.log(ansis.green(`✔ ${i18n.t('configuration:keepModel') || 'Keeping existing model configuration'}`))
-      return
+      console.log(ansis.green(`✔ ${i18n.t('configuration:keepModel') || 'Keeping existing model configuration'}`));
+      return;
     }
   }
 
@@ -443,53 +443,53 @@ export async function configureDefaultModelFeature(codeTool?: CodeToolType): Pro
     default: existingModel
       ? DEFAULT_MODEL_CHOICES.findIndex(choice => choice.value === existingModel)
       : 0,
-  })
+  });
 
   if (!model) {
-    await handleCancellation()
-    return
+    await handleCancellation();
+    return;
   }
 
   if (model === 'custom') {
     // Handle custom model input
     // Get existing custom model configuration to pre-fill the prompts
-    const existingCustomConfig = getExistingCustomModelConfig(codeToolType)
+    const existingCustomConfig = getExistingCustomModelConfig(codeToolType);
     const { primaryModel, haikuModel, sonnetModel, opusModel } = await promptCustomModels(
       existingCustomConfig?.primaryModel,
       existingCustomConfig?.haikuModel,
       existingCustomConfig?.sonnetModel,
       existingCustomConfig?.opusModel,
-    )
+    );
 
     // Check if all inputs are skipped
     if (!primaryModel.trim() && !haikuModel.trim() && !sonnetModel.trim() && !opusModel.trim()) {
-      console.log(ansis.yellow(`⚠ ${i18n.t('configuration:customModelSkipped') || 'Custom model configuration skipped'}`))
-      return
+      console.log(ansis.yellow(`⚠ ${i18n.t('configuration:customModelSkipped') || 'Custom model configuration skipped'}`));
+      return;
     }
 
     // Use the new updateCustomModel function to handle environment variables
-    updateCustomModel(primaryModel, haikuModel, sonnetModel, opusModel, codeToolType)
+    updateCustomModel(primaryModel, haikuModel, sonnetModel, opusModel, codeToolType);
     if (codeToolType === 'clavue') {
       syncClavueActiveProviderModelSelection({
         primaryModel,
         haikuModel,
         sonnetModel,
         opusModel,
-      })
+      });
     }
-    console.log(ansis.green(`✔ ${i18n.t('configuration:customModelConfigured') || 'Custom model configuration completed'}`))
-    return
+    console.log(ansis.green(`✔ ${i18n.t('configuration:customModelConfigured') || 'Custom model configuration completed'}`));
+    return;
   }
 
-  updateDefaultModel(model, codeToolType)
+  updateDefaultModel(model, codeToolType);
   if (codeToolType === 'clavue') {
     syncClavueActiveProviderModelSelection(
       model === 'default'
         ? { reset: true }
         : { selectedModel: model },
-    )
+    );
   }
-  console.log(ansis.green(`✔ ${i18n.t('configuration:modelConfigured') || 'Default model configured'}`))
+  console.log(ansis.green(`✔ ${i18n.t('configuration:modelConfigured') || 'Default model configured'}`));
 }
 
 /**
@@ -501,42 +501,42 @@ export async function promptCustomModels(
   defaultHaikuModel?: string,
   defaultSonnetModel?: string,
   defaultOpusModel?: string,
-): Promise<{ primaryModel: string, haikuModel: string, sonnetModel: string, opusModel: string }> {
+): Promise<{ primaryModel: string; haikuModel: string; sonnetModel: string; opusModel: string }> {
   const { primaryModel } = await inquirer.prompt<{ primaryModel: string }>({
     type: 'input',
     name: 'primaryModel',
     message: `${i18n.t('configuration:enterPrimaryModel')}${i18n.t('common:emptyToSkip')}`,
     default: defaultPrimaryModel || '',
-  })
+  });
 
   const { haikuModel } = await inquirer.prompt<{ haikuModel: string }>({
     type: 'input',
     name: 'haikuModel',
     message: `${i18n.t('configuration:enterHaikuModel')}${i18n.t('common:emptyToSkip')}`,
     default: defaultHaikuModel || '',
-  })
+  });
 
   const { sonnetModel } = await inquirer.prompt<{ sonnetModel: string }>({
     type: 'input',
     name: 'sonnetModel',
     message: `${i18n.t('configuration:enterSonnetModel')}${i18n.t('common:emptyToSkip')}`,
     default: defaultSonnetModel || '',
-  })
+  });
 
   const { opusModel } = await inquirer.prompt<{ opusModel: string }>({
     type: 'input',
     name: 'opusModel',
     message: `${i18n.t('configuration:enterOpusModel')}${i18n.t('common:emptyToSkip')}`,
     default: defaultOpusModel || '',
-  })
+  });
 
-  return { primaryModel, haikuModel, sonnetModel, opusModel }
+  return { primaryModel, haikuModel, sonnetModel, opusModel };
 }
 
 // Configure AI memory - View and manage Claude's memory (CLAUDE.md, Postmortem, etc.)
 export async function configureAiMemoryFeature(): Promise<void> {
-  ensureI18nInitialized()
-  const isZh = i18n.language === 'zh-CN'
+  ensureI18nInitialized();
+  const isZh = i18n.language === 'zh-CN';
 
   const { option } = await inquirer.prompt<{ option: string }>({
     type: 'list',
@@ -568,76 +568,76 @@ export async function configureAiMemoryFeature(): Promise<void> {
         value: 'outputStyle',
       },
     ]),
-  })
+  });
 
   if (!option) {
-    return
+    return;
   }
 
-  const cwd = process.cwd()
+  const cwd = process.cwd();
 
-  const globalClaudeMdPath = join(homedir(), '.claude', 'CLAUDE.md')
-  const projectClaudeMdPath = join(cwd, 'CLAUDE.md')
-  const localClaudeMdPath = join(cwd, '.claude', 'CLAUDE.md')
+  const globalClaudeMdPath = join(homedir(), '.claude', 'CLAUDE.md');
+  const projectClaudeMdPath = join(cwd, 'CLAUDE.md');
+  const localClaudeMdPath = join(cwd, '.claude', 'CLAUDE.md');
 
   switch (option) {
     case 'viewGlobalClaudeMd': {
       if (existsSync(globalClaudeMdPath)) {
-        console.log(ansis.green.bold(`\n📄 ${isZh ? '全局 CLAUDE.md 内容' : 'Global CLAUDE.md Content'}:`))
-        console.log(ansis.dim('─'.repeat(60)))
-        const content = readFileSync(globalClaudeMdPath, 'utf-8')
-        console.log(content)
-        console.log(ansis.dim('─'.repeat(60)))
-        console.log(ansis.gray(`${isZh ? '路径' : 'Path'}: ${globalClaudeMdPath}`))
+        console.log(ansis.green.bold(`\n📄 ${isZh ? '全局 CLAUDE.md 内容' : 'Global CLAUDE.md Content'}:`));
+        console.log(ansis.dim('─'.repeat(60)));
+        const content = readFileSync(globalClaudeMdPath, 'utf-8');
+        console.log(content);
+        console.log(ansis.dim('─'.repeat(60)));
+        console.log(ansis.gray(`${isZh ? '路径' : 'Path'}: ${globalClaudeMdPath}`));
       }
       else {
-        console.log(ansis.yellow(`\n⚠️ ${isZh ? '全局 CLAUDE.md 不存在' : 'Global CLAUDE.md does not exist'}`))
-        console.log(ansis.gray(`${isZh ? '预期路径' : 'Expected path'}: ${globalClaudeMdPath}`))
+        console.log(ansis.yellow(`\n⚠️ ${isZh ? '全局 CLAUDE.md 不存在' : 'Global CLAUDE.md does not exist'}`));
+        console.log(ansis.gray(`${isZh ? '预期路径' : 'Expected path'}: ${globalClaudeMdPath}`));
       }
-      break
+      break;
     }
 
     case 'viewProjectClaudeMd': {
       // Check both project root and .claude directory
-      let foundPath: string | null = null
+      let foundPath: string | null = null;
       if (existsSync(projectClaudeMdPath)) {
-        foundPath = projectClaudeMdPath
+        foundPath = projectClaudeMdPath;
       }
       else if (existsSync(localClaudeMdPath)) {
-        foundPath = localClaudeMdPath
+        foundPath = localClaudeMdPath;
       }
 
       if (foundPath) {
-        console.log(ansis.green.bold(`\n📁 ${isZh ? '项目 CLAUDE.md 内容' : 'Project CLAUDE.md Content'}:`))
-        console.log(ansis.dim('─'.repeat(60)))
-        const content = readFileSync(foundPath, 'utf-8')
-        console.log(content)
-        console.log(ansis.dim('─'.repeat(60)))
-        console.log(ansis.gray(`${isZh ? '路径' : 'Path'}: ${foundPath}`))
+        console.log(ansis.green.bold(`\n📁 ${isZh ? '项目 CLAUDE.md 内容' : 'Project CLAUDE.md Content'}:`));
+        console.log(ansis.dim('─'.repeat(60)));
+        const content = readFileSync(foundPath, 'utf-8');
+        console.log(content);
+        console.log(ansis.dim('─'.repeat(60)));
+        console.log(ansis.gray(`${isZh ? '路径' : 'Path'}: ${foundPath}`));
       }
       else {
-        console.log(ansis.yellow(`\n⚠️ ${isZh ? '项目 CLAUDE.md 不存在' : 'Project CLAUDE.md does not exist'}`))
-        console.log(ansis.gray(`${isZh ? '已检查路径' : 'Checked paths'}:`))
-        console.log(ansis.gray(`  - ${projectClaudeMdPath}`))
-        console.log(ansis.gray(`  - ${localClaudeMdPath}`))
+        console.log(ansis.yellow(`\n⚠️ ${isZh ? '项目 CLAUDE.md 不存在' : 'Project CLAUDE.md does not exist'}`));
+        console.log(ansis.gray(`${isZh ? '已检查路径' : 'Checked paths'}:`));
+        console.log(ansis.gray(`  - ${projectClaudeMdPath}`));
+        console.log(ansis.gray(`  - ${localClaudeMdPath}`));
       }
-      break
+      break;
     }
 
     case 'viewPostmortem': {
-      const postmortemDir = join(cwd, '.postmortem')
+      const postmortemDir = join(cwd, '.postmortem');
       if (existsSync(postmortemDir)) {
-        console.log(ansis.green.bold(`\n🔬 ${isZh ? 'Postmortem 报告' : 'Postmortem Reports'}:`))
-        console.log(ansis.dim('─'.repeat(60)))
+        console.log(ansis.green.bold(`\n🔬 ${isZh ? 'Postmortem 报告' : 'Postmortem Reports'}:`));
+        console.log(ansis.dim('─'.repeat(60)));
 
-        const { readdirSync } = await import('node:fs')
-        const files = readdirSync(postmortemDir).filter(f => f.endsWith('.md'))
+        const { readdirSync } = await import('node:fs');
+        const files = readdirSync(postmortemDir).filter(f => f.endsWith('.md'));
 
         if (files.length === 0) {
-          console.log(ansis.yellow(isZh ? '暂无 Postmortem 报告' : 'No postmortem reports yet'))
+          console.log(ansis.yellow(isZh ? '暂无 Postmortem 报告' : 'No postmortem reports yet'));
         }
         else {
-          console.log(ansis.green(`${isZh ? '找到' : 'Found'} ${files.length} ${isZh ? '个报告' : 'reports'}:\n`))
+          console.log(ansis.green(`${isZh ? '找到' : 'Found'} ${files.length} ${isZh ? '个报告' : 'reports'}:\n`));
 
           // Let user select a report to view
           const { selectedFile } = await inquirer.prompt<{ selectedFile: string }>({
@@ -648,100 +648,100 @@ export async function configureAiMemoryFeature(): Promise<void> {
               ...files.map(f => ({ name: f, value: f })),
               { name: isZh ? '返回' : 'Back', value: 'back' },
             ],
-          })
+          });
 
           if (selectedFile !== 'back') {
-            const reportPath = join(postmortemDir, selectedFile)
-            const content = readFileSync(reportPath, 'utf-8')
-            console.log(ansis.dim('─'.repeat(60)))
-            console.log(content)
-            console.log(ansis.dim('─'.repeat(60)))
+            const reportPath = join(postmortemDir, selectedFile);
+            const content = readFileSync(reportPath, 'utf-8');
+            console.log(ansis.dim('─'.repeat(60)));
+            console.log(content);
+            console.log(ansis.dim('─'.repeat(60)));
           }
         }
 
-        console.log(ansis.gray(`\n${isZh ? '目录' : 'Directory'}: ${postmortemDir}`))
-        console.log(ansis.gray(`💡 ${isZh ? '运行 `ccjk postmortem init` 从历史 fix commits 生成报告' : 'Run `ccjk postmortem init` to generate reports from fix commits'}`))
+        console.log(ansis.gray(`\n${isZh ? '目录' : 'Directory'}: ${postmortemDir}`));
+        console.log(ansis.gray(`💡 ${isZh ? '运行 `ccjk postmortem init` 从历史 fix commits 生成报告' : 'Run `ccjk postmortem init` to generate reports from fix commits'}`));
       }
       else {
-        console.log(ansis.yellow(`\n⚠️ ${isZh ? 'Postmortem 目录不存在' : 'Postmortem directory does not exist'}`))
-        console.log(ansis.gray(`💡 ${isZh ? '运行 `ccjk postmortem init` 初始化 Postmortem 系统' : 'Run `ccjk postmortem init` to initialize the Postmortem system'}`))
+        console.log(ansis.yellow(`\n⚠️ ${isZh ? 'Postmortem 目录不存在' : 'Postmortem directory does not exist'}`));
+        console.log(ansis.gray(`💡 ${isZh ? '运行 `ccjk postmortem init` 初始化 Postmortem 系统' : 'Run `ccjk postmortem init` to initialize the Postmortem system'}`));
       }
-      break
+      break;
     }
 
     case 'editGlobalClaudeMd': {
       // Determine editor
-      const editor = process.env.EDITOR || process.env.VISUAL || 'vi'
+      const editor = process.env.EDITOR || process.env.VISUAL || 'vi';
 
       if (!existsSync(globalClaudeMdPath)) {
         // Create directory if needed
-        const claudeDir = join(homedir(), '.claude')
+        const claudeDir = join(homedir(), '.claude');
         if (!existsSync(claudeDir)) {
-          mkdirSync(claudeDir, { recursive: true })
+          mkdirSync(claudeDir, { recursive: true });
         }
         // Create empty file
-        writeFileSync(globalClaudeMdPath, `# Claude Global Memory\n\n<!-- Add your global instructions here -->\n`)
-        console.log(ansis.green(`✅ ${isZh ? '已创建全局 CLAUDE.md' : 'Created global CLAUDE.md'}`))
+        writeFileSync(globalClaudeMdPath, `# Claude Global Memory\n\n<!-- Add your global instructions here -->\n`);
+        console.log(ansis.green(`✅ ${isZh ? '已创建全局 CLAUDE.md' : 'Created global CLAUDE.md'}`));
       }
 
-      console.log(ansis.green(`\n📝 ${isZh ? '正在打开编辑器...' : 'Opening editor...'}`))
-      console.log(ansis.gray(`${isZh ? '编辑器' : 'Editor'}: ${editor}`))
-      console.log(ansis.gray(`${isZh ? '文件' : 'File'}: ${globalClaudeMdPath}`))
+      console.log(ansis.green(`\n📝 ${isZh ? '正在打开编辑器...' : 'Opening editor...'}`));
+      console.log(ansis.gray(`${isZh ? '编辑器' : 'Editor'}: ${editor}`));
+      console.log(ansis.gray(`${isZh ? '文件' : 'File'}: ${globalClaudeMdPath}`));
 
       try {
-        const { execSync } = await import('node:child_process')
-        execSync(`${editor} "${globalClaudeMdPath}"`, { stdio: 'inherit' })
-        console.log(ansis.green(`\n✅ ${isZh ? '编辑完成' : 'Edit complete'}`))
+        const { execSync } = await import('node:child_process');
+        execSync(`${editor} "${globalClaudeMdPath}"`, { stdio: 'inherit' });
+        console.log(ansis.green(`\n✅ ${isZh ? '编辑完成' : 'Edit complete'}`));
       }
       catch {
-        console.log(ansis.yellow(`\n⚠️ ${isZh ? '编辑器退出' : 'Editor exited'}`))
+        console.log(ansis.yellow(`\n⚠️ ${isZh ? '编辑器退出' : 'Editor exited'}`));
       }
-      break
+      break;
     }
 
     case 'language': {
-      const zcfConfig = readZcfConfig()
-      const existingLang = zcfConfig?.aiOutputLang
+      const zcfConfig = readZcfConfig();
+      const existingLang = zcfConfig?.aiOutputLang;
 
       // Show existing language configuration if any
       if (existingLang) {
         console.log(
           `\n${
             ansis.green(`ℹ ${i18n.t('configuration:existingLanguageConfig') || 'Existing AI output language configuration'}`)}`,
-        )
-        console.log(ansis.gray(`  ${i18n.t('configuration:currentLanguage') || 'Current language'}: ${existingLang}\n`))
+        );
+        console.log(ansis.gray(`  ${i18n.t('configuration:currentLanguage') || 'Current language'}: ${existingLang}\n`));
 
         const modify = await promptBoolean({
           message: i18n.t('configuration:modifyLanguage') || 'Modify AI output language?',
           defaultValue: false,
-        })
+        });
 
         if (!modify) {
-          console.log(ansis.green(`✔ ${i18n.t('configuration:keepLanguage') || 'Keeping existing language configuration'}`))
-          return
+          console.log(ansis.green(`✔ ${i18n.t('configuration:keepLanguage') || 'Keeping existing language configuration'}`));
+          return;
         }
       }
 
       // Ask user to select language (don't use resolveAiOutputLanguage to avoid auto-skip)
-      const { selectAiOutputLanguage } = await import('./prompts')
-      const aiOutputLang = await selectAiOutputLanguage()
+      const { selectAiOutputLanguage } = await import('./prompts');
+      const aiOutputLang = await selectAiOutputLanguage();
 
-      applyAiLanguageDirective(aiOutputLang)
-      updateZcfConfig({ aiOutputLang })
-      console.log(ansis.green(`✔ ${i18n.t('configuration:aiLanguageConfigured') || 'AI output language configured'}`))
-      break
+      applyAiLanguageDirective(aiOutputLang);
+      updateZcfConfig({ aiOutputLang });
+      console.log(ansis.green(`✔ ${i18n.t('configuration:aiLanguageConfigured') || 'AI output language configured'}`));
+      break;
     }
 
     case 'outputStyle': {
-      await configureOutputStyle()
-      break
+      await configureOutputStyle();
+      break;
     }
   }
 }
 
 // Change script language
 export async function changeScriptLanguageFeature(currentLang: SupportedLang): Promise<SupportedLang> {
-  ensureI18nInitialized()
+  ensureI18nInitialized();
 
   const { lang } = await inquirer.prompt<{ lang: SupportedLang }>({
     type: 'list',
@@ -754,55 +754,55 @@ export async function changeScriptLanguageFeature(currentLang: SupportedLang): P
       })),
     ),
     default: SUPPORTED_LANGS.indexOf(currentLang),
-  })
+  });
 
   if (!lang) {
-    return currentLang
+    return currentLang;
   }
 
-  updateZcfConfig({ preferredLang: lang })
+  updateZcfConfig({ preferredLang: lang });
 
-  await changeLanguage(lang)
+  await changeLanguage(lang);
 
-  console.log(ansis.green(`✔ ${i18n.t('language:languageChanged') || 'Language changed'}`))
+  console.log(ansis.green(`✔ ${i18n.t('language:languageChanged') || 'Language changed'}`));
 
-  return lang
+  return lang;
 }
 
 // Configure Codex default model
 export async function configureCodexDefaultModelFeature(): Promise<void> {
-  ensureI18nInitialized()
+  ensureI18nInitialized();
 
   // Check for existing Codex configuration
-  const { readCodexConfig } = await import('./code-tools/codex')
-  const existingConfig = readCodexConfig()
+  const { readCodexConfig } = await import('./code-tools/codex');
+  const existingConfig = readCodexConfig();
 
-  const currentModel = existingConfig?.model
+  const currentModel = existingConfig?.model;
 
   if (currentModel) {
     // Display existing configuration
-    console.log(`\n${ansis.green(`ℹ ${i18n.t('configuration:existingModelConfig') || 'Existing model configuration'}`)}`)
-    const modelDisplay = formatCodexModelLabel(currentModel)
-    console.log(ansis.gray(`  ${i18n.t('configuration:currentModel') || 'Current model'}: ${modelDisplay}\n`))
+    console.log(`\n${ansis.green(`ℹ ${i18n.t('configuration:existingModelConfig') || 'Existing model configuration'}`)}`);
+    const modelDisplay = formatCodexModelLabel(currentModel);
+    console.log(ansis.gray(`  ${i18n.t('configuration:currentModel') || 'Current model'}: ${modelDisplay}\n`));
 
     // Ask user what to do with existing config
     const modify = await promptBoolean({
       message: i18n.t('configuration:modifyModel') || 'Modify model configuration?',
       defaultValue: false,
-    })
+    });
 
     if (!modify) {
-      console.log(ansis.green(`✔ ${i18n.t('configuration:keepModel') || 'Keeping existing model configuration'}`))
-      return
+      console.log(ansis.green(`✔ ${i18n.t('configuration:keepModel') || 'Keeping existing model configuration'}`));
+      return;
     }
   }
 
-  const supportedModels = CODEX_MODEL_CHOICES.map(choice => choice.value)
+  const supportedModels = CODEX_MODEL_CHOICES.map(choice => choice.value);
   const defaultModel: CodexModelChoice = currentModel && supportedModels.includes(currentModel as CodexModelChoice)
     ? currentModel as CodexModelChoice
     : currentModel
       ? 'custom'
-      : 'gpt-5-codex'
+      : 'gpt-5-codex';
 
   const { model } = await inquirer.prompt<{ model: CodexModelChoice }>({
     type: 'list',
@@ -813,11 +813,11 @@ export async function configureCodexDefaultModelFeature(): Promise<void> {
       value: choice.value,
     }))),
     default: defaultModel,
-  })
+  });
 
   if (!model) {
-    await handleCancellation()
-    return
+    await handleCancellation();
+    return;
   }
 
   if (model === 'custom') {
@@ -827,27 +827,27 @@ export async function configureCodexDefaultModelFeature(): Promise<void> {
       name: 'customModel',
       message: `${i18n.t('configuration:enterCustomModel')}${i18n.t('common:emptyToSkip')}`,
       default: '',
-    })
+    });
 
     if (!customModel.trim()) {
-      console.log(ansis.yellow(`⚠ ${i18n.t('configuration:customModelSkipped') || 'Custom model configuration skipped'}`))
-      return
+      console.log(ansis.yellow(`⚠ ${i18n.t('configuration:customModelSkipped') || 'Custom model configuration skipped'}`));
+      return;
     }
 
     // Update Codex config with custom model
-    await updateCodexModelProvider(customModel.trim())
-    console.log(ansis.green(`✔ ${i18n.t('configuration:customModelConfigured') || 'Custom model configuration completed'}`))
-    return
+    await updateCodexModelProvider(customModel.trim());
+    console.log(ansis.green(`✔ ${i18n.t('configuration:customModelConfigured') || 'Custom model configuration completed'}`));
+    return;
   }
 
   // Update Codex config with selected model
-  await updateCodexModelProvider(model)
-  console.log(ansis.green(`✔ ${i18n.t('configuration:modelConfigured') || 'Default model configured'}`))
+  await updateCodexModelProvider(model);
+  console.log(ansis.green(`✔ ${i18n.t('configuration:modelConfigured') || 'Default model configured'}`));
 }
 
 // Configure Codex AI memory (output language and system prompt style)
 export async function configureCodexAiMemoryFeature(): Promise<void> {
-  ensureI18nInitialized()
+  ensureI18nInitialized();
 
   const { option } = await inquirer.prompt<{ option: string }>({
     type: 'list',
@@ -863,15 +863,15 @@ export async function configureCodexAiMemoryFeature(): Promise<void> {
         value: 'systemPrompt',
       },
     ]),
-  })
+  });
 
   if (!option) {
-    return
+    return;
   }
 
   if (option === 'language') {
-    const zcfConfig = readZcfConfig()
-    const existingLang = zcfConfig?.aiOutputLang
+    const zcfConfig = readZcfConfig();
+    const existingLang = zcfConfig?.aiOutputLang;
 
     // Show existing language configuration if any
     if (existingLang) {
@@ -879,60 +879,60 @@ export async function configureCodexAiMemoryFeature(): Promise<void> {
         `\n${
           ansis.green(`ℹ ${i18n.t('configuration:existingLanguageConfig') || 'Existing AI output language configuration'}`)
         }`,
-      )
-      console.log(ansis.gray(`  ${i18n.t('configuration:currentLanguage') || 'Current language'}: ${existingLang}\n`))
+      );
+      console.log(ansis.gray(`  ${i18n.t('configuration:currentLanguage') || 'Current language'}: ${existingLang}\n`));
 
       const modify = await promptBoolean({
         message: i18n.t('configuration:modifyLanguage') || 'Modify AI output language?',
         defaultValue: false,
-      })
+      });
 
       if (!modify) {
-        console.log(ansis.green(`✔ ${i18n.t('configuration:keepLanguage') || 'Keeping existing language configuration'}`))
+        console.log(ansis.green(`✔ ${i18n.t('configuration:keepLanguage') || 'Keeping existing language configuration'}`));
 
         // Even when not modifying, ensure AGENTS.md has language directive
-        await ensureLanguageDirectiveInAgents(existingLang)
-        return
+        await ensureLanguageDirectiveInAgents(existingLang);
+        return;
       }
     }
 
     // Ask user to select language
-    const { selectAiOutputLanguage } = await import('./prompts')
-    const aiOutputLang = await selectAiOutputLanguage()
+    const { selectAiOutputLanguage } = await import('./prompts');
+    const aiOutputLang = await selectAiOutputLanguage();
 
     // Update AGENTS.md with language directive
-    await updateCodexLanguageDirective(aiOutputLang)
-    updateZcfConfig({ aiOutputLang })
-    console.log(ansis.green(`✔ ${i18n.t('configuration:aiLanguageConfigured') || 'AI output language configured'}`))
+    await updateCodexLanguageDirective(aiOutputLang);
+    updateZcfConfig({ aiOutputLang });
+    console.log(ansis.green(`✔ ${i18n.t('configuration:aiLanguageConfigured') || 'AI output language configured'}`));
   }
   else if (option === 'systemPrompt') {
     // Get current AI output language from config
-    const zcfConfig = readZcfConfig()
-    const currentLang = zcfConfig?.aiOutputLang || 'English'
+    const zcfConfig = readZcfConfig();
+    const currentLang = zcfConfig?.aiOutputLang || 'English';
 
     // Regenerate system prompt with current language and style selection
-    const { runCodexSystemPromptSelection } = await import('./code-tools/codex')
-    await runCodexSystemPromptSelection()
+    const { runCodexSystemPromptSelection } = await import('./code-tools/codex');
+    await runCodexSystemPromptSelection();
 
     // Ensure language directive is preserved after system prompt change
-    await ensureLanguageDirectiveInAgents(currentLang)
+    await ensureLanguageDirectiveInAgents(currentLang);
 
-    console.log(ansis.green(`✔ ${i18n.t('configuration:systemPromptConfigured')}`))
+    console.log(ansis.green(`✔ ${i18n.t('configuration:systemPromptConfigured')}`));
   }
 }
 
 // Helper function to update Codex model provider
 async function updateCodexModelProvider(modelProvider: string): Promise<void> {
-  const { readCodexConfig, writeCodexConfig, backupCodexConfig, getBackupMessage } = await import('./code-tools/codex')
+  const { readCodexConfig, writeCodexConfig, backupCodexConfig, getBackupMessage } = await import('./code-tools/codex');
 
   // Create backup before modification
-  const backupPath = backupCodexConfig()
+  const backupPath = backupCodexConfig();
   if (backupPath) {
-    console.log(ansis.gray(getBackupMessage(backupPath)))
+    console.log(ansis.gray(getBackupMessage(backupPath)));
   }
 
   // Read existing config
-  const existingConfig = readCodexConfig()
+  const existingConfig = readCodexConfig();
 
   // Update model provider
   const updatedConfig = {
@@ -945,73 +945,73 @@ async function updateCodexModelProvider(modelProvider: string): Promise<void> {
     features: existingConfig?.features,
     otherConfig: existingConfig?.otherConfig || [],
     modelProviderCommented: existingConfig?.modelProviderCommented,
-  }
+  };
 
   // Write updated config
-  writeCodexConfig(updatedConfig)
+  writeCodexConfig(updatedConfig);
 }
 
 // Helper function to ensure language directive exists in AGENTS.md
-const LANG_DIRECTIVE_RE = /\*\*Most Important:\s*Always respond in [^*]+\*\*/i
-const LANG_DIRECTIVE_RE_G = /\*\*Most Important:\s*Always respond in [^*]+\*\*\s*/g
+const LANG_DIRECTIVE_RE = /\*\*Most Important:\s*Always respond in [^*]+\*\*/i;
+const LANG_DIRECTIVE_RE_G = /\*\*Most Important:\s*Always respond in [^*]+\*\*\s*/g;
 
 const codexLanguageLabels: Record<string, string> = {
   'Chinese': 'Chinese-simplified',
   'English': 'English',
   'zh-CN': 'Chinese-simplified',
   'en': 'English',
-}
+};
 
 /**
  * Set or update the language directive in Codex AGENTS.md.
  * mode='ensure' only adds if missing; mode='update' always replaces.
  */
 async function setCodexLanguageDirective(aiOutputLang: string, mode: 'ensure' | 'update'): Promise<void> {
-  const { readFile, writeFileAtomic, exists } = await import('./fs-operations')
-  const { backupCodexAgents, getBackupMessage } = await import('./code-tools/codex')
+  const { readFile, writeFileAtomic, exists } = await import('./fs-operations');
+  const { backupCodexAgents, getBackupMessage } = await import('./code-tools/codex');
 
-  const CODEX_AGENTS_FILE = join(homedir(), '.codex', 'AGENTS.md')
+  const CODEX_AGENTS_FILE = join(homedir(), '.codex', 'AGENTS.md');
 
   if (!exists(CODEX_AGENTS_FILE)) {
-    console.log(ansis.yellow(i18n.t('codex:agentsFileNotFound')))
-    return
+    console.log(ansis.yellow(i18n.t('codex:agentsFileNotFound')));
+    return;
   }
 
-  let content = readFile(CODEX_AGENTS_FILE)
-  const langLabel = codexLanguageLabels[aiOutputLang] || aiOutputLang
+  let content = readFile(CODEX_AGENTS_FILE);
+  const langLabel = codexLanguageLabels[aiOutputLang] || aiOutputLang;
 
   if (mode === 'ensure' && LANG_DIRECTIVE_RE.test(content))
-    return
+    return;
 
   // Backup before modification
-  const backupPath = backupCodexAgents()
+  const backupPath = backupCodexAgents();
   if (backupPath)
-    console.log(ansis.gray(getBackupMessage(backupPath)))
+    console.log(ansis.gray(getBackupMessage(backupPath)));
 
   // Remove existing directive if present
-  content = content.replace(LANG_DIRECTIVE_RE_G, '')
+  content = content.replace(LANG_DIRECTIVE_RE_G, '');
 
   if (!content.endsWith('\n'))
-    content += '\n'
-  content += `\n**Most Important:Always respond in ${langLabel}**\n`
+    content += '\n';
+  content += `\n**Most Important:Always respond in ${langLabel}**\n`;
 
-  writeFileAtomic(CODEX_AGENTS_FILE, content)
+  writeFileAtomic(CODEX_AGENTS_FILE, content);
 
   if (mode === 'ensure')
-    console.log(ansis.gray(`  ${i18n.t('configuration:addedLanguageDirective')}: ${langLabel}`))
+    console.log(ansis.gray(`  ${i18n.t('configuration:addedLanguageDirective')}: ${langLabel}`));
 }
 
 async function ensureLanguageDirectiveInAgents(aiOutputLang: string): Promise<void> {
-  return setCodexLanguageDirective(aiOutputLang, 'ensure')
+  return setCodexLanguageDirective(aiOutputLang, 'ensure');
 }
 
 async function updateCodexLanguageDirective(aiOutputLang: string): Promise<void> {
-  return setCodexLanguageDirective(aiOutputLang, 'update')
+  return setCodexLanguageDirective(aiOutputLang, 'update');
 }
 
 // Configure environment variables and permissions
 export async function configureEnvPermissionFeature(): Promise<void> {
-  ensureI18nInitialized()
+  ensureI18nInitialized();
 
   const { choice } = await inquirer.prompt<{ choice: string }>({
     type: 'list',
@@ -1037,31 +1037,31 @@ export async function configureEnvPermissionFeature(): Promise<void> {
         value: 'open',
       },
     ]),
-  })
+  });
 
   if (!choice) {
-    await handleCancellation()
-    return
+    await handleCancellation();
+    return;
   }
 
   try {
     switch (choice) {
       case 'env':
-        await importRecommendedEnv()
-        console.log(ansis.green(`✅ ${i18n.t('configuration:envImportSuccess')}`))
-        break
+        await importRecommendedEnv();
+        console.log(ansis.green(`✅ ${i18n.t('configuration:envImportSuccess')}`));
+        break;
       case 'permissions':
-        await importRecommendedPermissions()
-        console.log(ansis.green(`✅ ${i18n.t('configuration:permissionsImportSuccess') || 'Permissions imported'}`))
-        break
+        await importRecommendedPermissions();
+        console.log(ansis.green(`✅ ${i18n.t('configuration:permissionsImportSuccess') || 'Permissions imported'}`));
+        break;
       case 'open':
-        console.log(ansis.green(i18n.t('configuration:openingSettingsJson') || 'Opening settings.json...'))
-        await openSettingsJson()
-        break
+        console.log(ansis.green(i18n.t('configuration:openingSettingsJson') || 'Opening settings.json...'));
+        await openSettingsJson();
+        break;
     }
   }
   catch (error: any) {
-    console.error(ansis.red(`${i18n.t('common:error')}: ${error.message}`))
+    console.error(ansis.red(`${i18n.t('common:error')}: ${error.message}`));
   }
 }
 
@@ -1070,8 +1070,8 @@ export async function configureEnvPermissionFeature(): Promise<void> {
  * Distinct from configureMcpFeature (install wizard). This exposes runtime management.
  */
 export async function mcpManagerFeature(): Promise<void> {
-  ensureI18nInitialized()
-  const isZh = i18n.language === 'zh-CN'
+  ensureI18nInitialized();
+  const isZh = i18n.language === 'zh-CN';
 
   const { choice } = await inquirer.prompt<{ choice: string }>({
     type: 'list',
@@ -1115,34 +1115,34 @@ export async function mcpManagerFeature(): Promise<void> {
         value: 'install',
       },
     ]),
-  })
+  });
 
   if (!choice) {
-    await handleCancellation()
-    return
+    await handleCancellation();
+    return;
   }
 
   try {
     switch (choice) {
       case 'status': {
-        const { mcpStatus } = await import('../commands/mcp')
-        await mcpStatus()
-        break
+        const { mcpStatus } = await import('../commands/mcp');
+        await mcpStatus();
+        break;
       }
       case 'doctor': {
-        const { mcpDoctor } = await import('../commands/mcp')
-        await mcpDoctor()
-        break
+        const { mcpDoctor } = await import('../commands/mcp');
+        await mcpDoctor();
+        break;
       }
       case 'list': {
-        const { mcpList } = await import('../commands/mcp')
-        await mcpList()
-        break
+        const { mcpList } = await import('../commands/mcp');
+        await mcpList();
+        break;
       }
       case 'profile': {
-        const { listProfiles, useProfile } = await import('../commands/mcp')
-        const targetTool = readZcfConfig()?.codeToolType === 'codex' ? 'codex' : 'claude-code'
-        await listProfiles({ tool: targetTool })
+        const { listProfiles, useProfile } = await import('../commands/mcp');
+        const targetTool = readZcfConfig()?.codeToolType === 'codex' ? 'codex' : 'claude-code';
+        await listProfiles({ tool: targetTool });
         const { profileId } = await inquirer.prompt<{ profileId: string }>({
           type: 'list',
           name: 'profileId',
@@ -1152,31 +1152,31 @@ export async function mcpManagerFeature(): Promise<void> {
             { name: isZh ? 'development — 开发常用服务套装' : 'development — Dev-oriented service bundle', value: 'development' },
             { name: isZh ? 'full — 完整服务（高性能机器推荐）' : 'full — Full services (high-end machines)', value: 'full' },
           ],
-        })
-        await useProfile(profileId, { tool: targetTool })
-        break
+        });
+        await useProfile(profileId, { tool: targetTool });
+        break;
       }
       case 'release': {
-        const { mcpRelease } = await import('../commands/mcp')
-        await mcpRelease()
-        break
+        const { mcpRelease } = await import('../commands/mcp');
+        await mcpRelease();
+        break;
       }
       case 'install': {
-        await configureMcpFeature()
-        break
+        await configureMcpFeature();
+        break;
       }
     }
   }
   catch (error: any) {
-    console.error(ansis.red(`${i18n.t('common:error')}: ${error.message}`))
+    console.error(ansis.red(`${i18n.t('common:error')}: ${error.message}`));
   }
 }/**
   * Merged permissions & env configuration (combines old option 7 + 8)
   * Presents a single submenu: import env / import permissions / zero-config preset / open settings
   */
 export async function configureMergedPermissionsFeature(): Promise<void> {
-  ensureI18nInitialized()
-  const isZh = i18n.language === 'zh-CN'
+  ensureI18nInitialized();
+  const isZh = i18n.language === 'zh-CN';
 
   const { choice } = await inquirer.prompt<{ choice: string }>({
     type: 'list',
@@ -1208,78 +1208,78 @@ export async function configureMergedPermissionsFeature(): Promise<void> {
         value: 'open',
       },
     ]),
-  })
+  });
 
   if (!choice) {
-    await handleCancellation()
-    return
+    await handleCancellation();
+    return;
   }
 
   try {
     switch (choice) {
       case 'env':
-        await importRecommendedEnv()
-        console.log(ansis.green(`✅ ${i18n.t('configuration:envImportSuccess')}`))
-        break
+        await importRecommendedEnv();
+        console.log(ansis.green(`✅ ${i18n.t('configuration:envImportSuccess')}`));
+        break;
       case 'permissions':
-        await importRecommendedPermissions()
-        console.log(ansis.green(`✅ ${i18n.t('configuration:permissionsImportSuccess') || 'Permissions imported'}`))
-        break
+        await importRecommendedPermissions();
+        console.log(ansis.green(`✅ ${i18n.t('configuration:permissionsImportSuccess') || 'Permissions imported'}`));
+        break;
       case 'preset': {
-        const { zeroConfig } = await import('../commands/zero-config')
-        await zeroConfig()
-        break
+        const { zeroConfig } = await import('../commands/zero-config');
+        await zeroConfig();
+        break;
       }
       case 'open':
-        console.log(ansis.green(i18n.t('configuration:openingSettingsJson') || 'Opening settings.json...'))
-        await openSettingsJson()
-        break
+        console.log(ansis.green(i18n.t('configuration:openingSettingsJson') || 'Opening settings.json...'));
+        await openSettingsJson();
+        break;
     }
   }
   catch (error: any) {
-    console.error(ansis.red(`${i18n.t('common:error')}: ${error.message}`))
+    console.error(ansis.red(`${i18n.t('common:error')}: ${error.message}`));
   }
 }
 
 export async function configureMemoryFeature(): Promise<void> {
-  ensureI18nInitialized()
-  const isZh = i18n.language === 'zh-CN'
-  const inquirer = (await import('inquirer')).default
-  const ansis = (await import('ansis')).default
-  const { execSync } = await import('node:child_process')
-  const fs = await import('node:fs/promises')
-  const { getCcjkMemoryPath, getClaudeMemoryPath } = await import('./memory-paths.js')
-  const { inspectMemoryFiles, syncMemoryFiles } = await import('./memory-sync.js')
-  const { memoryCheck } = await import('../health/checks/memory-check.js')
+  ensureI18nInitialized();
+  const isZh = i18n.language === 'zh-CN';
+  const inquirer = (await import('inquirer')).default;
+  const ansis = (await import('ansis')).default;
+  const { execSync } = await import('node:child_process');
+  const fs = await import('node:fs/promises');
+  const { getCcjkMemoryPath, getClaudeMemoryPath } = await import('./memory-paths.js');
+  const { inspectMemoryFiles, syncMemoryFiles } = await import('./memory-sync.js');
+  const { memoryCheck } = await import('../health/checks/memory-check.js');
 
-  console.log(ansis.cyan(`\n${i18n.t('memory:title')}`))
-  const projectPath = process.cwd()
+  console.log(ansis.cyan(`\n${i18n.t('memory:title')}`));
+  const projectPath = process.cwd();
 
   // Check if memory files exist
-  const claudeMemoryPath = getClaudeMemoryPath(projectPath)
-  const ccjkMemoryPath = getCcjkMemoryPath(projectPath)
+  const claudeMemoryPath = getClaudeMemoryPath(projectPath);
+  const ccjkMemoryPath = getCcjkMemoryPath(projectPath);
 
-  let claudeMemoryExists = false
-  let ccjkMemoryExists = false
+  let claudeMemoryExists = false;
+  let ccjkMemoryExists = false;
 
   try {
-    await fs.access(claudeMemoryPath)
-    claudeMemoryExists = true
+    await fs.access(claudeMemoryPath);
+    claudeMemoryExists = true;
   }
   catch {}
 
   try {
-    await fs.access(ccjkMemoryPath)
-    ccjkMemoryExists = true
+    await fs.access(ccjkMemoryPath);
+    ccjkMemoryExists = true;
   }
   catch {}
 
   // Display current status
-  console.log(`\n${ansis.bold(i18n.t('memory:currentStatus'))}`)
-  console.log(ansis.gray('─'.repeat(50)))
-  console.log(`${ansis.yellow(i18n.t('memory:claudeMemory'))}: ${claudeMemoryExists ? ansis.green('✓') : ansis.red('✗')}`)
-  console.log(`${ansis.yellow(i18n.t('memory:ccjkMemory'))}: ${ccjkMemoryExists ? ansis.green('✓') : ansis.red('✗')}`)
-  console.log(ansis.gray('─'.repeat(50)))
+  console.log(`\n${ansis.bold(i18n.t('memory:currentStatus'))}`);
+  console.log(ansis.gray('─'.repeat(50)));
+  console.log(`${ansis.yellow(i18n.t('memory:claudeMemory'))}: ${claudeMemoryExists ? ansis.green('✓') : ansis.red('✗')}`);
+  console.log(`${ansis.yellow(i18n.t('memory:ccjkMemory'))}: ${ccjkMemoryExists ? ansis.green('✓') : ansis.red('✗')}`);
+  console.log(ansis.gray('─'.repeat(50)));
 
   const { action } = await inquirer.prompt([
     {
@@ -1298,86 +1298,86 @@ export async function configureMemoryFeature(): Promise<void> {
         { name: i18n.t('memory:back'), value: 'back' },
       ],
     },
-  ])
+  ]);
 
   switch (action) {
     case 'status': {
-      const inspection = inspectMemoryFiles({ projectPath })
-      console.log(ansis.bold('\nMemory Status'))
-      console.log(ansis.gray('─'.repeat(50)))
-      console.log(`State: ${inspection.syncState}`)
-      console.log(`Source: ${inspection.source}`)
-      console.log(`Claude: ${inspection.paths.claude}`)
-      console.log(`CCJK:   ${inspection.paths.ccjk}`)
-      console.log(`Entries: ${inspection.entryCount}`)
-      console.log(ansis.gray('─'.repeat(50)))
-      break
+      const inspection = inspectMemoryFiles({ projectPath });
+      console.log(ansis.bold('\nMemory Status'));
+      console.log(ansis.gray('─'.repeat(50)));
+      console.log(`State: ${inspection.syncState}`);
+      console.log(`Source: ${inspection.source}`);
+      console.log(`Claude: ${inspection.paths.claude}`);
+      console.log(`CCJK:   ${inspection.paths.ccjk}`);
+      console.log(`Entries: ${inspection.entryCount}`);
+      console.log(ansis.gray('─'.repeat(50)));
+      break;
     }
     case 'doctor': {
-      const health = await memoryCheck.check()
-      console.log(ansis.bold('\nMemory Doctor'))
-      console.log(ansis.gray('─'.repeat(50)))
-      console.log(`${health.message} (${health.score}/100)`)
+      const health = await memoryCheck.check();
+      console.log(ansis.bold('\nMemory Doctor'));
+      console.log(ansis.gray('─'.repeat(50)));
+      console.log(`${health.message} (${health.score}/100)`);
       for (const detail of health.details || []) {
-        console.log(detail)
+        console.log(detail);
       }
       if (health.fix) {
-        console.log(ansis.yellow(`Fix: ${health.fix}`))
+        console.log(ansis.yellow(`Fix: ${health.fix}`));
       }
-      console.log(ansis.gray('─'.repeat(50)))
-      break
+      console.log(ansis.gray('─'.repeat(50)));
+      break;
     }
     case 'view': {
-      const memoryPath = getClaudeMemoryPath(projectPath)
+      const memoryPath = getClaudeMemoryPath(projectPath);
       try {
-        const content = await fs.readFile(memoryPath, 'utf-8')
-        console.log(`\n${ansis.bold(i18n.t('memory:memoryContent'))}`)
-        console.log(ansis.gray('─'.repeat(50)))
-        console.log(content)
-        console.log(ansis.gray('─'.repeat(50)))
+        const content = await fs.readFile(memoryPath, 'utf-8');
+        console.log(`\n${ansis.bold(i18n.t('memory:memoryContent'))}`);
+        console.log(ansis.gray('─'.repeat(50)));
+        console.log(content);
+        console.log(ansis.gray('─'.repeat(50)));
       }
       catch (_error) {
-        console.log(ansis.red(i18n.t('memory:readError')))
+        console.log(ansis.red(i18n.t('memory:readError')));
       }
-      break
+      break;
     }
     case 'edit': {
-      const memoryPath = getClaudeMemoryPath(projectPath)
-      const editor = process.env.EDITOR || 'nano'
+      const memoryPath = getClaudeMemoryPath(projectPath);
+      const editor = process.env.EDITOR || 'nano';
       try {
-        execSync(`${editor} "${memoryPath}"`, { stdio: 'inherit' })
-        console.log(ansis.green(i18n.t('memory:editComplete')))
+        execSync(`${editor} "${memoryPath}"`, { stdio: 'inherit' });
+        console.log(ansis.green(i18n.t('memory:editComplete')));
       }
       catch (_error) {
-        console.log(ansis.red(i18n.t('memory:editError')))
+        console.log(ansis.red(i18n.t('memory:editError')));
       }
-      break
+      break;
     }
     case 'sync': {
-      console.log(ansis.cyan(i18n.t('memory:syncing')))
+      console.log(ansis.cyan(i18n.t('memory:syncing')));
       try {
-        syncMemoryFiles({ projectPath })
-        console.log(ansis.green(i18n.t('memory:syncComplete')))
+        syncMemoryFiles({ projectPath });
+        console.log(ansis.green(i18n.t('memory:syncComplete')));
       }
       catch (_error) {
-        console.log(ansis.red(i18n.t('memory:syncError')))
+        console.log(ansis.red(i18n.t('memory:syncError')));
       }
-      break
+      break;
     }
     case 'rules': {
-      console.log(ansis.yellow(i18n.t('memory:rulesInfo')))
-      console.log(i18n.t('memory:rulesDescription'))
-      break
+      console.log(ansis.yellow(i18n.t('memory:rulesInfo')));
+      console.log(i18n.t('memory:rulesDescription'));
+      break;
     }
     case 'language': {
-      await changeScriptLanguageFeature(i18n.language as SupportedLang)
-      break
+      await changeScriptLanguageFeature(i18n.language as SupportedLang);
+      break;
     }
     case 'outputStyle': {
-      await configureOutputStyle()
-      break
+      await configureOutputStyle();
+      break;
     }
     case 'back':
-      break
+      break;
   }
 }

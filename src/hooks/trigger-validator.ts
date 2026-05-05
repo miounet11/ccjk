@@ -1,7 +1,7 @@
-import type { ProjectAnalysis } from '../analyzers/types.js'
-import type { HookTrigger } from './types.js'
-import { existsSync } from 'node:fs'
-import { join } from 'pathe'
+import type { ProjectAnalysis } from '../analyzers/types.js';
+import type { HookTrigger } from './types.js';
+import { existsSync } from 'node:fs';
+import { join } from 'pathe';
 
 /**
  * Validate hook trigger configuration
@@ -11,39 +11,39 @@ export async function validateHookTrigger(
   projectInfo: ProjectAnalysis,
 ): Promise<boolean> {
   try {
-    const { matcher, condition } = trigger
+    const { matcher, condition } = trigger;
 
     // Check matcher format
     if (!matcher || !matcher.includes(':')) {
-      throw new Error(`Invalid trigger matcher format: ${matcher}`)
+      throw new Error(`Invalid trigger matcher format: ${matcher}`);
     }
 
-    const [type, pattern] = matcher.split(':', 2)
+    const [type, pattern] = matcher.split(':', 2);
 
     // Validate based on trigger type
     switch (type) {
       case 'git':
-        return await validateGitTrigger(pattern, condition, projectInfo)
+        return await validateGitTrigger(pattern, condition, projectInfo);
 
       case 'file':
-        return await validateFileTrigger(pattern, condition, projectInfo)
+        return await validateFileTrigger(pattern, condition, projectInfo);
 
       case 'command':
-        return await validateCommandTrigger(pattern, condition, projectInfo)
+        return await validateCommandTrigger(pattern, condition, projectInfo);
 
       case 'schedule':
-        return await validateScheduleTrigger(pattern, condition)
+        return await validateScheduleTrigger(pattern, condition);
 
       case 'webhook':
-        return await validateWebhookTrigger(pattern, condition)
+        return await validateWebhookTrigger(pattern, condition);
 
       default:
-        throw new Error(`Unknown trigger type: ${type}`)
+        throw new Error(`Unknown trigger type: ${type}`);
     }
   }
   catch (error) {
-    console.error(`Trigger validation failed: ${error}`)
-    return false
+    console.error(`Trigger validation failed: ${error}`);
+    return false;
   }
 }
 
@@ -56,9 +56,9 @@ async function validateGitTrigger(
   _projectInfo: ProjectAnalysis,
 ): Promise<boolean> {
   // Check if git repository exists
-  const gitDir = join(process.cwd(), '.git')
+  const gitDir = join(process.cwd(), '.git');
   if (!existsSync(gitDir)) {
-    throw new Error('Git repository not found')
+    throw new Error('Git repository not found');
   }
 
   // Validate git hook pattern
@@ -81,10 +81,10 @@ async function validateGitTrigger(
     'pre-applypatch',
     'post-applypatch',
     'applypatch-msg',
-  ]
+  ];
 
   if (!validGitHooks.includes(pattern)) {
-    throw new Error(`Invalid git hook: ${pattern}`)
+    throw new Error(`Invalid git hook: ${pattern}`);
   }
 
   // Validate condition if provided
@@ -97,20 +97,20 @@ async function validateGitTrigger(
       'files=',
       'message=',
       'merge',
-    ]
+    ];
 
-    const hasValidCondition = validConditions.some(c => condition.includes(c))
+    const hasValidCondition = validConditions.some(c => condition.includes(c));
 
     // Also allow file pattern conditions (e.g., "package-lock.json || yarn.lock")
     // These are used by cloud hooks to specify which files trigger the hook
-    const isFilePatternCondition = /^[\w\-.*]+(\s*\|\|\s*[\w\-.*]+)*$/.test(condition.trim())
+    const isFilePatternCondition = /^[\w\-.*]+(\s*\|\|\s*[\w\-.*]+)*$/.test(condition.trim());
 
     if (!hasValidCondition && !isFilePatternCondition) {
-      throw new Error(`Invalid git condition: ${condition}`)
+      throw new Error(`Invalid git condition: ${condition}`);
     }
   }
 
-  return true
+  return true;
 }
 
 /**
@@ -123,7 +123,7 @@ async function validateFileTrigger(
 ): Promise<boolean> {
   // Validate glob pattern
   if (!pattern || pattern.length === 0) {
-    throw new Error('File pattern cannot be empty')
+    throw new Error('File pattern cannot be empty');
   }
 
   // Check for dangerous patterns
@@ -134,11 +134,11 @@ async function validateFileTrigger(
     '**/dist/**',
     '**/build/**',
     '**/*.{exe,dll,so,dylib}',
-  ]
+  ];
 
-  const isDangerous = dangerousPatterns.some(p => pattern.includes(p))
+  const isDangerous = dangerousPatterns.some(p => pattern.includes(p));
   if (isDangerous) {
-    console.warn(`Warning: Potentially dangerous file pattern: ${pattern}`)
+    console.warn(`Warning: Potentially dangerous file pattern: ${pattern}`);
   }
 
   // Validate condition if provided
@@ -151,15 +151,15 @@ async function validateFileTrigger(
       'size<',
       'count>',
       'count<',
-    ]
+    ];
 
-    const hasValidCondition = validFileConditions.some(c => condition.includes(c))
+    const hasValidCondition = validFileConditions.some(c => condition.includes(c));
     if (!hasValidCondition) {
-      throw new Error(`Invalid file condition: ${condition}`)
+      throw new Error(`Invalid file condition: ${condition}`);
     }
   }
 
-  return true
+  return true;
 }
 
 /**
@@ -172,7 +172,7 @@ async function validateCommandTrigger(
 ): Promise<boolean> {
   // Validate command pattern
   if (!pattern || pattern.length === 0) {
-    throw new Error('Command pattern cannot be empty')
+    throw new Error('Command pattern cannot be empty');
   }
 
   // Check for valid command patterns
@@ -193,11 +193,11 @@ async function validateCommandTrigger(
     'jest',
     'vitest',
     'mocha',
-  ]
+  ];
 
-  const isValidPattern = validPatterns.some(p => pattern.includes(p))
+  const isValidPattern = validPatterns.some(p => pattern.includes(p));
   if (!isValidPattern) {
-    console.warn(`Warning: Unusual command pattern: ${pattern}`)
+    console.warn(`Warning: Unusual command pattern: ${pattern}`);
   }
 
   // Validate condition if provided
@@ -210,15 +210,15 @@ async function validateCommandTrigger(
       'stdout=',
       'stderr=',
       'output=',
-    ]
+    ];
 
-    const hasValidCondition = validCommandConditions.some(c => condition.includes(c))
+    const hasValidCondition = validCommandConditions.some(c => condition.includes(c));
     if (!hasValidCondition) {
-      throw new Error(`Invalid command condition: ${condition}`)
+      throw new Error(`Invalid command condition: ${condition}`);
     }
   }
 
-  return true
+  return true;
 }
 
 /**
@@ -229,33 +229,33 @@ async function validateScheduleTrigger(
   _condition: string | undefined,
 ): Promise<boolean> {
   // Validate cron pattern
-  const cronParts = pattern.split(' ')
+  const cronParts = pattern.split(' ');
   if (cronParts.length !== 5) {
-    throw new Error(`Invalid cron pattern: ${pattern}. Expected 5 parts.`)
+    throw new Error(`Invalid cron pattern: ${pattern}. Expected 5 parts.`);
   }
 
   // Basic validation of cron parts
   const validateCronPart = (part: string, min: number, max: number): boolean => {
     if (part === '*')
-      return true
+      return true;
     if (part.includes('/')) {
-      const [, step] = part.split('/')
-      const stepNum = Number.parseInt(step)
-      return !isNaN(stepNum) && stepNum > 0
+      const [, step] = part.split('/');
+      const stepNum = Number.parseInt(step);
+      return !isNaN(stepNum) && stepNum > 0;
     }
     if (part.includes('-')) {
-      const [start, end] = part.split('-')
-      const startNum = Number.parseInt(start)
-      const endNum = Number.parseInt(end)
-      return !isNaN(startNum) && !isNaN(endNum) && startNum <= endNum
+      const [start, end] = part.split('-');
+      const startNum = Number.parseInt(start);
+      const endNum = Number.parseInt(end);
+      return !isNaN(startNum) && !isNaN(endNum) && startNum <= endNum;
     }
     if (part.includes(',')) {
-      return part.split(',').every(p => validateCronPart(p, min, max))
+      return part.split(',').every(p => validateCronPart(p, min, max));
     }
 
-    const num = Number.parseInt(part)
-    return !isNaN(num) && num >= min && num <= max
-  }
+    const num = Number.parseInt(part);
+    return !isNaN(num) && num >= min && num <= max;
+  };
 
   // Validate each cron part
   const validations = [
@@ -264,13 +264,13 @@ async function validateScheduleTrigger(
     validateCronPart(cronParts[2], 1, 31), // days
     validateCronPart(cronParts[3], 1, 12), // months
     validateCronPart(cronParts[4], 0, 7), // weekdays
-  ]
+  ];
 
   if (!validations.every(v => v)) {
-    throw new Error(`Invalid cron pattern: ${pattern}`)
+    throw new Error(`Invalid cron pattern: ${pattern}`);
   }
 
-  return true
+  return true;
 }
 
 /**
@@ -282,13 +282,13 @@ async function validateWebhookTrigger(
 ): Promise<boolean> {
   // Validate webhook URL
   try {
-    const url = new URL(pattern)
+    const url = new URL(pattern);
     if (!['http:', 'https:'].includes(url.protocol)) {
-      throw new Error(`Invalid webhook protocol: ${url.protocol}`)
+      throw new Error(`Invalid webhook protocol: ${url.protocol}`);
     }
   }
   catch {
-    throw new Error(`Invalid webhook URL: ${pattern}`)
+    throw new Error(`Invalid webhook URL: ${pattern}`);
   }
 
   // Validate condition if provided
@@ -299,15 +299,15 @@ async function validateWebhookTrigger(
       'body=',
       'status=',
       'content-type=',
-    ]
+    ];
 
-    const hasValidCondition = validWebhookConditions.some(c => condition.includes(c))
+    const hasValidCondition = validWebhookConditions.some(c => condition.includes(c));
     if (!hasValidCondition) {
-      throw new Error(`Invalid webhook condition: ${condition}`)
+      throw new Error(`Invalid webhook condition: ${condition}`);
     }
   }
 
-  return true
+  return true;
 }
 
 /**
@@ -316,40 +316,40 @@ async function validateWebhookTrigger(
 export async function testHookTrigger(
   trigger: HookTrigger,
   context: {
-    event: string
-    data?: any
+    event: string;
+    data?: any;
   },
 ): Promise<boolean> {
-  const { matcher, condition: _condition } = trigger
-  const [type, pattern] = matcher.split(':', 2)
+  const { matcher, condition: _condition } = trigger;
+  const [type, pattern] = matcher.split(':', 2);
 
   switch (type) {
     case 'git':
-      return context.event === `git:${pattern}`
+      return context.event === `git:${pattern}`;
 
     case 'file':
       if (context.event !== 'file:change')
-        return false
+        return false;
       // Check if changed files match pattern
-      const changedFiles = context.data?.files || []
+      const changedFiles = context.data?.files || [];
       return changedFiles.some((file: string) => {
         // Simple glob matching - in real implementation use proper glob library
-        return file.includes(pattern.replace('*', ''))
-      })
+        return file.includes(pattern.replace('*', ''));
+      });
 
     case 'command':
-      return context.event === `command:${pattern}`
+      return context.event === `command:${pattern}`;
 
     case 'schedule':
       // Check if current time matches cron pattern
       // This would require proper cron parsing
-      return false
+      return false;
 
     case 'webhook':
-      return context.event === 'webhook' && context.data?.url === pattern
+      return context.event === 'webhook' && context.data?.url === pattern;
 
     default:
-      return false
+      return false;
   }
 }
 
@@ -357,9 +357,9 @@ export async function testHookTrigger(
  * Get trigger statistics
  */
 export async function getTriggerStats(): Promise<{
-  total: number
-  byType: Record<string, number>
-  byStatus: Record<string, number>
+  total: number;
+  byType: Record<string, number>;
+  byStatus: Record<string, number>;
 }> {
   // Mock stats - in real implementation would query database
   return {
@@ -375,7 +375,7 @@ export async function getTriggerStats(): Promise<{
       active: 35,
       inactive: 7,
     },
-  }
+  };
 }
 
 /**
@@ -384,21 +384,21 @@ export async function getTriggerStats(): Promise<{
 export async function detectTriggerConflicts(
   triggers: HookTrigger[],
 ): Promise<Array<{
-  trigger1: HookTrigger
-  trigger2: HookTrigger
-  conflict: string
+  trigger1: HookTrigger;
+  trigger2: HookTrigger;
+  conflict: string;
 }>> {
   const conflicts: Array<{
-    trigger1: HookTrigger
-    trigger2: HookTrigger
-    conflict: string
-  }> = []
+    trigger1: HookTrigger;
+    trigger2: HookTrigger;
+    conflict: string;
+  }> = [];
 
   // Compare each pair of triggers
   for (let i = 0; i < triggers.length; i++) {
     for (let j = i + 1; j < triggers.length; j++) {
-      const t1 = triggers[i]
-      const t2 = triggers[j]
+      const t1 = triggers[i];
+      const t2 = triggers[j];
 
       // Check for identical matchers
       if (t1.matcher === t2.matcher) {
@@ -406,13 +406,13 @@ export async function detectTriggerConflicts(
           trigger1: t1,
           trigger2: t2,
           conflict: 'Identical matchers',
-        })
+        });
       }
 
       // Check for overlapping file patterns
       if (t1.matcher.startsWith('file:') && t2.matcher.startsWith('file:')) {
-        const p1 = t1.matcher.replace('file:', '')
-        const p2 = t2.matcher.replace('file:', '')
+        const p1 = t1.matcher.replace('file:', '');
+        const p2 = t2.matcher.replace('file:', '');
 
         // Simple overlap detection - in real implementation use proper glob analysis
         if (p1.includes('**') || p2.includes('**')) {
@@ -420,13 +420,13 @@ export async function detectTriggerConflicts(
             trigger1: t1,
             trigger2: t2,
             conflict: 'Potentially overlapping file patterns',
-          })
+          });
         }
       }
     }
   }
 
-  return conflicts
+  return conflicts;
 }
 
 /**
@@ -435,42 +435,42 @@ export async function detectTriggerConflicts(
 export async function optimizeTriggers(
   triggers: HookTrigger[],
 ): Promise<{
-  optimized: HookTrigger[]
-  suggestions: string[]
+  optimized: HookTrigger[];
+  suggestions: string[];
 }> {
-  const suggestions: string[] = []
+  const suggestions: string[] = [];
 
   // Group similar triggers
   const byType = triggers.reduce((groups, trigger) => {
-    const type = trigger.matcher.split(':')[0]
+    const type = trigger.matcher.split(':')[0];
     if (!groups[type])
-      groups[type] = []
-    groups[type].push(trigger)
-    return groups
-  }, {} as Record<string, HookTrigger[]>)
+      groups[type] = [];
+    groups[type].push(trigger);
+    return groups;
+  }, {} as Record<string, HookTrigger[]>);
 
   // Analyze each group
   for (const [type, typeTriggers] of Object.entries(byType)) {
     if (typeTriggers.length > 5) {
       suggestions.push(
         `Consider combining ${typeTriggers.length} ${type} triggers for better performance`,
-      )
+      );
     }
 
     // Check for inefficient patterns
     for (const trigger of typeTriggers) {
-      const pattern = trigger.matcher.split(':', 2)[1]
+      const pattern = trigger.matcher.split(':', 2)[1];
 
       if (type === 'file' && pattern.includes('**/**')) {
         suggestions.push(
           `Trigger "${trigger.matcher}" uses inefficient pattern, consider using single **`,
-        )
+        );
       }
 
       if (type === 'command' && pattern.includes('*')) {
         suggestions.push(
           `Command trigger "${trigger.matcher}" uses wildcard which may impact performance`,
-        )
+        );
       }
     }
   }
@@ -478,5 +478,5 @@ export async function optimizeTriggers(
   return {
     optimized: triggers, // For now, return same triggers
     suggestions,
-  }
+  };
 }

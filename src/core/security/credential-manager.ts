@@ -13,12 +13,12 @@ import type {
   ICredentialManager,
   IKeychainBackend,
   StoredCredential,
-} from './types'
-import * as fs from 'node:fs/promises'
-import * as os from 'node:os'
-import * as path from 'node:path'
-import { EncryptionService } from './encryption'
-import { createKeychainBackend, FileStorageBackend } from './keychain'
+} from './types';
+import * as fs from 'node:fs/promises';
+import * as os from 'node:os';
+import * as path from 'node:path';
+import { EncryptionService } from './encryption';
+import { createKeychainBackend, FileStorageBackend } from './keychain';
 
 /**
  * 默认配置
@@ -31,12 +31,12 @@ const DEFAULT_CONFIG: Required<CredentialManagerConfig> = {
   masterKey: '',
   autoRotate: false,
   rotationIntervalDays: 90,
-}
+};
 
 /**
  * 元数据存储文件名
  */
-const METADATA_FILE = '.metadata.json'
+const METADATA_FILE = '.metadata.json';
 
 /**
  * 凭证管理器
@@ -66,18 +66,18 @@ const METADATA_FILE = '.metadata.json'
  * ```
  */
 export class CredentialManager implements ICredentialManager {
-  private readonly config: Required<CredentialManagerConfig>
-  private backend: IKeychainBackend | null = null
-  private metadata: Map<string, CredentialMetadata> = new Map()
-  private listeners: Set<CredentialEventListener> = new Set()
-  private initialized = false
+  private readonly config: Required<CredentialManagerConfig>;
+  private backend: IKeychainBackend | null = null;
+  private metadata: Map<string, CredentialMetadata> = new Map();
+  private listeners: Set<CredentialEventListener> = new Set();
+  private initialized = false;
 
   /**
    * 创建凭证管理器实例
    * @param config - 配置选项
    */
   private constructor(config: CredentialManagerConfig = {}) {
-    this.config = { ...DEFAULT_CONFIG, ...config }
+    this.config = { ...DEFAULT_CONFIG, ...config };
   }
 
   /**
@@ -95,9 +95,9 @@ export class CredentialManager implements ICredentialManager {
    * ```
    */
   static async create(config: CredentialManagerConfig = {}): Promise<CredentialManager> {
-    const manager = new CredentialManager(config)
-    await manager.initialize()
-    return manager
+    const manager = new CredentialManager(config);
+    await manager.initialize();
+    return manager;
   }
 
   /**
@@ -105,7 +105,7 @@ export class CredentialManager implements ICredentialManager {
    */
   private async initialize(): Promise<void> {
     if (this.initialized) {
-      return
+      return;
     }
 
     // 创建密钥链后端
@@ -114,27 +114,27 @@ export class CredentialManager implements ICredentialManager {
         this.backend = await createKeychainBackend(
           this.config.fallbackStoragePath,
           this.config.masterKey || undefined,
-        )
+        );
       }
       catch {
         // 回退到文件存储
         this.backend = new FileStorageBackend(
           this.config.fallbackStoragePath,
           this.config.masterKey || undefined,
-        )
+        );
       }
     }
     else {
       this.backend = new FileStorageBackend(
         this.config.fallbackStoragePath,
         this.config.masterKey || undefined,
-      )
+      );
     }
 
     // 加载元数据
-    await this.loadMetadata()
+    await this.loadMetadata();
 
-    this.initialized = true
+    this.initialized = true;
   }
 
   /**
@@ -154,30 +154,30 @@ export class CredentialManager implements ICredentialManager {
    * ```
    */
   async store(key: string, value: string, type?: CredentialType): Promise<void> {
-    this.ensureInitialized()
+    this.ensureInitialized();
 
     try {
-      await this.backend!.setPassword(this.config.serviceName, key, value)
+      await this.backend!.setPassword(this.config.serviceName, key, value);
 
       // 更新元数据
-      const now = new Date()
-      const existingMeta = this.metadata.get(key)
+      const now = new Date();
+      const existingMeta = this.metadata.get(key);
 
       const meta: CredentialMetadata = {
         key,
         createdAt: existingMeta?.createdAt || now,
         updatedAt: now,
         type: type || existingMeta?.type,
-      }
+      };
 
-      this.metadata.set(key, meta)
-      await this.saveMetadata()
+      this.metadata.set(key, meta);
+      await this.saveMetadata();
 
-      this.emit({ type: 'stored', key })
+      this.emit({ type: 'stored', key });
     }
     catch (error) {
-      this.emit({ type: 'error', key, error: error instanceof Error ? error : new Error(String(error)) })
-      throw error
+      this.emit({ type: 'error', key, error: error instanceof Error ? error : new Error(String(error)) });
+      throw error;
     }
   }
 
@@ -199,25 +199,25 @@ export class CredentialManager implements ICredentialManager {
    * ```
    */
   async retrieve(key: string): Promise<string | null> {
-    this.ensureInitialized()
+    this.ensureInitialized();
 
     try {
-      const value = await this.backend!.getPassword(this.config.serviceName, key)
+      const value = await this.backend!.getPassword(this.config.serviceName, key);
 
       if (value) {
-        this.emit({ type: 'retrieved', key })
+        this.emit({ type: 'retrieved', key });
 
         // 检查是否需要自动轮换
         if (this.config.autoRotate) {
-          await this.checkAndRotate(key)
+          await this.checkAndRotate(key);
         }
       }
 
-      return value
+      return value;
     }
     catch (error) {
-      this.emit({ type: 'error', key, error: error instanceof Error ? error : new Error(String(error)) })
-      return null
+      this.emit({ type: 'error', key, error: error instanceof Error ? error : new Error(String(error)) });
+      return null;
     }
   }
 
@@ -236,22 +236,22 @@ export class CredentialManager implements ICredentialManager {
    * ```
    */
   async delete(key: string): Promise<boolean> {
-    this.ensureInitialized()
+    this.ensureInitialized();
 
     try {
-      const result = await this.backend!.deletePassword(this.config.serviceName, key)
+      const result = await this.backend!.deletePassword(this.config.serviceName, key);
 
       if (result) {
-        this.metadata.delete(key)
-        await this.saveMetadata()
-        this.emit({ type: 'deleted', key })
+        this.metadata.delete(key);
+        await this.saveMetadata();
+        this.emit({ type: 'deleted', key });
       }
 
-      return result
+      return result;
     }
     catch (error) {
-      this.emit({ type: 'error', key, error: error instanceof Error ? error : new Error(String(error)) })
-      return false
+      this.emit({ type: 'error', key, error: error instanceof Error ? error : new Error(String(error)) });
+      return false;
     }
   }
 
@@ -270,19 +270,19 @@ export class CredentialManager implements ICredentialManager {
    * ```
    */
   async list(): Promise<string[]> {
-    this.ensureInitialized()
+    this.ensureInitialized();
 
     try {
       // 优先从元数据获取
       if (this.metadata.size > 0) {
-        return Array.from(this.metadata.keys())
+        return Array.from(this.metadata.keys());
       }
 
       // 回退到后端列表
-      return await this.backend!.listAccounts(this.config.serviceName)
+      return await this.backend!.listAccounts(this.config.serviceName);
     }
     catch {
-      return []
+      return [];
     }
   }
 
@@ -302,26 +302,26 @@ export class CredentialManager implements ICredentialManager {
    * ```
    */
   async rotate(key: string): Promise<void> {
-    this.ensureInitialized()
+    this.ensureInitialized();
 
     try {
       // 获取当前值
-      const value = await this.retrieve(key)
+      const value = await this.retrieve(key);
       if (value === null) {
-        throw new Error(`Credential not found: ${key}`)
+        throw new Error(`Credential not found: ${key}`);
       }
 
       // 获取元数据
-      const meta = this.metadata.get(key)
+      const meta = this.metadata.get(key);
 
       // 重新存储（会使用新的加密参数）
-      await this.store(key, value, meta?.type)
+      await this.store(key, value, meta?.type);
 
-      this.emit({ type: 'rotated', key })
+      this.emit({ type: 'rotated', key });
     }
     catch (error) {
-      this.emit({ type: 'error', key, error: error instanceof Error ? error : new Error(String(error)) })
-      throw error
+      this.emit({ type: 'error', key, error: error instanceof Error ? error : new Error(String(error)) });
+      throw error;
     }
   }
 
@@ -332,7 +332,7 @@ export class CredentialManager implements ICredentialManager {
    * @returns 凭证元数据，如果不存在则返回 undefined
    */
   getMetadata(key: string): CredentialMetadata | undefined {
-    return this.metadata.get(key)
+    return this.metadata.get(key);
   }
 
   /**
@@ -341,7 +341,7 @@ export class CredentialManager implements ICredentialManager {
    * @returns 凭证元数据映射
    */
   getAllMetadata(): Map<string, CredentialMetadata> {
-    return new Map(this.metadata)
+    return new Map(this.metadata);
   }
 
   /**
@@ -351,8 +351,8 @@ export class CredentialManager implements ICredentialManager {
    * @returns 凭证是否存在
    */
   async has(key: string): Promise<boolean> {
-    const value = await this.retrieve(key)
-    return value !== null
+    const value = await this.retrieve(key);
+    return value !== null;
   }
 
   /**
@@ -366,7 +366,7 @@ export class CredentialManager implements ICredentialManager {
     type?: CredentialType,
   ): Promise<void> {
     for (const [key, value] of Object.entries(credentials)) {
-      await this.store(key, value, type)
+      await this.store(key, value, type);
     }
   }
 
@@ -377,11 +377,11 @@ export class CredentialManager implements ICredentialManager {
    * @returns 凭证映射
    */
   async retrieveMany(keys: string[]): Promise<Record<string, string | null>> {
-    const result: Record<string, string | null> = {}
+    const result: Record<string, string | null> = {};
     for (const key of keys) {
-      result[key] = await this.retrieve(key)
+      result[key] = await this.retrieve(key);
     }
-    return result
+    return result;
   }
 
   /**
@@ -390,16 +390,16 @@ export class CredentialManager implements ICredentialManager {
    * @returns 删除的凭证数量
    */
   async clear(): Promise<number> {
-    const keys = await this.list()
-    let count = 0
+    const keys = await this.list();
+    let count = 0;
 
     for (const key of keys) {
       if (await this.delete(key)) {
-        count++
+        count++;
       }
     }
 
-    return count
+    return count;
   }
 
   /**
@@ -413,16 +413,16 @@ export class CredentialManager implements ICredentialManager {
    * @returns 加密后的导出数据
    */
   async export(exportKey: string): Promise<string> {
-    this.ensureInitialized()
+    this.ensureInitialized();
 
-    const encryption = new EncryptionService()
-    const credentials: Record<string, StoredCredential> = {}
+    const encryption = new EncryptionService();
+    const credentials: Record<string, StoredCredential> = {};
 
-    const keys = await this.list()
+    const keys = await this.list();
     for (const key of keys) {
-      const value = await this.retrieve(key)
+      const value = await this.retrieve(key);
       if (value) {
-        const encrypted = await encryption.encrypt(value, exportKey)
+        const encrypted = await encryption.encrypt(value, exportKey);
         credentials[key] = {
           encrypted,
           metadata: this.metadata.get(key) || {
@@ -430,7 +430,7 @@ export class CredentialManager implements ICredentialManager {
             createdAt: new Date(),
             updatedAt: new Date(),
           },
-        }
+        };
       }
     }
 
@@ -438,7 +438,7 @@ export class CredentialManager implements ICredentialManager {
       version: 1,
       exportedAt: new Date().toISOString(),
       credentials,
-    }, null, 2)
+    }, null, 2);
   }
 
   /**
@@ -457,35 +457,35 @@ export class CredentialManager implements ICredentialManager {
     importKey: string,
     overwrite = false,
   ): Promise<number> {
-    this.ensureInitialized()
+    this.ensureInitialized();
 
-    const encryption = new EncryptionService()
-    const parsed = JSON.parse(data)
+    const encryption = new EncryptionService();
+    const parsed = JSON.parse(data);
 
     if (!parsed.credentials || typeof parsed.credentials !== 'object') {
-      throw new Error('Invalid export data format')
+      throw new Error('Invalid export data format');
     }
 
-    let count = 0
+    let count = 0;
 
     for (const [key, stored] of Object.entries(parsed.credentials) as [string, StoredCredential][]) {
       // 检查是否已存在
       if (!overwrite && await this.has(key)) {
-        continue
+        continue;
       }
 
       try {
-        const value = await encryption.decrypt(stored.encrypted, importKey)
-        await this.store(key, value, stored.metadata?.type)
-        count++
+        const value = await encryption.decrypt(stored.encrypted, importKey);
+        await this.store(key, value, stored.metadata?.type);
+        count++;
       }
       catch {
         // 跳过解密失败的凭证
-        continue
+        continue;
       }
     }
 
-    return count
+    return count;
   }
 
   /**
@@ -495,15 +495,15 @@ export class CredentialManager implements ICredentialManager {
    * @returns 取消监听的函数
    */
   on(listener: CredentialEventListener): () => void {
-    this.listeners.add(listener)
-    return () => this.listeners.delete(listener)
+    this.listeners.add(listener);
+    return () => this.listeners.delete(listener);
   }
 
   /**
    * 获取当前使用的存储后端类型
    */
   getBackendType(): string {
-    return this.backend?.type || 'unknown'
+    return this.backend?.type || 'unknown';
   }
 
   /**
@@ -511,7 +511,7 @@ export class CredentialManager implements ICredentialManager {
    */
   private ensureInitialized(): void {
     if (!this.initialized || !this.backend) {
-      throw new Error('CredentialManager not initialized. Use CredentialManager.create() to create an instance.')
+      throw new Error('CredentialManager not initialized. Use CredentialManager.create() to create an instance.');
     }
   }
 
@@ -521,23 +521,23 @@ export class CredentialManager implements ICredentialManager {
   private emit(event: Parameters<CredentialEventListener>[0]): void {
     Array.from(this.listeners).forEach((listener) => {
       try {
-        listener(event)
+        listener(event);
       }
       catch {
         // 忽略监听器错误
       }
-    })
+    });
   }
 
   /**
    * 加载元数据
    */
   private async loadMetadata(): Promise<void> {
-    const metadataPath = path.join(this.config.fallbackStoragePath, METADATA_FILE)
+    const metadataPath = path.join(this.config.fallbackStoragePath, METADATA_FILE);
 
     try {
-      const content = await fs.readFile(metadataPath, 'utf8')
-      const data = JSON.parse(content)
+      const content = await fs.readFile(metadataPath, 'utf8');
+      const data = JSON.parse(content);
 
       if (data && typeof data === 'object') {
         for (const [key, meta] of Object.entries(data) as [string, CredentialMetadata][]) {
@@ -546,7 +546,7 @@ export class CredentialManager implements ICredentialManager {
             createdAt: new Date(meta.createdAt),
             updatedAt: new Date(meta.updatedAt),
             expiresAt: meta.expiresAt ? new Date(meta.expiresAt) : undefined,
-          })
+          });
         }
       }
     }
@@ -559,17 +559,17 @@ export class CredentialManager implements ICredentialManager {
    * 保存元数据
    */
   private async saveMetadata(): Promise<void> {
-    const metadataPath = path.join(this.config.fallbackStoragePath, METADATA_FILE)
+    const metadataPath = path.join(this.config.fallbackStoragePath, METADATA_FILE);
 
     try {
-      await fs.mkdir(path.dirname(metadataPath), { recursive: true, mode: 0o700 })
+      await fs.mkdir(path.dirname(metadataPath), { recursive: true, mode: 0o700 });
 
-      const data: Record<string, CredentialMetadata> = {}
+      const data: Record<string, CredentialMetadata> = {};
       Array.from(this.metadata.entries()).forEach(([key, meta]) => {
-        data[key] = meta
-      })
+        data[key] = meta;
+      });
 
-      await fs.writeFile(metadataPath, JSON.stringify(data, null, 2), { mode: 0o600 })
+      await fs.writeFile(metadataPath, JSON.stringify(data, null, 2), { mode: 0o600 });
     }
     catch {
       // 忽略保存失败
@@ -580,15 +580,15 @@ export class CredentialManager implements ICredentialManager {
    * 检查并自动轮换凭证
    */
   private async checkAndRotate(key: string): Promise<void> {
-    const meta = this.metadata.get(key)
+    const meta = this.metadata.get(key);
     if (!meta) {
-      return
+      return;
     }
 
-    const daysSinceUpdate = (Date.now() - meta.updatedAt.getTime()) / (1000 * 60 * 60 * 24)
+    const daysSinceUpdate = (Date.now() - meta.updatedAt.getTime()) / (1000 * 60 * 60 * 24);
 
     if (daysSinceUpdate >= this.config.rotationIntervalDays) {
-      await this.rotate(key)
+      await this.rotate(key);
     }
   }
 }
@@ -602,13 +602,13 @@ export class CredentialManager implements ICredentialManager {
 export async function createCredentialManager(
   config?: CredentialManagerConfig,
 ): Promise<CredentialManager> {
-  return CredentialManager.create(config)
+  return CredentialManager.create(config);
 }
 
 /**
  * 默认凭证管理器实例 (延迟初始化)
  */
-let defaultManager: CredentialManager | null = null
+let defaultManager: CredentialManager | null = null;
 
 /**
  * 获取默认凭证管理器实例
@@ -617,16 +617,16 @@ let defaultManager: CredentialManager | null = null
  */
 export async function getCredentialManager(): Promise<CredentialManager> {
   if (!defaultManager) {
-    defaultManager = await CredentialManager.create()
+    defaultManager = await CredentialManager.create();
   }
-  return defaultManager
+  return defaultManager;
 }
 
 /**
  * 重置默认凭证管理器实例
  */
 export function resetCredentialManager(): void {
-  defaultManager = null
+  defaultManager = null;
 }
 
-export default CredentialManager
+export default CredentialManager;

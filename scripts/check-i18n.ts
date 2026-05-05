@@ -16,263 +16,263 @@
  *   pnpm i18n:report       # Generate detailed report
  */
 
-import fs from 'node:fs'
-import path from 'node:path'
+import fs from 'node:fs';
+import path from 'node:path';
 
 // Configuration
-const LOCALES_DIR = path.resolve(import.meta.dirname, '../src/i18n/locales')
-const SOURCE_LOCALE = 'en'
-const TARGET_LOCALE = 'zh-CN'
+const LOCALES_DIR = path.resolve(import.meta.dirname, '../src/i18n/locales');
+const SOURCE_LOCALE = 'en';
+const TARGET_LOCALE = 'zh-CN';
 
 // CLI arguments
-const args = process.argv.slice(2)
-const FIX_MODE = args.includes('--fix')
-const REPORT_MODE = args.includes('--report')
-const CI_MODE = args.includes('--ci')
-const JSON_OUTPUT = args.includes('--json')
+const args = process.argv.slice(2);
+const FIX_MODE = args.includes('--fix');
+const REPORT_MODE = args.includes('--report');
+const CI_MODE = args.includes('--ci');
+const JSON_OUTPUT = args.includes('--json');
 
 // Types
 interface TranslationFile {
-  name: string
-  path: string
-  keys: string[]
-  content: Record<string, unknown>
+  name: string;
+  path: string;
+  keys: string[];
+  content: Record<string, unknown>;
 }
 
 interface PlaceholderMismatch {
-  file: string
-  key: string
-  sourcePlaceholders: string[]
-  targetPlaceholders: string[]
+  file: string;
+  key: string;
+  sourcePlaceholders: string[];
+  targetPlaceholders: string[];
 }
 
 interface CheckResult {
-  totalFiles: number
-  translatedFiles: number
-  missingFiles: string[]
-  missingKeys: Record<string, string[]>
-  extraKeys: Record<string, string[]>
-  placeholderMismatches: PlaceholderMismatch[]
-  coveragePercent: number
+  totalFiles: number;
+  translatedFiles: number;
+  missingFiles: string[];
+  missingKeys: Record<string, string[]>;
+  extraKeys: Record<string, string[]>;
+  placeholderMismatches: PlaceholderMismatch[];
+  coveragePercent: number;
   keysCoverage: {
-    total: number
-    translated: number
-    missing: number
-    percent: number
-  }
+    total: number;
+    translated: number;
+    missing: number;
+    percent: number;
+  };
 }
 
 // Utility functions
 function getAllJsonFiles(dir: string): string[] {
   if (!fs.existsSync(dir)) {
-    return []
+    return [];
   }
 
-  const files: string[] = []
-  const entries = fs.readdirSync(dir, { withFileTypes: true })
+  const files: string[] = [];
+  const entries = fs.readdirSync(dir, { withFileTypes: true });
 
   for (const entry of entries) {
-    const fullPath = path.join(dir, entry.name)
+    const fullPath = path.join(dir, entry.name);
     if (entry.isDirectory()) {
-      files.push(...getAllJsonFiles(fullPath))
+      files.push(...getAllJsonFiles(fullPath));
     }
     else if (entry.isFile() && entry.name.endsWith('.json')) {
-      files.push(fullPath)
+      files.push(fullPath);
     }
   }
 
-  return files
+  return files;
 }
 
 function getRelativePath(filePath: string, baseDir: string): string {
-  return path.relative(baseDir, filePath)
+  return path.relative(baseDir, filePath);
 }
 
 function readJsonFile(filePath: string): Record<string, unknown> | null {
   try {
-    const content = fs.readFileSync(filePath, 'utf-8')
-    return JSON.parse(content)
+    const content = fs.readFileSync(filePath, 'utf-8');
+    return JSON.parse(content);
   }
   catch {
-    return null
+    return null;
   }
 }
 
 function flattenKeys(obj: Record<string, unknown>, prefix = ''): string[] {
-  const keys: string[] = []
+  const keys: string[] = [];
 
   for (const [key, value] of Object.entries(obj)) {
-    const fullKey = prefix ? `${prefix}.${key}` : key
+    const fullKey = prefix ? `${prefix}.${key}` : key;
 
     if (value && typeof value === 'object' && !Array.isArray(value)) {
-      keys.push(...flattenKeys(value as Record<string, unknown>, fullKey))
+      keys.push(...flattenKeys(value as Record<string, unknown>, fullKey));
     }
     else {
-      keys.push(fullKey)
+      keys.push(fullKey);
     }
   }
 
-  return keys
+  return keys;
 }
 
 function getValueByPath(obj: Record<string, unknown>, keyPath: string): unknown {
-  const parts = keyPath.split('.')
-  let current: unknown = obj
+  const parts = keyPath.split('.');
+  let current: unknown = obj;
 
   for (const part of parts) {
     if (current && typeof current === 'object' && part in (current as Record<string, unknown>)) {
-      current = (current as Record<string, unknown>)[part]
+      current = (current as Record<string, unknown>)[part];
     }
     else {
-      return undefined
+      return undefined;
     }
   }
 
-  return current
+  return current;
 }
 
 function extractPlaceholders(text: string): string[] {
   if (typeof text !== 'string')
-    return []
+    return [];
 
   // Match {placeholder}, {{placeholder}}, and %s, %d style placeholders
-  const matches: string[] = []
+  const matches: string[] = [];
 
   // {placeholder} style
-  const braceMatches = text.match(/\{(\w+)\}/g)
+  const braceMatches = text.match(/\{(\w+)\}/g);
   if (braceMatches) {
-    matches.push(...braceMatches)
+    matches.push(...braceMatches);
   }
 
   // {{placeholder}} style (i18next)
-  const doubleBraceMatches = text.match(/\{\{(\w+)\}\}/g)
+  const doubleBraceMatches = text.match(/\{\{(\w+)\}\}/g);
   if (doubleBraceMatches) {
-    matches.push(...doubleBraceMatches)
+    matches.push(...doubleBraceMatches);
   }
 
   // %s, %d style
-  const percentMatches = text.match(/%[sd]/g)
+  const percentMatches = text.match(/%[sd]/g);
   if (percentMatches) {
-    matches.push(...percentMatches)
+    matches.push(...percentMatches);
   }
 
-  return matches.sort()
+  return matches.sort();
 }
 
 function loadTranslationFiles(locale: string): TranslationFile[] {
-  const localeDir = path.join(LOCALES_DIR, locale)
-  const jsonFiles = getAllJsonFiles(localeDir)
+  const localeDir = path.join(LOCALES_DIR, locale);
+  const jsonFiles = getAllJsonFiles(localeDir);
 
   return jsonFiles.map((filePath) => {
-    const content = readJsonFile(filePath) || {}
-    const relativePath = getRelativePath(filePath, localeDir)
+    const content = readJsonFile(filePath) || {};
+    const relativePath = getRelativePath(filePath, localeDir);
 
     return {
       name: relativePath,
       path: filePath,
       keys: flattenKeys(content),
       content,
-    }
-  })
+    };
+  });
 }
 
 function createEmptyTranslationFile(sourceFile: TranslationFile, targetDir: string): void {
-  const targetPath = path.join(targetDir, sourceFile.name)
-  const targetDirPath = path.dirname(targetPath)
+  const targetPath = path.join(targetDir, sourceFile.name);
+  const targetDirPath = path.dirname(targetPath);
 
   // Create directory if not exists
   if (!fs.existsSync(targetDirPath)) {
-    fs.mkdirSync(targetDirPath, { recursive: true })
+    fs.mkdirSync(targetDirPath, { recursive: true });
   }
 
   // Create file with TODO markers
-  const emptyContent = createEmptyStructure(sourceFile.content)
-  fs.writeFileSync(targetPath, `${JSON.stringify(emptyContent, null, 2)}\n`, 'utf-8')
+  const emptyContent = createEmptyStructure(sourceFile.content);
+  fs.writeFileSync(targetPath, `${JSON.stringify(emptyContent, null, 2)}\n`, 'utf-8');
 }
 
 function createEmptyStructure(obj: Record<string, unknown>): Record<string, unknown> {
-  const result: Record<string, unknown> = {}
+  const result: Record<string, unknown> = {};
 
   for (const [key, value] of Object.entries(obj)) {
     if (value && typeof value === 'object' && !Array.isArray(value)) {
-      result[key] = createEmptyStructure(value as Record<string, unknown>)
+      result[key] = createEmptyStructure(value as Record<string, unknown>);
     }
     else if (Array.isArray(value)) {
       result[key] = value.map(item =>
         typeof item === 'string' ? `[TODO] ${item}` : item,
-      )
+      );
     }
     else if (typeof value === 'string') {
-      result[key] = `[TODO] ${value}`
+      result[key] = `[TODO] ${value}`;
     }
     else {
-      result[key] = value
+      result[key] = value;
     }
   }
 
-  return result
+  return result;
 }
 
 function runCheck(): CheckResult {
-  const sourceFiles = loadTranslationFiles(SOURCE_LOCALE)
-  const targetFiles = loadTranslationFiles(TARGET_LOCALE)
+  const sourceFiles = loadTranslationFiles(SOURCE_LOCALE);
+  const targetFiles = loadTranslationFiles(TARGET_LOCALE);
 
-  const sourceFileNames = new Set(sourceFiles.map(f => f.name))
-  const targetFileNames = new Set(targetFiles.map(f => f.name))
+  const sourceFileNames = new Set(sourceFiles.map(f => f.name));
+  const targetFileNames = new Set(targetFiles.map(f => f.name));
 
   // Find missing files
-  const missingFiles: string[] = []
+  const missingFiles: string[] = [];
   for (const name of sourceFileNames) {
     if (!targetFileNames.has(name)) {
-      missingFiles.push(`${TARGET_LOCALE}/${name}`)
+      missingFiles.push(`${TARGET_LOCALE}/${name}`);
     }
   }
 
   // Find extra files (in target but not in source)
-  const extraFiles: string[] = []
+  const extraFiles: string[] = [];
   for (const name of targetFileNames) {
     if (!sourceFileNames.has(name)) {
-      extraFiles.push(`${TARGET_LOCALE}/${name}`)
+      extraFiles.push(`${TARGET_LOCALE}/${name}`);
     }
   }
 
   // Find missing and extra keys
-  const missingKeys: Record<string, string[]> = {}
-  const extraKeys: Record<string, string[]> = {}
-  const placeholderMismatches: PlaceholderMismatch[] = []
+  const missingKeys: Record<string, string[]> = {};
+  const extraKeys: Record<string, string[]> = {};
+  const placeholderMismatches: PlaceholderMismatch[] = [];
 
-  let totalKeys = 0
-  let translatedKeys = 0
+  let totalKeys = 0;
+  let translatedKeys = 0;
 
   for (const sourceFile of sourceFiles) {
-    const targetFile = targetFiles.find(f => f.name === sourceFile.name)
+    const targetFile = targetFiles.find(f => f.name === sourceFile.name);
 
     if (!targetFile) {
       // All keys are missing for this file
-      totalKeys += sourceFile.keys.length
-      continue
+      totalKeys += sourceFile.keys.length;
+      continue;
     }
 
-    const sourceKeySet = new Set(sourceFile.keys)
-    const targetKeySet = new Set(targetFile.keys)
+    const sourceKeySet = new Set(sourceFile.keys);
+    const targetKeySet = new Set(targetFile.keys);
 
     // Missing keys in target
-    const missing: string[] = []
+    const missing: string[] = [];
     for (const key of sourceKeySet) {
-      totalKeys++
+      totalKeys++;
       if (!targetKeySet.has(key)) {
-        missing.push(key)
+        missing.push(key);
       }
       else {
-        translatedKeys++
+        translatedKeys++;
 
         // Check placeholder consistency
-        const sourceValue = getValueByPath(sourceFile.content, key)
-        const targetValue = getValueByPath(targetFile.content, key)
+        const sourceValue = getValueByPath(sourceFile.content, key);
+        const targetValue = getValueByPath(targetFile.content, key);
 
         if (typeof sourceValue === 'string' && typeof targetValue === 'string') {
-          const sourcePlaceholders = extractPlaceholders(sourceValue)
-          const targetPlaceholders = extractPlaceholders(targetValue)
+          const sourcePlaceholders = extractPlaceholders(sourceValue);
+          const targetPlaceholders = extractPlaceholders(targetValue);
 
           if (JSON.stringify(sourcePlaceholders) !== JSON.stringify(targetPlaceholders)) {
             placeholderMismatches.push({
@@ -280,37 +280,37 @@ function runCheck(): CheckResult {
               key,
               sourcePlaceholders,
               targetPlaceholders,
-            })
+            });
           }
         }
       }
     }
 
     if (missing.length > 0) {
-      missingKeys[`${TARGET_LOCALE}/${sourceFile.name}`] = missing
+      missingKeys[`${TARGET_LOCALE}/${sourceFile.name}`] = missing;
     }
 
     // Extra keys in target (not in source)
-    const extra: string[] = []
+    const extra: string[] = [];
     for (const key of targetKeySet) {
       if (!sourceKeySet.has(key)) {
-        extra.push(key)
+        extra.push(key);
       }
     }
 
     if (extra.length > 0) {
-      extraKeys[`${TARGET_LOCALE}/${sourceFile.name}`] = extra
+      extraKeys[`${TARGET_LOCALE}/${sourceFile.name}`] = extra;
     }
   }
 
-  const translatedFiles = sourceFiles.length - missingFiles.length
+  const translatedFiles = sourceFiles.length - missingFiles.length;
   const coveragePercent = sourceFiles.length > 0
     ? Math.round((translatedFiles / sourceFiles.length) * 100)
-    : 100
+    : 100;
 
   const keysCoveragePercent = totalKeys > 0
     ? Math.round((translatedKeys / totalKeys) * 100)
-    : 100
+    : 100;
 
   return {
     totalFiles: sourceFiles.length,
@@ -326,126 +326,126 @@ function runCheck(): CheckResult {
       missing: totalKeys - translatedKeys,
       percent: keysCoveragePercent,
     },
-  }
+  };
 }
 
 function fixMissingFiles(result: CheckResult): number {
-  const sourceFiles = loadTranslationFiles(SOURCE_LOCALE)
-  const targetDir = path.join(LOCALES_DIR, TARGET_LOCALE)
-  let fixedCount = 0
+  const sourceFiles = loadTranslationFiles(SOURCE_LOCALE);
+  const targetDir = path.join(LOCALES_DIR, TARGET_LOCALE);
+  let fixedCount = 0;
 
   for (const missingFile of result.missingFiles) {
-    const fileName = missingFile.replace(`${TARGET_LOCALE}/`, '')
-    const sourceFile = sourceFiles.find(f => f.name === fileName)
+    const fileName = missingFile.replace(`${TARGET_LOCALE}/`, '');
+    const sourceFile = sourceFiles.find(f => f.name === fileName);
 
     if (sourceFile) {
-      createEmptyTranslationFile(sourceFile, targetDir)
-      fixedCount++
+      createEmptyTranslationFile(sourceFile, targetDir);
+      fixedCount++;
     }
   }
 
-  return fixedCount
+  return fixedCount;
 }
 
 function printReport(result: CheckResult): void {
-  const totalMissingKeys = Object.values(result.missingKeys).reduce((sum, keys) => sum + keys.length, 0)
-  const totalExtraKeys = Object.values(result.extraKeys).reduce((sum, keys) => sum + keys.length, 0)
+  const totalMissingKeys = Object.values(result.missingKeys).reduce((sum, keys) => sum + keys.length, 0);
+  const totalExtraKeys = Object.values(result.extraKeys).reduce((sum, keys) => sum + keys.length, 0);
 
-  console.log('')
-  console.log('i18n Coverage Report')
-  console.log('========================')
-  console.log(`Total files: ${result.totalFiles}`)
-  console.log(`Translated: ${result.translatedFiles} (${result.coveragePercent}%)`)
-  console.log(`Missing: ${result.missingFiles.length}`)
-  console.log('')
-  console.log('Keys Coverage')
-  console.log('------------------------')
-  console.log(`Total keys: ${result.keysCoverage.total}`)
-  console.log(`Translated: ${result.keysCoverage.translated} (${result.keysCoverage.percent}%)`)
-  console.log(`Missing: ${result.keysCoverage.missing}`)
-  console.log('')
+  console.log('');
+  console.log('i18n Coverage Report');
+  console.log('========================');
+  console.log(`Total files: ${result.totalFiles}`);
+  console.log(`Translated: ${result.translatedFiles} (${result.coveragePercent}%)`);
+  console.log(`Missing: ${result.missingFiles.length}`);
+  console.log('');
+  console.log('Keys Coverage');
+  console.log('------------------------');
+  console.log(`Total keys: ${result.keysCoverage.total}`);
+  console.log(`Translated: ${result.keysCoverage.translated} (${result.keysCoverage.percent}%)`);
+  console.log(`Missing: ${result.keysCoverage.missing}`);
+  console.log('');
 
   // Missing files
   if (result.missingFiles.length > 0) {
-    console.log('Missing files:')
+    console.log('Missing files:');
     for (const file of result.missingFiles) {
-      console.log(`  - ${file}`)
+      console.log(`  - ${file}`);
     }
-    console.log('')
+    console.log('');
   }
 
   // Missing keys
   if (totalMissingKeys > 0) {
-    console.log(`Missing keys (${totalMissingKeys} total):`)
+    console.log(`Missing keys (${totalMissingKeys} total):`);
     for (const [file, keys] of Object.entries(result.missingKeys)) {
-      console.log(`  ${file}:`)
+      console.log(`  ${file}:`);
       if (REPORT_MODE) {
         for (const key of keys) {
-          console.log(`    - ${key}`)
+          console.log(`    - ${key}`);
         }
       }
       else {
         // Show first 5 keys in normal mode
-        const displayKeys = keys.slice(0, 5)
+        const displayKeys = keys.slice(0, 5);
         for (const key of displayKeys) {
-          console.log(`    - ${key}`)
+          console.log(`    - ${key}`);
         }
         if (keys.length > 5) {
-          console.log(`    ... and ${keys.length - 5} more`)
+          console.log(`    ... and ${keys.length - 5} more`);
         }
       }
     }
-    console.log('')
+    console.log('');
   }
 
   // Extra keys (unused)
   if (totalExtraKeys > 0 && REPORT_MODE) {
-    console.log(`Extra keys in target (${totalExtraKeys} total):`)
+    console.log(`Extra keys in target (${totalExtraKeys} total):`);
     for (const [file, keys] of Object.entries(result.extraKeys)) {
-      console.log(`  ${file}:`)
+      console.log(`  ${file}:`);
       for (const key of keys) {
-        console.log(`    - ${key}`)
+        console.log(`    - ${key}`);
       }
     }
-    console.log('')
+    console.log('');
   }
 
   // Placeholder mismatches
   if (result.placeholderMismatches.length > 0) {
-    console.log(`Placeholder mismatches (${result.placeholderMismatches.length}):`)
+    console.log(`Placeholder mismatches (${result.placeholderMismatches.length}):`);
     for (const mismatch of result.placeholderMismatches) {
-      console.log(`  ${mismatch.file} -> ${mismatch.key}`)
-      console.log(`    Source: ${mismatch.sourcePlaceholders.join(', ') || '(none)'}`)
-      console.log(`    Target: ${mismatch.targetPlaceholders.join(', ') || '(none)'}`)
+      console.log(`  ${mismatch.file} -> ${mismatch.key}`);
+      console.log(`    Source: ${mismatch.sourcePlaceholders.join(', ') || '(none)'}`);
+      console.log(`    Target: ${mismatch.targetPlaceholders.join(', ') || '(none)'}`);
     }
-    console.log('')
+    console.log('');
   }
   else {
-    console.log('All placeholders match')
-    console.log('')
+    console.log('All placeholders match');
+    console.log('');
   }
 
   // Summary
   const hasIssues = result.missingFiles.length > 0
     || totalMissingKeys > 0
-    || result.placeholderMismatches.length > 0
+    || result.placeholderMismatches.length > 0;
 
   if (hasIssues) {
-    console.log('Status: ISSUES FOUND')
+    console.log('Status: ISSUES FOUND');
     if (result.missingFiles.length > 0) {
-      console.log(`  - ${result.missingFiles.length} missing file(s)`)
+      console.log(`  - ${result.missingFiles.length} missing file(s)`);
     }
     if (totalMissingKeys > 0) {
-      console.log(`  - ${totalMissingKeys} missing key(s)`)
+      console.log(`  - ${totalMissingKeys} missing key(s)`);
     }
     if (result.placeholderMismatches.length > 0) {
-      console.log(`  - ${result.placeholderMismatches.length} placeholder mismatch(es)`)
+      console.log(`  - ${result.placeholderMismatches.length} placeholder mismatch(es)`);
     }
   }
   else {
-    console.log('Status: ALL CHECKS PASSED')
+    console.log('Status: ALL CHECKS PASSED');
   }
-  console.log('')
+  console.log('');
 }
 
 function printJsonReport(result: CheckResult): void {
@@ -465,66 +465,66 @@ function printJsonReport(result: CheckResult): void {
     passed: result.missingFiles.length === 0
       && Object.keys(result.missingKeys).length === 0
       && result.placeholderMismatches.length === 0,
-  }
+  };
 
-  console.log(JSON.stringify(output, null, 2))
+  console.log(JSON.stringify(output, null, 2));
 }
 
 function generateGitHubAnnotations(result: CheckResult): void {
   // Generate GitHub Actions annotations for CI
   for (const file of result.missingFiles) {
-    console.log(`::error file=${file}::Missing translation file`)
+    console.log(`::error file=${file}::Missing translation file`);
   }
 
   for (const [file, keys] of Object.entries(result.missingKeys)) {
-    const filePath = path.join(LOCALES_DIR, file)
+    const filePath = path.join(LOCALES_DIR, file);
     for (const key of keys) {
-      console.log(`::warning file=${filePath}::Missing translation key: ${key}`)
+      console.log(`::warning file=${filePath}::Missing translation key: ${key}`);
     }
   }
 
   for (const mismatch of result.placeholderMismatches) {
-    const filePath = path.join(LOCALES_DIR, TARGET_LOCALE, mismatch.file)
-    console.log(`::error file=${filePath}::Placeholder mismatch in key "${mismatch.key}": expected [${mismatch.sourcePlaceholders.join(', ')}], got [${mismatch.targetPlaceholders.join(', ')}]`)
+    const filePath = path.join(LOCALES_DIR, TARGET_LOCALE, mismatch.file);
+    console.log(`::error file=${filePath}::Placeholder mismatch in key "${mismatch.key}": expected [${mismatch.sourcePlaceholders.join(', ')}], got [${mismatch.targetPlaceholders.join(', ')}]`);
   }
 }
 
 // Main execution
 function main(): void {
-  console.log('Running i18n integrity check...')
-  console.log(`Source locale: ${SOURCE_LOCALE}`)
-  console.log(`Target locale: ${TARGET_LOCALE}`)
-  console.log('')
+  console.log('Running i18n integrity check...');
+  console.log(`Source locale: ${SOURCE_LOCALE}`);
+  console.log(`Target locale: ${TARGET_LOCALE}`);
+  console.log('');
 
-  const result = runCheck()
+  const result = runCheck();
 
   if (JSON_OUTPUT) {
-    printJsonReport(result)
+    printJsonReport(result);
   }
   else {
-    printReport(result)
+    printReport(result);
 
     if (CI_MODE) {
-      generateGitHubAnnotations(result)
+      generateGitHubAnnotations(result);
     }
   }
 
   if (FIX_MODE && result.missingFiles.length > 0) {
-    console.log('Fix mode enabled. Creating missing files...')
-    const fixedCount = fixMissingFiles(result)
-    console.log(`Created ${fixedCount} file(s) with TODO markers.`)
-    console.log('Please translate the [TODO] entries in the created files.')
-    console.log('')
+    console.log('Fix mode enabled. Creating missing files...');
+    const fixedCount = fixMissingFiles(result);
+    console.log(`Created ${fixedCount} file(s) with TODO markers.`);
+    console.log('Please translate the [TODO] entries in the created files.');
+    console.log('');
   }
 
   // Exit with error code if issues found (for CI)
   const hasBlockingIssues = result.missingFiles.length > 0
     || Object.keys(result.missingKeys).length > 0
-    || result.placeholderMismatches.length > 0
+    || result.placeholderMismatches.length > 0;
 
   if (hasBlockingIssues && !FIX_MODE) {
-    process.exit(1)
+    process.exit(1);
   }
 }
 
-main()
+main();

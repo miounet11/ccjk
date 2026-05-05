@@ -4,42 +4,42 @@
  * Generates Claude Code compatible skills based on project analysis
  */
 
-import type { GeneratedSkill, GenerationContext } from './types'
-import consola from 'consola'
-import { recommendSkillCategories } from './project-analyzer'
+import type { GeneratedSkill, GenerationContext } from './types';
+import consola from 'consola';
+import { recommendSkillCategories } from './project-analyzer';
 
-const logger = consola.withTag('skill-generator')
+const logger = consola.withTag('skill-generator');
 
 /**
  * Generate skills based on project analysis
  */
 export async function generateSkills(context: GenerationContext): Promise<GeneratedSkill[]> {
-  logger.info('Generating skills...')
+  logger.info('Generating skills...');
 
-  const recommendedCategories = recommendSkillCategories(context.analysis)
-  const skills: GeneratedSkill[] = []
+  const recommendedCategories = recommendSkillCategories(context.analysis);
+  const skills: GeneratedSkill[] = [];
 
-  logger.info(`Generating skills for categories: ${recommendedCategories.join(', ')}`)
+  logger.info(`Generating skills for categories: ${recommendedCategories.join(', ')}`);
 
   // Generate skills for each category
   for (const category of recommendedCategories) {
-    const categorySkills = await generateSkillsForCategory(category, context)
+    const categorySkills = await generateSkillsForCategory(category, context);
     for (const skill of categorySkills) {
       if (!context.existingSkills.includes(skill.id)) {
-        skills.push(skill)
+        skills.push(skill);
       }
     }
   }
 
   // Sort by priority
-  skills.sort((a, b) => b.priority - a.priority)
+  skills.sort((a, b) => b.priority - a.priority);
 
   // Limit to max skills
-  const limitedSkills = skills.slice(0, context.preferences.maxSkills)
+  const limitedSkills = skills.slice(0, context.preferences.maxSkills);
 
-  logger.success(`Generated ${limitedSkills.length} skills`)
+  logger.success(`Generated ${limitedSkills.length} skills`);
 
-  return limitedSkills
+  return limitedSkills;
 }
 
 /**
@@ -49,11 +49,11 @@ async function generateSkillsForCategory(
   category: string,
   context: GenerationContext,
 ): Promise<GeneratedSkill[]> {
-  const { analysis, preferences: _preferences } = context
-  const skills: GeneratedSkill[] = []
+  const { analysis, preferences: _preferences } = context;
+  const skills: GeneratedSkill[] = [];
 
   // Get skill templates for category
-  const templates = getSkillTemplates(category, analysis)
+  const templates = getSkillTemplates(category, analysis);
 
   for (const template of templates) {
     const skill: GeneratedSkill = {
@@ -67,28 +67,28 @@ async function generateSkillsForCategory(
       priority: template.priority ?? 5,
       tags: buildSkillTags(category, analysis),
       source: 'smart-analysis',
-    }
-    skills.push(skill)
+    };
+    skills.push(skill);
   }
 
-  return skills
+  return skills;
 }
 
 /**
  * Build tags for skill
  */
 function buildSkillTags(category: string, analysis: any): string[] {
-  const tags: string[] = [category]
+  const tags: string[] = [category];
 
   // Add project type
-  tags.push(analysis.projectType)
+  tags.push(analysis.projectType);
 
   // Add package manager
   if (analysis.packageManager) {
-    tags.push(analysis.packageManager)
+    tags.push(analysis.packageManager);
   }
 
-  return [...new Set(tags)]
+  return [...new Set(tags)];
 }
 
 /**
@@ -507,45 +507,45 @@ function getSkillTemplates(category: string, analysis: any): Partial<GeneratedSk
         priority: 7,
       },
     ],
-  }
+  };
 
-  return templates[category] || []
+  return templates[category] || [];
 }
 
 /**
  * Get test command based on project analysis
  */
 function getTestCommand(analysis: any): string {
-  const pm = analysis.packageManager || 'npm'
+  const pm = analysis.packageManager || 'npm';
 
   // Check for testing framework
-  const hasVitest = analysis.dependencies?.direct.some((d: any) => d.name === 'vitest')
-  const hasJest = analysis.dependencies?.direct.some((d: any) => d.name === 'jest')
+  const hasVitest = analysis.dependencies?.direct.some((d: any) => d.name === 'vitest');
+  const hasJest = analysis.dependencies?.direct.some((d: any) => d.name === 'jest');
 
   if (hasVitest) {
-    return pm === 'npm' ? 'npm run test' : `${pm} test`
+    return pm === 'npm' ? 'npm run test' : `${pm} test`;
   }
   if (hasJest) {
-    return pm === 'npm' ? 'npm test' : `${pm} test`
+    return pm === 'npm' ? 'npm test' : `${pm} test`;
   }
 
   // Default based on package manager
   switch (pm) {
     case 'pnpm':
-      return 'pnpm test'
+      return 'pnpm test';
     case 'yarn':
-      return 'yarn test'
+      return 'yarn test';
     case 'bun':
-      return 'bun test'
+      return 'bun test';
     case 'cargo':
-      return 'cargo test'
+      return 'cargo test';
     case 'go':
-      return 'go test ./...'
+      return 'go test ./...';
     case 'pip':
     case 'poetry':
-      return 'pytest'
+      return 'pytest';
     default:
-      return 'npm test'
+      return 'npm test';
   }
 }
 
@@ -553,26 +553,26 @@ function getTestCommand(analysis: any): string {
  * Get build command based on project analysis
  */
 function getBuildCommand(analysis: any): string {
-  const pm = analysis.packageManager || 'npm'
-  const buildSystem = analysis.buildSystem
+  const pm = analysis.packageManager || 'npm';
+  const buildSystem = analysis.buildSystem;
 
   switch (buildSystem) {
     case 'vite':
-      return pm === 'npm' ? 'npm run build' : `${pm} build`
+      return pm === 'npm' ? 'npm run build' : `${pm} build`;
     case 'next':
-      return pm === 'npm' ? 'npm run build' : `${pm} build`
+      return pm === 'npm' ? 'npm run build' : `${pm} build`;
     case 'webpack':
-      return pm === 'npm' ? 'npm run build' : `${pm} build`
+      return pm === 'npm' ? 'npm run build' : `${pm} build`;
     case 'tsc':
-      return 'tsc'
+      return 'tsc';
     default:
       switch (pm) {
         case 'cargo':
-          return 'cargo build --release'
+          return 'cargo build --release';
         case 'go':
-          return 'go build'
+          return 'go build';
         default:
-          return pm === 'npm' ? 'npm run build' : `${pm} build`
+          return pm === 'npm' ? 'npm run build' : `${pm} build`;
       }
   }
 }
@@ -582,19 +582,19 @@ function getBuildCommand(analysis: any): string {
  */
 function getDeployCommand(analysis: any, type: 'preview' | 'production'): string {
   // Check for deployment platform
-  const hasVercel = analysis.configFiles.some((f: string) => f.includes('vercel.json'))
-  const hasNetlify = analysis.configFiles.some((f: string) => f.includes('netlify.toml'))
-  const hasDocker = analysis.configFiles.some((f: string) => f.toLowerCase().includes('dockerfile'))
+  const hasVercel = analysis.configFiles.some((f: string) => f.includes('vercel.json'));
+  const hasNetlify = analysis.configFiles.some((f: string) => f.includes('netlify.toml'));
+  const hasDocker = analysis.configFiles.some((f: string) => f.toLowerCase().includes('dockerfile'));
 
   if (hasVercel) {
-    return type === 'preview' ? 'vercel' : 'vercel --prod'
+    return type === 'preview' ? 'vercel' : 'vercel --prod';
   }
   if (hasNetlify) {
-    return type === 'preview' ? 'netlify deploy' : 'netlify deploy --prod'
+    return type === 'preview' ? 'netlify deploy' : 'netlify deploy --prod';
   }
   if (hasDocker) {
-    return 'docker build -t app . && docker run -p 3000:3000 app'
+    return 'docker build -t app . && docker run -p 3000:3000 app';
   }
 
-  return 'echo "No deployment configuration found"'
+  return 'echo "No deployment configuration found"';
 }

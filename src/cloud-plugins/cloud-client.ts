@@ -7,28 +7,28 @@
  * @module cloud-plugins/cloud-client
  */
 
-import type { Buffer } from 'node:buffer'
-import type { SupportedLang } from '../constants.js'
-import { CLOUD_ENDPOINTS } from '../constants.js'
+import type { Buffer } from 'node:buffer';
+import type { SupportedLang } from '../constants.js';
 import type {
   PluginSearchParams as BasePluginSearchParams,
   RecommendationContext as BaseRecommendationContext,
   CloudPlugin,
   PluginCategory,
-} from './types.js'
+} from './types.js';
+import { CLOUD_ENDPOINTS } from '../constants.js';
 
 // Re-export types from types.ts for convenience
-export type { CloudPlugin, PluginCategory } from './types.js'
+export type { CloudPlugin, PluginCategory } from './types.js';
 
 // ============================================================================
 // Constants
 // ============================================================================
 
-const DEFAULT_CLOUD_API_URL = `${CLOUD_ENDPOINTS.MAIN.BASE_URL}${CLOUD_ENDPOINTS.MAIN.API_VERSION}/skills`
-const REQUEST_TIMEOUT = 30000 // 30 seconds
-const MAX_RETRY_ATTEMPTS = 3
-const RETRY_DELAY = 1000 // 1 second
-const CACHE_TTL = 3600000 // 1 hour in milliseconds
+const DEFAULT_CLOUD_API_URL = `${CLOUD_ENDPOINTS.MAIN.BASE_URL}${CLOUD_ENDPOINTS.MAIN.API_VERSION}/skills`;
+const REQUEST_TIMEOUT = 30000; // 30 seconds
+const MAX_RETRY_ATTEMPTS = 3;
+const RETRY_DELAY = 1000; // 1 second
+const CACHE_TTL = 3600000; // 1 hour in milliseconds
 
 // ============================================================================
 // Extended Type Definitions (for cloud-client specific needs)
@@ -39,17 +39,17 @@ const CACHE_TTL = 3600000 // 1 hour in milliseconds
  */
 export interface RecommendationContext extends Partial<BaseRecommendationContext> {
   /** User's current code tool type */
-  codeToolType?: 'claude-code' | 'codex' | 'aider'
+  codeToolType?: 'claude-code' | 'codex' | 'aider';
   /** User's preferred language */
-  language?: SupportedLang
+  language?: SupportedLang;
   /** User's installed plugins */
-  installedPlugins?: string[]
+  installedPlugins?: string[];
   /** User's recent activities */
-  recentActivities?: string[]
+  recentActivities?: string[];
   /** User's skill level */
-  skillLevel?: 'beginner' | 'intermediate' | 'advanced'
+  skillLevel?: 'beginner' | 'intermediate' | 'advanced';
   /** Maximum number of recommendations */
-  limit?: number
+  limit?: number;
 }
 
 /**
@@ -57,13 +57,13 @@ export interface RecommendationContext extends Partial<BaseRecommendationContext
  */
 export interface RecommendationResult {
   /** Recommended plugins */
-  plugins: CloudPlugin[]
+  plugins: CloudPlugin[];
   /** Recommendation reason for each plugin */
-  reasons: Record<string, string>
+  reasons: Record<string, string>;
   /** Recommendation score (0-1) */
-  scores: Record<string, number>
+  scores: Record<string, number>;
   /** Total count */
-  total: number
+  total: number;
 }
 
 /**
@@ -71,23 +71,23 @@ export interface RecommendationResult {
  */
 export interface PluginSearchParams extends Partial<BasePluginSearchParams> {
   /** Filter by author */
-  author?: string
+  author?: string;
   /** Filter by verification status */
-  verified?: 'verified' | 'community' | 'unverified'
+  verified?: 'verified' | 'community' | 'unverified';
   /** Filter by supported tool */
-  supportedTool?: 'claude-code' | 'codex' | 'aider'
+  supportedTool?: 'claude-code' | 'codex' | 'aider';
   /** Sort direction */
-  sortDir?: 'asc' | 'desc'
+  sortDir?: 'asc' | 'desc';
   /** Results limit */
-  limit?: number
+  limit?: number;
   /** Results offset */
-  offset?: number
+  offset?: number;
   /** Filter by keywords */
-  keywords?: string[]
+  keywords?: string[];
   /** Minimum rating */
-  minRating?: number
+  minRating?: number;
   /** Minimum CCJK version */
-  minCcjkVersion?: string
+  minCcjkVersion?: string;
 }
 
 /**
@@ -95,13 +95,13 @@ export interface PluginSearchParams extends Partial<BasePluginSearchParams> {
  */
 export interface PluginCategoryInfo {
   /** Category identifier */
-  id: PluginCategory
+  id: PluginCategory;
   /** Localized category name */
-  name: Record<SupportedLang, string>
+  name: Record<SupportedLang, string>;
   /** Number of plugins in category */
-  count: number
+  count: number;
   /** Category icon */
-  icon?: string
+  icon?: string;
 }
 
 /**
@@ -109,13 +109,13 @@ export interface PluginCategoryInfo {
  */
 export interface PluginDownloadResult {
   /** Plugin ID */
-  pluginId: string
+  pluginId: string;
   /** Plugin content (base64 encoded) */
-  content: string
+  content: string;
   /** SHA256 checksum */
-  checksum: string
+  checksum: string;
   /** Download timestamp */
-  downloadedAt: string
+  downloadedAt: string;
 }
 
 /**
@@ -123,15 +123,15 @@ export interface PluginDownloadResult {
  */
 export interface CloudApiResponse<T = unknown> {
   /** Whether request was successful */
-  success: boolean
+  success: boolean;
   /** Response data */
-  data?: T
+  data?: T;
   /** Error message if failed */
-  error?: string
+  error?: string;
   /** Error code */
-  code?: string
+  code?: string;
   /** Response timestamp */
-  timestamp?: string
+  timestamp?: string;
 }
 
 /**
@@ -139,19 +139,19 @@ export interface CloudApiResponse<T = unknown> {
  */
 export interface CloudClientOptions {
   /** Base URL for the cloud API */
-  baseUrl?: string
+  baseUrl?: string;
   /** API authentication key */
-  apiKey?: string
+  apiKey?: string;
   /** Request timeout in milliseconds */
-  timeout?: number
+  timeout?: number;
   /** Enable offline mode */
-  offlineMode?: boolean
+  offlineMode?: boolean;
   /** Enable request logging */
-  enableLogging?: boolean
+  enableLogging?: boolean;
   /** Maximum retry attempts */
-  maxRetries?: number
+  maxRetries?: number;
   /** Retry delay in milliseconds */
-  retryDelay?: number
+  retryDelay?: number;
 }
 
 /**
@@ -159,28 +159,28 @@ export interface CloudClientOptions {
  */
 interface RequestOptions {
   /** HTTP method */
-  method?: 'GET' | 'POST' | 'PUT' | 'DELETE'
+  method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
   /** Request body */
-  body?: string
+  body?: string;
   /** Query parameters */
-  params?: Record<string, any>
+  params?: Record<string, any>;
   /** Request headers */
-  headers?: Record<string, string>
+  headers?: Record<string, string>;
   /** Abort signal */
-  signal?: AbortSignal
+  signal?: AbortSignal;
   /** Request timeout */
-  timeout?: number
+  timeout?: number;
   /** Skip cache */
-  skipCache?: boolean
+  skipCache?: boolean;
 }
 
 /**
  * Cache entry
  */
 interface CacheEntry<T> {
-  data: T
-  timestamp: number
-  ttl: number
+  data: T;
+  timestamp: number;
+  ttl: number;
 }
 
 // ============================================================================
@@ -217,24 +217,24 @@ interface CacheEntry<T> {
  * ```
  */
 export class CloudRecommendationClient {
-  private baseUrl: string
-  private apiKey?: string
-  private timeout: number
-  private offlineMode: boolean
-  private enableLogging: boolean
-  private maxRetries: number
-  private retryDelay: number
-  private cache: Map<string, CacheEntry<any>>
+  private baseUrl: string;
+  private apiKey?: string;
+  private timeout: number;
+  private offlineMode: boolean;
+  private enableLogging: boolean;
+  private maxRetries: number;
+  private retryDelay: number;
+  private cache: Map<string, CacheEntry<any>>;
 
   constructor(options: CloudClientOptions = {}) {
-    this.baseUrl = options.baseUrl || DEFAULT_CLOUD_API_URL
-    this.apiKey = options.apiKey
-    this.timeout = options.timeout || REQUEST_TIMEOUT
-    this.offlineMode = options.offlineMode || false
-    this.enableLogging = options.enableLogging || false
-    this.maxRetries = options.maxRetries || MAX_RETRY_ATTEMPTS
-    this.retryDelay = options.retryDelay || RETRY_DELAY
-    this.cache = new Map()
+    this.baseUrl = options.baseUrl || DEFAULT_CLOUD_API_URL;
+    this.apiKey = options.apiKey;
+    this.timeout = options.timeout || REQUEST_TIMEOUT;
+    this.offlineMode = options.offlineMode || false;
+    this.enableLogging = options.enableLogging || false;
+    this.maxRetries = options.maxRetries || MAX_RETRY_ATTEMPTS;
+    this.retryDelay = options.retryDelay || RETRY_DELAY;
+    this.cache = new Map();
   }
 
   // ==========================================================================
@@ -260,12 +260,12 @@ export class CloudRecommendationClient {
   async getRecommendations(
     context: RecommendationContext,
   ): Promise<CloudApiResponse<RecommendationResult>> {
-    this.log('Getting recommendations with context:', context)
+    this.log('Getting recommendations with context:', context);
 
     return this.request<RecommendationResult>('/recommendations', {
       method: 'POST',
       body: JSON.stringify(context),
-    })
+    });
   }
 
   /**
@@ -288,13 +288,13 @@ export class CloudRecommendationClient {
   async searchPlugins(
     params: PluginSearchParams,
   ): Promise<CloudApiResponse<CloudPlugin[]>> {
-    this.log('Searching plugins with params:', params)
+    this.log('Searching plugins with params:', params);
 
     // API uses /plugins endpoint with query params for search (not /search)
     return this.request<CloudPlugin[]>('', {
       method: 'GET',
       params,
-    })
+    });
   }
 
   /**
@@ -309,11 +309,11 @@ export class CloudRecommendationClient {
    * ```
    */
   async getPlugin(id: string): Promise<CloudApiResponse<CloudPlugin>> {
-    this.log('Getting plugin:', id)
+    this.log('Getting plugin:', id);
 
     return this.request<CloudPlugin>(`/plugins/${id}`, {
       method: 'GET',
-    })
+    });
   }
 
   /**
@@ -330,12 +330,12 @@ export class CloudRecommendationClient {
   async getPopularPlugins(
     limit: number = 10,
   ): Promise<CloudApiResponse<CloudPlugin[]>> {
-    this.log('Getting popular plugins, limit:', limit)
+    this.log('Getting popular plugins, limit:', limit);
 
     return this.request<CloudPlugin[]>('/popular', {
       method: 'GET',
       params: { limit },
-    })
+    });
   }
 
   /**
@@ -349,11 +349,11 @@ export class CloudRecommendationClient {
    * ```
    */
   async getCategories(): Promise<CloudApiResponse<PluginCategoryInfo[]>> {
-    this.log('Getting categories')
+    this.log('Getting categories');
 
     return this.request<PluginCategoryInfo[]>('/categories', {
       method: 'GET',
-    })
+    });
   }
 
   /**
@@ -374,12 +374,12 @@ export class CloudRecommendationClient {
   async downloadPlugin(
     id: string,
   ): Promise<CloudApiResponse<PluginDownloadResult>> {
-    this.log('Downloading plugin:', id)
+    this.log('Downloading plugin:', id);
 
     return this.request<PluginDownloadResult>(`/plugins/${id}/download`, {
       method: 'GET',
       skipCache: true, // Always fetch fresh download
-    })
+    });
   }
 
   /**
@@ -401,18 +401,18 @@ export class CloudRecommendationClient {
     plugin: CloudPlugin,
     content: Buffer,
   ): Promise<CloudApiResponse<{ id: string }>> {
-    this.log('Uploading plugin:', plugin.id)
+    this.log('Uploading plugin:', plugin.id);
 
     const payload = {
       plugin,
       content: content.toString('base64'),
-    }
+    };
 
     return this.request<{ id: string }>('/plugins/upload', {
       method: 'POST',
       body: JSON.stringify(payload),
       skipCache: true,
-    })
+    });
   }
 
   // ==========================================================================
@@ -423,33 +423,33 @@ export class CloudRecommendationClient {
    * Clear all cached data
    */
   clearCache(): void {
-    this.cache.clear()
-    this.log('Cache cleared')
+    this.cache.clear();
+    this.log('Cache cleared');
   }
 
   /**
    * Clear expired cache entries
    */
   clearExpiredCache(): void {
-    const now = Date.now()
-    const keysToDelete: string[] = []
+    const now = Date.now();
+    const keysToDelete: string[] = [];
 
     this.cache.forEach((entry, key) => {
       if (now - entry.timestamp > entry.ttl) {
-        keysToDelete.push(key)
+        keysToDelete.push(key);
       }
-    })
+    });
 
-    keysToDelete.forEach(key => this.cache.delete(key))
-    this.log('Expired cache entries cleared')
+    keysToDelete.forEach(key => this.cache.delete(key));
+    this.log('Expired cache entries cleared');
   }
 
   /**
    * Set offline mode
    */
   setOfflineMode(enabled: boolean): void {
-    this.offlineMode = enabled
-    this.log('Offline mode:', enabled ? 'enabled' : 'disabled')
+    this.offlineMode = enabled;
+    this.log('Offline mode:', enabled ? 'enabled' : 'disabled');
   }
 
   // ==========================================================================
@@ -463,67 +463,67 @@ export class CloudRecommendationClient {
     endpoint: string,
     options: RequestOptions = {},
   ): Promise<CloudApiResponse<T>> {
-    const url = this.buildUrl(endpoint, options.params)
-    const cacheKey = `${options.method || 'GET'}:${url}`
+    const url = this.buildUrl(endpoint, options.params);
+    const cacheKey = `${options.method || 'GET'}:${url}`;
 
     // Check cache first (for GET requests)
     if (!options.skipCache && (options.method === 'GET' || !options.method)) {
-      const cached = this.getFromCache<T>(cacheKey)
+      const cached = this.getFromCache<T>(cacheKey);
       if (cached) {
-        this.log('Cache hit:', cacheKey)
+        this.log('Cache hit:', cacheKey);
         return {
           success: true,
           data: cached,
           timestamp: new Date().toISOString(),
-        }
+        };
       }
     }
 
     // Offline mode - return cached data or error
     if (this.offlineMode) {
-      const cached = this.getFromCache<T>(cacheKey)
+      const cached = this.getFromCache<T>(cacheKey);
       if (cached) {
-        this.log('Offline mode: returning cached data')
+        this.log('Offline mode: returning cached data');
         return {
           success: true,
           data: cached,
           timestamp: new Date().toISOString(),
-        }
+        };
       }
       return {
         success: false,
         error: 'Offline mode enabled and no cached data available',
         code: 'OFFLINE_MODE',
-      }
+      };
     }
 
     // Make request with retry logic
-    let lastError: Error | null = null
+    let lastError: Error | null = null;
     for (let attempt = 1; attempt <= this.maxRetries; attempt++) {
       try {
-        this.log(`Request attempt ${attempt}/${this.maxRetries}:`, url)
+        this.log(`Request attempt ${attempt}/${this.maxRetries}:`, url);
 
-        const response = await this.makeRequest<T>(url, options)
+        const response = await this.makeRequest<T>(url, options);
 
         // Cache successful GET requests
         if (response.success && response.data && (options.method === 'GET' || !options.method)) {
-          this.setCache(cacheKey, response.data, CACHE_TTL)
+          this.setCache(cacheKey, response.data, CACHE_TTL);
         }
 
-        return response
+        return response;
       }
       catch (error) {
-        lastError = error instanceof Error ? error : new Error(String(error))
-        this.log(`Request failed (attempt ${attempt}):`, lastError.message)
+        lastError = error instanceof Error ? error : new Error(String(error));
+        this.log(`Request failed (attempt ${attempt}):`, lastError.message);
 
         // Don't retry on abort
         if (lastError.name === 'AbortError') {
-          break
+          break;
         }
 
         // Wait before retry (except on last attempt)
         if (attempt < this.maxRetries) {
-          await this.sleep(this.retryDelay * attempt)
+          await this.sleep(this.retryDelay * attempt);
         }
       }
     }
@@ -533,7 +533,7 @@ export class CloudRecommendationClient {
       success: false,
       error: lastError?.message || 'Request failed after all retries',
       code: 'REQUEST_FAILED',
-    }
+    };
   }
 
   /**
@@ -543,9 +543,9 @@ export class CloudRecommendationClient {
     url: string,
     options: RequestOptions,
   ): Promise<CloudApiResponse<T>> {
-    const timeout = options.timeout || this.timeout
-    const timeoutController = new AbortController()
-    const timeoutId = setTimeout(() => timeoutController.abort(), timeout)
+    const timeout = options.timeout || this.timeout;
+    const timeoutController = new AbortController();
+    const timeoutId = setTimeout(() => timeoutController.abort(), timeout);
 
     try {
       const response = await fetch(url, {
@@ -553,44 +553,44 @@ export class CloudRecommendationClient {
         headers: this.getHeaders(options.headers),
         body: options.body,
         signal: options.signal || timeoutController.signal,
-      })
+      });
 
-      clearTimeout(timeoutId)
+      clearTimeout(timeoutId);
 
-      const data = await response.json() as CloudApiResponse<T>
+      const data = await response.json() as CloudApiResponse<T>;
 
       if (!response.ok) {
         return {
           success: false,
           error: data.error || `HTTP ${response.status}: ${response.statusText}`,
           code: data.code || `HTTP_${response.status}`,
-        }
+        };
       }
 
       return {
         ...data,
         timestamp: new Date().toISOString(),
-      }
+      };
     }
     catch (error) {
-      clearTimeout(timeoutId)
+      clearTimeout(timeoutId);
 
       if (error instanceof Error) {
         if (error.name === 'AbortError') {
-          throw error // Re-throw abort errors
+          throw error; // Re-throw abort errors
         }
         return {
           success: false,
           error: error.message,
           code: 'NETWORK_ERROR',
-        }
+        };
       }
 
       return {
         success: false,
         error: String(error),
         code: 'UNKNOWN_ERROR',
-      }
+      };
     }
   }
 
@@ -598,22 +598,22 @@ export class CloudRecommendationClient {
    * Build full URL with query parameters
    */
   private buildUrl(endpoint: string, params?: Record<string, any>): string {
-    const url = new URL(endpoint, this.baseUrl)
+    const url = new URL(endpoint, this.baseUrl);
 
     if (params) {
       for (const [key, value] of Object.entries(params)) {
         if (value !== undefined && value !== null) {
           if (Array.isArray(value)) {
-            value.forEach(v => url.searchParams.append(key, String(v)))
+            value.forEach(v => url.searchParams.append(key, String(v)));
           }
           else {
-            url.searchParams.append(key, String(value))
+            url.searchParams.append(key, String(value));
           }
         }
       }
     }
 
-    return url.toString()
+    return url.toString();
   }
 
   /**
@@ -624,31 +624,31 @@ export class CloudRecommendationClient {
       'Content-Type': 'application/json',
       'User-Agent': 'CCJK-Cloud-Client/1.0',
       ...customHeaders,
-    }
+    };
 
     if (this.apiKey) {
-      headers.Authorization = `Bearer ${this.apiKey}`
+      headers.Authorization = `Bearer ${this.apiKey}`;
     }
 
-    return headers
+    return headers;
   }
 
   /**
    * Get data from cache
    */
   private getFromCache<T>(key: string): T | null {
-    const entry = this.cache.get(key)
+    const entry = this.cache.get(key);
     if (!entry) {
-      return null
+      return null;
     }
 
-    const now = Date.now()
+    const now = Date.now();
     if (now - entry.timestamp > entry.ttl) {
-      this.cache.delete(key)
-      return null
+      this.cache.delete(key);
+      return null;
     }
 
-    return entry.data as T
+    return entry.data as T;
   }
 
   /**
@@ -659,14 +659,14 @@ export class CloudRecommendationClient {
       data,
       timestamp: Date.now(),
       ttl,
-    })
+    });
   }
 
   /**
    * Sleep for specified milliseconds
    */
   private sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms))
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
   /**
@@ -674,7 +674,7 @@ export class CloudRecommendationClient {
    */
   private log(...args: any[]): void {
     if (this.enableLogging) {
-      console.log('[CloudRecommendationClient]', ...args)
+      console.log('[CloudRecommendationClient]', ...args);
     }
   }
 }
@@ -747,7 +747,7 @@ export const MOCK_PLUGINS: CloudPlugin[] = [
     updatedAt: '2025-01-05T00:00:00Z',
     size: 153600,
   },
-]
+];
 
 /**
  * Mock categories data
@@ -798,7 +798,7 @@ export const MOCK_CATEGORIES: PluginCategoryInfo[] = [
     count: 18,
     icon: '🔗',
   },
-]
+];
 
 /**
  * Create a mock client for testing
@@ -808,7 +808,7 @@ export function createMockClient(options: CloudClientOptions = {}): CloudRecomme
     ...options,
     offlineMode: true,
     enableLogging: true,
-  })
+  });
 }
 
 // ============================================================================
@@ -819,24 +819,24 @@ export function createMockClient(options: CloudClientOptions = {}): CloudRecomme
  * Create a cloud recommendation client instance
  */
 export function createCloudClient(options?: CloudClientOptions): CloudRecommendationClient {
-  return new CloudRecommendationClient(options)
+  return new CloudRecommendationClient(options);
 }
 
 /**
  * Get the default cloud client instance (singleton)
  */
-let defaultClientInstance: CloudRecommendationClient | null = null
+let defaultClientInstance: CloudRecommendationClient | null = null;
 
 export function getDefaultCloudClient(): CloudRecommendationClient {
   if (!defaultClientInstance) {
-    defaultClientInstance = new CloudRecommendationClient()
+    defaultClientInstance = new CloudRecommendationClient();
   }
-  return defaultClientInstance
+  return defaultClientInstance;
 }
 
 /**
  * Reset the default client instance (for testing)
  */
 export function resetDefaultCloudClient(): void {
-  defaultClientInstance = null
+  defaultClientInstance = null;
 }

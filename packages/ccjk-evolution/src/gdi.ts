@@ -57,7 +57,7 @@ function calculateUsageMetrics(gene: Gene): number {
   return score;
 }
 
-function calculateSocialSignals(gene: Gene): number {
+function calculateSocialSignals(_gene: Gene): number {
   // TODO: Implement when we have social features
   // For now, return a base score
   return 0.5;

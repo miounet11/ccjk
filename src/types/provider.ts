@@ -18,25 +18,25 @@
  */
 export interface ProviderRegistry {
   /** Unique shortcode (e.g., "302", "glm", "kimi") */
-  shortcode: string
+  shortcode: string;
   /** Display name (e.g., "302.AI", "智谱AI") */
-  name: string
+  name: string;
   /** API base URL */
-  apiUrl: string
+  apiUrl: string;
   /** Optional description */
-  description?: string
+  description?: string;
   /** Recommended models list */
-  models?: string[]
+  models?: string[];
   /** Creation timestamp */
-  createdAt: string
+  createdAt: string;
   /** Creator identifier (optional) */
-  createdBy?: string
+  createdBy?: string;
   /** Whether officially verified */
-  verified: boolean
+  verified: boolean;
   /** Provider category */
-  category?: ProviderCategory
+  category?: ProviderCategory;
   /** Provider status */
-  status?: ProviderStatus
+  status?: ProviderStatus;
 }
 
 /**
@@ -46,7 +46,7 @@ export type ProviderCategory
   = | 'official' // Official providers (Anthropic, OpenAI)
     | 'relay' // Relay/proxy services (302.AI)
     | 'domestic' // Domestic Chinese providers (GLM, Kimi, MiniMax)
-    | 'custom' // User-created custom providers
+    | 'custom'; // User-created custom providers
 
 /**
  * Provider status
@@ -55,7 +55,7 @@ export type ProviderStatus
   = | 'active' // Active and working
     | 'maintenance' // Under maintenance
     | 'deprecated' // Deprecated, will be removed
-    | 'testing' // In testing phase
+    | 'testing'; // In testing phase
 
 // ============================================================================
 // API Request/Response Types
@@ -66,54 +66,54 @@ export type ProviderStatus
  */
 export interface CreateProviderInput {
   /** Unique shortcode */
-  shortcode: string
+  shortcode: string;
   /** Display name */
-  name: string
+  name: string;
   /** API base URL */
-  apiUrl: string
+  apiUrl: string;
   /** Optional description */
-  description?: string
+  description?: string;
   /** Recommended models */
-  models?: string[]
+  models?: string[];
 }
 
 /**
  * Provider query response
  */
 export interface ProviderQueryResponse {
-  success: boolean
-  data?: ProviderRegistry
+  success: boolean;
+  data?: ProviderRegistry;
   error?: {
-    code: string
-    message: string
-  }
+    code: string;
+    message: string;
+  };
 }
 
 /**
  * Provider create response
  */
 export interface ProviderCreateResponse {
-  success: boolean
-  data?: ProviderRegistry
+  success: boolean;
+  data?: ProviderRegistry;
   error?: {
-    code: string
-    message: string
-  }
+    code: string;
+    message: string;
+  };
 }
 
 /**
  * Provider list response
  */
 export interface ProviderListResponse {
-  success: boolean
+  success: boolean;
   data?: {
-    providers: ProviderRegistry[]
-    total: number
-  }
+    providers: ProviderRegistry[];
+    total: number;
+  };
   error?: {
-    code: string
-    message: string
-  }
+    code: string;
+    message: string;
+  };
 }
 
 // ============================================================================
@@ -125,15 +125,15 @@ export interface ProviderListResponse {
  */
 export interface QuickLaunchConfig {
   /** Provider shortcode */
-  shortcode: string
+  shortcode: string;
   /** Provider info */
-  provider: ProviderRegistry
+  provider: ProviderRegistry;
   /** User's API key */
-  apiKey: string
+  apiKey: string;
   /** Selected model */
-  model: string
+  model: string;
   /** Target code tool */
-  codeTool?: string
+  codeTool?: string;
 }
 
 /**
@@ -141,11 +141,11 @@ export interface QuickLaunchConfig {
  */
 export interface QuickLaunchOptions {
   /** Skip confirmation prompt */
-  skipConfirm?: boolean
+  skipConfirm?: boolean;
   /** Language preference */
-  lang?: 'zh-CN' | 'en'
+  lang?: 'zh-CN' | 'en';
   /** Target code tool type */
-  codeTool?: string
+  codeTool?: string;
 }
 
 // ============================================================================
@@ -170,9 +170,9 @@ export const ProviderErrorCodes = {
   NETWORK_ERROR: 'NETWORK_ERROR',
   /** Server error */
   SERVER_ERROR: 'SERVER_ERROR',
-} as const
+} as const;
 
-export type ProviderErrorCode = typeof ProviderErrorCodes[keyof typeof ProviderErrorCodes]
+export type ProviderErrorCode = typeof ProviderErrorCodes[keyof typeof ProviderErrorCodes];
 
 // ============================================================================
 // Validation
@@ -208,23 +208,23 @@ export const SHORTCODE_RULES = {
     'test',
     'debug',
   ],
-}
+};
 
 /**
  * Validate shortcode format
  */
 export function isValidShortcode(shortcode: string): boolean {
   if (!shortcode)
-    return false
+    return false;
   if (shortcode.length < SHORTCODE_RULES.minLength)
-    return false
+    return false;
   if (shortcode.length > SHORTCODE_RULES.maxLength)
-    return false
+    return false;
   if (!SHORTCODE_RULES.pattern.test(shortcode))
-    return false
+    return false;
   if (SHORTCODE_RULES.reserved.includes(shortcode.toLowerCase()))
-    return false
-  return true
+    return false;
+  return true;
 }
 
 /**
@@ -232,10 +232,10 @@ export function isValidShortcode(shortcode: string): boolean {
  */
 export function isValidApiUrl(url: string): boolean {
   try {
-    const parsed = new URL(url)
-    return parsed.protocol === 'https:' || parsed.protocol === 'http:'
+    const parsed = new URL(url);
+    return parsed.protocol === 'https:' || parsed.protocol === 'http:';
   }
   catch {
-    return false
+    return false;
   }
 }

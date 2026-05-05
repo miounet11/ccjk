@@ -1,9 +1,9 @@
 // Auto-trigger system
-export * from './auto-trigger'
+export * from './auto-trigger';
 
-export * from './context-analyzer'
+export * from './context-analyzer';
 
-export * from './intent-detector'
+export * from './intent-detector';
 export {
   addSkill,
   createBatchSkills,
@@ -21,6 +21,6 @@ export {
   removeSkill,
   searchSkills,
   setSkillEnabled,
-} from './manager'
+} from './manager';
 // CCJK Skills System
-export * from './types'
+export * from './types';

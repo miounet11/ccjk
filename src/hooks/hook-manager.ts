@@ -3,40 +3,40 @@
  * Manages hook registration, storage, and execution
  */
 
-import type { Hook, HookExecutionResult, HookManagerOptions, HooksConfig } from '../types/hooks'
-import type { HookContext } from './hook-context'
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
-import process from 'node:process'
-import { dirname, join } from 'pathe'
-import { HookType } from '../types/hooks'
-import { hookExecutor } from './hook-executor'
+import type { Hook, HookExecutionResult, HookManagerOptions, HooksConfig } from '../types/hooks';
+import type { HookContext } from './hook-context';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import process from 'node:process';
+import { dirname, join } from 'pathe';
+import { HookType } from '../types/hooks';
+import { hookExecutor } from './hook-executor';
 
 /**
  * Default hooks configuration path
  */
-const DEFAULT_CONFIG_PATH = join(process.env.HOME || process.env.USERPROFILE || '~', '.ccjk', 'hooks-config.json')
+const DEFAULT_CONFIG_PATH = join(process.env.HOME || process.env.USERPROFILE || '~', '.ccjk', 'hooks-config.json');
 
 /**
  * Hook manager class
  * Manages the lifecycle of hooks including registration, storage, and execution
  */
 export class HookManager {
-  private hooks: HooksConfig = {}
-  private configPath: string
-  private enabled: boolean
-  private defaultTimeout: number
+  private hooks: HooksConfig = {};
+  private configPath: string;
+  private enabled: boolean;
+  private defaultTimeout: number;
 
   /**
    * Create a new HookManager instance
    * @param options - Configuration options
    */
   constructor(options: HookManagerOptions = {}) {
-    this.configPath = options.configPath || DEFAULT_CONFIG_PATH
-    this.enabled = options.enabled !== false
-    this.defaultTimeout = options.defaultTimeout || 5000
+    this.configPath = options.configPath || DEFAULT_CONFIG_PATH;
+    this.enabled = options.enabled !== false;
+    this.defaultTimeout = options.defaultTimeout || 5000;
 
     // Load hooks from config file
-    this.loadHooksFromConfig()
+    this.loadHooksFromConfig();
   }
 
   /**
@@ -48,29 +48,29 @@ export class HookManager {
     try {
       // Initialize hook type array if it doesn't exist
       if (!this.hooks[hook.type]) {
-        this.hooks[hook.type] = []
+        this.hooks[hook.type] = [];
       }
 
       // Check if hook already exists
-      const existingIndex = this.hooks[hook.type]!.findIndex(h => h.command === hook.command)
+      const existingIndex = this.hooks[hook.type]!.findIndex(h => h.command === hook.command);
 
       if (existingIndex >= 0) {
         // Update existing hook
-        this.hooks[hook.type]![existingIndex] = hook
+        this.hooks[hook.type]![existingIndex] = hook;
       }
       else {
         // Add new hook
-        this.hooks[hook.type]!.push(hook)
+        this.hooks[hook.type]!.push(hook);
       }
 
       // Save to config file
-      this.saveHooksToConfig()
+      this.saveHooksToConfig();
 
-      return true
+      return true;
     }
     catch (error) {
-      console.error('[HookManager] Failed to register hook:', error)
-      return false
+      console.error('[HookManager] Failed to register hook:', error);
+      return false;
     }
   }
 
@@ -83,25 +83,25 @@ export class HookManager {
   unregisterHook(type: HookType, command: string): boolean {
     try {
       if (!this.hooks[type]) {
-        return false
+        return false;
       }
 
-      const initialLength = this.hooks[type]!.length
-      this.hooks[type] = this.hooks[type]!.filter(h => h.command !== command)
+      const initialLength = this.hooks[type]!.length;
+      this.hooks[type] = this.hooks[type]!.filter(h => h.command !== command);
 
       // Check if any hook was removed
       if (this.hooks[type]!.length === initialLength) {
-        return false
+        return false;
       }
 
       // Save to config file
-      this.saveHooksToConfig()
+      this.saveHooksToConfig();
 
-      return true
+      return true;
     }
     catch (error) {
-      console.error('[HookManager] Failed to unregister hook:', error)
-      return false
+      console.error('[HookManager] Failed to unregister hook:', error);
+      return false;
     }
   }
 
@@ -114,17 +114,17 @@ export class HookManager {
   async executeHooks(type: HookType, context: HookContext): Promise<HookExecutionResult[]> {
     // Check if hooks are enabled globally
     if (!this.enabled) {
-      return []
+      return [];
     }
 
     // Get hooks for this type
-    const hooksToExecute = this.hooks[type] || []
+    const hooksToExecute = this.hooks[type] || [];
 
     if (hooksToExecute.length === 0) {
-      return []
+      return [];
     }
 
-    const results: HookExecutionResult[] = []
+    const results: HookExecutionResult[] = [];
 
     // Execute hooks sequentially or asynchronously based on configuration
     for (const hook of hooksToExecute) {
@@ -132,27 +132,27 @@ export class HookManager {
       const hookWithDefaults: Hook = {
         ...hook,
         timeout: hook.timeout || this.defaultTimeout,
-      }
+      };
 
       if (hook.async) {
         // Execute asynchronously without waiting
-        hookExecutor.executeAsync(hookWithDefaults, context)
+        hookExecutor.executeAsync(hookWithDefaults, context);
         // Add placeholder result for async hooks
         results.push({
           success: true,
           hook: hookWithDefaults,
           executionTime: 0,
           stdout: 'Executed asynchronously',
-        })
+        });
       }
       else {
         // Execute synchronously and wait for result
-        const result = await hookExecutor.execute(hookWithDefaults, context)
-        results.push(result)
+        const result = await hookExecutor.execute(hookWithDefaults, context);
+        results.push(result);
       }
     }
 
-    return results
+    return results;
   }
 
   /**
@@ -160,7 +160,7 @@ export class HookManager {
    * @returns All hooks organized by type
    */
   getAllHooks(): HooksConfig {
-    return { ...this.hooks }
+    return { ...this.hooks };
   }
 
   /**
@@ -169,7 +169,7 @@ export class HookManager {
    * @returns Array of hooks for the specified type
    */
   getHooksByType(type: HookType): Hook[] {
-    return [...(this.hooks[type] || [])]
+    return [...(this.hooks[type] || [])];
   }
 
   /**
@@ -179,13 +179,13 @@ export class HookManager {
    */
   clearHooksByType(type: HookType): boolean {
     try {
-      this.hooks[type] = []
-      this.saveHooksToConfig()
-      return true
+      this.hooks[type] = [];
+      this.saveHooksToConfig();
+      return true;
     }
     catch (error) {
-      console.error('[HookManager] Failed to clear hooks:', error)
-      return false
+      console.error('[HookManager] Failed to clear hooks:', error);
+      return false;
     }
   }
 
@@ -195,13 +195,13 @@ export class HookManager {
    */
   clearAllHooks(): boolean {
     try {
-      this.hooks = {}
-      this.saveHooksToConfig()
-      return true
+      this.hooks = {};
+      this.saveHooksToConfig();
+      return true;
     }
     catch (error) {
-      console.error('[HookManager] Failed to clear all hooks:', error)
-      return false
+      console.error('[HookManager] Failed to clear all hooks:', error);
+      return false;
     }
   }
 
@@ -210,7 +210,7 @@ export class HookManager {
    * @param enabled - Whether to enable hooks
    */
   setEnabled(enabled: boolean): void {
-    this.enabled = enabled
+    this.enabled = enabled;
   }
 
   /**
@@ -218,7 +218,7 @@ export class HookManager {
    * @returns True if hooks are enabled
    */
   isEnabled(): boolean {
-    return this.enabled
+    return this.enabled;
   }
 
   /**
@@ -228,19 +228,19 @@ export class HookManager {
     try {
       if (!existsSync(this.configPath)) {
         // Initialize with empty config
-        this.hooks = {}
-        return
+        this.hooks = {};
+        return;
       }
 
-      const configContent = readFileSync(this.configPath, 'utf-8')
-      const config = JSON.parse(configContent) as HooksConfig
+      const configContent = readFileSync(this.configPath, 'utf-8');
+      const config = JSON.parse(configContent) as HooksConfig;
 
       // Validate and load hooks
-      this.hooks = this.validateHooksConfig(config)
+      this.hooks = this.validateHooksConfig(config);
     }
     catch (error) {
-      console.error('[HookManager] Failed to load hooks from config:', error)
-      this.hooks = {}
+      console.error('[HookManager] Failed to load hooks from config:', error);
+      this.hooks = {};
     }
   }
 
@@ -250,18 +250,18 @@ export class HookManager {
   private saveHooksToConfig(): void {
     try {
       // Ensure directory exists
-      const configDir = dirname(this.configPath)
+      const configDir = dirname(this.configPath);
       if (!existsSync(configDir)) {
-        mkdirSync(configDir, { recursive: true })
+        mkdirSync(configDir, { recursive: true });
       }
 
       // Write config file
-      const configContent = JSON.stringify(this.hooks, null, 2)
-      writeFileSync(this.configPath, configContent, 'utf-8')
+      const configContent = JSON.stringify(this.hooks, null, 2);
+      writeFileSync(this.configPath, configContent, 'utf-8');
     }
     catch (error) {
-      console.error('[HookManager] Failed to save hooks to config:', error)
-      throw error
+      console.error('[HookManager] Failed to save hooks to config:', error);
+      throw error;
     }
   }
 
@@ -271,7 +271,7 @@ export class HookManager {
    * @returns Validated configuration
    */
   private validateHooksConfig(config: any): HooksConfig {
-    const validatedConfig: HooksConfig = {}
+    const validatedConfig: HooksConfig = {};
 
     // Validate each hook type
     for (const type of Object.values(HookType)) {
@@ -283,12 +283,12 @@ export class HookManager {
             && typeof hook === 'object'
             && typeof hook.command === 'string'
             && hook.command.length > 0
-          )
-        })
+          );
+        });
       }
     }
 
-    return validatedConfig
+    return validatedConfig;
   }
 
   /**
@@ -296,14 +296,14 @@ export class HookManager {
    * @returns Path to hooks configuration file
    */
   getConfigPath(): string {
-    return this.configPath
+    return this.configPath;
   }
 }
 
 /**
  * Singleton instance of HookManager
  */
-export const hookManager = new HookManager()
+export const hookManager = new HookManager();
 
 // ============================================================================
 // Claude Code Compatible Output
@@ -317,28 +317,28 @@ export type ClaudeCodeHookEvent
   = | 'PreToolUse'
     | 'PostToolUse'
     | 'Notification'
-    | 'Stop'
+    | 'Stop';
 
 /**
  * Claude Code hook configuration format
  */
 export interface ClaudeCodeHook {
   /** Regex pattern to match tool names (for PreToolUse/PostToolUse) */
-  matcher?: string
+  matcher?: string;
   /** Shell commands to execute */
-  hooks: string[]
+  hooks: string[];
   /** Timeout in seconds */
-  timeout?: number
+  timeout?: number;
 }
 
 /**
  * Claude Code hooks configuration
  */
 export interface ClaudeCodeHooksConfig {
-  PreToolUse?: ClaudeCodeHook[]
-  PostToolUse?: ClaudeCodeHook[]
-  Notification?: ClaudeCodeHook[]
-  Stop?: ClaudeCodeHook[]
+  PreToolUse?: ClaudeCodeHook[];
+  PostToolUse?: ClaudeCodeHook[];
+  Notification?: ClaudeCodeHook[];
+  Stop?: ClaudeCodeHook[];
 }
 
 /**
@@ -351,48 +351,48 @@ const HOOK_TYPE_MAP: Record<HookType, ClaudeCodeHookEvent | null> = {
   [HookType.Error]: 'Notification',
   [HookType.SessionStart]: null, // No direct mapping
   [HookType.SessionEnd]: 'Stop',
-}
+};
 
 /**
  * Convert CCJK hooks to Claude Code format
  */
 export function convertToClaudeCodeHooks(ccjkHooks: HooksConfig): ClaudeCodeHooksConfig {
-  const claudeHooks: ClaudeCodeHooksConfig = {}
+  const claudeHooks: ClaudeCodeHooksConfig = {};
 
   for (const [type, hooks] of Object.entries(ccjkHooks)) {
     if (!hooks || hooks.length === 0)
-      continue
+      continue;
 
-    const claudeEvent = HOOK_TYPE_MAP[type as HookType]
+    const claudeEvent = HOOK_TYPE_MAP[type as HookType];
     if (!claudeEvent)
-      continue
+      continue;
 
     // Group hooks by their enabled status
-    const enabledHooks = hooks.filter((h: Hook) => h.enabled !== false)
+    const enabledHooks = hooks.filter((h: Hook) => h.enabled !== false);
     if (enabledHooks.length === 0)
-      continue
+      continue;
 
     // Create Claude Code hook entry
     const claudeHook: ClaudeCodeHook = {
       matcher: '.*', // Match all tools by default
       hooks: enabledHooks.map((h: Hook) => h.command),
-    }
+    };
 
     // Use the minimum timeout from all hooks (convert ms to seconds)
     const timeouts = enabledHooks
       .filter((h: Hook) => h.timeout)
-      .map((h: Hook) => Math.ceil((h.timeout || 5000) / 1000))
+      .map((h: Hook) => Math.ceil((h.timeout || 5000) / 1000));
     if (timeouts.length > 0) {
-      claudeHook.timeout = Math.min(...timeouts)
+      claudeHook.timeout = Math.min(...timeouts);
     }
 
     if (!claudeHooks[claudeEvent]) {
-      claudeHooks[claudeEvent] = []
+      claudeHooks[claudeEvent] = [];
     }
-    claudeHooks[claudeEvent]!.push(claudeHook)
+    claudeHooks[claudeEvent]!.push(claudeHook);
   }
 
-  return claudeHooks
+  return claudeHooks;
 }
 
 /**
@@ -400,14 +400,14 @@ export function convertToClaudeCodeHooks(ccjkHooks: HooksConfig): ClaudeCodeHook
  * Returns the hooks section for .claude/settings.json
  */
 export function exportHooksToClaudeCode(): ClaudeCodeHooksConfig {
-  return convertToClaudeCodeHooks(hookManager.getAllHooks())
+  return convertToClaudeCodeHooks(hookManager.getAllHooks());
 }
 
 /**
  * Get Claude Code settings path
  */
 export function getClaudeCodeSettingsPath(projectDir?: string): string {
-  return join(projectDir || process.cwd(), '.claude', 'settings.json')
+  return join(projectDir || process.cwd(), '.claude', 'settings.json');
 }
 
 /**
@@ -415,19 +415,19 @@ export function getClaudeCodeSettingsPath(projectDir?: string): string {
  * Merges with existing settings if present
  */
 export function writeHooksToClaudeCodeSettings(projectDir?: string): string {
-  const settingsPath = getClaudeCodeSettingsPath(projectDir)
-  const settingsDir = dirname(settingsPath)
+  const settingsPath = getClaudeCodeSettingsPath(projectDir);
+  const settingsDir = dirname(settingsPath);
 
   // Ensure directory exists
   if (!existsSync(settingsDir)) {
-    mkdirSync(settingsDir, { recursive: true })
+    mkdirSync(settingsDir, { recursive: true });
   }
 
   // Load existing settings if present
-  let existingSettings: Record<string, any> = {}
+  let existingSettings: Record<string, any> = {};
   if (existsSync(settingsPath)) {
     try {
-      existingSettings = JSON.parse(readFileSync(settingsPath, 'utf-8'))
+      existingSettings = JSON.parse(readFileSync(settingsPath, 'utf-8'));
     }
     catch {
       // Ignore parse errors, start fresh
@@ -435,11 +435,11 @@ export function writeHooksToClaudeCodeSettings(projectDir?: string): string {
   }
 
   // Convert and merge hooks
-  const claudeHooks = exportHooksToClaudeCode()
-  existingSettings.hooks = claudeHooks
+  const claudeHooks = exportHooksToClaudeCode();
+  existingSettings.hooks = claudeHooks;
 
   // Write settings
-  writeFileSync(settingsPath, JSON.stringify(existingSettings, null, 2), 'utf-8')
+  writeFileSync(settingsPath, JSON.stringify(existingSettings, null, 2), 'utf-8');
 
-  return settingsPath
+  return settingsPath;
 }

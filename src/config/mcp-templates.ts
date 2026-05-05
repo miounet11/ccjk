@@ -10,7 +10,7 @@
  * - Installation and health check commands
  */
 
-import type { McpServerConfig } from '../types/config'
+import type { McpServerConfig } from '../types/config';
 
 /**
  * MCP Service Template interface
@@ -18,55 +18,55 @@ import type { McpServerConfig } from '../types/config'
  */
 export interface McpServiceTemplate {
   /** Unique service identifier */
-  id: string
+  id: string;
 
   /** Service name in multiple languages */
   name: {
-    'en': string
-    'zh-CN': string
-  }
+    'en': string;
+    'zh-CN': string;
+  };
 
   /** Service description in multiple languages */
   description: {
-    'en': string
-    'zh-CN': string
-  }
+    'en': string;
+    'zh-CN': string;
+  };
 
   /** MCP server type */
-  type: 'stdio' | 'sse'
+  type: 'stdio' | 'sse';
 
   /** Command to execute the service */
-  command: string
+  command: string;
 
   /** Command line arguments */
-  args: string[]
+  args: string[];
 
   /** Environment variables */
-  env: Record<string, string>
+  env: Record<string, string>;
 
   /** Project types this service is required for */
-  requiredFor: string[]
+  requiredFor: string[];
 
   /** Project types this service is optional for */
-  optionalFor: string[]
+  optionalFor: string[];
 
   /** Command to check if service is installed */
-  installCheck: string
+  installCheck: string;
 
   /** Command to install the service */
-  installCommand: string
+  installCommand: string;
 
   /** Service category for organization */
-  category: 'language' | 'tooling' | 'testing' | 'git' | 'browser'
+  category: 'language' | 'tooling' | 'testing' | 'git' | 'browser';
 
   /** Platform compatibility */
-  platforms?: ('windows' | 'macos' | 'linux' | 'wsl' | 'termux')[]
+  platforms?: ('windows' | 'macos' | 'linux' | 'wsl' | 'termux')[];
 
   /** Whether GUI is required */
-  requiresGui?: boolean
+  requiresGui?: boolean;
 
   /** Additional required system commands */
-  requiredCommands?: string[]
+  requiredCommands?: string[];
 }
 
 /**
@@ -352,7 +352,7 @@ export const mcpServiceTemplates: Record<string, McpServiceTemplate> = {
     platforms: ['windows', 'macos', 'linux', 'wsl'],
     requiredCommands: ['node', 'npm'],
   },
-}
+};
 
 /**
  * Get MCP service template by ID
@@ -361,7 +361,7 @@ export const mcpServiceTemplates: Record<string, McpServiceTemplate> = {
  * @returns Service template or undefined if not found
  */
 export function getMcpServiceTemplate(id: string): McpServiceTemplate | undefined {
-  return mcpServiceTemplates[id]
+  return mcpServiceTemplates[id];
 }
 
 /**
@@ -370,7 +370,7 @@ export function getMcpServiceTemplate(id: string): McpServiceTemplate | undefine
  * @returns Array of all service templates
  */
 export function getAllMcpServiceTemplates(): McpServiceTemplate[] {
-  return Object.values(mcpServiceTemplates)
+  return Object.values(mcpServiceTemplates);
 }
 
 /**
@@ -382,7 +382,7 @@ export function getAllMcpServiceTemplates(): McpServiceTemplate[] {
 export function getMcpServiceTemplatesByCategory(
   category: McpServiceTemplate['category'],
 ): McpServiceTemplate[] {
-  return Object.values(mcpServiceTemplates).filter(template => template.category === category)
+  return Object.values(mcpServiceTemplates).filter(template => template.category === category);
 }
 
 /**
@@ -394,7 +394,7 @@ export function getMcpServiceTemplatesByCategory(
 export function getRequiredMcpServiceTemplates(projectType: string): McpServiceTemplate[] {
   return Object.values(mcpServiceTemplates).filter(template =>
     template.requiredFor.includes(projectType),
-  )
+  );
 }
 
 /**
@@ -406,7 +406,7 @@ export function getRequiredMcpServiceTemplates(projectType: string): McpServiceT
 export function getOptionalMcpServiceTemplates(projectType: string): McpServiceTemplate[] {
   return Object.values(mcpServiceTemplates).filter(template =>
     template.optionalFor.includes(projectType) || template.optionalFor.includes('all'),
-  )
+  );
 }
 
 /**
@@ -421,7 +421,7 @@ export function templateToMcpServerConfig(template: McpServiceTemplate): McpServ
     command: template.command,
     args: template.args,
     env: template.env,
-  }
+  };
 }
 
 /**
@@ -437,30 +437,30 @@ export function isTemplateCompatible(
 ): boolean {
   // If no platform restrictions, assume compatible
   if (!template.platforms || template.platforms.length === 0) {
-    return true
+    return true;
   }
 
   // Auto-detect platform if not provided
   if (!platform) {
-    const process = globalThis.process
+    const process = globalThis.process;
     if (!process)
-      return true // Browser environment, assume compatible
+      return true; // Browser environment, assume compatible
 
     const platformMap: Record<string, 'windows' | 'macos' | 'linux'> = {
       win32: 'windows',
       darwin: 'macos',
       linux: 'linux',
-    }
+    };
 
-    platform = platformMap[process.platform] || 'linux'
+    platform = platformMap[process.platform] || 'linux';
 
     // Check for WSL
     if (platform === 'linux' && process.env.WSL_DISTRO_NAME) {
-      platform = 'wsl'
+      platform = 'wsl';
     }
   }
 
-  return template.platforms.includes(platform)
+  return template.platforms.includes(platform);
 }
 
 /**
@@ -474,7 +474,7 @@ export function getCompatibleMcpServiceTemplates(
 ): McpServiceTemplate[] {
   return Object.values(mcpServiceTemplates).filter(template =>
     isTemplateCompatible(template, platform),
-  )
+  );
 }
 
 /**
@@ -501,7 +501,7 @@ export const MCP_SERVICE_CATEGORIES = {
     'en': 'Browser Automation',
     'zh-CN': '浏览器自动化',
   },
-} as const
+} as const;
 
 /**
  * Common project types for service recommendations
@@ -528,6 +528,6 @@ export const PROJECT_TYPES = [
   'backend',
   'frontend',
   'fullstack',
-] as const
+] as const;
 
-export type ProjectType = typeof PROJECT_TYPES[number]
+export type ProjectType = typeof PROJECT_TYPES[number];

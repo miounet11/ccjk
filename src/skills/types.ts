@@ -1,36 +1,36 @@
-import type { SupportedLang } from '../constants'
+import type { SupportedLang } from '../constants';
 
 /**
  * Skill category types
  */
-export type SkillCategory = 'git' | 'dev' | 'seo' | 'devops' | 'testing' | 'docs' | 'review' | 'debug' | 'planning' | 'custom'
+export type SkillCategory = 'git' | 'dev' | 'seo' | 'devops' | 'testing' | 'docs' | 'review' | 'debug' | 'planning' | 'custom';
 
 /**
  * Skill definition interface
  */
 export interface CcjkSkill {
   /** Unique skill identifier */
-  id: string
+  id: string;
   /** Localized skill name */
-  name: Record<SupportedLang, string>
+  name: Record<SupportedLang, string>;
   /** Localized skill description */
-  description: Record<SupportedLang, string>
+  description: Record<SupportedLang, string>;
   /** Skill category */
-  category: SkillCategory
+  category: SkillCategory;
   /** Command triggers (e.g., /ts-debug, /py-test) */
-  triggers: string[]
+  triggers: string[];
   /** Skill template content (markdown) */
-  template: string
+  template: string;
   /** Associated agent IDs */
-  agents?: string[]
+  agents?: string[];
   /** Whether skill is enabled */
-  enabled: boolean
+  enabled: boolean;
   /** Skill version */
-  version: string
+  version: string;
   /** Author information */
-  author?: string
+  author?: string;
   /** Tags for search/filtering */
-  tags?: string[]
+  tags?: string[];
 }
 
 /**
@@ -38,70 +38,70 @@ export interface CcjkSkill {
  */
 export interface BatchSkillOptions {
   /** Language-specific skills */
-  lang?: 'typescript' | 'python' | 'rust' | 'go' | 'java' | 'ruby'
+  lang?: 'typescript' | 'python' | 'rust' | 'go' | 'java' | 'ruby';
   /** Site-type specific skills */
-  site?: 'ecommerce' | 'saas' | 'blog' | 'api' | 'dashboard'
+  site?: 'ecommerce' | 'saas' | 'blog' | 'api' | 'dashboard';
   /** SEO skills */
-  seo?: boolean
+  seo?: boolean;
   /** DevOps skills */
-  devops?: boolean
+  devops?: boolean;
   /** Custom category */
-  customCategory?: string
+  customCategory?: string;
   /** Output directory */
-  outputDir?: string
+  outputDir?: string;
 }
 
 /**
  * Batch skill template definition
  */
 export interface BatchSkillTemplate {
-  category: SkillCategory
+  category: SkillCategory;
   skills: Array<{
-    id: string
-    name: Record<SupportedLang, string>
-    description: Record<SupportedLang, string>
-    triggers: string[]
-    templateFile: string
-    agents?: string[]
-    tags?: string[]
-  }>
+    id: string;
+    name: Record<SupportedLang, string>;
+    description: Record<SupportedLang, string>;
+    triggers: string[];
+    templateFile: string;
+    agents?: string[];
+    tags?: string[];
+  }>;
 }
 
 /**
  * Skill installation result
  */
 export interface SkillInstallResult {
-  skillId: string
-  success: boolean
-  path?: string
-  error?: string
+  skillId: string;
+  success: boolean;
+  path?: string;
+  error?: string;
 }
 
 /**
  * Skill registry state
  */
 export interface SkillRegistry {
-  skills: Map<string, CcjkSkill>
-  categories: Map<SkillCategory, string[]>
-  lastUpdated: Date
+  skills: Map<string, CcjkSkill>;
+  categories: Map<SkillCategory, string[]>;
+  lastUpdated: Date;
 }
 
 /**
  * Skill search options
  */
 export interface SkillSearchOptions {
-  query?: string
-  category?: SkillCategory
-  tags?: string[]
-  enabled?: boolean
-  limit?: number
+  query?: string;
+  category?: SkillCategory;
+  tags?: string[];
+  enabled?: boolean;
+  limit?: number;
 }
 
 /**
  * Skill export format
  */
 export interface SkillExport {
-  version: string
-  exportedAt: string
-  skills: CcjkSkill[]
+  version: string;
+  exportedAt: string;
+  skills: CcjkSkill[];
 }

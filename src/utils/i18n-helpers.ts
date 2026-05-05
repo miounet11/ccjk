@@ -5,12 +5,12 @@
  * @module utils/i18n-helpers
  */
 
-import type { SupportedLang } from '../constants'
+import type { SupportedLang } from '../constants';
 
 /**
  * Multilingual string type - can be a plain string or an object with language keys
  */
-export type MultilingualString = string | Record<string, string> | undefined
+export type MultilingualString = string | Record<string, string> | undefined;
 
 /**
  * Extract a string value from a multilingual object or plain string
@@ -40,43 +40,43 @@ export function extractString(
 ): string {
   // Handle undefined/null
   if (val === undefined || val === null) {
-    return fallback
+    return fallback;
   }
 
   // Handle plain string
   if (typeof val === 'string') {
-    return val || fallback
+    return val || fallback;
   }
 
   // Handle object with language keys
   if (typeof val === 'object') {
     // Try preferred language first
-    const preferred = val[preferredLang]
+    const preferred = val[preferredLang];
     if (typeof preferred === 'string' && preferred) {
-      return preferred
+      return preferred;
     }
 
     // Try common language keys
-    const en = val.en || val['en-US']
+    const en = val.en || val['en-US'];
     if (typeof en === 'string' && en) {
-      return en
+      return en;
     }
 
-    const zhCN = val['zh-CN'] || val.zh || val['zh-Hans']
+    const zhCN = val['zh-CN'] || val.zh || val['zh-Hans'];
     if (typeof zhCN === 'string' && zhCN) {
-      return zhCN
+      return zhCN;
     }
 
     // Try first available value
-    const values = Object.values(val)
+    const values = Object.values(val);
     for (const v of values) {
       if (typeof v === 'string' && v) {
-        return v
+        return v;
       }
     }
   }
 
-  return fallback
+  return fallback;
 }
 
 /**
@@ -95,7 +95,7 @@ export function extractDisplayName(
   isZh: boolean = false,
   fallback: string = 'Unknown',
 ): string {
-  return extractString(val, fallback, isZh ? 'zh-CN' : 'en')
+  return extractString(val, fallback, isZh ? 'zh-CN' : 'en');
 }
 
 /**
@@ -110,12 +110,12 @@ export function extractDisplayName(
 export function normalizeRecommendation<T extends Record<string, any>>(
   rec: T,
   preferredLang: SupportedLang = 'en',
-): T & { name: string, description: string } {
+): T & { name: string; description: string } {
   return {
     ...rec,
     name: extractString(rec.name, rec.id || 'Unknown', preferredLang),
     description: extractString(rec.description, 'No description available', preferredLang),
-  }
+  };
 }
 
 /**
@@ -128,6 +128,6 @@ export function normalizeRecommendation<T extends Record<string, any>>(
 export function normalizeRecommendations<T extends Record<string, any>>(
   recommendations: T[],
   preferredLang: SupportedLang = 'en',
-): Array<T & { name: string, description: string }> {
-  return recommendations.map(rec => normalizeRecommendation(rec, preferredLang))
+): Array<T & { name: string; description: string }> {
+  return recommendations.map(rec => normalizeRecommendation(rec, preferredLang));
 }

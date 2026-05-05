@@ -8,17 +8,17 @@
  * @module brain/skill-hot-reload
  */
 
-import type { FSWatcher } from 'chokidar'
-import type { SkillParseResult } from './skill-parser'
-import type { SkillRegistryEntry } from './skill-registry'
-import type { MessageType } from './types'
-import { EventEmitter } from 'node:events'
-import { homedir } from 'node:os'
-import chokidar from 'chokidar'
-import { basename, join } from 'pathe'
-import { getMessageBus } from './message-bus'
-import { getSkillParser, isSkillFile as isSkillFileCanonical } from './skill-parser'
-import { getSkillRegistry } from './skill-registry'
+import type { FSWatcher } from 'chokidar';
+import type { SkillParseResult } from './skill-parser';
+import type { SkillRegistryEntry } from './skill-registry';
+import type { MessageType } from './types';
+import { EventEmitter } from 'node:events';
+import { homedir } from 'node:os';
+import chokidar from 'chokidar';
+import { basename, join } from 'pathe';
+import { getMessageBus } from './message-bus';
+import { getSkillParser, isSkillFile as isSkillFileCanonical } from './skill-parser';
+import { getSkillRegistry } from './skill-registry';
 
 // ============================================================================
 // Types
@@ -33,35 +33,35 @@ export type HotReloadEventType
     | 'unlink' // Skill file removed
     | 'error' // Parse or watch error
     | 'ready' // Watcher ready
-    | 'raw' // Raw chokidar event
+    | 'raw'; // Raw chokidar event
 
 /**
  * Hot reload event payload
  */
 export interface HotReloadEvent {
   /** Event type */
-  type: HotReloadEventType
+  type: HotReloadEventType;
 
   /** File path */
-  filePath: string
+  filePath: string;
 
   /** Timestamp */
-  timestamp: number
+  timestamp: number;
 
   /** Skill entry (for add/change events) */
-  entry?: SkillRegistryEntry
+  entry?: SkillRegistryEntry;
 
   /** Parse result (for add/change events) */
-  parseResult?: SkillParseResult
+  parseResult?: SkillParseResult;
 
   /** Previous entry (for change events) */
-  previousEntry?: SkillRegistryEntry
+  previousEntry?: SkillRegistryEntry;
 
   /** Error message (for error events) */
-  error?: string
+  error?: string;
 
   /** Raw event data */
-  raw?: unknown
+  raw?: unknown;
 }
 
 /**
@@ -69,37 +69,37 @@ export interface HotReloadEvent {
  */
 export interface HotReloadOptions {
   /** Paths to watch for skill files */
-  watchPaths?: string[]
+  watchPaths?: string[];
 
   /** Whether to watch user's home directory skills */
-  watchHomeSkills?: boolean
+  watchHomeSkills?: boolean;
 
   /** Whether to watch current directory skills */
-  watchLocalSkills?: boolean
+  watchLocalSkills?: boolean;
 
   /** Whether to enable recursive watching */
-  recursive?: boolean
+  recursive?: boolean;
 
   /** Debounce delay for file changes (ms) */
-  debounceDelay?: number
+  debounceDelay?: number;
 
   /** Whether to ignore initial add events */
-  ignoreInitial?: boolean
+  ignoreInitial?: boolean;
 
   /** Custom ignore patterns */
-  ignored?: string | RegExp | (string | RegExp)[] | ((path: string) => boolean)
+  ignored?: string | RegExp | (string | RegExp)[] | ((path: string) => boolean);
 
   /** Whether to emit verbose logging */
-  verbose?: boolean
+  verbose?: boolean;
 
   /** Auto-register skills on add */
-  autoRegister?: boolean
+  autoRegister?: boolean;
 
   /** Auto-unregister skills on unlink */
-  autoUnregister?: boolean
+  autoUnregister?: boolean;
 
   /** Callback for hot reload events */
-  onEvent?: (event: HotReloadEvent) => void
+  onEvent?: (event: HotReloadEvent) => void;
 }
 
 /**
@@ -107,28 +107,28 @@ export interface HotReloadOptions {
  */
 export interface HotReloadStats {
   /** Number of files being watched */
-  watchedFiles: number
+  watchedFiles: number;
 
   /** Number of skills registered via hot reload */
-  registeredSkills: number
+  registeredSkills: number;
 
   /** Total number of add events processed */
-  totalAdds: number
+  totalAdds: number;
 
   /** Total number of change events processed */
-  totalChanges: number
+  totalChanges: number;
 
   /** Total number of unlink events processed */
-  totalUnlinks: number
+  totalUnlinks: number;
 
   /** Total number of errors */
-  totalErrors: number
+  totalErrors: number;
 
   /** Watcher state */
-  isWatching: boolean
+  isWatching: boolean;
 
   /** Last event timestamp */
-  lastEventAt?: number
+  lastEventAt?: number;
 }
 
 // ============================================================================
@@ -136,13 +136,13 @@ export interface HotReloadStats {
 // ============================================================================
 
 /** Default skill directory in user's home */
-const DEFAULT_HOME_SKILLS_DIR = join(homedir(), '.claude', 'skills')
+const DEFAULT_HOME_SKILLS_DIR = join(homedir(), '.claude', 'skills');
 
 /** Default local skills directory */
-const DEFAULT_LOCAL_SKILLS_DIR = '.claude/skills'
+const DEFAULT_LOCAL_SKILLS_DIR = '.claude/skills';
 
 /** Default debounce delay (300ms) */
-const DEFAULT_DEBOUNCE_DELAY = 300
+const DEFAULT_DEBOUNCE_DELAY = 300;
 
 /** Default ignore patterns */
 const DEFAULT_IGNORED = [
@@ -156,7 +156,7 @@ const DEFAULT_IGNORED = [
   /~$/, // Backup files
   /\.tmp$/i,
   /\.swp$/i,
-]
+];
 
 /** Valid skill file patterns */
 const SKILL_FILE_PATTERNS = [
@@ -165,7 +165,7 @@ const SKILL_FILE_PATTERNS = [
   '*.markdown',
   '**/SKILL.md',
   '**/skill.md',
-]
+];
 
 // ============================================================================
 // Skill Hot Reload Class
@@ -194,13 +194,13 @@ const SKILL_FILE_PATTERNS = [
  * ```
  */
 export class SkillHotReload extends EventEmitter {
-  private options: Required<Omit<HotReloadOptions, 'onEvent' | 'ignored'>>
-  private customIgnored: HotReloadOptions['ignored']
-  private watcher: FSWatcher | null = null
-  private debounceTimers: Map<string, NodeJS.Timeout> = new Map()
-  private parser = getSkillParser()
-  private registry = getSkillRegistry()
-  private messageBus = getMessageBus()
+  private options: Required<Omit<HotReloadOptions, 'onEvent' | 'ignored'>>;
+  private customIgnored: HotReloadOptions['ignored'];
+  private watcher: FSWatcher | null = null;
+  private debounceTimers: Map<string, NodeJS.Timeout> = new Map();
+  private parser = getSkillParser();
+  private registry = getSkillRegistry();
+  private messageBus = getMessageBus();
 
   private stats: HotReloadStats = {
     watchedFiles: 0,
@@ -210,10 +210,10 @@ export class SkillHotReload extends EventEmitter {
     totalUnlinks: 0,
     totalErrors: 0,
     isWatching: false,
-  }
+  };
 
   constructor(options: HotReloadOptions = {}) {
-    super()
+    super();
 
     // Apply defaults
     this.options = {
@@ -226,13 +226,13 @@ export class SkillHotReload extends EventEmitter {
       verbose: options.verbose ?? false,
       autoRegister: options.autoRegister ?? true,
       autoUnregister: options.autoUnregister ?? true,
-    }
+    };
 
-    this.customIgnored = options.ignored
+    this.customIgnored = options.ignored;
 
     // Register event callback if provided
     if (options.onEvent) {
-      this.on('event', options.onEvent)
+      this.on('event', options.onEvent);
     }
   }
 
@@ -241,22 +241,22 @@ export class SkillHotReload extends EventEmitter {
    */
   async start(): Promise<void> {
     if (this.watcher) {
-      this.log('Watcher already running')
-      return
+      this.log('Watcher already running');
+      return;
     }
 
-    this.log('Starting skill hot reload...')
+    this.log('Starting skill hot reload...');
 
     // Build watch paths
-    const watchPaths = this.buildWatchPaths()
+    const watchPaths = this.buildWatchPaths();
 
     if (watchPaths.length === 0) {
-      this.log('No paths to watch')
-      return
+      this.log('No paths to watch');
+      return;
     }
 
     // Build ignore patterns
-    const ignored = this.buildIgnorePatterns()
+    const ignored = this.buildIgnorePatterns();
 
     // Create watcher
     this.watcher = chokidar.watch(watchPaths, {
@@ -269,33 +269,33 @@ export class SkillHotReload extends EventEmitter {
         stabilityThreshold: 100,
         pollInterval: 50,
       },
-    })
+    });
 
     // Set up event handlers
-    this.setupWatchHandlers()
+    this.setupWatchHandlers();
 
     // Wait for watcher to be ready
     await new Promise<void>((resolve, reject) => {
       this.watcher!.on('ready', () => {
-        this.stats.isWatching = true
-        this.log('Watcher ready')
+        this.stats.isWatching = true;
+        this.log('Watcher ready');
         this.emitEvent({
           type: 'ready',
           filePath: '',
           timestamp: Date.now(),
-        })
-        resolve()
-      })
+        });
+        resolve();
+      });
 
       this.watcher!.on('error', (error) => {
-        this.log(`Watcher error: ${error}`, 'error')
-        reject(error)
-      })
-    })
+        this.log(`Watcher error: ${error}`, 'error');
+        reject(error);
+      });
+    });
 
     // Scan existing files if not ignoring initial
     if (!this.options.ignoreInitial) {
-      await this.scanExistingFiles(watchPaths)
+      await this.scanExistingFiles(watchPaths);
     }
   }
 
@@ -304,29 +304,29 @@ export class SkillHotReload extends EventEmitter {
    */
   async stop(): Promise<void> {
     if (!this.watcher) {
-      return
+      return;
     }
 
-    this.log('Stopping skill hot reload...')
+    this.log('Stopping skill hot reload...');
 
     // Clear debounce timers
-    Array.from(this.debounceTimers.values()).forEach(timer => clearTimeout(timer))
-    this.debounceTimers.clear()
+    Array.from(this.debounceTimers.values()).forEach(timer => clearTimeout(timer));
+    this.debounceTimers.clear();
 
     // Close watcher
-    await this.watcher.close()
-    this.watcher = null
-    this.stats.isWatching = false
+    await this.watcher.close();
+    this.watcher = null;
+    this.stats.isWatching = false;
 
-    this.log('Watcher stopped')
+    this.log('Watcher stopped');
   }
 
   /**
    * Restart the watcher
    */
   async restart(): Promise<void> {
-    await this.stop()
-    await this.start()
+    await this.stop();
+    await this.start();
   }
 
   /**
@@ -336,11 +336,11 @@ export class SkillHotReload extends EventEmitter {
    */
   addWatchPath(path: string): void {
     if (this.watcher) {
-      this.watcher.add(path)
-      this.log(`Added watch path: ${path}`)
+      this.watcher.add(path);
+      this.log(`Added watch path: ${path}`);
     }
     else {
-      this.options.watchPaths.push(path)
+      this.options.watchPaths.push(path);
     }
   }
 
@@ -351,13 +351,13 @@ export class SkillHotReload extends EventEmitter {
    */
   removeWatchPath(path: string): void {
     if (this.watcher) {
-      this.watcher.unwatch(path)
-      this.log(`Removed watch path: ${path}`)
+      this.watcher.unwatch(path);
+      this.log(`Removed watch path: ${path}`);
     }
     else {
-      const index = this.options.watchPaths.indexOf(path)
+      const index = this.options.watchPaths.indexOf(path);
       if (index > -1) {
-        this.options.watchPaths.splice(index, 1)
+        this.options.watchPaths.splice(index, 1);
       }
     }
   }
@@ -366,18 +366,18 @@ export class SkillHotReload extends EventEmitter {
    * Get hot reload statistics
    */
   getStats(): HotReloadStats {
-    return { ...this.stats }
+    return { ...this.stats };
   }
 
   /**
    * Get list of watched paths
    */
   getWatchedPaths(): string[] {
-    const watched = this.watcher?.getWatched()
+    const watched = this.watcher?.getWatched();
     // chokidar returns either string[] or Record<string, string[]>
     if (Array.isArray(watched))
-      return watched
-    return watched ? Object.values(watched).flat() : []
+      return watched;
+    return watched ? Object.values(watched).flat() : [];
   }
 
   /**
@@ -386,8 +386,8 @@ export class SkillHotReload extends EventEmitter {
    * @param filePath - Path to scan
    */
   async scanFile(filePath: string): Promise<void> {
-    this.log(`Scanning file: ${filePath}`)
-    await this.handleFileAdd(filePath)
+    this.log(`Scanning file: ${filePath}`);
+    await this.handleFileAdd(filePath);
   }
 
   // ==========================================================================
@@ -398,23 +398,23 @@ export class SkillHotReload extends EventEmitter {
    * Build list of paths to watch
    */
   private buildWatchPaths(): string[] {
-    const paths: string[] = []
+    const paths: string[] = [];
 
     // Add custom paths
-    paths.push(...this.options.watchPaths)
+    paths.push(...this.options.watchPaths);
 
     // Add home skills directory
     if (this.options.watchHomeSkills) {
-      paths.push(DEFAULT_HOME_SKILLS_DIR)
+      paths.push(DEFAULT_HOME_SKILLS_DIR);
     }
 
     // Add local skills directory
     if (this.options.watchLocalSkills) {
-      paths.push(DEFAULT_LOCAL_SKILLS_DIR)
+      paths.push(DEFAULT_LOCAL_SKILLS_DIR);
     }
 
-    this.log(`Watching ${paths.length} paths: ${paths.join(', ')}`)
-    return paths
+    this.log(`Watching ${paths.length} paths: ${paths.join(', ')}`);
+    return paths;
   }
 
   /**
@@ -423,18 +423,18 @@ export class SkillHotReload extends EventEmitter {
   private buildIgnorePatterns(): (string | RegExp | ((path: string) => boolean))[] {
     const patterns: (string | RegExp | ((path: string) => boolean))[] = [
       ...DEFAULT_IGNORED,
-    ]
+    ];
 
     if (this.customIgnored) {
       if (Array.isArray(this.customIgnored)) {
-        patterns.push(...this.customIgnored)
+        patterns.push(...this.customIgnored);
       }
       else {
-        patterns.push(this.customIgnored)
+        patterns.push(this.customIgnored);
       }
     }
 
-    return patterns
+    return patterns;
   }
 
   /**
@@ -442,32 +442,32 @@ export class SkillHotReload extends EventEmitter {
    */
   private setupWatchHandlers(): void {
     if (!this.watcher)
-      return
+      return;
 
     // File added
     this.watcher.on('add', (filePath) => {
-      this.debounce(filePath, 'add', () => this.handleFileAdd(filePath))
-    })
+      this.debounce(filePath, 'add', () => this.handleFileAdd(filePath));
+    });
 
     // File changed
     this.watcher.on('change', (filePath) => {
-      this.debounce(filePath, 'change', () => this.handleFileChange(filePath))
-    })
+      this.debounce(filePath, 'change', () => this.handleFileChange(filePath));
+    });
 
     // File removed
     this.watcher.on('unlink', (filePath) => {
-      this.debounce(filePath, 'unlink', () => this.handleFileUnlink(filePath))
-    })
+      this.debounce(filePath, 'unlink', () => this.handleFileUnlink(filePath));
+    });
 
     // Directory events
     this.watcher.on('addDir', (dirPath) => {
-      this.log(`Directory added: ${dirPath}`)
-      this.stats.watchedFiles++
-    })
+      this.log(`Directory added: ${dirPath}`);
+      this.stats.watchedFiles++;
+    });
 
     this.watcher.on('unlinkDir', (dirPath) => {
-      this.log(`Directory removed: ${dirPath}`)
-    })
+      this.log(`Directory removed: ${dirPath}`);
+    });
 
     // Raw event
     this.watcher.on('raw', (event, path, details) => {
@@ -476,8 +476,8 @@ export class SkillHotReload extends EventEmitter {
         filePath: path || '',
         timestamp: Date.now(),
         raw: { event, details },
-      })
-    })
+      });
+    });
   }
 
   /**
@@ -485,28 +485,28 @@ export class SkillHotReload extends EventEmitter {
    */
   private async handleFileAdd(filePath: string): Promise<void> {
     if (!this.isSkillFile(filePath))
-      return
+      return;
 
-    this.log(`Skill file added: ${filePath}`)
+    this.log(`Skill file added: ${filePath}`);
 
-    const parseResult = this.parser.parseFile(filePath)
+    const parseResult = this.parser.parseFile(filePath);
 
     if (!parseResult.success) {
-      this.stats.totalErrors++
+      this.stats.totalErrors++;
       this.emitEvent({
         type: 'error',
         filePath,
         timestamp: Date.now(),
         error: parseResult.error,
-      })
-      return
+      });
+      return;
     }
 
-    const skill = parseResult.skill!
-    const entry = this.registry.register(skill, this.getSkillSource(filePath))
+    const skill = parseResult.skill!;
+    const entry = this.registry.register(skill, this.getSkillSource(filePath));
 
-    this.stats.totalAdds++
-    this.stats.registeredSkills++
+    this.stats.totalAdds++;
+    this.stats.registeredSkills++;
 
     this.emitEvent({
       type: 'add',
@@ -514,9 +514,9 @@ export class SkillHotReload extends EventEmitter {
       timestamp: Date.now(),
       entry,
       parseResult,
-    })
+    });
 
-    this.publishMessage('skill:added' as MessageType, { entry, filePath })
+    this.publishMessage('skill:added' as MessageType, { entry, filePath });
   }
 
   /**
@@ -524,29 +524,29 @@ export class SkillHotReload extends EventEmitter {
    */
   private async handleFileChange(filePath: string): Promise<void> {
     if (!this.isSkillFile(filePath))
-      return
+      return;
 
-    this.log(`Skill file changed: ${filePath}`)
+    this.log(`Skill file changed: ${filePath}`);
 
-    const previousEntry = this.registry.getByPath(filePath)
+    const previousEntry = this.registry.getByPath(filePath);
 
-    const parseResult = this.parser.parseFile(filePath)
+    const parseResult = this.parser.parseFile(filePath);
 
     if (!parseResult.success) {
-      this.stats.totalErrors++
+      this.stats.totalErrors++;
       this.emitEvent({
         type: 'error',
         filePath,
         timestamp: Date.now(),
         error: parseResult.error,
-      })
-      return
+      });
+      return;
     }
 
-    const skill = parseResult.skill!
-    const entry = this.registry.register(skill, this.getSkillSource(filePath))
+    const skill = parseResult.skill!;
+    const entry = this.registry.register(skill, this.getSkillSource(filePath));
 
-    this.stats.totalChanges++
+    this.stats.totalChanges++;
 
     this.emitEvent({
       type: 'change',
@@ -555,9 +555,9 @@ export class SkillHotReload extends EventEmitter {
       entry,
       parseResult,
       previousEntry: previousEntry || undefined,
-    })
+    });
 
-    this.publishMessage('skill:changed' as MessageType, { entry, previousEntry, filePath })
+    this.publishMessage('skill:changed' as MessageType, { entry, previousEntry, filePath });
   }
 
   /**
@@ -565,27 +565,27 @@ export class SkillHotReload extends EventEmitter {
    */
   private async handleFileUnlink(filePath: string): Promise<void> {
     if (!this.isSkillFile(filePath))
-      return
+      return;
 
-    this.log(`Skill file removed: ${filePath}`)
+    this.log(`Skill file removed: ${filePath}`);
 
-    const entry = this.registry.getByPath(filePath)
+    const entry = this.registry.getByPath(filePath);
 
     if (this.options.autoUnregister) {
-      this.registry.unregisterByPath(filePath)
+      this.registry.unregisterByPath(filePath);
     }
 
-    this.stats.totalUnlinks++
+    this.stats.totalUnlinks++;
 
     this.emitEvent({
       type: 'unlink',
       filePath,
       timestamp: Date.now(),
       entry: entry || undefined,
-    })
+    });
 
     if (entry) {
-      this.publishMessage('skill:removed' as MessageType, { entry, filePath })
+      this.publishMessage('skill:removed' as MessageType, { entry, filePath });
     }
   }
 
@@ -593,26 +593,26 @@ export class SkillHotReload extends EventEmitter {
    * Scan existing files in watch paths
    */
   private async scanExistingFiles(watchPaths: string[]): Promise<void> {
-    this.log('Scanning existing files...')
+    this.log('Scanning existing files...');
 
-    const { glob } = await import('tinyglobby')
+    const { glob } = await import('tinyglobby');
 
     for (const basePath of watchPaths) {
       try {
         const files = await glob(SKILL_FILE_PATTERNS, {
           cwd: basePath,
           absolute: true,
-        })
+        });
 
-        this.log(`Found ${files.length} skill files in ${basePath}`)
+        this.log(`Found ${files.length} skill files in ${basePath}`);
 
         for (const filePath of files) {
-          await this.handleFileAdd(filePath)
+          await this.handleFileAdd(filePath);
         }
       }
       catch (error) {
-        const errorMsg = error instanceof Error ? error.message : String(error)
-        this.log(`Error scanning ${basePath}: ${errorMsg}`, 'error')
+        const errorMsg = error instanceof Error ? error.message : String(error);
+        this.log(`Error scanning ${basePath}: ${errorMsg}`, 'error');
       }
     }
   }
@@ -626,26 +626,26 @@ export class SkillHotReload extends EventEmitter {
     handler: () => Promise<void>,
   ): void {
     // Clear existing timer for this file
-    const existingTimer = this.debounceTimers.get(filePath)
+    const existingTimer = this.debounceTimers.get(filePath);
     if (existingTimer) {
-      clearTimeout(existingTimer)
+      clearTimeout(existingTimer);
     }
 
     // Set new timer
     const timer = setTimeout(async () => {
       try {
-        await handler()
+        await handler();
       }
       catch (error) {
-        const errorMsg = error instanceof Error ? error.message : String(error)
-        this.log(`Error handling ${type} event for ${filePath}: ${errorMsg}`, 'error')
+        const errorMsg = error instanceof Error ? error.message : String(error);
+        this.log(`Error handling ${type} event for ${filePath}: ${errorMsg}`, 'error');
       }
       finally {
-        this.debounceTimers.delete(filePath)
+        this.debounceTimers.delete(filePath);
       }
-    }, this.options.debounceDelay)
+    }, this.options.debounceDelay);
 
-    this.debounceTimers.set(filePath, timer)
+    this.debounceTimers.set(filePath, timer);
   }
 
   /**
@@ -657,16 +657,16 @@ export class SkillHotReload extends EventEmitter {
   private isSkillFile(filePath: string): boolean {
     // First check using canonical implementation
     if (isSkillFileCanonical(filePath)) {
-      return true
+      return true;
     }
 
     // Additional check: .md files in skills directory
-    const fileBasename = basename(filePath)
+    const fileBasename = basename(filePath);
     if (filePath.includes('/skills/') || filePath.includes('\\skills\\')) {
-      return fileBasename.endsWith('.md')
+      return fileBasename.endsWith('.md');
     }
 
-    return false
+    return false;
   }
 
   /**
@@ -674,27 +674,27 @@ export class SkillHotReload extends EventEmitter {
    */
   private getSkillSource(filePath: string): 'builtin' | 'user' | 'marketplace' {
     if (filePath.includes('.claude/skills') || filePath.includes('node_modules')) {
-      return 'builtin'
+      return 'builtin';
     }
     if (filePath.includes(homedir())) {
-      return 'user'
+      return 'user';
     }
-    return 'user'
+    return 'user';
   }
 
   /**
    * Emit hot reload event
    */
   private emitEvent(event: HotReloadEvent): void {
-    this.stats.lastEventAt = event.timestamp
+    this.stats.lastEventAt = event.timestamp;
 
     // Emit typed events
-    this.emit(event.type, event)
-    this.emit('event', event)
+    this.emit(event.type, event);
+    this.emit('event', event);
 
     // Log if verbose
     if (this.options.verbose) {
-      this.log(`Event: ${event.type} - ${event.filePath || '(system)'}`)
+      this.log(`Event: ${event.type} - ${event.filePath || '(system)'}`);
     }
   }
 
@@ -709,24 +709,24 @@ export class SkillHotReload extends EventEmitter {
       `Skill hot reload: ${type}`,
       payload,
       { priority: 'normal' },
-    ).catch(console.error)
+    ).catch(console.error);
   }
 
   /**
    * Log message
    */
   private log(message: string, level: 'info' | 'warn' | 'error' = 'info'): void {
-    const prefix = '[SkillHotReload]'
+    const prefix = '[SkillHotReload]';
     switch (level) {
       case 'warn':
-        console.warn(prefix, message)
-        break
+        console.warn(prefix, message);
+        break;
       case 'error':
-        console.error(prefix, message)
-        break
+        console.error(prefix, message);
+        break;
       default:
         if (this.options.verbose) {
-          console.log(prefix, message)
+          console.log(prefix, message);
         }
     }
   }
@@ -738,41 +738,41 @@ export class SkillHotReload extends EventEmitter {
 
 export interface SkillHotReloadEvents {
   /** New skill file added */
-  add: (event: HotReloadEvent) => void
+  add: (event: HotReloadEvent) => void;
 
   /** Skill file modified */
-  change: (event: HotReloadEvent) => void
+  change: (event: HotReloadEvent) => void;
 
   /** Skill file removed */
-  unlink: (event: HotReloadEvent) => void
+  unlink: (event: HotReloadEvent) => void;
 
   /** Parse or watch error */
-  error: (event: HotReloadEvent) => void
+  error: (event: HotReloadEvent) => void;
 
   /** Watcher ready */
-  ready: (event: HotReloadEvent) => void
+  ready: (event: HotReloadEvent) => void;
 
   /** Raw chokidar event */
-  raw: (event: HotReloadEvent) => void
+  raw: (event: HotReloadEvent) => void;
 
   /** Any hot reload event */
-  event: (event: HotReloadEvent) => void
+  event: (event: HotReloadEvent) => void;
 }
 
 // ============================================================================
 // Singleton Instance
 // ============================================================================
 
-let hotReloadInstance: SkillHotReload | null = null
+let hotReloadInstance: SkillHotReload | null = null;
 
 /**
  * Get the singleton SkillHotReload instance
  */
 export function getSkillHotReload(options?: HotReloadOptions): SkillHotReload {
   if (!hotReloadInstance) {
-    hotReloadInstance = new SkillHotReload(options)
+    hotReloadInstance = new SkillHotReload(options);
   }
-  return hotReloadInstance
+  return hotReloadInstance;
 }
 
 /**
@@ -780,9 +780,9 @@ export function getSkillHotReload(options?: HotReloadOptions): SkillHotReload {
  */
 export async function resetSkillHotReload(): Promise<void> {
   if (hotReloadInstance) {
-    await hotReloadInstance.stop()
-    hotReloadInstance.removeAllListeners()
-    hotReloadInstance = null
+    await hotReloadInstance.stop();
+    hotReloadInstance.removeAllListeners();
+    hotReloadInstance = null;
   }
 }
 
@@ -790,7 +790,7 @@ export async function resetSkillHotReload(): Promise<void> {
  * Create a new SkillHotReload instance with custom options
  */
 export function createSkillHotReload(options: HotReloadOptions): SkillHotReload {
-  return new SkillHotReload(options)
+  return new SkillHotReload(options);
 }
 
 // ============================================================================
@@ -804,16 +804,16 @@ export function createSkillHotReload(options: HotReloadOptions): SkillHotReload 
  * @returns Hot reload instance
  */
 export async function startSkillHotReload(options?: HotReloadOptions): Promise<SkillHotReload> {
-  const hotReload = getSkillHotReload(options)
-  await hotReload.start()
-  return hotReload
+  const hotReload = getSkillHotReload(options);
+  await hotReload.start();
+  return hotReload;
 }
 
 /**
  * Stop skill hot reload
  */
 export async function stopSkillHotReload(): Promise<void> {
-  await resetSkillHotReload()
+  await resetSkillHotReload();
 }
 
 /**
@@ -822,5 +822,5 @@ export async function stopSkillHotReload(): Promise<void> {
  * @returns Current statistics
  */
 export function getSkillHotReloadStats(): HotReloadStats {
-  return getSkillHotReload().getStats()
+  return getSkillHotReload().getStats();
 }

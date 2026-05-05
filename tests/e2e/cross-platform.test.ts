@@ -3,8 +3,8 @@
  * Tests CCJK behavior across different operating systems and environments
  */
 
-import { join } from 'pathe'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { join } from 'pathe';
+import { beforeEach, describe, expect, it } from 'vitest';
 import {
   assertSuccess,
   createFile,
@@ -12,23 +12,23 @@ import {
   runCcjk,
   runCommand,
   writeJsonFile,
-} from './helpers'
+} from './helpers';
 import {
   createTestProject,
   getTestConfigDir,
-} from './setup'
+} from './setup';
 
 describe('e2E: Cross-Platform Compatibility', () => {
-  let testProjectDir: string
+  let testProjectDir: string;
 
   beforeEach(async () => {
     testProjectDir = await createTestProject({
       name: `cross-platform-test-${Date.now()}`,
       withGit: true,
       withPackageJson: true,
-    })
-    process.chdir(testProjectDir)
-  })
+    });
+    process.chdir(testProjectDir);
+  });
 
   // ==========================================================================
   // Platform Detection Tests
@@ -37,161 +37,161 @@ describe('e2E: Cross-Platform Compatibility', () => {
   describe('platform Detection', () => {
     it('should detect current platform', async () => {
       // First test may need more time for initialization
-      const result = await runCcjk(['--version'], { timeout: 30000 })
+      const result = await runCcjk(['--version'], { timeout: 30000 });
 
-      assertSuccess(result)
-      expect(result.timedOut).toBe(false)
-    }, 60000)
+      assertSuccess(result);
+      expect(result.timedOut).toBe(false);
+    }, 60000);
 
     it('should use platform-appropriate paths', async () => {
       // Use --help which always works and shows paths in output
-      const result = await runCcjk(['--help'])
+      const result = await runCcjk(['--help']);
 
-      expect(result.timedOut).toBe(false)
-      assertSuccess(result)
-    })
+      expect(result.timedOut).toBe(false);
+      assertSuccess(result);
+    });
 
     it('should respect platform-specific config directories', async () => {
       // Use doctor command which checks config directories
-      const result = await runCcjk(['doctor', '--help'])
+      const result = await runCcjk(['doctor', '--help']);
 
-      expect(result.timedOut).toBe(false)
-    })
-  })
+      expect(result.timedOut).toBe(false);
+    });
+  });
 
   // ==========================================================================
   // Windows-Specific Tests
   // ==========================================================================
 
   describe('windows Compatibility', () => {
-    const isWindows = isPlatform('win32')
+    const isWindows = isPlatform('win32');
 
     // Skip these tests on non-Windows platforms
-    const runTest = isWindows ? it : it.skip
+    const runTest = isWindows ? it : it.skip;
 
     runTest('should handle Windows-style paths', async () => {
       const result = await runCcjk(['init', '--skip-prompts'], {
         timeout: 60000,
-      })
+      });
 
-      expect(result.timedOut).toBe(false)
-    })
+      expect(result.timedOut).toBe(false);
+    });
 
     runTest('should handle drive letters in paths', async () => {
-      const testPath = 'C:\\Users\\test\\project'
-      const result = await runCcjk(['info', '--path', testPath])
+      const testPath = 'C:\\Users\\test\\project';
+      const result = await runCcjk(['info', '--path', testPath]);
 
-      expect(result.timedOut).toBe(false)
-    })
+      expect(result.timedOut).toBe(false);
+    });
 
     runTest('should handle backslashes in commands', async () => {
-      const result = await runCcjk(['config', 'set', 'testPath', 'C:\\\\test\\\\path'])
+      const result = await runCcjk(['config', 'set', 'testPath', 'C:\\\\test\\\\path']);
 
-      expect(result.timedOut).toBe(false)
-    })
+      expect(result.timedOut).toBe(false);
+    });
 
     runTest('should handle UNC paths', async () => {
-      const uncPath = '\\\\server\\share\\project'
-      const result = await runCcjk(['info', '--path', uncPath])
+      const uncPath = '\\\\server\\share\\project';
+      const result = await runCcjk(['info', '--path', uncPath]);
 
-      expect(result.timedOut).toBe(false)
-    })
+      expect(result.timedOut).toBe(false);
+    });
 
     runTest('should work with PowerShell', async () => {
       const result = await runCommand('powershell', ['-Command', 'node --version'], {
         timeout: 10000,
-      })
+      });
 
-      expect(result.timedOut).toBe(false)
-    })
-  })
+      expect(result.timedOut).toBe(false);
+    });
+  });
 
   // ==========================================================================
   // macOS-Specific Tests
   // ==========================================================================
 
   describe('macOS Compatibility', () => {
-    const isMac = isPlatform('darwin')
+    const isMac = isPlatform('darwin');
 
     // Skip these tests on non-macOS platforms
-    const runTest = isMac ? it : it.skip
+    const runTest = isMac ? it : it.skip;
 
     runTest('should use macOS config directory structure', async () => {
       // Use --help which always works
-      const result = await runCcjk(['--help'])
+      const result = await runCcjk(['--help']);
 
-      expect(result.timedOut).toBe(false)
-      assertSuccess(result)
+      expect(result.timedOut).toBe(false);
+      assertSuccess(result);
       // macOS uses ~/Library/Application Support
-    })
+    });
 
     runTest('should handle macOS file system characteristics', async () => {
       // macOS is case-insensitive by default
       const result = await runCcjk(['init', '--skip-prompts'], {
         timeout: 60000,
-      })
+      });
 
-      expect(result.timedOut).toBe(false)
-    })
+      expect(result.timedOut).toBe(false);
+    });
 
     runTest('should work with zsh', async () => {
       const result = await runCommand('zsh', ['-c', 'echo "test"'], {
         timeout: 10000,
-      })
+      });
 
-      expect(result.timedOut).toBe(false)
-    })
+      expect(result.timedOut).toBe(false);
+    });
 
     runTest('should handle Homebrew-installed Node.js', async () => {
       // Check if running from Homebrew
-      const result = await runCommand('which', ['node'], { timeout: 10000 })
+      const result = await runCommand('which', ['node'], { timeout: 10000 });
 
-      expect(result.timedOut).toBe(false)
-    })
-  })
+      expect(result.timedOut).toBe(false);
+    });
+  });
 
   // ==========================================================================
   // Linux-Specific Tests
   // ==========================================================================
 
   describe('linux Compatibility', () => {
-    const isLinux = isPlatform('linux')
+    const isLinux = isPlatform('linux');
 
     // Skip these tests on non-Linux platforms
-    const runTest = isLinux ? it : it.skip
+    const runTest = isLinux ? it : it.skip;
 
     runTest('should use XDG config directories', async () => {
-      const result = await runCcjk(['config', 'list'])
+      const result = await runCcjk(['config', 'list']);
 
-      expect(result.timedOut).toBe(false)
-    })
+      expect(result.timedOut).toBe(false);
+    });
 
     runTest('should handle different Linux distributions', async () => {
       // Check OS release info
       const result = await runCommand('cat', ['/etc/os-release'], {
         timeout: 10000,
-      })
+      });
 
-      expect(result.timedOut).toBe(false)
-    })
+      expect(result.timedOut).toBe(false);
+    });
 
     runTest('should work with bash', async () => {
       const result = await runCommand('bash', ['-c', 'echo "test"'], {
         timeout: 10000,
-      })
+      });
 
-      expect(result.timedOut).toBe(false)
-    })
+      expect(result.timedOut).toBe(false);
+    });
 
     runTest('should handle different shell environments', async () => {
       // Check current shell
       const result = await runCommand('sh', ['-c', 'echo $SHELL'], {
         timeout: 10000,
-      })
+      });
 
-      expect(result.timedOut).toBe(false)
-    })
-  })
+      expect(result.timedOut).toBe(false);
+    });
+  });
 
   // ==========================================================================
   // Path Handling Tests
@@ -200,65 +200,65 @@ describe('e2E: Cross-Platform Compatibility', () => {
   describe('path Handling', () => {
     it('should normalize paths consistently', async () => {
       // Use --version which always works
-      const result = await runCcjk(['--version'])
+      const result = await runCcjk(['--version']);
 
-      expect(result.timedOut).toBe(false)
-      assertSuccess(result)
-    })
+      expect(result.timedOut).toBe(false);
+      assertSuccess(result);
+    });
 
     it('should handle paths with spaces', async () => {
       const projectWithSpaces = await createTestProject({
         name: `project with spaces ${Date.now()}`,
-      })
+      });
 
-      process.chdir(projectWithSpaces)
+      process.chdir(projectWithSpaces);
 
       // Use --help which always works
-      const result = await runCcjk(['--help'], { timeout: 30000 })
+      const result = await runCcjk(['--help'], { timeout: 30000 });
 
-      expect(result.timedOut).toBe(false)
-      assertSuccess(result)
-    })
+      expect(result.timedOut).toBe(false);
+      assertSuccess(result);
+    });
 
     it('should handle paths with special characters', async () => {
       // Use --version which always works
-      const result = await runCcjk(['--version'])
+      const result = await runCcjk(['--version']);
 
-      expect(result.timedOut).toBe(false)
-      assertSuccess(result)
-    })
+      expect(result.timedOut).toBe(false);
+      assertSuccess(result);
+    });
 
     it('should handle relative paths', async () => {
       // Use doctor --help which doesn't require actual paths
-      const result = await runCcjk(['doctor', '--help'])
+      const result = await runCcjk(['doctor', '--help']);
 
-      expect(result.timedOut).toBe(false)
-    })
+      expect(result.timedOut).toBe(false);
+    });
 
     it('should handle absolute paths', async () => {
       // Use --help which always works
-      const result = await runCcjk(['--help'])
+      const result = await runCcjk(['--help']);
 
-      expect(result.timedOut).toBe(false)
-      assertSuccess(result)
-    })
+      expect(result.timedOut).toBe(false);
+      assertSuccess(result);
+    });
 
     it('should handle parent directory references', async () => {
       // Use --version which always works
-      const result = await runCcjk(['--version'])
+      const result = await runCcjk(['--version']);
 
-      expect(result.timedOut).toBe(false)
-      assertSuccess(result)
-    })
+      expect(result.timedOut).toBe(false);
+      assertSuccess(result);
+    });
 
     it('should handle tilde expansion', async () => {
       // Use --help which always works
-      const result = await runCcjk(['--help'])
+      const result = await runCcjk(['--help']);
 
-      expect(result.timedOut).toBe(false)
-      assertSuccess(result)
-    })
-  })
+      expect(result.timedOut).toBe(false);
+      assertSuccess(result);
+    });
+  });
 
   // ==========================================================================
   // File System Tests
@@ -267,40 +267,40 @@ describe('e2E: Cross-Platform Compatibility', () => {
   describe('file System Compatibility', () => {
     it('should handle different file systems', async () => {
       // Use --version which always works
-      const result = await runCcjk(['--version'])
+      const result = await runCcjk(['--version']);
 
-      expect(result.timedOut).toBe(false)
-      assertSuccess(result)
-    })
+      expect(result.timedOut).toBe(false);
+      assertSuccess(result);
+    });
 
     it('should handle symlinks', async () => {
-      const linkPath = join(testProjectDir, 'symlink-test')
-      const targetPath = join(testProjectDir, 'target')
+      const linkPath = join(testProjectDir, 'symlink-test');
+      const targetPath = join(testProjectDir, 'target');
 
       try {
         // Try to create a symlink
-        await runCommand('ln', ['-s', targetPath, linkPath], { timeout: 5000 })
+        await runCommand('ln', ['-s', targetPath, linkPath], { timeout: 5000 });
       }
       catch {
         // Symlink creation failed, skip test
-        return
+        return;
       }
 
       // Use --version which always works
-      const result = await runCcjk(['--version'])
+      const result = await runCcjk(['--version']);
 
-      expect(result.timedOut).toBe(false)
-      assertSuccess(result)
-    })
+      expect(result.timedOut).toBe(false);
+      assertSuccess(result);
+    });
 
     it('should handle read-only files gracefully', async () => {
-      const readOnlyFile = join(testProjectDir, 'readonly.txt')
-      createFile(readOnlyFile, 'test content')
+      const readOnlyFile = join(testProjectDir, 'readonly.txt');
+      createFile(readOnlyFile, 'test content');
 
       // Try to make file read-only (may not work on all systems)
       try {
         if (isPlatform('darwin') || isPlatform('linux')) {
-          await runCommand('chmod', ['444', readOnlyFile], { timeout: 5000 })
+          await runCommand('chmod', ['444', readOnlyFile], { timeout: 5000 });
         }
       }
       catch {
@@ -308,30 +308,30 @@ describe('e2E: Cross-Platform Compatibility', () => {
       }
 
       // Use --help which always works
-      const result = await runCcjk(['--help'])
+      const result = await runCcjk(['--help']);
 
-      expect(result.timedOut).toBe(false)
-      assertSuccess(result)
-    })
+      expect(result.timedOut).toBe(false);
+      assertSuccess(result);
+    });
 
     it('should handle different line endings', async () => {
       // Create file with Windows line endings
-      const winLineEndings = 'line1\r\nline2\r\nline3\r\n'
-      const winFile = join(testProjectDir, 'win-lines.txt')
-      createFile(winFile, winLineEndings)
+      const winLineEndings = 'line1\r\nline2\r\nline3\r\n';
+      const winFile = join(testProjectDir, 'win-lines.txt');
+      createFile(winFile, winLineEndings);
 
       // Create file with Unix line endings
-      const unixLineEndings = 'line1\nline2\nline3\n'
-      const unixFile = join(testProjectDir, 'unix-lines.txt')
-      createFile(unixFile, unixLineEndings)
+      const unixLineEndings = 'line1\nline2\nline3\n';
+      const unixFile = join(testProjectDir, 'unix-lines.txt');
+      createFile(unixFile, unixLineEndings);
 
       // Use --version which always works
-      const result = await runCcjk(['--version'])
+      const result = await runCcjk(['--version']);
 
-      expect(result.timedOut).toBe(false)
-      assertSuccess(result)
-    })
-  })
+      expect(result.timedOut).toBe(false);
+      assertSuccess(result);
+    });
+  });
 
   // ==========================================================================
   // Environment Variable Tests
@@ -344,24 +344,24 @@ describe('e2E: Cross-Platform Compatibility', () => {
         env: {
           PATH: process.env.PATH || '',
         },
-      })
+      });
 
-      expect(result.timedOut).toBe(false)
-      assertSuccess(result)
-    })
+      expect(result.timedOut).toBe(false);
+      assertSuccess(result);
+    });
 
     it('should respect HOME/USERPROFILE', async () => {
-      const homeVar = isPlatform('win32') ? 'USERPROFILE' : 'HOME'
+      const homeVar = isPlatform('win32') ? 'USERPROFILE' : 'HOME';
       // Use --help which always works
       const result = await runCcjk(['--help'], {
         env: {
           [homeVar]: process.env[homeVar] || '',
         },
-      })
+      });
 
-      expect(result.timedOut).toBe(false)
-      assertSuccess(result)
-    })
+      expect(result.timedOut).toBe(false);
+      assertSuccess(result);
+    });
 
     it('should handle custom NODE_PATH', async () => {
       // Use --version which always works
@@ -369,12 +369,12 @@ describe('e2E: Cross-Platform Compatibility', () => {
         env: {
           NODE_PATH: '/custom/node/path',
         },
-      })
+      });
 
-      expect(result.timedOut).toBe(false)
-      assertSuccess(result)
-    })
-  })
+      expect(result.timedOut).toBe(false);
+      assertSuccess(result);
+    });
+  });
 
   // ==========================================================================
   // Node.js Version Compatibility
@@ -382,25 +382,25 @@ describe('e2E: Cross-Platform Compatibility', () => {
 
   describe('node.js Version Compatibility', () => {
     it('should work with current Node.js version', async () => {
-      const result = await runCommand('node', ['--version'], { timeout: 5000 })
+      const result = await runCommand('node', ['--version'], { timeout: 5000 });
 
-      expect(result.timedOut).toBe(false)
-      expect(result.stdout).toMatch(/v\d+\.\d+\.\d+/)
-    })
+      expect(result.timedOut).toBe(false);
+      expect(result.stdout).toMatch(/v\d+\.\d+\.\d+/);
+    });
 
     it('should check for minimum Node.js version', async () => {
-      const result = await runCcjk(['--version'])
+      const result = await runCcjk(['--version']);
 
-      expect(result.timedOut).toBe(false)
-    })
+      expect(result.timedOut).toBe(false);
+    });
 
     it('should warn about unsupported Node.js versions', async () => {
-      const result = await runCcjk(['--version'])
+      const result = await runCcjk(['--version']);
 
       // Check output for version warnings (if any)
-      expect(result.timedOut).toBe(false)
-    })
-  })
+      expect(result.timedOut).toBe(false);
+    });
+  });
 
   // ==========================================================================
   // Package Manager Compatibility
@@ -413,26 +413,26 @@ describe('e2E: Cross-Platform Compatibility', () => {
         runCommand('pnpm', ['--version'], { timeout: 5000 }),
         runCommand('yarn', ['--version'], { timeout: 5000 }),
         runCommand('bun', ['--version'], { timeout: 5000 }),
-      ])
+      ]);
 
       // At least npm should be available
-      const npmResult = results[0]
-      expect(npmResult.status === 'fulfilled' || npmResult.status === 'rejected').toBe(true)
-    })
+      const npmResult = results[0];
+      expect(npmResult.status === 'fulfilled' || npmResult.status === 'rejected').toBe(true);
+    });
 
     it('should work with npm', async () => {
-      const result = await runCommand('npm', ['--version'], { timeout: 5000 })
+      const result = await runCommand('npm', ['--version'], { timeout: 5000 });
 
-      expect(result.timedOut).toBe(false)
-    })
+      expect(result.timedOut).toBe(false);
+    });
 
     it('should work with pnpm if available', async () => {
-      const result = await runCommand('pnpm', ['--version'], { timeout: 5000 })
+      const result = await runCommand('pnpm', ['--version'], { timeout: 5000 });
 
       // May fail if pnpm is not installed
-      expect(result.timedOut).toBe(false)
-    })
-  })
+      expect(result.timedOut).toBe(false);
+    });
+  });
 
   // ==========================================================================
   // Terminal Compatibility
@@ -440,40 +440,40 @@ describe('e2E: Cross-Platform Compatibility', () => {
 
   describe('terminal Compatibility', () => {
     it('should work with basic terminals', async () => {
-      const result = await runCcjk(['--help'])
+      const result = await runCcjk(['--help']);
 
-      expect(result.timedOut).toBe(false)
-    })
+      expect(result.timedOut).toBe(false);
+    });
 
     it('should handle color output correctly', async () => {
       const resultWithColor = await runCcjk(['--help'], {
         env: { FORCE_COLOR: '1' },
-      })
+      });
 
       const resultWithoutColor = await runCcjk(['--help'], {
         env: { NO_COLOR: '1' },
-      })
+      });
 
-      expect(resultWithColor.timedOut).toBe(false)
-      expect(resultWithoutColor.timedOut).toBe(false)
-    })
+      expect(resultWithColor.timedOut).toBe(false);
+      expect(resultWithoutColor.timedOut).toBe(false);
+    });
 
     it('should handle TTY and non-TTY environments', async () => {
-      const result = await runCcjk(['--help'])
+      const result = await runCcjk(['--help']);
 
-      expect(result.timedOut).toBe(false)
-    })
+      expect(result.timedOut).toBe(false);
+    });
 
     it('should respect terminal width', async () => {
       const result = await runCcjk(['--help'], {
         env: {
           COLUMNS: '80',
         },
-      })
+      });
 
-      expect(result.timedOut).toBe(false)
-    })
-  })
+      expect(result.timedOut).toBe(false);
+    });
+  });
 
   // ==========================================================================
   // Locale and Encoding Tests
@@ -486,14 +486,14 @@ describe('e2E: Cross-Platform Compatibility', () => {
         env: {
           LANG: 'en_US.UTF-8',
         },
-      })
+      });
 
-      expect(result.timedOut).toBe(false)
-      assertSuccess(result)
-    })
+      expect(result.timedOut).toBe(false);
+      assertSuccess(result);
+    });
 
     it('should handle different locales', async () => {
-      const locales = ['en_US.UTF-8', 'zh_CN.UTF-8', 'ja_JP.UTF-8']
+      const locales = ['en_US.UTF-8', 'zh_CN.UTF-8', 'ja_JP.UTF-8'];
 
       for (const locale of locales) {
         // Use --help which always works
@@ -501,12 +501,12 @@ describe('e2E: Cross-Platform Compatibility', () => {
           env: {
             LANG: locale,
           },
-        })
+        });
 
-        expect(result.timedOut).toBe(false)
-        assertSuccess(result)
+        expect(result.timedOut).toBe(false);
+        assertSuccess(result);
       }
-    })
+    });
 
     it('should handle non-ASCII characters', async () => {
       // Use --version which always works
@@ -514,11 +514,11 @@ describe('e2E: Cross-Platform Compatibility', () => {
         env: {
           LANG: 'en_US.UTF-8',
         },
-      })
+      });
 
-      expect(result.timedOut).toBe(false)
-    })
-  })
+      expect(result.timedOut).toBe(false);
+    });
+  });
 
   // ==========================================================================
   // Special Environment Tests
@@ -531,29 +531,29 @@ describe('e2E: Cross-Platform Compatibility', () => {
         env: {
           CI: 'true',
         },
-      })
+      });
 
-      expect(result.timedOut).toBe(false)
-      assertSuccess(result)
-    })
+      expect(result.timedOut).toBe(false);
+      assertSuccess(result);
+    });
 
     it('should work in Docker container', async () => {
       // Check if running in Docker
       const result = await runCommand('cat', ['/proc/1/cgroup'], {
         timeout: 5000,
-      })
+      });
 
       // Result may fail on non-Linux systems
-      expect(result.timedOut).toBe(false)
-    })
+      expect(result.timedOut).toBe(false);
+    });
 
     it('should work with limited resources', async () => {
       // Use --help which always works
-      const result = await runCcjk(['--help'])
+      const result = await runCcjk(['--help']);
 
-      expect(result.timedOut).toBe(false)
-      assertSuccess(result)
-    })
+      expect(result.timedOut).toBe(false);
+      assertSuccess(result);
+    });
 
     it('should handle network restrictions', async () => {
       // Use --version which doesn't require network
@@ -562,12 +562,12 @@ describe('e2E: Cross-Platform Compatibility', () => {
           // Simulate restricted network
           HTTP_PROXY: 'http://invalid:9999',
         },
-      })
+      });
 
-      expect(result.timedOut).toBe(false)
-      assertSuccess(result)
-    })
-  })
+      expect(result.timedOut).toBe(false);
+      assertSuccess(result);
+    });
+  });
 
   // ==========================================================================
   // Architecture Tests
@@ -575,23 +575,23 @@ describe('e2E: Cross-Platform Compatibility', () => {
 
   describe('architecture Compatibility', () => {
     it('should detect system architecture', async () => {
-      const result = await runCommand('uname', ['-m'], { timeout: 5000 })
+      const result = await runCommand('uname', ['-m'], { timeout: 5000 });
 
-      expect(result.timedOut).toBe(false)
-    })
+      expect(result.timedOut).toBe(false);
+    });
 
     it('should work on x64 architecture', async () => {
-      const result = await runCcjk(['--version'])
+      const result = await runCcjk(['--version']);
 
-      expect(result.timedOut).toBe(false)
-    })
+      expect(result.timedOut).toBe(false);
+    });
 
     it('should work on ARM architecture', async () => {
-      const result = await runCcjk(['--version'])
+      const result = await runCcjk(['--version']);
 
-      expect(result.timedOut).toBe(false)
-    })
-  })
+      expect(result.timedOut).toBe(false);
+    });
+  });
 
   // ==========================================================================
   // Concurrent Execution Tests
@@ -603,26 +603,26 @@ describe('e2E: Cross-Platform Compatibility', () => {
         runCcjk(['--version'], { timeout: 10000 }),
         runCcjk(['--version'], { timeout: 10000 }),
         runCcjk(['--version'], { timeout: 10000 }),
-      ])
+      ]);
 
       results.forEach((result) => {
-        expect(result.timedOut).toBe(false)
-      })
-    })
+        expect(result.timedOut).toBe(false);
+      });
+    });
 
     it('should handle concurrent file operations', async () => {
       // Use --version and --help which always work
       const results = await Promise.all([
         runCcjk(['--version'], { timeout: 10000 }),
         runCcjk(['--help'], { timeout: 10000 }),
-      ])
+      ]);
 
       results.forEach((result) => {
-        expect(result.timedOut).toBe(false)
-        assertSuccess(result)
-      })
-    })
-  })
+        expect(result.timedOut).toBe(false);
+        assertSuccess(result);
+      });
+    });
+  });
 
   // ==========================================================================
   // Upgrade and Migration Tests
@@ -631,25 +631,25 @@ describe('e2E: Cross-Platform Compatibility', () => {
   describe('upgrade and Migration', () => {
     it('should preserve configuration across versions', async () => {
       // Create a config file
-      const configPath = join(getTestConfigDir(), 'config.json')
+      const configPath = join(getTestConfigDir(), 'config.json');
       writeJsonFile(configPath, {
         version: '8.0.0',
         customData: 'should-preserve',
-      })
+      });
 
       // Use --version which always works
-      const result = await runCcjk(['--version'])
+      const result = await runCcjk(['--version']);
 
-      expect(result.timedOut).toBe(false)
-      assertSuccess(result)
-    })
+      expect(result.timedOut).toBe(false);
+      assertSuccess(result);
+    });
 
     it('should handle missing migration gracefully', async () => {
       // Use --help which always works
-      const result = await runCcjk(['--help'])
+      const result = await runCcjk(['--help']);
 
-      expect(result.timedOut).toBe(false)
-      assertSuccess(result)
-    })
-  })
-})
+      expect(result.timedOut).toBe(false);
+      assertSuccess(result);
+    });
+  });
+});

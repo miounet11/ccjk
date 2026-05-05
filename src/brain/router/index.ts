@@ -14,9 +14,9 @@
  * Zero configuration needed. Zero manual intervention needed.
  */
 
-import type { ExecutionResult } from './auto-executor'
-import { EventEmitter } from 'node:events'
-import { getGlobalCliInterceptor } from './cli-interceptor'
+import type { ExecutionResult } from './auto-executor';
+import { EventEmitter } from 'node:events';
+import { getGlobalCliInterceptor } from './cli-interceptor';
 
 /**
  * Brain Router - Main orchestrator
@@ -27,27 +27,27 @@ export class BrainRouter extends EventEmitter {
     autoExecute: true,
     showIntent: true,
     verbose: false,
-  })
+  });
 
   constructor() {
-    super()
+    super();
 
     // Forward events
     this.interceptor.on('intercept:started', (data) => {
-      this.emit('router:started', data)
-    })
+      this.emit('router:started', data);
+    });
 
     this.interceptor.on('intercept:completed', (data) => {
-      this.emit('router:completed', data)
-    })
+      this.emit('router:completed', data);
+    });
 
     this.interceptor.on('intercept:failed', (data) => {
-      this.emit('router:failed', data)
-    })
+      this.emit('router:failed', data);
+    });
 
     this.interceptor.on('intercept:bypassed', (data) => {
-      this.emit('router:bypassed', data)
-    })
+      this.emit('router:bypassed', data);
+    });
   }
 
   /**
@@ -57,14 +57,14 @@ export class BrainRouter extends EventEmitter {
    * Everything else is automatic.
    */
   async process(userInput: string): Promise<{
-    handled: boolean
-    result?: ExecutionResult
-    passthrough?: boolean
-    message: string
+    handled: boolean;
+    result?: ExecutionResult;
+    passthrough?: boolean;
+    message: string;
   }> {
     try {
       // Intercept and route
-      const interceptionResult = await this.interceptor.intercept(userInput)
+      const interceptionResult = await this.interceptor.intercept(userInput);
 
       // If bypassed, pass through to normal Claude Code
       if (interceptionResult.bypassed) {
@@ -72,7 +72,7 @@ export class BrainRouter extends EventEmitter {
           handled: false,
           passthrough: true,
           message: `Passing through to Claude Code: ${interceptionResult.bypassReason}`,
-        }
+        };
       }
 
       // If intercepted and executed
@@ -81,7 +81,7 @@ export class BrainRouter extends EventEmitter {
           handled: true,
           result: interceptionResult.executionResult,
           message: interceptionResult.executionResult.message,
-        }
+        };
       }
 
       // Fallback
@@ -89,11 +89,11 @@ export class BrainRouter extends EventEmitter {
         handled: false,
         passthrough: true,
         message: 'No interception needed',
-      }
+      };
     }
     catch (error) {
-      this.emit('router:error', { error, input: userInput })
-      throw error
+      this.emit('router:error', { error, input: userInput });
+      throw error;
     }
   }
 
@@ -101,44 +101,44 @@ export class BrainRouter extends EventEmitter {
    * Enable automatic routing
    */
   enable(): void {
-    this.interceptor.enable()
-    this.emit('router:enabled')
+    this.interceptor.enable();
+    this.emit('router:enabled');
   }
 
   /**
    * Disable automatic routing
    */
   disable(): void {
-    this.interceptor.disable()
-    this.emit('router:disabled')
+    this.interceptor.disable();
+    this.emit('router:disabled');
   }
 
   /**
    * Check if router is enabled
    */
   isEnabled(): boolean {
-    return this.interceptor.isEnabled()
+    return this.interceptor.isEnabled();
   }
 }
 
 // Global singleton instance
-let globalRouter: BrainRouter | null = null
+let globalRouter: BrainRouter | null = null;
 
 /**
  * Get global brain router instance
  */
 export function getGlobalBrainRouter(): BrainRouter {
   if (!globalRouter) {
-    globalRouter = new BrainRouter()
+    globalRouter = new BrainRouter();
   }
-  return globalRouter
+  return globalRouter;
 }
 
 /**
  * Reset global router (for testing)
  */
 export function resetGlobalBrainRouter(): void {
-  globalRouter = null
+  globalRouter = null;
 }
 
 /**
@@ -159,17 +159,17 @@ export function resetGlobalBrainRouter(): void {
  * ```
  */
 export async function processUserInput(userInput: string) {
-  const router = getGlobalBrainRouter()
-  return await router.process(userInput)
+  const router = getGlobalBrainRouter();
+  return await router.process(userInput);
 }
 
 // Re-export types
-export type { AskUserAnswer, AskUserOption, AskUserQuestion, AskUserQuestionHandler } from './ask-user-question'
-export { promptUserQuestion } from './ask-user-question'
-export type { AutoExecutorConfig } from './auto-executor'
-export type { ExecutionInsights } from './auto-executor'
-export type { ExecutionResult } from './auto-executor'
-export type { InterceptionResult } from './cli-interceptor'
-export type { ExecutionTelemetrySummary, PhaseTelemetrySummary, TelemetryEvent, TelemetryPhase } from './execution-telemetry'
-export { ExecutionTelemetry, getGlobalExecutionTelemetry, resetGlobalExecutionTelemetry } from './execution-telemetry'
-export type { AnalyzedIntent, ComplexityLevel, IntentType } from './intent-router'
+export type { AskUserAnswer, AskUserOption, AskUserQuestion, AskUserQuestionHandler } from './ask-user-question';
+export { promptUserQuestion } from './ask-user-question';
+export type { AutoExecutorConfig } from './auto-executor';
+export type { ExecutionInsights } from './auto-executor';
+export type { ExecutionResult } from './auto-executor';
+export type { InterceptionResult } from './cli-interceptor';
+export type { ExecutionTelemetrySummary, PhaseTelemetrySummary, TelemetryEvent, TelemetryPhase } from './execution-telemetry';
+export { ExecutionTelemetry, getGlobalExecutionTelemetry, resetGlobalExecutionTelemetry } from './execution-telemetry';
+export type { AnalyzedIntent, ComplexityLevel, IntentType } from './intent-router';

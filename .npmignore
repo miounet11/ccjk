@@ -1,0 +1,17 @@
+node_modules/
+coverage/
+*.log
+*.tsbuildinfo
+
+.env
+.env.local
+
+.ccjk/
+.claude/
+.serena/
+.bmad-core/
+
+.git/
+.github/
+.vscode/
+.idea/

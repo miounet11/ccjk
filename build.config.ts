@@ -1,6 +1,8 @@
-import { copyFile, mkdir, readdir } from 'node:fs/promises'
-import { dirname, join } from 'pathe'
-import { defineBuildConfig } from 'unbuild'
+import { copyFile, mkdir, readdir } from 'node:fs/promises';
+import { dirname, join } from 'pathe';
+import { defineBuildConfig } from 'unbuild';
+
+type ExternalFunction = (id: string, importer: string | undefined, isResolved: boolean) => boolean | null | void;
 
 export default defineBuildConfig({
   entries: ['src/index', 'src/cli'],
@@ -32,7 +34,7 @@ export default defineBuildConfig({
     'rollup:options': (_ctx, options) => {
       // Force inline all dependencies by overriding the external function.
       // unbuild's inlineDependencies sometimes fails to inline certain packages.
-      const originalExternal = options.external as Function
+      const originalExternal = options.external as ExternalFunction | undefined;
       options.external = (id: string, importer: string | undefined, isResolved: boolean) => {
         // Never externalize npm dependencies — they must be bundled
         if (typeof id === 'string' && !id.startsWith('node:') && !id.startsWith('.') && !id.startsWith('/')) {
@@ -67,97 +69,97 @@ export default defineBuildConfig({
             'timers',
             'timers/promises',
             'fs/promises',
-          ])
-          const pkgName = id.split('/')[0]
+          ]);
+          const pkgName = id.split('/')[0];
           if (nodeBuiltins.has(pkgName) || nodeBuiltins.has(id)) {
-            return true // externalize Node.js builtins
+            return true; // externalize Node.js builtins
           }
           // Explicitly allowed externals (native/optional packages)
-          const allowedExternals = new Set(['fdir', 'tinyglobby', 'web-tree-sitter', 'tar', 'ioredis', 'better-sqlite3', 'globby', 'unicorn-magic'])
+          const allowedExternals = new Set(['fdir', 'tinyglobby', 'web-tree-sitter', 'tar', 'ioredis', 'better-sqlite3', 'globby', 'unicorn-magic']);
           if (allowedExternals.has(pkgName)) {
-            return true
+            return true;
           }
-          return false // inline everything else
+          return false; // inline everything else
         }
         // For relative/absolute paths and node: prefixed, use original logic
         if (typeof originalExternal === 'function') {
-          return originalExternal(id, importer, isResolved)
+          return originalExternal(id, importer, isResolved);
         }
-        return false
-      }
+        return false;
+      };
     },
     // Copy i18n JSON files to dist
     'build:done': async () => {
       try {
         // Enhanced cross-platform file discovery for Windows CI compatibility
         const findJsonFiles = async (basePath: string): Promise<string[]> => {
-          const files: string[] = []
+          const files: string[] = [];
 
           const scanDirectory = async (dir: string): Promise<void> => {
             try {
-              const entries = await readdir(dir, { withFileTypes: true })
+              const entries = await readdir(dir, { withFileTypes: true });
               for (const entry of entries) {
-                const fullPath = join(dir, entry.name)
+                const fullPath = join(dir, entry.name);
                 if (entry.isDirectory()) {
-                  await scanDirectory(fullPath)
+                  await scanDirectory(fullPath);
                 }
                 else if (entry.isFile() && entry.name.endsWith('.json')) {
-                  files.push(fullPath)
+                  files.push(fullPath);
                 }
               }
             }
             catch (error) {
-              console.warn(`Could not scan directory ${dir}:`, error)
+              console.warn(`Could not scan directory ${dir}:`, error);
             }
-          }
+          };
 
-          await scanDirectory(basePath)
-          return files
-        }
+          await scanDirectory(basePath);
+          return files;
+        };
 
         // Use manual file search for cross-platform compatibility
-        const jsonFiles = await findJsonFiles('src/i18n/locales')
+        const jsonFiles = await findJsonFiles('src/i18n/locales');
 
         if (jsonFiles.length === 0) {
-          console.error('\u274C No i18n JSON files found in src/i18n/locales')
-          throw new Error('No i18n files found - this will break the application')
+          console.error('\u274C No i18n JSON files found in src/i18n/locales');
+          throw new Error('No i18n files found - this will break the application');
         }
 
-        console.log(`Found ${jsonFiles.length} i18n files to copy`)
+        console.log(`Found ${jsonFiles.length} i18n files to copy`);
 
         for (const file of jsonFiles) {
           // Use pathe.join for proper cross-platform path handling
-          const relativePath = file.replace(/^src[/\\]i18n[/\\]/, '')
-          const destFile = join('dist', 'i18n', relativePath)
-          const destDir = dirname(destFile)
+          const relativePath = file.replace(/^src[/\\]i18n[/\\]/, '');
+          const destFile = join('dist', 'i18n', relativePath);
+          const destDir = dirname(destFile);
 
-          await mkdir(destDir, { recursive: true })
-          await copyFile(file, destFile)
+          await mkdir(destDir, { recursive: true });
+          await copyFile(file, destFile);
         }
 
-        console.log(`\uD83C\uDF89 Successfully copied ${jsonFiles.length} i18n files`)
+        console.log(`\uD83C\uDF89 Successfully copied ${jsonFiles.length} i18n files`);
 
         // Copy agent templates to dist
         try {
-          const agentTemplatesDir = 'templates'
-          const agentFiles = await findJsonFiles(agentTemplatesDir)
+          const agentTemplatesDir = 'templates';
+          const agentFiles = await findJsonFiles(agentTemplatesDir);
           for (const file of agentFiles) {
-            const relativePath = file.replace(/^templates[/\\]/, '')
-            const destFile = join('dist', 'templates', relativePath)
-            const destDir2 = dirname(destFile)
-            await mkdir(destDir2, { recursive: true })
-            await copyFile(file, destFile)
+            const relativePath = file.replace(/^templates[/\\]/, '');
+            const destFile = join('dist', 'templates', relativePath);
+            const destDir2 = dirname(destFile);
+            await mkdir(destDir2, { recursive: true });
+            await copyFile(file, destFile);
           }
-          console.log(`\uD83C\uDF89 Successfully copied ${agentFiles.length} agent templates`)
+          console.log(`\uD83C\uDF89 Successfully copied ${agentFiles.length} agent templates`);
         }
         catch (error) {
-          console.warn('\u26A0\uFE0F Could not copy agent templates:', error)
+          console.warn('\u26A0\uFE0F Could not copy agent templates:', error);
         }
       }
       catch (error) {
-        console.error('\u274C Failed to copy i18n files:', error)
-        throw error
+        console.error('\u274C Failed to copy i18n files:', error);
+        throw error;
       }
     },
   },
-})
+});

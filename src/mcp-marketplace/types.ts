@@ -10,15 +10,15 @@
  */
 export interface InstallOptions {
   /** Specific version to install (semver) */
-  version?: string
+  version?: string;
   /** Force reinstall even if already installed */
-  force?: boolean
+  force?: boolean;
   /** Skip dependency installation */
-  skipDependencies?: boolean
+  skipDependencies?: boolean;
   /** Install globally (user-level) vs project-level */
-  global?: boolean
+  global?: boolean;
   /** Perform dry run without actual installation */
-  dryRun?: boolean
+  dryRun?: boolean;
 }
 
 /**
@@ -26,21 +26,21 @@ export interface InstallOptions {
  */
 export interface InstallResult {
   /** Whether installation succeeded */
-  success: boolean
+  success: boolean;
   /** Plugin package ID */
-  packageId: string
+  packageId: string;
   /** Installed version */
-  version: string
+  version: string;
   /** List of installed dependency package IDs */
-  installedDependencies: string[]
+  installedDependencies: string[];
   /** Warning messages during installation */
-  warnings: string[]
+  warnings: string[];
   /** Error message if installation failed */
-  error?: string
+  error?: string;
   /** Path where plugin was installed */
-  installedPath?: string
+  installedPath?: string;
   /** Backup path if previous version was backed up */
-  backupPath?: string
+  backupPath?: string;
 }
 
 /**
@@ -48,19 +48,19 @@ export interface InstallResult {
  */
 export interface UpdateResult {
   /** Whether update succeeded */
-  success: boolean
+  success: boolean;
   /** Plugin package ID */
-  packageId: string
+  packageId: string;
   /** Previous version */
-  previousVersion: string
+  previousVersion: string;
   /** New version after update */
-  newVersion: string
+  newVersion: string;
   /** Warning messages during update */
-  warnings: string[]
+  warnings: string[];
   /** Error message if update failed */
-  error?: string
+  error?: string;
   /** Backup path for rollback */
-  backupPath?: string
+  backupPath?: string;
 }
 
 /**
@@ -68,15 +68,15 @@ export interface UpdateResult {
  */
 export interface BatchUpdateResult {
   /** Total plugins checked */
-  totalChecked: number
+  totalChecked: number;
   /** Number of plugins updated */
-  updated: number
+  updated: number;
   /** Number of plugins that failed to update */
-  failed: number
+  failed: number;
   /** Individual update results */
-  results: UpdateResult[]
+  results: UpdateResult[];
   /** Plugins that were skipped (already up to date) */
-  skipped: string[]
+  skipped: string[];
 }
 
 /**
@@ -84,29 +84,29 @@ export interface BatchUpdateResult {
  */
 export interface InstalledPackage {
   /** Plugin package ID */
-  packageId: string
+  packageId: string;
   /** Installed version */
-  version: string
+  version: string;
   /** Installation timestamp (ISO 8601) */
-  installedAt: string
+  installedAt: string;
   /** Last updated timestamp (ISO 8601) */
-  updatedAt: string
+  updatedAt: string;
   /** Installation path */
-  path: string
+  path: string;
   /** Whether plugin is enabled */
-  enabled: boolean
+  enabled: boolean;
   /** Whether installed globally */
-  global: boolean
+  global: boolean;
   /** Plugin dependencies */
-  dependencies: string[]
+  dependencies: string[];
   /** Plugin configuration */
-  config?: PluginConfig
+  config?: PluginConfig;
   /** Checksum for integrity verification */
-  checksum?: string
+  checksum?: string;
   /** Previous version for rollback */
-  previousVersion?: string
+  previousVersion?: string;
   /** Backup path for rollback */
-  backupPath?: string
+  backupPath?: string;
 }
 
 /**
@@ -114,17 +114,17 @@ export interface InstalledPackage {
  */
 export interface DependencyCheck {
   /** Plugin package ID */
-  packageId: string
+  packageId: string;
   /** Whether all dependencies are satisfied */
-  satisfied: boolean
+  satisfied: boolean;
   /** List of missing dependencies */
-  missing: string[]
+  missing: string[];
   /** List of outdated dependencies */
-  outdated: DependencyInfo[]
+  outdated: DependencyInfo[];
   /** List of conflicting dependencies */
-  conflicts: DependencyConflict[]
+  conflicts: DependencyConflict[];
   /** Resolved dependency tree */
-  resolved: ResolvedDependency[]
+  resolved: ResolvedDependency[];
 }
 
 /**
@@ -132,13 +132,13 @@ export interface DependencyCheck {
  */
 export interface DependencyInfo {
   /** Dependency package ID */
-  packageId: string
+  packageId: string;
   /** Required version range */
-  requiredVersion: string
+  requiredVersion: string;
   /** Currently installed version (if any) */
-  installedVersion?: string
+  installedVersion?: string;
   /** Latest available version */
-  latestVersion?: string
+  latestVersion?: string;
 }
 
 /**
@@ -146,15 +146,15 @@ export interface DependencyInfo {
  */
 export interface DependencyConflict {
   /** Conflicting package ID */
-  packageId: string
+  packageId: string;
   /** Version required by parent */
-  requiredBy: string
+  requiredBy: string;
   /** Required version */
-  requiredVersion: string
+  requiredVersion: string;
   /** Conflicting version */
-  conflictingVersion: string
+  conflictingVersion: string;
   /** Conflict resolution suggestion */
-  resolution?: string
+  resolution?: string;
 }
 
 /**
@@ -162,13 +162,13 @@ export interface DependencyConflict {
  */
 export interface ResolvedDependency {
   /** Package ID */
-  packageId: string
+  packageId: string;
   /** Resolved version */
-  version: string
+  version: string;
   /** Depth in dependency tree */
-  depth: number
+  depth: number;
   /** Parent package ID */
-  parent?: string
+  parent?: string;
 }
 
 /**
@@ -176,15 +176,15 @@ export interface ResolvedDependency {
  */
 export interface PluginConfig {
   /** Plugin-specific settings */
-  settings: Record<string, unknown>
+  settings: Record<string, unknown>;
   /** Environment variables */
-  env?: Record<string, string>
+  env?: Record<string, string>;
   /** Custom MCP server configuration */
-  mcpConfig?: McpServerPluginConfig
+  mcpConfig?: McpServerPluginConfig;
   /** Auto-start on load */
-  autoStart?: boolean
+  autoStart?: boolean;
   /** Priority order (lower = higher priority) */
-  priority?: number
+  priority?: number;
 }
 
 /**
@@ -192,13 +192,13 @@ export interface PluginConfig {
  */
 export interface McpServerPluginConfig {
   /** Command to run the MCP server */
-  command: string
+  command: string;
   /** Command arguments */
-  args?: string[]
+  args?: string[];
   /** Environment variables */
-  env?: Record<string, string>
+  env?: Record<string, string>;
   /** Working directory */
-  cwd?: string
+  cwd?: string;
 }
 
 /**
@@ -206,15 +206,15 @@ export interface McpServerPluginConfig {
  */
 export interface VerificationResult {
   /** Whether verification passed */
-  valid: boolean
+  valid: boolean;
   /** Plugin package ID */
-  packageId: string
+  packageId: string;
   /** Verification checks performed */
-  checks: VerificationCheck[]
+  checks: VerificationCheck[];
   /** Overall integrity status */
-  integrity: 'valid' | 'corrupted' | 'modified' | 'unknown'
+  integrity: 'valid' | 'corrupted' | 'modified' | 'unknown';
   /** Timestamp of verification */
-  verifiedAt: string
+  verifiedAt: string;
 }
 
 /**
@@ -222,11 +222,11 @@ export interface VerificationResult {
  */
 export interface VerificationCheck {
   /** Check name */
-  name: string
+  name: string;
   /** Whether check passed */
-  passed: boolean
+  passed: boolean;
   /** Check details or error message */
-  message?: string
+  message?: string;
 }
 
 /**
@@ -248,40 +248,40 @@ export type PluginManagerEvent
     | 'config:change'
     | 'rollback:start'
     | 'rollback:complete'
-    | 'rollback:error'
+    | 'rollback:error';
 
 /**
  * Event payload for install:start
  */
 export interface InstallStartPayload {
-  packageId: string
-  version?: string
-  options: InstallOptions
+  packageId: string;
+  version?: string;
+  options: InstallOptions;
 }
 
 /**
  * Event payload for install:progress
  */
 export interface InstallProgressPayload {
-  packageId: string
-  phase: 'downloading' | 'extracting' | 'installing' | 'configuring' | 'verifying'
-  progress: number // 0-100
-  message?: string
+  packageId: string;
+  phase: 'downloading' | 'extracting' | 'installing' | 'configuring' | 'verifying';
+  progress: number; // 0-100
+  message?: string;
 }
 
 /**
  * Event payload for install:complete
  */
 export interface InstallCompletePayload {
-  result: InstallResult
+  result: InstallResult;
 }
 
 /**
  * Event payload for install:error
  */
 export interface InstallErrorPayload {
-  packageId: string
-  error: Error
+  packageId: string;
+  error: Error;
 }
 
 /**
@@ -289,35 +289,35 @@ export interface InstallErrorPayload {
  */
 export interface PluginRegistryEntry {
   /** Plugin package ID */
-  packageId: string
+  packageId: string;
   /** Plugin name */
-  name: string
+  name: string;
   /** Plugin description */
-  description: string
+  description: string;
   /** Latest version */
-  latestVersion: string
+  latestVersion: string;
   /** All available versions */
-  versions: string[]
+  versions: string[];
   /** Plugin author */
-  author: string
+  author: string;
   /** Plugin license */
-  license: string
+  license: string;
   /** Plugin homepage */
-  homepage?: string
+  homepage?: string;
   /** Plugin repository */
-  repository?: string
+  repository?: string;
   /** Plugin dependencies */
-  dependencies?: Record<string, string>
+  dependencies?: Record<string, string>;
   /** Plugin keywords/tags */
-  keywords?: string[]
+  keywords?: string[];
   /** Download count */
-  downloads: number
+  downloads: number;
   /** Plugin checksum by version */
-  checksums: Record<string, string>
+  checksums: Record<string, string>;
   /** Created timestamp */
-  createdAt: string
+  createdAt: string;
   /** Updated timestamp */
-  updatedAt: string
+  updatedAt: string;
 }
 
 /**
@@ -325,29 +325,29 @@ export interface PluginRegistryEntry {
  */
 export interface PluginManifest {
   /** Plugin package ID */
-  packageId: string
+  packageId: string;
   /** Plugin version */
-  version: string
+  version: string;
   /** Plugin name */
-  name: string
+  name: string;
   /** Plugin description */
-  description: string
+  description: string;
   /** Plugin author */
-  author: string
+  author: string;
   /** Plugin license */
-  license: string
+  license: string;
   /** Main entry point */
-  main?: string
+  main?: string;
   /** Plugin dependencies */
-  dependencies?: Record<string, string>
+  dependencies?: Record<string, string>;
   /** MCP server configuration */
-  mcpServer?: McpServerPluginConfig
+  mcpServer?: McpServerPluginConfig;
   /** Plugin configuration schema */
-  configSchema?: Record<string, unknown>
+  configSchema?: Record<string, unknown>;
   /** Minimum CCJK version required */
-  ccjkVersion?: string
+  ccjkVersion?: string;
   /** Plugin keywords */
-  keywords?: string[]
+  keywords?: string[];
 }
 
 /**
@@ -355,11 +355,11 @@ export interface PluginManifest {
  */
 export interface InstalledPluginsRegistry {
   /** Registry version */
-  version: string
+  version: string;
   /** Installed plugins map */
-  plugins: Record<string, InstalledPackage>
+  plugins: Record<string, InstalledPackage>;
   /** Last updated timestamp */
-  updatedAt: string
+  updatedAt: string;
 }
 
 // ============================================================================
@@ -375,24 +375,24 @@ export type MCPCategory
     | 'productivity'
     | 'data-processing'
     | 'integrations'
-    | 'utilities'
+    | 'utilities';
 
 /**
  * Verification status for packages
  */
-export type VerificationStatus = 'verified' | 'unverified' | 'pending' | 'rejected'
+export type VerificationStatus = 'verified' | 'unverified' | 'pending' | 'rejected';
 
 /**
  * Sort options for search results
  */
-export type SortOption = 'relevance' | 'downloads' | 'rating' | 'updated' | 'name'
+export type SortOption = 'relevance' | 'downloads' | 'rating' | 'updated' | 'name';
 
 /**
  * Localized string (supports multiple languages)
  */
 export interface LocalizedString {
-  'zh-CN': string
-  'en': string
+  'zh-CN': string;
+  'en': string;
 }
 
 /**
@@ -400,9 +400,9 @@ export interface LocalizedString {
  */
 export interface Dependency {
   /** Dependency package ID */
-  id: string
+  id: string;
   /** Required version range (semver) */
-  version: string
+  version: string;
 }
 
 /**
@@ -410,11 +410,11 @@ export interface Dependency {
  */
 export interface Permission {
   /** Permission type */
-  type: 'filesystem' | 'network' | 'shell' | 'env'
+  type: 'filesystem' | 'network' | 'shell' | 'env';
   /** Permission scope (optional, e.g., specific paths or env vars) */
-  scope?: string
+  scope?: string;
   /** Reason for requiring this permission */
-  reason: LocalizedString
+  reason: LocalizedString;
 }
 
 /**
@@ -422,13 +422,13 @@ export interface Permission {
  */
 export interface CompatibilityInfo {
   /** Minimum CCJK version required */
-  minCcjkVersion?: string
+  minCcjkVersion?: string;
   /** Supported platforms */
-  platforms?: Array<'darwin' | 'linux' | 'win32' | 'android'>
+  platforms?: Array<'darwin' | 'linux' | 'win32' | 'android'>;
   /** Supported code tools */
-  codeTools?: string[]
+  codeTools?: string[];
   /** Node.js version requirement */
-  nodeVersion?: string
+  nodeVersion?: string;
 }
 
 /**
@@ -436,49 +436,49 @@ export interface CompatibilityInfo {
  */
 export interface MCPPackage {
   /** Unique package ID */
-  id: string
+  id: string;
   /** Package name */
-  name: string
+  name: string;
   /** Current version */
-  version: string
+  version: string;
   /** Package description */
-  description: LocalizedString
+  description: LocalizedString;
   /** Package author */
-  author: string
+  author: string;
   /** Repository URL */
-  repository?: string
+  repository?: string;
   /** Homepage URL */
-  homepage?: string
+  homepage?: string;
   /** Download count */
-  downloads: number
+  downloads: number;
   /** Average rating (0-5) */
-  rating: number
+  rating: number;
   /** Number of ratings */
-  ratingCount: number
+  ratingCount: number;
   /** Package tags */
-  tags: string[]
+  tags: string[];
   /** Package category */
-  category: MCPCategory
+  category: MCPCategory;
   /** Compatibility information */
-  compatibility: CompatibilityInfo
+  compatibility: CompatibilityInfo;
   /** Package dependencies */
-  dependencies: Dependency[]
+  dependencies: Dependency[];
   /** Required permissions */
-  permissions: Permission[]
+  permissions: Permission[];
   /** Whether package is verified */
-  verified: boolean
+  verified: boolean;
   /** Verification status */
-  verificationStatus: VerificationStatus
+  verificationStatus: VerificationStatus;
   /** Package size in bytes */
-  size: number
+  size: number;
   /** License type */
-  license: string
+  license: string;
   /** Keywords for search */
-  keywords?: string[]
+  keywords?: string[];
   /** Published timestamp */
-  publishedAt: string
+  publishedAt: string;
   /** Last updated timestamp */
-  updatedAt: string
+  updatedAt: string;
 }
 
 /**
@@ -486,15 +486,15 @@ export interface MCPPackage {
  */
 export interface CategoryInfo {
   /** Category ID */
-  id: MCPCategory
+  id: MCPCategory;
   /** Category name */
-  name: LocalizedString
+  name: LocalizedString;
   /** Category description */
-  description: LocalizedString
+  description: LocalizedString;
   /** Number of packages in category */
-  count: number
+  count: number;
   /** Category icon (emoji or URL) */
-  icon?: string
+  icon?: string;
 }
 
 /**
@@ -502,19 +502,19 @@ export interface CategoryInfo {
  */
 export interface VersionInfo {
   /** Version number */
-  version: string
+  version: string;
   /** Release notes */
-  releaseNotes?: LocalizedString
+  releaseNotes?: LocalizedString;
   /** Published timestamp */
-  publishedAt: string
+  publishedAt: string;
   /** Whether this is a pre-release */
-  prerelease?: boolean
+  prerelease?: boolean;
   /** Download count for this version */
-  downloads?: number
+  downloads?: number;
   /** Package size in bytes */
-  size?: number
+  size?: number;
   /** Checksum for integrity verification */
-  checksum?: string
+  checksum?: string;
 }
 
 /**
@@ -522,19 +522,19 @@ export interface VersionInfo {
  */
 export interface UpdateInfo {
   /** Package ID */
-  packageId: string
+  packageId: string;
   /** Current installed version */
-  currentVersion: string
+  currentVersion: string;
   /** Latest available version */
-  latestVersion: string
+  latestVersion: string;
   /** Whether update is available */
-  updateAvailable: boolean
+  updateAvailable: boolean;
   /** Whether this is a breaking change */
-  breaking?: boolean
+  breaking?: boolean;
   /** Update priority (critical, recommended, optional) */
-  priority?: 'critical' | 'recommended' | 'optional'
+  priority?: 'critical' | 'recommended' | 'optional';
   /** Release notes for the update */
-  releaseNotes?: LocalizedString
+  releaseNotes?: LocalizedString;
 }
 
 /**
@@ -542,31 +542,31 @@ export interface UpdateInfo {
  */
 export interface SearchOptions {
   /** Search query */
-  query?: string
+  query?: string;
   /** Filter by category */
-  category?: MCPCategory
+  category?: MCPCategory;
   /** Filter by tags */
-  tags?: string[]
+  tags?: string[];
   /** Sort by field */
-  sortBy?: SortOption
+  sortBy?: SortOption;
   /** Sort order */
-  sortOrder?: 'asc' | 'desc'
+  sortOrder?: 'asc' | 'desc';
   /** Filter verified packages only */
-  verified?: boolean
+  verified?: boolean;
   /** Filter by verification status */
-  verificationStatus?: VerificationStatus
+  verificationStatus?: VerificationStatus;
   /** Filter by author */
-  author?: string
+  author?: string;
   /** Filter by platform */
-  platform?: string
+  platform?: string;
   /** Filter by code tool */
-  codeTool?: string
+  codeTool?: string;
   /** Minimum rating filter */
-  minRating?: number
+  minRating?: number;
   /** Page number (1-indexed) */
-  page?: number
+  page?: number;
   /** Results per page */
-  limit?: number
+  limit?: number;
 }
 
 /**
@@ -574,17 +574,17 @@ export interface SearchOptions {
  */
 export interface SearchResult {
   /** Matching packages */
-  packages: MCPPackage[]
+  packages: MCPPackage[];
   /** Total number of results */
-  total: number
+  total: number;
   /** Current page */
-  page: number
+  page: number;
   /** Results per page */
-  limit: number
+  limit: number;
   /** Total pages */
-  totalPages: number
+  totalPages: number;
   /** Whether there are more results */
-  hasMore: boolean
+  hasMore: boolean;
 }
 
 /**
@@ -592,16 +592,16 @@ export interface SearchResult {
  */
 export interface MarketplaceApiResponse<T> {
   /** Whether request succeeded */
-  success: boolean
+  success: boolean;
   /** Response data (if successful) */
-  data?: T
+  data?: T;
   /** Error information (if failed) */
   error?: {
-    code: string
-    message: string
-  }
+    code: string;
+    message: string;
+  };
   /** Response timestamp */
-  timestamp: string
+  timestamp: string;
 }
 
 /**
@@ -609,17 +609,17 @@ export interface MarketplaceApiResponse<T> {
  */
 export interface MarketplaceCache {
   /** Cache version */
-  version: string
+  version: string;
   /** Cached packages */
-  packages: MCPPackage[]
+  packages: MCPPackage[];
   /** Cached categories */
-  categories: CategoryInfo[]
+  categories: CategoryInfo[];
   /** Cache creation timestamp */
-  createdAt: string
+  createdAt: string;
   /** Cache expiration timestamp */
-  expiresAt: string
+  expiresAt: string;
   /** Last updated timestamp */
-  lastUpdated: string
+  lastUpdated: string;
 }
 
 /**
@@ -627,17 +627,17 @@ export interface MarketplaceCache {
  */
 export interface MarketplaceCacheStats {
   /** Total cached packages */
-  totalPackages: number
+  totalPackages: number;
   /** Cache size in bytes */
-  cacheSize: number
+  cacheSize: number;
   /** Last updated timestamp */
-  lastUpdated: string | null
+  lastUpdated: string | null;
   /** Cache expiration timestamp */
-  expiresAt: string | null
+  expiresAt: string | null;
   /** Whether cache is expired */
-  isExpired: boolean
+  isExpired: boolean;
   /** Number of cached categories */
-  cachedCategories: number
+  cachedCategories: number;
 }
 
 /**
@@ -645,23 +645,23 @@ export interface MarketplaceCacheStats {
  */
 export interface MarketplaceClientOptions {
   /** Base API URL */
-  baseUrl?: string
+  baseUrl?: string;
   /** API key for authentication */
-  apiKey?: string
+  apiKey?: string;
   /** Request timeout in milliseconds */
-  timeout?: number
+  timeout?: number;
   /** Enable offline mode (use cache only) */
-  offlineMode?: boolean
+  offlineMode?: boolean;
   /** Enable debug logging */
-  enableLogging?: boolean
+  enableLogging?: boolean;
   /** Maximum retry attempts */
-  maxRetries?: number
+  maxRetries?: number;
   /** Retry delay in milliseconds */
-  retryDelay?: number
+  retryDelay?: number;
   /** Cache TTL in milliseconds */
-  cacheTTL?: number
+  cacheTTL?: number;
   /** Enable request deduplication */
-  enableDeduplication?: boolean
+  enableDeduplication?: boolean;
   /** Throttle interval in milliseconds */
-  throttleInterval?: number
+  throttleInterval?: number;
 }

@@ -1,21 +1,21 @@
-import type { SupportedLang } from '../constants'
-import { promises as fsp } from 'node:fs'
-import { homedir } from 'node:os'
-import ansis from 'ansis'
-import { join } from 'pathe'
-import { exec } from 'tinyexec'
-import { ZCF_CONFIG_FILE } from '../constants'
-import { i18n } from '../i18n'
-import { readJsonConfig, writeJsonConfig } from './json-config'
-import { moveToTrash } from './trash'
+import type { SupportedLang } from '../constants';
+import { promises as fsp } from 'node:fs';
+import { homedir } from 'node:os';
+import ansis from 'ansis';
+import { join } from 'pathe';
+import { exec } from 'tinyexec';
+import { ZCF_CONFIG_FILE } from '../constants';
+import { i18n } from '../i18n';
+import { readJsonConfig, writeJsonConfig } from './json-config';
+import { moveToTrash } from './trash';
 
 async function pathExists(p: string): Promise<boolean> {
   try {
-    await fsp.access(p)
-    return true
+    await fsp.access(p);
+    return true;
   }
   catch {
-    return false
+    return false;
   }
 }
 
@@ -30,31 +30,31 @@ export type UninstallItem
     | 'ccline'
     | 'claude-code'
     | 'backups'
-    | 'ccjk-config'
+    | 'ccjk-config';
 
 export interface UninstallResult {
-  success: boolean
-  removed: string[] // Files/directories moved to trash
-  removedConfigs: string[] // Configuration items deleted from config files
-  errors: string[] // Error messages
-  warnings: string[] // Warning messages
+  success: boolean;
+  removed: string[]; // Files/directories moved to trash
+  removedConfigs: string[]; // Configuration items deleted from config files
+  errors: string[]; // Error messages
+  warnings: string[]; // Warning messages
 }
 
 /**
  * CCJK Uninstaller - Handles removal of CCJK configurations and tools
  */
 export class ZcfUninstaller {
-  private _lang: SupportedLang // Reserved for future i18n support
-  private conflictResolution = new Map<UninstallItem, UninstallItem[]>()
+  private _lang: SupportedLang; // Reserved for future i18n support
+  private conflictResolution = new Map<UninstallItem, UninstallItem[]>();
 
   constructor(lang: SupportedLang = 'en') {
-    this._lang = lang
+    this._lang = lang;
 
     // Set up conflict resolution rules
-    this.conflictResolution.set('claude-code', ['mcps']) // Claude Code uninstall includes MCP removal
+    this.conflictResolution.set('claude-code', ['mcps']); // Claude Code uninstall includes MCP removal
 
     // Ensure lang parameter is used (future i18n support)
-    void this._lang
+    void this._lang;
   }
 
   /**
@@ -67,45 +67,45 @@ export class ZcfUninstaller {
       removedConfigs: [],
       errors: [],
       warnings: [],
-    }
+    };
 
     try {
-      const settingsPath = join(homedir(), '.claude', 'settings.json')
-      const outputStylesPath = join(homedir(), '.claude', 'output-styles')
+      const settingsPath = join(homedir(), '.claude', 'settings.json');
+      const outputStylesPath = join(homedir(), '.claude', 'output-styles');
 
       // Remove outputStyle field from settings.json
       if (await pathExists(settingsPath)) {
-        const settings = readJsonConfig<any>(settingsPath) || {}
+        const settings = readJsonConfig<any>(settingsPath) || {};
 
         if (settings.outputStyle) {
-          delete settings.outputStyle
-          writeJsonConfig(settingsPath, settings)
-          result.removedConfigs.push('outputStyle field from settings.json')
+          delete settings.outputStyle;
+          writeJsonConfig(settingsPath, settings);
+          result.removedConfigs.push('outputStyle field from settings.json');
         }
       }
       else {
-        result.warnings.push(i18n.t('uninstall:settingsJsonNotFound'))
+        result.warnings.push(i18n.t('uninstall:settingsJsonNotFound'));
       }
 
       // Remove output-styles directory
       if (await pathExists(outputStylesPath)) {
-        const trashResult = await moveToTrash(outputStylesPath)
+        const trashResult = await moveToTrash(outputStylesPath);
         if (!trashResult[0]?.success) {
-          result.warnings.push(trashResult[0]?.error || 'Failed to move to trash')
+          result.warnings.push(trashResult[0]?.error || 'Failed to move to trash');
         }
-        result.removed.push('~/.claude/output-styles/')
+        result.removed.push('~/.claude/output-styles/');
       }
       else {
-        result.warnings.push(i18n.t('uninstall:outputStylesDirectoryNotFound'))
+        result.warnings.push(i18n.t('uninstall:outputStylesDirectoryNotFound'));
       }
 
-      result.success = true
+      result.success = true;
     }
     catch (error: any) {
-      result.errors.push(`Failed to remove output styles: ${error.message}`)
+      result.errors.push(`Failed to remove output styles: ${error.message}`);
     }
 
-    return result
+    return result;
   }
 
   /**
@@ -118,29 +118,29 @@ export class ZcfUninstaller {
       removedConfigs: [],
       errors: [],
       warnings: [],
-    }
+    };
 
     try {
-      const commandsPath = join(homedir(), '.claude', 'commands', 'ccjk')
+      const commandsPath = join(homedir(), '.claude', 'commands', 'ccjk');
 
       if (await pathExists(commandsPath)) {
-        const trashResult = await moveToTrash(commandsPath)
+        const trashResult = await moveToTrash(commandsPath);
         if (!trashResult[0]?.success) {
-          result.warnings.push(trashResult[0]?.error || 'Failed to move to trash')
+          result.warnings.push(trashResult[0]?.error || 'Failed to move to trash');
         }
-        result.removed.push('commands/ccjk/')
-        result.success = true
+        result.removed.push('commands/ccjk/');
+        result.success = true;
       }
       else {
-        result.warnings.push(i18n.t('uninstall:commandsNotFound'))
-        result.success = true
+        result.warnings.push(i18n.t('uninstall:commandsNotFound'));
+        result.success = true;
       }
     }
     catch (error: any) {
-      result.errors.push(`Failed to remove custom commands: ${error.message}`)
+      result.errors.push(`Failed to remove custom commands: ${error.message}`);
     }
 
-    return result
+    return result;
   }
 
   /**
@@ -153,29 +153,29 @@ export class ZcfUninstaller {
       removedConfigs: [],
       errors: [],
       warnings: [],
-    }
+    };
 
     try {
-      const agentsPath = join(homedir(), '.claude', 'agents', 'ccjk')
+      const agentsPath = join(homedir(), '.claude', 'agents', 'ccjk');
 
       if (await pathExists(agentsPath)) {
-        const trashResult = await moveToTrash(agentsPath)
+        const trashResult = await moveToTrash(agentsPath);
         if (!trashResult[0]?.success) {
-          result.warnings.push(trashResult[0]?.error || 'Failed to move to trash')
+          result.warnings.push(trashResult[0]?.error || 'Failed to move to trash');
         }
-        result.removed.push('agents/ccjk/')
-        result.success = true
+        result.removed.push('agents/ccjk/');
+        result.success = true;
       }
       else {
-        result.warnings.push(i18n.t('uninstall:agentsNotFound'))
-        result.success = true
+        result.warnings.push(i18n.t('uninstall:agentsNotFound'));
+        result.success = true;
       }
     }
     catch (error: any) {
-      result.errors.push(`Failed to remove custom agents: ${error.message}`)
+      result.errors.push(`Failed to remove custom agents: ${error.message}`);
     }
 
-    return result
+    return result;
   }
 
   /**
@@ -188,29 +188,29 @@ export class ZcfUninstaller {
       removedConfigs: [],
       errors: [],
       warnings: [],
-    }
+    };
 
     try {
-      const claudeMdPath = join(homedir(), '.claude', 'CLAUDE.md')
+      const claudeMdPath = join(homedir(), '.claude', 'CLAUDE.md');
 
       if (await pathExists(claudeMdPath)) {
-        const trashResult = await moveToTrash(claudeMdPath)
+        const trashResult = await moveToTrash(claudeMdPath);
         if (!trashResult[0]?.success) {
-          result.warnings.push(trashResult[0]?.error || 'Failed to move to trash')
+          result.warnings.push(trashResult[0]?.error || 'Failed to move to trash');
         }
-        result.removed.push('CLAUDE.md')
-        result.success = true
+        result.removed.push('CLAUDE.md');
+        result.success = true;
       }
       else {
-        result.warnings.push(i18n.t('uninstall:claudeMdNotFound'))
-        result.success = true
+        result.warnings.push(i18n.t('uninstall:claudeMdNotFound'));
+        result.success = true;
       }
     }
     catch (error: any) {
-      result.errors.push(`Failed to remove CLAUDE.md: ${error.message}`)
+      result.errors.push(`Failed to remove CLAUDE.md: ${error.message}`);
     }
 
-    return result
+    return result;
   }
 
   /**
@@ -223,44 +223,44 @@ export class ZcfUninstaller {
       removedConfigs: [],
       errors: [],
       warnings: [],
-    }
+    };
 
     try {
-      const settingsPath = join(homedir(), '.claude', 'settings.json')
+      const settingsPath = join(homedir(), '.claude', 'settings.json');
 
       if (await pathExists(settingsPath)) {
-        const settings = readJsonConfig<any>(settingsPath) || {}
-        let modified = false
+        const settings = readJsonConfig<any>(settingsPath) || {};
+        let modified = false;
 
         // Remove permissions
         if (settings.permissions) {
-          delete settings.permissions
-          result.removedConfigs.push('permissions configuration')
-          modified = true
+          delete settings.permissions;
+          result.removedConfigs.push('permissions configuration');
+          modified = true;
         }
 
         // Remove environment variables
         if (settings.env) {
-          delete settings.env
-          result.removedConfigs.push('environment variables')
-          modified = true
+          delete settings.env;
+          result.removedConfigs.push('environment variables');
+          modified = true;
         }
 
         if (modified) {
-          writeJsonConfig(settingsPath, settings)
+          writeJsonConfig(settingsPath, settings);
         }
-        result.success = true
+        result.success = true;
       }
       else {
-        result.warnings.push(i18n.t('uninstall:settingsJsonNotFound'))
-        result.success = true
+        result.warnings.push(i18n.t('uninstall:settingsJsonNotFound'));
+        result.success = true;
       }
     }
     catch (error: any) {
-      result.errors.push(`Failed to remove permissions and envs: ${error.message}`)
+      result.errors.push(`Failed to remove permissions and envs: ${error.message}`);
     }
 
-    return result
+    return result;
   }
 
   /**
@@ -273,31 +273,31 @@ export class ZcfUninstaller {
       removedConfigs: [],
       errors: [],
       warnings: [],
-    }
+    };
 
     try {
-      const claudeJsonPath = join(homedir(), '.claude.json')
+      const claudeJsonPath = join(homedir(), '.claude.json');
 
       if (await pathExists(claudeJsonPath)) {
-        const config = readJsonConfig<any>(claudeJsonPath) || {}
+        const config = readJsonConfig<any>(claudeJsonPath) || {};
 
         if (config.mcpServers) {
-          delete config.mcpServers
-          writeJsonConfig(claudeJsonPath, config)
-          result.removedConfigs.push('mcpServers from .claude.json')
+          delete config.mcpServers;
+          writeJsonConfig(claudeJsonPath, config);
+          result.removedConfigs.push('mcpServers from .claude.json');
         }
-        result.success = true
+        result.success = true;
       }
       else {
-        result.warnings.push(i18n.t('uninstall:claudeJsonNotFound'))
-        result.success = true
+        result.warnings.push(i18n.t('uninstall:claudeJsonNotFound'));
+        result.success = true;
       }
     }
     catch (error: any) {
-      result.errors.push(`Failed to remove MCP servers: ${error.message}`)
+      result.errors.push(`Failed to remove MCP servers: ${error.message}`);
     }
 
-    return result
+    return result;
   }
 
   /**
@@ -310,41 +310,41 @@ export class ZcfUninstaller {
       removedConfigs: [],
       errors: [],
       warnings: [],
-    }
+    };
 
     try {
       // Remove CCR directory
-      const ccrPath = join(homedir(), '.claude-code-router')
+      const ccrPath = join(homedir(), '.claude-code-router');
 
       if (await pathExists(ccrPath)) {
-        const trashResult = await moveToTrash(ccrPath)
+        const trashResult = await moveToTrash(ccrPath);
         if (!trashResult[0]?.success) {
-          result.warnings.push(trashResult[0]?.error || 'Failed to move to trash')
+          result.warnings.push(trashResult[0]?.error || 'Failed to move to trash');
         }
-        result.removed.push('.claude-code-router/')
+        result.removed.push('.claude-code-router/');
       }
 
       // Uninstall npm package
       try {
-        await exec('npm', ['uninstall', '-g', '@musistudio/claude-code-router'])
-        result.removed.push('@musistudio/claude-code-router package')
-        result.success = true
+        await exec('npm', ['uninstall', '-g', '@musistudio/claude-code-router']);
+        result.removed.push('@musistudio/claude-code-router package');
+        result.success = true;
       }
       catch (npmError: any) {
         if (npmError.message.includes('not found') || npmError.message.includes('not installed')) {
-          result.warnings.push(i18n.t('uninstall:ccrPackageNotFound'))
-          result.success = true
+          result.warnings.push(i18n.t('uninstall:ccrPackageNotFound'));
+          result.success = true;
         }
         else {
-          result.errors.push(`Failed to uninstall CCR package: ${npmError.message}`)
+          result.errors.push(`Failed to uninstall CCR package: ${npmError.message}`);
         }
       }
     }
     catch (error: any) {
-      result.errors.push(`Failed to uninstall CCR: ${error.message}`)
+      result.errors.push(`Failed to uninstall CCR: ${error.message}`);
     }
 
-    return result
+    return result;
   }
 
   /**
@@ -357,24 +357,24 @@ export class ZcfUninstaller {
       removedConfigs: [],
       errors: [],
       warnings: [],
-    }
+    };
 
     try {
-      await exec('npm', ['uninstall', '-g', '@cometix/ccline'])
-      result.removed.push('@cometix/ccline package')
-      result.success = true
+      await exec('npm', ['uninstall', '-g', '@cometix/ccline']);
+      result.removed.push('@cometix/ccline package');
+      result.success = true;
     }
     catch (error: any) {
       if (error.message.includes('not found') || error.message.includes('not installed')) {
-        result.warnings.push(i18n.t('uninstall:cclinePackageNotFound'))
-        result.success = true
+        result.warnings.push(i18n.t('uninstall:cclinePackageNotFound'));
+        result.success = true;
       }
       else {
-        result.errors.push(`Failed to uninstall CCometixLine: ${error.message}`)
+        result.errors.push(`Failed to uninstall CCometixLine: ${error.message}`);
       }
     }
 
-    return result
+    return result;
   }
 
   /**
@@ -387,48 +387,48 @@ export class ZcfUninstaller {
       removedConfigs: [],
       errors: [],
       warnings: [],
-    }
+    };
 
     try {
       // Remove entire .claude.json file (includes MCP removal)
-      const claudeJsonPath = join(homedir(), '.claude.json')
+      const claudeJsonPath = join(homedir(), '.claude.json');
 
       if (await pathExists(claudeJsonPath)) {
-        const trashResult = await moveToTrash(claudeJsonPath)
+        const trashResult = await moveToTrash(claudeJsonPath);
         if (!trashResult[0]?.success) {
-          result.warnings.push(trashResult[0]?.error || 'Failed to move to trash')
+          result.warnings.push(trashResult[0]?.error || 'Failed to move to trash');
         }
-        result.removed.push('.claude.json (includes MCP configuration)')
+        result.removed.push('.claude.json (includes MCP configuration)');
       }
 
       // Use the unified uninstallCodeTool function which handles different install methods
       try {
-        const { uninstallCodeTool } = await import('./installer')
-        const success = await uninstallCodeTool('claude-code')
+        const { uninstallCodeTool } = await import('./installer');
+        const success = await uninstallCodeTool('claude-code');
 
         if (success) {
-          result.removed.push('@anthropic-ai/claude-code')
-          result.success = true
+          result.removed.push('@anthropic-ai/claude-code');
+          result.success = true;
         }
         else {
-          result.errors.push(i18n.t('uninstall:uninstallFailed', { codeType: i18n.t('common:claudeCode'), message: '' }))
+          result.errors.push(i18n.t('uninstall:uninstallFailed', { codeType: i18n.t('common:claudeCode'), message: '' }));
         }
       }
       catch (npmError: any) {
         if (npmError.message.includes('not found') || npmError.message.includes('not installed')) {
-          result.warnings.push(i18n.t('uninstall:claudeCodePackageNotFound'))
-          result.success = true
+          result.warnings.push(i18n.t('uninstall:claudeCodePackageNotFound'));
+          result.success = true;
         }
         else {
-          result.errors.push(i18n.t('uninstall:uninstallFailed', { codeType: i18n.t('common:claudeCode'), message: `: ${npmError.message}` }))
+          result.errors.push(i18n.t('uninstall:uninstallFailed', { codeType: i18n.t('common:claudeCode'), message: `: ${npmError.message}` }));
         }
       }
     }
     catch (error: any) {
-      result.errors.push(i18n.t('uninstall:uninstallFailed', { codeType: i18n.t('common:claudeCode'), message: `: ${error.message}` }))
+      result.errors.push(i18n.t('uninstall:uninstallFailed', { codeType: i18n.t('common:claudeCode'), message: `: ${error.message}` }));
     }
 
-    return result
+    return result;
   }
 
   /**
@@ -441,29 +441,29 @@ export class ZcfUninstaller {
       removedConfigs: [],
       errors: [],
       warnings: [],
-    }
+    };
 
     try {
-      const backupPath = join(homedir(), '.claude', 'backup')
+      const backupPath = join(homedir(), '.claude', 'backup');
 
       if (await pathExists(backupPath)) {
-        const trashResult = await moveToTrash(backupPath)
+        const trashResult = await moveToTrash(backupPath);
         if (!trashResult[0]?.success) {
-          result.warnings.push(trashResult[0]?.error || 'Failed to move to trash')
+          result.warnings.push(trashResult[0]?.error || 'Failed to move to trash');
         }
-        result.removed.push('backup/')
-        result.success = true
+        result.removed.push('backup/');
+        result.success = true;
       }
       else {
-        result.warnings.push(i18n.t('uninstall:backupsNotFound'))
-        result.success = true
+        result.warnings.push(i18n.t('uninstall:backupsNotFound'));
+        result.success = true;
       }
     }
     catch (error: any) {
-      result.errors.push(`Failed to remove backups: ${error.message}`)
+      result.errors.push(`Failed to remove backups: ${error.message}`);
     }
 
-    return result
+    return result;
   }
 
   /**
@@ -476,30 +476,30 @@ export class ZcfUninstaller {
       removedConfigs: [],
       errors: [],
       warnings: [],
-    }
+    };
 
     try {
-      const zcfConfigPath = ZCF_CONFIG_FILE
-      const relativeName = zcfConfigPath.replace(homedir(), '~')
+      const zcfConfigPath = ZCF_CONFIG_FILE;
+      const relativeName = zcfConfigPath.replace(homedir(), '~');
 
       if (await pathExists(zcfConfigPath)) {
-        const trashResult = await moveToTrash(zcfConfigPath)
+        const trashResult = await moveToTrash(zcfConfigPath);
         if (!trashResult[0]?.success) {
-          result.warnings.push(trashResult[0]?.error || 'Failed to move to trash')
+          result.warnings.push(trashResult[0]?.error || 'Failed to move to trash');
         }
-        result.removed.push(relativeName)
-        result.success = true
+        result.removed.push(relativeName);
+        result.success = true;
       }
       else {
-        result.warnings.push(i18n.t('uninstall:ccjkConfigNotFound'))
-        result.success = true
+        result.warnings.push(i18n.t('uninstall:ccjkConfigNotFound'));
+        result.success = true;
       }
     }
     catch (error: any) {
-      result.errors.push(`Failed to remove CCJK config: ${error.message}`)
+      result.errors.push(`Failed to remove CCJK config: ${error.message}`);
     }
 
-    return result
+    return result;
   }
 
   /**
@@ -512,16 +512,16 @@ export class ZcfUninstaller {
       removedConfigs: [],
       errors: [],
       warnings: [],
-    }
+    };
 
     try {
       // Create backup before uninstall
-      const backupPath = await this.createBackupBeforeUninstall()
+      const backupPath = await this.createBackupBeforeUninstall();
       if (backupPath) {
-        console.log(ansis.green(`\n✔ ${i18n.t('uninstall:backupCreated', { path: backupPath })}`))
-        console.log(ansis.cyan(`  ${i18n.t('uninstall:backupLocation')}: ${backupPath}`))
-        console.log(ansis.gray(`  ${i18n.t('uninstall:backupRestoreHint')}`))
-        console.log()
+        console.log(ansis.green(`\n✔ ${i18n.t('uninstall:backupCreated', { path: backupPath })}`));
+        console.log(ansis.cyan(`  ${i18n.t('uninstall:backupLocation')}: ${backupPath}`));
+        console.log(ansis.gray(`  ${i18n.t('uninstall:backupRestoreHint')}`));
+        console.log();
       }
 
       // Remove all directories
@@ -529,20 +529,20 @@ export class ZcfUninstaller {
         { path: join(homedir(), '.claude'), name: '~/.claude/' },
         { path: join(homedir(), '.claude.json'), name: '~/.claude.json' },
         { path: join(homedir(), '.claude-code-router'), name: '~/.claude-code-router/' },
-      ]
+      ];
 
       for (const dir of directoriesToRemove) {
         try {
           if (await pathExists(dir.path)) {
-            const trashResult = await moveToTrash(dir.path)
+            const trashResult = await moveToTrash(dir.path);
             if (!trashResult[0]?.success) {
-              result.warnings.push(`Failed to move ${dir.name} to trash: ${trashResult[0]?.error || 'Unknown error'}`)
+              result.warnings.push(`Failed to move ${dir.name} to trash: ${trashResult[0]?.error || 'Unknown error'}`);
             }
-            result.removed.push(dir.name)
+            result.removed.push(dir.name);
           }
         }
         catch (error: any) {
-          result.warnings.push(`Failed to remove ${dir.name}: ${error.message}`)
+          result.warnings.push(`Failed to remove ${dir.name}: ${error.message}`);
         }
       }
 
@@ -551,37 +551,37 @@ export class ZcfUninstaller {
         '@musistudio/claude-code-router',
         '@cometix/ccline',
         '@anthropic-ai/claude-code',
-      ]
+      ];
 
       for (const pkg of packagesToUninstall) {
         try {
-          await exec('npm', ['uninstall', '-g', pkg])
-          result.removed.push(`${pkg} package`)
+          await exec('npm', ['uninstall', '-g', pkg]);
+          result.removed.push(`${pkg} package`);
         }
         catch (error: any) {
           if (error.message.includes('not found') || error.message.includes('not installed')) {
             if (pkg.includes('claude-code-router')) {
-              result.warnings.push(i18n.t('uninstall:ccrPackageNotFound'))
+              result.warnings.push(i18n.t('uninstall:ccrPackageNotFound'));
             }
             else if (pkg.includes('ccline')) {
-              result.warnings.push(i18n.t('uninstall:cclinePackageNotFound'))
+              result.warnings.push(i18n.t('uninstall:cclinePackageNotFound'));
             }
             else {
-              result.warnings.push(i18n.t('uninstall:claudeCodePackageNotFound'))
+              result.warnings.push(i18n.t('uninstall:claudeCodePackageNotFound'));
             }
           }
           else {
-            result.warnings.push(`Failed to uninstall ${pkg}: ${error.message}`)
+            result.warnings.push(`Failed to uninstall ${pkg}: ${error.message}`);
           }
         }
       }
     }
     catch (error: any) {
-      result.errors.push(`Complete uninstall failed: ${error.message}`)
-      result.success = false
+      result.errors.push(`Complete uninstall failed: ${error.message}`);
+      result.success = false;
     }
 
-    return result
+    return result;
   }
 
   /**
@@ -589,14 +589,14 @@ export class ZcfUninstaller {
    */
   async customUninstall(selectedItems: UninstallItem[]): Promise<UninstallResult[]> {
     // Resolve conflicts
-    const resolvedItems = this.resolveConflicts(selectedItems)
+    const resolvedItems = this.resolveConflicts(selectedItems);
 
-    const results: UninstallResult[] = []
+    const results: UninstallResult[] = [];
 
     for (const item of resolvedItems) {
       try {
-        const result = await this.executeUninstallItem(item)
-        results.push(result)
+        const result = await this.executeUninstallItem(item);
+        results.push(result);
       }
       catch (error: any) {
         results.push({
@@ -605,32 +605,32 @@ export class ZcfUninstaller {
           removedConfigs: [],
           errors: [`Failed to execute ${item}: ${error.message}`],
           warnings: [],
-        })
+        });
       }
     }
 
-    return results
+    return results;
   }
 
   /**
    * Resolve conflicts between uninstall items
    */
   private resolveConflicts(items: UninstallItem[]): UninstallItem[] {
-    const resolved = [...items]
+    const resolved = [...items];
 
     for (const [primary, conflicts] of this.conflictResolution) {
       if (resolved.includes(primary)) {
         // Remove conflicting items
         conflicts.forEach((conflict) => {
-          const index = resolved.indexOf(conflict)
+          const index = resolved.indexOf(conflict);
           if (index > -1) {
-            resolved.splice(index, 1)
+            resolved.splice(index, 1);
           }
-        })
+        });
       }
     }
 
-    return resolved
+    return resolved;
   }
 
   /**
@@ -639,27 +639,27 @@ export class ZcfUninstaller {
   private async executeUninstallItem(item: UninstallItem): Promise<UninstallResult> {
     switch (item) {
       case 'output-styles':
-        return await this.removeOutputStyles()
+        return await this.removeOutputStyles();
       case 'commands':
-        return await this.removeCustomCommands()
+        return await this.removeCustomCommands();
       case 'agents':
-        return await this.removeCustomAgents()
+        return await this.removeCustomAgents();
       case 'claude-md':
-        return await this.removeClaudeMd()
+        return await this.removeClaudeMd();
       case 'permissions-envs':
-        return await this.removePermissionsAndEnvs()
+        return await this.removePermissionsAndEnvs();
       case 'mcps':
-        return await this.removeMcps()
+        return await this.removeMcps();
       case 'ccr':
-        return await this.uninstallCcr()
+        return await this.uninstallCcr();
       case 'ccline':
-        return await this.uninstallCcline()
+        return await this.uninstallCcline();
       case 'claude-code':
-        return await this.uninstallClaudeCode()
+        return await this.uninstallClaudeCode();
       case 'backups':
-        return await this.removeBackups()
+        return await this.removeBackups();
       case 'ccjk-config':
-        return await this.removeZcfConfig()
+        return await this.removeZcfConfig();
       default:
         return {
           success: false,
@@ -667,7 +667,7 @@ export class ZcfUninstaller {
           removedConfigs: [],
           errors: [`Unknown uninstall item: ${item}`],
           warnings: [],
-        }
+        };
     }
   }
 
@@ -677,36 +677,36 @@ export class ZcfUninstaller {
    */
   private async createBackupBeforeUninstall(): Promise<string | null> {
     try {
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5)
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
       // Save backup outside ~/.claude to prevent deletion during uninstall
-      const backupDir = join(homedir(), '.ccjk', 'uninstall_backups', `backup_${timestamp}`)
-      await fsp.mkdir(backupDir, { recursive: true })
+      const backupDir = join(homedir(), '.ccjk', 'uninstall_backups', `backup_${timestamp}`);
+      await fsp.mkdir(backupDir, { recursive: true });
 
       const filesToBackup = [
         { src: join(homedir(), '.claude', 'settings.json'), name: 'settings.json' },
         { src: join(homedir(), '.claude', 'claude.json'), name: 'claude.json' },
         { src: join(homedir(), '.claude', 'CLAUDE.md'), name: 'CLAUDE.md' },
         { src: join(homedir(), '.claude', 'keybindings.json'), name: 'keybindings.json' },
-      ]
+      ];
 
-      let backedUpCount = 0
+      let backedUpCount = 0;
       for (const file of filesToBackup) {
         if (await pathExists(file.src)) {
           try {
-            await fsp.copyFile(file.src, join(backupDir, file.name))
-            backedUpCount++
+            await fsp.copyFile(file.src, join(backupDir, file.name));
+            backedUpCount++;
           }
           catch (error: any) {
-            console.warn(`Failed to backup ${file.name}: ${error.message}`)
+            console.warn(`Failed to backup ${file.name}: ${error.message}`);
           }
         }
       }
 
-      return backedUpCount > 0 ? backupDir : null
+      return backedUpCount > 0 ? backupDir : null;
     }
     catch (error: any) {
-      console.error(`Failed to create backup: ${error.message}`)
-      return null
+      console.error(`Failed to create backup: ${error.message}`);
+      return null;
     }
   }
 }

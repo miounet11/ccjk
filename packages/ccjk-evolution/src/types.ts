@@ -38,13 +38,13 @@ export interface Agent {
 
 // A2A Protocol Messages (for reference, client uses typed methods)
 
-export type A2AMessage =
-  | HelloMessage
-  | PublishMessage
-  | FetchMessage
-  | ReportMessage
-  | DecisionMessage
-  | RevokeMessage;
+export type A2AMessage
+  = | HelloMessage
+    | PublishMessage
+    | FetchMessage
+    | ReportMessage
+    | DecisionMessage
+    | RevokeMessage;
 
 export interface HelloMessage {
   agent: Agent;

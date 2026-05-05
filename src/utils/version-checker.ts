@@ -1,34 +1,34 @@
-import type { InstallationSourceType } from './installation-registry'
-import { exec } from 'node:child_process'
-import * as nodeFs from 'node:fs'
-import * as nodePath from 'node:path'
-import process from 'node:process'
-import { promisify } from 'node:util'
-import * as semver from 'semver'
+import type { InstallationSourceType } from './installation-registry';
+import { exec } from 'node:child_process';
+import * as nodeFs from 'node:fs';
+import * as nodePath from 'node:path';
+import process from 'node:process';
+import { promisify } from 'node:util';
+import * as semver from 'semver';
 import {
   detectSourceFromPath,
   findInstallationByCommonPaths,
   getCommonPathsForPlatform,
 
-} from './installation-registry'
-import { findCommandPath, getHomebrewCommandPaths, getPlatform } from './platform'
+} from './installation-registry';
+import { findCommandPath, getHomebrewCommandPaths, getPlatform } from './platform';
 
-const execAsync = promisify(exec)
+const execAsync = promisify(exec);
 
 /**
  * Check if the wrong claude-code package is installed
  * @returns Object with detection result and package name
  */
 export async function detectWrongClaudeCodePackage(): Promise<{
-  hasWrongPackage: boolean
-  wrongPackageName: string | null
-  correctPackageName: string
+  hasWrongPackage: boolean;
+  wrongPackageName: string | null;
+  correctPackageName: string;
 }> {
   try {
     // Check if 'claude-code' (wrong package) is installed globally
-    const { stdout } = await execAsync('npm list -g --depth=0 --json')
-    const packages = JSON.parse(stdout)
-    const dependencies = packages.dependencies || {}
+    const { stdout } = await execAsync('npm list -g --depth=0 --json');
+    const packages = JSON.parse(stdout);
+    const dependencies = packages.dependencies || {};
 
     // Check for the wrong package name
     if ('claude-code' in dependencies) {
@@ -36,14 +36,14 @@ export async function detectWrongClaudeCodePackage(): Promise<{
         hasWrongPackage: true,
         wrongPackageName: 'claude-code',
         correctPackageName: '@anthropic-ai/claude-code',
-      }
+      };
     }
 
     return {
       hasWrongPackage: false,
       wrongPackageName: null,
       correctPackageName: '@anthropic-ai/claude-code',
-    }
+    };
   }
   catch {
     // If npm list fails, assume no wrong package
@@ -51,7 +51,7 @@ export async function detectWrongClaudeCodePackage(): Promise<{
       hasWrongPackage: false,
       wrongPackageName: null,
       correctPackageName: '@anthropic-ai/claude-code',
-    }
+    };
   }
 }
 
@@ -69,49 +69,49 @@ export async function getInstalledVersion(command: string, maxRetries = 3): Prom
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       // Try -v first (more universal), then --version
-      let stdout: string
+      let stdout: string;
       try {
-        const result = await execAsync(`${command} -v`)
-        stdout = result.stdout
+        const result = await execAsync(`${command} -v`);
+        stdout = result.stdout;
       }
       catch {
         // Fallback to --version if -v doesn't work
-        const result = await execAsync(`${command} --version`)
-        stdout = result.stdout
+        const result = await execAsync(`${command} --version`);
+        stdout = result.stdout;
       }
 
       // Extract version from output
-      const versionMatch = stdout.match(/(\d+\.\d+\.\d+(?:-[\w.]+)?)/)
-      return versionMatch ? versionMatch[1] : null
+      const versionMatch = stdout.match(/(\d+\.\d+\.\d+(?:-[\w.]+)?)/);
+      return versionMatch ? versionMatch[1] : null;
     }
     catch {
       if (attempt === maxRetries) {
         // Final attempt failed, return null
-        return null
+        return null;
       }
       // Wait briefly before retry (100ms * attempt number)
-      await new Promise(resolve => setTimeout(resolve, 100 * attempt))
+      await new Promise(resolve => setTimeout(resolve, 100 * attempt));
     }
   }
-  return null
+  return null;
 }
 
 export async function getLatestVersion(packageName: string, maxRetries = 3): Promise<string | null> {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      const { stdout } = await execAsync(`npm view ${packageName} version`)
-      return stdout.trim()
+      const { stdout } = await execAsync(`npm view ${packageName} version`);
+      return stdout.trim();
     }
     catch {
       if (attempt === maxRetries) {
         // Final attempt failed, return null
-        return null
+        return null;
       }
       // Wait briefly before retry (200ms * attempt number for network calls)
-      await new Promise(resolve => setTimeout(resolve, 200 * attempt))
+      await new Promise(resolve => setTimeout(resolve, 200 * attempt));
     }
   }
-  return null
+  return null;
 }
 
 /**
@@ -130,27 +130,27 @@ export async function getLatestVersion(packageName: string, maxRetries = 3): Pro
  * @returns Installation source info including whether it's from Homebrew
  */
 export async function getClaudeCodeInstallationSource(): Promise<{
-  isHomebrew: boolean
-  commandPath: string | null
-  source: 'homebrew-cask' | 'npm' | 'curl' | 'other' | 'not-found'
+  isHomebrew: boolean;
+  commandPath: string | null;
+  source: 'homebrew-cask' | 'npm' | 'curl' | 'other' | 'not-found';
 }> {
-  const platform = getPlatform()
+  const platform = getPlatform();
 
   // First try to find command in PATH
-  let commandPath = await findCommandPath('claude')
+  let commandPath = await findCommandPath('claude');
 
   // If not found in PATH, use registry to check common installation locations
   if (!commandPath) {
-    const commonPaths = getCommonPathsForPlatform(platform)
+    const commonPaths = getCommonPathsForPlatform(platform);
 
     for (const path of commonPaths) {
       if (nodeFs.existsSync(path)) {
         // Check if it's a file (not directory)
         try {
-          const stats = nodeFs.statSync(path)
+          const stats = nodeFs.statSync(path);
           if (stats.isFile()) {
-            commandPath = path
-            break
+            commandPath = path;
+            break;
           }
         }
         catch {
@@ -161,24 +161,24 @@ export async function getClaudeCodeInstallationSource(): Promise<{
 
     // If still not found, try the registry's smart search
     if (!commandPath) {
-      const found = findInstallationByCommonPaths(platform)
+      const found = findInstallationByCommonPaths(platform);
       if (found) {
-        commandPath = found.path
+        commandPath = found.path;
       }
     }
   }
 
   if (!commandPath) {
-    return { isHomebrew: false, commandPath: null, source: 'not-found' }
+    return { isHomebrew: false, commandPath: null, source: 'not-found' };
   }
 
   // Resolve symlinks to get the real path for accurate detection
-  let resolvedPath = commandPath
+  let resolvedPath = commandPath;
   try {
     const { stdout } = await execAsync(
       `readlink -f "${commandPath}" 2>/dev/null || realpath "${commandPath}" 2>/dev/null || echo "${commandPath}"`,
-    )
-    resolvedPath = stdout.trim()
+    );
+    resolvedPath = stdout.trim();
   }
   catch {
     // Keep original path if resolution fails
@@ -186,20 +186,20 @@ export async function getClaudeCodeInstallationSource(): Promise<{
 
   // Use the registry to detect source from path
   const detectedSource = detectSourceFromPath(resolvedPath, platform)
-    || detectSourceFromPath(commandPath, platform)
+    || detectSourceFromPath(commandPath, platform);
 
   if (detectedSource) {
     // Map registry source type to legacy return type
-    const sourceType = mapSourceType(detectedSource.type)
+    const sourceType = mapSourceType(detectedSource.type);
     return {
       isHomebrew: detectedSource.type === 'homebrew-cask',
       commandPath,
       source: sourceType,
-    }
+    };
   }
 
   // Fallback: return 'other' if no source matched
-  return { isHomebrew: false, commandPath, source: 'other' }
+  return { isHomebrew: false, commandPath, source: 'other' };
 }
 
 /**
@@ -210,22 +210,22 @@ function mapSourceType(
 ): 'homebrew-cask' | 'npm' | 'curl' | 'other' {
   switch (type) {
     case 'homebrew-cask':
-      return 'homebrew-cask'
+      return 'homebrew-cask';
     case 'npm':
     case 'npm-homebrew-node':
-      return 'npm'
+      return 'npm';
     case 'curl':
-      return 'curl'
+      return 'curl';
     default:
-      return 'other'
+      return 'other';
   }
 }
 
 export interface ClaudeCodeInstallation {
-  source: 'homebrew-cask' | 'npm' | 'npm-homebrew-node' | 'curl' | 'other'
-  path: string
-  version: string | null
-  isActive: boolean // true if this is the one in PATH
+  source: 'homebrew-cask' | 'npm' | 'npm-homebrew-node' | 'curl' | 'other';
+  path: string;
+  version: string | null;
+  isActive: boolean; // true if this is the one in PATH
 }
 
 /**
@@ -234,22 +234,22 @@ export interface ClaudeCodeInstallation {
 function isSymlinkBroken(symlinkPath: string): boolean {
   try {
     // lstatSync doesn't follow symlinks, so it will succeed even for broken symlinks
-    const lstats = nodeFs.lstatSync(symlinkPath)
+    const lstats = nodeFs.lstatSync(symlinkPath);
     if (!lstats.isSymbolicLink()) {
-      return false // Not a symlink
+      return false; // Not a symlink
     }
     // Try to access the target - this will fail for broken symlinks
-    nodeFs.statSync(symlinkPath)
-    return false // Symlink is valid
+    nodeFs.statSync(symlinkPath);
+    return false; // Symlink is valid
   }
   catch {
     // If lstatSync succeeded but statSync failed, it's a broken symlink
     try {
-      nodeFs.lstatSync(symlinkPath)
-      return true // Broken symlink
+      nodeFs.lstatSync(symlinkPath);
+      return true; // Broken symlink
     }
     catch {
-      return false // File doesn't exist at all
+      return false; // File doesn't exist at all
     }
   }
 }
@@ -262,36 +262,36 @@ function isSymlinkBroken(symlinkPath: string): boolean {
  *
  * @returns Object with success status and message
  */
-export async function fixBrokenNpmSymlink(): Promise<{ fixed: boolean, message: string }> {
-  const platform = getPlatform()
+export async function fixBrokenNpmSymlink(): Promise<{ fixed: boolean; message: string }> {
+  const platform = getPlatform();
   if (platform !== 'macos' && platform !== 'linux') {
-    return { fixed: false, message: 'Symlink fix only supported on macOS and Linux' }
+    return { fixed: false, message: 'Symlink fix only supported on macOS and Linux' };
   }
 
   // Common symlink locations
   const symlinkPaths = [
     '/opt/homebrew/bin/claude', // macOS Apple Silicon
     '/usr/local/bin/claude', // macOS Intel / Linux
-  ]
+  ];
 
   // Find the npm global package location
   const npmPackagePaths = [
     '/opt/homebrew/lib/node_modules/@anthropic-ai/claude-code/cli.js',
     '/usr/local/lib/node_modules/@anthropic-ai/claude-code/cli.js',
     `${process.env.HOME}/.npm-global/lib/node_modules/@anthropic-ai/claude-code/cli.js`,
-  ]
+  ];
 
   // Find the actual package location
-  let packageCliPath: string | null = null
+  let packageCliPath: string | null = null;
   for (const path of npmPackagePaths) {
     if (nodeFs.existsSync(path)) {
-      packageCliPath = path
-      break
+      packageCliPath = path;
+      break;
     }
   }
 
   if (!packageCliPath) {
-    return { fixed: false, message: 'Claude Code npm package not found' }
+    return { fixed: false, message: 'Claude Code npm package not found' };
   }
 
   // Check each symlink location
@@ -299,48 +299,48 @@ export async function fixBrokenNpmSymlink(): Promise<{ fixed: boolean, message: 
     if (isSymlinkBroken(symlinkPath)) {
       try {
         // Remove the broken symlink
-        nodeFs.unlinkSync(symlinkPath)
+        nodeFs.unlinkSync(symlinkPath);
         // Create new symlink pointing to the actual package
-        nodeFs.symlinkSync(packageCliPath, symlinkPath)
+        nodeFs.symlinkSync(packageCliPath, symlinkPath);
         return {
           fixed: true,
           message: `Fixed broken symlink: ${symlinkPath} -> ${packageCliPath}`,
-        }
+        };
       }
       catch (error) {
         return {
           fixed: false,
           message: `Failed to fix symlink: ${error instanceof Error ? error.message : String(error)}`,
-        }
+        };
       }
     }
   }
 
   // Check if symlink exists but command still doesn't work
-  const commandPath = await findCommandPath('claude')
+  const commandPath = await findCommandPath('claude');
   if (!commandPath) {
     // No symlink exists, try to create one
-    const binDir = nodeFs.existsSync('/opt/homebrew/bin') ? '/opt/homebrew/bin' : '/usr/local/bin'
-    const newSymlinkPath = nodePath.join(binDir, 'claude')
+    const binDir = nodeFs.existsSync('/opt/homebrew/bin') ? '/opt/homebrew/bin' : '/usr/local/bin';
+    const newSymlinkPath = nodePath.join(binDir, 'claude');
 
     try {
       if (!nodeFs.existsSync(newSymlinkPath)) {
-        nodeFs.symlinkSync(packageCliPath, newSymlinkPath)
+        nodeFs.symlinkSync(packageCliPath, newSymlinkPath);
         return {
           fixed: true,
           message: `Created new symlink: ${newSymlinkPath} -> ${packageCliPath}`,
-        }
+        };
       }
     }
     catch (error) {
       return {
         fixed: false,
         message: `Failed to create symlink: ${error instanceof Error ? error.message : String(error)}`,
-      }
+      };
     }
   }
 
-  return { fixed: false, message: 'No broken symlinks found' }
+  return { fixed: false, message: 'No broken symlinks found' };
 }
 
 /**
@@ -355,79 +355,79 @@ export async function fixBrokenNpmSymlink(): Promise<{ fixed: boolean, message: 
  * @returns Array of all detected installations with their paths and sources
  */
 export async function detectAllClaudeCodeInstallations(): Promise<ClaudeCodeInstallation[]> {
-  const installations: ClaudeCodeInstallation[] = []
-  const checkedPaths = new Set<string>()
+  const installations: ClaudeCodeInstallation[] = [];
+  const checkedPaths = new Set<string>();
 
   // Get the active command path (first in PATH)
-  const activeCommandPath = await findCommandPath('claude')
-  let activeResolvedPath: string | null = null
+  const activeCommandPath = await findCommandPath('claude');
+  let activeResolvedPath: string | null = null;
 
   if (activeCommandPath) {
     // Resolve symlinks to get the real path
     try {
-      const { stdout } = await execAsync(`readlink -f "${activeCommandPath}" 2>/dev/null || realpath "${activeCommandPath}" 2>/dev/null || echo "${activeCommandPath}"`)
-      activeResolvedPath = stdout.trim()
+      const { stdout } = await execAsync(`readlink -f "${activeCommandPath}" 2>/dev/null || realpath "${activeCommandPath}" 2>/dev/null || echo "${activeCommandPath}"`);
+      activeResolvedPath = stdout.trim();
     }
     catch {
-      activeResolvedPath = activeCommandPath
+      activeResolvedPath = activeCommandPath;
     }
   }
 
   // Helper to get version from a specific path
   async function getVersionFromPath(path: string): Promise<string | null> {
     try {
-      const { stdout } = await execAsync(`"${path}" -v 2>/dev/null || "${path}" --version 2>/dev/null`)
-      const versionMatch = stdout.match(/(\d+\.\d+\.\d+(?:-[\w.]+)?)/)
-      return versionMatch ? versionMatch[1] : null
+      const { stdout } = await execAsync(`"${path}" -v 2>/dev/null || "${path}" --version 2>/dev/null`);
+      const versionMatch = stdout.match(/(\d+\.\d+\.\d+(?:-[\w.]+)?)/);
+      return versionMatch ? versionMatch[1] : null;
     }
     catch {
-      return null
+      return null;
     }
   }
 
   // Helper to check if a path is the active one
   function isActivePath(path: string): boolean {
     if (!activeResolvedPath)
-      return false
-    return path === activeResolvedPath || path === activeCommandPath
+      return false;
+    return path === activeResolvedPath || path === activeCommandPath;
   }
 
   // Helper to add installation if path exists and not already checked
   async function addInstallation(path: string, source: ClaudeCodeInstallation['source']): Promise<void> {
     // Resolve symlinks
-    let resolvedPath = path
+    let resolvedPath = path;
     try {
-      const { stdout } = await execAsync(`readlink -f "${path}" 2>/dev/null || realpath "${path}" 2>/dev/null || echo "${path}"`)
-      resolvedPath = stdout.trim()
+      const { stdout } = await execAsync(`readlink -f "${path}" 2>/dev/null || realpath "${path}" 2>/dev/null || echo "${path}"`);
+      resolvedPath = stdout.trim();
     }
     catch {
       // Keep original path
     }
 
     if (checkedPaths.has(resolvedPath))
-      return
-    checkedPaths.add(resolvedPath)
+      return;
+    checkedPaths.add(resolvedPath);
 
     if (!nodeFs.existsSync(path))
-      return
+      return;
 
-    const version = await getVersionFromPath(path)
+    const version = await getVersionFromPath(path);
     installations.push({
       source,
       path,
       version,
       isActive: isActivePath(path) || isActivePath(resolvedPath),
-    })
+    });
   }
 
   // 0. First, add the active command path if it exists
   // This ensures we capture installations from fnm, nvm, or other Node version managers
   if (activeCommandPath && nodeFs.existsSync(activeCommandPath)) {
-    let activeSource: ClaudeCodeInstallation['source'] = 'other'
+    let activeSource: ClaudeCodeInstallation['source'] = 'other';
 
     // Determine source based on path
     if (activeResolvedPath?.includes('/Caskroom/claude-code/')) {
-      activeSource = 'homebrew-cask'
+      activeSource = 'homebrew-cask';
     }
     else if (
       activeResolvedPath?.includes('/node_modules/')
@@ -438,37 +438,37 @@ export async function detectAllClaudeCodeInstallations(): Promise<ClaudeCodeInst
       || activeCommandPath.includes('/fnm_multishells/')
       || activeCommandPath.includes('/.nvm/')
     ) {
-      activeSource = 'npm'
+      activeSource = 'npm';
     }
 
-    await addInstallation(activeCommandPath, activeSource)
+    await addInstallation(activeCommandPath, activeSource);
   }
 
   // 1. Check Homebrew cask installation
   if (getPlatform() === 'macos') {
-    const homebrewPaths = await getHomebrewCommandPaths('claude')
+    const homebrewPaths = await getHomebrewCommandPaths('claude');
     for (const path of homebrewPaths) {
       if (path.includes('/Caskroom/claude-code/')) {
-        await addInstallation(path, 'homebrew-cask')
+        await addInstallation(path, 'homebrew-cask');
       }
       else if (path.includes('/Cellar/node/')) {
-        await addInstallation(path, 'npm-homebrew-node')
+        await addInstallation(path, 'npm-homebrew-node');
       }
     }
 
     // Also check if cask is installed but symlink might be different
     try {
       // execAsync throws if command fails (cask not installed)
-      await execAsync('brew list --cask claude-code')
+      await execAsync('brew list --cask claude-code');
       // If we get here, the cask is installed - find actual cask path
-      const homebrewPrefixes = ['/opt/homebrew', '/usr/local']
+      const homebrewPrefixes = ['/opt/homebrew', '/usr/local'];
       for (const prefix of homebrewPrefixes) {
-        const caskroomPath = `${prefix}/Caskroom/claude-code`
+        const caskroomPath = `${prefix}/Caskroom/claude-code`;
         if (nodeFs.existsSync(caskroomPath)) {
-          const versions = nodeFs.readdirSync(caskroomPath).filter(v => !v.startsWith('.'))
+          const versions = nodeFs.readdirSync(caskroomPath).filter(v => !v.startsWith('.'));
           for (const version of versions) {
-            const claudePath = `${caskroomPath}/${version}/claude`
-            await addInstallation(claudePath, 'homebrew-cask')
+            const claudePath = `${caskroomPath}/${version}/claude`;
+            await addInstallation(claudePath, 'homebrew-cask');
           }
         }
       }
@@ -485,20 +485,20 @@ export async function detectAllClaudeCodeInstallations(): Promise<ClaudeCodeInst
     '/opt/homebrew/bin/claude',
     `${process.env.HOME}/.npm-global/bin/claude`,
     `${process.env.HOME}/.local/bin/claude`,
-  ]
+  ];
 
   for (const path of npmGlobalPaths) {
     // Check if path exists or is a broken symlink
-    let exists = false
-    let isBrokenSymlink = false
+    let exists = false;
+    let isBrokenSymlink = false;
     try {
       if (nodeFs.existsSync(path)) {
-        exists = true
+        exists = true;
       }
       else {
-        const stats = nodeFs.lstatSync(path)
+        const stats = nodeFs.lstatSync(path);
         if (stats.isSymbolicLink()) {
-          isBrokenSymlink = true
+          isBrokenSymlink = true;
         }
       }
     }
@@ -508,17 +508,17 @@ export async function detectAllClaudeCodeInstallations(): Promise<ClaudeCodeInst
 
     if (exists || isBrokenSymlink) {
       // Determine if it's npm or curl based on resolved path
-      let resolvedPath = path
+      let resolvedPath = path;
       try {
-        const { stdout } = await execAsync(`readlink -f "${path}" 2>/dev/null || realpath "${path}" 2>/dev/null || echo "${path}"`)
-        resolvedPath = stdout.trim()
+        const { stdout } = await execAsync(`readlink -f "${path}" 2>/dev/null || realpath "${path}" 2>/dev/null || echo "${path}"`);
+        resolvedPath = stdout.trim();
       }
       catch {
         // Keep original
       }
 
       if (resolvedPath.includes('/node_modules/') || resolvedPath.includes('/npm/')) {
-        await addInstallation(path, 'npm')
+        await addInstallation(path, 'npm');
       }
       else if (resolvedPath.includes('/Caskroom/')) {
         // Skip, already handled above
@@ -526,32 +526,32 @@ export async function detectAllClaudeCodeInstallations(): Promise<ClaudeCodeInst
       else if (isBrokenSymlink) {
         // If it's a broken symlink in a bin dir, and points to Cellar/node, it was likely an npm install
         // We can check if the global node_modules exists
-        const potentialLibPath = path.replace('/bin/claude', '/lib/node_modules/@anthropic-ai/claude-code')
+        const potentialLibPath = path.replace('/bin/claude', '/lib/node_modules/@anthropic-ai/claude-code');
         if (nodeFs.existsSync(potentialLibPath)) {
           // Found the library, so we treat it as an npm install
           // We'll read the version from package.json since we can't run the binary
           try {
-            const pkgJsonPath = nodePath.join(potentialLibPath, 'package.json')
+            const pkgJsonPath = nodePath.join(potentialLibPath, 'package.json');
             if (nodeFs.existsSync(pkgJsonPath)) {
-              const pkg = JSON.parse(nodeFs.readFileSync(pkgJsonPath, 'utf8'))
+              const pkg = JSON.parse(nodeFs.readFileSync(pkgJsonPath, 'utf8'));
               installations.push({
                 source: 'npm',
                 path,
                 version: pkg.version,
                 isActive: isActivePath(path),
-              })
-              checkedPaths.add(path) // Prevent re-adding
+              });
+              checkedPaths.add(path); // Prevent re-adding
             }
           }
           catch {}
         }
         else {
-          await addInstallation(path, 'other')
+          await addInstallation(path, 'other');
         }
       }
       else {
         // Could be curl or other installation
-        await addInstallation(path, 'other')
+        await addInstallation(path, 'other');
       }
     }
   }
@@ -561,16 +561,16 @@ export async function detectAllClaudeCodeInstallations(): Promise<ClaudeCodeInst
     '/opt/homebrew/lib/node_modules/@anthropic-ai/claude-code',
     '/usr/local/lib/node_modules/@anthropic-ai/claude-code',
     `${process.env.HOME}/.npm-global/lib/node_modules/@anthropic-ai/claude-code`,
-  ]
+  ];
 
   for (const libPath of globalModulesPaths) {
     if (nodeFs.existsSync(libPath) && !checkedPaths.has(libPath)) {
       try {
-        const pkgJsonPath = nodePath.join(libPath, 'package.json')
+        const pkgJsonPath = nodePath.join(libPath, 'package.json');
         if (nodeFs.existsSync(pkgJsonPath)) {
-          const pkg = JSON.parse(nodeFs.readFileSync(pkgJsonPath, 'utf8'))
+          const pkg = JSON.parse(nodeFs.readFileSync(pkgJsonPath, 'utf8'));
           // Infer binary path
-          const binPath = libPath.replace('/lib/node_modules/@anthropic-ai/claude-code', '/bin/claude')
+          const binPath = libPath.replace('/lib/node_modules/@anthropic-ai/claude-code', '/bin/claude');
 
           // If we haven't already added this binary path
           if (!checkedPaths.has(binPath)) {
@@ -579,8 +579,8 @@ export async function detectAllClaudeCodeInstallations(): Promise<ClaudeCodeInst
               path: nodeFs.existsSync(binPath) ? binPath : libPath, // Use bin path if exists, else lib path
               version: pkg.version,
               isActive: false,
-            })
-            checkedPaths.add(libPath)
+            });
+            checkedPaths.add(libPath);
           }
         }
       }
@@ -590,15 +590,15 @@ export async function detectAllClaudeCodeInstallations(): Promise<ClaudeCodeInst
 
   // 3. Check Homebrew's Node.js npm global path on macOS
   if (getPlatform() === 'macos') {
-    const homebrewPrefixes = ['/opt/homebrew', '/usr/local']
+    const homebrewPrefixes = ['/opt/homebrew', '/usr/local'];
     for (const prefix of homebrewPrefixes) {
-      const cellarNodePath = `${prefix}/Cellar/node`
+      const cellarNodePath = `${prefix}/Cellar/node`;
       if (nodeFs.existsSync(cellarNodePath)) {
         try {
-          const versions = nodeFs.readdirSync(cellarNodePath)
+          const versions = nodeFs.readdirSync(cellarNodePath);
           for (const version of versions) {
-            const claudePath = `${cellarNodePath}/${version}/bin/claude`
-            await addInstallation(claudePath, 'npm-homebrew-node')
+            const claudePath = `${cellarNodePath}/${version}/bin/claude`;
+            await addInstallation(claudePath, 'npm-homebrew-node');
           }
         }
         catch {
@@ -608,7 +608,7 @@ export async function detectAllClaudeCodeInstallations(): Promise<ClaudeCodeInst
     }
   }
 
-  return installations
+  return installations;
 }
 
 /**
@@ -617,30 +617,30 @@ export async function detectAllClaudeCodeInstallations(): Promise<ClaudeCodeInst
  * @returns Object with duplicate detection info and recommended action
  */
 export async function checkDuplicateInstallations(): Promise<{
-  hasDuplicates: boolean
-  installations: ClaudeCodeInstallation[]
-  activeInstallation: ClaudeCodeInstallation | null
-  inactiveInstallations: ClaudeCodeInstallation[]
-  homebrewInstallation: ClaudeCodeInstallation | null
-  npmInstallation: ClaudeCodeInstallation | null
-  recommendation: 'remove-npm' | 'none'
+  hasDuplicates: boolean;
+  installations: ClaudeCodeInstallation[];
+  activeInstallation: ClaudeCodeInstallation | null;
+  inactiveInstallations: ClaudeCodeInstallation[];
+  homebrewInstallation: ClaudeCodeInstallation | null;
+  npmInstallation: ClaudeCodeInstallation | null;
+  recommendation: 'remove-npm' | 'none';
 }> {
-  const installations = await detectAllClaudeCodeInstallations()
+  const installations = await detectAllClaudeCodeInstallations();
 
-  const activeInstallation = installations.find(i => i.isActive) || null
-  const inactiveInstallations = installations.filter(i => !i.isActive)
+  const activeInstallation = installations.find(i => i.isActive) || null;
+  const inactiveInstallations = installations.filter(i => !i.isActive);
 
   // Find specific installation types
-  const homebrewInstallation = installations.find(i => i.source === 'homebrew-cask') || null
-  const npmInstallation = installations.find(i => i.source === 'npm' || i.source === 'npm-homebrew-node') || null
+  const homebrewInstallation = installations.find(i => i.source === 'homebrew-cask') || null;
+  const npmInstallation = installations.find(i => i.source === 'npm' || i.source === 'npm-homebrew-node') || null;
 
   // Determine if there are meaningful duplicates
   // We consider it a duplicate if there's both a Homebrew cask and npm installation
-  const hasDuplicates = homebrewInstallation !== null && npmInstallation !== null
+  const hasDuplicates = homebrewInstallation !== null && npmInstallation !== null;
 
   // Always recommend removing npm and keeping Homebrew when both exist
   // Homebrew cask is the official recommended installation method
-  const recommendation: 'remove-npm' | 'none' = hasDuplicates ? 'remove-npm' : 'none'
+  const recommendation: 'remove-npm' | 'none' = hasDuplicates ? 'remove-npm' : 'none';
 
   return {
     hasDuplicates,
@@ -650,7 +650,7 @@ export async function checkDuplicateInstallations(): Promise<{
     homebrewInstallation,
     npmInstallation,
     recommendation,
-  }
+  };
 }
 
 /**
@@ -663,8 +663,8 @@ export function getSourceDisplayName(source: ClaudeCodeInstallation['source'], i
     'npm-homebrew-node': i18n.t('installation:sourceNpmHomebrewNode'),
     'curl': i18n.t('installation:sourceCurl'),
     'other': i18n.t('installation:sourceOther'),
-  }
-  return sourceMap[source] || source
+  };
+  return sourceMap[source] || source;
 }
 
 /**
@@ -678,59 +678,59 @@ async function performNpmRemovalAndActivateHomebrew(
   i18n: { t: (key: string, options?: Record<string, string>) => string },
   ansis: typeof import('ansis').default,
 ): Promise<{
-  hadDuplicates: boolean
-  resolved: boolean
-  action: 'removed-npm' | 'kept-both'
+  hadDuplicates: boolean;
+  resolved: boolean;
+  action: 'removed-npm' | 'kept-both';
 }> {
-  const ora = (await import('ora')).default
-  const spinner = ora(i18n.t('installation:removingDuplicateInstallation')).start()
+  const ora = (await import('ora')).default;
+  const spinner = ora(i18n.t('installation:removingDuplicateInstallation')).start();
 
   try {
-    const { wrapCommandWithSudo } = await import('./platform')
-    const { command, args, usedSudo } = wrapCommandWithSudo('npm', ['uninstall', '-g', '@anthropic-ai/claude-code'])
+    const { wrapCommandWithSudo } = await import('./platform');
+    const { command, args, usedSudo } = wrapCommandWithSudo('npm', ['uninstall', '-g', '@anthropic-ai/claude-code']);
     if (usedSudo) {
-      spinner.info(i18n.t('installation:usingSudo'))
-      spinner.start()
+      spinner.info(i18n.t('installation:usingSudo'));
+      spinner.start();
     }
-    await tinyExec(command, args)
-    spinner.succeed(i18n.t('installation:duplicateRemoved'))
+    await tinyExec(command, args);
+    spinner.succeed(i18n.t('installation:duplicateRemoved'));
 
     // After removing npm, help activate Homebrew if it's not already active
     if (homebrewInstallation && !homebrewInstallation.isActive) {
-      console.log('')
-      console.log(ansis.green(`🔗 ${i18n.t('installation:activatingHomebrew')}`))
+      console.log('');
+      console.log(ansis.green(`🔗 ${i18n.t('installation:activatingHomebrew')}`));
 
       // Try to create symlink for Homebrew installation
-      const { createHomebrewSymlink } = await import('./installer')
-      const symlinkResult = await createHomebrewSymlink('claude', homebrewInstallation.path)
+      const { createHomebrewSymlink } = await import('./installer');
+      const symlinkResult = await createHomebrewSymlink('claude', homebrewInstallation.path);
 
       if (symlinkResult.success) {
-        console.log(ansis.green(`✔ ${i18n.t('installation:symlinkCreated', { path: symlinkResult.symlinkPath || '/usr/local/bin/claude' })}`))
+        console.log(ansis.green(`✔ ${i18n.t('installation:symlinkCreated', { path: symlinkResult.symlinkPath || '/usr/local/bin/claude' })}`));
       }
       else {
         // Provide manual instructions - use error message if available (contains correct path),
         // otherwise determine correct Homebrew bin path based on architecture
-        console.log(ansis.yellow(`⚠ ${i18n.t('installation:manualSymlinkHint')}`))
+        console.log(ansis.yellow(`⚠ ${i18n.t('installation:manualSymlinkHint')}`));
         if (symlinkResult.error) {
           // The error message from createHomebrewSymlink already contains the correct sudo command
-          console.log(ansis.gray(`   ${symlinkResult.error}`))
+          console.log(ansis.gray(`   ${symlinkResult.error}`));
         }
         else {
           // Fallback: determine correct Homebrew bin based on architecture
-          const homebrewBin = nodeFs.existsSync('/opt/homebrew/bin') ? '/opt/homebrew/bin' : '/usr/local/bin'
-          console.log(ansis.gray(`   sudo ln -sf "${homebrewInstallation.path}" ${homebrewBin}/claude`))
+          const homebrewBin = nodeFs.existsSync('/opt/homebrew/bin') ? '/opt/homebrew/bin' : '/usr/local/bin';
+          console.log(ansis.gray(`   sudo ln -sf "${homebrewInstallation.path}" ${homebrewBin}/claude`));
         }
       }
     }
 
-    return { hadDuplicates: true, resolved: true, action: 'removed-npm' }
+    return { hadDuplicates: true, resolved: true, action: 'removed-npm' };
   }
   catch (error) {
-    spinner.fail(i18n.t('installation:duplicateRemovalFailed'))
+    spinner.fail(i18n.t('installation:duplicateRemovalFailed'));
     if (error instanceof Error) {
-      console.error(ansis.gray(error.message))
+      console.error(ansis.gray(error.message));
     }
-    return { hadDuplicates: true, resolved: false, action: 'kept-both' }
+    return { hadDuplicates: true, resolved: false, action: 'kept-both' };
   }
 }
 
@@ -745,95 +745,95 @@ async function performNpmRemovalAndActivateHomebrew(
  * @returns Result object with action taken
  */
 export async function handleDuplicateInstallations(skipPrompt: boolean = false): Promise<{
-  hadDuplicates: boolean
-  resolved: boolean
-  action: 'removed-npm' | 'kept-both' | 'no-duplicates'
+  hadDuplicates: boolean;
+  resolved: boolean;
+  action: 'removed-npm' | 'kept-both' | 'no-duplicates';
 }> {
   // Lazy imports to avoid circular dependencies
-  const { ensureI18nInitialized, format, i18n } = await import('../i18n')
-  const ansis = (await import('ansis')).default
+  const { ensureI18nInitialized, format, i18n } = await import('../i18n');
+  const ansis = (await import('ansis')).default;
 
-  ensureI18nInitialized()
+  ensureI18nInitialized();
 
-  const duplicateInfo = await checkDuplicateInstallations()
+  const duplicateInfo = await checkDuplicateInstallations();
 
   if (!duplicateInfo.hasDuplicates) {
-    return { hadDuplicates: false, resolved: true, action: 'no-duplicates' }
+    return { hadDuplicates: false, resolved: true, action: 'no-duplicates' };
   }
 
-  const { npmInstallation, homebrewInstallation } = duplicateInfo
+  const { npmInstallation, homebrewInstallation } = duplicateInfo;
 
   // Display duplicate installation warning
-  console.log('')
-  console.log(ansis.yellow.bold(i18n.t('installation:duplicateInstallationsDetected')))
-  console.log(ansis.gray(i18n.t('installation:duplicateInstallationsWarning')))
-  console.log('')
+  console.log('');
+  console.log(ansis.yellow.bold(i18n.t('installation:duplicateInstallationsDetected')));
+  console.log(ansis.gray(i18n.t('installation:duplicateInstallationsWarning')));
+  console.log('');
 
   // Display Homebrew installation (recommended to keep)
   if (homebrewInstallation) {
-    const isActive = homebrewInstallation.isActive
-    const statusIcon = isActive ? '✅' : '⚠️'
-    const statusColor = isActive ? ansis.green : ansis.yellow
-    console.log(ansis.green.bold(`🍺 Homebrew Cask ${i18n.t('installation:recommendedMethod')}:`))
-    console.log(ansis.white(`   ${i18n.t('installation:installationSource')}: ${statusColor(getSourceDisplayName(homebrewInstallation.source, i18n))}`))
-    console.log(ansis.white(`   ${i18n.t('installation:installationPath')}: ${ansis.gray(homebrewInstallation.path)}`))
+    const isActive = homebrewInstallation.isActive;
+    const statusIcon = isActive ? '✅' : '⚠️';
+    const statusColor = isActive ? ansis.green : ansis.yellow;
+    console.log(ansis.green.bold(`🍺 Homebrew Cask ${i18n.t('installation:recommendedMethod')}:`));
+    console.log(ansis.white(`   ${i18n.t('installation:installationSource')}: ${statusColor(getSourceDisplayName(homebrewInstallation.source, i18n))}`));
+    console.log(ansis.white(`   ${i18n.t('installation:installationPath')}: ${ansis.gray(homebrewInstallation.path)}`));
     if (homebrewInstallation.version) {
-      console.log(ansis.white(`   ${i18n.t('installation:installationVersion')}: ${ansis.green(homebrewInstallation.version)}`))
+      console.log(ansis.white(`   ${i18n.t('installation:installationVersion')}: ${ansis.green(homebrewInstallation.version)}`));
     }
-    console.log(ansis.white(`   ${statusIcon} ${isActive ? i18n.t('installation:currentActiveInstallation') : i18n.t('installation:inactiveInstallations')}`))
-    console.log('')
+    console.log(ansis.white(`   ${statusIcon} ${isActive ? i18n.t('installation:currentActiveInstallation') : i18n.t('installation:inactiveInstallations')}`));
+    console.log('');
   }
 
   // Display npm installation (recommended to remove)
   if (npmInstallation) {
-    const isActive = npmInstallation.isActive
-    console.log(ansis.yellow.bold(`📦 npm ${i18n.t('installation:notRecommended')}:`))
-    console.log(ansis.white(`   ${i18n.t('installation:installationSource')}: ${ansis.yellow(getSourceDisplayName(npmInstallation.source, i18n))}`))
-    console.log(ansis.white(`   ${i18n.t('installation:installationPath')}: ${ansis.gray(npmInstallation.path)}`))
+    const isActive = npmInstallation.isActive;
+    console.log(ansis.yellow.bold(`📦 npm ${i18n.t('installation:notRecommended')}:`));
+    console.log(ansis.white(`   ${i18n.t('installation:installationSource')}: ${ansis.yellow(getSourceDisplayName(npmInstallation.source, i18n))}`));
+    console.log(ansis.white(`   ${i18n.t('installation:installationPath')}: ${ansis.gray(npmInstallation.path)}`));
     if (npmInstallation.version) {
-      console.log(ansis.white(`   ${i18n.t('installation:installationVersion')}: ${ansis.green(npmInstallation.version)}`))
+      console.log(ansis.white(`   ${i18n.t('installation:installationVersion')}: ${ansis.green(npmInstallation.version)}`));
 
       // Check for version mismatch
       if (homebrewInstallation?.version && npmInstallation.version !== homebrewInstallation.version) {
         console.log(ansis.red(`   ${format(i18n.t('installation:versionMismatchWarning'), {
           npmVersion: npmInstallation.version,
           homebrewVersion: homebrewInstallation.version,
-        })}`))
+        })}`));
       }
     }
     if (isActive) {
-      console.log(ansis.white(`   ⚠️ ${i18n.t('installation:currentActiveInstallation')}`))
+      console.log(ansis.white(`   ⚠️ ${i18n.t('installation:currentActiveInstallation')}`));
     }
-    console.log('')
+    console.log('');
   }
 
   // Show recommendation - always recommend removing npm
-  console.log(ansis.green(`💡 ${i18n.t('installation:recommendRemoveNpm')}`))
-  console.log('')
+  console.log(ansis.green(`💡 ${i18n.t('installation:recommendRemoveNpm')}`));
+  console.log('');
 
   if (!npmInstallation) {
-    return { hadDuplicates: true, resolved: false, action: 'kept-both' }
+    return { hadDuplicates: true, resolved: false, action: 'kept-both' };
   }
 
-  const { exec: tinyExec } = await import('tinyexec')
+  const { exec: tinyExec } = await import('tinyexec');
 
   // If skipPrompt (-s flag), automatically remove npm and keep Homebrew
   if (skipPrompt) {
-    console.log(ansis.green(`🔄 ${i18n.t('installation:autoRemovingNpm')}`))
+    console.log(ansis.green(`🔄 ${i18n.t('installation:autoRemovingNpm')}`));
     return await performNpmRemovalAndActivateHomebrew(
       npmInstallation,
       homebrewInstallation,
       tinyExec,
       i18n,
       ansis,
-    )
+    );
   }
 
   // Prompt user for action
-  const inquirer = (await import('inquirer')).default
+  const inquirer = (await import('inquirer')).default;
 
-  const sourceDisplayName = getSourceDisplayName(npmInstallation.source, i18n)
-  const confirmMessage = format(i18n.t('installation:confirmRemoveDuplicate'), { source: sourceDisplayName })
+  const sourceDisplayName = getSourceDisplayName(npmInstallation.source, i18n);
+  const confirmMessage = format(i18n.t('installation:confirmRemoveDuplicate'), { source: sourceDisplayName });
 
   const { action } = await inquirer.prompt<{ action: 'remove' | 'keep' }>([
     {
@@ -851,11 +851,11 @@ export async function handleDuplicateInstallations(skipPrompt: boolean = false):
         },
       ],
     },
-  ])
+  ]);
 
   if (action === 'keep') {
-    console.log(ansis.gray(i18n.t('installation:duplicateWarningContinue')))
-    return { hadDuplicates: true, resolved: false, action: 'kept-both' }
+    console.log(ansis.gray(i18n.t('installation:duplicateWarningContinue')));
+    return { hadDuplicates: true, resolved: false, action: 'kept-both' };
   }
 
   // Perform npm removal using the helper function
@@ -865,7 +865,7 @@ export async function handleDuplicateInstallations(skipPrompt: boolean = false):
     tinyExec,
     i18n,
     ansis,
-  )
+  );
 }
 
 /**
@@ -884,12 +884,12 @@ export async function isClaudeCodeInstalledViaHomebrew(): Promise<boolean> {
   try {
     // Use brew list --cask to check if claude-code is installed via Homebrew
     // This avoids the side effect of running claude update
-    const result = await execAsync('brew list --cask claude-code')
-    return result.stdout.includes('claude-code')
+    const result = await execAsync('brew list --cask claude-code');
+    return result.stdout.includes('claude-code');
   }
   catch {
     // If brew command fails, it's not installed via Homebrew
-    return false
+    return false;
   }
 }
 
@@ -900,48 +900,48 @@ export async function isClaudeCodeInstalledViaHomebrew(): Promise<boolean> {
  */
 export async function getHomebrewClaudeCodeVersion(): Promise<string | null> {
   try {
-    const { stdout } = await execAsync('brew info --cask claude-code --json=v2')
-    const info = JSON.parse(stdout)
+    const { stdout } = await execAsync('brew info --cask claude-code --json=v2');
+    const info = JSON.parse(stdout);
     // For casks, the structure is different
     if (info.casks && info.casks.length > 0) {
-      return info.casks[0].version
+      return info.casks[0].version;
     }
-    return null
+    return null;
   }
   catch {
-    return null
+    return null;
   }
 }
 
 export function compareVersions(current: string, latest: string): number {
   // Returns: -1 if current < latest, 0 if equal, 1 if current > latest
   if (!semver.valid(current) || !semver.valid(latest)) {
-    return -1 // Assume update needed if version is invalid
+    return -1; // Assume update needed if version is invalid
   }
 
-  return semver.compare(current, latest)
+  return semver.compare(current, latest);
 }
 
 export function shouldUpdate(current: string, latest: string): boolean {
-  return compareVersions(current, latest) < 0
+  return compareVersions(current, latest) < 0;
 }
 
 export async function checkCcrVersion(): Promise<{
-  installed: boolean
-  currentVersion: string | null
-  latestVersion: string | null
-  needsUpdate: boolean
+  installed: boolean;
+  currentVersion: string | null;
+  latestVersion: string | null;
+  needsUpdate: boolean;
 }> {
-  const currentVersion = await getInstalledVersion('ccr')
+  const currentVersion = await getInstalledVersion('ccr');
   // Get the latest version from npm
-  const latestVersion = await getLatestVersion('@musistudio/claude-code-router')
+  const latestVersion = await getLatestVersion('@musistudio/claude-code-router');
 
   return {
     installed: currentVersion !== null,
     currentVersion,
     latestVersion,
     needsUpdate: currentVersion && latestVersion ? shouldUpdate(currentVersion, latestVersion) : false,
-  }
+  };
 }
 
 /**
@@ -958,75 +958,75 @@ export async function checkCcrVersion(): Promise<{
  * @returns Version information including update availability and installation method
  */
 export async function checkClaudeCodeVersion(): Promise<{
-  installed: boolean
-  currentVersion: string | null
-  latestVersion: string | null
-  needsUpdate: boolean
-  isHomebrew: boolean
-  commandPath: string | null
-  installationSource: 'homebrew-cask' | 'npm' | 'curl' | 'other' | 'not-found'
-  isBroken?: boolean
-  hasWrongPackage?: boolean
-  wrongPackageName?: string | null
+  installed: boolean;
+  currentVersion: string | null;
+  latestVersion: string | null;
+  needsUpdate: boolean;
+  isHomebrew: boolean;
+  commandPath: string | null;
+  installationSource: 'homebrew-cask' | 'npm' | 'curl' | 'other' | 'not-found';
+  isBroken?: boolean;
+  hasWrongPackage?: boolean;
+  wrongPackageName?: string | null;
 }> {
   // Check for wrong package installation first
-  const wrongPackageInfo = await detectWrongClaudeCodePackage()
+  const wrongPackageInfo = await detectWrongClaudeCodePackage();
 
-  let currentVersion = await getInstalledVersion('claude')
-  const initialGetVersionSuccess = currentVersion !== null
+  let currentVersion = await getInstalledVersion('claude');
+  const initialGetVersionSuccess = currentVersion !== null;
 
   // Determine installation source by checking actual command path
   // This correctly handles the case where both npm and Homebrew installations exist
-  let installationInfo = await getClaudeCodeInstallationSource()
+  let installationInfo = await getClaudeCodeInstallationSource();
 
   // Fallback: if getInstalledVersion failed (command not found or broken),
   // try to detect via detectAllClaudeCodeInstallations to find broken/hidden installs
   if (!currentVersion) {
-    const installations = await detectAllClaudeCodeInstallations()
+    const installations = await detectAllClaudeCodeInstallations();
     // Prefer homebrew > npm > curl > other
     const bestInstall = installations.find(i => i.source === 'homebrew-cask')
       || installations.find(i => i.source === 'npm')
       || installations.find(i => i.source === 'curl')
-      || installations[0]
+      || installations[0];
 
     if (bestInstall && bestInstall.version) {
-      currentVersion = bestInstall.version
+      currentVersion = bestInstall.version;
       // Map installation source correctly
-      let mappedSource: 'homebrew-cask' | 'npm' | 'curl' | 'other' | 'not-found'
+      let mappedSource: 'homebrew-cask' | 'npm' | 'curl' | 'other' | 'not-found';
       switch (bestInstall.source) {
         case 'homebrew-cask':
-          mappedSource = 'homebrew-cask'
-          break
+          mappedSource = 'homebrew-cask';
+          break;
         case 'npm':
         case 'npm-homebrew-node':
-          mappedSource = 'npm'
-          break
+          mappedSource = 'npm';
+          break;
         case 'curl':
-          mappedSource = 'curl'
-          break
+          mappedSource = 'curl';
+          break;
         default:
-          mappedSource = 'other'
+          mappedSource = 'other';
       }
       installationInfo = {
         isHomebrew: bestInstall.source === 'homebrew-cask',
         commandPath: bestInstall.path,
         source: mappedSource,
-      }
+      };
     }
   }
 
-  const { isHomebrew, commandPath, source: installationSource } = installationInfo
+  const { isHomebrew, commandPath, source: installationSource } = installationInfo;
 
   // Use appropriate version source based on actual installation method
-  let latestVersion: string | null
+  let latestVersion: string | null;
   if (isHomebrew) {
-    latestVersion = await getHomebrewClaudeCodeVersion()
+    latestVersion = await getHomebrewClaudeCodeVersion();
   }
   else {
-    latestVersion = await getLatestVersion('@anthropic-ai/claude-code')
+    latestVersion = await getLatestVersion('@anthropic-ai/claude-code');
   }
 
-  const needsUpdate = (currentVersion && latestVersion ? shouldUpdate(currentVersion, latestVersion) : false) || (!initialGetVersionSuccess && currentVersion !== null)
+  const needsUpdate = (currentVersion && latestVersion ? shouldUpdate(currentVersion, latestVersion) : false) || (!initialGetVersionSuccess && currentVersion !== null);
 
   return {
     installed: currentVersion !== null,
@@ -1039,41 +1039,41 @@ export async function checkClaudeCodeVersion(): Promise<{
     isBroken: !initialGetVersionSuccess && currentVersion !== null,
     hasWrongPackage: wrongPackageInfo.hasWrongPackage,
     wrongPackageName: wrongPackageInfo.wrongPackageName,
-  }
+  };
 }
 
 export async function checkCometixLineVersion(): Promise<{
-  installed: boolean
-  currentVersion: string | null
-  latestVersion: string | null
-  needsUpdate: boolean
+  installed: boolean;
+  currentVersion: string | null;
+  latestVersion: string | null;
+  needsUpdate: boolean;
 }> {
-  const currentVersion = await getInstalledVersion('ccline')
-  const latestVersion = await getLatestVersion('@cometix/ccline')
+  const currentVersion = await getInstalledVersion('ccline');
+  const latestVersion = await getLatestVersion('@cometix/ccline');
 
   return {
     installed: currentVersion !== null,
     currentVersion,
     latestVersion,
     needsUpdate: currentVersion && latestVersion ? shouldUpdate(currentVersion, latestVersion) : false,
-  }
+  };
 }
 
 export async function checkMyclaudeVersion(): Promise<{
-  installed: boolean
-  currentVersion: string | null
-  latestVersion: string | null
-  needsUpdate: boolean
+  installed: boolean;
+  currentVersion: string | null;
+  latestVersion: string | null;
+  needsUpdate: boolean;
 }> {
-  const currentVersion = await getInstalledVersion('clavue')
-  const latestVersion = await getLatestVersion('clavue')
+  const currentVersion = await getInstalledVersion('clavue');
+  const latestVersion = await getLatestVersion('clavue');
 
   return {
     installed: currentVersion !== null,
     currentVersion,
     latestVersion,
     needsUpdate: currentVersion && latestVersion ? shouldUpdate(currentVersion, latestVersion) : false,
-  }
+  };
 }
 
 /**
@@ -1091,23 +1091,23 @@ export async function checkClaudeCodeVersionAndPrompt(
 ): Promise<void> {
   try {
     // Check Claude Code version status
-    const versionInfo = await checkClaudeCodeVersion()
+    const versionInfo = await checkClaudeCodeVersion();
 
     // Early return if no update is needed
     if (!versionInfo.needsUpdate) {
-      return
+      return;
     }
 
     // Lazy import to avoid circular dependencies and improve performance
-    const { updateClaudeCode } = await import('./auto-updater')
+    const { updateClaudeCode } = await import('./auto-updater');
 
     // Choose update strategy based on mode
     // In skip-prompt mode, don't force update, just skip user confirmation
-    await updateClaudeCode(false, skipPrompt)
+    await updateClaudeCode(false, skipPrompt);
   }
   catch (error) {
     // Graceful error handling - log warning but don't interrupt main flow
-    const errorMessage = error instanceof Error ? error.message : String(error)
-    console.warn(`Claude Code version check failed: ${errorMessage}`)
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.warn(`Claude Code version check failed: ${errorMessage}`);
   }
 }

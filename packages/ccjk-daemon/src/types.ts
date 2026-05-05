@@ -30,12 +30,12 @@ export interface SessionHandler {
 /**
  * Remote command types
  */
-export type RemoteCommand =
-  | { type: 'approve-permission'; requestId: string; approved: boolean }
-  | { type: 'send-message'; text: string }
-  | { type: 'pause-session' }
-  | { type: 'resume-session' }
-  | { type: 'stop-session' };
+export type RemoteCommand
+  = | { type: 'approve-permission'; requestId: string; approved: boolean }
+    | { type: 'send-message'; text: string }
+    | { type: 'pause-session' }
+    | { type: 'resume-session' }
+    | { type: 'stop-session' };
 
 /**
  * Daemon state

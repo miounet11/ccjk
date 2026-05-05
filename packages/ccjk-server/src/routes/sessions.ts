@@ -117,7 +117,8 @@ export async function sessionRoutes(fastify: FastifyInstance) {
           active: true,
         },
       });
-    } else {
+    }
+    else {
       // Create new session
       session = await prisma.session.create({
         data: {

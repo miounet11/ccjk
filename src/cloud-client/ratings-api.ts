@@ -12,25 +12,25 @@ import type {
   Pagination,
   Rating,
   RatingSummary,
-} from './skills-marketplace-types'
-import { CLOUD_ENDPOINTS } from '../constants'
+} from './skills-marketplace-types';
+import { CLOUD_ENDPOINTS } from '../constants';
 
 /** Sort options for ratings */
-export type RatingSortOption = 'newest' | 'oldest' | 'highest' | 'lowest' | 'helpful'
+export type RatingSortOption = 'newest' | 'oldest' | 'highest' | 'lowest' | 'helpful';
 
 /** Base URL for the API */
-const API_BASE_URL = `${CLOUD_ENDPOINTS.MAIN.BASE_URL}${CLOUD_ENDPOINTS.MAIN.API_VERSION}`
+const API_BASE_URL = `${CLOUD_ENDPOINTS.MAIN.BASE_URL}${CLOUD_ENDPOINTS.MAIN.API_VERSION}`;
 
 /**
  * Parameters for fetching skill ratings
  */
 export interface GetSkillRatingsParams {
   /** Page number (1-indexed) */
-  page?: number
+  page?: number;
   /** Number of items per page */
-  limit?: number
+  limit?: number;
   /** Sort order for ratings */
-  sort?: RatingSortOption
+  sort?: RatingSortOption;
 }
 
 /**
@@ -38,11 +38,11 @@ export interface GetSkillRatingsParams {
  */
 export interface GetSkillRatingsResponse {
   /** List of ratings */
-  ratings: Rating[]
+  ratings: Rating[];
   /** Summary statistics for the skill's ratings */
-  summary: RatingSummary
+  summary: RatingSummary;
   /** Pagination information */
-  pagination: Pagination
+  pagination: Pagination;
 }
 
 /**
@@ -50,11 +50,11 @@ export interface GetSkillRatingsResponse {
  */
 export interface CreateRatingData {
   /** ID of the user creating the rating */
-  userId: string
+  userId: string;
   /** Rating value (1-5 stars) */
-  rating: number
+  rating: number;
   /** Optional review text */
-  review?: string
+  review?: string;
 }
 
 /**
@@ -62,19 +62,19 @@ export interface CreateRatingData {
  */
 export interface CreateRatingResponse {
   /** Unique identifier for the rating */
-  id: number
+  id: number;
   /** ID of the skill being rated */
-  skillId: string
+  skillId: string;
   /** ID of the user who created the rating */
-  userId: string
+  userId: string;
   /** Rating value (1-5 stars) */
-  rating: number
+  rating: number;
   /** Review text or null if not provided */
-  review: string | null
+  review: string | null;
   /** Number of users who found this rating helpful */
-  helpful: number
+  helpful: number;
   /** ISO 8601 timestamp of when the rating was created */
-  createdAt: string
+  createdAt: string;
 }
 
 /**
@@ -105,8 +105,8 @@ export class RatingsApiError extends Error {
     public readonly statusCode?: number,
     public readonly details?: unknown,
   ) {
-    super(message)
-    this.name = 'RatingsApiError'
+    super(message);
+    this.name = 'RatingsApiError';
   }
 }
 
@@ -121,7 +121,7 @@ function validateRating(rating: number): void {
     throw new RatingsApiError(
       `Invalid rating value: ${rating}. Rating must be an integer between 1 and 5.`,
       RatingsApiErrorCode.INVALID_RATING_VALUE,
-    )
+    );
   }
 }
 
@@ -132,16 +132,16 @@ function validateRating(rating: number): void {
  * @returns URL-encoded query string
  */
 function buildQueryString(params: Record<string, string | number | undefined>): string {
-  const searchParams = new URLSearchParams()
+  const searchParams = new URLSearchParams();
 
   for (const [key, value] of Object.entries(params)) {
     if (value !== undefined) {
-      searchParams.append(key, String(value))
+      searchParams.append(key, String(value));
     }
   }
 
-  const queryString = searchParams.toString()
-  return queryString ? `?${queryString}` : ''
+  const queryString = searchParams.toString();
+  return queryString ? `?${queryString}` : '';
 }
 
 /**
@@ -154,48 +154,48 @@ function buildQueryString(params: Record<string, string | number | undefined>): 
  */
 async function handleResponse<T>(response: Response, context: string): Promise<T> {
   if (!response.ok) {
-    let errorData: { error?: string, code?: string, message?: string } = {}
+    let errorData: { error?: string; code?: string; message?: string } = {};
 
     try {
-      errorData = await response.json() as { error?: string, code?: string, message?: string }
+      errorData = await response.json() as { error?: string; code?: string; message?: string };
     }
     catch {
       // Response body is not JSON
     }
 
-    const errorMessage = errorData.message || errorData.error || `${context} failed`
-    const errorCode = mapHttpStatusToErrorCode(response.status, errorData.code)
+    const errorMessage = errorData.message || errorData.error || `${context} failed`;
+    const errorCode = mapHttpStatusToErrorCode(response.status, errorData.code);
 
     throw new RatingsApiError(
       errorMessage,
       errorCode,
       response.status,
       errorData,
-    )
+    );
   }
 
   try {
-    const data = await response.json() as ApiResponse<T>
+    const data = await response.json() as ApiResponse<T>;
 
     if (data.success === false) {
       throw new RatingsApiError(
         data.error || `${context} failed`,
         RatingsApiErrorCode.UNKNOWN_ERROR,
         response.status,
-      )
+      );
     }
 
-    return data.data as T
+    return data.data as T;
   }
   catch (error) {
     if (error instanceof RatingsApiError) {
-      throw error
+      throw error;
     }
     throw new RatingsApiError(
       `Failed to parse response for ${context}`,
       RatingsApiErrorCode.UNKNOWN_ERROR,
       response.status,
-    )
+    );
   }
 }
 
@@ -209,21 +209,21 @@ async function handleResponse<T>(response: Response, context: string): Promise<T
 function mapHttpStatusToErrorCode(status: number, serverCode?: string): RatingsApiErrorCode {
   // Check server-provided error code first
   if (serverCode === 'DUPLICATE_RATING') {
-    return RatingsApiErrorCode.DUPLICATE_RATING
+    return RatingsApiErrorCode.DUPLICATE_RATING;
   }
 
   // Map HTTP status codes
   switch (status) {
     case 401:
-      return RatingsApiErrorCode.UNAUTHORIZED
+      return RatingsApiErrorCode.UNAUTHORIZED;
     case 404:
-      return RatingsApiErrorCode.SKILL_NOT_FOUND
+      return RatingsApiErrorCode.SKILL_NOT_FOUND;
     case 409:
-      return RatingsApiErrorCode.DUPLICATE_RATING
+      return RatingsApiErrorCode.DUPLICATE_RATING;
     case 422:
-      return RatingsApiErrorCode.INVALID_RATING_VALUE
+      return RatingsApiErrorCode.INVALID_RATING_VALUE;
     default:
-      return RatingsApiErrorCode.UNKNOWN_ERROR
+      return RatingsApiErrorCode.UNKNOWN_ERROR;
   }
 }
 
@@ -259,16 +259,16 @@ export async function getSkillRatings(
     throw new RatingsApiError(
       'Skill ID is required and must be a string',
       RatingsApiErrorCode.INVALID_RATING_VALUE,
-    )
+    );
   }
 
   const queryString = buildQueryString({
     page: params.page,
     limit: params.limit,
     sort: params.sort,
-  })
+  });
 
-  const url = `${API_BASE_URL}/skills/${encodeURIComponent(skillId)}/ratings${queryString}`
+  const url = `${API_BASE_URL}/skills/${encodeURIComponent(skillId)}/ratings${queryString}`;
 
   try {
     const response = await fetch(url, {
@@ -277,19 +277,19 @@ export async function getSkillRatings(
         'Content-Type': 'application/json',
         'Accept': 'application/json',
       },
-    })
+    });
 
-    return await handleResponse<GetSkillRatingsResponse>(response, 'Get skill ratings')
+    return await handleResponse<GetSkillRatingsResponse>(response, 'Get skill ratings');
   }
   catch (error) {
     if (error instanceof RatingsApiError) {
-      throw error
+      throw error;
     }
 
     throw new RatingsApiError(
       `Network error while fetching ratings: ${error instanceof Error ? error.message : 'Unknown error'}`,
       RatingsApiErrorCode.NETWORK_ERROR,
-    )
+    );
   }
 }
 
@@ -343,33 +343,33 @@ export async function createRating(
     throw new RatingsApiError(
       'Skill ID is required and must be a string',
       RatingsApiErrorCode.INVALID_RATING_VALUE,
-    )
+    );
   }
 
   if (!token || typeof token !== 'string') {
     throw new RatingsApiError(
       'Authentication token is required',
       RatingsApiErrorCode.UNAUTHORIZED,
-    )
+    );
   }
 
   if (!data.userId || typeof data.userId !== 'string') {
     throw new RatingsApiError(
       'User ID is required and must be a string',
       RatingsApiErrorCode.INVALID_RATING_VALUE,
-    )
+    );
   }
 
   // Validate rating value (1-5)
-  validateRating(data.rating)
+  validateRating(data.rating);
 
-  const url = `${API_BASE_URL}/skills/${encodeURIComponent(skillId)}/ratings`
+  const url = `${API_BASE_URL}/skills/${encodeURIComponent(skillId)}/ratings`;
 
   const requestBody = {
     userId: data.userId,
     rating: data.rating,
     ...(data.review !== undefined && { review: data.review }),
-  }
+  };
 
   try {
     const response = await fetch(url, {
@@ -380,19 +380,19 @@ export async function createRating(
         'Authorization': `Bearer ${token}`,
       },
       body: JSON.stringify(requestBody),
-    })
+    });
 
-    return await handleResponse<CreateRatingResponse>(response, 'Create rating')
+    return await handleResponse<CreateRatingResponse>(response, 'Create rating');
   }
   catch (error) {
     if (error instanceof RatingsApiError) {
-      throw error
+      throw error;
     }
 
     throw new RatingsApiError(
       `Network error while creating rating: ${error instanceof Error ? error.message : 'Unknown error'}`,
       RatingsApiErrorCode.NETWORK_ERROR,
-    )
+    );
   }
 }
 
@@ -422,7 +422,7 @@ export function isDuplicateRatingError(error: unknown): boolean {
   return (
     error instanceof RatingsApiError
     && error.code === RatingsApiErrorCode.DUPLICATE_RATING
-  )
+  );
 }
 
 /**
@@ -435,7 +435,7 @@ export function isUnauthorizedError(error: unknown): boolean {
   return (
     error instanceof RatingsApiError
     && error.code === RatingsApiErrorCode.UNAUTHORIZED
-  )
+  );
 }
 
 /**
@@ -448,7 +448,7 @@ export function isSkillNotFoundError(error: unknown): boolean {
   return (
     error instanceof RatingsApiError
     && error.code === RatingsApiErrorCode.SKILL_NOT_FOUND
-  )
+  );
 }
 
 /**
@@ -471,4 +471,4 @@ export const ratingsApi = {
   isDuplicateRatingError,
   isUnauthorizedError,
   isSkillNotFoundError,
-}
+};

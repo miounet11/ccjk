@@ -7,9 +7,9 @@
  * StatusLine configuration for Claude Code
  */
 export interface StatusLineConfig {
-  type: 'command'
-  command: string
-  padding?: number
+  type: 'command';
+  command: string;
+  padding?: number;
 }
 
 /**
@@ -17,9 +17,9 @@ export interface StatusLineConfig {
  */
 export interface ThinkingConfig {
   /** Enable extended thinking mode */
-  enabled?: boolean
+  enabled?: boolean;
   /** Budget tokens for thinking (default: 10240) */
-  budgetTokens?: number
+  budgetTokens?: number;
 }
 
 /**
@@ -27,15 +27,15 @@ export interface ThinkingConfig {
  */
 export interface FileSuggestionConfig {
   /** Command to run for file suggestions (e.g., 'git', 'grep') */
-  command?: string
+  command?: string;
 }
 
 /**
  * Permission configuration for CCJK
  */
 export interface PermissionConfig {
-  allow?: string[]
-  deny?: string[]
+  allow?: string[];
+  deny?: string[];
 }
 
 /**
@@ -44,181 +44,181 @@ export interface PermissionConfig {
  */
 export interface ClaudeSettings {
   /** Model configuration: built-in aliases or a full Claude model name. */
-  model?: string
+  model?: string;
 
   /** Environment variables for API configuration */
   env?: {
-    ANTHROPIC_API_KEY?: string
-    ANTHROPIC_AUTH_TOKEN?: string
-    ANTHROPIC_BASE_URL?: string
-    ANTHROPIC_MODEL?: string
-    ANTHROPIC_SMALL_FAST_MODEL?: string
-    ANTHROPIC_DEFAULT_HAIKU_MODEL?: string
-    ANTHROPIC_DEFAULT_SONNET_MODEL?: string
-    ANTHROPIC_DEFAULT_OPUS_MODEL?: string
-    [key: string]: string | undefined
-  }
+    ANTHROPIC_API_KEY?: string;
+    ANTHROPIC_AUTH_TOKEN?: string;
+    ANTHROPIC_BASE_URL?: string;
+    ANTHROPIC_MODEL?: string;
+    ANTHROPIC_SMALL_FAST_MODEL?: string;
+    ANTHROPIC_DEFAULT_HAIKU_MODEL?: string;
+    ANTHROPIC_DEFAULT_SONNET_MODEL?: string;
+    ANTHROPIC_DEFAULT_OPUS_MODEL?: string;
+    [key: string]: string | undefined;
+  };
 
   /** Permissions configuration */
   permissions?: {
-    allow?: string[]
-    deny?: string[]
-  }
+    allow?: string[];
+    deny?: string[];
+  };
 
   /** Chat configuration */
   chat?: {
-    alwaysApprove?: string[]
-  }
+    alwaysApprove?: string[];
+  };
 
   /** Experimental features configuration */
   experimental?: {
-    [key: string]: any
-  }
+    [key: string]: any;
+  };
 
   /** Status line configuration */
-  statusLine?: StatusLineConfig
+  statusLine?: StatusLineConfig;
 
   /** Output style for AI responses (legacy CCJK field) */
-  outputStyle?: string
+  outputStyle?: string;
 
   // === Claude Code CLI 2.0-2.1 new fields ===
 
   /** Response language for AI (e.g., "japanese", "chinese", "english") */
-  language?: string
+  language?: string;
 
   /** Custom directory for storing plans */
-  plansDirectory?: string
+  plansDirectory?: string;
 
   /** Enable auto mode for MCP tool search */
-  toolSearchAutoMode?: boolean
+  toolSearchAutoMode?: boolean;
 
   /** Show duration for each turn in conversation */
-  showTurnDuration?: boolean
+  showTurnDuration?: boolean;
 
   /** Respect .gitignore file for file operations */
-  respectGitignore?: boolean
+  respectGitignore?: boolean;
 
   /** MCP auto-enable threshold configuration */
   auto?: {
     /** Number of uses before auto-enabling an MCP server (default: 5) */
-    mcp?: number
-  }
+    mcp?: number;
+  };
 
   /** Default agent for Claude Code CLI 2.0+ */
-  agent?: string
+  agent?: string;
 
   /** Extended thinking configuration */
-  thinking?: ThinkingConfig
+  thinking?: ThinkingConfig;
 
   /** File suggestion configuration */
-  fileSuggestion?: FileSuggestionConfig
+  fileSuggestion?: FileSuggestionConfig;
 
   /** Allow unsandboxed commands (dangerous) */
-  allowUnsandboxedCommands?: boolean
+  allowUnsandboxedCommands?: boolean;
 
   /** List of disallowed tools */
-  disallowedTools?: string[]
+  disallowedTools?: string[];
 
   /** Attribution string for responses */
-  attribution?: string
+  attribution?: string;
 
   /** Index configuration for context management */
   index?: {
     /** Maximum number of files to index */
-    maxFiles?: number
+    maxFiles?: number;
     /** Maximum file size to index (in bytes) */
-    maxFileSize?: number
-  }
+    maxFileSize?: number;
+  };
 
   /** Allow/deny browser automation */
-  allowBrowser?: boolean
+  allowBrowser?: boolean;
 
   /** Session configuration */
   session?: {
     /** Auto-naming pattern for sessions */
-    autoNaming?: 'branch' | 'timestamp' | 'prompt' | 'off'
+    autoNaming?: 'branch' | 'timestamp' | 'prompt' | 'off';
     /** Session persistence directory */
-    directory?: string
+    directory?: string;
     /** Auto-save interval in seconds */
-    autoSaveInterval?: number
-  }
+    autoSaveInterval?: number;
+  };
 
   /** Background tasks configuration */
   backgroundTasks?: {
     /** Maximum concurrent background tasks */
-    maxConcurrent?: number
+    maxConcurrent?: number;
     /** Storage directory for task data */
-    storageDir?: string
+    storageDir?: string;
     /** Default task timeout in milliseconds */
-    defaultTimeout?: number
-  }
+    defaultTimeout?: number;
+  };
 
   /** Teleport configuration for remote sessions */
   teleport?: {
     /** Enable teleport feature */
-    enabled?: boolean
+    enabled?: boolean;
     /** Custom endpoint for teleport service */
-    endpoint?: string
+    endpoint?: string;
     /** API key for remote service */
-    apiKey?: string
+    apiKey?: string;
     /** Session expiration in days */
-    expirationDays?: number
-  }
+    expirationDays?: number;
+  };
 
   /** Output format configuration */
   output?: {
     /** Format for responses */
-    format?: 'text' | 'markdown' | 'json'
+    format?: 'text' | 'markdown' | 'json';
     /** Include timestamps */
-    timestamps?: boolean
+    timestamps?: boolean;
     /** Include source attribution */
-    attribution?: boolean
-  }
+    attribution?: boolean;
+  };
 
   /** Hooks configuration for lifecycle events */
-  hooks?: Record<string, unknown[]>
+  hooks?: Record<string, unknown[]>;
 
   /** MCP servers configuration (legacy field, now in config.json) */
-  mcpServers?: Record<string, McpServerConfig>
+  mcpServers?: Record<string, McpServerConfig>;
 
   /** Additional unknown fields for forward compatibility */
-  [key: string]: any
+  [key: string]: any;
 }
 
 /**
  * MCP server configuration (shared between settings.json and config.json)
  */
 export interface McpServerConfig {
-  type: 'stdio' | 'sse'
-  command?: string
-  args?: string[]
-  url?: string
-  env?: Record<string, string>
+  type: 'stdio' | 'sse';
+  command?: string;
+  args?: string[];
+  url?: string;
+  env?: Record<string, string>;
 }
 
 /**
  * API configuration for Claude Code
  */
 export interface ApiConfig {
-  url: string
-  key: string
-  authType?: 'auth_token' | 'api_key'
+  url: string;
+  key: string;
+  authType?: 'auth_token' | 'api_key';
 }
 
 /**
  * Installation method types for code tools
  */
-export type InstallMethod = 'npm' | 'homebrew' | 'curl' | 'powershell' | 'cmd'
+export type InstallMethod = 'npm' | 'homebrew' | 'curl' | 'powershell' | 'cmd';
 
 /**
  * Installation method option with metadata
  */
 export interface InstallMethodOption {
-  method: InstallMethod
-  label: string
-  description: string
-  command: string
-  args?: string[]
-  platforms: ('windows' | 'macos' | 'linux' | 'wsl')[]
-  recommended?: boolean
+  method: InstallMethod;
+  label: string;
+  description: string;
+  command: string;
+  args?: string[];
+  platforms: ('windows' | 'macos' | 'linux' | 'wsl')[];
+  recommended?: boolean;
 }

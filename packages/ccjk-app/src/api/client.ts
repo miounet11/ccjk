@@ -22,7 +22,7 @@ class ApiClient {
 
   private async request<T>(
     endpoint: string,
-    options: RequestInit = {}
+    options: RequestInit = {},
   ): Promise<T> {
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
@@ -30,7 +30,7 @@ class ApiClient {
     };
 
     if (this.token) {
-      headers['Authorization'] = `Bearer ${this.token}`;
+      headers.Authorization = `Bearer ${this.token}`;
     }
 
     const response = await fetch(`${this.baseUrl}${endpoint}`, {
@@ -92,7 +92,7 @@ class ApiClient {
 
   async getSessionMessages(id: string, limit = 100, offset = 0) {
     return this.request<{ messages: any[] }>(
-      `/v1/sessions/${id}/messages?limit=${limit}&offset=${offset}`
+      `/v1/sessions/${id}/messages?limit=${limit}&offset=${offset}`,
     );
   }
 

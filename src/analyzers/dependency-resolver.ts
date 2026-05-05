@@ -31,32 +31,32 @@ import type {
   InstallationCommands,
   InstallationPlan,
   ProjectAnalysis,
-} from './types.js'
-import { promises as fsp } from 'node:fs'
-import consola from 'consola'
-import path from 'pathe'
+} from './types.js';
+import { promises as fsp } from 'node:fs';
+import consola from 'consola';
+import path from 'pathe';
 
 // fs-extra compatibility helpers
 async function pathExists(p: string): Promise<boolean> {
   try {
-    await fsp.access(p)
-    return true
+    await fsp.access(p);
+    return true;
   }
   catch {
-    return false
+    return false;
   }
 }
 
 async function readJson(p: string): Promise<any> {
-  const content = await fsp.readFile(p, 'utf-8')
-  return JSON.parse(content)
+  const content = await fsp.readFile(p, 'utf-8');
+  return JSON.parse(content);
 }
 
 async function _readFile(p: string): Promise<string> {
-  return fsp.readFile(p, 'utf-8')
+  return fsp.readFile(p, 'utf-8');
 }
 
-const logger = consola.withTag('dependency-resolver')
+const logger = consola.withTag('dependency-resolver');
 
 /**
  * Analyze project dependencies
@@ -65,7 +65,7 @@ export async function analyzeDependencies(
   analysis: ProjectAnalysis,
   config: DetectorConfig,
 ): Promise<DependencyAnalysis> {
-  logger.info('Analyzing project dependencies')
+  logger.info('Analyzing project dependencies');
 
   // Warn if transitive deps analysis is requested but not implemented
   if (config.analyzeTransitiveDeps) {
@@ -73,56 +73,56 @@ export async function analyzeDependencies(
       'Transitive dependency analysis requested but not fully implemented. '
       + 'The "all" field will only contain direct dependencies. '
       + 'See dependency-resolver.ts for details.',
-    )
+    );
   }
 
-  const projectPath = analysis.rootPath
-  const packageManager = analysis.packageManager
-  const _languages = analysis.languages
+  const projectPath = analysis.rootPath;
+  const packageManager = analysis.packageManager;
+  const _languages = analysis.languages;
 
   // Resolve dependencies based on project type
-  let direct: DependencyNode[] = []
-  let all: DependencyNode[] = []
+  let direct: DependencyNode[] = [];
+  let all: DependencyNode[] = [];
 
   if (packageManager === 'npm' || packageManager === 'yarn' || packageManager === 'pnpm' || packageManager === 'bun') {
-    const npmDeps = await analyzeNpmDependencies(projectPath)
-    direct = npmDeps.direct
-    all = npmDeps.all
+    const npmDeps = await analyzeNpmDependencies(projectPath);
+    direct = npmDeps.direct;
+    all = npmDeps.all;
   }
   else if (packageManager === 'pip' || packageManager === 'poetry' || packageManager === 'pipenv') {
-    const pythonDeps = await analyzePythonDependencies(projectPath, packageManager)
-    direct = pythonDeps.direct
-    all = pythonDeps.all
+    const pythonDeps = await analyzePythonDependencies(projectPath, packageManager);
+    direct = pythonDeps.direct;
+    all = pythonDeps.all;
   }
   else if (packageManager === 'go') {
-    const goDeps = await analyzeGoDependencies(projectPath)
-    direct = goDeps.direct
-    all = goDeps.all
+    const goDeps = await analyzeGoDependencies(projectPath);
+    direct = goDeps.direct;
+    all = goDeps.all;
   }
   else if (packageManager === 'cargo') {
-    const rustDeps = await analyzeRustDependencies(projectPath)
-    direct = rustDeps.direct
-    all = rustDeps.all
+    const rustDeps = await analyzeRustDependencies(projectPath);
+    direct = rustDeps.direct;
+    all = rustDeps.all;
   }
 
   // Build dependency graph
-  const graph = buildDependencyGraph(all)
+  const graph = buildDependencyGraph(all);
 
   // Generate installation plan
-  const installationPlan = generateInstallationPlan(all, packageManager)
+  const installationPlan = generateInstallationPlan(all, packageManager);
 
   // Detect conflicts
-  const conflicts = detectConflicts(all, graph)
+  const conflicts = detectConflicts(all, graph);
 
   // Detect circular dependencies
-  const circularDeps = detectCircularDependencies(graph)
+  const circularDeps = detectCircularDependencies(graph);
 
-  logger.info(`Found ${direct.length} direct dependencies, ${all.length} total`)
+  logger.info(`Found ${direct.length} direct dependencies, ${all.length} total`);
   if (conflicts.length > 0) {
-    logger.warn(`Found ${conflicts.length} dependency conflicts`)
+    logger.warn(`Found ${conflicts.length} dependency conflicts`);
   }
   if (circularDeps.length > 0) {
-    logger.warn(`Found ${circularDeps.length} circular dependencies`)
+    logger.warn(`Found ${circularDeps.length} circular dependencies`);
   }
 
   return {
@@ -132,7 +132,7 @@ export async function analyzeDependencies(
     installationPlan,
     conflicts,
     circularDeps,
-  }
+  };
 }
 
 /**
@@ -140,21 +140,21 @@ export async function analyzeDependencies(
  */
 async function analyzeNpmDependencies(
   projectPath: string,
-): Promise<{ direct: DependencyNode[], all: DependencyNode[] }> {
-  const packageJsonPath = path.join(projectPath, 'package.json')
+): Promise<{ direct: DependencyNode[]; all: DependencyNode[] }> {
+  const packageJsonPath = path.join(projectPath, 'package.json');
 
   if (!await pathExists(packageJsonPath)) {
-    return { direct: [], all: [] }
+    return { direct: [], all: [] };
   }
 
   try {
-    const packageJson = await readJson(packageJsonPath)
-    const direct: DependencyNode[] = []
+    const packageJson = await readJson(packageJsonPath);
+    const direct: DependencyNode[] = [];
 
     // Process dependencies
     const processDeps = (deps: Record<string, string>, isDev: boolean, isPeer: boolean): DependencyNode[] => {
       if (!deps)
-        return []
+        return [];
 
       return Object.entries(deps).map(([name, version]) => ({
         name,
@@ -163,29 +163,29 @@ async function analyzeNpmDependencies(
         isDev,
         isPeer,
         isOptional: false,
-      }))
-    }
+      }));
+    };
 
-    const deps = processDeps(packageJson.dependencies, false, false)
-    const devDeps = processDeps(packageJson.devDependencies, true, false)
-    const peerDeps = processDeps(packageJson.peerDependencies, false, true)
+    const deps = processDeps(packageJson.dependencies, false, false);
+    const devDeps = processDeps(packageJson.devDependencies, true, false);
+    const peerDeps = processDeps(packageJson.peerDependencies, false, true);
     const optionalDeps = processDeps(packageJson.optionalDependencies, false, false).map(d => ({
       ...d,
       isOptional: true,
       type: 'optional' as const,
-    }))
+    }));
 
-    direct.push(...deps, ...devDeps, ...peerDeps, ...optionalDeps)
+    direct.push(...deps, ...devDeps, ...peerDeps, ...optionalDeps);
 
     // For simplicity, we're not resolving transitive dependencies here
     // In a real implementation, you'd parse package-lock.json or yarn.lock
-    const all = [...direct]
+    const all = [...direct];
 
-    return { direct, all }
+    return { direct, all };
   }
   catch (error) {
-    logger.warn('Failed to analyze npm dependencies:', error)
-    return { direct: [], all: [] }
+    logger.warn('Failed to analyze npm dependencies:', error);
+    return { direct: [], all: [] };
   }
 }
 
@@ -195,21 +195,21 @@ async function analyzeNpmDependencies(
 async function analyzePythonDependencies(
   projectPath: string,
   packageManager: string,
-): Promise<{ direct: DependencyNode[], all: DependencyNode[] }> {
-  const direct: DependencyNode[] = []
-  const all: DependencyNode[] = []
+): Promise<{ direct: DependencyNode[]; all: DependencyNode[] }> {
+  const direct: DependencyNode[] = [];
+  const all: DependencyNode[] = [];
 
   // Try different file formats based on package manager
   if (packageManager === 'poetry') {
-    const pyprojectPath = path.join(projectPath, 'pyproject.toml')
+    const pyprojectPath = path.join(projectPath, 'pyproject.toml');
     if (await pathExists(pyprojectPath)) {
       try {
-        const { parse } = await import('smol-toml')
-        const content = await fsp.readFile(pyprojectPath, 'utf-8')
-        const pyproject = parse(content) as Record<string, any>
+        const { parse } = await import('smol-toml');
+        const content = await fsp.readFile(pyprojectPath, 'utf-8');
+        const pyproject = parse(content) as Record<string, any>;
 
-        const deps = (pyproject.tool?.poetry?.dependencies || {}) as Record<string, unknown>
-        const devDeps = (pyproject.tool?.poetry?.['dev-dependencies'] || {}) as Record<string, unknown>
+        const deps = (pyproject.tool?.poetry?.dependencies || {}) as Record<string, unknown>;
+        const devDeps = (pyproject.tool?.poetry?.['dev-dependencies'] || {}) as Record<string, unknown>;
 
         for (const [name, version] of Object.entries(deps)) {
           direct.push({
@@ -219,7 +219,7 @@ async function analyzePythonDependencies(
             isDev: false,
             isPeer: false,
             isOptional: false,
-          })
+          });
         }
 
         for (const [name, version] of Object.entries(devDeps)) {
@@ -230,24 +230,24 @@ async function analyzePythonDependencies(
             isDev: true,
             isPeer: false,
             isOptional: false,
-          })
+          });
         }
       }
       catch (error) {
-        logger.warn('Failed to parse pyproject.toml:', error)
+        logger.warn('Failed to parse pyproject.toml:', error);
       }
     }
   }
   else if (packageManager === 'pipenv') {
-    const pipfilePath = path.join(projectPath, 'Pipfile')
+    const pipfilePath = path.join(projectPath, 'Pipfile');
     if (await pathExists(pipfilePath)) {
       try {
-        const { parse } = await import('smol-toml')
-        const content = await fsp.readFile(pipfilePath, 'utf-8')
-        const pipfile = parse(content) as Record<string, any>
+        const { parse } = await import('smol-toml');
+        const content = await fsp.readFile(pipfilePath, 'utf-8');
+        const pipfile = parse(content) as Record<string, any>;
 
-        const deps = (pipfile.packages || {}) as Record<string, unknown>
-        const devDeps = (pipfile['dev-packages'] || {}) as Record<string, unknown>
+        const deps = (pipfile.packages || {}) as Record<string, unknown>;
+        const devDeps = (pipfile['dev-packages'] || {}) as Record<string, unknown>;
 
         for (const [name, version] of Object.entries(deps)) {
           direct.push({
@@ -257,7 +257,7 @@ async function analyzePythonDependencies(
             isDev: false,
             isPeer: false,
             isOptional: false,
-          })
+          });
         }
 
         for (const [name, version] of Object.entries(devDeps)) {
@@ -268,26 +268,26 @@ async function analyzePythonDependencies(
             isDev: true,
             isPeer: false,
             isOptional: false,
-          })
+          });
         }
       }
       catch (error) {
-        logger.warn('Failed to parse Pipfile:', error)
+        logger.warn('Failed to parse Pipfile:', error);
       }
     }
   }
   else {
     // Default to requirements.txt
-    const requirementsPath = path.join(projectPath, 'requirements.txt')
+    const requirementsPath = path.join(projectPath, 'requirements.txt');
     if (await pathExists(requirementsPath)) {
       try {
-        const content = await fsp.readFile(requirementsPath, 'utf-8')
-        const lines = content.split('\n')
+        const content = await fsp.readFile(requirementsPath, 'utf-8');
+        const lines = content.split('\n');
 
         for (const line of lines) {
-          const trimmed = line.trim()
+          const trimmed = line.trim();
           if (trimmed && !trimmed.startsWith('#')) {
-            const match = trimmed.match(/^([\w-]+)([[~=><].*)?$/)
+            const match = trimmed.match(/^([\w-]+)([[~=><].*)?$/);
             if (match) {
               direct.push({
                 name: match[1],
@@ -296,19 +296,19 @@ async function analyzePythonDependencies(
                 isDev: false,
                 isPeer: false,
                 isOptional: false,
-              })
+              });
             }
           }
         }
       }
       catch (error) {
-        logger.warn('Failed to parse requirements.txt:', error)
+        logger.warn('Failed to parse requirements.txt:', error);
       }
     }
   }
 
-  all.push(...direct)
-  return { direct, all }
+  all.push(...direct);
+  return { direct, all };
 }
 
 /**
@@ -316,37 +316,37 @@ async function analyzePythonDependencies(
  */
 async function analyzeGoDependencies(
   projectPath: string,
-): Promise<{ direct: DependencyNode[], all: DependencyNode[] }> {
-  const goModPath = path.join(projectPath, 'go.mod')
+): Promise<{ direct: DependencyNode[]; all: DependencyNode[] }> {
+  const goModPath = path.join(projectPath, 'go.mod');
 
   if (!await pathExists(goModPath)) {
-    return { direct: [], all: [] }
+    return { direct: [], all: [] };
   }
 
   try {
-    const content = await fsp.readFile(goModPath, 'utf-8')
-    const lines = content.split('\n')
-    const direct: DependencyNode[] = []
-    let inRequireBlock = false
+    const content = await fsp.readFile(goModPath, 'utf-8');
+    const lines = content.split('\n');
+    const direct: DependencyNode[] = [];
+    let inRequireBlock = false;
 
     for (const line of lines) {
-      const trimmed = line.trim()
+      const trimmed = line.trim();
 
       if (trimmed.startsWith('require (')) {
-        inRequireBlock = true
-        continue
+        inRequireBlock = true;
+        continue;
       }
 
       if (inRequireBlock && trimmed === ')') {
-        inRequireBlock = false
-        continue
+        inRequireBlock = false;
+        continue;
       }
 
       if (trimmed.startsWith('require ') || inRequireBlock) {
-        const parts = trimmed.split(/\s+/)
+        const parts = trimmed.split(/\s+/);
         if (parts.length >= 2) {
-          const name = parts[0].replace('require ', '')
-          const version = parts[1]
+          const name = parts[0].replace('require ', '');
+          const version = parts[1];
 
           direct.push({
             name,
@@ -355,17 +355,17 @@ async function analyzeGoDependencies(
             isDev: false,
             isPeer: false,
             isOptional: false,
-          })
+          });
         }
       }
     }
 
-    const all = [...direct]
-    return { direct, all }
+    const all = [...direct];
+    return { direct, all };
   }
   catch (error) {
-    logger.warn('Failed to analyze Go dependencies:', error)
-    return { direct: [], all: [] }
+    logger.warn('Failed to analyze Go dependencies:', error);
+    return { direct: [], all: [] };
   }
 }
 
@@ -374,22 +374,22 @@ async function analyzeGoDependencies(
  */
 async function analyzeRustDependencies(
   projectPath: string,
-): Promise<{ direct: DependencyNode[], all: DependencyNode[] }> {
-  const cargoTomlPath = path.join(projectPath, 'Cargo.toml')
+): Promise<{ direct: DependencyNode[]; all: DependencyNode[] }> {
+  const cargoTomlPath = path.join(projectPath, 'Cargo.toml');
 
   if (!await pathExists(cargoTomlPath)) {
-    return { direct: [], all: [] }
+    return { direct: [], all: [] };
   }
 
   try {
-    const { parse } = await import('smol-toml')
-    const content = await fsp.readFile(cargoTomlPath, 'utf-8')
-    const cargoToml = parse(content) as Record<string, any>
-    const direct: DependencyNode[] = []
+    const { parse } = await import('smol-toml');
+    const content = await fsp.readFile(cargoTomlPath, 'utf-8');
+    const cargoToml = parse(content) as Record<string, any>;
+    const direct: DependencyNode[] = [];
 
     const processDeps = (deps: Record<string, any> | undefined, isDev: boolean): DependencyNode[] => {
       if (!deps)
-        return []
+        return [];
 
       return Object.entries(deps).map(([name, version]) => ({
         name,
@@ -398,21 +398,21 @@ async function analyzeRustDependencies(
         isDev,
         isPeer: false,
         isOptional: false,
-      }))
-    }
+      }));
+    };
 
-    const deps = processDeps(cargoToml.dependencies as Record<string, any> | undefined, false)
-    const devDeps = processDeps(cargoToml['dev-dependencies'] as Record<string, any> | undefined, true)
-    const buildDeps = processDeps(cargoToml['build-dependencies'] as Record<string, any> | undefined, false)
+    const deps = processDeps(cargoToml.dependencies as Record<string, any> | undefined, false);
+    const devDeps = processDeps(cargoToml['dev-dependencies'] as Record<string, any> | undefined, true);
+    const buildDeps = processDeps(cargoToml['build-dependencies'] as Record<string, any> | undefined, false);
 
-    direct.push(...deps, ...devDeps, ...buildDeps)
+    direct.push(...deps, ...devDeps, ...buildDeps);
 
-    const all = [...direct]
-    return { direct, all }
+    const all = [...direct];
+    return { direct, all };
   }
   catch (error) {
-    logger.warn('Failed to analyze Rust dependencies:', error)
-    return { direct: [], all: [] }
+    logger.warn('Failed to analyze Rust dependencies:', error);
+    return { direct: [], all: [] };
   }
 }
 
@@ -420,18 +420,18 @@ async function analyzeRustDependencies(
  * Build dependency graph
  */
 function buildDependencyGraph(dependencies: DependencyNode[]): Map<string, DependencyNode[]> {
-  const graph = new Map<string, DependencyNode[]>()
+  const graph = new Map<string, DependencyNode[]>();
 
   // Initialize graph with all dependencies
   for (const dep of dependencies) {
-    graph.set(dep.name, [])
+    graph.set(dep.name, []);
   }
 
   // Build edges (this would require analyzing each package's dependencies)
   // For now, we're creating a simple graph structure
   // In a real implementation, you'd need to resolve transitive dependencies
 
-  return graph
+  return graph;
 }
 
 /**
@@ -443,25 +443,25 @@ function generateInstallationPlan(
 ): InstallationPlan {
   // Topological sort would go here
   // For now, we're returning a simple plan
-  const order = [...dependencies]
+  const order = [...dependencies];
 
   // Separate by type
-  const runtime = order.filter(d => d.type === 'runtime')
-  const _dev = order.filter(d => d.type === 'dev')
-  const _peer = order.filter(d => d.type === 'peer')
-  const _optional = order.filter(d => d.type === 'optional')
+  const runtime = order.filter(d => d.type === 'runtime');
+  const _dev = order.filter(d => d.type === 'dev');
+  const _peer = order.filter(d => d.type === 'peer');
+  const _optional = order.filter(d => d.type === 'optional');
 
   // Count parallelizable dependencies
-  const parallelizable = runtime.length
+  const parallelizable = runtime.length;
 
-  const commands = generateInstallationCommands(packageManager)
+  const commands = generateInstallationCommands(packageManager);
 
   return {
     order,
     total: dependencies.length,
     parallelizable,
     commands,
-  }
+  };
 }
 
 /**
@@ -474,7 +474,7 @@ function generateInstallationCommands(packageManager?: string): InstallationComm
       installPackage: () => 'echo "Unknown package manager"',
       installDev: 'echo "Unknown package manager"',
       add: () => 'echo "Unknown package manager"',
-    }
+    };
   }
 
   const commands: Record<string, InstallationCommands> = {
@@ -532,9 +532,9 @@ function generateInstallationCommands(packageManager?: string): InstallationComm
       installDev: 'cargo build',
       add: name => `cargo add ${name}`,
     },
-  }
+  };
 
-  return commands[packageManager] || commands.npm
+  return commands[packageManager] || commands.npm;
 }
 
 /**
@@ -544,15 +544,15 @@ function detectConflicts(
   dependencies: DependencyNode[],
   _graph: Map<string, DependencyNode[]>,
 ): DependencyConflict[] {
-  const conflicts: DependencyConflict[] = []
-  const versionMap = new Map<string, Set<string>>()
+  const conflicts: DependencyConflict[] = [];
+  const versionMap = new Map<string, Set<string>>();
 
   // Group dependencies by name and collect versions
   for (const dep of dependencies) {
     if (!versionMap.has(dep.name)) {
-      versionMap.set(dep.name, new Set())
+      versionMap.set(dep.name, new Set());
     }
-    versionMap.get(dep.name)!.add(dep.version)
+    versionMap.get(dep.name)!.add(dep.version);
   }
 
   // Check for version conflicts
@@ -563,11 +563,11 @@ function detectConflicts(
         versions: Array.from(versions),
         requiredBy: [name],
         severity: 'warning',
-      })
+      });
     }
   }
 
-  return conflicts
+  return conflicts;
 }
 
 /**
@@ -576,42 +576,42 @@ function detectConflicts(
 function detectCircularDependencies(
   graph: Map<string, DependencyNode[]>,
 ): string[][] {
-  const circular: string[][] = []
-  const visited = new Set<string>()
-  const recStack = new Set<string>()
-  const path: string[] = []
+  const circular: string[][] = [];
+  const visited = new Set<string>();
+  const recStack = new Set<string>();
+  const path: string[] = [];
 
   const dfs = (node: string): boolean => {
-    visited.add(node)
-    recStack.add(node)
-    path.push(node)
+    visited.add(node);
+    recStack.add(node);
+    path.push(node);
 
-    const neighbors = graph.get(node) || []
+    const neighbors = graph.get(node) || [];
     for (const neighbor of neighbors) {
       if (!visited.has(neighbor.name)) {
         if (dfs(neighbor.name)) {
-          return true
+          return true;
         }
       }
       else if (recStack.has(neighbor.name)) {
         // Found a cycle
-        const cycleStart = path.indexOf(neighbor.name)
-        const cycle = path.slice(cycleStart).concat(neighbor.name)
-        circular.push(cycle)
-        return true
+        const cycleStart = path.indexOf(neighbor.name);
+        const cycle = path.slice(cycleStart).concat(neighbor.name);
+        circular.push(cycle);
+        return true;
       }
     }
 
-    path.pop()
-    recStack.delete(node)
-    return false
-  }
+    path.pop();
+    recStack.delete(node);
+    return false;
+  };
 
   for (const node of graph.keys()) {
     if (!visited.has(node)) {
-      dfs(node)
+      dfs(node);
     }
   }
 
-  return circular
+  return circular;
 }

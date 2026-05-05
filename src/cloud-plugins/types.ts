@@ -1,34 +1,34 @@
-import type { SupportedLang } from '../constants'
-import type { CcjkSkill } from '../skills/types'
+import type { SupportedLang } from '../constants';
+import type { CcjkSkill } from '../skills/types';
 
 /** Agent extension provided by a plugin */
 export interface AgentExtension {
-  id: string
-  name: Record<SupportedLang, string>
-  description: Record<SupportedLang, string>
-  template: string
+  id: string;
+  name: Record<SupportedLang, string>;
+  description: Record<SupportedLang, string>;
+  template: string;
 }
 
 /** MCP service extension provided by a plugin */
 export interface McpServiceExtension {
-  id: string
-  name: Record<SupportedLang, string>
-  description: Record<SupportedLang, string>
-  config: Record<string, unknown>
+  id: string;
+  name: Record<SupportedLang, string>;
+  description: Record<SupportedLang, string>;
+  config: Record<string, unknown>;
 }
 
 /** Workflow extension provided by a plugin */
 export interface WorkflowExtension {
-  id: string
-  name: Record<SupportedLang, string>
-  description: Record<SupportedLang, string>
-  steps: string[]
+  id: string;
+  name: Record<SupportedLang, string>;
+  description: Record<SupportedLang, string>;
+  steps: string[];
 }
 
 /**
  * Plugin category types
  */
-export type PluginCategory = 'dev' | 'seo' | 'devops' | 'testing' | 'docs' | 'ai' | 'security' | 'performance' | 'custom'
+export type PluginCategory = 'dev' | 'seo' | 'devops' | 'testing' | 'docs' | 'ai' | 'security' | 'performance' | 'custom';
 
 /**
  * Cloud plugin definition
@@ -36,41 +36,41 @@ export type PluginCategory = 'dev' | 'seo' | 'devops' | 'testing' | 'docs' | 'ai
  */
 export interface CloudPlugin {
   /** Unique plugin identifier */
-  id: string
+  id: string;
   /** Localized plugin name */
-  name: Record<SupportedLang, string>
+  name: Record<SupportedLang, string>;
   /** Localized plugin description */
-  description: Record<SupportedLang, string>
+  description: Record<SupportedLang, string>;
   /** Plugin category */
-  category: PluginCategory
+  category: PluginCategory;
   /** Plugin version (semver) */
-  version: string
+  version: string;
   /** Plugin author */
-  author: string
+  author: string;
   /** Total download count */
-  downloads: number
+  downloads: number;
   /** Average rating (0-5) */
-  rating: number
+  rating: number;
   /** Search and filter tags */
-  tags: string[]
+  tags: string[];
   /** Plugin dependencies (other plugin IDs) */
-  dependencies?: string[]
+  dependencies?: string[];
   /** Plugin size in bytes */
-  size: number
+  size: number;
   /** Creation timestamp (ISO 8601) */
-  createdAt: string
+  createdAt: string;
   /** Last update timestamp (ISO 8601) */
-  updatedAt: string
+  updatedAt: string;
 
   // Plugin content extensions
   /** Skills provided by this plugin */
-  skills?: CcjkSkill[]
+  skills?: CcjkSkill[];
   /** Agents provided by this plugin */
-  agents?: AgentExtension[]
+  agents?: AgentExtension[];
   /** Workflows provided by this plugin */
-  workflows?: WorkflowExtension[]
+  workflows?: WorkflowExtension[];
   /** MCP services provided by this plugin */
-  mcpServices?: McpServiceExtension[]
+  mcpServices?: McpServiceExtension[];
 }
 
 /**
@@ -79,37 +79,37 @@ export interface CloudPlugin {
  */
 export interface RecommendationContext {
   /** Detected project type (e.g., 'nextjs', 'vue', 'react', 'node', 'python') */
-  projectType?: string
+  projectType?: string;
   /** Primary programming language */
-  language?: string
+  language?: string;
   /** Detected frameworks in the project */
-  frameworks?: string[]
+  frameworks?: string[];
   /** Detected programming languages */
-  languages?: string[]
+  languages?: string[];
   /** Detected build tools */
-  buildTools?: string[]
+  buildTools?: string[];
   /** Detected test frameworks */
-  testFrameworks?: string[]
+  testFrameworks?: string[];
   /** Has TypeScript */
-  hasTypeScript?: boolean
+  hasTypeScript?: boolean;
   /** Has Docker */
-  hasDocker?: boolean
+  hasDocker?: boolean;
   /** Has monorepo setup */
-  hasMonorepo?: boolean
+  hasMonorepo?: boolean;
   /** Package manager */
-  packageManager?: string
+  packageManager?: string;
   /** CI/CD systems */
-  cicd?: string[]
+  cicd?: string[];
   /** Project root directory */
-  rootDir?: string
+  rootDir?: string;
   /** Recommended categories based on detection */
-  recommendedCategories?: PluginCategory[]
+  recommendedCategories?: PluginCategory[];
   /** Recommended tags based on detection */
-  recommendedTags?: string[]
+  recommendedTags?: string[];
   /** Already installed plugin IDs */
-  existingPlugins?: string[]
+  existingPlugins?: string[];
   /** User preferences for recommendations */
-  userPreferences?: UserPreferences
+  userPreferences?: UserPreferences;
 }
 
 /**
@@ -117,11 +117,11 @@ export interface RecommendationContext {
  */
 export interface UserPreferences {
   /** Preferred plugin categories */
-  preferredCategories?: PluginCategory[]
+  preferredCategories?: PluginCategory[];
   /** Categories to exclude from recommendations */
-  excludedCategories?: PluginCategory[]
+  excludedCategories?: PluginCategory[];
   /** User's preferred language for UI */
-  preferredLanguage: SupportedLang
+  preferredLanguage: SupportedLang;
 }
 
 /**
@@ -129,19 +129,19 @@ export interface UserPreferences {
  */
 export interface PluginRecommendation {
   /** The recommended plugin */
-  plugin: CloudPlugin
+  plugin: CloudPlugin;
   /** Relevance score (0-100) */
-  score: number
+  score: number;
   /** Localized explanation for the recommendation */
-  reason: Record<SupportedLang, string>
+  reason: Record<SupportedLang, string>;
   /** Confidence score (0-1) */
-  confidence: number
+  confidence: number;
   /** Tags that matched the context */
-  matchingTags: string[]
+  matchingTags: string[];
   /** Categories that matched the context */
-  matchingCategories: PluginCategory[]
+  matchingCategories: PluginCategory[];
   /** Whether the plugin is already installed */
-  isInstalled: boolean
+  isInstalled: boolean;
 }
 
 /**
@@ -150,15 +150,15 @@ export interface PluginRecommendation {
  */
 export interface RecommendationResult {
   /** List of plugin recommendations with scores */
-  recommendations: PluginRecommendation[]
+  recommendations: PluginRecommendation[];
   /** The context used for recommendations */
-  context: RecommendationContext
+  context: RecommendationContext;
   /** Total plugins evaluated */
-  totalEvaluated: number
+  totalEvaluated: number;
   /** Source of recommendations */
-  source: 'local' | 'cloud' | 'hybrid'
+  source: 'local' | 'cloud' | 'hybrid';
   /** Timestamp of the recommendation */
-  timestamp: string
+  timestamp: string;
 }
 
 /**
@@ -167,17 +167,17 @@ export interface RecommendationResult {
  */
 export interface CloudPluginCache {
   /** Cache format version */
-  version: string
+  version: string;
   /** Cached plugin list */
-  plugins: CloudPlugin[]
+  plugins: CloudPlugin[];
   /** Timestamp when cache was created (ISO 8601) */
-  createdAt: string
+  createdAt: string;
   /** Timestamp when cache expires (ISO 8601) */
-  expiresAt: string
+  expiresAt: string;
   /** Timestamp when cache was last updated (ISO 8601) */
-  lastUpdated: string
+  lastUpdated: string;
   /** Total number of plugins in cache */
-  totalPlugins: number
+  totalPlugins: number;
 }
 
 /**
@@ -186,17 +186,17 @@ export interface CloudPluginCache {
  */
 export interface CacheStats {
   /** Total number of plugins in cache */
-  totalPlugins: number
+  totalPlugins: number;
   /** Total cache size in bytes */
-  cacheSize: number
+  cacheSize: number;
   /** Timestamp when cache was last updated (ISO 8601) */
-  lastUpdated: string | null
+  lastUpdated: string | null;
   /** Timestamp when cache expires (ISO 8601) */
-  expiresAt: string | null
+  expiresAt: string | null;
   /** Whether the cache is expired */
-  isExpired: boolean
+  isExpired: boolean;
   /** Number of cached plugin contents */
-  cachedContents: number
+  cachedContents: number;
 }
 
 /**
@@ -204,11 +204,11 @@ export interface CacheStats {
  */
 export interface PluginInstallOptions {
   /** Force reinstall even if already installed */
-  force?: boolean
+  force?: boolean;
   /** Skip installing plugin dependencies */
-  skipDependencies?: boolean
+  skipDependencies?: boolean;
   /** Perform dry run without actual installation */
-  dryRun?: boolean
+  dryRun?: boolean;
 }
 
 /**
@@ -216,15 +216,15 @@ export interface PluginInstallOptions {
  */
 export interface PluginInstallResult {
   /** Plugin ID that was installed */
-  pluginId: string
+  pluginId: string;
   /** Whether installation succeeded */
-  success: boolean
+  success: boolean;
   /** Path where plugin was installed */
-  installedPath?: string
+  installedPath?: string;
   /** Error message if installation failed */
-  error?: string
+  error?: string;
   /** List of dependency plugin IDs that were installed */
-  dependencies?: string[]
+  dependencies?: string[];
 }
 
 /**
@@ -233,25 +233,25 @@ export interface PluginInstallResult {
  */
 export interface CloudApiResponse<T> {
   /** Whether the API call succeeded */
-  success: boolean
+  success: boolean;
   /** Response data (present if success is true) */
-  data?: T
+  data?: T;
   /** Error information (present if success is false) */
   error?: {
     /** Error code */
-    code: string
+    code: string;
     /** Error message */
-    message: string
-  }
+    message: string;
+  };
   /** Additional metadata about the response */
   meta?: {
     /** Total number of items (for paginated responses) */
-    total?: number
+    total?: number;
     /** Current page number */
-    page?: number
+    page?: number;
     /** Number of items per page */
-    pageSize?: number
-  }
+    pageSize?: number;
+  };
 }
 
 /**
@@ -260,17 +260,17 @@ export interface CloudApiResponse<T> {
  */
 export interface PluginSearchParams {
   /** Search query string */
-  query?: string
+  query?: string;
   /** Filter by category */
-  category?: PluginCategory
+  category?: PluginCategory;
   /** Filter by tags (AND logic) */
-  tags?: string[]
+  tags?: string[];
   /** Sort field */
-  sortBy?: 'downloads' | 'rating' | 'updated' | 'name'
+  sortBy?: 'downloads' | 'rating' | 'updated' | 'name';
   /** Sort order */
-  order?: 'asc' | 'desc'
+  order?: 'asc' | 'desc';
   /** Page number (1-indexed) */
-  page?: number
+  page?: number;
   /** Number of items per page */
-  pageSize?: number
+  pageSize?: number;
 }

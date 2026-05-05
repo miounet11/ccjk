@@ -6,8 +6,8 @@
  * @module capability-discovery
  */
 
-export { getCapabilitiesByType, getCapability, scanCapabilities } from './scanner'
-export { formatCapabilityList, generateStatusPanel } from './status'
+export { getCapabilitiesByType, getCapability, scanCapabilities } from './scanner';
+export { formatCapabilityList, generateStatusPanel } from './status';
 export type {
   Capability,
   CapabilityScanResult,
@@ -15,6 +15,6 @@ export type {
   CapabilityType,
   StatusOptions,
   WelcomeOptions,
-} from './types'
+} from './types';
 
-export { generateCompactWelcome, generateRecommendations, generateWelcome } from './welcome'
+export { generateCompactWelcome, generateRecommendations, generateWelcome } from './welcome';

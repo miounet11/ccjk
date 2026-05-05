@@ -12,9 +12,9 @@
  * 3. Setting a preference in config
  */
 
-import type { CodeToolType } from '../../../constants'
-import type { MenuItem, MenuLevel } from '../types'
-import { getVisibleItems } from '../main-menu'
+import type { CodeToolType } from '../../../constants';
+import type { MenuItem, MenuLevel } from '../types';
+import { getVisibleItems } from '../main-menu';
 
 /**
  * Level definitions with descriptions
@@ -74,7 +74,7 @@ export const levelDefinitions = {
       'Advanced Configuration',
     ],
   },
-} as const
+} as const;
 
 /**
  * Get items for a specific level
@@ -83,7 +83,7 @@ export function getItemsForLevel(
   level: MenuLevel,
   codeTool: CodeToolType = 'claude-code',
 ): MenuItem[] {
-  return getVisibleItems(level, codeTool)
+  return getVisibleItems(level, codeTool);
 }
 
 /**
@@ -92,11 +92,11 @@ export function getItemsForLevel(
 export function getNextLevel(current: MenuLevel): MenuLevel {
   switch (current) {
     case 'basic':
-      return 'intermediate'
+      return 'intermediate';
     case 'intermediate':
-      return 'expert'
+      return 'expert';
     case 'expert':
-      return 'basic' // Cycle back
+      return 'basic'; // Cycle back
   }
 }
 
@@ -106,11 +106,11 @@ export function getNextLevel(current: MenuLevel): MenuLevel {
 export function getPreviousLevel(current: MenuLevel): MenuLevel {
   switch (current) {
     case 'basic':
-      return 'expert' // Cycle back
+      return 'expert'; // Cycle back
     case 'intermediate':
-      return 'basic'
+      return 'basic';
     case 'expert':
-      return 'intermediate'
+      return 'intermediate';
   }
 }
 
@@ -122,46 +122,46 @@ export function hasAccessToFeature(
   featureId: string,
   codeTool: CodeToolType = 'claude-code',
 ): boolean {
-  const items = getItemsForLevel(level, codeTool)
-  return items.some(item => item.id === featureId)
+  const items = getItemsForLevel(level, codeTool);
+  return items.some(item => item.id === featureId);
 }
 
 /**
  * Get level progress (how many more items until next level)
  */
 export function getLevelProgress(level: MenuLevel): {
-  current: number
-  nextLevel?: MenuLevel
-  itemsToUnlock: number
-  progressPercent: number
+  current: number;
+  nextLevel?: MenuLevel;
+  itemsToUnlock: number;
+  progressPercent: number;
 } {
-  const currentItems = getItemsForLevel(level).length
+  const currentItems = getItemsForLevel(level).length;
 
   if (level === 'basic') {
-    const nextItems = getItemsForLevel('intermediate').length
+    const nextItems = getItemsForLevel('intermediate').length;
     return {
       current: currentItems,
       nextLevel: 'intermediate',
       itemsToUnlock: nextItems - currentItems,
       progressPercent: Math.round((currentItems / levelDefinitions.basic.maxItems) * 100),
-    }
+    };
   }
 
   if (level === 'intermediate') {
-    const nextItems = getItemsForLevel('expert').length
+    const nextItems = getItemsForLevel('expert').length;
     return {
       current: currentItems,
       nextLevel: 'expert',
       itemsToUnlock: nextItems - currentItems,
       progressPercent: Math.round((currentItems / levelDefinitions.intermediate.maxItems) * 100),
-    }
+    };
   }
 
   return {
     current: currentItems,
     itemsToUnlock: 0,
     progressPercent: 100,
-  }
+  };
 }
 
 /**
@@ -195,12 +195,12 @@ export const levelSelectionItems: MenuItem[] = [
     action: 'command',
     icon: '🔬',
   },
-]
+];
 
 /**
  * User level preference storage key
  */
-const LEVEL_PREFERENCE_KEY = 'ccjk:menu:level'
+const LEVEL_PREFERENCE_KEY = 'ccjk:menu:level';
 
 /**
  * Save user's level preference (for future implementation)
@@ -210,7 +210,7 @@ export function saveLevelPreference(level: MenuLevel): void {
   // For now, this is a placeholder
   try {
     if (typeof localStorage !== 'undefined') {
-      localStorage.setItem(LEVEL_PREFERENCE_KEY, level)
+      localStorage.setItem(LEVEL_PREFERENCE_KEY, level);
     }
   }
   catch {
@@ -226,16 +226,16 @@ export function loadLevelPreference(): MenuLevel | null {
   // For now, this is a placeholder
   try {
     if (typeof localStorage !== 'undefined') {
-      const saved = localStorage.getItem(LEVEL_PREFERENCE_KEY)
+      const saved = localStorage.getItem(LEVEL_PREFERENCE_KEY);
       if (saved === 'basic' || saved === 'intermediate' || saved === 'expert') {
-        return saved
+        return saved;
       }
     }
   }
   catch {
     // Ignore errors
   }
-  return null
+  return null;
 }
 
 /**
@@ -243,12 +243,12 @@ export function loadLevelPreference(): MenuLevel | null {
  */
 export function determineAutoLevel(usageCount: number): MenuLevel {
   if (usageCount < 3) {
-    return 'basic'
+    return 'basic';
   }
   if (usageCount < 10) {
-    return 'intermediate'
+    return 'intermediate';
   }
-  return 'expert'
+  return 'expert';
 }
 
 /**
@@ -258,21 +258,21 @@ export function getLevelRecommendation(
   level: MenuLevel,
   actionsPerformed: string[],
 ): {
-  recommendedLevel: MenuLevel
-  reason: string
+  recommendedLevel: MenuLevel;
+  reason: string;
 } | null {
-  const advancedActions = ['ccr', 'ccusage', 'mcp-market', 'workflows']
-  const expertActions = ['hooks-sync', 'workspace', 'context-config']
+  const advancedActions = ['ccr', 'ccusage', 'mcp-market', 'workflows'];
+  const expertActions = ['hooks-sync', 'workspace', 'context-config'];
 
-  const hasAdvancedActions = actionsPerformed.some(a => advancedActions.includes(a))
-  const hasExpertActions = actionsPerformed.some(a => expertActions.includes(a))
+  const hasAdvancedActions = actionsPerformed.some(a => advancedActions.includes(a));
+  const hasExpertActions = actionsPerformed.some(a => expertActions.includes(a));
 
   if (level === 'basic') {
     if (hasAdvancedActions) {
       return {
         recommendedLevel: 'intermediate',
         reason: 'You\'re using advanced features. Unlock intermediate mode for more options!',
-      }
+      };
     }
   }
 
@@ -281,11 +281,11 @@ export function getLevelRecommendation(
       return {
         recommendedLevel: 'expert',
         reason: 'You\'re exploring expert features. Unlock expert mode for full access!',
-      }
+      };
     }
   }
 
-  return null
+  return null;
 }
 
 /**
@@ -304,15 +304,15 @@ export const levelTransitionMessages = {
     title: '🌱 Back to Basics',
     message: 'Simplified menu activated. Essential features only for a cleaner experience.',
   },
-}
+};
 
 /**
  * Get transition message when changing levels
  */
 export function getTransitionMessage(from: MenuLevel, to: MenuLevel): {
-  title: string
-  message: string
+  title: string;
+  message: string;
 } | null {
-  const key = `${from}-to-${to}` as keyof typeof levelTransitionMessages
-  return levelTransitionMessages[key] || null
+  const key = `${from}-to-${to}` as keyof typeof levelTransitionMessages;
+  return levelTransitionMessages[key] || null;
 }

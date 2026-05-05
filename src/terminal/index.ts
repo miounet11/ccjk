@@ -7,7 +7,7 @@
  */
 
 // Vim mode core functionality
-export * from './vim-mode'
+export * from './vim-mode';
 
 // Vim parser for command parsing and motion resolution
-export * from './vim-parser'
+export * from './vim-parser';

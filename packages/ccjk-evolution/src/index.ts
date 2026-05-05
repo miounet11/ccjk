@@ -1,6 +1,6 @@
-export * from './types';
 export * from './client';
+export { A2AClient } from './client';
 export * from './gdi';
 
-export { A2AClient } from './client';
-export { calculateGDI, calculateContextScore } from './gdi';
+export { calculateContextScore, calculateGDI } from './gdi';
+export * from './types';

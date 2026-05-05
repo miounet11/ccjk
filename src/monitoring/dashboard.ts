@@ -5,7 +5,7 @@
  * ANSI colors, and live updates.
  */
 
-import type { MetricsCollector } from './metrics-collector'
+import type { MetricsCollector } from './metrics-collector';
 import type {
   Dashboard,
   DashboardConfig,
@@ -13,10 +13,10 @@ import type {
   ExportFormat,
   HealthStatus,
   SystemOverview,
-} from './types'
-import process from 'node:process'
-import ansis from 'ansis'
-import { getMetricsCollector } from './metrics-collector'
+} from './types';
+import process from 'node:process';
+import ansis from 'ansis';
+import { getMetricsCollector } from './metrics-collector';
 
 // ============================================================================
 // Default Configuration
@@ -33,7 +33,7 @@ const DEFAULT_CONFIG: DashboardConfig = {
   chartWidth: 40,
   chartHeight: 8,
   colorScheme: 'default',
-}
+};
 
 // ============================================================================
 // ASCII Chart Utilities
@@ -43,23 +43,23 @@ const DEFAULT_CONFIG: DashboardConfig = {
  * Generate an ASCII bar chart
  */
 function generateBarChart(
-  data: { label: string, value: number }[],
-  options: { width?: number, maxValue?: number, showValues?: boolean } = {},
+  data: { label: string; value: number }[],
+  options: { width?: number; maxValue?: number; showValues?: boolean } = {},
 ): string[] {
-  const { width = 30, showValues = true } = options
-  const maxValue = options.maxValue || Math.max(...data.map(d => d.value), 1)
-  const maxLabelLength = Math.max(...data.map(d => d.label.length), 10)
-  const lines: string[] = []
+  const { width = 30, showValues = true } = options;
+  const maxValue = options.maxValue || Math.max(...data.map(d => d.value), 1);
+  const maxLabelLength = Math.max(...data.map(d => d.label.length), 10);
+  const lines: string[] = [];
 
   for (const item of data) {
-    const barLength = Math.round((item.value / maxValue) * width)
-    const bar = ansis.green('█'.repeat(barLength)) + ansis.dim('░'.repeat(width - barLength))
-    const label = item.label.padEnd(maxLabelLength)
-    const value = showValues ? ` ${item.value.toFixed(0)}` : ''
-    lines.push(`  ${ansis.cyan(label)} ${bar}${ansis.yellow(value)}`)
+    const barLength = Math.round((item.value / maxValue) * width);
+    const bar = ansis.green('█'.repeat(barLength)) + ansis.dim('░'.repeat(width - barLength));
+    const label = item.label.padEnd(maxLabelLength);
+    const value = showValues ? ` ${item.value.toFixed(0)}` : '';
+    lines.push(`  ${ansis.cyan(label)} ${bar}${ansis.yellow(value)}`);
   }
 
-  return lines
+  return lines;
 }
 
 /**
@@ -67,24 +67,24 @@ function generateBarChart(
  */
 function generateSparkline(values: number[], width: number = 20): string {
   if (values.length === 0)
-    return ansis.dim('─'.repeat(width))
+    return ansis.dim('─'.repeat(width));
 
-  const chars = ['▁', '▂', '▃', '▄', '▅', '▆', '▇', '█']
-  const min = Math.min(...values)
-  const max = Math.max(...values)
-  const range = max - min || 1
+  const chars = ['▁', '▂', '▃', '▄', '▅', '▆', '▇', '█'];
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const range = max - min || 1;
 
   // Sample values to fit width
-  const step = Math.max(1, Math.floor(values.length / width))
-  const sampled = values.filter((_, i) => i % step === 0).slice(-width)
+  const step = Math.max(1, Math.floor(values.length / width));
+  const sampled = values.filter((_, i) => i % step === 0).slice(-width);
 
   return sampled
     .map((v) => {
-      const normalized = (v - min) / range
-      const index = Math.min(Math.floor(normalized * chars.length), chars.length - 1)
-      return ansis.green(chars[index])
+      const normalized = (v - min) / range;
+      const index = Math.min(Math.floor(normalized * chars.length), chars.length - 1);
+      return ansis.green(chars[index]);
     })
-    .join('')
+    .join('');
 }
 
 /**
@@ -94,25 +94,25 @@ function generateProgressBar(
   value: number,
   max: number,
   width: number = 20,
-  options: { showPercent?: boolean, colorThresholds?: { warning: number, critical: number } } = {},
+  options: { showPercent?: boolean; colorThresholds?: { warning: number; critical: number } } = {},
 ): string {
-  const { showPercent = true, colorThresholds } = options
-  const percent = Math.min(value / max, 1)
-  const filled = Math.round(percent * width)
-  const empty = width - filled
+  const { showPercent = true, colorThresholds } = options;
+  const percent = Math.min(value / max, 1);
+  const filled = Math.round(percent * width);
+  const empty = width - filled;
 
-  let color = ansis.green
+  let color = ansis.green;
   if (colorThresholds) {
     if (percent >= colorThresholds.critical)
-      color = ansis.red
+      color = ansis.red;
     else if (percent >= colorThresholds.warning)
-      color = ansis.yellow
+      color = ansis.yellow;
   }
 
-  const bar = color('█'.repeat(filled)) + ansis.dim('░'.repeat(empty))
-  const percentStr = showPercent ? ` ${(percent * 100).toFixed(1)}%` : ''
+  const bar = color('█'.repeat(filled)) + ansis.dim('░'.repeat(empty));
+  const percentStr = showPercent ? ` ${(percent * 100).toFixed(1)}%` : '';
 
-  return `[${bar}]${ansis.yellow(percentStr)}`
+  return `[${bar}]${ansis.yellow(percentStr)}`;
 }
 
 /**
@@ -120,12 +120,12 @@ function generateProgressBar(
  */
 function formatDuration(ms: number): string {
   if (ms < 1000)
-    return `${ms.toFixed(0)}ms`
+    return `${ms.toFixed(0)}ms`;
   if (ms < 60000)
-    return `${(ms / 1000).toFixed(1)}s`
+    return `${(ms / 1000).toFixed(1)}s`;
   if (ms < 3600000)
-    return `${(ms / 60000).toFixed(1)}m`
-  return `${(ms / 3600000).toFixed(1)}h`
+    return `${(ms / 60000).toFixed(1)}m`;
+  return `${(ms / 3600000).toFixed(1)}h`;
 }
 
 /**
@@ -133,30 +133,30 @@ function formatDuration(ms: number): string {
  */
 function formatBytes(bytes: number): string {
   if (bytes < 1024)
-    return `${bytes}B`
+    return `${bytes}B`;
   if (bytes < 1024 * 1024)
-    return `${(bytes / 1024).toFixed(1)}KB`
+    return `${(bytes / 1024).toFixed(1)}KB`;
   if (bytes < 1024 * 1024 * 1024)
-    return `${(bytes / (1024 * 1024)).toFixed(1)}MB`
-  return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)}GB`
+    return `${(bytes / (1024 * 1024)).toFixed(1)}MB`;
+  return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)}GB`;
 }
 
 /**
  * Format uptime for display
  */
 function formatUptime(ms: number): string {
-  const seconds = Math.floor(ms / 1000)
-  const minutes = Math.floor(seconds / 60)
-  const hours = Math.floor(minutes / 60)
-  const days = Math.floor(hours / 24)
+  const seconds = Math.floor(ms / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
 
   if (days > 0)
-    return `${days}d ${hours % 24}h ${minutes % 60}m`
+    return `${days}d ${hours % 24}h ${minutes % 60}m`;
   if (hours > 0)
-    return `${hours}h ${minutes % 60}m ${seconds % 60}s`
+    return `${hours}h ${minutes % 60}m ${seconds % 60}s`;
   if (minutes > 0)
-    return `${minutes}m ${seconds % 60}s`
-  return `${seconds}s`
+    return `${minutes}m ${seconds % 60}s`;
+  return `${seconds}s`;
 }
 
 /**
@@ -164,11 +164,11 @@ function formatUptime(ms: number): string {
  */
 function getHealthColor(status: HealthStatus): (s: string) => string {
   switch (status) {
-    case 'healthy': return ansis.green
-    case 'degraded': return ansis.yellow
-    case 'unhealthy': return ansis.red
-    case 'critical': return ansis.red.bold
-    default: return ansis.gray
+    case 'healthy': return ansis.green;
+    case 'degraded': return ansis.yellow;
+    case 'unhealthy': return ansis.red;
+    case 'critical': return ansis.red.bold;
+    default: return ansis.gray;
   }
 }
 
@@ -177,11 +177,11 @@ function getHealthColor(status: HealthStatus): (s: string) => string {
  */
 function getHealthIcon(status: HealthStatus): string {
   switch (status) {
-    case 'healthy': return ansis.green('●')
-    case 'degraded': return ansis.yellow('◐')
-    case 'unhealthy': return ansis.red('○')
-    case 'critical': return ansis.red.bold('✖')
-    default: return ansis.gray('?')
+    case 'healthy': return ansis.green('●');
+    case 'degraded': return ansis.yellow('◐');
+    case 'unhealthy': return ansis.red('○');
+    case 'critical': return ansis.red.bold('✖');
+    default: return ansis.gray('?');
   }
 }
 
@@ -190,115 +190,115 @@ function getHealthIcon(status: HealthStatus): string {
 // ============================================================================
 
 class DashboardRenderer {
-  private config: DashboardConfig
-  private collector: MetricsCollector
-  private memoryHistory: number[] = []
-  private apiLatencyHistory: number[] = []
+  private config: DashboardConfig;
+  private collector: MetricsCollector;
+  private memoryHistory: number[] = [];
+  private apiLatencyHistory: number[] = [];
 
   constructor(config: DashboardConfig, collector: MetricsCollector) {
-    this.config = config
-    this.collector = collector
+    this.config = config;
+    this.collector = collector;
   }
 
   /**
    * Render the complete dashboard
    */
   render(): string {
-    const lines: string[] = []
+    const lines: string[] = [];
 
     // Header
-    lines.push(...this.renderHeader())
-    lines.push('')
+    lines.push(...this.renderHeader());
+    lines.push('');
 
     // System Overview
-    lines.push(...this.renderSystemOverview())
-    lines.push('')
+    lines.push(...this.renderSystemOverview());
+    lines.push('');
 
     // Two-column layout for metrics
-    const leftColumn: string[] = []
-    const rightColumn: string[] = []
+    const leftColumn: string[] = [];
+    const rightColumn: string[] = [];
 
     if (this.config.showMemory) {
-      leftColumn.push(...this.renderMemorySection())
-      leftColumn.push('')
+      leftColumn.push(...this.renderMemorySection());
+      leftColumn.push('');
     }
 
     if (this.config.showApi) {
-      leftColumn.push(...this.renderApiSection())
-      leftColumn.push('')
+      leftColumn.push(...this.renderApiSection());
+      leftColumn.push('');
     }
 
     if (this.config.showCommands) {
-      rightColumn.push(...this.renderCommandsSection())
-      rightColumn.push('')
+      rightColumn.push(...this.renderCommandsSection());
+      rightColumn.push('');
     }
 
     if (this.config.showCache) {
-      rightColumn.push(...this.renderCacheSection())
-      rightColumn.push('')
+      rightColumn.push(...this.renderCacheSection());
+      rightColumn.push('');
     }
 
     // Merge columns
-    const maxLines = Math.max(leftColumn.length, rightColumn.length)
+    const maxLines = Math.max(leftColumn.length, rightColumn.length);
     for (let i = 0; i < maxLines; i++) {
-      const left = (leftColumn[i] || '').padEnd(50)
-      const right = rightColumn[i] || ''
-      lines.push(`${left}  ${right}`)
+      const left = (leftColumn[i] || '').padEnd(50);
+      const right = rightColumn[i] || '';
+      lines.push(`${left}  ${right}`);
     }
 
     // Errors section (full width)
     if (this.config.showErrors) {
-      lines.push('')
-      lines.push(...this.renderErrorsSection())
+      lines.push('');
+      lines.push(...this.renderErrorsSection());
     }
 
     // Agents section (full width)
     if (this.config.showAgents) {
-      lines.push('')
-      lines.push(...this.renderAgentsSection())
+      lines.push('');
+      lines.push(...this.renderAgentsSection());
     }
 
     // Footer
-    lines.push('')
-    lines.push(...this.renderFooter())
+    lines.push('');
+    lines.push(...this.renderFooter());
 
-    return lines.join('\n')
+    return lines.join('\n');
   }
 
   /**
    * Render dashboard header
    */
   private renderHeader(): string[] {
-    const title = ansis.bold.cyan('CCJK Performance Monitor')
-    const time = ansis.dim(new Date().toLocaleString())
-    const separator = ansis.dim('═'.repeat(80))
+    const title = ansis.bold.cyan('CCJK Performance Monitor');
+    const time = ansis.dim(new Date().toLocaleString());
+    const separator = ansis.dim('═'.repeat(80));
 
     return [
       separator,
       `  ${title}${' '.repeat(80 - 30 - time.length)}${time}`,
       separator,
-    ]
+    ];
   }
 
   /**
    * Render system overview section
    */
   private renderSystemOverview(): string[] {
-    const memStats = this.collector.getMemoryStats()
-    const uptime = this.collector.getUptime()
-    const errorStats = this.collector.getErrorStats()
+    const memStats = this.collector.getMemoryStats();
+    const uptime = this.collector.getUptime();
+    const errorStats = this.collector.getErrorStats();
 
     // Determine overall health
-    let health: HealthStatus = 'healthy'
+    let health: HealthStatus = 'healthy';
     if (errorStats.errorsBySeverity.critical > 0)
-      health = 'critical'
+      health = 'critical';
     else if (errorStats.errorsBySeverity.high > 0)
-      health = 'unhealthy'
+      health = 'unhealthy';
     else if (memStats.current.heapUsedPercent > 0.9)
-      health = 'degraded'
+      health = 'degraded';
 
-    const healthColor = getHealthColor(health)
-    const healthIcon = getHealthIcon(health)
+    const healthColor = getHealthColor(health);
+    const healthIcon = getHealthIcon(health);
 
     return [
       ansis.bold.white('  System Overview'),
@@ -307,22 +307,22 @@ class DashboardRenderer {
       `  ${ansis.cyan('⏱')}  Uptime: ${ansis.yellow(formatUptime(uptime))}`,
       `  ${ansis.cyan('📊')} Memory: ${formatBytes(memStats.current.heapUsed)} / ${formatBytes(memStats.current.heapTotal)}`,
       `  ${ansis.cyan('⚠')}  Errors: ${errorStats.totalErrors > 0 ? ansis.red(errorStats.totalErrors.toString()) : ansis.green('0')}`,
-    ]
+    ];
   }
 
   /**
    * Render memory section
    */
   private renderMemorySection(): string[] {
-    const stats = this.collector.getMemoryStats()
-    this.memoryHistory.push(stats.current.heapUsedPercent * 100)
+    const stats = this.collector.getMemoryStats();
+    this.memoryHistory.push(stats.current.heapUsedPercent * 100);
     if (this.memoryHistory.length > 60)
-      this.memoryHistory.shift()
+      this.memoryHistory.shift();
 
     const lines: string[] = [
       ansis.bold.white('  Memory Usage'),
       ansis.dim(`  ${'─'.repeat(40)}`),
-    ]
+    ];
 
     // Memory progress bar
     const memBar = generateProgressBar(
@@ -330,146 +330,146 @@ class DashboardRenderer {
       stats.current.heapTotal,
       30,
       { colorThresholds: { warning: 0.7, critical: 0.9 } },
-    )
-    lines.push(`  Heap: ${memBar}`)
+    );
+    lines.push(`  Heap: ${memBar}`);
 
     // Memory details
-    lines.push(`  ${ansis.dim('Used:')} ${ansis.yellow(formatBytes(stats.current.heapUsed))}`)
-    lines.push(`  ${ansis.dim('Total:')} ${ansis.yellow(formatBytes(stats.current.heapTotal))}`)
-    lines.push(`  ${ansis.dim('RSS:')} ${ansis.yellow(formatBytes(stats.current.rss))}`)
+    lines.push(`  ${ansis.dim('Used:')} ${ansis.yellow(formatBytes(stats.current.heapUsed))}`);
+    lines.push(`  ${ansis.dim('Total:')} ${ansis.yellow(formatBytes(stats.current.heapTotal))}`);
+    lines.push(`  ${ansis.dim('RSS:')} ${ansis.yellow(formatBytes(stats.current.rss))}`);
 
     // Trend indicator
     const trendIcon = stats.trend === 'increasing'
       ? ansis.red('↑')
       : stats.trend === 'decreasing'
         ? ansis.green('↓')
-        : ansis.gray('→')
-    lines.push(`  ${ansis.dim('Trend:')} ${trendIcon} ${stats.trend}`)
+        : ansis.gray('→');
+    lines.push(`  ${ansis.dim('Trend:')} ${trendIcon} ${stats.trend}`);
 
     // Sparkline
-    lines.push(`  ${ansis.dim('History:')} ${generateSparkline(this.memoryHistory, 30)}`)
+    lines.push(`  ${ansis.dim('History:')} ${generateSparkline(this.memoryHistory, 30)}`);
 
-    return lines
+    return lines;
   }
 
   /**
    * Render API section
    */
   private renderApiSection(): string[] {
-    const stats = this.collector.getApiStats()
+    const stats = this.collector.getApiStats();
 
     const lines: string[] = [
       ansis.bold.white('  API Performance'),
       ansis.dim(`  ${'─'.repeat(40)}`),
-    ]
+    ];
 
     if (stats.length === 0) {
-      lines.push(ansis.dim('  No API calls recorded'))
-      return lines
+      lines.push(ansis.dim('  No API calls recorded'));
+      return lines;
     }
 
     // Update latency history
-    const avgLatency = stats.reduce((sum, s) => sum + s.avgLatency, 0) / stats.length
-    this.apiLatencyHistory.push(avgLatency)
+    const avgLatency = stats.reduce((sum, s) => sum + s.avgLatency, 0) / stats.length;
+    this.apiLatencyHistory.push(avgLatency);
     if (this.apiLatencyHistory.length > 60)
-      this.apiLatencyHistory.shift()
+      this.apiLatencyHistory.shift();
 
     // Provider stats
     for (const provider of stats.slice(0, 3)) {
       const successRate = provider.totalCalls > 0
         ? (provider.successCount / provider.totalCalls * 100).toFixed(1)
-        : '0'
+        : '0';
       const rateColor = Number(successRate) >= 95
         ? ansis.green
         : Number(successRate) >= 80
           ? ansis.yellow
-          : ansis.red
+          : ansis.red;
 
-      lines.push(`  ${ansis.cyan(provider.provider)}`)
-      lines.push(`    ${ansis.dim('Calls:')} ${provider.totalCalls} | ${ansis.dim('Success:')} ${rateColor(`${successRate}%`)}`)
-      lines.push(`    ${ansis.dim('Latency:')} ${ansis.yellow(formatDuration(provider.avgLatency))} (p95: ${formatDuration(provider.p95Latency)})`)
+      lines.push(`  ${ansis.cyan(provider.provider)}`);
+      lines.push(`    ${ansis.dim('Calls:')} ${provider.totalCalls} | ${ansis.dim('Success:')} ${rateColor(`${successRate}%`)}`);
+      lines.push(`    ${ansis.dim('Latency:')} ${ansis.yellow(formatDuration(provider.avgLatency))} (p95: ${formatDuration(provider.p95Latency)})`);
     }
 
     // Latency sparkline
-    lines.push(`  ${ansis.dim('Latency:')} ${generateSparkline(this.apiLatencyHistory, 30)}`)
+    lines.push(`  ${ansis.dim('Latency:')} ${generateSparkline(this.apiLatencyHistory, 30)}`);
 
-    return lines
+    return lines;
   }
 
   /**
    * Render commands section
    */
   private renderCommandsSection(): string[] {
-    const stats = this.collector.getCommandStats()
+    const stats = this.collector.getCommandStats();
 
     const lines: string[] = [
       ansis.bold.white('  Command Execution'),
       ansis.dim(`  ${'─'.repeat(40)}`),
-    ]
+    ];
 
     if (stats.length === 0) {
-      lines.push(ansis.dim('  No commands recorded'))
-      return lines
+      lines.push(ansis.dim('  No commands recorded'));
+      return lines;
     }
 
     // Sort by total executions
-    const sorted = [...stats].sort((a, b) => b.totalExecutions - a.totalExecutions).slice(0, 5)
+    const sorted = [...stats].sort((a, b) => b.totalExecutions - a.totalExecutions).slice(0, 5);
 
     // Bar chart
     const chartData = sorted.map(s => ({
       label: s.command.slice(0, 15),
       value: s.totalExecutions,
-    }))
-    lines.push(...generateBarChart(chartData, { width: 20 }))
+    }));
+    lines.push(...generateBarChart(chartData, { width: 20 }));
 
     // Summary
-    const totalExecs = stats.reduce((sum, s) => sum + s.totalExecutions, 0)
-    const totalSuccess = stats.reduce((sum, s) => sum + s.successCount, 0)
-    const successRate = totalExecs > 0 ? (totalSuccess / totalExecs * 100).toFixed(1) : '0'
+    const totalExecs = stats.reduce((sum, s) => sum + s.totalExecutions, 0);
+    const totalSuccess = stats.reduce((sum, s) => sum + s.successCount, 0);
+    const successRate = totalExecs > 0 ? (totalSuccess / totalExecs * 100).toFixed(1) : '0';
 
-    lines.push('')
-    lines.push(`  ${ansis.dim('Total:')} ${totalExecs} | ${ansis.dim('Success:')} ${ansis.green(`${successRate}%`)}`)
+    lines.push('');
+    lines.push(`  ${ansis.dim('Total:')} ${totalExecs} | ${ansis.dim('Success:')} ${ansis.green(`${successRate}%`)}`);
 
-    return lines
+    return lines;
   }
 
   /**
    * Render cache section
    */
   private renderCacheSection(): string[] {
-    const stats = this.collector.getCacheStats()
+    const stats = this.collector.getCacheStats();
 
     const lines: string[] = [
       ansis.bold.white('  Cache Performance'),
       ansis.dim(`  ${'─'.repeat(40)}`),
-    ]
+    ];
 
     // Hit rate progress bar
-    const hitRateBar = generateProgressBar(stats.hitRate, 1, 20, { showPercent: true })
-    lines.push(`  Hit Rate: ${hitRateBar}`)
+    const hitRateBar = generateProgressBar(stats.hitRate, 1, 20, { showPercent: true });
+    lines.push(`  Hit Rate: ${hitRateBar}`);
 
     // Stats
-    lines.push(`  ${ansis.dim('Hits:')} ${ansis.green(stats.hits.toString())} | ${ansis.dim('Misses:')} ${ansis.red(stats.misses.toString())}`)
-    lines.push(`  ${ansis.dim('Avg Latency:')} ${ansis.yellow(formatDuration(stats.avgLatency))}`)
-    lines.push(`  ${ansis.dim('Items:')} ${stats.itemCount} | ${ansis.dim('Size:')} ${formatBytes(stats.totalSize)}`)
+    lines.push(`  ${ansis.dim('Hits:')} ${ansis.green(stats.hits.toString())} | ${ansis.dim('Misses:')} ${ansis.red(stats.misses.toString())}`);
+    lines.push(`  ${ansis.dim('Avg Latency:')} ${ansis.yellow(formatDuration(stats.avgLatency))}`);
+    lines.push(`  ${ansis.dim('Items:')} ${stats.itemCount} | ${ansis.dim('Size:')} ${formatBytes(stats.totalSize)}`);
 
-    return lines
+    return lines;
   }
 
   /**
    * Render errors section
    */
   private renderErrorsSection(): string[] {
-    const stats = this.collector.getErrorStats()
+    const stats = this.collector.getErrorStats();
 
     const lines: string[] = [
       ansis.bold.white('  Recent Errors'),
       ansis.dim(`  ${'─'.repeat(76)}`),
-    ]
+    ];
 
     if (stats.totalErrors === 0) {
-      lines.push(ansis.green('  No errors recorded'))
-      return lines
+      lines.push(ansis.green('  No errors recorded'));
+      return lines;
     }
 
     // Severity summary
@@ -478,9 +478,9 @@ class DashboardRenderer {
       `${ansis.red('High:')} ${stats.errorsBySeverity.high}`,
       `${ansis.yellow('Medium:')} ${stats.errorsBySeverity.medium}`,
       `${ansis.green('Low:')} ${stats.errorsBySeverity.low}`,
-    ].join(' | ')
-    lines.push(`  ${severityLine}`)
-    lines.push('')
+    ].join(' | ');
+    lines.push(`  ${severityLine}`);
+    lines.push('');
 
     // Recent errors
     for (const error of stats.recentErrors.slice(0, 3)) {
@@ -490,50 +490,50 @@ class DashboardRenderer {
           ? ansis.red('○')
           : error.severity === 'medium'
             ? ansis.yellow('○')
-            : ansis.green('○')
-      const time = new Date(error.timestamp).toLocaleTimeString()
-      lines.push(`  ${severityIcon} ${ansis.dim(time)} ${ansis.cyan(error.type)}: ${error.message.slice(0, 50)}`)
+            : ansis.green('○');
+      const time = new Date(error.timestamp).toLocaleTimeString();
+      lines.push(`  ${severityIcon} ${ansis.dim(time)} ${ansis.cyan(error.type)}: ${error.message.slice(0, 50)}`);
     }
 
-    return lines
+    return lines;
   }
 
   /**
    * Render agents section
    */
   private renderAgentsSection(): string[] {
-    const stats = this.collector.getAgentStats()
+    const stats = this.collector.getAgentStats();
 
     const lines: string[] = [
       ansis.bold.white('  Agent Tasks'),
       ansis.dim(`  ${'─'.repeat(76)}`),
-    ]
+    ];
 
     if (stats.length === 0) {
-      lines.push(ansis.dim('  No agent tasks recorded'))
-      return lines
+      lines.push(ansis.dim('  No agent tasks recorded'));
+      return lines;
     }
 
     // Agent stats table
-    lines.push(`  ${ansis.dim('Agent'.padEnd(30))} ${ansis.dim('Tasks'.padEnd(8))} ${ansis.dim('Success'.padEnd(10))} ${ansis.dim('Avg Time')}`)
+    lines.push(`  ${ansis.dim('Agent'.padEnd(30))} ${ansis.dim('Tasks'.padEnd(8))} ${ansis.dim('Success'.padEnd(10))} ${ansis.dim('Avg Time')}`);
 
     for (const agent of stats.slice(0, 5)) {
-      const successRate = `${(agent.successRate * 100).toFixed(0)}%`
+      const successRate = `${(agent.successRate * 100).toFixed(0)}%`;
       const rateColor = agent.successRate >= 0.95
         ? ansis.green
         : agent.successRate >= 0.8
           ? ansis.yellow
-          : ansis.red
+          : ansis.red;
 
       lines.push(
         `  ${ansis.cyan(agent.agentName.slice(0, 28).padEnd(30))} `
         + `${agent.totalTasks.toString().padEnd(8)} `
         + `${rateColor(successRate.padEnd(10))} `
         + `${ansis.yellow(formatDuration(agent.avgDuration))}`,
-      )
+      );
     }
 
-    return lines
+    return lines;
   }
 
   /**
@@ -543,7 +543,7 @@ class DashboardRenderer {
     return [
       ansis.dim('═'.repeat(80)),
       ansis.dim(`  Press Ctrl+C to exit | Refresh: ${this.config.refreshInterval / 1000}s | ${new Date().toISOString()}`),
-    ]
+    ];
   }
 }
 
@@ -552,16 +552,16 @@ class DashboardRenderer {
 // ============================================================================
 
 export class PerformanceDashboard implements Dashboard {
-  private config: DashboardConfig
-  private collector: MetricsCollector
-  private renderer: DashboardRenderer
-  private refreshTimer?: ReturnType<typeof setInterval>
-  private isRunning: boolean = false
+  private config: DashboardConfig;
+  private collector: MetricsCollector;
+  private renderer: DashboardRenderer;
+  private refreshTimer?: ReturnType<typeof setInterval>;
+  private isRunning: boolean = false;
 
   constructor(config: Partial<DashboardConfig> = {}, collector?: MetricsCollector) {
-    this.config = { ...DEFAULT_CONFIG, ...config }
-    this.collector = collector || getMetricsCollector()
-    this.renderer = new DashboardRenderer(this.config, this.collector)
+    this.config = { ...DEFAULT_CONFIG, ...config };
+    this.collector = collector || getMetricsCollector();
+    this.renderer = new DashboardRenderer(this.config, this.collector);
   }
 
   /**
@@ -569,30 +569,30 @@ export class PerformanceDashboard implements Dashboard {
    */
   show(): void {
     if (this.isRunning)
-      return
+      return;
 
-    this.isRunning = true
+    this.isRunning = true;
 
     // Initial render
-    this.render()
+    this.render();
 
     // Set up refresh interval
     this.refreshTimer = setInterval(() => {
-      this.render()
-    }, this.config.refreshInterval)
+      this.render();
+    }, this.config.refreshInterval);
 
     // Handle exit
     process.on('SIGINT', () => {
-      this.stop()
-      process.exit(0)
-    })
+      this.stop();
+      process.exit(0);
+    });
   }
 
   /**
    * Refresh the dashboard
    */
   refresh(): void {
-    this.render()
+    this.render();
   }
 
   /**
@@ -600,21 +600,21 @@ export class PerformanceDashboard implements Dashboard {
    */
   private render(): void {
     // Clear screen
-    process.stdout.write('\x1B[2J\x1B[0f')
+    process.stdout.write('\x1B[2J\x1B[0f');
 
     // Render dashboard
-    const output = this.renderer.render()
-    console.log(output)
+    const output = this.renderer.render();
+    console.log(output);
   }
 
   /**
    * Stop the dashboard
    */
   stop(): void {
-    this.isRunning = false
+    this.isRunning = false;
     if (this.refreshTimer) {
-      clearInterval(this.refreshTimer)
-      this.refreshTimer = undefined
+      clearInterval(this.refreshTimer);
+      this.refreshTimer = undefined;
     }
   }
 
@@ -622,17 +622,17 @@ export class PerformanceDashboard implements Dashboard {
    * Export dashboard data
    */
   export(format: ExportFormat): string {
-    const data = this.collectData()
+    const data = this.collectData();
 
     switch (format) {
       case 'json':
-        return this.exportJson(data)
+        return this.exportJson(data);
       case 'csv':
-        return this.exportCsv(data)
+        return this.exportCsv(data);
       case 'html':
-        return this.exportHtml(data)
+        return this.exportHtml(data);
       default:
-        return this.exportJson(data)
+        return this.exportJson(data);
     }
   }
 
@@ -640,17 +640,17 @@ export class PerformanceDashboard implements Dashboard {
    * Collect current dashboard data
    */
   private collectData(): DashboardData {
-    const memStats = this.collector.getMemoryStats()
-    const errorStats = this.collector.getErrorStats()
+    const memStats = this.collector.getMemoryStats();
+    const errorStats = this.collector.getErrorStats();
 
     // Determine health
-    let health: HealthStatus = 'healthy'
+    let health: HealthStatus = 'healthy';
     if (errorStats.errorsBySeverity.critical > 0)
-      health = 'critical'
+      health = 'critical';
     else if (errorStats.errorsBySeverity.high > 0)
-      health = 'unhealthy'
+      health = 'unhealthy';
     else if (memStats.current.heapUsedPercent > 0.9)
-      health = 'degraded'
+      health = 'degraded';
 
     const system: SystemOverview = {
       status: health,
@@ -660,7 +660,7 @@ export class PerformanceDashboard implements Dashboard {
       nodeVersion: process.version,
       platform: process.platform,
       healthChecks: [],
-    }
+    };
 
     return {
       timestamp: Date.now(),
@@ -671,46 +671,46 @@ export class PerformanceDashboard implements Dashboard {
       cache: this.collector.getCacheStats(),
       errors: errorStats,
       agents: this.collector.getAgentStats(),
-    }
+    };
   }
 
   /**
    * Export as JSON
    */
   private exportJson(data: DashboardData): string {
-    return JSON.stringify(data, null, 2)
+    return JSON.stringify(data, null, 2);
   }
 
   /**
    * Export as CSV
    */
   private exportCsv(data: DashboardData): string {
-    const lines: string[] = []
+    const lines: string[] = [];
 
     // Commands CSV
-    lines.push('# Commands')
-    lines.push('command,total,success,failure,avg_duration,p95_duration')
+    lines.push('# Commands');
+    lines.push('command,total,success,failure,avg_duration,p95_duration');
     for (const cmd of data.commands) {
-      lines.push(`${cmd.command},${cmd.totalExecutions},${cmd.successCount},${cmd.failureCount},${cmd.avgDuration},${cmd.p95Duration}`)
+      lines.push(`${cmd.command},${cmd.totalExecutions},${cmd.successCount},${cmd.failureCount},${cmd.avgDuration},${cmd.p95Duration}`);
     }
 
-    lines.push('')
+    lines.push('');
 
     // API CSV
-    lines.push('# API Calls')
-    lines.push('provider,total,success,failure,avg_latency,p95_latency,tokens')
+    lines.push('# API Calls');
+    lines.push('provider,total,success,failure,avg_latency,p95_latency,tokens');
     for (const api of data.api) {
-      lines.push(`${api.provider},${api.totalCalls},${api.successCount},${api.failureCount},${api.avgLatency},${api.p95Latency},${api.totalTokens}`)
+      lines.push(`${api.provider},${api.totalCalls},${api.successCount},${api.failureCount},${api.avgLatency},${api.p95Latency},${api.totalTokens}`);
     }
 
-    lines.push('')
+    lines.push('');
 
     // Memory CSV
-    lines.push('# Memory')
-    lines.push('heap_used,heap_total,rss,heap_percent')
-    lines.push(`${data.memory.current.heapUsed},${data.memory.current.heapTotal},${data.memory.current.rss},${data.memory.current.heapUsedPercent}`)
+    lines.push('# Memory');
+    lines.push('heap_used,heap_total,rss,heap_percent');
+    lines.push(`${data.memory.current.heapUsed},${data.memory.current.heapTotal},${data.memory.current.rss},${data.memory.current.heapUsedPercent}`);
 
-    return lines.join('\n')
+    return lines.join('\n');
   }
 
   /**
@@ -793,7 +793,7 @@ export class PerformanceDashboard implements Dashboard {
     </div>
   </div>
 </body>
-</html>`
+</html>`;
   }
 }
 
@@ -805,5 +805,5 @@ export class PerformanceDashboard implements Dashboard {
  * Create a new dashboard instance
  */
 export function createDashboard(config?: Partial<DashboardConfig>): Dashboard {
-  return new PerformanceDashboard(config)
+  return new PerformanceDashboard(config);
 }
