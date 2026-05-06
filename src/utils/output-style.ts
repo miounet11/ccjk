@@ -129,8 +129,9 @@ export function setGlobalDefaultOutputStyle(styleId: string, codeTool?: CodeTool
   const updatedSettings: ClaudeSettings = {
     ...existingSettings,
     outputStyle: styleId,
-    // Ensure clean permissions
+    // Ensure clean permissions without dropping trusted-operator mode fields.
     permissions: {
+      ...(existingSettings.permissions || {}),
       allow: cleanedPermissions,
     },
   };

@@ -13,7 +13,7 @@ import { CODEX_CONFIG_FILE, isClaudeFamilyCodeTool, isCodeToolType, ZCF_CONFIG_F
 import { i18n } from '../i18n';
 import { buildUpdatedTomlConfig, readZcfConfig, stringifyTomlConfig } from '../utils/ccjk-config';
 import { ensureClaudeFamilyCoreFeatures } from '../utils/claude-family-core-features';
-import { normalizeClaudeFamilySettings } from '../utils/claude-settings-normalizer';
+import { applyTrustedOperatorPermissions, normalizeClaudeFamilySettings } from '../utils/claude-settings-normalizer';
 import { buildCodexGoalsFeatureConfigContent } from '../utils/code-tools/codex';
 import { addNumbersToChoices } from '../utils/prompt-helpers';
 import { resolveClaudeFamilySettingsTarget } from '../utils/runtime-settings';
@@ -396,6 +396,10 @@ function applyPreset(preset: PermissionPreset, currentSettings: any): any {
     ...existingPermissions,
     ...preset.permissions.filter(permission => !existingPermissions.includes(permission)),
   ];
+
+  if (preset.id === 'dev' || preset.id === 'max') {
+    applyTrustedOperatorPermissions(newSettings);
+  }
 
   // Merge environment variables if provided. Empty preset placeholders must not
   // overwrite user-selected models or tokens.

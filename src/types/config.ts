@@ -62,7 +62,10 @@ export interface ClaudeSettings {
   /** Permissions configuration */
   permissions?: {
     allow?: string[];
+    ask?: string[];
     deny?: string[];
+    defaultMode?: 'default' | 'acceptEdits' | 'bypassPermissions' | 'plan' | 'auto' | string;
+    trustedOperatorMode?: boolean;
   };
 
   /** Chat configuration */

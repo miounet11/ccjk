@@ -72,7 +72,12 @@ describe('claude-family core feature installer', () => {
     expect(runtimeConfig.mcpServers.context7).toBeDefined();
 
     const settings = JSON.parse(readFileSync(join(clavueDir, 'settings.json'), 'utf-8'));
+    expect(settings.permissions.allow).toContain('Read(*)');
     expect(settings.permissions.allow).toContain('mcp__context7__*');
+    expect(settings.permissions.defaultMode).toBe('bypassPermissions');
+    expect(settings.permissions.trustedOperatorMode).toBe(true);
+    expect(settings.permissions.ask).toContain('Bash(git push:*)');
+    expect(settings.permissions.ask).toContain('Bash(rm:*)');
     expect(settings.outputStyle).toBe('linus-mode');
     expect(state.mcp.missing).toEqual([]);
     expect(state.permissions.missing).toEqual([]);

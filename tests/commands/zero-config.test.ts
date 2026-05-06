@@ -96,6 +96,10 @@ describe('zero-config command', () => {
       expect(writtenContent.permissions.allow).toContain('Bash(npm *)');
       expect(writtenContent.permissions.allow).toContain('Bash(git *)');
       expect(writtenContent.permissions.allow).toContain('Read(*)');
+      expect(writtenContent.permissions.defaultMode).toBe('bypassPermissions');
+      expect(writtenContent.permissions.trustedOperatorMode).toBe(true);
+      expect(writtenContent.permissions.ask).toContain('Bash(rm:*)');
+      expect(writtenContent.permissions.ask).toContain('Bash(git reset --hard:*)');
     });
 
     it('should apply dev preset', async () => {
@@ -114,6 +118,10 @@ describe('zero-config command', () => {
       expect(writtenContent.permissions.allow).toContain('Bash(npm *)');
       expect(writtenContent.permissions.allow).toContain('Bash(git *)');
       expect(writtenContent.permissions.allow).not.toContain('Bash(docker *)');
+      expect(writtenContent.permissions.defaultMode).toBe('bypassPermissions');
+      expect(writtenContent.permissions.trustedOperatorMode).toBe(true);
+      expect(writtenContent.permissions.ask).toContain('Bash(git push:*)');
+      expect(writtenContent.permissions.ask).toContain('Bash(rm:*)');
     });
 
     it('writes Clavue presets to ~/.clavue/settings.json when Clavue is active', async () => {
@@ -151,6 +159,9 @@ describe('zero-config command', () => {
       expect(writtenContent.permissions.allow).toContain('Read(*)');
       expect(writtenContent.permissions.allow).not.toContain('Write(*)');
       expect(writtenContent.permissions.allow).not.toContain('Edit(*)');
+      expect(writtenContent.permissions.defaultMode).toBeUndefined();
+      expect(writtenContent.permissions.trustedOperatorMode).toBeUndefined();
+      expect(writtenContent.permissions.ask).toBeUndefined();
     });
 
     it('should merge with existing permissions', async () => {
@@ -158,6 +169,7 @@ describe('zero-config command', () => {
       mockReadFileSync.mockReturnValue(JSON.stringify({
         permissions: {
           allow: ['mcp__custom-server__tool', 'Bash(git status:*)'],
+          ask: ['Bash(custom-danger:*)', 'Bash(rm:*)'],
         },
       }));
 
@@ -171,6 +183,37 @@ describe('zero-config command', () => {
       expect(writtenContent.permissions.allow).toContain('mcp__custom-server__tool');
       expect(writtenContent.permissions.allow).toContain('Bash(git status:*)');
       expect(writtenContent.permissions.allow).toContain('Bash(npm *)');
+      expect(writtenContent.permissions.ask).toContain('Bash(custom-danger:*)');
+      expect(writtenContent.permissions.ask.filter((rule: string) => rule === 'Bash(rm:*)')).toHaveLength(1);
+    });
+
+    it('does not duplicate trusted-operator ask rules on repeated runs', async () => {
+      mockExistsSync.mockReturnValue(true);
+      mockReadFileSync.mockReturnValue(JSON.stringify({
+        permissions: {
+          allow: ['Bash(*)'],
+          ask: ['Bash(rm:*)'],
+        },
+      }));
+
+      const { writeFileAtomic } = await import('../../src/utils/fs-operations');
+      const writeFileSpy = vi.mocked(writeFileAtomic).mockImplementation(() => {});
+
+      await zeroConfig({ preset: 'dev', skipBackup: true });
+
+      const firstSettingsWrite = writeFileSpy.mock.calls.find(call => String(call[0]).includes('settings.json'));
+      const firstWrite = JSON.parse(firstSettingsWrite?.[1] as string);
+      mockReadFileSync.mockReturnValue(JSON.stringify(firstWrite));
+      writeFileSpy.mockClear();
+
+      await zeroConfig({ preset: 'dev', skipBackup: true });
+
+      const secondSettingsWrite = writeFileSpy.mock.calls.find(call => String(call[0]).includes('settings.json'));
+      const secondWrite = JSON.parse(secondSettingsWrite?.[1] as string);
+      expect(secondWrite.permissions.ask.filter((rule: string) => rule === 'Bash(rm:*)')).toHaveLength(1);
+      expect(secondWrite.permissions.ask.filter((rule: string) => rule === 'Bash(git push:*)')).toHaveLength(1);
+      expect(secondWrite.permissions.defaultMode).toBe('bypassPermissions');
+      expect(secondWrite.permissions.trustedOperatorMode).toBe(true);
     });
 
     it('should not overwrite existing model env values with preset placeholders', async () => {

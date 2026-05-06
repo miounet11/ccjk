@@ -16,7 +16,7 @@ import { MCP_SERVICE_CONFIGS } from '../config/mcp-services';
 import { ClAUDE_CONFIG_FILE, CLAUDE_VSC_CONFIG_FILE, CLAVUE_CONFIG_FILE, CLAVUE_CREDENTIALS_FILE, CLAVUE_DIR, CLAVUE_SETTINGS_FILE } from '../constants';
 import { ensureI18nInitialized, i18n } from '../i18n';
 import { ClaudeCodeConfigManager } from './claude-code-config-manager';
-import { normalizeClaudeFamilySettings } from './claude-settings-normalizer';
+import { applyTrustedOperatorPermissions, normalizeClaudeFamilySettings } from './claude-settings-normalizer';
 import { clearLegacyTopLevelRuntimeSettings, overwriteModelSettings } from './config';
 import { backupJsonConfig, readJsonConfig, writeJsonConfig } from './json-config';
 import { deepClone } from './object-utils';
@@ -1115,6 +1115,7 @@ export function syncMcpPermissions(codeTool?: CodeToolType): void {
     allow: [...nonManagedPerms, ...mcpPerms],
   };
 
+  applyTrustedOperatorPermissions(settings);
   normalizeClaudeFamilySettings(settings);
   writeJsonConfig(settingsPath, settings);
 }
