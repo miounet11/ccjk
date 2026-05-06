@@ -73,7 +73,8 @@ export class SmartDefaultsDetector {
     const platform = getPlatform();
     const apiKey = this.detectApiKey();
     const apiProvider = this.detectApiProvider(apiKey);
-    const ccVersion = await this.detectClaudeCodeVersion();
+    const codeToolType = this.detectCodeToolType();
+    const ccVersion = await this.detectClaudeCodeVersion(codeToolType);
     const projectContext = scanProject(cwd);
 
     return {
@@ -108,7 +109,7 @@ export class SmartDefaultsDetector {
           ],
 
       // Code tool detection
-      codeToolType: this.detectCodeToolType(),
+      codeToolType,
 
       // Workflow preferences
       workflows: {
@@ -143,11 +144,15 @@ export class SmartDefaultsDetector {
   /**
    * Detect installed Claude Code version
    */
-  private async detectClaudeCodeVersion(): Promise<string | undefined> {
+  private async detectClaudeCodeVersion(preferredCodeTool?: string): Promise<string | undefined> {
+    const preferredCommand = preferredCodeTool && preferredCodeTool in CODE_TOOL_INFO
+      ? CODE_TOOL_INFO[preferredCodeTool as keyof typeof CODE_TOOL_INFO].runtimeCommand
+      : undefined;
     const candidateCommands = [
+      preferredCommand,
       CODE_TOOL_INFO['claude-code'].runtimeCommand,
       CODE_TOOL_INFO.clavue.runtimeCommand,
-    ];
+    ].filter((command, index, commands): command is string => Boolean(command) && commands.indexOf(command) === index);
 
     for (const command of candidateCommands) {
       try {

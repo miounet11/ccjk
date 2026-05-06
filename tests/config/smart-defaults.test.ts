@@ -1,3 +1,4 @@
+import { execSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'pathe';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -9,6 +10,10 @@ vi.mock('node:fs', () => ({
   readFileSync: vi.fn(),
 }));
 
+vi.mock('node:child_process', () => ({
+  execSync: vi.fn(),
+}));
+
 // Mock node:os
 vi.mock('node:os', () => ({
   homedir: vi.fn(() => '/mock/home'),
@@ -16,6 +21,7 @@ vi.mock('node:os', () => ({
 
 // Mock platform detection
 vi.mock('../../src/utils/platform', () => ({
+  commandExists: vi.fn(() => Promise.resolve(true)),
   getPlatform: vi.fn(() => 'linux'),
 }));
 
@@ -449,6 +455,24 @@ describe('smart-defaults', () => {
       const defaults = await detectSmartDefaults();
 
       expect(defaults.codeToolType).toBe('clavue');
+    });
+
+    it('should probe the active Clavue runtime before Claude Code for version evidence', async () => {
+      vi.mocked(existsSync).mockImplementation((path) => {
+        return path === join('/mock/home', '.clavue', '.clavue.json');
+      });
+      vi.mocked(readFileSync).mockReturnValue(JSON.stringify({
+        clavueActiveProviderProfileId: 'primary',
+        clavueProviderProfiles: [{ id: 'primary', name: 'Primary' }],
+      }));
+      vi.mocked(execSync).mockReturnValue('clavue 2.3.4');
+
+      const defaults = await detectSmartDefaults();
+
+      expect(defaults.codeToolType).toBe('clavue');
+      expect(defaults.claudeCodeVersion).toBe('2.3.4');
+      expect(execSync).toHaveBeenCalledWith('clavue --version 2>/dev/null || echo ""', expect.any(Object));
+      expect(vi.mocked(execSync).mock.calls[0][0]).toContain('clavue --version');
     });
 
     it('should default to Clavue when no tool is detected', async () => {
