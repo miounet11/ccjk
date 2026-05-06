@@ -1,4 +1,5 @@
 import type { ApiProviderPreset } from '../config/api-providers';
+import type { ClavueProviderProfile, MyclaudeProviderProfile } from '../types';
 import type { ClaudeCodeProfile } from '../types/claude-code-config';
 import ansis from 'ansis';
 import inquirer from 'inquirer';
@@ -47,7 +48,9 @@ export async function configureIncrementalManagement(): Promise<void> {
   if (!config || !config.profiles || Object.keys(config.profiles).length === 0) {
     // No existing configurations, add first one
     await handleAddProfile();
-    await syncMyclaudeProfilesIfNeeded();
+    if (!isClavueRuntime()) {
+      await syncMyclaudeProfilesIfNeeded();
+    }
     return;
   }
 
@@ -113,7 +116,9 @@ async function promptContinueAdding(): Promise<boolean> {
 export async function addProfileDirect(): Promise<void> {
   ensureI18nInitialized();
   await handleAddProfile();
-  await syncMyclaudeProfilesIfNeeded();
+  if (!isClavueRuntime()) {
+    await syncMyclaudeProfilesIfNeeded();
+  }
 }
 
 /**
@@ -128,6 +133,164 @@ function getProviderDefaultModels(provider?: ApiProviderPreset): {
   return resolveClaudeFamilyModelSlots({
     defaultModels: provider?.claudeCode?.defaultModels,
   });
+}
+
+function isClavueRuntime(): boolean {
+  return readZcfConfig()?.codeToolType === 'clavue';
+}
+
+type ModelRouteMode = 'openai-native' | 'official' | 'ccr-proxy';
+
+interface ModelRouteSelection {
+  mode: MyclaudeProviderProfile['mode'];
+  models: {
+    primaryModel: string;
+    haikuModel: string;
+    sonnetModel: string;
+    opusModel: string;
+  };
+}
+
+function getDefaultModelsForRouteMode(
+  mode: ModelRouteMode,
+  provider?: ApiProviderPreset,
+): ModelRouteSelection['models'] {
+  if (mode === 'official') {
+    return {
+      primaryModel: 'claude-sonnet-4-6',
+      haikuModel: 'claude-haiku-4-5-20251001',
+      sonnetModel: 'claude-sonnet-4-6',
+      opusModel: 'claude-opus-4-6',
+    };
+  }
+
+  if (mode === 'openai-native') {
+    if (provider?.claudeCode?.defaultModels?.length) {
+      const defaults = getProviderDefaultModels(provider);
+      return {
+        primaryModel: defaults.primaryModel || 'gpt-5-codex',
+        haikuModel: defaults.haikuModel || defaults.primaryModel || 'gpt-5-codex',
+        sonnetModel: defaults.sonnetModel || defaults.primaryModel || 'gpt-5-codex',
+        opusModel: defaults.opusModel || defaults.primaryModel || 'gpt-5-codex',
+      };
+    }
+
+    return resolveClaudeFamilyModelSlots({ selectedModel: 'gpt-5-codex' }) as ModelRouteSelection['models'];
+  }
+
+  return {
+    primaryModel: 'gpt-5-codex',
+    haikuModel: 'claude-haiku-4-5-20251001',
+    sonnetModel: 'gpt-5-codex',
+    opusModel: 'claude-opus-4-6',
+  };
+}
+
+function toLegacyProviderMode(mode: ModelRouteMode): MyclaudeProviderProfile['mode'] {
+  return mode === 'openai-native' ? 'openai-native' : mode === 'ccr-proxy' ? 'ccr-proxy' : 'official';
+}
+
+async function promptModelRouteSelection(provider?: ApiProviderPreset): Promise<ModelRouteSelection> {
+  const isZh = i18n.language === 'zh-CN';
+  const { mode } = await inquirer.prompt<{ mode: ModelRouteMode }>([{
+    type: 'list',
+    name: 'mode',
+    message: isZh ? '请选择模型路由模式:' : 'Select model routing mode:',
+    choices: addNumbersToChoices([
+      {
+        name: isZh ? 'OpenAI / GPT 模型（GPT-5.x、Codex）' : 'OpenAI / GPT models (GPT-5.x, Codex)',
+        value: 'openai-native',
+      },
+      {
+        name: isZh ? 'Claude 模型（Anthropic / Claude 兼容）' : 'Claude models (Anthropic / Claude compatible)',
+        value: 'official',
+      },
+      {
+        name: isZh ? '混合模型（OpenAI + Claude 分槽）' : 'Hybrid models (OpenAI + Claude slots)',
+        value: 'ccr-proxy',
+      },
+    ]),
+    default: 'openai-native',
+  }]);
+
+  const defaults = getDefaultModelsForRouteMode(mode, provider);
+  const { promptCustomModels } = await import('./features');
+  const models = await promptCustomModels(
+    defaults.primaryModel,
+    defaults.haikuModel,
+    defaults.sonnetModel,
+    defaults.opusModel,
+  );
+
+  return { mode: toLegacyProviderMode(mode), models };
+}
+
+function toMyclaudeProviderProfile(
+  profile: ClaudeCodeProfile,
+  routeSelection: ModelRouteSelection,
+): MyclaudeProviderProfile {
+  return {
+    id: profile.id || ClaudeCodeConfigManager.generateProfileId(profile.name),
+    name: profile.name,
+    provider: profile.provider || 'custom',
+    apiKey: profile.apiKey,
+    baseUrl: profile.baseUrl,
+    model: profile.primaryModel,
+    fastModel: profile.defaultHaikuModel,
+    authType: profile.authType,
+    primaryModel: profile.primaryModel,
+    defaultHaikuModel: profile.defaultHaikuModel,
+    defaultSonnetModel: profile.defaultSonnetModel,
+    defaultOpusModel: profile.defaultOpusModel,
+    mode: routeSelection.mode,
+  };
+}
+
+function fromClavueProviderProfile(profile: ClavueProviderProfile): MyclaudeProviderProfile {
+  const routing = profile.modelRouting;
+  return {
+    id: profile.provenance?.kind === 'imported' && profile.provenance.sourceId === 'ccjk' && typeof profile.provenance.externalProfileId === 'string'
+      ? profile.provenance.externalProfileId
+      : profile.id,
+    name: profile.name,
+    provider: profile.providerId || 'custom',
+    baseUrl: profile.baseUrl,
+    authType: profile.authType,
+    model: routing?.primaryModel,
+    fastModel: routing?.smallFastModel,
+    primaryModel: routing?.primaryModel,
+    defaultHaikuModel: routing?.smallFastModel,
+    defaultSonnetModel: routing?.generalModel || routing?.subagentModel,
+    defaultOpusModel: routing?.planModel,
+    mode: profile.modelMode === 'openai_native'
+      ? 'openai-native'
+      : profile.modelMode === 'hybrid_compatible'
+        ? 'ccr-proxy'
+        : 'official',
+  };
+}
+
+async function saveClavueNativeProfile(
+  profile: ClaudeCodeProfile,
+  routeSelection: ModelRouteSelection,
+  setAsDefault: boolean,
+): Promise<void> {
+  const { readClavueConfig, setMyclaudeProviderProfiles } = await import('./claude-config');
+  const config = readClavueConfig();
+  const activeClavueProfileId = config?.clavueActiveProviderProfileId;
+  const existingManagedProfiles = (config?.clavueProviderProfiles || [])
+    .filter(existing => existing.provenance?.kind === 'imported' && existing.provenance.sourceId === 'ccjk')
+    .map(fromClavueProviderProfile);
+  const activeManagedProfileId = existingManagedProfiles.find((existing) => {
+    return existing.id === activeClavueProfileId || `ccjk-${existing.id}` === activeClavueProfileId;
+  })?.id;
+  const nextProfile = toMyclaudeProviderProfile(profile, routeSelection);
+  const profiles = [
+    ...existingManagedProfiles.filter(existing => existing.id !== nextProfile.id),
+    nextProfile,
+  ];
+
+  setMyclaudeProviderProfiles(profiles, setAsDefault ? nextProfile.id : activeManagedProfileId || activeClavueProfileId);
 }
 
 async function handleAddProfile(): Promise<void> {
@@ -240,17 +403,8 @@ async function handleAddProfile(): Promise<void> {
   ]);
 
   // Always offer model configuration so preset providers can use custom routing too
-  let modelConfig: { primaryModel: string; haikuModel: string; sonnetModel: string; opusModel: string } | null = null;
-  {
-    const { promptCustomModels } = await import('./features');
-    const defaults = getProviderDefaultModels(selectedProviderPreset);
-    modelConfig = await promptCustomModels(
-      defaults.primaryModel,
-      defaults.haikuModel,
-      defaults.sonnetModel,
-      defaults.opusModel,
-    );
-  }
+  const routeSelection = await promptModelRouteSelection(selectedProviderPreset);
+  const modelConfig = routeSelection.models;
 
   // Continue with setAsDefault prompt
   const setAsDefault = await promptBoolean({
@@ -286,75 +440,81 @@ async function handleAddProfile(): Promise<void> {
       profile.defaultOpusModel = modelConfig.opusModel.trim();
   }
 
-  const existingProfile = ClaudeCodeConfigManager.getProfileByName(profile.name);
-  if (existingProfile) {
-    const overwrite = await promptBoolean({
-      message: i18n.t('multi-config:profileDuplicatePrompt', {
-        name: profile.name,
-        source: i18n.t('multi-config:existingConfig'),
-      }),
-      defaultValue: false,
-    });
-
-    if (!overwrite) {
-      console.log(ansis.yellow(i18n.t('multi-config:profileDuplicateSkipped', { name: profile.name })));
-      const shouldContinue = await promptContinueAdding();
-      if (shouldContinue) {
-        await handleAddProfile();
-      }
-      return;
-    }
-
-    const updateResult = await ClaudeCodeConfigManager.updateProfile(existingProfile.id!, {
-      name: profile.name,
-      authType: profile.authType,
-      provider: profile.provider,
-      apiKey: profile.apiKey,
-      baseUrl: profile.baseUrl,
-      primaryModel: profile.primaryModel,
-      defaultHaikuModel: profile.defaultHaikuModel,
-      defaultSonnetModel: profile.defaultSonnetModel,
-      defaultOpusModel: profile.defaultOpusModel,
-    });
-
-    if (updateResult.success) {
-      console.log(ansis.green(i18n.t('multi-config:profileUpdated', { name: profile.name })));
-      if (updateResult.backupPath) {
-        console.log(ansis.gray(i18n.t('common:backupCreated', { path: updateResult.backupPath })));
-      }
-
-      if (setAsDefault) {
-        const switchResult = await ClaudeCodeConfigManager.switchProfile(existingProfile.id!);
-        if (switchResult.success) {
-          console.log(ansis.green(i18n.t('multi-config:profileSetAsDefault', { name: profile.name })));
-          await ClaudeCodeConfigManager.applyProfileSettings({ ...profile, id: existingProfile.id! });
-        }
-      }
-    }
-    else {
-      console.log(ansis.red(i18n.t('multi-config:profileUpdateFailed', { error: updateResult.error || '' })));
-    }
+  if (isClavueRuntime()) {
+    await saveClavueNativeProfile(profile, routeSelection, setAsDefault);
+    console.log(ansis.green(i18n.t('multi-config:profileAdded', { name: profile.name })));
   }
   else {
-    const result = await ClaudeCodeConfigManager.addProfile(profile);
+    const existingProfile = ClaudeCodeConfigManager.getProfileByName(profile.name);
+    if (existingProfile) {
+      const overwrite = await promptBoolean({
+        message: i18n.t('multi-config:profileDuplicatePrompt', {
+          name: profile.name,
+          source: i18n.t('multi-config:existingConfig'),
+        }),
+        defaultValue: false,
+      });
 
-    if (result.success) {
-      const runtimeProfile = result.addedProfile || { ...profile, id: profileId };
-      console.log(ansis.green(i18n.t('multi-config:profileAdded', { name: runtimeProfile.name })));
-      if (result.backupPath) {
-        console.log(ansis.gray(i18n.t('common:backupCreated', { path: result.backupPath })));
+      if (!overwrite) {
+        console.log(ansis.yellow(i18n.t('multi-config:profileDuplicateSkipped', { name: profile.name })));
+        const shouldContinue = await promptContinueAdding();
+        if (shouldContinue) {
+          await handleAddProfile();
+        }
+        return;
       }
 
-      if (setAsDefault) {
-        const switchResult = await ClaudeCodeConfigManager.switchProfile(runtimeProfile.id!);
-        if (switchResult.success) {
-          console.log(ansis.green(i18n.t('multi-config:profileSetAsDefault', { name: runtimeProfile.name })));
-          await ClaudeCodeConfigManager.applyProfileSettings(runtimeProfile);
+      const updateResult = await ClaudeCodeConfigManager.updateProfile(existingProfile.id!, {
+        name: profile.name,
+        authType: profile.authType,
+        provider: profile.provider,
+        apiKey: profile.apiKey,
+        baseUrl: profile.baseUrl,
+        primaryModel: profile.primaryModel,
+        defaultHaikuModel: profile.defaultHaikuModel,
+        defaultSonnetModel: profile.defaultSonnetModel,
+        defaultOpusModel: profile.defaultOpusModel,
+      });
+
+      if (updateResult.success) {
+        console.log(ansis.green(i18n.t('multi-config:profileUpdated', { name: profile.name })));
+        if (updateResult.backupPath) {
+          console.log(ansis.gray(i18n.t('common:backupCreated', { path: updateResult.backupPath })));
         }
+
+        if (setAsDefault) {
+          const switchResult = await ClaudeCodeConfigManager.switchProfile(existingProfile.id!);
+          if (switchResult.success) {
+            console.log(ansis.green(i18n.t('multi-config:profileSetAsDefault', { name: profile.name })));
+            await ClaudeCodeConfigManager.applyProfileSettings({ ...profile, id: existingProfile.id! });
+          }
+        }
+      }
+      else {
+        console.log(ansis.red(i18n.t('multi-config:profileUpdateFailed', { error: updateResult.error || '' })));
       }
     }
     else {
-      console.log(ansis.red(i18n.t('multi-config:profileAddFailed', { error: result.error })));
+      const result = await ClaudeCodeConfigManager.addProfile(profile);
+
+      if (result.success) {
+        const runtimeProfile = result.addedProfile || { ...profile, id: profileId };
+        console.log(ansis.green(i18n.t('multi-config:profileAdded', { name: runtimeProfile.name })));
+        if (result.backupPath) {
+          console.log(ansis.gray(i18n.t('common:backupCreated', { path: result.backupPath })));
+        }
+
+        if (setAsDefault) {
+          const switchResult = await ClaudeCodeConfigManager.switchProfile(runtimeProfile.id!);
+          if (switchResult.success) {
+            console.log(ansis.green(i18n.t('multi-config:profileSetAsDefault', { name: runtimeProfile.name })));
+            await ClaudeCodeConfigManager.applyProfileSettings(runtimeProfile);
+          }
+        }
+      }
+      else {
+        console.log(ansis.red(i18n.t('multi-config:profileAddFailed', { error: result.error })));
+      }
     }
   }
 

@@ -32,7 +32,7 @@ function parseCatalogs(workspaceContent) {
       continue;
     }
 
-    if (/^[^\s].*:/.test(line)) {
+    if (/^\S.*:/.test(line)) {
       section = null;
       currentCatalog = null;
       continue;

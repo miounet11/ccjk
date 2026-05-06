@@ -12,6 +12,7 @@ coverage/
 
 # Development & AI Configurations (Private)
 .ccjk/
+.clavue/
 .claude/
 .serena/
 .bmad-core/
