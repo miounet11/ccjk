@@ -52,6 +52,11 @@ const OUTPUT_STYLES: OutputStyle[] = [
     isCustom: true,
     filePath: 'evan-you-mode.md',
   },
+  {
+    id: 'codex-rigor-mode',
+    isCustom: true,
+    filePath: 'codex-rigor-mode.md',
+  },
   // Built-in styles (no template files) - Claude Code native styles
   {
     id: 'default',
@@ -238,6 +243,11 @@ export async function configureOutputStyle(
       id: 'evan-you-mode',
       name: i18n.t('configuration:outputStyles.evan-you-mode.name'),
       description: i18n.t('configuration:outputStyles.evan-you-mode.description'),
+    },
+    {
+      id: 'codex-rigor-mode',
+      name: i18n.t('configuration:outputStyles.codex-rigor-mode.name'),
+      description: i18n.t('configuration:outputStyles.codex-rigor-mode.description'),
     },
     {
       id: 'explanatory',

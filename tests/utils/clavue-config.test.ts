@@ -21,6 +21,12 @@ vi.mock('../../src/utils/claude-code-config-manager', () => ({
   },
 }));
 
+vi.mock('../../src/utils/fs-operations', () => ({
+  copyFile: vi.fn(),
+  ensureDir: vi.fn(),
+  exists: vi.fn(() => false),
+}));
+
 describe('clavue-config sync', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -745,5 +751,70 @@ describe('clavue-config sync', () => {
         },
       }),
     );
+  });
+
+  it('auto-binds codex-rigor-mode when active profile uses a GPT-5/Codex model', async () => {
+    mockReadClaudeConfig.mockReturnValue({
+      currentProfileId: 'gpt5',
+      profiles: {
+        gpt5: {
+          name: 'GPT5',
+          authType: 'api_key',
+          provider: 'custom',
+          apiKey: 'sk-x',
+          baseUrl: 'https://router.example.com/v1',
+          primaryModel: 'gpt-5.5-high',
+        },
+      },
+    });
+    mockReadJsonConfig.mockImplementation((path?: string) => path?.includes('settings.json')
+      ? { env: {} }
+      : { mcpServers: {} });
+
+    const { syncMyclaudeProviderProfilesFromCurrentClaudeConfig } = await import('../../src/utils/clavue-config');
+    syncMyclaudeProviderProfilesFromCurrentClaudeConfig();
+
+    const settingsWrite = mockWriteJsonConfig.mock.calls.find(([p]) => String(p).includes('settings.json'))?.[1];
+    expect(settingsWrite.outputStyle).toBe('codex-rigor-mode');
+    expect(settingsWrite.__ccjk).toEqual({ autoOutputStyle: true });
+  });
+
+  it('does not override a user-picked outputStyle for GPT-5 profiles', async () => {
+    mockReadClaudeConfig.mockReturnValue({
+      currentProfileId: 'gpt5',
+      profiles: {
+        gpt5: { name: 'GPT5', authType: 'api_key', provider: 'custom', apiKey: 'sk-x', primaryModel: 'gpt-5.5-high' },
+      },
+    });
+    mockReadJsonConfig.mockImplementation((path?: string) => path?.includes('settings.json')
+      ? { env: {}, outputStyle: 'linus-mode' }
+      : { mcpServers: {} });
+
+    const { syncMyclaudeProviderProfilesFromCurrentClaudeConfig } = await import('../../src/utils/clavue-config');
+    syncMyclaudeProviderProfilesFromCurrentClaudeConfig();
+
+    const settingsWrite = mockWriteJsonConfig.mock.calls.find(([p]) => String(p).includes('settings.json'))?.[1];
+    expect(settingsWrite.outputStyle).toBe('linus-mode');
+    expect(settingsWrite.__ccjk).toBeUndefined();
+  });
+
+  it('drops the auto-applied outputStyle when switching off Codex models', async () => {
+    mockReadClaudeConfig.mockReturnValue({
+      currentProfileId: 'sonnet',
+      profiles: {
+        sonnet: { name: 'Sonnet', authType: 'api_key', provider: 'anthropic', apiKey: 'sk-x', primaryModel: 'claude-sonnet-4-6' },
+      },
+    });
+    // Previous run had ccjk auto-applied codex-rigor-mode.
+    mockReadJsonConfig.mockImplementation((path?: string) => path?.includes('settings.json')
+      ? { env: {}, outputStyle: 'codex-rigor-mode', __ccjk: { autoOutputStyle: true } }
+      : { mcpServers: {} });
+
+    const { syncMyclaudeProviderProfilesFromCurrentClaudeConfig } = await import('../../src/utils/clavue-config');
+    syncMyclaudeProviderProfilesFromCurrentClaudeConfig();
+
+    const settingsWrite = mockWriteJsonConfig.mock.calls.find(([p]) => String(p).includes('settings.json'))?.[1];
+    expect(settingsWrite.outputStyle).toBeUndefined();
+    expect(settingsWrite.__ccjk).toBeUndefined();
   });
 });

@@ -58,6 +58,8 @@
   "outputStyles.jobs-mode.name": "Jobs Mode",
   "outputStyles.evan-you-mode.description": "Evan You style - Frontend aesthetics, elegant APIs, developer experience",
   "outputStyles.evan-you-mode.name": "Evan You Mode",
+  "outputStyles.codex-rigor-mode.description": "Codex/GPT-5 rigor mode - forced self-verification loop until 100% confident (for self-aware models)",
+  "outputStyles.codex-rigor-mode.name": "Codex Rigor Mode",
   "outputStyles.explanatory.description": "Claude explains its implementation choices and codebase patterns (Claude Code built-in)",
   "outputStyles.explanatory.name": "Explanatory",
   "outputStyles.learning.description": "Learn-by-doing mode where Claude pauses and asks you to write small pieces of code for hands-on practice (Claude Code built-in)",

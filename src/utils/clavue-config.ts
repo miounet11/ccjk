@@ -9,11 +9,13 @@ import type {
 } from '../types';
 import type { ClaudeCodeConfigData, ClaudeCodeProfile } from '../types/claude-code-config';
 import { chmodSync } from 'node:fs';
-import { join } from 'pathe';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'pathe';
 import { CLAVUE_CONFIG_FILE, CLAVUE_CREDENTIALS_FILE, CLAVUE_DIR, CLAVUE_SETTINGS_FILE } from '../constants';
 import { ClaudeCodeConfigManager } from './claude-code-config-manager';
 import { normalizeClaudeFamilySettings } from './claude-settings-normalizer';
 import { clearLegacyTopLevelRuntimeSettings, overwriteModelSettings } from './config';
+import { copyFile, ensureDir, exists } from './fs-operations';
 import { backupJsonConfig, readJsonConfig, writeJsonConfig } from './json-config';
 
 export interface MyclaudeProviderSyncResult {
@@ -737,8 +739,106 @@ function syncMyclaudeActiveProfileToSettings(profile: MyclaudeProviderProfile | 
     delete settings.env.CLAUDE_CODE_SUBAGENT_MODEL;
   }
 
+  applyAutoOutputStyle(settings, profile);
+
   normalizeClaudeFamilySettings(settings);
   writeJsonConfig(CLAVUE_SETTINGS_FILE, settings);
+}
+
+/**
+ * Auto-bind output style to the active model family.
+ *
+ * GPT-5.* / Codex are self-aware enough to benefit from a forced verification
+ * loop (see `codex-rigor-mode.md`). Opus/Sonnet/Haiku tend to over-apologize
+ * under that prompt instead of self-correcting, so we leave them alone.
+ *
+ * Honors user override: if `outputStyle` was set by the user (no `__ccjkAutoOutputStyle`
+ * marker) we never touch it. The marker lets us track ccjk-managed switches so a
+ * later profile change can update the auto-bound style without clobbering manual choices.
+ */
+function applyAutoOutputStyle(settings: Record<string, any>, profile: MyclaudeProviderProfile | null): void {
+  const ccjkMeta = (settings.__ccjk && typeof settings.__ccjk === 'object') ? settings.__ccjk : {};
+  const isCcjkManaged = ccjkMeta.autoOutputStyle === true;
+  const currentStyle = typeof settings.outputStyle === 'string' ? settings.outputStyle : '';
+
+  // Hands off if the user picked their own style after we last touched it.
+  if (currentStyle && !isCcjkManaged) {
+    return;
+  }
+
+  const desired = pickAutoOutputStyle(profile);
+
+  if (desired) {
+    ensureOutputStyleTemplate(desired);
+    settings.outputStyle = desired;
+    settings.__ccjk = { ...ccjkMeta, autoOutputStyle: true };
+  }
+  else if (isCcjkManaged) {
+    // Switched off GPT/Codex — drop the auto-applied style and the marker.
+    delete settings.outputStyle;
+    const { autoOutputStyle: _drop, ...restMeta } = ccjkMeta;
+    if (Object.keys(restMeta).length === 0) {
+      delete settings.__ccjk;
+    }
+    else {
+      settings.__ccjk = restMeta;
+    }
+  }
+}
+
+function pickAutoOutputStyle(profile: MyclaudeProviderProfile | null): string | null {
+  if (!profile) {
+    return null;
+  }
+  const candidates = [
+    profile.primaryModel,
+    profile.model,
+    profile.defaultSonnetModel,
+    profile.defaultOpusModel,
+    profile.defaultHaikuModel,
+  ].filter((m): m is string => typeof m === 'string' && m.trim().length > 0);
+
+  if (candidates.length === 0) {
+    return null;
+  }
+
+  // Codex / GPT-5+ family — self-aware enough for the loophole-closure loop.
+  const isCodexFamily = candidates.some(m => /^(?:gpt-5|codex|gpt-6)/i.test(m.trim()));
+  return isCodexFamily ? 'codex-rigor-mode' : null;
+}
+
+/**
+ * Lazily copy `<style>.md` from the bundled templates into ~/.clavue/output-styles/
+ * so Clavue can resolve `settings.outputStyle` without a full ccjk init pass.
+ * Best-effort: silent if the template is missing (lets the user manually drop one in).
+ */
+function ensureOutputStyleTemplate(styleId: string): void {
+  try {
+    const targetDir = join(CLAVUE_DIR, 'output-styles');
+    const targetFile = join(targetDir, `${styleId}.md`);
+    if (exists(targetFile)) {
+      return;
+    }
+
+    const currentFilePath = fileURLToPath(import.meta.url);
+    const distDir = dirname(dirname(currentFilePath));
+    const rootDir = dirname(distDir);
+    // Only zh-CN exists today; en falls back to zh-CN.
+    const candidates = [
+      join(rootDir, 'templates', 'common', 'output-styles', 'zh-CN', `${styleId}.md`),
+      join(rootDir, 'templates', 'common', 'output-styles', 'en', `${styleId}.md`),
+    ];
+    const sourcePath = candidates.find(exists);
+    if (!sourcePath) {
+      return;
+    }
+
+    ensureDir(targetDir);
+    copyFile(sourcePath, targetFile);
+  }
+  catch {
+    // Non-fatal: the user can copy the file manually if needed.
+  }
 }
 
 export function syncMyclaudeProviderProfilesFromClaudeConfig(configData: ClaudeCodeConfigData | null): MyclaudeProviderSyncResult {

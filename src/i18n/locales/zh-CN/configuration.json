@@ -58,6 +58,8 @@
   "outputStyles.jobs-mode.name": "Jobs 模式",
   "outputStyles.evan-you-mode.description": "尤雨溪风格 - 前端美学、优雅 API、开发者体验",
   "outputStyles.evan-you-mode.name": "尤雨溪模式",
+  "outputStyles.codex-rigor-mode.description": "Codex/GPT-5 严谨模式 - 强制自我验证循环到 100% 把握 (推荐 self-aware 模型)",
+  "outputStyles.codex-rigor-mode.name": "Codex 严谨模式",
   "outputStyles.explanatory.description": "解释其实现选择和代码库模式 (Claude Code自带)",
   "outputStyles.explanatory.name": "解释风格",
   "outputStyles.learning.description": "协作式的边做边学模式，暂停并要求您编写小段代码进行实践练习 (Claude Code自带)",
