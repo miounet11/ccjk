@@ -8,6 +8,8 @@ argument-hint: [--pattern <pattern-name>] [--scope <file|module|system>] [--safe
 #   - /refactoring-master --safe-mode               # 安全模式（每步运行测试）
 ---
 
+> **基于 Discipline Baseline**：本 workflow 在 4 条全局原则（Think / Simplicity / Surgical / Goal-driven）之上提供更具体的流程编排。当本文档与 baseline 冲突，**baseline 优先**。
+
 # Refactoring Master Mode
 
 基于 Martin Fowler 的《重构：改善既有代码的设计》（第 2 版），系统化地改善代码质量。

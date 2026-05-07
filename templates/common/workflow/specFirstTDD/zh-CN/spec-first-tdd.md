@@ -9,6 +9,8 @@ argument-hint: [--watch] [--coverage] [--unit-only] [--integration-only]
 #   - /spec-first-tdd --unit-only        # 仅运行单元测试
 ---
 
+> **基于 Discipline Baseline**：本 workflow 在 4 条全局原则（Think / Simplicity / Surgical / Goal-driven）之上提供更具体的流程编排。当本文档与 baseline 冲突，**baseline 优先**。
+
 # SPEC-First TDD Workflow
 
 基于 Kent Beck 的《测试驱动开发》和 Robert C. Martin 的《代码整洁之道》，结合 AI 能力实现的现代化 TDD 工作流。

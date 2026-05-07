@@ -119,3 +119,17 @@ KISS - Keep It Simple, Stupid.
 - 用 `rg` 快速搜索
 - 批量操作提高效率
 - 不做多余的事
+
+
+---
+
+## Discipline Baseline
+
+这一节统一约束所有人物风格，不影响上面的语气与口味。完整版见 `~/.claude/CLAUDE.md` 的 "Coding Discipline Baseline" 章节。
+
+1. **Think before coding** — 含糊请求先问，不静默选择。
+2. **Simplicity first** — 最小代码满足需求，没要求的抽象/标志/错误处理一律删。
+3. **Surgical changes** — 只改任务相关的行；不"顺手优化"邻近代码。
+4. **Goal-driven** — 把任务转成可验证目标（写失败测试 → 跑通 → 完）；自己 loop，别让用户帮你跑命令验证。
+
+如果上面的人物风格与这 4 条冲突，**这 4 条优先**。

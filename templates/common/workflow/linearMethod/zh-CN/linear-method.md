@@ -9,6 +9,8 @@ argument-hint: [--validate] [--prioritize] [--focus-mode]
 #   - /linear-method --focus-mode       # 专注构建模式
 ---
 
+> **基于 Discipline Baseline**：本 workflow 在 4 条全局原则（Think / Simplicity / Surgical / Goal-driven）之上提供更具体的流程编排。当本文档与 baseline 冲突，**baseline 优先**。
+
 # Linear Quality Method
 
 基于 Linear 团队的产品开发哲学，通过严格的问题验证、优先级排序和专注构建，打造高质量软件产品。

@@ -139,10 +139,32 @@ export default defineBuildConfig({
 
         console.log(`\uD83C\uDF89 Successfully copied ${jsonFiles.length} i18n files`);
 
-        // Copy agent templates to dist
+        // Copy agent templates to dist (both .json metadata and .md content)
         try {
           const agentTemplatesDir = 'templates';
-          const agentFiles = await findJsonFiles(agentTemplatesDir);
+          const findTemplateFiles = async (basePath: string): Promise<string[]> => {
+            const files: string[] = [];
+            const scan = async (dir: string): Promise<void> => {
+              try {
+                const entries = await readdir(dir, { withFileTypes: true });
+                for (const entry of entries) {
+                  const fullPath = join(dir, entry.name);
+                  if (entry.isDirectory()) {
+                    await scan(fullPath);
+                  }
+                  else if (entry.isFile() && (entry.name.endsWith('.json') || entry.name.endsWith('.md'))) {
+                    files.push(fullPath);
+                  }
+                }
+              }
+              catch (error) {
+                console.warn(`Could not scan directory ${dir}:`, error);
+              }
+            };
+            await scan(basePath);
+            return files;
+          };
+          const agentFiles = await findTemplateFiles(agentTemplatesDir);
           for (const file of agentFiles) {
             const relativePath = file.replace(/^templates[/\\]/, '');
             const destFile = join('dist', 'templates', relativePath);
@@ -150,7 +172,7 @@ export default defineBuildConfig({
             await mkdir(destDir2, { recursive: true });
             await copyFile(file, destFile);
           }
-          console.log(`\uD83C\uDF89 Successfully copied ${agentFiles.length} agent templates`);
+          console.log(`\uD83C\uDF89 Successfully copied ${agentFiles.length} template files (.json + .md)`);
         }
         catch (error) {
           console.warn('\u26A0\uFE0F Could not copy agent templates:', error);

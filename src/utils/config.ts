@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import ansis from 'ansis';
 import dayjs from 'dayjs';
 import inquirer from 'inquirer';
+import { readFileSync } from 'node:fs';
 import { dirname, join } from 'pathe';
 import { AI_OUTPUT_LANGUAGES, CLAUDE_VSC_CONFIG_FILE, SETTINGS_FILE } from '../constants';
 import { ensureI18nInitialized, i18n } from '../i18n';
@@ -600,9 +601,29 @@ export function applyAiLanguageDirective(aiOutputLang: AiOutputLanguage | string
     directive = `Always respond in ${aiOutputLang}`;
   }
 
+  // Read the Karpathy-inspired discipline baseline. Living next to the
+  // language directive so init produces a single, complete CLAUDE.md.
+  // Failure to read the baseline is non-fatal — language directive still wins.
+  let baseline = '';
+  try {
+    const currentFilePath = fileURLToPath(import.meta.url);
+    const distDir = dirname(dirname(currentFilePath));
+    const rootDir = dirname(distDir);
+    const baselinePath = join(rootDir, 'templates', 'common', 'karpathy-baseline.md');
+    if (exists(baselinePath)) {
+      baseline = readFileSync(baselinePath, 'utf-8').trim();
+    }
+  }
+  catch {
+    // ignore — baseline is best-effort
+  }
+
   // Write to CLAUDE.md file with memory scope frontmatter
   const frontmatter = target.codeTool === 'clavue' ? '' : '---\nscope: user\n---\n\n';
-  writeFileAtomic(instructionsFile, `${frontmatter}${directive}`);
+  const body = baseline
+    ? `${directive}\n\n${baseline}\n`
+    : directive;
+  writeFileAtomic(instructionsFile, `${frontmatter}${body}`);
 }
 
 /**

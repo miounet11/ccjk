@@ -8,6 +8,8 @@ argument-hint: <任务描述> [--skip-research] [--quick] [--focus <阶段>]
 #   - /workflow 优化性能 --focus optimize     # 聚焦优化阶段
 ---
 
+> **基于 Discipline Baseline**：本 workflow 在 4 条全局原则（Think / Simplicity / Surgical / Goal-driven）之上提供更具体的流程编排。当本文档与 baseline 冲突，**baseline 优先**。
+
 # Workflow - 专业开发助手
 
 > **核心理念**: 研究驱动，质量把关，持续优化
