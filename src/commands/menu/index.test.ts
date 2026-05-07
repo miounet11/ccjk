@@ -104,7 +104,7 @@ describe('progressive menu handlers', () => {
     expect(__testUtils.getMenuShellConfig('claude-code')).toMatchObject({
       allowMore: true,
       footerCommands: [],
-      showHero: false,
+      showHero: true,
     });
 
     expect(__testUtils.getMenuShellConfig('codex')).toMatchObject({

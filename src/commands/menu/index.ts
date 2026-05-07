@@ -35,7 +35,7 @@ import inquirer from 'inquirer';
 import { CODE_TOOL_BANNERS, DEFAULT_CODE_TOOL_TYPE, isCodeToolType } from '../../constants';
 import { i18n } from '../../i18n/index';
 import { displayBannerWithInfo } from '../../utils/banner';
-import { readZcfConfig, updateZcfConfig } from '../../utils/ccjk-config';
+import { readDefaultTomlConfig, readZcfConfig, updateZcfConfig } from '../../utils/ccjk-config';
 import { buildMyclaudeProviderPresentation } from '../../utils/claude-config';
 import { configureCodexAiMemoryFeature, configureCodexApi, configureCodexDefaultModelFeature, configureCodexMcp, configureCodexPresetFeature, runCodexFullInit, runCodexUninstall, runCodexUpdate, runCodexWorkflowImportWithLanguageSelection } from '../../utils/code-tools/codex';
 import { resolveStartupCodeType } from '../../utils/code-type-resolver';
@@ -538,11 +538,14 @@ function getMenuShellConfig(codeTool: CodeToolType): {
     };
   }
 
+  // claude-code (and other claude-family tools) — show the same hero so users
+  // always see which tool/profile they are operating on. With three tools
+  // commonly used, an invisible mode is a footgun.
   return {
     allowMore: true,
     footerCommands: [],
-    menuTitle: i18n.t('menu:menu.title', 'CCJK Main Menu'),
-    showHero: false,
+    menuTitle: getToolModeMenuTitle(codeTool),
+    showHero: true,
   };
 }
 
@@ -568,6 +571,12 @@ async function showProgressiveMenu(
       },
     ];
     const allowedCommands = ['0', 'q', 'm', 's'];
+
+    // Show the tool/profile hero so users always see which mode they're in.
+    const tomlCfg = readDefaultTomlConfig();
+    const profile = tomlCfg?.claudeCode?.currentProfile;
+    console.log(renderToolModeHero(codeTool, 76, profile ? { profileLabel: profile } : undefined));
+    console.log('');
 
     const menuOutput = renderMenu(
       'menu:oneClick.title',
@@ -669,7 +678,20 @@ async function showProgressiveMenu(
 
   // Render menu
   if (menuShell.showHero) {
-    console.log(renderToolModeHero(codeTool, 76, codeTool === 'clavue' ? buildMyclaudeRuntimeSummary(runtimeSyncResult) : undefined));
+    let runtimeSummary: ToolModeRuntimeSummary | undefined;
+    if (codeTool === 'clavue') {
+      runtimeSummary = buildMyclaudeRuntimeSummary(runtimeSyncResult);
+    }
+    else {
+      // For claude-code / codex, surface the active profile from ~/.ccjk/config.toml
+      // so users always know which profile they're operating on.
+      const tomlCfg = readDefaultTomlConfig();
+      const profile = tomlCfg?.claudeCode?.currentProfile;
+      if (profile) {
+        runtimeSummary = { profileLabel: profile };
+      }
+    }
+    console.log(renderToolModeHero(codeTool, 76, runtimeSummary));
     console.log('');
   }
   const menuOutput = renderMenu(
