@@ -125,6 +125,39 @@ async function checkSettings(codeType?: CodeToolType): Promise<CheckResult> {
       issues.push('plansDirectory should not be null');
     }
 
+    // CCJK lint: settings.model overrides ANTHROPIC_* env vars in Claude Code.
+    // Custom model env vars are configured via ccjk; if both are set, env vars are dead.
+    // Reference: src/utils/claude-code-config-manager.ts (v12.3.1 fix).
+    const env = settings.env || {};
+    const hasAnthropicModelVars = Boolean(
+      env.ANTHROPIC_MODEL
+      || env.ANTHROPIC_DEFAULT_OPUS_MODEL
+      || env.ANTHROPIC_DEFAULT_SONNET_MODEL
+      || env.ANTHROPIC_DEFAULT_HAIKU_MODEL,
+    );
+    if (settings.model && hasAnthropicModelVars) {
+      issues.push(`settings.model="${settings.model}" overrides ANTHROPIC_* env vars (custom model selection broken)`);
+    }
+
+    // CCJK lint: SONNET slot should not be an opus-named model (silent misroute).
+    const sonnet = env.ANTHROPIC_DEFAULT_SONNET_MODEL;
+    if (typeof sonnet === 'string' && /opus/i.test(sonnet)) {
+      issues.push(`ANTHROPIC_DEFAULT_SONNET_MODEL="${sonnet}" looks like an Opus model (slot misrouted)`);
+    }
+
+    // CCJK lint: mcp-gatekeeper hook is disabled by default (forks bash+node per MCP call).
+    const preToolUse = settings.hooks?.PreToolUse;
+    if (Array.isArray(preToolUse)) {
+      const hasGatekeeper = preToolUse.some((h: { matcher?: string; hooks?: Array<{ command?: string }> }) =>
+        h?.matcher === 'mcp__.*'
+        && Array.isArray(h?.hooks)
+        && h.hooks.some(c => typeof c?.command === 'string' && c.command.includes('mcp-gatekeeper')),
+      );
+      if (hasGatekeeper) {
+        issues.push('mcp-gatekeeper PreToolUse hook is enabled (forks bash+node per MCP call; disabled by default)');
+      }
+    }
+
     if (issues.length > 0) {
       return {
         name: 'settings.json',
@@ -242,6 +275,64 @@ async function checkCcr(): Promise<CheckResult> {
 /**
  * Check output styles installation
  */
+/**
+ * CCJK lint: discipline baseline integrity in CLAUDE.md.
+ * The Karpathy-inspired 4 principles are written by `applyAiLanguageDirective`
+ * and should remain present in ~/.claude/CLAUDE.md (and clavue equivalent).
+ * If missing, the user is operating without the default behavioral floor.
+ */
+async function checkDisciplineBaseline(codeType?: CodeToolType): Promise<CheckResult> {
+  const target = resolveClaudeFamilySettingsTarget(codeType);
+  const memoryFile = target.instructionsFile;
+
+  if (!existsSync(memoryFile)) {
+    return {
+      name: 'Discipline Baseline',
+      status: 'warning',
+      message: 'No memory file found',
+      fix: 'Run: npx ccjk init',
+    };
+  }
+
+  const { readFileSync } = await import('node:fs');
+  const text = readFileSync(memoryFile, 'utf-8');
+
+  // Markers from templates/common/karpathy-baseline.md — all four must be present
+  const required = [
+    '# Coding Discipline Baseline',
+    'Think before coding',
+    'Simplicity first',
+    'Surgical changes',
+    'Goal-driven execution',
+  ];
+  const missing = required.filter(m => !text.includes(m));
+
+  if (missing.length === 0) {
+    return {
+      name: 'Discipline Baseline',
+      status: 'ok',
+      message: 'All 4 principles present',
+    };
+  }
+
+  if (missing.length === required.length) {
+    return {
+      name: 'Discipline Baseline',
+      status: 'warning',
+      message: 'Baseline not installed (memory file exists but has no discipline section)',
+      fix: 'Run: npx ccjk init',
+    };
+  }
+
+  return {
+    name: 'Discipline Baseline',
+    status: 'error',
+    message: `Baseline partially missing: ${missing.length}/${required.length} markers absent`,
+    fix: 'Run: npx ccjk init  (will rewrite CLAUDE.md with full baseline)',
+    details: missing,
+  };
+}
+
 async function checkOutputStyles(codeType?: CodeToolType): Promise<CheckResult> {
   const target = resolveClaudeFamilySettingsTarget(codeType);
   const stylesDir = join(target.configDir, 'output-styles');
@@ -328,6 +419,82 @@ async function checkCodexToml(): Promise<CheckResult> {
   };
 }
 
+/**
+ * CCJK lint: Codex non-standard field values.
+ * `model_reasoning_effort` accepts only minimal/low/medium/high; `service_tier` only default/flex/priority.
+ * Codex silently falls back to defaults for unknown values, so users think it's working when it isn't.
+ */
+async function checkCodexFieldValues(): Promise<CheckResult> {
+  if (!existsSync(CODEX_CONFIG_FILE)) {
+    return { name: 'Codex Field Values', status: 'ok', message: 'Skipped (no config)' };
+  }
+
+  const { readFileSync } = await import('node:fs');
+  const text = readFileSync(CODEX_CONFIG_FILE, 'utf-8');
+  const issues: string[] = [];
+  const validEffort = new Set(['minimal', 'low', 'medium', 'high']);
+  const validTier = new Set(['default', 'flex', 'priority']);
+
+  const effortMatch = text.match(/^model_reasoning_effort\s*=\s*"([^"]+)"/m);
+  if (effortMatch && !validEffort.has(effortMatch[1])) {
+    issues.push(`model_reasoning_effort="${effortMatch[1]}" (valid: ${[...validEffort].join('/')})`);
+  }
+
+  const tierMatch = text.match(/^service_tier\s*=\s*"([^"]+)"/m);
+  if (tierMatch && !validTier.has(tierMatch[1])) {
+    issues.push(`service_tier="${tierMatch[1]}" (valid: ${[...validTier].join('/')})`);
+  }
+
+  if (issues.length === 0) {
+    return { name: 'Codex Field Values', status: 'ok', message: 'All fields valid' };
+  }
+
+  return {
+    name: 'Codex Field Values',
+    status: 'warning',
+    message: `${issues.length} non-standard value(s) — Codex silently uses defaults`,
+    fix: 'Edit ~/.codex/config.toml',
+    details: issues,
+  };
+}
+
+/**
+ * CCJK lint: stale `[projects."..."] trust_level = "trusted"` entries.
+ * `trust_level = "trusted"` disables sandbox for that path; stale entries are dead weight (and noise).
+ */
+async function checkCodexTrustedProjects(): Promise<CheckResult> {
+  if (!existsSync(CODEX_CONFIG_FILE)) {
+    return { name: 'Codex Trusted Projects', status: 'ok', message: 'Skipped (no config)' };
+  }
+
+  const { readFileSync } = await import('node:fs');
+  const text = readFileSync(CODEX_CONFIG_FILE, 'utf-8');
+  const trusted: string[] = [];
+  const re = /\[projects\."([^"]+)"\]/g;
+  let m;
+  // eslint-disable-next-line no-cond-assign
+  while ((m = re.exec(text)) !== null) {
+    trusted.push(m[1]);
+  }
+
+  const stale = trusted.filter(p => !existsSync(p));
+  if (stale.length === 0) {
+    return {
+      name: 'Codex Trusted Projects',
+      status: 'ok',
+      message: `${trusted.length} entries, all paths exist`,
+    };
+  }
+
+  return {
+    name: 'Codex Trusted Projects',
+    status: 'warning',
+    message: `${stale.length} of ${trusted.length} trusted paths no longer exist on disk`,
+    fix: 'Edit ~/.codex/config.toml to remove dead entries',
+    details: stale.slice(0, 10),
+  };
+}
+
 async function checkCodexMcp(): Promise<CheckResult> {
   const config = readCodexConfig();
   const count = config?.mcpServices.length || 0;
@@ -380,6 +547,64 @@ async function checkClavueNativeGoals(): Promise<CheckResult> {
     status: 'error',
     message: 'Clavue /goal unavailable',
     fix: 'Run: npm install -g clavue',
+  };
+}
+
+/**
+ * CCJK lint: profile junk in ~/.ccjk/config.toml.
+ * Test/placeholder profiles (numeric-only names, obviously fake apiKey/baseUrl) accumulate
+ * during dev and clutter the profile picker. Flags suspicious entries; user decides.
+ */
+async function checkCcjkProfiles(): Promise<CheckResult> {
+  const { homedir } = await import('node:os');
+  const ccjkConfigPath = join(homedir(), '.ccjk', 'config.toml');
+  if (!existsSync(ccjkConfigPath)) {
+    return { name: 'CCJK Profiles', status: 'ok', message: 'Skipped (no config)' };
+  }
+
+  const { readFileSync } = await import('node:fs');
+  const text = readFileSync(ccjkConfigPath, 'utf-8');
+  const suspicious: string[] = [];
+
+  // Iterate each profile section
+  const sectionRe = /^\[claudeCode\.profiles\.([^\]]+)\]$([\s\S]*?)(?=^\[|\z)/gm;
+  let m;
+  // eslint-disable-next-line no-cond-assign
+  while ((m = sectionRe.exec(text)) !== null) {
+    const name = m[1];
+    const body = m[2];
+    const apiKey = body.match(/apiKey\s*=\s*"([^"]*)"/)?.[1] ?? '';
+    const baseUrl = body.match(/baseUrl\s*=\s*"([^"]*)"/)?.[1] ?? '';
+
+    const reasons: string[] = [];
+    if (/^\d+$/.test(name)) {
+      reasons.push('numeric-only name');
+    }
+    if (apiKey && apiKey.length < 10) {
+      reasons.push(`apiKey too short (${apiKey.length} chars)`);
+    }
+    if (baseUrl && !/^https?:\/\/[^\s/]+\.[^\s/]/.test(baseUrl)) {
+      reasons.push(`baseUrl looks invalid: ${baseUrl}`);
+    }
+    if (apiKey.startsWith('sk-ant-test-') || /test-?\d+/i.test(apiKey)) {
+      reasons.push('apiKey looks like a test placeholder');
+    }
+
+    if (reasons.length > 0) {
+      suspicious.push(`${name}: ${reasons.join('; ')}`);
+    }
+  }
+
+  if (suspicious.length === 0) {
+    return { name: 'CCJK Profiles', status: 'ok', message: 'No junk profiles detected' };
+  }
+
+  return {
+    name: 'CCJK Profiles',
+    status: 'warning',
+    message: `${suspicious.length} suspicious profile(s) in ~/.ccjk/config.toml`,
+    fix: 'Use ccjk menu to remove or rename them',
+    details: suspicious,
   };
 }
 
@@ -613,19 +838,24 @@ export async function doctor(options: DoctorOptions = {}): Promise<void> {
         checkCodexCli,
         checkCodexDir,
         checkCodexToml,
+        checkCodexFieldValues,
+        checkCodexTrustedProjects,
         checkCodexMcp,
         checkCodexNativeGoals,
+        checkCcjkProfiles,
       ]
     : [
         () => checkClaudeCode(options.codeType),
         () => checkClaudeDir(options.codeType),
         () => checkSettings(options.codeType),
+        () => checkDisciplineBaseline(options.codeType),
         () => checkWorkflows(options.codeType),
         () => checkMcp(options.codeType),
         () => checkPermissionRules(options.codeType),
         checkCcr,
         () => checkOutputStyles(options.codeType),
         ...(options.codeType === 'clavue' ? [checkClavueNativeGoals] : []),
+        checkCcjkProfiles,
       ];
 
   // Add provider check if requested
