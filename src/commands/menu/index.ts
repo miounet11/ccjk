@@ -27,7 +27,7 @@
  */
 
 import type { CodeToolType, SupportedLang } from '../../constants';
-import type { MyclaudeProviderSyncResult } from '../../utils/claude-config';
+import type { MyclaudeProviderSyncResult } from '../../utils/clavue-config';
 import type { ToolModeRuntimeSummary } from './renderer';
 import type { MenuItem, MenuLevel, MenuResult } from './types';
 import ansis from 'ansis';
@@ -36,7 +36,7 @@ import { CODE_TOOL_BANNERS, DEFAULT_CODE_TOOL_TYPE, isCodeToolType } from '../..
 import { i18n } from '../../i18n/index';
 import { displayBannerWithInfo } from '../../utils/banner';
 import { readDefaultTomlConfig, readZcfConfig, updateZcfConfig } from '../../utils/ccjk-config';
-import { buildMyclaudeProviderPresentation } from '../../utils/claude-config';
+import { buildMyclaudeProviderPresentation } from '../../utils/clavue-config';
 import { configureCodexAiMemoryFeature, configureCodexApi, configureCodexDefaultModelFeature, configureCodexMcp, configureCodexPresetFeature, runCodexFullInit, runCodexUninstall, runCodexUpdate, runCodexWorkflowImportWithLanguageSelection } from '../../utils/code-tools/codex';
 import { resolveStartupCodeType } from '../../utils/code-type-resolver';
 import { handleExitPromptError, handleGeneralError } from '../../utils/error-handler';
@@ -1616,7 +1616,7 @@ export async function showMainMenu(options: { codeType?: string } = {}): Promise
       displayBannerWithInfo(CODE_TOOL_BANNERS[codeTool] || 'CCJK');
 
       if (codeTool === 'clavue') {
-        const { syncMyclaudeProviderProfilesFromCurrentClaudeConfig } = await import('../../utils/claude-config');
+        const { syncMyclaudeProviderProfilesFromCurrentClaudeConfig } = await import('../../utils/clavue-config');
         clavueRuntimeSyncResult = syncMyclaudeProviderProfilesFromCurrentClaudeConfig();
       }
 

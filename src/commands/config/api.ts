@@ -22,7 +22,7 @@ import { getApiProvidersAsync } from '../../config/api-providers';
 import { getApiConfig as getClaudeApiConfig, setApiConfig as setClaudeApiConfig } from '../../config/unified/claude-config';
 import { CLAVUE_CREDENTIALS_FILE, CODEX_AUTH_FILE, DEFAULT_CODE_TOOL_TYPE, isCodeToolType, resolveCodeToolType } from '../../constants';
 import { ensureI18nInitialized, i18n } from '../../i18n';
-import { readClavueConfig, setMyclaudeProviderProfiles } from '../../utils/claude-config';
+import { readClavueConfig, setMyclaudeProviderProfiles } from '../../utils/clavue-config';
 import { resolveClaudeFamilyModelSlots } from '../../utils/claude-model-slots';
 import { readCodexConfig, switchToProvider } from '../../utils/code-tools/codex';
 import { addProviderToExisting } from '../../utils/code-tools/codex-provider-manager';

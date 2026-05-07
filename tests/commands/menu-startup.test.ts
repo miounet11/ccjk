@@ -58,7 +58,7 @@ vi.mock('../../src/utils/banner', () => ({
   displayBannerWithInfo: mockDisplayBannerWithInfo,
 }));
 
-vi.mock('../../src/utils/claude-config', () => ({
+vi.mock('../../src/utils/clavue-config', () => ({
   buildMyclaudeProviderPresentation: mockBuildMyclaudeProviderPresentation,
   syncMyclaudeProviderProfilesFromCurrentClaudeConfig: mockSyncMyclaudeProviderProfilesFromCurrentClaudeConfig,
 }));

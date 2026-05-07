@@ -35,7 +35,7 @@ vi.mock('../../src/utils/claude-code-config-manager', () => ({
   },
 }));
 
-vi.mock('../../src/utils/claude-config', () => ({
+vi.mock('../../src/utils/clavue-config', () => ({
   readClavueConfig,
   setMyclaudeActiveProviderProfile,
 }));

@@ -6,7 +6,7 @@ import { DEFAULT_CODE_TOOL_TYPE, isCodeToolType, resolveCodeToolType } from '../
 import { ensureI18nInitialized, i18n } from '../i18n';
 import { readZcfConfig } from '../utils/ccjk-config';
 import { ClaudeCodeConfigManager } from '../utils/claude-code-config-manager';
-import { setMyclaudeActiveProviderProfile, syncMyclaudeProviderProfilesFromClaudeConfig } from '../utils/claude-config';
+import { setMyclaudeActiveProviderProfile, syncMyclaudeProviderProfilesFromClaudeConfig } from '../utils/clavue-config';
 import { listCodexProviders, readCodexConfig, switchToOfficialLogin as switchCodexOfficialLogin, switchToProvider } from '../utils/code-tools/codex';
 import { handleGeneralError } from '../utils/error-handler';
 import { addNumbersToChoices } from '../utils/prompt-helpers';

@@ -31,8 +31,8 @@ vi.mock('../../src/utils/ccjk-config', async (importOriginal) => {
   };
 });
 
-vi.mock('../../src/utils/claude-config', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('../../src/utils/claude-config')>();
+vi.mock('../../src/utils/clavue-config', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../src/utils/clavue-config')>();
   return {
     ...actual,
     setMyclaudeProviderProfiles,

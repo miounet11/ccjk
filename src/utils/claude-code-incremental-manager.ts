@@ -34,7 +34,7 @@ async function syncMyclaudeProfilesIfNeeded(): Promise<void> {
     return;
   }
 
-  const { syncMyclaudeProviderProfilesFromCurrentClaudeConfig } = await import('./claude-config');
+  const { syncMyclaudeProviderProfilesFromCurrentClaudeConfig } = await import('./clavue-config');
   syncMyclaudeProviderProfilesFromCurrentClaudeConfig();
 }
 
@@ -275,7 +275,7 @@ async function saveClavueNativeProfile(
   routeSelection: ModelRouteSelection,
   setAsDefault: boolean,
 ): Promise<void> {
-  const { readClavueConfig, setMyclaudeProviderProfiles } = await import('./claude-config');
+  const { readClavueConfig, setMyclaudeProviderProfiles } = await import('./clavue-config');
   const config = readClavueConfig();
   const activeClavueProfileId = config?.clavueActiveProviderProfileId;
   const existingManagedProfiles = (config?.clavueProviderProfiles || [])

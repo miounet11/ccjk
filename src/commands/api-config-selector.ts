@@ -22,7 +22,7 @@ async function syncClavueProviderStateIfNeeded(codeTool: CodeToolType, activePro
     return;
   }
 
-  const { syncMyclaudeProviderProfilesFromClaudeConfig } = await import('../utils/claude-config');
+  const { syncMyclaudeProviderProfilesFromClaudeConfig } = await import('../utils/clavue-config');
   const config = ClaudeCodeConfigManager.readConfig();
   syncMyclaudeProviderProfilesFromClaudeConfig(
     activeProfileId === undefined || !config

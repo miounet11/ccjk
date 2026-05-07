@@ -18,9 +18,9 @@ import {
   fixWindowsMcpConfig,
   mergeMcpServers,
   readMcpConfig,
-  syncClavueActiveProviderModelSelection,
   writeMcpConfig,
 } from './claude-config';
+import { syncClavueActiveProviderModelSelection } from './clavue-config';
 import { normalizeClaudeFamilySettings } from './claude-settings-normalizer';
 import {
   applyAiLanguageDirective,

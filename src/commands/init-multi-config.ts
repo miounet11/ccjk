@@ -11,7 +11,7 @@ import type { InitOptions } from './init';
 import ansis from 'ansis';
 import { API_DEFAULT_URL } from '../constants';
 import { i18n } from '../i18n';
-import { setMyclaudeProviderProfiles } from '../utils/claude-config';
+import { setMyclaudeProviderProfiles } from '../utils/clavue-config';
 import { resolveClaudeFamilyModelSlots } from '../utils/claude-model-slots';
 import { displayError } from '../utils/error-formatter';
 

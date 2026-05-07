@@ -496,11 +496,13 @@ export async function setInstallMethod(method: InstallMethod, codeType: CodeType
     // Save to shared Claude-family config for runtime compatibility
     if (isClaudeFamilyCodeTool(codeType)) {
       const {
-        readClavueConfig,
         readMcpConfig,
-        writeClavueConfig,
         writeMcpConfig,
       } = await import('./claude-config');
+      const {
+        readClavueConfig,
+        writeClavueConfig,
+      } = await import('./clavue-config');
       const readConfig = codeType === 'clavue' ? readClavueConfig : readMcpConfig;
       const writeConfig = codeType === 'clavue' ? writeClavueConfig : writeMcpConfig;
       let config = readConfig();

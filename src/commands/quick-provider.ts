@@ -18,7 +18,7 @@ import { getCodeToolRuntimeCommand, isCodeToolType, resolveCodeToolType } from '
 import { getProviderRegistry } from '../services/provider-registry';
 import { isValidApiUrl } from '../types/provider';
 import { readZcfConfig } from '../utils/ccjk-config';
-import { setMyclaudeProviderProfiles } from '../utils/claude-config';
+import { setMyclaudeProviderProfiles } from '../utils/clavue-config';
 import { resolveClaudeFamilyModelSlots } from '../utils/claude-model-slots';
 import { normalizeClaudeFamilySettings } from '../utils/claude-settings-normalizer';
 import { switchToProvider } from '../utils/code-tools/codex';

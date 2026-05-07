@@ -22,7 +22,7 @@ import { config } from '../../config/unified';
 import { DEFAULT_CODE_TOOL_TYPE, isCodeToolType, resolveCodeToolType } from '../../constants';
 import { ensureI18nInitialized, i18n } from '../../i18n';
 import { ClaudeCodeConfigManager } from '../../utils/claude-code-config-manager';
-import { readClavueConfig, setMyclaudeActiveProviderProfile } from '../../utils/claude-config';
+import { readClavueConfig, setMyclaudeActiveProviderProfile } from '../../utils/clavue-config';
 import { listCodexProviders as listCodexProvidersUtil, readCodexConfig, switchToOfficialLogin, switchToProvider as switchToProviderUtil } from '../../utils/code-tools/codex';
 
 /**

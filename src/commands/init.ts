@@ -30,15 +30,17 @@ import {
   addCompletedOnboarding,
   backupMcpConfig,
   buildMcpServerConfig,
-  clearMyclaudeProviderProfiles,
   fixWindowsMcpConfig,
   readMcpConfig,
   replaceMcpServers,
-  setMyclaudeProviderProfiles,
   setPrimaryApiKey,
   syncMcpPermissions,
   writeMcpConfig,
 } from '../utils/claude-config';
+import {
+  clearMyclaudeProviderProfiles,
+  setMyclaudeProviderProfiles,
+} from '../utils/clavue-config';
 import { runCodexFullInit } from '../utils/code-tools/codex';
 import { resolveCodeType, resolveStartupCodeType } from '../utils/code-type-resolver';
 import { installCometixLine, isCometixLineInstalled } from '../utils/cometix/installer';

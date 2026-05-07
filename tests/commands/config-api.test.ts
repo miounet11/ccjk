@@ -20,7 +20,7 @@ vi.mock('../../src/config/unified/claude-config', () => ({
   setApiConfig: setClaudeApiConfig,
 }));
 
-vi.mock('../../src/utils/claude-config', () => ({
+vi.mock('../../src/utils/clavue-config', () => ({
   readClavueConfig,
   setMyclaudeProviderProfiles,
 }));
