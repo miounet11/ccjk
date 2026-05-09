@@ -112,11 +112,13 @@ export const TIERS: Record<PermsTier, TierDefinition> = {
  * 注意是模式不是精确字符串，使用 Claude Code 的 `Bash(<command>:*)` 语法。
  */
 function COMMON_DENY(): string[] {
+  // 注意：不要写 fork bomb (`:(){ :|:& };:`) 之类的规则。
+  // Claude/Clavue 的权限解析器把 `:()` 当成"空括号"直接拒绝整个 settings.json，
+  // 用户启动就会看到红字错误、配置失效。LLM 也不会主动输出这种命令，纯属噱头。
   return [
     'Bash(rm -rf /:*)',
     'Bash(rm -rf ~:*)',
     'Bash(rm -rf $HOME:*)',
-    'Bash(:(){ :|:& };:*)',
     'Bash(mkfs:*)',
     'Bash(dd if=:*)',
     'Bash(git push --force:*)',

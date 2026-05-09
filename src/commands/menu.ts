@@ -128,25 +128,16 @@ function getVersion(): string {
 }
 
 export async function menuCommand(): Promise<void> {
+  // banner + 状态条只在首次进入时打一次——保留历史输出，用户刚执行完命令的结果不会被刷掉。
+  console.log();
+  console.log(renderBanner(getVersion()));
+  console.log();
+  const status = await collectStatus();
+  for (const l of renderStatusBar(status)) console.log(l);
+  console.log();
+
   // 循环：执行完一个动作回到菜单首页，直到用户主动选"退出"。
-  let firstRound = true;
-
   while (true) {
-    // 每轮都重打 banner（保持品牌一致性）。第二轮起先清屏，避免历史输出叠加。
-    if (!firstRound && process.stdout.isTTY) {
-      process.stdout.write('\x1Bc');
-    }
-    firstRound = false;
-    console.log();
-    console.log(renderBanner(getVersion()));
-    console.log();
-
-    // 状态实时刷新——用户可能刚改了 profile / perms，状态条要跟上
-    const status = await collectStatus();
-    const statusLines = renderStatusBar(status);
-    for (const l of statusLines) console.log(l);
-    console.log();
-
     type Choice = { name: string; value: number; short?: string } | typeof inquirer.Separator.prototype;
     const choices: Choice[] = [];
     let idx = 0;
