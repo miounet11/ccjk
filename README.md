@@ -15,11 +15,12 @@ npm install -g ccjk
 ## 快速上手
 
 ```bash
-ccjk            # 交互菜单
-ccjk init       # 配置 API（同时存为 profile）
-ccjk use        # 一键切换已配过的 API
-ccjk mcp        # 装 MCP 服务
-ccjk doctor     # 检查 settings.json
+ccjk                # 交互菜单
+ccjk init           # 配置 API（同时存为 profile）
+ccjk use            # 一键切换已配过的 API
+ccjk perms standard # 一键设权限档位（同时作用于 3 个工具）
+ccjk mcp            # 装 MCP 服务
+ccjk doctor         # 检查 settings.json
 ```
 
 ## 命令一览
@@ -32,6 +33,8 @@ ccjk doctor     # 检查 settings.json
 | `ccjk profile ls` | 列出所有 profile（标记当前） |
 | `ccjk profile show [name]` | 查看 profile 详情（不带参=当前） |
 | `ccjk profile rm [name]` | 删除 profile |
+| `ccjk perms [tier]` | **一键设权限档位**（safe/standard/yolo），同时作用于 clavue/claude-code/codex |
+| `ccjk perms-show` | 查看三个工具当前的权限状态 |
 | `ccjk mcp` | 选装预设 MCP 服务（context7、serena、playwright、…） |
 | `ccjk doctor` | 检查 settings.json 中的常见配置问题 |
 | `ccjk detect` | 列出已安装的代码工具 |
@@ -52,10 +55,35 @@ ccjk profile ls     # 看当前用的是哪个
 
 Profile 存储在 `~/.ccjk/profiles/<name>.json`，当前激活的记录在 `~/.ccjk/state.json`。
 
+### Perms：一键档位授权
+
+一条命令把 Clavue / Claude Code / Codex 的权限同步到同一档位，减少每次操作都要点确认的烦躁。
+
+| 档位 | 适合 | Claude/Clavue | Codex |
+|---|---|---|---|
+| `safe` | 浏览代码、新手 | 仅放行只读（Read/Grep/...） | `approval_policy=untrusted`, `sandbox_mode=read-only` |
+| `standard`（推荐） | 日常开发 | + git/npm/pnpm/python/ls/cat 等高频命令 | `approval_policy=on-failure`, `sandbox_mode=workspace-write` |
+| `yolo` | 可信项目放飞 | `Bash(*)` + `allowUnsandboxedCommands=true` | `approval_policy=never`, `sandbox_mode=workspace-write` |
+
+不论哪一档，都强制写入 `deny`：`rm -rf /`、`git push --force`、`npm publish`、`sudo` 等不可逆 / 高危命令，避免手抖。
+
+```bash
+ccjk perms                          # 交互选档位（推荐）
+ccjk perms standard                 # 直接应用 standard 到全部 3 个工具
+ccjk perms safe --tools clavue,claude-code   # 只作用于这两个
+ccjk perms yolo --reset             # --reset 会清空原 allow 后再写（默认是 append + dedupe）
+ccjk perms-show                     # 看三个工具当前各是哪档
+```
+
+合并策略：
+- `allow`：默认 append + dedupe，保护用户自定义白名单。`--reset` 强制覆盖。
+- `deny`：始终覆盖，确保危险命令一定被拦。
+
 ### 非交互模式
 
 ```bash
 ccjk init -t clavue -p glm --api-key sk-xxx --profile work -y
+ccjk perms standard -y
 ccjk mcp -s context7 serena -y
 ccjk git-install --scope user -y
 ```

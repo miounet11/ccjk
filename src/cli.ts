@@ -16,6 +16,7 @@ import {
   profileShowCommand,
   profileUseCommand,
 } from './commands/profile.js';
+import { permsCommand, permsShowCommand } from './commands/perms.js';
 
 const pkgPath = join(dirname(fileURLToPath(import.meta.url)), '..', 'package.json');
 const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8')) as { version: string };
@@ -77,6 +78,20 @@ program
   .option('-s, --services <ids...>', '直接指定服务 id')
   .option('-y, --yes', '跳过确认')
   .action((opts) => mcpCommand(opts));
+
+program
+  .command('perms [tier]')
+  .description('一键设置权限档位（safe | standard | yolo），同时作用于 clavue/claude-code/codex')
+  .option('--tools <list>', '逗号分隔指定工具，如 clavue,claude-code（默认全部）')
+  .option('--reset', '完全替换 allow 列表（不做合并；deny 总是替换）')
+  .option('-y, --yes', '跳过确认')
+  .action((tier: string | undefined, opts: { tools?: string; reset?: boolean; yes?: boolean }) =>
+    permsCommand(tier, opts));
+
+program
+  .command('perms-show')
+  .description('查看三个工具当前的权限状态')
+  .action(permsShowCommand);
 
 program
   .command('doctor')
