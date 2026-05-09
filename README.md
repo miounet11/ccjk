@@ -33,6 +33,8 @@ ccjk rollback       # 从备份还原 settings.json
 | `ccjk init` | 配置 API：写 `~/.claude/settings.json` 的 env，并保存为 profile |
 | `ccjk use [name]` | **快速切换 profile**（不带参=交互选择） |
 | `ccjk profile ls/show/rm` | profile 列表 / 详情 / 删除 |
+| `ccjk profile export` | **导出 profile 为 JSON 包**（迁移到其它机器） |
+| `ccjk profile import <file>` | **从 JSON 包导入 profile** |
 | `ccjk perms [tier]` | **一键设权限档位**（safe/standard/yolo），同时作用于 clavue/claude-code/codex |
 | `ccjk perms-show` | 查看三个工具当前的权限状态 |
 | `ccjk mcp` | 选装预设 MCP 服务（交互勾选） |
@@ -59,6 +61,20 @@ ccjk profile ls     # 看当前用的是哪个
 切换后需重启 Claude Code 才能生效（settings.json 是启动时读的）。
 
 Profile 存储在 `~/.ccjk/profiles/<name>.json`，当前激活的记录在 `~/.ccjk/state.json`。
+
+#### 导出 / 导入：跨机器迁移
+
+```bash
+ccjk profile export                          # 交互勾选要导出的 profile
+ccjk profile export -n work free -o team.json -y  # 直接导出 work + free
+ccjk profile export --redact -o template.json -y  # 抹去 API key（导出"模板"）
+
+# 在另一台机器
+ccjk profile import team.json                 # 同名时交互问跳过/覆盖/重命名
+ccjk profile import team.json --conflict skip -y    # 全部 skip 已有的
+```
+
+包是简单 JSON（schema=1），可以手动编辑。带 key 的包**等同于凭证文件**，请妥善保管或用 `--redact` 导出无 key 模板再单独传 key。
 
 ### Perms：一键档位授权
 

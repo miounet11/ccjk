@@ -16,6 +16,7 @@ import {
   profileShowCommand,
   profileUseCommand,
 } from './commands/profile.js';
+import { profileExportCommand, profileImportCommand } from './commands/profile-pack.js';
 import { permsCommand, permsShowCommand } from './commands/perms.js';
 import { rollbackCommand } from './commands/rollback.js';
 
@@ -71,6 +72,22 @@ profile
   .command('show [name]')
   .description('查看 profile 详情（不带参看当前）')
   .action((name: string | undefined) => profileShowCommand(name));
+profile
+  .command('export')
+  .description('导出 profile 为 JSON 包（方便迁移到其它机器）')
+  .option('-o, --output <path>', '输出文件名（默认 ccjk-profiles-<日期>.json）')
+  .option('-n, --names <list...>', '只导出指定 profile（不传则交互勾选）')
+  .option('--redact', '抹去 API key（导出"模板"，导入时再补 key）')
+  .option('-y, --yes', '跳过确认 / 同名覆盖')
+  .action((opts: { output?: string; names?: string[]; redact?: boolean; yes?: boolean }) =>
+    profileExportCommand(opts));
+profile
+  .command('import <file>')
+  .description('从 JSON 包导入 profile')
+  .option('--conflict <mode>', '冲突策略：skip | overwrite | rename | ask')
+  .option('-y, --yes', '跳过确认；同名默认 skip；空 key 跳过')
+  .action((file: string, opts: { conflict?: 'skip' | 'overwrite' | 'rename' | 'ask'; yes?: boolean }) =>
+    profileImportCommand(file, opts));
 
 program
   .command('mcp')
