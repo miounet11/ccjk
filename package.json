@@ -1,6 +1,6 @@
 {
   "name": "ccjk",
-  "version": "15.12.0",
+  "version": "15.13.0",
   "description": "Clavue / Claude Code / Codex 的本地配置 CLI — profile 切换、权限档位、状态栏、MCP、版本管理，一条命令搞定。",
   "type": "module",
   "bin": {

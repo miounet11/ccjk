@@ -15,6 +15,7 @@ import { statusLineInstallCommand } from './statusline.js';
 import { installCommand, updateCommand, versionCommand } from './version.js';
 import { modeUseCommand } from './mode.js';
 import { workflowRunCommand } from './workflow.js';
+import { envPermCommand } from './env-perm.js';
 import { collectStatus, renderBanner, renderStatusBar } from '../core/banner.js';
 
 interface MenuItem {
@@ -35,6 +36,7 @@ const GROUPS: MenuGroup[] = [
       { label: '配置 API（init）', hint: '写入 settings.json，自动存为 profile', run: () => initCommand() },
       { label: '切换 Profile', hint: '在已配过的多个 API 之间一键切换', run: () => profileUseCommand(undefined) },
       { label: '权限档位', hint: 'safe / standard / yolo（同步三个工具）', run: () => permsCommand(undefined) },
+      { label: '环境与权限配置', hint: '推荐环境变量 / 推荐权限 / 手动编辑 settings.json', run: () => envPermCommand() },
     ],
   },
   {

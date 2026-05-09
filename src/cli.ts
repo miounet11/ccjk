@@ -37,6 +37,7 @@ import { workflowListCommand, workflowRunCommand } from './commands/workflow.js'
 import { statusCommand } from './commands/status.js';
 import { completionCommand } from './commands/completion.js';
 import { uninstallCommand } from './commands/uninstall.js';
+import { envPermCommand } from './commands/env-perm.js';
 
 const pkgPath = join(dirname(fileURLToPath(import.meta.url)), '..', 'package.json');
 const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8')) as { version: string };
@@ -171,6 +172,13 @@ program
   .option('--dry-run', '只展示不写入')
   .option('-y, --yes', '跳过确认')
   .action((opts: { tools?: string; dryRun?: boolean; yes?: boolean }) => permsCleanCommand(opts));
+
+program
+  .command('env-perm')
+  .description('环境变量与权限配置（导入推荐 env / 推荐 perms / 手动编辑 settings.json）')
+  .option('--tools <list>', '逗号分隔指定工具，默认 clavue,claude-code')
+  .option('-y, --yes', '跳过确认')
+  .action((opts: { tools?: string; yes?: boolean }) => envPermCommand(opts));
 
 program
   .command('doctor')
