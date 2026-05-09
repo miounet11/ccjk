@@ -69,7 +69,7 @@ export async function statusLineInstallCommand(opts: StatusLineInstallOptions = 
   const meta = TOOLS[tool];
   const settings = await readSettings(meta.settingsFile);
 
-  const existing = (settings as Record<string, unknown>).statusLine as { command?: string } | undefined;
+  const existing = settings.statusLine;
   if (existing?.command && !opts.yes) {
     console.log(ansis.dim(`\n当前已有 statusLine：${existing.command}`));
     const { ok } = await inquirer.prompt<{ ok: boolean }>([{
@@ -84,7 +84,7 @@ export async function statusLineInstallCommand(opts: StatusLineInstallOptions = 
     }
   }
 
-  (settings as Record<string, unknown>).statusLine = {
+  settings.statusLine = {
     type: 'command',
     command: 'ccjk statusline',
   };
@@ -99,7 +99,7 @@ export async function statusLineUninstallCommand(opts: StatusLineInstallOptions 
   if (tool === 'codex') return;
   const meta = TOOLS[tool];
   const settings = await readSettings(meta.settingsFile);
-  const existing = (settings as Record<string, unknown>).statusLine as { command?: string } | undefined;
+  const existing = settings.statusLine;
   if (!existing) {
     console.log(ansis.gray('\n没有安装 statusLine。\n'));
     return;
@@ -114,7 +114,7 @@ export async function statusLineUninstallCommand(opts: StatusLineInstallOptions 
       return;
     }
   }
-  delete (settings as Record<string, unknown>).statusLine;
+  delete settings.statusLine;
   const backup = await writeSettings(meta.settingsFile, settings);
   console.log(ansis.green('\n✔ statusLine 已卸载'));
   if (backup) console.log(ansis.dim(`  备份: ${backup}\n`));

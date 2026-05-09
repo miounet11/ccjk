@@ -1,4 +1,5 @@
 import type { ClaudeSettings } from './settings.js';
+import { TIERS } from './perms.js';
 
 /**
  * 推荐的隐私保护 / 性能调优环境变量。
@@ -71,11 +72,8 @@ export const RECOMMENDED_ALLOW: string[] = [
 ];
 
 /**
- * 推荐 deny —— 与 perms 模块的 COMMON_DENY 一致。
- * 直接把 perms 的 standard tier 的 deny 引过来，避免双源。
+ * 推荐 deny —— 与 perms 模块的 standard 档位 deny 同源（避免双源维护）。
  */
-import { TIERS } from './perms.js';
-
 export const RECOMMENDED_DENY: string[] = TIERS.standard.claude.deny;
 
 export function applyRecommendedPerms(settings: ClaudeSettings): { addedAllow: number; replacedDeny: boolean } {

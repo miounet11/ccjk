@@ -1,6 +1,6 @@
 import { existsSync } from 'node:fs';
 import { readdir, rm, unlink } from 'node:fs/promises';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import { homedir } from 'node:os';
 import inquirer from 'inquirer';
 import ansis from 'ansis';
@@ -8,6 +8,7 @@ import { TOOLS } from '../core/tools.js';
 import type { CodeTool } from '../core/tools.js';
 import { expandHome } from '../core/paths.js';
 import { readSettings, writeSettings } from '../core/settings.js';
+import { confirmAction } from '../core/prompt.js';
 
 /**
  * `ccjk uninstall` — 清理 ccjk 自己写过的东西。
@@ -77,8 +78,7 @@ export async function uninstallCommand(opts: UninstallOptions = {}): Promise<voi
           const meta = TOOLS[t];
           if (!existsSync(expandHome(meta.settingsFile))) continue;
           const s = await readSettings(meta.settingsFile);
-          const sl = (s as Record<string, unknown>).statusLine as { command?: string } | undefined;
-          if (sl?.command === 'ccjk statusline') return true;
+          if (s.statusLine?.command === 'ccjk statusline') return true;
         }
         return false;
       },
@@ -88,9 +88,8 @@ export async function uninstallCommand(opts: UninstallOptions = {}): Promise<voi
           const meta = TOOLS[t];
           if (!existsSync(expandHome(meta.settingsFile))) continue;
           const s = await readSettings(meta.settingsFile);
-          const sl = (s as Record<string, unknown>).statusLine as { command?: string } | undefined;
-          if (sl?.command === 'ccjk statusline') {
-            delete (s as Record<string, unknown>).statusLine;
+          if (s.statusLine?.command === 'ccjk statusline') {
+            delete s.statusLine;
             await writeSettings(meta.settingsFile, s);
             count++;
           }
@@ -146,18 +145,7 @@ export async function uninstallCommand(opts: UninstallOptions = {}): Promise<voi
     return;
   }
 
-  if (!opts.yes) {
-    const { ok } = await inquirer.prompt<{ ok: boolean }>([{
-      type: 'confirm',
-      name: 'ok',
-      message: `确认删除 ${chosenIds.length} 项？（不可还原）`,
-      default: false,
-    }]);
-    if (!ok) {
-      console.log(ansis.gray('已取消。\n'));
-      return;
-    }
-  }
+  if (!await confirmAction(`确认删除 ${chosenIds.length} 项？（不可还原）`, { yes: opts.yes, default: false })) return;
 
   // 执行
   console.log();
@@ -179,7 +167,7 @@ async function collectBackups(): Promise<string[]> {
   const dirs = new Set<string>();
   for (const t of Object.keys(TOOLS) as CodeTool[]) {
     const meta = TOOLS[t];
-    const dir = expandHome(meta.settingsFile).replace(/\/[^/]+$/, '');
+    const dir = dirname(expandHome(meta.settingsFile));
     if (existsSync(dir)) dirs.add(dir);
   }
   const out: string[] = [];

@@ -105,7 +105,7 @@ export async function statusCommand(): Promise<void> {
     try {
       const s = await readSettings(meta.settingsFile);
       const mcpCount = Object.keys(s.mcpServers ?? {}).length;
-      const sl = (s as Record<string, unknown>).statusLine as { command?: string } | undefined;
+      const sl = s.statusLine;
       const slMark = sl?.command ? ansis.green('●') : ansis.gray('○');
       console.log(`  ${meta.displayName.padEnd(14)} ${ansis.dim('MCP')} ${mcpCount}  ${ansis.dim('statusline')} ${slMark}`);
     }

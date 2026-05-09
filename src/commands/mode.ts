@@ -1,7 +1,6 @@
 import inquirer from 'inquirer';
 import ansis from 'ansis';
-import { TOOLS } from '../core/tools.js';
-import type { CodeTool } from '../core/tools.js';
+import { TOOLS, parseTools } from '../core/tools.js';
 import { readSettings, writeSettings } from '../core/settings.js';
 import { readTomlFile, writeTomlFile } from '../core/toml.js';
 import {
@@ -15,6 +14,7 @@ import {
   writeModeState,
 } from '../core/modes.js';
 import type { ModeDefinition } from '../core/modes.js';
+import { confirmAction } from '../core/prompt.js';
 
 export async function modeListCommand(): Promise<void> {
   const modes = await listModes();
@@ -50,15 +50,7 @@ export async function modeUseCommand(name: string | undefined, opts: ModeUseOpti
   console.log(ansis.dim(`  Claude/Clavue: ${claudeDesc}`));
   console.log(ansis.dim(`  Codex: model_reasoning_effort = ${target.codex.effort}\n`));
 
-  if (!opts.yes) {
-    const { ok } = await inquirer.prompt<{ ok: boolean }>([{
-      type: 'confirm', name: 'ok', message: '确认应用？', default: true,
-    }]);
-    if (!ok) {
-      console.log(ansis.gray('已取消。'));
-      return;
-    }
-  }
+  if (!await confirmAction('确认应用？', { yes: opts.yes })) return;
 
   const results: string[] = [];
   for (const t of tools) {
@@ -159,14 +151,4 @@ async function pickMode(): Promise<ModeDefinition | undefined> {
     })),
   }]);
   return modes.find(m => m.id === id);
-}
-
-function parseTools(raw: string | undefined): CodeTool[] {
-  if (!raw) return ['clavue', 'claude-code', 'codex'];
-  const valid: CodeTool[] = ['clavue', 'claude-code', 'codex'];
-  const items = raw.split(',').map(s => s.trim()).filter(Boolean) as CodeTool[];
-  for (const t of items) {
-    if (!valid.includes(t)) throw new Error(`未知工具 "${t}"`);
-  }
-  return items;
 }

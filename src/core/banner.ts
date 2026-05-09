@@ -71,7 +71,7 @@ export async function collectStatus(): Promise<StatusSnapshot> {
       const s = await readSettings(TOOLS.clavue.settingsFile);
       const detected = detectClaudeTier(s);
       if (detected) permsTier = detected;
-      const sl = (s as Record<string, unknown>).statusLine as { command?: string } | undefined;
+      const sl = s.statusLine;
       if (sl?.command) statuslineInstalled = true;
     }
   }

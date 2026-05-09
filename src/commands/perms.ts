@@ -1,6 +1,6 @@
 import inquirer from 'inquirer';
 import ansis from 'ansis';
-import { TOOLS } from '../core/tools.js';
+import { TOOLS, parseTools } from '../core/tools.js';
 import type { CodeTool } from '../core/tools.js';
 import { readSettings, writeSettings } from '../core/settings.js';
 import { readTomlFile, writeTomlFile } from '../core/toml.js';
@@ -14,6 +14,7 @@ import {
   getTier,
 } from '../core/perms.js';
 import type { PermsTier, TierDefinition } from '../core/perms.js';
+import { confirmAction } from '../core/prompt.js';
 
 export interface PermsOptions {
   tools?: string;
@@ -32,18 +33,7 @@ export async function permsCommand(tier: string | undefined, opts: PermsOptions 
   if (opts.reset) console.log(ansis.yellow('  --reset: 将完全替换 allow 列表（用户已有自定义会丢）'));
   console.log();
 
-  if (!opts.yes) {
-    const { ok } = await inquirer.prompt<{ ok: boolean }>([{
-      type: 'confirm',
-      name: 'ok',
-      message: '确认应用？',
-      default: true,
-    }]);
-    if (!ok) {
-      console.log(ansis.gray('已取消。'));
-      return;
-    }
-  }
+  if (!await confirmAction('确认应用？', { yes: opts.yes })) return;
 
   const reset = opts.reset ?? false;
   const results: string[] = [];
@@ -92,7 +82,7 @@ export async function permsShowCommand(): Promise<void> {
     const tier = detectClaudeTier(settings);
     const allow = settings.permissions?.allow ?? [];
     const deny = settings.permissions?.deny ?? [];
-    const unsandboxed = (settings as Record<string, unknown>).allowUnsandboxedCommands === true;
+    const unsandboxed = settings.allowUnsandboxedCommands === true;
     const tierLabel = tier ? ansis.green(tier) : ansis.gray('自定义/未配置');
     console.log(`  ${ansis.bold(meta.displayName.padEnd(14))} ${tierLabel}`);
     console.log(ansis.dim(`    allow: ${allow.length}, deny: ${deny.length}, allowUnsandboxed: ${unsandboxed}`));
@@ -121,16 +111,6 @@ async function pickTier(): Promise<PermsTier> {
     })),
   }]);
   return tier;
-}
-
-function parseTools(raw: string | undefined): CodeTool[] {
-  if (!raw) return ['clavue', 'claude-code', 'codex'];
-  const valid: CodeTool[] = ['clavue', 'claude-code', 'codex'];
-  const items = raw.split(',').map(s => s.trim()).filter(Boolean) as CodeTool[];
-  for (const t of items) {
-    if (!valid.includes(t)) throw new Error(`未知工具 "${t}"，可选: ${valid.join(', ')}`);
-  }
-  return items;
 }
 
 export interface PermsCleanOptions {
@@ -180,16 +160,8 @@ export async function permsCleanCommand(opts: PermsCleanOptions = {}): Promise<v
     return;
   }
 
-  if (!opts.yes) {
-    console.log();
-    const { ok } = await inquirer.prompt<{ ok: boolean }>([{
-      type: 'confirm', name: 'ok', message: '确认清理？（写入前会备份）', default: true,
-    }]);
-    if (!ok) {
-      console.log(ansis.gray('已取消。\n'));
-      return;
-    }
-  }
+  console.log();
+  if (!await confirmAction('确认清理？（写入前会备份）', { yes: opts.yes })) return;
 
   for (const j of jobs) {
     const settings = await readSettings(j.meta.settingsFile);

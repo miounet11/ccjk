@@ -62,3 +62,19 @@ export const TOOLS: Record<CodeTool, CodeToolMeta> = {
     installHint: 'npm install -g @openai/codex',
   },
 };
+
+const ALL_TOOLS = Object.keys(TOOLS) as CodeTool[];
+
+/**
+ * 解析 --tools 参数（逗号分隔）。不传返回 fallback（默认全部 3 个工具）。
+ */
+export function parseTools(raw: string | undefined, fallback: CodeTool[] = ALL_TOOLS): CodeTool[] {
+  if (!raw) return fallback;
+  const items = raw.split(',').map(s => s.trim()).filter(Boolean) as CodeTool[];
+  for (const t of items) {
+    if (!ALL_TOOLS.includes(t)) {
+      throw new Error(`未知工具 "${t}"，可选: ${ALL_TOOLS.join(', ')}`);
+    }
+  }
+  return items;
+}

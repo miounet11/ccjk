@@ -3,10 +3,11 @@ import { spawn } from 'node:child_process';
 import { platform } from 'node:os';
 import inquirer from 'inquirer';
 import ansis from 'ansis';
-import { TOOLS } from '../core/tools.js';
+import { TOOLS, parseTools } from '../core/tools.js';
 import type { CodeTool } from '../core/tools.js';
 import { readSettings, writeSettings } from '../core/settings.js';
 import { expandHome } from '../core/paths.js';
+import { confirmAction } from '../core/prompt.js';
 import {
   RECOMMENDED_ALLOW,
   RECOMMENDED_DENY,
@@ -35,7 +36,7 @@ export async function envPermCommand(opts: EnvPermOptions = {}): Promise<void> {
   const action = await pickAction();
   if (action === 'cancel') return;
 
-  const tools = parseTools(opts.tools);
+  const tools = parseTools(opts.tools, ['clavue', 'claude-code']);
 
   switch (action) {
     case 'env':
@@ -86,15 +87,7 @@ async function runImportEnv(tools: CodeTool[], yes: boolean): Promise<void> {
   console.log(ansis.dim(`\n  目标工具: ${tools.join(', ')}`));
   console.log(ansis.dim('  策略: 已存在的 key 不覆盖（保留你已设的值）\n'));
 
-  if (!yes) {
-    const { ok } = await inquirer.prompt<{ ok: boolean }>([{
-      type: 'confirm', name: 'ok', message: '确认导入？', default: true,
-    }]);
-    if (!ok) {
-      console.log(ansis.gray('已取消。\n'));
-      return;
-    }
-  }
+  if (!await confirmAction('确认导入？', { yes })) return;
 
   for (const t of tools) {
     if (t === 'codex') {
@@ -123,15 +116,7 @@ async function runImportPerms(tools: CodeTool[], yes: boolean): Promise<void> {
   console.log(ansis.dim(`\n  目标工具: ${tools.filter(t => t !== 'codex').join(', ')}`));
   console.log(ansis.dim('  策略: allow 与现有合并（不覆盖你已加的）；deny 替换（确保危险拦截生效）\n'));
 
-  if (!yes) {
-    const { ok } = await inquirer.prompt<{ ok: boolean }>([{
-      type: 'confirm', name: 'ok', message: '确认导入？', default: true,
-    }]);
-    if (!ok) {
-      console.log(ansis.gray('已取消。\n'));
-      return;
-    }
-  }
+  if (!await confirmAction('确认导入？', { yes })) return;
 
   for (const t of tools) {
     if (t === 'codex') {
@@ -208,14 +193,4 @@ async function openInEditor(path: string): Promise<void> {
     console.log(ansis.yellow(`无法自动打开。请手动编辑：${path}`));
   });
   child.unref();
-}
-
-function parseTools(raw: string | undefined): CodeTool[] {
-  if (!raw) return ['clavue', 'claude-code'];
-  const valid: CodeTool[] = ['clavue', 'claude-code', 'codex'];
-  const items = raw.split(',').map(s => s.trim()).filter(Boolean) as CodeTool[];
-  for (const t of items) {
-    if (!valid.includes(t)) throw new Error(`未知工具 "${t}"`);
-  }
-  return items;
 }

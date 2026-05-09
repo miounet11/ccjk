@@ -9,6 +9,9 @@ export interface ClaudeSettings {
   model?: string;
   permissions?: { allow?: string[]; deny?: string[] };
   hooks?: Record<string, unknown>;
+  statusLine?: { type?: string; command?: string };
+  allowUnsandboxedCommands?: boolean;
+  thinking?: { enabled?: boolean; budgetTokens?: number };
   [key: string]: unknown;
 }
 
