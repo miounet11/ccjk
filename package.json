@@ -1,6 +1,6 @@
 {
   "name": "ccjk",
-  "version": "15.2.0",
+  "version": "15.3.0",
   "description": "Clavue / Claude Code 配置 CLI — init、API、MCP、doctor、git 模板。一条命令搞定。",
   "type": "module",
   "bin": {

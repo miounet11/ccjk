@@ -7,6 +7,7 @@ import { doctorCommand } from './doctor.js';
 import { gitInstallCommand } from './git-install.js';
 import { profileUseCommand } from './profile.js';
 import { permsCommand } from './perms.js';
+import { rollbackCommand } from './rollback.js';
 import { listProfiles, readState } from '../core/profiles.js';
 
 const ITEMS = [
@@ -15,8 +16,9 @@ const ITEMS = [
   { key: '3', label: '一键设权限档位（safe/standard/yolo）', run: () => permsCommand(undefined) },
   { key: '4', label: '配置 MCP 服务', run: () => mcpCommand() },
   { key: '5', label: '体检（doctor）', run: () => doctorCommand() },
-  { key: '6', label: '安装 Git 命令模板', run: () => gitInstallCommand() },
-  { key: '7', label: '检测已安装的工具', run: async () => detectCommand() },
+  { key: '6', label: '从备份还原（rollback）', run: () => rollbackCommand() },
+  { key: '7', label: '安装 Git 命令模板', run: () => gitInstallCommand() },
+  { key: '8', label: '检测已安装的工具', run: async () => detectCommand() },
 ];
 
 export async function menuCommand(): Promise<void> {
@@ -38,7 +40,7 @@ export async function menuCommand(): Promise<void> {
     type: 'input',
     name: 'choice',
     message: '\n选择',
-    validate: (v: string) => /^[1-7q]$/.test(v.trim()) || '输入 1-7 或 q',
+    validate: (v: string) => /^[1-8q]$/.test(v.trim()) || '输入 1-8 或 q',
   }]);
 
   if (choice.trim() === 'q') return;

@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { Command } from 'commander';
 import ansis from 'ansis';
 import { initCommand } from './commands/init.js';
-import { mcpCommand } from './commands/mcp.js';
+import { mcpAddCommand, mcpCommand, mcpListCommand, mcpRmCommand } from './commands/mcp.js';
 import { doctorCommand } from './commands/doctor.js';
 import { detectCommand } from './commands/detect.js';
 import { gitInstallCommand } from './commands/git-install.js';
@@ -17,6 +17,7 @@ import {
   profileUseCommand,
 } from './commands/profile.js';
 import { permsCommand, permsShowCommand } from './commands/perms.js';
+import { rollbackCommand } from './commands/rollback.js';
 
 const pkgPath = join(dirname(fileURLToPath(import.meta.url)), '..', 'package.json');
 const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8')) as { version: string };
@@ -73,11 +74,34 @@ profile
 
 program
   .command('mcp')
-  .description('配置 MCP 服务')
+  .description('配置 MCP 服务（预设清单 / 交互勾选）')
   .option('-t, --tool <tool>', '目标工具', 'clavue')
   .option('-s, --services <ids...>', '直接指定服务 id')
   .option('-y, --yes', '跳过确认')
   .action((opts) => mcpCommand(opts));
+
+program
+  .command('mcp-ls')
+  .description('列出已安装的 MCP 服务')
+  .option('-t, --tool <tool>', '目标工具', 'clavue')
+  .action((opts: { tool?: 'clavue' | 'claude-code' | 'codex' }) => mcpListCommand(opts));
+
+program
+  .command('mcp-add [name]')
+  .description('添加自定义 MCP 服务')
+  .option('-t, --tool <tool>', '目标工具', 'clavue')
+  .option('--command <cmd>', '启动命令（如 npx, uvx）')
+  .option('--args <args>', '参数（空格分隔）')
+  .option('--env <kv>', '环境变量（K=V,K2=V2）')
+  .option('-y, --yes', '跳过确认')
+  .action((name: string | undefined, opts) => mcpAddCommand(name, opts));
+
+program
+  .command('mcp-rm [name]')
+  .description('卸载已安装的 MCP 服务')
+  .option('-t, --tool <tool>', '目标工具', 'clavue')
+  .option('-y, --yes', '跳过确认')
+  .action((name: string | undefined, opts) => mcpRmCommand(name, opts));
 
 program
   .command('perms [tier]')
@@ -96,7 +120,16 @@ program
 program
   .command('doctor')
   .description('检查 settings.json 中的常见配置问题')
+  .option('--fix', '自动修复可修的项目（修改前会备份）')
+  .option('-y, --yes', '跳过确认')
   .action(doctorCommand);
+
+program
+  .command('rollback')
+  .description('从备份还原 settings.json / config.toml')
+  .option('-t, --tool <tool>', '只看一个工具的备份')
+  .option('-y, --yes', '跳过确认')
+  .action((opts: { tool?: 'clavue' | 'claude-code' | 'codex'; yes?: boolean }) => rollbackCommand(opts));
 
 program
   .command('detect')

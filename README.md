@@ -19,8 +19,10 @@ ccjk                # 交互菜单
 ccjk init           # 配置 API（同时存为 profile）
 ccjk use            # 一键切换已配过的 API
 ccjk perms standard # 一键设权限档位（同时作用于 3 个工具）
-ccjk mcp            # 装 MCP 服务
-ccjk doctor         # 检查 settings.json
+ccjk doctor --fix   # 体检并自动修复配置问题
+ccjk mcp            # 装 MCP 服务（预设勾选）
+ccjk mcp-ls         # 列已装的 MCP
+ccjk rollback       # 从备份还原 settings.json
 ```
 
 ## 命令一览
@@ -30,13 +32,16 @@ ccjk doctor         # 检查 settings.json
 | `ccjk` | 交互菜单（默认） |
 | `ccjk init` | 配置 API：写 `~/.claude/settings.json` 的 env，并保存为 profile |
 | `ccjk use [name]` | **快速切换 profile**（不带参=交互选择） |
-| `ccjk profile ls` | 列出所有 profile（标记当前） |
-| `ccjk profile show [name]` | 查看 profile 详情（不带参=当前） |
-| `ccjk profile rm [name]` | 删除 profile |
+| `ccjk profile ls/show/rm` | profile 列表 / 详情 / 删除 |
 | `ccjk perms [tier]` | **一键设权限档位**（safe/standard/yolo），同时作用于 clavue/claude-code/codex |
 | `ccjk perms-show` | 查看三个工具当前的权限状态 |
-| `ccjk mcp` | 选装预设 MCP 服务（context7、serena、playwright、…） |
+| `ccjk mcp` | 选装预设 MCP 服务（交互勾选） |
+| `ccjk mcp-ls` | 列出已安装的 MCP |
+| `ccjk mcp-add [name]` | 添加自定义 MCP 服务 |
+| `ccjk mcp-rm [name]` | 卸载 MCP 服务 |
 | `ccjk doctor` | 检查 settings.json 中的常见配置问题 |
+| `ccjk doctor --fix` | **自动修复**能修的问题（修改前备份） |
+| `ccjk rollback` | **从备份还原** settings.json / config.toml |
 | `ccjk detect` | 列出已安装的代码工具 |
 | `ccjk git-install` | 安装 `/ccjk:git-commit` 等 slash 命令模板 |
 
@@ -85,8 +90,32 @@ ccjk perms-show                     # 看三个工具当前各是哪档
 ccjk init -t clavue -p glm --api-key sk-xxx --profile work -y
 ccjk perms standard -y
 ccjk mcp -s context7 serena -y
+ccjk mcp-add my-server --command npx --args "-y @scope/pkg" -y
+ccjk doctor --fix -y
 ccjk git-install --scope user -y
 ```
+
+### Doctor：体检 + 自动修复
+
+```bash
+ccjk doctor          # 列出问题，标记哪些可自动修
+ccjk doctor --fix    # 自动修可修的（修改前备份）
+ccjk doctor --fix -y # 跳过确认
+```
+
+可自动修复：`model-overrides-env`（删顶层 model）、`duplicate-auth`（保留 AUTH_TOKEN，删 API_KEY）。
+不可自动修：`missing-credentials`、`invalid-base-url`（需要正确的 URL/Key，跑 `ccjk init`）。
+
+### Rollback：从备份还原
+
+每次 `init` / `mcp` / `perms` / `doctor --fix` 写入前都会自动备份到 `xxx.bak-<ISO时间戳>`。
+
+```bash
+ccjk rollback                 # 列所有备份，按时间倒序
+ccjk rollback -t clavue       # 只看一个工具的备份
+```
+
+还原前会再备份一份当前状态，所以**还原本身也可还原**。
 
 ## 支持
 
