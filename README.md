@@ -19,6 +19,8 @@ npm install -g ccjk
 | 场景 | 命令 |
 |---|---|
 | 第一次配 API key | `ccjk init` |
+| 装机后想一键配置好 | `ccjk workflow run starter` |
+| 写代码 / 闲聊切换思考强度 | `ccjk mode use code` / `ccjk mode use chat` |
 | 多个 API key 之间切换（GLM/Kimi/Anthropic/...） | `ccjk use` |
 | 不想每次都点确认权限 | `ccjk perms standard` |
 | 看不到当前模型/用量 | `ccjk statusline-install` |
@@ -30,6 +32,17 @@ npm install -g ccjk
 | 不想记命令 | `ccjk`（交互菜单） |
 
 ## 命令一览
+
+### 快速开始
+
+| 命令 | 用途 |
+|---|---|
+| `ccjk workflow ls` | 列出可用工作流（starter / team-import / reset-soft / dev-ready） |
+| `ccjk workflow run [id]` | **跑工作流**：按顺序执行多个 ccjk 命令（每步单独确认） |
+| `ccjk mode ls` | 列出可用对话模式（code / chat / fast / deep） |
+| `ccjk mode use [name]` | **切换对话模式**：thinking / effort 一键档位（同步 Claude+Codex） |
+| `ccjk mode show [name]` | 查看模式详情（不带参=当前） |
+| `ccjk mode add [name]` | 新建自定义模式（基于内置模式复制+改） |
 
 ### 配置 API（init / use / profile）
 
@@ -92,6 +105,47 @@ npm install -g ccjk
 ---
 
 ## 详解
+
+### Workflow：快速工作流
+
+把多个 ccjk 命令串起来一键跑，省去你按顺序敲。每步都会单独问你"执行 / 跳过 / 中止"，不会偷偷做事。
+
+| 工作流 | 步骤 |
+|---|---|
+| `starter` | 配 API → perms standard → statusline-install → 装常用 MCP（可选） |
+| `team-import` | 导入 profile 包 → 切到该 profile → perms standard → doctor --fix |
+| `reset-soft` | 卸 statusline → 切到 perms safe |
+| `dev-ready` | 切 code 对话模式 → perms standard → 装 git slash 命令 → doctor --fix |
+
+```bash
+ccjk workflow                   # 列出全部
+ccjk workflow run starter       # 直接跑 starter
+ccjk workflow run               # 交互选
+```
+
+工作流定义存在代码里，未来会支持 `~/.ccjk/workflows/<id>.json` 加载用户自定义（数据结构已就位）。
+
+### Mode：对话模式
+
+把 Claude/Clavue 的 `thinking` 设置和 Codex 的 `model_reasoning_effort` 抽象成一个统一档位，一键同步两个工具。
+
+| 模式 | Claude thinking | Codex effort | 适用 |
+|---|---|---|---|
+| `code` | on, budget 16k | high | 写代码、调 bug、重构 |
+| `chat` | off | medium | 答疑、解释概念、随便聊 |
+| `fast` | off | low | 简单查询、小修改、想立刻拿到结果 |
+| `deep` | on, budget 32k | high | 架构设计、复杂 debug、多角度推理 |
+
+```bash
+ccjk mode ls                    # 列出全部模式（标记当前）
+ccjk mode use code              # 切到 code 模式（同步 Claude + Codex）
+ccjk mode show                  # 看当前模式详情
+ccjk mode add fast2 --base fast --thinking off --effort low   # 自定义模式
+```
+
+写到工具的**原生字段**（`thinking`、`model_reasoning_effort`），卸载 ccjk 后配置依然有效。需要重启 Claude Code / Codex 才能生效。
+
+自定义模式存在 `~/.ccjk/modes/<id>.json`，可手动编辑。同名时覆盖内置。
 
 ### Profile：多 API 切换
 

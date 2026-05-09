@@ -25,6 +25,13 @@ import {
   statusLineUninstallCommand,
 } from './commands/statusline.js';
 import { installCommand, updateCommand, versionCommand } from './commands/version.js';
+import {
+  modeAddCommand,
+  modeListCommand,
+  modeShowCommand,
+  modeUseCommand,
+} from './commands/mode.js';
+import { workflowListCommand, workflowRunCommand } from './commands/workflow.js';
 
 const pkgPath = join(dirname(fileURLToPath(import.meta.url)), '..', 'package.json');
 const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8')) as { version: string };
@@ -177,6 +184,55 @@ program
   .command('detect')
   .description('检测已安装的代码工具')
   .action(detectCommand);
+
+const mode = program
+  .command('mode')
+  .description('对话模式：thinking/effort 一键档位（code/chat/fast/deep ...）');
+mode
+  .command('ls', { isDefault: true })
+  .description('列出所有模式（标记当前）')
+  .action(modeListCommand);
+mode
+  .command('use [name]')
+  .description('切换对话模式（同时作用于 Claude/Clavue + Codex）')
+  .option('--tools <list>', '逗号分隔指定工具')
+  .option('-y, --yes', '跳过确认')
+  .action((name: string | undefined, opts: { tools?: string; yes?: boolean }) => modeUseCommand(name, opts));
+mode
+  .command('show [name]')
+  .description('查看模式详情（不带参看当前）')
+  .action((name: string | undefined) => modeShowCommand(name));
+mode
+  .command('add [name]')
+  .description('新建自定义模式（基于内置模式复制 + 改）')
+  .option('--base <id>', '基于哪个模式复制（默认空白）')
+  .option('--thinking <on|off>', 'Claude 是否启用 thinking')
+  .option('--budget <tokens>', 'thinking budget tokens')
+  .option('--effort <low|medium|high>', 'Codex reasoning effort')
+  .action((name: string | undefined, opts: {
+    base?: string;
+    thinking?: 'on' | 'off';
+    budget?: string;
+    effort?: 'low' | 'medium' | 'high';
+  }) => modeAddCommand(name, {
+    ...(opts.base ? { base: opts.base } : {}),
+    ...(opts.thinking ? { thinking: opts.thinking } : {}),
+    ...(opts.budget ? { budget: Number(opts.budget) } : {}),
+    ...(opts.effort ? { effort: opts.effort } : {}),
+  }));
+
+const workflow = program
+  .command('workflow')
+  .description('快速工作流：按顺序跑多个 ccjk 命令（starter / team-import / dev-ready ...）');
+workflow
+  .command('ls', { isDefault: true })
+  .description('列出可用工作流')
+  .action(workflowListCommand);
+workflow
+  .command('run [id]')
+  .description('执行工作流（不带参=交互选择）')
+  .option('-y, --yes', '跳过启动确认（每步仍单独确认）')
+  .action((id: string | undefined, opts: { yes?: boolean }) => workflowRunCommand(id, opts));
 
 program
   .command('tools')

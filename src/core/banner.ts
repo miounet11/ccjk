@@ -8,6 +8,7 @@ import { listProfiles, readState } from './profiles.js';
 import { readSettings } from './settings.js';
 import { detectClaudeTier } from './perms.js';
 import { expandHome } from './paths.js';
+import { readModeState } from './modes.js';
 
 /**
  * 渲染启动横幅。简洁优先：
@@ -51,6 +52,7 @@ export interface StatusSnapshot {
   profileName?: string;
   profileCount: number;
   permsTier?: string;
+  modeName?: string;
   statuslineInstalled: boolean;
   toolsInstalled: { tool: CodeTool; version?: string; installed: boolean }[];
 }
@@ -58,6 +60,7 @@ export interface StatusSnapshot {
 export async function collectStatus(): Promise<StatusSnapshot> {
   const profiles = await listProfiles().catch(() => []);
   const state = await readState().catch(() => ({} as { current?: string }));
+  const modeState = await readModeState().catch(() => ({} as { current?: string }));
 
   // 读 Claude/Clavue settings 决定 perms 档位 + statusline 是否装了
   let permsTier: string | undefined;
@@ -87,6 +90,7 @@ export async function collectStatus(): Promise<StatusSnapshot> {
     ...(state.current ? { profileName: state.current } : {}),
     profileCount: profiles.length,
     ...(permsTier ? { permsTier } : {}),
+    ...(modeState.current ? { modeName: modeState.current } : {}),
     statuslineInstalled,
     toolsInstalled,
   };
@@ -107,6 +111,9 @@ export function renderStatusBar(s: StatusSnapshot): string[] {
   if (s.permsTier) {
     const c = s.permsTier === 'safe' ? ansis.green : s.permsTier === 'standard' ? ansis.cyan : ansis.yellow;
     pieces.push(`${ansis.dim('perms')} ${c(s.permsTier)}`);
+  }
+  if (s.modeName) {
+    pieces.push(`${ansis.dim('mode')} ${ansis.magenta(s.modeName)}`);
   }
   pieces.push(`${ansis.dim('statusline')} ${s.statuslineInstalled ? ansis.green('●') : ansis.gray('○')}`);
   out.push(`  ${pieces.join('  ·  ')}`);

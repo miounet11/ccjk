@@ -13,6 +13,8 @@ import { permsCommand } from './perms.js';
 import { rollbackCommand } from './rollback.js';
 import { statusLineInstallCommand } from './statusline.js';
 import { installCommand, updateCommand, versionCommand } from './version.js';
+import { modeUseCommand } from './mode.js';
+import { workflowRunCommand } from './workflow.js';
 import { collectStatus, renderBanner, renderStatusBar } from '../core/banner.js';
 
 interface MenuItem {
@@ -27,6 +29,13 @@ interface MenuGroup {
 }
 
 const GROUPS: MenuGroup[] = [
+  {
+    title: '快速开始',
+    items: [
+      { label: '运行工作流', hint: '一连串命令一键跑（starter / dev-ready ...）', run: () => workflowRunCommand(undefined) },
+      { label: '切换对话模式', hint: 'code / chat / fast / deep', run: () => modeUseCommand(undefined) },
+    ],
+  },
   {
     title: '配置 API',
     items: [
