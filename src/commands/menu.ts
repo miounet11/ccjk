@@ -30,18 +30,18 @@ interface MenuGroup {
 
 const GROUPS: MenuGroup[] = [
   {
-    title: '快速开始',
+    title: '核心',
     items: [
-      { label: '运行工作流', hint: '一连串命令一键跑（starter / dev-ready ...）', run: () => workflowRunCommand(undefined) },
-      { label: '切换对话模式', hint: 'code / chat / fast / deep', run: () => modeUseCommand(undefined) },
+      { label: '配置 API（init）', hint: '写入 settings.json，自动存为 profile', run: () => initCommand() },
+      { label: '切换 Profile', hint: '在已配过的多个 API 之间一键切换', run: () => profileUseCommand(undefined) },
+      { label: '权限档位', hint: 'safe / standard / yolo（同步三个工具）', run: () => permsCommand(undefined) },
     ],
   },
   {
-    title: '配置 API',
+    title: '进阶用法',
     items: [
-      { label: '配置 API（init）', hint: '写 settings.json，存为 profile', run: () => initCommand() },
-      { label: '切换 Profile', hint: '在已配过的 API 之间切换', run: () => profileUseCommand(undefined) },
-      { label: '权限档位', hint: 'safe / standard / yolo（同步 3 工具）', run: () => permsCommand(undefined) },
+      { label: '运行工作流', hint: '一组命令一键跑（starter / dev-ready / ...）', run: () => workflowRunCommand(undefined) },
+      { label: '切换对话模式', hint: 'code / chat / fast / deep（thinking + effort）', run: () => modeUseCommand(undefined) },
     ],
   },
   {
@@ -55,7 +55,7 @@ const GROUPS: MenuGroup[] = [
   {
     title: '维护与诊断',
     items: [
-      { label: '体检（doctor）', hint: '检查 settings.json 配置问题', run: () => doctorCommand() },
+      { label: '体检（doctor）', hint: '检查 settings.json 配置问题（--fix 自动修）', run: () => doctorCommand() },
       { label: '从备份还原', hint: '回滚 settings.json / config.toml', run: () => rollbackCommand() },
       { label: '查看版本 / 检查更新', hint: '本地 + npm latest', run: () => versionCommand({ checkUpdates: true }) },
       { label: '安装代码工具', hint: 'Clavue / Claude Code / Codex', run: () => installCommand(undefined) },
@@ -66,10 +66,9 @@ const GROUPS: MenuGroup[] = [
 ];
 
 /**
- * 中文字符在 monospace 终端通常占 2 列。padEnd 按字符数算不对齐，
- * 这里手动补空格让 hint 对齐到第 22 列。
+ * 中文/全角字符在 monospace 终端通常占 2 列。padEnd 按字符数算不对齐。
  */
-function padToVisibleWidth(s: string, width: number): string {
+function visibleWidth(s: string): number {
   let w = 0;
   for (const ch of s) {
     const code = ch.codePointAt(0) ?? 0;
@@ -78,7 +77,11 @@ function padToVisibleWidth(s: string, width: number): string {
     else if (code >= 0xff00 && code <= 0xffef) w += 2;
     else w += 1;
   }
-  return s + ' '.repeat(Math.max(0, width - w));
+  return w;
+}
+
+function padToVisibleWidth(s: string, width: number): string {
+  return s + ' '.repeat(Math.max(0, width - visibleWidth(s)));
 }
 
 function getVersion(): string {
@@ -121,8 +124,14 @@ export async function menuCommand(): Promise<void> {
     const choices: Choice[] = [];
     let idx = 0;
     const flat: MenuItem[] = [];
+    const SEP_WIDTH = 50;
     for (const g of GROUPS) {
-      choices.push(new inquirer.Separator(ansis.dim(`── ${g.title} ───────────────────────────`)));
+      // 按 visible-width 算横杠数：── 标题 ─...─ 总宽度对齐
+      const titlePart = `── ${g.title} `;
+      const titleW = visibleWidth(titlePart);
+      const dashCount = Math.max(3, SEP_WIDTH - titleW);
+      const sep = `${titlePart}${'─'.repeat(dashCount)}`;
+      choices.push(new inquirer.Separator(ansis.dim(sep)));
       for (const item of g.items) {
         const hint = item.hint ? `  ${ansis.dim(item.hint)}` : '';
         const padded = padToVisibleWidth(item.label, 20);
@@ -131,7 +140,7 @@ export async function menuCommand(): Promise<void> {
         idx++;
       }
     }
-    choices.push(new inquirer.Separator(ansis.dim('──────────────────────────────────────────')));
+    choices.push(new inquirer.Separator(ansis.dim('─'.repeat(SEP_WIDTH))));
     choices.push({ name: ansis.gray('退出 ccjk'), value: -1, short: '退出' });
 
     const { choice } = await inquirer.prompt<{ choice: number }>([{
