@@ -197,3 +197,47 @@ export function detectCodexTier(doc: TomlDoc): PermsTier | null {
   if (ap === 'untrusted' && sm === 'read-only') return 'safe';
   return null;
 }
+
+/**
+ * 清理 permissions.allow 数组：
+ * 1) 删完全重复
+ * 2) 删被更宽泛规则吞没的条目（如已有 `Bash(*)` 就删 `Bash(git status)` 等）
+ * 3) 删已知的无效模式（如 v1 时代误写的 `mcp__.*`）
+ *
+ * 返回清理后的数组 + 删了多少。
+ */
+export function cleanupAllow(allow: string[]): { cleaned: string[]; removed: number } {
+  if (allow.length === 0) return { cleaned: [], removed: 0 };
+
+  // 已知无效模式
+  const invalid = new Set(['mcp__.*', 'mcp__*', 'mcp__(*)']);
+
+  // 先 dedupe
+  const seen = new Set<string>();
+  const dedup = allow.filter((p) => {
+    if (invalid.has(p)) return false;
+    if (seen.has(p)) return false;
+    seen.add(p);
+    return true;
+  });
+
+  // 然后找"宽泛规则" —— 如果某项是 `Foo(*)` 形式，那么所有 `Foo(...)` 都是它的子集
+  // 注意：必须用 startsWith + 紧接 `(` 来判断，避免 `Read(*)` 误吃 `ReadOnly(...)` 这种命名
+  const wide = new Set<string>();
+  for (const p of dedup) {
+    const m = /^([A-Za-z][A-Za-z0-9_-]*)\(\*\)$/.exec(p);
+    if (m) wide.add(m[1]);
+  }
+
+  const cleaned = dedup.filter((p) => {
+    // 自己就是宽泛规则，留着
+    const m = /^([A-Za-z][A-Za-z0-9_-]*)\(/.exec(p);
+    if (!m) return true;
+    const tool = m[1];
+    if (`${tool}(*)` === p) return true;
+    // 被更宽泛规则覆盖 → 删
+    return !wide.has(tool);
+  });
+
+  return { cleaned, removed: allow.length - cleaned.length };
+}

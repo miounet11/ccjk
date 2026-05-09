@@ -19,7 +19,7 @@ import {
   profileUseCommand,
 } from './commands/profile.js';
 import { profileExportCommand, profileImportCommand } from './commands/profile-pack.js';
-import { permsCommand, permsShowCommand } from './commands/perms.js';
+import { permsCleanCommand, permsCommand, permsShowCommand } from './commands/perms.js';
 import { rollbackCommand } from './commands/rollback.js';
 import {
   statusLineCommand,
@@ -36,6 +36,7 @@ import {
 import { workflowListCommand, workflowRunCommand } from './commands/workflow.js';
 import { statusCommand } from './commands/status.js';
 import { completionCommand } from './commands/completion.js';
+import { uninstallCommand } from './commands/uninstall.js';
 
 const pkgPath = join(dirname(fileURLToPath(import.meta.url)), '..', 'package.json');
 const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8')) as { version: string };
@@ -164,6 +165,14 @@ program
   .action(permsShowCommand);
 
 program
+  .command('perms-clean')
+  .description('清理 settings.permissions.allow 的重复/无效/被覆盖条目')
+  .option('--tools <list>', '逗号分隔指定工具，默认 clavue,claude-code')
+  .option('--dry-run', '只展示不写入')
+  .option('-y, --yes', '跳过确认')
+  .action((opts: { tools?: string; dryRun?: boolean; yes?: boolean }) => permsCleanCommand(opts));
+
+program
   .command('doctor')
   .description('检查 settings.json 中的常见配置问题')
   .option('--fix', '自动修复可修的项目（修改前会备份）')
@@ -210,6 +219,13 @@ program
   .command('completion [shell]')
   .description('生成 shell 补全脚本（bash/zsh/fish）')
   .action((shell: string | undefined) => completionCommand(shell));
+
+program
+  .command('uninstall')
+  .description('清理 ccjk 写过的配置（profile / mode / 备份 / statusLine），不动 settings.json 主体')
+  .option('--only <ids>', '只删指定 target（逗号分隔：ccjk-dir,backups,statusline）')
+  .option('-y, --yes', '默认全选并跳过确认')
+  .action((opts: { only?: string; yes?: boolean }) => uninstallCommand(opts));
 
 const mode = program
   .command('mode')

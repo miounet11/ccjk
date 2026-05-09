@@ -3,6 +3,7 @@ import {
   TIERS,
   applyTierToClaudeSettings,
   applyTierToCodexConfig,
+  cleanupAllow,
   detectClaudeTier,
   detectCodexTier,
   getTier,
@@ -128,5 +129,53 @@ describe('detectCodexTier', () => {
   });
   it('未配置返回 null', () => {
     expect(detectCodexTier(parseToml(''))).toBeNull();
+  });
+});
+
+describe('cleanupAllow', () => {
+  it('空数组返回空', () => {
+    const r = cleanupAllow([]);
+    expect(r.cleaned).toEqual([]);
+    expect(r.removed).toBe(0);
+  });
+
+  it('删除完全重复项', () => {
+    const r = cleanupAllow(['Read(*)', 'Read(*)', 'Grep(*)']);
+    expect(r.cleaned).toEqual(['Read(*)', 'Grep(*)']);
+    expect(r.removed).toBe(1);
+  });
+
+  it('删除被宽泛规则覆盖的条目', () => {
+    const r = cleanupAllow(['Bash(*)', 'Bash(git status)', 'Bash(npm:*)', 'Read(*)']);
+    expect(r.cleaned).toEqual(['Bash(*)', 'Read(*)']);
+    expect(r.removed).toBe(2);
+  });
+
+  it('保留没被覆盖的不同 tool', () => {
+    const r = cleanupAllow(['Bash(*)', 'Read(file)', 'Grep(*)']);
+    expect(r.cleaned).toEqual(['Bash(*)', 'Read(file)', 'Grep(*)']);
+    expect(r.removed).toBe(0);
+  });
+
+  it('删除已知无效模式', () => {
+    const r = cleanupAllow(['Read(*)', 'mcp__.*', 'mcp__*', 'mcp__(*)']);
+    expect(r.cleaned).toEqual(['Read(*)']);
+    expect(r.removed).toBe(3);
+  });
+
+  it('Foo(*) 和 FooBar(...) 不混淆（前缀边界）', () => {
+    const r = cleanupAllow(['Read(*)', 'ReadOnly(file)']);
+    expect(r.cleaned).toContain('ReadOnly(file)');
+  });
+
+  it('混合场景', () => {
+    const before = [
+      'Bash(*)', 'Bash(git status)', 'Bash(*)',
+      'Read(*)', 'Grep(*)', 'Read(*)',
+      'mcp__.*',
+      'WebFetch(*)',
+    ];
+    const r = cleanupAllow(before);
+    expect(r.cleaned).toEqual(['Bash(*)', 'Read(*)', 'Grep(*)', 'WebFetch(*)']);
   });
 });

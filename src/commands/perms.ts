@@ -8,6 +8,7 @@ import {
   TIERS,
   applyTierToClaudeSettings,
   applyTierToCodexConfig,
+  cleanupAllow,
   detectClaudeTier,
   detectCodexTier,
   getTier,
@@ -130,4 +131,73 @@ function parseTools(raw: string | undefined): CodeTool[] {
     if (!valid.includes(t)) throw new Error(`未知工具 "${t}"，可选: ${valid.join(', ')}`);
   }
   return items;
+}
+
+export interface PermsCleanOptions {
+  tools?: string;
+  yes?: boolean;
+  dryRun?: boolean;
+}
+
+/**
+ * `ccjk perms clean` — 清理 settings.permissions.allow 里的:
+ * - 完全重复项
+ * - 被更宽泛规则吞没的条目（如已有 Bash(*) 就删所有 Bash(...)）
+ * - 已知无效模式（mcp__.*）
+ *
+ * 场景：经常切档位、手工加过 allow 的老用户，settings.json 会越长越乱。
+ */
+export async function permsCleanCommand(opts: PermsCleanOptions = {}): Promise<void> {
+  const tools = parseTools(opts.tools).filter(t => t !== 'codex') as ('clavue' | 'claude-code')[];
+
+  console.log(ansis.bold('\n清理 permissions.allow\n'));
+
+  const jobs: { tool: CodeTool; before: number; after: number; cleaned: string[]; meta: typeof TOOLS[CodeTool] }[] = [];
+  for (const t of tools) {
+    const meta = TOOLS[t];
+    const settings = await readSettings(meta.settingsFile);
+    const before = settings.permissions?.allow ?? [];
+    if (before.length === 0) {
+      console.log(`  ${meta.displayName.padEnd(14)} ${ansis.gray('allow 为空，无需清理')}`);
+      continue;
+    }
+    const { cleaned, removed } = cleanupAllow(before);
+    if (removed === 0) {
+      console.log(`  ${meta.displayName.padEnd(14)} ${ansis.green('✓ 已干净')}（${before.length} 条）`);
+      continue;
+    }
+    console.log(`  ${meta.displayName.padEnd(14)} ${ansis.yellow(`可清理 ${removed} 条`)}  ${ansis.dim(`${before.length} → ${cleaned.length}`)}`);
+    jobs.push({ tool: t, before: before.length, after: cleaned.length, cleaned, meta });
+  }
+
+  if (jobs.length === 0) {
+    console.log();
+    return;
+  }
+
+  if (opts.dryRun) {
+    console.log(ansis.dim('\n（--dry-run 仅展示，不写入）\n'));
+    return;
+  }
+
+  if (!opts.yes) {
+    console.log();
+    const { ok } = await inquirer.prompt<{ ok: boolean }>([{
+      type: 'confirm', name: 'ok', message: '确认清理？（写入前会备份）', default: true,
+    }]);
+    if (!ok) {
+      console.log(ansis.gray('已取消。\n'));
+      return;
+    }
+  }
+
+  for (const j of jobs) {
+    const settings = await readSettings(j.meta.settingsFile);
+    if (!settings.permissions) settings.permissions = {};
+    settings.permissions.allow = j.cleaned;
+    const backup = await writeSettings(j.meta.settingsFile, settings);
+    console.log(ansis.green(`  ✔ ${j.meta.displayName}: ${j.before} → ${j.after}`));
+    if (backup) console.log(ansis.dim(`    备份: ${backup}`));
+  }
+  console.log();
 }
