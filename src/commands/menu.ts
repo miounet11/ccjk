@@ -9,6 +9,7 @@ import { profileUseCommand } from './profile.js';
 import { permsCommand } from './perms.js';
 import { rollbackCommand } from './rollback.js';
 import { statusLineInstallCommand } from './statusline.js';
+import { installCommand, updateCommand, versionCommand } from './version.js';
 import { listProfiles, readState } from '../core/profiles.js';
 
 const ITEMS = [
@@ -19,8 +20,11 @@ const ITEMS = [
   { key: '5', label: '配置 MCP 服务', run: () => mcpCommand() },
   { key: '6', label: '体检（doctor）', run: () => doctorCommand() },
   { key: '7', label: '从备份还原（rollback）', run: () => rollbackCommand() },
-  { key: '8', label: '安装 Git 命令模板', run: () => gitInstallCommand() },
-  { key: '9', label: '检测已安装的工具', run: async () => detectCommand() },
+  { key: '8', label: '查看工具版本 / 检查更新', run: () => versionCommand({ checkUpdates: true }) },
+  { key: '9', label: '安装代码工具（Clavue/Claude Code/Codex）', run: () => installCommand(undefined) },
+  { key: '0', label: '更新代码工具到最新版', run: () => updateCommand(undefined) },
+  { key: 'g', label: '安装 Git 命令模板', run: () => gitInstallCommand() },
+  { key: 'd', label: '检测已安装的工具', run: async () => detectCommand() },
 ];
 
 export async function menuCommand(): Promise<void> {
@@ -42,7 +46,7 @@ export async function menuCommand(): Promise<void> {
     type: 'input',
     name: 'choice',
     message: '\n选择',
-    validate: (v: string) => /^[1-9q]$/.test(v.trim()) || '输入 1-9 或 q',
+    validate: (v: string) => /^([0-9]|[gdq])$/.test(v.trim()) || '输入有效的选项',
   }]);
 
   if (choice.trim() === 'q') return;

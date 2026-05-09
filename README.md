@@ -46,6 +46,9 @@ ccjk rollback       # 从备份还原 settings.json
 | `ccjk doctor` | 检查 settings.json 中的常见配置问题 |
 | `ccjk doctor --fix` | **自动修复**能修的问题（修改前备份） |
 | `ccjk rollback` | **从备份还原** settings.json / config.toml |
+| `ccjk tools` | **查看 Clavue/Claude Code/Codex 版本**（加 `--check-updates` 查最新） |
+| `ccjk install [tool]` | **安装代码工具**（不带参=交互选；`--all` 装全部缺失的） |
+| `ccjk update [tool]` | **更新代码工具到最新版**（不带参=交互选 outdated；`--all` 全部） |
 | `ccjk detect` | 列出已安装的代码工具 |
 | `ccjk git-install` | 安装 `/ccjk:git-commit` 等 slash 命令模板 |
 
@@ -158,6 +161,33 @@ Sonnet 4.5 1M │ 📁 ccjk │ ⚡ 4.5% 45.0k │ 12 calls · 1.5k tok/m
 - `1.5k tok/m` 或 `80 tok/s` — 今日产出速率（output tokens / 跨度秒数）
 
 实现细节：扫 `~/.claude/projects/*/*.jsonl` 当天 mtime 文件，读 `message.usage` 字段聚合。错误一律 swallow，不会让 Claude Code UI 报红。
+
+### Tools：工具版本管理
+
+三个开发工具（Clavue / Claude Code / Codex）的本地版本、npm 最新版、安装、升级——一条命令搞定。
+
+```bash
+ccjk tools                     # 看本地三个工具的版本
+ccjk tools --check-updates     # 额外查 npm latest，标记 outdated
+
+ccjk install                   # 交互选择要安装的工具
+ccjk install codex             # 安装 Codex
+ccjk install --all             # 装全部缺失的
+
+ccjk update                    # 交互选择 outdated 的工具更新
+ccjk update claude-code        # 更新 Claude Code
+ccjk update --all              # 更新所有 outdated
+```
+
+输出示例：
+
+```
+  Clavue         8.9.2  (latest)
+  Claude Code    2.1.138  (latest)
+  Codex          0.128.0  → 0.130.0 可升级
+```
+
+实现就是 `npm install -g <pkg>` / `npm install -g <pkg>@<latest>`，所有命令执行前都会展示给用户确认。如果 npm 因权限失败，会把建议的 `sudo <cmd>` 打印出来让用户自己跑。加 `--dry-run` 只看命令不执行。
 
 ## 支持
 

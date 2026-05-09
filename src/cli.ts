@@ -24,6 +24,7 @@ import {
   statusLineInstallCommand,
   statusLineUninstallCommand,
 } from './commands/statusline.js';
+import { installCommand, updateCommand, versionCommand } from './commands/version.js';
 
 const pkgPath = join(dirname(fileURLToPath(import.meta.url)), '..', 'package.json');
 const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8')) as { version: string };
@@ -176,6 +177,30 @@ program
   .command('detect')
   .description('检测已安装的代码工具')
   .action(detectCommand);
+
+program
+  .command('tools')
+  .description('查看 Clavue / Claude Code / Codex 的本地版本（加 --check-updates 查最新）')
+  .option('--check-updates', '查询 npm 上的最新版本')
+  .action((opts: { checkUpdates?: boolean }) => versionCommand(opts));
+
+program
+  .command('install [tool]')
+  .description('安装代码工具（不带参=交互选择）')
+  .option('--all', '装全部缺失的工具')
+  .option('--dry-run', '只显示命令不执行')
+  .option('-y, --yes', '跳过确认')
+  .action((tool: string | undefined, opts: { all?: boolean; dryRun?: boolean; yes?: boolean }) =>
+    installCommand(tool, opts));
+
+program
+  .command('update [tool]')
+  .description('升级代码工具到最新版（不带参=交互选 outdated）')
+  .option('--all', '更新全部 outdated 工具')
+  .option('--dry-run', '只显示命令不执行')
+  .option('-y, --yes', '跳过确认')
+  .action((tool: string | undefined, opts: { all?: boolean; dryRun?: boolean; yes?: boolean }) =>
+    updateCommand(tool, opts));
 
 program
   .command('git-install')
