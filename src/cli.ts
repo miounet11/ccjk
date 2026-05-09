@@ -10,6 +10,12 @@ import { doctorCommand } from './commands/doctor.js';
 import { detectCommand } from './commands/detect.js';
 import { gitInstallCommand } from './commands/git-install.js';
 import { menuCommand } from './commands/menu.js';
+import {
+  profileListCommand,
+  profileRmCommand,
+  profileShowCommand,
+  profileUseCommand,
+} from './commands/profile.js';
 
 const pkgPath = join(dirname(fileURLToPath(import.meta.url)), '..', 'package.json');
 const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8')) as { version: string };
@@ -28,8 +34,41 @@ program
   .option('-p, --provider <id>', 'provider id：glm | kimi | minimax | anthropic | custom')
   .option('--base-url <url>', '自定义 base URL')
   .option('--api-key <key>', 'API key 或 auth token')
+  .option('--profile <name>', '同时保存为 profile，跳过交互询问')
   .option('-y, --yes', '跳过确认')
   .action(initCommand);
+
+program
+  .command('use [name]')
+  .description('切换到指定 profile（不带参则交互选择）')
+  .option('-t, --tool <tool>', '目标工具', 'clavue')
+  .option('-y, --yes', '跳过确认')
+  .action((name: string | undefined, opts: { tool?: 'clavue' | 'claude-code' | 'codex'; yes?: boolean }) =>
+    profileUseCommand(name, opts));
+
+const profile = program
+  .command('profile')
+  .description('管理已保存的 API profile');
+profile
+  .command('ls', { isDefault: true })
+  .description('列出所有 profile（标记当前）')
+  .action(profileListCommand);
+profile
+  .command('use [name]')
+  .description('切换到指定 profile')
+  .option('-t, --tool <tool>', '目标工具', 'clavue')
+  .option('-y, --yes', '跳过确认')
+  .action((name: string | undefined, opts: { tool?: 'clavue' | 'claude-code' | 'codex'; yes?: boolean }) =>
+    profileUseCommand(name, opts));
+profile
+  .command('rm [name]')
+  .description('删除 profile')
+  .option('-y, --yes', '跳过确认')
+  .action((name: string | undefined, opts: { yes?: boolean }) => profileRmCommand(name, opts));
+profile
+  .command('show [name]')
+  .description('查看 profile 详情（不带参看当前）')
+  .action((name: string | undefined) => profileShowCommand(name));
 
 program
   .command('mcp')

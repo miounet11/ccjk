@@ -5,6 +5,7 @@ import { TOOLS } from '../core/tools.js';
 import { listProvidersFor } from '../core/providers.js';
 import type { ApiProvider } from '../core/providers.js';
 import { readSettings, writeSettings } from '../core/settings.js';
+import { listProfiles, validateName, writeProfile, writeState } from '../core/profiles.js';
 
 export interface InitOptions {
   tool?: CodeTool;
@@ -12,6 +13,7 @@ export interface InitOptions {
   baseUrl?: string;
   apiKey?: string;
   yes?: boolean;
+  profile?: string;
 }
 
 export async function initCommand(opts: InitOptions = {}): Promise<void> {
@@ -55,7 +57,74 @@ export async function initCommand(opts: InitOptions = {}): Promise<void> {
 
   console.log(ansis.green('\n✔ 配置已写入'));
   if (backup) console.log(ansis.dim(`  备份: ${backup}`));
-  console.log(ansis.dim(`  目标: ${meta.settingsFile}\n`));
+  console.log(ansis.dim(`  目标: ${meta.settingsFile}`));
+
+  await maybeSaveProfile({
+    explicitName: opts.profile,
+    yes: opts.yes ?? false,
+    provider,
+    baseUrl,
+    apiKey,
+  });
+  console.log();
+}
+
+interface SaveProfileArgs {
+  explicitName?: string | undefined;
+  yes: boolean;
+  provider: ApiProvider;
+  baseUrl: string;
+  apiKey: string;
+}
+
+async function maybeSaveProfile(args: SaveProfileArgs): Promise<void> {
+  let name = args.explicitName;
+
+  if (!name && !args.yes) {
+    const { save } = await inquirer.prompt<{ save: boolean }>([{
+      type: 'confirm',
+      name: 'save',
+      message: '保存为 profile？（之后用 `ccjk use` 一键切换）',
+      default: true,
+    }]);
+    if (!save) return;
+    const suggested = await suggestName(args.provider.id);
+    const { input } = await inquirer.prompt<{ input: string }>([{
+      type: 'input',
+      name: 'input',
+      message: 'profile 名称',
+      default: suggested,
+      validate: (s: string) => {
+        try { validateName(s.trim()); return true; }
+        catch (e) { return (e as Error).message; }
+      },
+    }]);
+    name = input.trim();
+  }
+
+  if (!name) return;
+
+  validateName(name);
+  await writeProfile({
+    name,
+    provider: args.provider.id,
+    baseUrl: args.baseUrl,
+    authType: args.provider.authType,
+    apiKey: args.apiKey,
+    ...(args.provider.defaultModel ? { model: args.provider.defaultModel } : {}),
+    ...(args.provider.fastModel ? { fastModel: args.provider.fastModel } : {}),
+    createdAt: new Date().toISOString(),
+  });
+  await writeState({ current: name });
+  console.log(ansis.green(`  Profile: ${name} 已保存（当前激活）`));
+}
+
+async function suggestName(providerId: string): Promise<string> {
+  const existing = (await listProfiles()).map(p => p.name);
+  if (!existing.includes(providerId)) return providerId;
+  let i = 2;
+  while (existing.includes(`${providerId}-${i}`)) i++;
+  return `${providerId}-${i}`;
 }
 
 function resolveProvider(tool: CodeTool, id: string): ApiProvider {

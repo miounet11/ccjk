@@ -16,7 +16,8 @@ npm install -g ccjk
 
 ```bash
 ccjk            # 交互菜单
-ccjk init       # 配置 API
+ccjk init       # 配置 API（同时存为 profile）
+ccjk use        # 一键切换已配过的 API
 ccjk mcp        # 装 MCP 服务
 ccjk doctor     # 检查 settings.json
 ```
@@ -26,16 +27,35 @@ ccjk doctor     # 检查 settings.json
 | 命令 | 用途 |
 |---|---|
 | `ccjk` | 交互菜单（默认） |
-| `ccjk init` | 配置 API：写 `~/.claude/settings.json` 的 env |
+| `ccjk init` | 配置 API：写 `~/.claude/settings.json` 的 env，并保存为 profile |
+| `ccjk use [name]` | **快速切换 profile**（不带参=交互选择） |
+| `ccjk profile ls` | 列出所有 profile（标记当前） |
+| `ccjk profile show [name]` | 查看 profile 详情（不带参=当前） |
+| `ccjk profile rm [name]` | 删除 profile |
 | `ccjk mcp` | 选装预设 MCP 服务（context7、serena、playwright、…） |
 | `ccjk doctor` | 检查 settings.json 中的常见配置问题 |
 | `ccjk detect` | 列出已安装的代码工具 |
 | `ccjk git-install` | 安装 `/ccjk:git-commit` 等 slash 命令模板 |
 
+### Profile：多 API 一键切换
+
+```bash
+ccjk init -t clavue -p glm  --api-key sk-xxx --profile work -y
+ccjk init -t clavue -p kimi --api-key sk-yyy --profile free -y
+
+ccjk use            # 交互选 work / free
+ccjk use free       # 直接切到 free
+ccjk profile ls     # 看当前用的是哪个
+```
+
+切换后需重启 Claude Code 才能生效（settings.json 是启动时读的）。
+
+Profile 存储在 `~/.ccjk/profiles/<name>.json`，当前激活的记录在 `~/.ccjk/state.json`。
+
 ### 非交互模式
 
 ```bash
-ccjk init -t clavue -p glm --api-key sk-xxx -y
+ccjk init -t clavue -p glm --api-key sk-xxx --profile work -y
 ccjk mcp -s context7 serena -y
 ccjk git-install --scope user -y
 ```
