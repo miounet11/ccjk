@@ -19,6 +19,11 @@ import {
 import { profileExportCommand, profileImportCommand } from './commands/profile-pack.js';
 import { permsCommand, permsShowCommand } from './commands/perms.js';
 import { rollbackCommand } from './commands/rollback.js';
+import {
+  statusLineCommand,
+  statusLineInstallCommand,
+  statusLineUninstallCommand,
+} from './commands/statusline.js';
 
 const pkgPath = join(dirname(fileURLToPath(import.meta.url)), '..', 'package.json');
 const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8')) as { version: string };
@@ -147,6 +152,25 @@ program
   .option('-t, --tool <tool>', '只看一个工具的备份')
   .option('-y, --yes', '跳过确认')
   .action((opts: { tool?: 'clavue' | 'claude-code' | 'codex'; yes?: boolean }) => rollbackCommand(opts));
+
+program
+  .command('statusline')
+  .description('（被 Claude Code 调用）从 stdin 读 JSON，输出状态栏一行')
+  .action(statusLineCommand);
+
+program
+  .command('statusline-install')
+  .description('安装 ccjk statusline 到 Claude Code/Clavue（写 settings.json）')
+  .option('-t, --tool <tool>', '目标工具')
+  .option('-y, --yes', '跳过确认')
+  .action((opts: { tool?: 'clavue' | 'claude-code' | 'codex'; yes?: boolean }) => statusLineInstallCommand(opts));
+
+program
+  .command('statusline-uninstall')
+  .description('卸载 ccjk statusline')
+  .option('-t, --tool <tool>', '目标工具')
+  .option('-y, --yes', '跳过确认')
+  .action((opts: { tool?: 'clavue' | 'claude-code' | 'codex'; yes?: boolean }) => statusLineUninstallCommand(opts));
 
 program
   .command('detect')

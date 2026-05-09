@@ -37,6 +37,8 @@ ccjk rollback       # 从备份还原 settings.json
 | `ccjk profile import <file>` | **从 JSON 包导入 profile** |
 | `ccjk perms [tier]` | **一键设权限档位**（safe/standard/yolo），同时作用于 clavue/claude-code/codex |
 | `ccjk perms-show` | 查看三个工具当前的权限状态 |
+| `ccjk statusline-install` | **安装状态栏**：模型 / 目录 / context 用量 / 今日调用 / 速率 |
+| `ccjk statusline-uninstall` | 卸载状态栏 |
 | `ccjk mcp` | 选装预设 MCP 服务（交互勾选） |
 | `ccjk mcp-ls` | 列出已安装的 MCP |
 | `ccjk mcp-add [name]` | 添加自定义 MCP 服务 |
@@ -132,6 +134,30 @@ ccjk rollback -t clavue       # 只看一个工具的备份
 ```
 
 还原前会再备份一份当前状态，所以**还原本身也可还原**。
+
+### Statusline：底部状态栏
+
+显示模型、当前目录、context 用量、今日 API 调用次数、tokens 速率。
+
+```bash
+ccjk statusline-install        # 写入 settings.statusLine（重启 Claude Code 生效）
+ccjk statusline-uninstall      # 卸载
+```
+
+效果（一行）：
+
+```
+Sonnet 4.5 1M │ 📁 ccjk │ ⚡ 4.5% 45.0k │ 12 calls · 1.5k tok/m
+```
+
+字段含义：
+- `Sonnet 4.5 1M` — 模型名 + context window 大小（1M / 200k）
+- `📁 ccjk` — 当前工作目录的 basename（home 显示为 `~`）
+- `⚡ 4.5% 45.0k` — context 已用百分比 + 当前 token 数
+- `12 calls` — 今日总 API 调用数（聚合所有 transcripts）
+- `1.5k tok/m` 或 `80 tok/s` — 今日产出速率（output tokens / 跨度秒数）
+
+实现细节：扫 `~/.claude/projects/*/*.jsonl` 当天 mtime 文件，读 `message.usage` 字段聚合。错误一律 swallow，不会让 Claude Code UI 报红。
 
 ## 支持
 
