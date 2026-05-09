@@ -10,6 +10,8 @@ import {
   readProfile,
   readState,
   removeProfile,
+  validateName,
+  writeProfile,
   writeState,
 } from '../core/profiles.js';
 import type { Profile } from '../core/profiles.js';
@@ -176,4 +178,170 @@ async function pickProfile(profiles: Profile[], message = '选择 Profile'): Pro
     })),
   }]);
   return profiles.find(p => p.name === name);
+}
+
+/**
+ * 基于现有 profile 复制一份。源 profile 不变；副本会询问要不要修改 apiKey/baseUrl/model。
+ * 用例：把 work 复制成 work-staging，只改 apiKey 和 baseUrl。
+ */
+export async function profileCopyCommand(
+  fromName: string | undefined,
+  toName: string | undefined,
+  opts: { yes?: boolean } = {},
+): Promise<void> {
+  const profiles = await listProfiles();
+  if (profiles.length === 0) {
+    console.log(ansis.gray('\n没有 profile 可复制。\n'));
+    return;
+  }
+
+  const source = fromName ? findOrExit(profiles, fromName) : await pickProfile(profiles, '选择源 profile');
+  if (!source) return;
+
+  let target = toName;
+  if (!target) {
+    const suggested = await suggestCopyName(source.name);
+    const { v } = await inquirer.prompt<{ v: string }>([{
+      type: 'input',
+      name: 'v',
+      message: '新 profile 名称',
+      default: suggested,
+      validate: (s: string) => {
+        try { validateName(s.trim()); return true; }
+        catch (e) { return (e as Error).message; }
+      },
+    }]);
+    target = v.trim();
+  }
+  validateName(target);
+
+  if (target === source.name) {
+    throw new Error('新名称不能与源相同');
+  }
+  if (profiles.some(p => p.name === target)) {
+    throw new Error(`profile "${target}" 已存在`);
+  }
+
+  // 复制 + 可选改字段
+  const copy: Profile = { ...source, name: target, createdAt: new Date().toISOString() };
+
+  if (!opts.yes) {
+    const { fields } = await inquirer.prompt<{ fields: string[] }>([{
+      type: 'checkbox',
+      name: 'fields',
+      message: '要修改哪些字段？（默认全保留源 profile）',
+      choices: [
+        { name: 'API Key / Auth Token', value: 'apiKey' },
+        { name: 'Base URL', value: 'baseUrl' },
+        { name: 'Main model', value: 'model' },
+        { name: 'Haiku model（fastModel）', value: 'fastModel' },
+      ],
+    }]);
+    for (const f of fields) {
+      if (f === 'apiKey') {
+        const { v } = await inquirer.prompt<{ v: string }>([{
+          type: 'password', name: 'v', message: '新 API Key / Auth Token', mask: '*',
+          validate: (s: string) => s.trim().length > 0 || '不能为空',
+        }]);
+        copy.apiKey = v.trim();
+      }
+      else if (f === 'baseUrl') {
+        const { v } = await inquirer.prompt<{ v: string }>([{
+          type: 'input', name: 'v', message: '新 Base URL', default: source.baseUrl,
+          validate: (s: string) => s.trim().length > 0 || '不能为空',
+        }]);
+        copy.baseUrl = v.trim();
+      }
+      else if (f === 'model') {
+        const { v } = await inquirer.prompt<{ v: string }>([{
+          type: 'input', name: 'v', message: '新 Main model', default: source.model ?? '',
+        }]);
+        if (v.trim()) copy.model = v.trim();
+        else delete copy.model;
+      }
+      else if (f === 'fastModel') {
+        const { v } = await inquirer.prompt<{ v: string }>([{
+          type: 'input', name: 'v', message: '新 Haiku model', default: source.fastModel ?? '',
+        }]);
+        if (v.trim()) copy.fastModel = v.trim();
+        else delete copy.fastModel;
+      }
+    }
+  }
+
+  await writeProfile(copy);
+  console.log(ansis.green(`\n✔ 已复制 profile: ${source.name} → ${target}`));
+  console.log(ansis.dim(`  用 \`ccjk use ${target}\` 切换到它\n`));
+}
+
+/**
+ * 重命名 profile：删旧文件，写新文件。如果当前激活的是这个，state 也跟着改。
+ */
+export async function profileRenameCommand(
+  oldName: string | undefined,
+  newName: string | undefined,
+  opts: { yes?: boolean } = {},
+): Promise<void> {
+  const profiles = await listProfiles();
+  if (profiles.length === 0) {
+    console.log(ansis.gray('\n没有 profile 可重命名。\n'));
+    return;
+  }
+
+  const source = oldName ? findOrExit(profiles, oldName) : await pickProfile(profiles, '选择要重命名的 profile');
+  if (!source) return;
+
+  let target = newName;
+  if (!target) {
+    const { v } = await inquirer.prompt<{ v: string }>([{
+      type: 'input',
+      name: 'v',
+      message: '新名称',
+      validate: (s: string) => {
+        try { validateName(s.trim()); return true; }
+        catch (e) { return (e as Error).message; }
+      },
+    }]);
+    target = v.trim();
+  }
+  validateName(target);
+
+  if (target === source.name) {
+    throw new Error('新名称跟旧的相同');
+  }
+  if (profiles.some(p => p.name === target)) {
+    throw new Error(`profile "${target}" 已存在`);
+  }
+
+  if (!opts.yes) {
+    const { ok } = await inquirer.prompt<{ ok: boolean }>([{
+      type: 'confirm',
+      name: 'ok',
+      message: `重命名 ${source.name} → ${target}？`,
+      default: true,
+    }]);
+    if (!ok) {
+      console.log(ansis.gray('已取消。\n'));
+      return;
+    }
+  }
+
+  // 写新名字 → 删旧名字 → 修当前 state（如果命中）
+  const renamed: Profile = { ...source, name: target };
+  await writeProfile(renamed);
+  await removeProfile(source.name);
+  const state = await readState();
+  if (state.current === source.name) {
+    await writeState({ current: target });
+  }
+
+  console.log(ansis.green(`\n✔ 已重命名: ${source.name} → ${target}`));
+  console.log(ansis.dim('  注意：settings.json 没改，下次 `ccjk use` 切换才会更新\n'));
+}
+
+async function suggestCopyName(base: string): Promise<string> {
+  const existing = (await listProfiles()).map(p => p.name);
+  let i = 2;
+  while (existing.includes(`${base}-${i}`)) i++;
+  return `${base}-${i}`;
 }

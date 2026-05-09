@@ -121,6 +121,42 @@ describe('state', () => {
   });
 });
 
+describe('profile copy/rename 语义（在 listProfiles 上验证）', () => {
+  it('复制后两份独立存在', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'ccjk-'));
+    try {
+      const original = P({ name: 'work' });
+      await writeProfile(original, dir);
+      const copy: Profile = { ...original, name: 'work-2', createdAt: new Date().toISOString() };
+      await writeProfile(copy, dir);
+      const list = await listProfiles(dir);
+      expect(list.map(p => p.name).sort()).toEqual(['work', 'work-2']);
+      // 改副本不影响原版
+      const copyLoaded = await readProfile('work-2', dir);
+      expect(copyLoaded?.apiKey).toBe(original.apiKey);
+    }
+    finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('rename = write new + remove old', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'ccjk-'));
+    try {
+      await writeProfile(P({ name: 'old' }), dir);
+      const loaded = await readProfile('old', dir);
+      // 模拟 rename
+      await writeProfile({ ...loaded!, name: 'new' }, dir);
+      await removeProfile('old', dir);
+      const list = await listProfiles(dir);
+      expect(list.map(p => p.name)).toEqual(['new']);
+    }
+    finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+});
+
 describe('applyProfileToSettings', () => {
   it('auth_token 写 AUTH_TOKEN 清 API_KEY', () => {
     const s: { env?: Record<string, string>; model?: string } = { env: { ANTHROPIC_API_KEY: 'old' } };

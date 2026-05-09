@@ -11,7 +11,9 @@ import { detectCommand } from './commands/detect.js';
 import { gitInstallCommand } from './commands/git-install.js';
 import { menuCommand } from './commands/menu.js';
 import {
+  profileCopyCommand,
   profileListCommand,
+  profileRenameCommand,
   profileRmCommand,
   profileShowCommand,
   profileUseCommand,
@@ -32,6 +34,8 @@ import {
   modeUseCommand,
 } from './commands/mode.js';
 import { workflowListCommand, workflowRunCommand } from './commands/workflow.js';
+import { statusCommand } from './commands/status.js';
+import { completionCommand } from './commands/completion.js';
 
 const pkgPath = join(dirname(fileURLToPath(import.meta.url)), '..', 'package.json');
 const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8')) as { version: string };
@@ -85,6 +89,18 @@ profile
   .command('show [name]')
   .description('查看 profile 详情（不带参看当前）')
   .action((name: string | undefined) => profileShowCommand(name));
+profile
+  .command('copy [from] [to]')
+  .description('复制 profile（可选改 apiKey/baseUrl/model 字段）')
+  .option('-y, --yes', '跳过修改字段询问，原样复制')
+  .action((from: string | undefined, to: string | undefined, opts: { yes?: boolean }) =>
+    profileCopyCommand(from, to, opts));
+profile
+  .command('rename [old] [new]')
+  .description('重命名 profile')
+  .option('-y, --yes', '跳过确认')
+  .action((oldName: string | undefined, newName: string | undefined, opts: { yes?: boolean }) =>
+    profileRenameCommand(oldName, newName, opts));
 profile
   .command('export')
   .description('导出 profile 为 JSON 包（方便迁移到其它机器）')
@@ -184,6 +200,16 @@ program
   .command('detect')
   .description('检测已安装的代码工具')
   .action(detectCommand);
+
+program
+  .command('status')
+  .description('显示完整状态（profile / perms / mode / 工具版本 / MCP / 工作流）')
+  .action(statusCommand);
+
+program
+  .command('completion [shell]')
+  .description('生成 shell 补全脚本（bash/zsh/fish）')
+  .action((shell: string | undefined) => completionCommand(shell));
 
 const mode = program
   .command('mode')

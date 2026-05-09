@@ -30,6 +30,7 @@ npm install -g ccjk
 | 写入出错想还原 | `ccjk rollback` |
 | 跨机器迁移配置 | `ccjk profile export` / `import` |
 | 不想记命令 | `ccjk`（交互菜单） |
+| 想一眼看全配置状态 | `ccjk status` |
 
 ## 命令一览
 
@@ -51,6 +52,8 @@ npm install -g ccjk
 | `ccjk init` | 配 API：写 `~/.claude/settings.json` 的 env，并自动保存为 profile |
 | `ccjk use [name]` | 一键切换 profile（不带参=交互选） |
 | `ccjk profile ls` / `show` / `rm` | profile 列表 / 详情 / 删除 |
+| `ccjk profile copy <from> <to>` | 基于现有 profile 复制（可选改 apiKey/baseUrl/model） |
+| `ccjk profile rename <old> <new>` | 重命名 profile |
 | `ccjk profile export` | 导出 profile 为 JSON 包（迁移 / 团队共享） |
 | `ccjk profile import <file>` | 从 JSON 包导入 profile |
 
@@ -99,6 +102,8 @@ npm install -g ccjk
 | 命令 | 用途 |
 |---|---|
 | `ccjk` | 交互菜单（默认） |
+| `ccjk status` | **一眼看全**：profile / perms / mode / 工具版本 / MCP / 工作流 |
+| `ccjk completion <shell>` | 生成 bash/zsh/fish 补全脚本 |
 | `ccjk detect` | 列出已安装的代码工具 |
 | `ccjk git-install` | 安装 `/ccjk:git-commit` 等 slash 命令模板 |
 
@@ -332,9 +337,19 @@ v15 是从零重写的精简版本，命令集和行为都和 v14.x 不兼容：
 ```bash
 pnpm install
 pnpm typecheck    # TypeScript 检查
-pnpm test         # 跑全部测试（>100 测试）
+pnpm test         # 跑全部测试（>150 测试）
 pnpm lint         # ESLint
 pnpm build        # tsc 出 dist/
+```
+
+CI 在每次 PR / push 到 main 时自动跑（Node 20 + 22 矩阵）。
+
+### Shell 补全
+
+```bash
+ccjk completion bash > /usr/local/etc/bash_completion.d/ccjk
+ccjk completion zsh  > "${fpath[1]}/_ccjk"   # 然后 compinit
+ccjk completion fish > ~/.config/fish/completions/ccjk.fish
 ```
 
 ## 许可

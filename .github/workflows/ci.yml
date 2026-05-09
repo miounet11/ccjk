@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: Test (Node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['20', '22']
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: 'pnpm'
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm typecheck
+
+      - run: pnpm lint
+
+      - run: pnpm test
+
+      - run: pnpm build
+
+      - name: Smoke test built CLI
+        run: |
+          node dist/cli.js --version
+          node dist/cli.js --help
+          node dist/cli.js status
+          node dist/cli.js completion bash > /tmp/ccjk.bash
+          node dist/cli.js completion zsh > /tmp/ccjk.zsh
+          node dist/cli.js completion fish > /tmp/ccjk.fish
+          test -s /tmp/ccjk.bash
+          test -s /tmp/ccjk.zsh
+          test -s /tmp/ccjk.fish
