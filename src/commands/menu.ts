@@ -77,19 +77,17 @@ async function maintenanceSubMenu(): Promise<void> {
   ];
 
   const { choice } = await inquirer.prompt<{ choice: number }>([{
-    type: 'list',
+    type: 'rawlist',
     name: 'choice',
     message: ansis.bold('维护与诊断'),
-    pageSize: 10,
-    loop: false,
     choices: [
       ...SUB_ITEMS.map((it, i) => ({
-        name: `${padToVisibleWidth(it.label, 20)}  ${ansis.dim(it.hint ?? '')}`,
+        name: `${padToVisibleWidth(it.label, 22)}  ${ansis.dim(it.hint ?? '')}`,
         value: i,
         short: it.label,
       })),
-      new inquirer.Separator(),
-      { name: ansis.gray('返回主菜单'), value: -1, short: '返回' },
+      new inquirer.Separator(' '),
+      { name: '返回主菜单', value: -1, key: 'b', short: '返回' },
     ],
   }]);
 
@@ -138,36 +136,37 @@ export async function menuCommand(): Promise<void> {
 
   // 循环：执行完一个动作回到菜单首页，直到用户主动选"退出"。
   while (true) {
-    type Choice = { name: string; value: number; short?: string } | typeof inquirer.Separator.prototype;
+    type Choice =
+      | { name: string; value: number; short?: string; key?: string }
+      | typeof inquirer.Separator.prototype;
     const choices: Choice[] = [];
     let idx = 0;
     const flat: MenuItem[] = [];
-    const SEP_WIDTH = 50;
+    const SEP_WIDTH = 54;
     for (const g of GROUPS) {
       // 按 visible-width 算横杠数：── 标题 ─...─ 总宽度对齐
       const titlePart = `── ${g.title} `;
       const titleW = visibleWidth(titlePart);
       const dashCount = Math.max(3, SEP_WIDTH - titleW);
       const sep = `${titlePart}${'─'.repeat(dashCount)}`;
-      choices.push(new inquirer.Separator(ansis.dim(sep)));
+      choices.push(new inquirer.Separator(ansis.cyan(sep)));
       for (const item of g.items) {
         const hint = item.hint ? `  ${ansis.dim(item.hint)}` : '';
-        const padded = padToVisibleWidth(item.label, 20);
+        const padded = padToVisibleWidth(item.label, 22);
         choices.push({ name: `${padded}${hint}`, value: idx, short: item.label });
         flat.push(item);
         idx++;
       }
     }
-    choices.push(new inquirer.Separator(ansis.dim('─'.repeat(SEP_WIDTH))));
-    choices.push({ name: ansis.gray('退出 ccjk'), value: -1, short: '退出' });
+    // 退出项放在分隔符下方，自定义 key='q'（rawlist 支持），让用户输 q 退出
+    choices.push(new inquirer.Separator(' '));
+    choices.push({ name: ansis.bold.red('退出 ccjk'), value: -1, key: 'q', short: '退出' });
 
     const { choice } = await inquirer.prompt<{ choice: number }>([{
-      type: 'list',
+      type: 'rawlist',
       name: 'choice',
-      message: ansis.bold('选择操作'),
+      message: ansis.bold('选择操作（输数字 + 回车，q 退出）'),
       choices,
-      pageSize: 22,
-      loop: false,
     }]);
 
     if (choice < 0) {
@@ -184,18 +183,14 @@ export async function menuCommand(): Promise<void> {
       console.log(ansis.red(`\n✗ ${item.label} 执行失败: ${(e as Error).message}\n`));
     }
 
-    // 给用户一秒看输出。回车回菜单，q 直接退出。
-    const { next } = await inquirer.prompt<{ next: 'menu' | 'quit' }>([{
-      type: 'list',
-      name: 'next',
-      message: ansis.dim('完成。'),
-      default: 'menu',
-      choices: [
-        { name: '回菜单', value: 'menu' },
-        { name: ansis.gray('退出 ccjk'), value: 'quit' },
-      ],
+    // 完成提示用 confirm —— 回车直接回菜单（默认 yes），输 n 退出。比 list 少一次方向键。
+    const { again } = await inquirer.prompt<{ again: boolean }>([{
+      type: 'confirm',
+      name: 'again',
+      message: ansis.dim('完成。回菜单？（n 退出）'),
+      default: true,
     }]);
-    if (next === 'quit') {
+    if (!again) {
       console.log();
       return;
     }
