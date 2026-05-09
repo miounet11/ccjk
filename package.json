@@ -1,7 +1,7 @@
 {
   "name": "ccjk",
-  "version": "15.6.0",
-  "description": "Clavue / Claude Code 配置 CLI — init、API、MCP、doctor、git 模板。一条命令搞定。",
+  "version": "15.6.1",
+  "description": "Clavue / Claude Code / Codex 的本地配置 CLI — profile 切换、权限档位、状态栏、MCP、版本管理，一条命令搞定。",
   "type": "module",
   "bin": {
     "ccjk": "./dist/cli.js"
@@ -31,7 +31,10 @@
     "anthropic",
     "ai-coding",
     "developer-tools",
-    "config"
+    "config",
+    "profile",
+    "statusline",
+    "permissions"
   ],
   "author": {
     "name": "CCJK Team",
