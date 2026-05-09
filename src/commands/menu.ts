@@ -129,22 +129,17 @@ function getVersion(): string {
 
 export async function menuCommand(): Promise<void> {
   // 循环：执行完一个动作回到菜单首页，直到用户主动选"退出"。
-  // banner 只在第一次进入时打印，避免重复刷屏。
   let firstRound = true;
 
   while (true) {
-    if (firstRound) {
-      console.log();
-      console.log(renderBanner(getVersion()));
-      console.log();
-      firstRound = false;
+    // 每轮都重打 banner（保持品牌一致性）。第二轮起先清屏，避免历史输出叠加。
+    if (!firstRound && process.stdout.isTTY) {
+      process.stdout.write('\x1Bc');
     }
-    else {
-      // 第二次以后只清屏不重打 banner（保留品牌但不嘈杂）
-      // 用 ANSI 清屏 + 重置光标。终端不支持就降级成空行分隔。
-      if (process.stdout.isTTY) process.stdout.write('\x1Bc');
-      console.log();
-    }
+    firstRound = false;
+    console.log();
+    console.log(renderBanner(getVersion()));
+    console.log();
 
     // 状态实时刷新——用户可能刚改了 profile / perms，状态条要跟上
     const status = await collectStatus();
