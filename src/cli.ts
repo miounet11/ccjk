@@ -1,4 +1,7 @@
 #!/usr/bin/env node
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { Command } from 'commander';
 import ansis from 'ansis';
 import { initCommand } from './commands/init.js';
@@ -8,12 +11,15 @@ import { detectCommand } from './commands/detect.js';
 import { gitInstallCommand } from './commands/git-install.js';
 import { menuCommand } from './commands/menu.js';
 
+const pkgPath = join(dirname(fileURLToPath(import.meta.url)), '..', 'package.json');
+const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8')) as { version: string };
+
 const program = new Command();
 
 program
   .name('ccjk')
   .description('Clavue / Claude Code 配置 CLI')
-  .version('0.1.0');
+  .version(pkg.version);
 
 program
   .command('init')

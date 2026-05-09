@@ -1,25 +1,52 @@
 {
   "name": "ccjk",
-  "version": "0.1.0",
-  "description": "Clavue/Claude Code/Codex 配置 CLI - 一键 init、API、MCP、doctor、git 工具",
+  "version": "15.0.0",
+  "description": "Clavue / Claude Code 配置 CLI — init、API、MCP、doctor、git 模板。一条命令搞定。",
   "type": "module",
   "bin": {
     "ccjk": "./dist/cli.js"
   },
   "files": [
-    "dist"
+    "dist",
+    "README.md",
+    "LICENSE"
   ],
   "engines": {
     "node": ">=20"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/miounet11/ccjk.git"
+  },
+  "homepage": "https://github.com/miounet11/ccjk#readme",
+  "bugs": {
+    "url": "https://github.com/miounet11/ccjk/issues"
+  },
+  "keywords": [
+    "clavue",
+    "claude-code",
+    "codex",
+    "cli",
+    "mcp",
+    "anthropic",
+    "ai-coding",
+    "developer-tools",
+    "config"
+  ],
+  "author": {
+    "name": "CCJK Team",
+    "email": "9248293@gmail.com"
+  },
+  "license": "MIT",
   "scripts": {
     "dev": "tsx src/cli.ts",
-    "build": "tsc -p tsconfig.build.json",
+    "build": "tsc -p tsconfig.build.json && chmod +x dist/cli.js",
     "start": "node dist/cli.js",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src tests --ext .ts",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "prepublishOnly": "pnpm typecheck && pnpm test && pnpm build"
   },
   "dependencies": {
     "ansis": "^4.0.1",
