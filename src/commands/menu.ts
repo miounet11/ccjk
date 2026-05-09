@@ -55,15 +55,45 @@ const GROUPS: MenuGroup[] = [
   {
     title: '维护与诊断',
     items: [
-      { label: '体检（doctor）', hint: '检查 settings.json 配置问题（--fix 自动修）', run: () => doctorCommand() },
+      { label: '更新与检测', hint: '体检 / 版本 / 安装 / 升级 / 检测（合并入口）', run: () => maintenanceSubMenu() },
       { label: '从备份还原', hint: '回滚 settings.json / config.toml', run: () => rollbackCommand() },
-      { label: '查看版本 / 检查更新', hint: '本地 + npm latest', run: () => versionCommand({ checkUpdates: true }) },
-      { label: '安装代码工具', hint: 'Clavue / Claude Code / Codex', run: () => installCommand(undefined) },
-      { label: '更新代码工具', hint: '升级到最新版', run: () => updateCommand(undefined) },
-      { label: '检测已安装的工具', hint: '看哪些已装哪些没装', run: async () => detectCommand() },
     ],
   },
 ];
+
+/**
+ * 维护与诊断的二级菜单。把 5 个低频维护动作合并到一个入口，避免主菜单太长。
+ * 选完跑完直接 return，外层 menuCommand 的循环会回到主菜单。
+ */
+async function maintenanceSubMenu(): Promise<void> {
+  const SUB_ITEMS: MenuItem[] = [
+    { label: '体检（doctor）', hint: '检查 settings.json 配置问题（--fix 自动修）', run: () => doctorCommand() },
+    { label: '查看版本 / 检查更新', hint: '本地 + npm latest', run: () => versionCommand({ checkUpdates: true }) },
+    { label: '安装代码工具', hint: 'Clavue / Claude Code / Codex', run: () => installCommand(undefined) },
+    { label: '更新代码工具', hint: '升级到最新版', run: () => updateCommand(undefined) },
+    { label: '检测已安装的工具', hint: '看哪些已装哪些没装', run: async () => detectCommand() },
+  ];
+
+  const { choice } = await inquirer.prompt<{ choice: number }>([{
+    type: 'list',
+    name: 'choice',
+    message: ansis.bold('维护与诊断'),
+    pageSize: 10,
+    loop: false,
+    choices: [
+      ...SUB_ITEMS.map((it, i) => ({
+        name: `${padToVisibleWidth(it.label, 20)}  ${ansis.dim(it.hint ?? '')}`,
+        value: i,
+        short: it.label,
+      })),
+      new inquirer.Separator(),
+      { name: ansis.gray('返回主菜单'), value: -1, short: '返回' },
+    ],
+  }]);
+
+  if (choice < 0) return;
+  await SUB_ITEMS[choice].run();
+}
 
 /**
  * 中文/全角字符在 monospace 终端通常占 2 列。padEnd 按字符数算不对齐。
