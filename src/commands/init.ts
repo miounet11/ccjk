@@ -14,6 +14,19 @@ export interface InitOptions {
   apiKey?: string;
   yes?: boolean;
   profile?: string;
+  /** 单 model 模式下的 main model；multiSlot 时被忽略，走交互填四槽位 */
+  model?: string;
+  /** multiSlot 槽位（命令行参数）；交互模式下会逐个询问 */
+  haikuModel?: string;
+  sonnetModel?: string;
+  opusModel?: string;
+}
+
+export interface ModelSlots {
+  main?: string;
+  haiku?: string;
+  sonnet?: string;
+  opus?: string;
 }
 
 export async function initCommand(opts: InitOptions = {}): Promise<void> {
@@ -30,13 +43,23 @@ export async function initCommand(opts: InitOptions = {}): Promise<void> {
     ? resolveProvider(tool, opts.provider)
     : await pickProvider(tool);
 
-  const baseUrl = opts.baseUrl ?? (provider.id === 'custom' ? await askInput('Base URL (例如 https://api.example.com)') : provider.baseUrl);
+  const baseUrl = opts.baseUrl
+    ?? (provider.baseUrl || await askInput('Base URL (例如 https://api.example.com)'));
   const apiKey = opts.apiKey ?? await askInput(provider.authType === 'api_key' ? 'API Key' : 'Auth Token', true);
+
+  // 多 slot 模式（GPT/混合网关）：分别问 main/haiku/sonnet/opus
+  // 单 slot 模式：使用 provider 的默认 model（或用户在 --model 显式指定的）
+  const slots = await collectModelSlots(provider, opts);
 
   console.log(ansis.dim(`\n→ 配置目标: ${meta.settingsFile}`));
   console.log(ansis.dim(`→ Provider: ${provider.name}`));
   console.log(ansis.dim(`→ Base URL: ${baseUrl}`));
-  console.log(ansis.dim(`→ Auth: ${provider.authType}\n`));
+  console.log(ansis.dim(`→ Auth: ${provider.authType}`));
+  if (slots.main) console.log(ansis.dim(`→ Main model: ${slots.main}`));
+  if (slots.haiku) console.log(ansis.dim(`→ Haiku 槽: ${slots.haiku}`));
+  if (slots.sonnet) console.log(ansis.dim(`→ Sonnet 槽: ${slots.sonnet}`));
+  if (slots.opus) console.log(ansis.dim(`→ Opus 槽: ${slots.opus}`));
+  console.log();
 
   if (!opts.yes) {
     const { ok } = await inquirer.prompt<{ ok: boolean }>([{
@@ -52,7 +75,7 @@ export async function initCommand(opts: InitOptions = {}): Promise<void> {
   }
 
   const settings = await readSettings(meta.settingsFile);
-  applyApiToSettings(settings, baseUrl, apiKey, provider);
+  applyApiToSettings(settings, baseUrl, apiKey, provider, slots);
   const backup = await writeSettings(meta.settingsFile, settings);
 
   console.log(ansis.green('\n✔ 配置已写入'));
@@ -65,8 +88,55 @@ export async function initCommand(opts: InitOptions = {}): Promise<void> {
     provider,
     baseUrl,
     apiKey,
+    slots,
   });
   console.log();
+}
+
+/**
+ * 根据 provider 类型决定要问几个 model 槽位。
+ *
+ * - multiSlot=true（GPT 网关）：依次问 main/haiku/sonnet/opus，每个有默认值，回车即可跳过单个
+ * - 单 slot：用 provider.defaultModel 或 --model 参数，不交互
+ */
+async function collectModelSlots(provider: ApiProvider, opts: InitOptions): Promise<ModelSlots> {
+  if (!provider.multiSlot) {
+    return { ...(opts.model ? { main: opts.model } : provider.defaultModel ? { main: provider.defaultModel } : {}) };
+  }
+
+  // 命令行已经把全部槽位都给了 → 不交互
+  if (opts.yes || (opts.model && opts.haikuModel && opts.sonnetModel && opts.opusModel)) {
+    return {
+      ...(opts.model ?? provider.defaultModel ? { main: opts.model ?? provider.defaultModel } : {}),
+      ...(opts.haikuModel ?? provider.fastModel ? { haiku: opts.haikuModel ?? provider.fastModel } : {}),
+      ...(opts.sonnetModel ?? provider.sonnetModel ? { sonnet: opts.sonnetModel ?? provider.sonnetModel } : {}),
+      ...(opts.opusModel ?? provider.opusModel ? { opus: opts.opusModel ?? provider.opusModel } : {}),
+    } as ModelSlots;
+  }
+
+  console.log(ansis.dim('\n配置 model 槽位（直接回车=用建议值；输入空格再回车=该槽不写）：\n'));
+  const main = await askModelSlot('Main model', opts.model ?? provider.defaultModel ?? '');
+  const haiku = await askModelSlot('Haiku 槽（快速 / 简单任务）', opts.haikuModel ?? provider.fastModel ?? '');
+  const sonnet = await askModelSlot('Sonnet 槽（执行 / 中等任务）', opts.sonnetModel ?? provider.sonnetModel ?? '');
+  const opus = await askModelSlot('Opus 槽（规划 / 复杂任务）', opts.opusModel ?? provider.opusModel ?? '');
+
+  return {
+    ...(main ? { main } : {}),
+    ...(haiku ? { haiku } : {}),
+    ...(sonnet ? { sonnet } : {}),
+    ...(opus ? { opus } : {}),
+  };
+}
+
+async function askModelSlot(message: string, defaultValue: string): Promise<string> {
+  const { v } = await inquirer.prompt<{ v: string }>([{
+    type: 'input',
+    name: 'v',
+    message,
+    default: defaultValue || undefined,
+  }]);
+  // 输入空格表示"清空这个槽位"
+  return v.trim();
 }
 
 interface SaveProfileArgs {
@@ -75,6 +145,7 @@ interface SaveProfileArgs {
   provider: ApiProvider;
   baseUrl: string;
   apiKey: string;
+  slots: ModelSlots;
 }
 
 async function maybeSaveProfile(args: SaveProfileArgs): Promise<void> {
@@ -111,8 +182,8 @@ async function maybeSaveProfile(args: SaveProfileArgs): Promise<void> {
     baseUrl: args.baseUrl,
     authType: args.provider.authType,
     apiKey: args.apiKey,
-    ...(args.provider.defaultModel ? { model: args.provider.defaultModel } : {}),
-    ...(args.provider.fastModel ? { fastModel: args.provider.fastModel } : {}),
+    ...(args.slots.main ? { model: args.slots.main } : {}),
+    ...(args.slots.haiku ? { fastModel: args.slots.haiku } : {}),
     createdAt: new Date().toISOString(),
   });
   await writeState({ current: name });
@@ -172,11 +243,22 @@ async function askInput(message: string, mask = false): Promise<string> {
   return v.trim();
 }
 
+/**
+ * 写 settings.env：
+ * - 总是写 ANTHROPIC_BASE_URL + 凭证
+ * - main slot → ANTHROPIC_MODEL
+ * - haiku slot → ANTHROPIC_DEFAULT_HAIKU_MODEL
+ * - sonnet slot → ANTHROPIC_DEFAULT_SONNET_MODEL
+ * - opus slot → ANTHROPIC_DEFAULT_OPUS_MODEL
+ *
+ * 没指定的槽位会被 delete，避免上一次配置的旧值残留。
+ */
 export function applyApiToSettings(
   settings: { env?: Record<string, string>; model?: string; [k: string]: unknown },
   baseUrl: string,
   apiKey: string,
   provider: ApiProvider,
+  slots: ModelSlots = {},
 ): void {
   settings.env = settings.env ?? {};
   settings.env.ANTHROPIC_BASE_URL = baseUrl;
@@ -188,8 +270,22 @@ export function applyApiToSettings(
     settings.env.ANTHROPIC_API_KEY = apiKey;
     delete settings.env.ANTHROPIC_AUTH_TOKEN;
   }
-  if (provider.defaultModel) settings.env.ANTHROPIC_MODEL = provider.defaultModel;
-  if (provider.fastModel) settings.env.ANTHROPIC_DEFAULT_HAIKU_MODEL = provider.fastModel;
+
+  // 槽位写入：fallback 到 provider 默认值（保持兼容 v15 之前的行为）
+  const main = slots.main ?? provider.defaultModel;
+  const haiku = slots.haiku ?? provider.fastModel;
+  const sonnet = slots.sonnet ?? provider.sonnetModel;
+  const opus = slots.opus ?? provider.opusModel;
+
+  applyOrDelete(settings.env, 'ANTHROPIC_MODEL', main);
+  applyOrDelete(settings.env, 'ANTHROPIC_DEFAULT_HAIKU_MODEL', haiku);
+  applyOrDelete(settings.env, 'ANTHROPIC_DEFAULT_SONNET_MODEL', sonnet);
+  applyOrDelete(settings.env, 'ANTHROPIC_DEFAULT_OPUS_MODEL', opus);
 
   if ('model' in settings) delete settings.model;
+}
+
+function applyOrDelete(env: Record<string, string>, key: string, value: string | undefined): void {
+  if (value) env[key] = value;
+  else delete env[key];
 }

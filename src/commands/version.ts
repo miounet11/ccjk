@@ -3,11 +3,16 @@ import inquirer from 'inquirer';
 import ansis from 'ansis';
 import { TOOLS } from '../core/tools.js';
 import type { CodeTool } from '../core/tools.js';
-import { getAllVersions, getInstalledVersion } from '../core/versions.js';
+import {
+  buildInstallCommand,
+  buildUpdateCommand,
+  getAllVersions,
+  getInstalledVersion,
+} from '../core/versions.js';
 import type { VersionInfo } from '../core/versions.js';
 
 // ─────────────────────────────────────────────────────────────────
-// version 命令
+// version
 // ─────────────────────────────────────────────────────────────────
 
 export interface VersionOptions {
@@ -18,40 +23,41 @@ export async function versionCommand(opts: VersionOptions = {}): Promise<void> {
   console.log(ansis.bold('\n工具版本：\n'));
 
   if (opts.checkUpdates) {
-    console.log(ansis.dim('  正在查询 npm registry...\n'));
+    console.log(ansis.dim('  正在查询上游...\n'));
   }
 
   const versions = getAllVersions(opts.checkUpdates ?? false);
 
   for (const v of versions) {
     const name = ansis.bold(v.meta.displayName.padEnd(14));
+    const installerKind = v.meta.installer.kind === 'script' ? ansis.dim('[native]') : ansis.dim('[npm]');
     const localStr = v.installed
       ? (v.local ? ansis.green(v.local) : ansis.yellow('已装(版本未知)'))
       : ansis.gray('未安装');
     let suffix = '';
     if (v.installed && v.latest) {
-      if (v.outdated) {
-        suffix = `  ${ansis.yellow(`→ ${v.latest} 可升级`)}`;
-      }
-      else {
-        suffix = `  ${ansis.dim(`(latest)`)}`;
-      }
+      if (v.outdated) suffix = `  ${ansis.yellow(`→ ${v.latest} 可升级`)}`;
+      else suffix = `  ${ansis.dim('(latest)')}`;
     }
     else if (!v.installed && v.latest) {
       suffix = `  ${ansis.dim(`latest: ${v.latest}`)}`;
     }
-    console.log(`  ${name} ${localStr}${suffix}`);
+    else if (v.installed && v.meta.installer.kind === 'script') {
+      // Native 安装器自动后台升级，无需 ccjk 查版本
+      suffix = `  ${ansis.dim('(自动升级)')}`;
+    }
+    console.log(`  ${name} ${localStr} ${installerKind}${suffix}`);
   }
 
   if (!opts.checkUpdates) {
-    console.log(ansis.dim('\n  加 --check-updates 查询最新版本\n'));
+    console.log(ansis.dim('\n  加 --check-updates 查询最新版本（仅 npm 类工具）\n'));
   }
   else {
+    console.log();
     const outdated = versions.filter(v => v.outdated);
     const missing = versions.filter(v => !v.installed);
-    console.log();
     if (outdated.length > 0) {
-      console.log(ansis.yellow(`  ${outdated.length} 个工具有新版本 — 运行 \`ccjk update\``));
+      console.log(ansis.yellow(`  ${outdated.length} 个工具可升级 — 运行 \`ccjk update\``));
     }
     if (missing.length > 0) {
       console.log(ansis.dim(`  ${missing.length} 个工具未安装 — 运行 \`ccjk install\``));
@@ -64,26 +70,40 @@ export async function versionCommand(opts: VersionOptions = {}): Promise<void> {
 }
 
 // ─────────────────────────────────────────────────────────────────
-// install 命令
+// install
 // ─────────────────────────────────────────────────────────────────
 
 export interface InstallOptions {
   all?: boolean;
   dryRun?: boolean;
   yes?: boolean;
+  /** 旧的"列表勾选+二次确认"流程，给挑剔用户 */
+  interactive?: boolean;
 }
 
+/**
+ * 安装代码工具。
+ *
+ * Zero-config 行为：
+ * - 直接告诉用户"将执行 X 命令"，不弹勾选列表
+ * - 给 2 秒倒计时窗口让用户 Ctrl+C 取消
+ * - --interactive 才走旧流程
+ * - --dry-run 只展示不执行
+ * - --yes 直接执行不倒计时
+ */
 export async function installCommand(toolArg: string | undefined, opts: InstallOptions = {}): Promise<void> {
   const targets = await resolveInstallTargets(toolArg, opts);
   if (targets.length === 0) {
-    console.log(ansis.gray('\n没有要安装的工具。\n'));
+    console.log(ansis.green('\n✓ 没有要安装的工具（已全部安装）。\n'));
     return;
   }
 
-  const cmds = targets.map(t => `npm install -g ${TOOLS[t].npmPackage}`);
+  const jobs = targets.map(t => ({ tool: t, cmd: buildInstallCommand(TOOLS[t]) }));
 
-  console.log(ansis.bold('\n将要执行的命令：\n'));
-  for (const c of cmds) console.log(`  ${ansis.cyan(c)}`);
+  console.log(ansis.bold(`\n${jobs.length === 1 ? '将执行' : `将依次执行 ${jobs.length} 条命令`}：\n`));
+  for (const j of jobs) {
+    console.log(`  ${ansis.cyan(j.cmd)}  ${ansis.dim(`# ${TOOLS[j.tool].displayName}`)}`);
+  }
   console.log();
 
   if (opts.dryRun) {
@@ -91,12 +111,12 @@ export async function installCommand(toolArg: string | undefined, opts: InstallO
     return;
   }
 
-  if (!opts.yes) {
+  if (!opts.yes && !opts.interactive) {
+    if (!await countdownConfirm(2)) return;
+  }
+  else if (opts.interactive) {
     const { ok } = await inquirer.prompt<{ ok: boolean }>([{
-      type: 'confirm',
-      name: 'ok',
-      message: `确认执行${targets.length > 1 ? `（${targets.length} 个）` : ''}？需要联网，可能需要 sudo`,
-      default: true,
+      type: 'confirm', name: 'ok', message: '确认执行？', default: true,
     }]);
     if (!ok) {
       console.log(ansis.gray('已取消。\n'));
@@ -104,7 +124,7 @@ export async function installCommand(toolArg: string | undefined, opts: InstallO
     }
   }
 
-  await runNpmCommands(targets.map(t => ({ tool: t, args: ['install', '-g', TOOLS[t].npmPackage] })));
+  await runJobs(jobs);
 }
 
 async function resolveInstallTargets(toolArg: string | undefined, opts: InstallOptions): Promise<CodeTool[]> {
@@ -117,7 +137,14 @@ async function resolveInstallTargets(toolArg: string | undefined, opts: InstallO
     }
     return [toolArg as CodeTool];
   }
-  // 交互选择
+  // 默认：装全部缺失的（zero-config）
+  // 如果都装了，提示用 --all 或指定工具名（重装）
+  if (!opts.interactive) {
+    const missing = (Object.keys(TOOLS) as CodeTool[]).filter(t => !getInstalledVersion(t).installed);
+    if (missing.length > 0) return missing;
+    // 全装好了 — 退到交互让用户选要重装哪个
+  }
+  // interactive / 全部已装：让用户勾选
   const versions = getAllVersions(false);
   const choices = versions.map(v => ({
     name: `${v.meta.displayName.padEnd(14)} ${v.installed ? ansis.green(`已装 ${v.local ?? ''}`) : ansis.gray('未安装')}`,
@@ -127,39 +154,111 @@ async function resolveInstallTargets(toolArg: string | undefined, opts: InstallO
   const { tools } = await inquirer.prompt<{ tools: CodeTool[] }>([{
     type: 'checkbox',
     name: 'tools',
-    message: '选择要安装的工具（已安装的会被覆盖为最新版）',
+    message: '选择要安装/重装的工具',
     choices,
   }]);
   return tools;
 }
 
 // ─────────────────────────────────────────────────────────────────
-// update 命令
+// update
 // ─────────────────────────────────────────────────────────────────
 
 export interface UpdateOptions {
   all?: boolean;
   dryRun?: boolean;
   yes?: boolean;
+  interactive?: boolean;
 }
 
 export async function updateCommand(toolArg: string | undefined, opts: UpdateOptions = {}): Promise<void> {
-  const targets = await resolveUpdateTargets(toolArg, opts);
+  console.log(ansis.dim('\n正在查询最新版本...'));
+  const versions = getAllVersions(true);
+
+  const targets = resolveUpdateTargets(toolArg, opts, versions);
   if (targets.length === 0) {
     console.log(ansis.green('\n✓ 没有需要更新的工具。\n'));
     return;
   }
 
-  console.log(ansis.bold('\n将要更新：\n'));
+  if (opts.interactive) {
+    const picked = await pickInteractive(targets);
+    if (picked.length === 0) {
+      console.log(ansis.gray('未选择。\n'));
+      return;
+    }
+    return runUpdate(picked, opts);
+  }
+
+  return runUpdate(targets, opts);
+}
+
+function resolveUpdateTargets(toolArg: string | undefined, opts: UpdateOptions, versions: VersionInfo[]): VersionInfo[] {
+  if (toolArg) {
+    if (!(toolArg in TOOLS)) throw new Error(`未知工具 "${toolArg}"`);
+    const v = versions.find(x => x.tool === toolArg)!;
+    if (!v.installed) {
+      throw new Error(`${v.meta.displayName} 未安装，请先 \`ccjk install ${toolArg}\``);
+    }
+    // script 类没法判断 outdated（latest 拉不到），用户既然显式指定了就直接跑
+    if (v.meta.installer.kind === 'script') return [v];
+    if (!v.latest) {
+      throw new Error(`无法获取 ${v.meta.displayName} 的最新版本（npm registry 不可达？）`);
+    }
+    if (!v.outdated) {
+      console.log(ansis.green(`\n✓ ${v.meta.displayName} 已是最新（${v.local}）`));
+      console.log(ansis.dim(`  仍想强制重新安装？ccjk install ${toolArg}\n`));
+      return [];
+    }
+    return [v];
+  }
+  // 默认（zero-config）和 --all：升级所有需要升级的
+  // - npm 工具：outdated == true
+  // - script 工具（Claude Code）：本身会自动后台升级，但用户显式跑 update 时也跑一次（claude update）
+  return versions.filter((v) => {
+    if (!v.installed) return false;
+    if (v.meta.installer.kind === 'script') return opts.all === true; // --all 才带上 native
+    return v.outdated === true;
+  });
+}
+
+async function pickInteractive(targets: VersionInfo[]): Promise<VersionInfo[]> {
+  const { tools } = await inquirer.prompt<{ tools: string[] }>([{
+    type: 'checkbox',
+    name: 'tools',
+    message: '选择要更新的工具',
+    choices: targets.map((v) => {
+      const arrow = v.local && v.latest
+        ? `${ansis.dim(v.local)} → ${ansis.green(v.latest)}`
+        : ansis.green('latest');
+      return {
+        name: `${v.meta.displayName.padEnd(14)} ${arrow}`,
+        value: v.tool,
+        checked: true,
+      };
+    }),
+  }]);
+  return targets.filter(v => tools.includes(v.tool));
+}
+
+async function runUpdate(targets: VersionInfo[], opts: UpdateOptions): Promise<void> {
+  console.log(ansis.bold(`\n${targets.length === 1 ? '将更新' : `将更新 ${targets.length} 个工具`}：\n`));
   for (const v of targets) {
-    const arrow = v.local ? `${ansis.dim(v.local)} → ${ansis.green(v.latest!)}` : ansis.green(v.latest!);
-    console.log(`  ${v.meta.displayName.padEnd(14)} ${arrow}`);
+    if (v.meta.installer.kind === 'script') {
+      console.log(`  ${v.meta.displayName.padEnd(14)} ${ansis.dim(v.local ?? '?')} ${ansis.dim('(native auto-update)')}`);
+    }
+    else {
+      const arrow = v.local && v.latest ? `${ansis.dim(v.local)} → ${ansis.green(v.latest)}` : ansis.green(v.latest ?? 'latest');
+      console.log(`  ${v.meta.displayName.padEnd(14)} ${arrow}`);
+    }
   }
   console.log();
 
-  const cmds = targets.map(v => `npm install -g ${v.meta.npmPackage}@${v.latest}`);
+  const jobs = targets.map(v => ({ tool: v.tool, cmd: buildUpdateCommand(v.meta, v.latest) }));
   console.log(ansis.bold('命令：'));
-  for (const c of cmds) console.log(`  ${ansis.cyan(c)}`);
+  for (const j of jobs) {
+    console.log(`  ${ansis.cyan(j.cmd)}  ${ansis.dim(`# ${TOOLS[j.tool].displayName}`)}`);
+  }
   console.log();
 
   if (opts.dryRun) {
@@ -167,7 +266,10 @@ export async function updateCommand(toolArg: string | undefined, opts: UpdateOpt
     return;
   }
 
-  if (!opts.yes) {
+  if (!opts.yes && !opts.interactive) {
+    if (!await countdownConfirm(2)) return;
+  }
+  else if (opts.interactive) {
     const { ok } = await inquirer.prompt<{ ok: boolean }>([{
       type: 'confirm', name: 'ok', message: '确认更新？', default: true,
     }]);
@@ -177,69 +279,60 @@ export async function updateCommand(toolArg: string | undefined, opts: UpdateOpt
     }
   }
 
-  await runNpmCommands(targets.map(v => ({
-    tool: v.tool,
-    args: ['install', '-g', `${v.meta.npmPackage}@${v.latest}`],
-  })));
-}
-
-async function resolveUpdateTargets(toolArg: string | undefined, opts: UpdateOptions): Promise<VersionInfo[]> {
-  console.log(ansis.dim('\n正在查询最新版本...'));
-  const versions = getAllVersions(true);
-
-  if (opts.all) {
-    return versions.filter(v => v.installed && v.outdated);
-  }
-  if (toolArg) {
-    if (!(toolArg in TOOLS)) {
-      throw new Error(`未知工具 "${toolArg}"`);
-    }
-    const v = versions.find(x => x.tool === toolArg)!;
-    if (!v.installed) {
-      throw new Error(`${v.meta.displayName} 未安装，请先 \`ccjk install ${toolArg}\``);
-    }
-    if (!v.latest) {
-      throw new Error(`无法获取 ${v.meta.displayName} 的最新版本（npm registry 不可达？）`);
-    }
-    if (!v.outdated) {
-      console.log(ansis.green(`\n✓ ${v.meta.displayName} 已是最新（${v.local}）\n`));
-      return [];
-    }
-    return [v];
-  }
-  // 交互：列所有 outdated
-  const outdated = versions.filter(v => v.installed && v.outdated);
-  if (outdated.length === 0) return [];
-  const { tools } = await inquirer.prompt<{ tools: string[] }>([{
-    type: 'checkbox',
-    name: 'tools',
-    message: '选择要更新的工具',
-    choices: outdated.map(v => ({
-      name: `${v.meta.displayName.padEnd(14)} ${ansis.dim(v.local ?? '')} → ${ansis.green(v.latest!)}`,
-      value: v.tool,
-      checked: true,
-    })),
-  }]);
-  return outdated.filter(v => tools.includes(v.tool));
+  await runJobs(jobs);
 }
 
 // ─────────────────────────────────────────────────────────────────
-// 共用：跑一组 npm 命令，逐个等结果
+// 共用：倒计时确认 + 执行命令（区分 npm/script）
 // ─────────────────────────────────────────────────────────────────
 
-interface NpmJob {
+/**
+ * 给用户一个 N 秒的窗口按 Ctrl+C 取消。返回 true 表示 user 默认通过。
+ * 没用 inquirer，因为它在 timeout 时不容易优雅清理。
+ */
+async function countdownConfirm(seconds: number): Promise<boolean> {
+  if (!process.stdout.isTTY) return true; // 非 TTY 直接通过
+  process.stdout.write(ansis.dim(`  ${seconds} 秒后开始执行（Ctrl+C 取消）`));
+  for (let i = seconds; i > 0; i--) {
+    process.stdout.write(ansis.dim(`\r  ${i} 秒后开始执行（Ctrl+C 取消）`));
+    await sleep(1000);
+  }
+  process.stdout.write(`\r${' '.repeat(40)}\r`);
+  return true;
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise(r => setTimeout(r, ms));
+}
+
+interface Job {
   tool: CodeTool;
-  args: string[];
+  cmd: string;
 }
 
-async function runNpmCommands(jobs: NpmJob[]): Promise<void> {
+/**
+ * 跑一组命令。逐个执行，stdio inherit 让用户看到原始输出。
+ * - npm 命令直接 spawn `npm install -g ...`
+ * - script 命令（含 |、curl 等管道）通过 `bash -lc` 执行
+ */
+async function runJobs(jobs: Job[]): Promise<void> {
   const failures: { tool: CodeTool; cmd: string; reason: string }[] = [];
   let success = 0;
 
   for (const job of jobs) {
-    const cmd = `npm ${job.args.join(' ')}`;
-    console.log(ansis.bold(`\n→ ${TOOLS[job.tool].displayName}: ${ansis.cyan(cmd)}`));
-    const result = spawnSync('npm', job.args, { stdio: 'inherit' });
+    const meta = TOOLS[job.tool];
+    console.log(ansis.bold(`\n→ ${meta.displayName}: ${ansis.cyan(job.cmd)}`));
+
+    let result;
+    if (meta.installer.kind === 'script' || job.cmd.includes('|') || job.cmd.includes(' ')) {
+      // 复杂命令走 shell
+      result = spawnSync('bash', ['-lc', job.cmd], { stdio: 'inherit' });
+    }
+    else {
+      const [bin, ...args] = job.cmd.split(/\s+/);
+      result = spawnSync(bin, args, { stdio: 'inherit' });
+    }
+
     if (result.status === 0) {
       success++;
       const v = getInstalledVersion(job.tool);
@@ -248,8 +341,8 @@ async function runNpmCommands(jobs: NpmJob[]): Promise<void> {
     else {
       const reason = result.error
         ? result.error.message
-        : `npm 退出码 ${result.status ?? 'null'}`;
-      failures.push({ tool: job.tool, cmd, reason });
+        : `退出码 ${result.status ?? 'null'}`;
+      failures.push({ tool: job.tool, cmd: job.cmd, reason });
       console.log(ansis.red(`  ✗ 失败: ${reason}`));
     }
   }
@@ -261,7 +354,9 @@ async function runNpmCommands(jobs: NpmJob[]): Promise<void> {
     for (const f of failures) {
       console.log(`  ${TOOLS[f.tool].displayName}: ${f.reason}`);
       console.log(ansis.dim(`    可手动执行: ${f.cmd}`));
-      console.log(ansis.dim(`    或权限问题尝试: sudo ${f.cmd}`));
+      if (TOOLS[f.tool].installer.kind === 'npm') {
+        console.log(ansis.dim(`    或权限问题尝试: sudo ${f.cmd}`));
+      }
     }
     process.exitCode = 1;
   }

@@ -8,7 +8,7 @@ export interface VersionInfo {
   installed: boolean;
   /** 本地版本（从 `<bin> --version` 解析），未装则 undefined */
   local?: string;
-  /** npm 上的最新版本（仅在显式查询时填充），无网或未查则 undefined */
+  /** 上游最新版本（仅在显式查询时填充），无网或未查则 undefined */
   latest?: string;
   /** 是否需要升级（local < latest）；只有在 latest 已知时才有意义 */
   outdated?: boolean;
@@ -17,7 +17,6 @@ export interface VersionInfo {
 /** 探测某个工具本地是否安装、版本号多少。不发网络。 */
 export function getInstalledVersion(tool: CodeTool): { installed: boolean; version?: string } {
   const meta = TOOLS[tool];
-  // 先 which 一下，没装就不调 --version 避免冗长报错
   if (!isOnPath(meta.binName)) return { installed: false };
   try {
     const raw = execSync(`${meta.binName} --version`, {
@@ -34,28 +33,33 @@ export function getInstalledVersion(tool: CodeTool): { installed: boolean; versi
 }
 
 /**
- * 从 npm registry 查 latest 版本。会发网络请求（`npm view <pkg> version`）。
- * 失败返回 undefined（不抛错），让上层决定是否提示用户。
+ * 查上游最新版本：
+ * - npm 工具走 `npm view <pkg> version`
+ * - script 工具（Claude Code）目前没有简单的 stable URL 拉版本号，先返回 undefined。
+ *   Native 安装器会自动后台升级，所以"该不该升级"这事它自己会处理。
  */
 export function getLatestVersion(tool: CodeTool): string | undefined {
   const meta = TOOLS[tool];
-  try {
-    const raw = execSync(`npm view ${meta.npmPackage} version`, {
-      stdio: ['ignore', 'pipe', 'ignore'],
-      timeout: 10_000,
-      encoding: 'utf-8',
-    });
-    const v = raw.trim();
-    return /^\d+\.\d+\.\d+/.test(v) ? v : undefined;
+  if (meta.installer.kind === 'npm') {
+    try {
+      const raw = execSync(`npm view ${meta.installer.package} version`, {
+        stdio: ['ignore', 'pipe', 'ignore'],
+        timeout: 10_000,
+        encoding: 'utf-8',
+      });
+      const v = raw.trim();
+      return /^\d+\.\d+\.\d+/.test(v) ? v : undefined;
+    }
+    catch {
+      return undefined;
+    }
   }
-  catch {
-    return undefined;
-  }
+  // script 类工具：暂不支持远程版本查询
+  return undefined;
 }
 
 /**
- * 同时查所有工具状态。checkUpdates=true 会发网络。
- * 串行查 npm 而不是并发，因为 npm view 各自启子进程，并发反而更慢且占资源。
+ * 同时查所有工具状态。checkUpdates=true 会发网络（仅对 npm 工具有效）。
  */
 export function getAllVersions(checkUpdates = false): VersionInfo[] {
   const out: VersionInfo[] = [];
@@ -77,12 +81,31 @@ export function getAllVersions(checkUpdates = false): VersionInfo[] {
 }
 
 /**
- * 比较两个 semver 字符串。
- *  -1 = a < b
- *   0 = a == b
- *   1 = a > b
- * 不支持 prerelease（1.2.3-beta），prerelease 部分会被忽略。
- * 这里足够用——三个工具发布的都是稳定版。
+ * 根据 installer 类型生成"安装"命令字符串。
+ * 字符串形式方便给用户预览，再用 spawn 拆 shell 执行。
+ */
+export function buildInstallCommand(meta: CodeToolMeta, version?: string): string {
+  if (meta.installer.kind === 'script') {
+    // 暂不支持指定版本（官方脚本支持 `bash -s 2.1.89`，未来可加）
+    return meta.installer.install;
+  }
+  const pkg = meta.installer.package;
+  return version ? `npm install -g ${pkg}@${version}` : `npm install -g ${pkg}`;
+}
+
+/**
+ * 根据 installer 类型生成"升级"命令。
+ */
+export function buildUpdateCommand(meta: CodeToolMeta, latestVersion?: string): string {
+  if (meta.installer.kind === 'script') {
+    return meta.installer.update;
+  }
+  const pkg = meta.installer.package;
+  return `npm install -g ${pkg}@${latestVersion ?? 'latest'}`;
+}
+
+/**
+ * 比较两个 semver 字符串。-1/0/1。不支持 prerelease（被忽略）。
  */
 export function compareVersion(a: string, b: string): -1 | 0 | 1 {
   const pa = parseVersion(a);
@@ -100,13 +123,6 @@ function parseVersion(v: string): [number, number, number] {
   return [Number(m[1]), Number(m[2]), Number(m[3])];
 }
 
-/**
- * 从 `<bin> --version` 输出里抠版本号。
- * 不同工具输出格式不一：
- *   "1.2.3"
- *   "clavue 1.2.3"
- *   "Claude Code v2.1.90 (...)"
- */
 export function extractVersion(raw: string): string | undefined {
   const m = /(\d+\.\d+\.\d+)/.exec(raw);
   return m ? m[1] : undefined;

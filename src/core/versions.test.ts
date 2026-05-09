@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { compareVersion, extractVersion } from './versions.js';
+import { buildInstallCommand, buildUpdateCommand, compareVersion, extractVersion } from './versions.js';
+import { TOOLS } from './tools.js';
 
 describe('compareVersion', () => {
   it('小于', () => {
@@ -40,5 +41,34 @@ describe('extractVersion', () => {
   it('找不到返回 undefined', () => {
     expect(extractVersion('no version here')).toBeUndefined();
     expect(extractVersion('')).toBeUndefined();
+  });
+});
+
+describe('buildInstallCommand', () => {
+  it('npm 工具走 npm install -g', () => {
+    expect(buildInstallCommand(TOOLS.clavue)).toBe('npm install -g clavue');
+    expect(buildInstallCommand(TOOLS.codex)).toBe('npm install -g @openai/codex');
+  });
+
+  it('npm 工具支持指定版本', () => {
+    expect(buildInstallCommand(TOOLS.clavue, '8.9.2')).toBe('npm install -g clavue@8.9.2');
+  });
+
+  it('script 工具走 curl 脚本（Claude Code）', () => {
+    expect(buildInstallCommand(TOOLS['claude-code'])).toContain('curl -fsSL https://claude.ai/install.sh');
+  });
+});
+
+describe('buildUpdateCommand', () => {
+  it('npm 工具走 npm install -g pkg@latest（不带版本）', () => {
+    expect(buildUpdateCommand(TOOLS.clavue)).toBe('npm install -g clavue@latest');
+  });
+
+  it('npm 工具带具体版本', () => {
+    expect(buildUpdateCommand(TOOLS.clavue, '8.9.3')).toBe('npm install -g clavue@8.9.3');
+  });
+
+  it('script 工具走 claude update', () => {
+    expect(buildUpdateCommand(TOOLS['claude-code'])).toBe('claude update');
   });
 });

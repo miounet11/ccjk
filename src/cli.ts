@@ -242,20 +242,22 @@ program
 
 program
   .command('install [tool]')
-  .description('安装代码工具（不带参=交互选择）')
+  .description('安装代码工具（默认 zero-config 直接装缺失的；--all 装全部缺失的）')
   .option('--all', '装全部缺失的工具')
+  .option('--interactive', '交互勾选（旧行为）')
   .option('--dry-run', '只显示命令不执行')
-  .option('-y, --yes', '跳过确认')
-  .action((tool: string | undefined, opts: { all?: boolean; dryRun?: boolean; yes?: boolean }) =>
+  .option('-y, --yes', '跳过倒计时直接执行')
+  .action((tool: string | undefined, opts: { all?: boolean; dryRun?: boolean; yes?: boolean; interactive?: boolean }) =>
     installCommand(tool, opts));
 
 program
   .command('update [tool]')
-  .description('升级代码工具到最新版（不带参=交互选 outdated）')
-  .option('--all', '更新全部 outdated 工具')
+  .description('升级代码工具（默认 zero-config 直接升所有 outdated；--interactive 勾选）')
+  .option('--all', '把 native 工具（Claude Code）也带上 — 默认只升 npm 工具')
+  .option('--interactive', '交互勾选（旧行为）')
   .option('--dry-run', '只显示命令不执行')
-  .option('-y, --yes', '跳过确认')
-  .action((tool: string | undefined, opts: { all?: boolean; dryRun?: boolean; yes?: boolean }) =>
+  .option('-y, --yes', '跳过倒计时直接执行')
+  .action((tool: string | undefined, opts: { all?: boolean; dryRun?: boolean; yes?: boolean; interactive?: boolean }) =>
     updateCommand(tool, opts));
 
 program

@@ -7,8 +7,18 @@ export interface ApiProvider {
   name: string;
   baseUrl: string;
   authType: AuthType;
+  /** Anthropic 默认模型（写到 ANTHROPIC_MODEL） */
   defaultModel?: string;
+  /** Haiku 槽位模型（写到 ANTHROPIC_DEFAULT_HAIKU_MODEL） */
   fastModel?: string;
+  /** 给 multiSlot 类 provider 用的 Sonnet 槽位默认值 */
+  sonnetModel?: string;
+  /** 给 multiSlot 类 provider 用的 Opus 槽位默认值 */
+  opusModel?: string;
+  /** 是否走"多槽位"配置流程（GPT/混合类网关）。
+   *  true → init 会让用户分别填 main/haiku/sonnet/opus
+   *  false/undefined → 只问一个 model */
+  multiSlot?: boolean;
   supportedTools: CodeTool[];
   description: string;
 }
@@ -51,12 +61,25 @@ export const PROVIDERS: ApiProvider[] = [
     description: '官方 API（需海外网络）',
   },
   {
+    id: 'gpt-gateway',
+    name: 'GPT 网关 (OpenAI 兼容)',
+    baseUrl: '',
+    authType: 'auth_token',
+    multiSlot: true,
+    defaultModel: 'gpt-5.5',
+    fastModel: 'gpt-5.3-codex',
+    sonnetModel: 'gpt-5.5',
+    opusModel: 'gpt-5.5',
+    supportedTools: ['clavue', 'claude-code'],
+    description: 'GPT/Codex 类网关 — 分别配 Main/Haiku/Sonnet/Opus 槽位',
+  },
+  {
     id: 'custom',
-    name: '自定义',
+    name: '自定义（单 model）',
     baseUrl: '',
     authType: 'auth_token',
     supportedTools: ['clavue', 'claude-code', 'codex'],
-    description: '手动输入 baseUrl 和 key',
+    description: '手动输入 baseUrl 和 key（一个 model 走天下）',
   },
 ];
 
