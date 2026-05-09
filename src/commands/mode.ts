@@ -91,7 +91,8 @@ export async function modeShowCommand(name: string | undefined): Promise<void> {
   if (!name) {
     const state = await readModeState();
     if (!state.current) {
-      console.log(ansis.gray('\n没有当前模式。用 `ccjk mode use` 选一个。\n'));
+      console.log(ansis.gray('\n还没设置过对话模式。'));
+      console.log(ansis.dim('  运行 `ccjk mode use`（或菜单"切换对话模式"）来选一个。\n'));
       return;
     }
     name = state.current;

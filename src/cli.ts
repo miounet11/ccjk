@@ -272,6 +272,17 @@ program
   .action(menuCommand);
 
 program.parseAsync(process.argv).catch((err: Error) => {
+  // inquirer 9+ 在 Ctrl+C 时抛 ExitPromptError，安静退出不报红
+  if (err && (err.name === 'ExitPromptError' || /User force closed/i.test(err.message))) {
+    console.log();
+    process.exit(0);
+  }
   console.error(ansis.red(`\n✗ ${err.message}\n`));
   process.exit(1);
+});
+
+// SIGINT 兜底（极少数情况下 inquirer 没接住）
+process.on('SIGINT', () => {
+  console.log();
+  process.exit(0);
 });

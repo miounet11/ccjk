@@ -18,7 +18,8 @@ export async function profileListCommand(): Promise<void> {
   const profiles = await listProfiles();
   const state = await readState();
   if (profiles.length === 0) {
-    console.log(ansis.gray('\n还没有 profile。运行 `ccjk init` 配置 API 时会自动保存一个。\n'));
+    console.log(ansis.gray('\n还没有 profile。'));
+    console.log(ansis.dim('  运行 `ccjk init`（或菜单"配置 API"）来配置第一个。\n'));
     return;
   }
   console.log(ansis.bold(`\n已保存的 Profile（${profiles.length}）:\n`));
@@ -42,7 +43,24 @@ export interface UseOptions {
 export async function profileUseCommand(name: string | undefined, opts: UseOptions = {}): Promise<void> {
   const profiles = await listProfiles();
   if (profiles.length === 0) {
-    console.log(ansis.yellow('\n还没有 profile。先运行 `ccjk init` 配置一个 API。\n'));
+    // 没 profile 时不走死路，引导用户去 init（init 完会自动存为 profile）
+    console.log(ansis.yellow('\n还没有 profile。'));
+    if (opts.yes) {
+      console.log(ansis.gray('  跳过（--yes 模式下不进入 init）\n'));
+      return;
+    }
+    const { go } = await inquirer.prompt<{ go: boolean }>([{
+      type: 'confirm',
+      name: 'go',
+      message: '现在去配置一个？（会自动保存为 profile）',
+      default: true,
+    }]);
+    if (!go) {
+      console.log(ansis.gray('已取消。\n'));
+      return;
+    }
+    const { initCommand } = await import('./init.js');
+    await initCommand();
     return;
   }
 

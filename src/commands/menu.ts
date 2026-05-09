@@ -93,42 +93,84 @@ function getVersion(): string {
 }
 
 export async function menuCommand(): Promise<void> {
-  console.log();
-  console.log(renderBanner(getVersion()));
-  console.log();
+  // 循环：执行完一个动作回到菜单首页，直到用户主动选"退出"。
+  // banner 只在第一次进入时打印，避免重复刷屏。
+  let firstRound = true;
 
-  const status = await collectStatus();
-  const statusLines = renderStatusBar(status);
-  for (const l of statusLines) console.log(l);
-  console.log();
+  while (true) {
+    if (firstRound) {
+      console.log();
+      console.log(renderBanner(getVersion()));
+      console.log();
+      firstRound = false;
+    }
+    else {
+      // 第二次以后只清屏不重打 banner（保留品牌但不嘈杂）
+      // 用 ANSI 清屏 + 重置光标。终端不支持就降级成空行分隔。
+      if (process.stdout.isTTY) process.stdout.write('\x1Bc');
+      console.log();
+    }
 
-  // 把所有项目摊成 inquirer choices，组间插入 Separator
-  type Choice = { name: string; value: number; short?: string } | typeof inquirer.Separator.prototype;
-  const choices: Choice[] = [];
-  let idx = 0;
-  const flat: MenuItem[] = [];
-  for (const g of GROUPS) {
-    choices.push(new inquirer.Separator(ansis.dim(`── ${g.title} ───────────────────────────`)));
-    for (const item of g.items) {
-      const hint = item.hint ? `  ${ansis.dim(item.hint)}` : '';
-      const padded = padToVisibleWidth(item.label, 20);
-      choices.push({ name: `${padded}${hint}`, value: idx, short: item.label });
-      flat.push(item);
-      idx++;
+    // 状态实时刷新——用户可能刚改了 profile / perms，状态条要跟上
+    const status = await collectStatus();
+    const statusLines = renderStatusBar(status);
+    for (const l of statusLines) console.log(l);
+    console.log();
+
+    type Choice = { name: string; value: number; short?: string } | typeof inquirer.Separator.prototype;
+    const choices: Choice[] = [];
+    let idx = 0;
+    const flat: MenuItem[] = [];
+    for (const g of GROUPS) {
+      choices.push(new inquirer.Separator(ansis.dim(`── ${g.title} ───────────────────────────`)));
+      for (const item of g.items) {
+        const hint = item.hint ? `  ${ansis.dim(item.hint)}` : '';
+        const padded = padToVisibleWidth(item.label, 20);
+        choices.push({ name: `${padded}${hint}`, value: idx, short: item.label });
+        flat.push(item);
+        idx++;
+      }
+    }
+    choices.push(new inquirer.Separator(ansis.dim('──────────────────────────────────────────')));
+    choices.push({ name: ansis.gray('退出 ccjk'), value: -1, short: '退出' });
+
+    const { choice } = await inquirer.prompt<{ choice: number }>([{
+      type: 'list',
+      name: 'choice',
+      message: ansis.bold('选择操作'),
+      choices,
+      pageSize: 22,
+      loop: false,
+    }]);
+
+    if (choice < 0) {
+      console.log();
+      return;
+    }
+
+    const item = flat[choice];
+    try {
+      await item.run();
+    }
+    catch (e) {
+      // 子命令出错不该让整个 ccjk 崩。打印后回菜单。
+      console.log(ansis.red(`\n✗ ${item.label} 执行失败: ${(e as Error).message}\n`));
+    }
+
+    // 给用户一秒看输出。回车回菜单，q 直接退出。
+    const { next } = await inquirer.prompt<{ next: 'menu' | 'quit' }>([{
+      type: 'list',
+      name: 'next',
+      message: ansis.dim('完成。'),
+      default: 'menu',
+      choices: [
+        { name: '回菜单', value: 'menu' },
+        { name: ansis.gray('退出 ccjk'), value: 'quit' },
+      ],
+    }]);
+    if (next === 'quit') {
+      console.log();
+      return;
     }
   }
-  choices.push(new inquirer.Separator(ansis.dim('──────────────────────────────────────────')));
-  choices.push({ name: ansis.gray('退出'), value: -1, short: '退出' });
-
-  const { choice } = await inquirer.prompt<{ choice: number }>([{
-    type: 'list',
-    name: 'choice',
-    message: ansis.bold('选择操作'),
-    choices,
-    pageSize: 20,
-    loop: false,
-  }]);
-
-  if (choice < 0) return;
-  await flat[choice].run();
 }
