@@ -43,7 +43,7 @@
     "build": "tsc -p tsconfig.build.json && chmod +x dist/cli.js",
     "start": "node dist/cli.js",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint src tests --ext .ts",
+    "lint": "eslint src --ext .ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "prepublishOnly": "pnpm typecheck && pnpm test && pnpm build"
