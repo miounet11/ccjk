@@ -1,4 +1,4 @@
-import inquirer from 'inquirer';
+import { confirm, input, select } from '@inquirer/prompts';
 import ansis from 'ansis';
 import { listWorkflows, readWorkflow } from '../core/workflows.js';
 import type { StepAction, Workflow } from '../core/workflows.js';
@@ -43,12 +43,10 @@ export async function workflowRunCommand(id: string | undefined, opts: RunOption
   console.log();
 
   if (!opts.yes) {
-    const { ok } = await inquirer.prompt<{ ok: boolean }>([{
-      type: 'confirm',
-      name: 'ok',
+    const ok = await confirm({
       message: '开始执行？（每步会单独确认）',
       default: true,
-    }]);
+    });
     if (!ok) {
       console.log(ansis.gray('已取消。\n'));
       return;
@@ -63,9 +61,7 @@ export async function workflowRunCommand(id: string | undefined, opts: RunOption
     console.log(ansis.bold.cyan(`\n━━━ [${i + 1}/${total}] ${step.label} ━━━`));
 
     if (step.optional) {
-      const { run } = await inquirer.prompt<{ run: boolean }>([{
-        type: 'confirm', name: 'run', message: '执行这一步？', default: false,
-      }]);
+      const run = await confirm({ message: '执行这一步？', default: false });
       if (!run) {
         console.log(ansis.gray('  跳过'));
         skipped++;
@@ -79,15 +75,13 @@ export async function workflowRunCommand(id: string | undefined, opts: RunOption
     }
     catch (e) {
       console.log(ansis.red(`\n✗ 步骤失败: ${(e as Error).message}`));
-      const { cont } = await inquirer.prompt<{ cont: boolean }>([{
-        type: 'list',
-        name: 'cont',
+      const cont = await select<boolean>({
         message: '继续后续步骤？',
         choices: [
           { name: '继续（跳过这一步）', value: true },
           { name: '中止工作流', value: false },
         ],
-      }]);
+      });
       if (!cont) {
         console.log(ansis.gray('\n工作流已中止。已执行 ' + executed + ' 步。\n'));
         return;
@@ -119,10 +113,10 @@ async function runStep(action: StepAction): Promise<void> {
       return doctorCommand({ fix: true });
     case 'profile-import': {
       if (!action.file) {
-        const { f } = await inquirer.prompt<{ f: string }>([{
-          type: 'input', name: 'f', message: 'profile 包文件路径',
+        const f = await input({
+          message: 'profile 包文件路径',
           validate: (s: string) => s.trim().length > 0 || '不能为空',
-        }]);
+        });
         return profileImportCommand(f.trim());
       }
       return profileImportCommand(action.file);
@@ -145,15 +139,13 @@ async function resolveOrFail(id: string): Promise<Workflow> {
 
 async function pickWorkflow(): Promise<Workflow | undefined> {
   const wfs = await listWorkflows();
-  const { id } = await inquirer.prompt<{ id: string }>([{
-    type: 'list',
-    name: 'id',
+  const id = await select<string>({
     message: '选择要运行的工作流',
     pageSize: Math.min(15, wfs.length + 2),
     choices: wfs.map((w: Workflow) => ({
       name: `${w.id.padEnd(14)} ${ansis.dim(w.description)}`,
       value: w.id,
     })),
-  }]);
+  });
   return wfs.find((w: Workflow) => w.id === id);
 }

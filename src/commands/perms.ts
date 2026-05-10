@@ -1,4 +1,4 @@
-import inquirer from 'inquirer';
+import { confirm, select } from '@inquirer/prompts';
 import ansis from 'ansis';
 import { TOOLS } from '../core/tools.js';
 import type { CodeTool } from '../core/tools.js';
@@ -33,12 +33,10 @@ export async function permsCommand(tier: string | undefined, opts: PermsOptions 
   console.log();
 
   if (!opts.yes) {
-    const { ok } = await inquirer.prompt<{ ok: boolean }>([{
-      type: 'confirm',
-      name: 'ok',
+    const ok = await confirm({
       message: '确认应用？',
       default: true,
-    }]);
+    });
     if (!ok) {
       console.log(ansis.gray('已取消。'));
       return;
@@ -110,17 +108,14 @@ export async function permsShowCommand(): Promise<void> {
 }
 
 async function pickTier(): Promise<PermsTier> {
-  const { tier } = await inquirer.prompt<{ tier: PermsTier }>([{
-    type: 'list',
-    name: 'tier',
+  return await select<PermsTier>({
     message: '选择权限档位',
     default: 'standard',
     choices: Object.values(TIERS).map(t => ({
       name: `${t.name.padEnd(10)} ${ansis.dim(t.description)}`,
       value: t.id,
     })),
-  }]);
-  return tier;
+  });
 }
 
 function parseTools(raw: string | undefined): CodeTool[] {
@@ -182,9 +177,7 @@ export async function permsCleanCommand(opts: PermsCleanOptions = {}): Promise<v
 
   if (!opts.yes) {
     console.log();
-    const { ok } = await inquirer.prompt<{ ok: boolean }>([{
-      type: 'confirm', name: 'ok', message: '确认清理？（写入前会备份）', default: true,
-    }]);
+    const ok = await confirm({ message: '确认清理？（写入前会备份）', default: true });
     if (!ok) {
       console.log(ansis.gray('已取消。\n'));
       return;

@@ -2,7 +2,7 @@ import { existsSync } from 'node:fs';
 import { readdir, rm, unlink } from 'node:fs/promises';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
-import inquirer from 'inquirer';
+import { checkbox, confirm } from '@inquirer/prompts';
 import ansis from 'ansis';
 import { TOOLS } from '../core/tools.js';
 import type { CodeTool } from '../core/tools.js';
@@ -128,16 +128,14 @@ export async function uninstallCommand(opts: UninstallOptions = {}): Promise<voi
     chosenIds = present.map(p => p.target.id);
   }
   else {
-    const { ids } = await inquirer.prompt<{ ids: string[] }>([{
-      type: 'checkbox',
-      name: 'ids',
+    const ids = await checkbox<string>({
       message: '选择要清理的内容（空格切换，回车确认）',
       choices: present.map(p => ({
         name: `${p.target.label.padEnd(28)} ${ansis.dim(p.target.description)}`,
         value: p.target.id,
         checked: p.checked,
       })),
-    }]);
+    });
     chosenIds = ids;
   }
 
@@ -147,12 +145,10 @@ export async function uninstallCommand(opts: UninstallOptions = {}): Promise<voi
   }
 
   if (!opts.yes) {
-    const { ok } = await inquirer.prompt<{ ok: boolean }>([{
-      type: 'confirm',
-      name: 'ok',
+    const ok = await confirm({
       message: `确认删除 ${chosenIds.length} 项？（不可还原）`,
       default: false,
-    }]);
+    });
     if (!ok) {
       console.log(ansis.gray('已取消。\n'));
       return;

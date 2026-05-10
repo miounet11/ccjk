@@ -1,4 +1,4 @@
-import inquirer from 'inquirer';
+import { confirm, input, select } from '@inquirer/prompts';
 import ansis from 'ansis';
 import { TOOLS } from '../core/tools.js';
 import type { CodeTool } from '../core/tools.js';
@@ -51,9 +51,7 @@ export async function modeUseCommand(name: string | undefined, opts: ModeUseOpti
   console.log(ansis.dim(`  Codex: model_reasoning_effort = ${target.codex.effort}\n`));
 
   if (!opts.yes) {
-    const { ok } = await inquirer.prompt<{ ok: boolean }>([{
-      type: 'confirm', name: 'ok', message: '确认应用？', default: true,
-    }]);
+    const ok = await confirm({ message: '确认应用？', default: true });
     if (!ok) {
       console.log(ansis.gray('已取消。'));
       return;
@@ -115,10 +113,10 @@ export interface ModeAddOptions {
 
 export async function modeAddCommand(name: string | undefined, opts: ModeAddOptions = {}): Promise<void> {
   if (!name) {
-    const { v } = await inquirer.prompt<{ v: string }>([{
-      type: 'input', name: 'v', message: '新模式名称（字母数字 _ -）',
+    const v = await input({
+      message: '新模式名称（字母数字 _ -）',
       validate: (s: string) => /^[a-zA-Z0-9][a-zA-Z0-9_-]{0,31}$/.test(s.trim()) || '名称非法',
-    }]);
+    });
     name = v.trim();
   }
 
@@ -148,16 +146,14 @@ async function resolveOrFail(id: string): Promise<ModeDefinition> {
 async function pickMode(): Promise<ModeDefinition | undefined> {
   const modes = await listModes();
   const state = await readModeState();
-  const { id } = await inquirer.prompt<{ id: string }>([{
-    type: 'list',
-    name: 'id',
+  const id = await select<string>({
     message: '选择对话模式',
-    default: state.current,
+    ...(state.current ? { default: state.current } : {}),
     choices: modes.map(m => ({
       name: `${m.id.padEnd(10)} ${ansis.dim(m.description)}${state.current === m.id ? ansis.green('  (当前)') : ''}`,
       value: m.id,
     })),
-  }]);
+  });
   return modes.find(m => m.id === id);
 }
 

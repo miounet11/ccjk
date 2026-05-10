@@ -1,7 +1,7 @@
 import { existsSync } from 'node:fs';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import inquirer from 'inquirer';
+import { confirm } from '@inquirer/prompts';
 import ansis from 'ansis';
 import { expandHome } from '../core/paths.js';
 import { SLASH_TEMPLATES } from '../core/slash-templates.js';
@@ -26,12 +26,10 @@ export async function gitInstallCommand(opts: GitInstallOptions = {}): Promise<v
   console.log(ansis.dim(`→ 命令: ${names.map(n => `/ccjk:${n}`).join(', ')}\n`));
 
   if (!opts.yes) {
-    const { ok } = await inquirer.prompt<{ ok: boolean }>([{
-      type: 'confirm',
-      name: 'ok',
+    const ok = await confirm({
       message: '确认安装？',
       default: true,
-    }]);
+    });
     if (!ok) {
       console.log(ansis.gray('已取消。'));
       return;
@@ -42,12 +40,10 @@ export async function gitInstallCommand(opts: GitInstallOptions = {}): Promise<v
   for (const name of names) {
     const path = join(target, `${name}.md`);
     if (existsSync(path) && !opts.yes) {
-      const { overwrite } = await inquirer.prompt<{ overwrite: boolean }>([{
-        type: 'confirm',
-        name: 'overwrite',
+      const overwrite = await confirm({
         message: `${name}.md 已存在，覆盖？`,
         default: false,
-      }]);
+      });
       if (!overwrite) {
         console.log(ansis.gray(`  跳过 ${name}`));
         continue;

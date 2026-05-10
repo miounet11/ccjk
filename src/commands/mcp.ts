@@ -1,4 +1,4 @@
-import inquirer from 'inquirer';
+import { checkbox, confirm, input, select } from '@inquirer/prompts';
 import ansis from 'ansis';
 import { MCP_SERVICES } from '../core/mcp.js';
 import { TOOLS } from '../core/tools.js';
@@ -33,12 +33,10 @@ export async function mcpCommand(opts: McpOptions = {}): Promise<void> {
   console.log(ansis.dim(`→ 安装: ${installed.join(', ')}\n`));
 
   if (!opts.yes) {
-    const { ok } = await inquirer.prompt<{ ok: boolean }>([{
-      type: 'confirm',
-      name: 'ok',
+    const ok = await confirm({
       message: '确认写入？',
       default: true,
-    }]);
+    });
     if (!ok) {
       console.log(ansis.gray('已取消。'));
       return;
@@ -51,15 +49,13 @@ export async function mcpCommand(opts: McpOptions = {}): Promise<void> {
 }
 
 async function pickServices(): Promise<string[]> {
-  const { ids } = await inquirer.prompt<{ ids: string[] }>([{
-    type: 'checkbox',
-    name: 'ids',
+  const ids = await checkbox<string>({
     message: '选择要安装的 MCP 服务（空格选择，回车确认）',
     choices: MCP_SERVICES.map(s => ({
       name: `${s.name.padEnd(18)} ${ansis.dim(s.description)}`,
       value: s.id,
     })),
-  }]);
+  });
   return ids;
 }
 
@@ -136,12 +132,10 @@ export async function mcpRmCommand(name: string | undefined, opts: McpRmOptions 
   }
 
   if (!opts.yes) {
-    const { ok } = await inquirer.prompt<{ ok: boolean }>([{
-      type: 'confirm',
-      name: 'ok',
+    const ok = await confirm({
       message: `确认卸载 MCP "${target}"？`,
       default: true,
-    }]);
+    });
     if (!ok) {
       console.log(ansis.gray('已取消。'));
       return;
@@ -171,9 +165,10 @@ export async function mcpAddCommand(name: string | undefined, opts: McpAddOption
   const meta = TOOLS[tool];
 
   if (!name) {
-    const { v } = await inquirer.prompt<{ v: string }>([{
-      type: 'input', name: 'v', message: 'MCP 名称', validate: (s: string) => /^[a-zA-Z0-9_-]+$/.test(s.trim()) || '只允许字母数字下划线-',
-    }]);
+    const v = await input({
+      message: 'MCP 名称',
+      validate: (s: string) => /^[a-zA-Z0-9_-]+$/.test(s.trim()) || '只允许字母数字下划线-',
+    });
     name = v.trim();
   }
   validateMcpName(name);
@@ -191,9 +186,7 @@ export async function mcpAddCommand(name: string | undefined, opts: McpAddOption
   if (entry.env) console.log(ansis.dim(`→ env: ${Object.keys(entry.env).join(', ')}`));
 
   if (!opts.yes) {
-    const { ok } = await inquirer.prompt<{ ok: boolean }>([{
-      type: 'confirm', name: 'ok', message: '确认添加？', default: true,
-    }]);
+    const ok = await confirm({ message: '确认添加？', default: true });
     if (!ok) {
       console.log(ansis.gray('已取消。'));
       return;
@@ -203,9 +196,7 @@ export async function mcpAddCommand(name: string | undefined, opts: McpAddOption
   const settings = await readSettings(meta.settingsFile);
   settings.mcpServers = settings.mcpServers ?? {};
   if (settings.mcpServers[name] && !opts.yes) {
-    const { overwrite } = await inquirer.prompt<{ overwrite: boolean }>([{
-      type: 'confirm', name: 'overwrite', message: `"${name}" 已存在，覆盖？`, default: false,
-    }]);
+    const overwrite = await confirm({ message: `"${name}" 已存在，覆盖？`, default: false });
     if (!overwrite) {
       console.log(ansis.gray('已取消。'));
       return;
@@ -224,20 +215,18 @@ function validateMcpName(name: string): void {
 }
 
 async function pickInstalled(names: string[], message: string): Promise<string | undefined> {
-  const { name } = await inquirer.prompt<{ name: string }>([{
-    type: 'list', name: 'name', message, choices: names.sort(),
-  }]);
-  return name;
+  return await select<string>({
+    message,
+    choices: names.sort().map(n => ({ name: n, value: n })),
+  });
 }
 
 async function askInput(message: string, defaultValue?: string): Promise<string> {
-  const { v } = await inquirer.prompt<{ v: string }>([{
-    type: 'input',
-    name: 'v',
+  const v = await input({
     message,
-    default: defaultValue,
+    ...(defaultValue !== undefined ? { default: defaultValue } : {}),
     validate: (s: string) => (defaultValue !== undefined || s.trim().length > 0) || '不能为空',
-  }]);
+  });
   return v.trim();
 }
 

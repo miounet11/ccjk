@@ -1,4 +1,4 @@
-import inquirer from 'inquirer';
+import { confirm, select } from '@inquirer/prompts';
 import ansis from 'ansis';
 import { TOOLS } from '../core/tools.js';
 import type { CodeTool } from '../core/tools.js';
@@ -72,12 +72,10 @@ export async function statusLineInstallCommand(opts: StatusLineInstallOptions = 
   const existing = (settings as Record<string, unknown>).statusLine as { command?: string } | undefined;
   if (existing?.command && !opts.yes) {
     console.log(ansis.dim(`\n当前已有 statusLine：${existing.command}`));
-    const { ok } = await inquirer.prompt<{ ok: boolean }>([{
-      type: 'confirm',
-      name: 'ok',
+    const ok = await confirm({
       message: '覆盖现有 statusLine？',
       default: false,
-    }]);
+    });
     if (!ok) {
       console.log(ansis.gray('已取消。\n'));
       return;
@@ -106,9 +104,7 @@ export async function statusLineUninstallCommand(opts: StatusLineInstallOptions 
   }
   if (existing.command !== 'ccjk statusline' && !opts.yes) {
     console.log(ansis.yellow(`\n当前 statusLine 不是 ccjk 安装的：${existing.command}`));
-    const { ok } = await inquirer.prompt<{ ok: boolean }>([{
-      type: 'confirm', name: 'ok', message: '仍要删除？', default: false,
-    }]);
+    const ok = await confirm({ message: '仍要删除？', default: false });
     if (!ok) {
       console.log(ansis.gray('已取消。\n'));
       return;
@@ -121,15 +117,12 @@ export async function statusLineUninstallCommand(opts: StatusLineInstallOptions 
 }
 
 async function pickTool(): Promise<CodeTool> {
-  const { tool } = await inquirer.prompt<{ tool: CodeTool }>([{
-    type: 'list',
-    name: 'tool',
+  return await select<CodeTool>({
     message: '选择目标',
     default: 'clavue',
     choices: [
       { name: 'Clavue', value: 'clavue' },
       { name: 'Claude Code', value: 'claude-code' },
     ],
-  }]);
-  return tool;
+  });
 }

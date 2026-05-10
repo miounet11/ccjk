@@ -1,8 +1,9 @@
 import { spawnSync } from 'node:child_process';
-import inquirer from 'inquirer';
+import { checkbox, confirm } from '@inquirer/prompts';
 import ansis from 'ansis';
 import { TOOLS } from '../core/tools.js';
 import type { CodeTool } from '../core/tools.js';
+import { supportsAnsi } from '../core/term.js';
 import {
   buildInstallCommand,
   buildUpdateCommand,
@@ -115,9 +116,7 @@ export async function installCommand(toolArg: string | undefined, opts: InstallO
     if (!await countdownConfirm(2)) return;
   }
   else if (opts.interactive) {
-    const { ok } = await inquirer.prompt<{ ok: boolean }>([{
-      type: 'confirm', name: 'ok', message: '确认执行？', default: true,
-    }]);
+    const ok = await confirm({ message: '确认执行？', default: true });
     if (!ok) {
       console.log(ansis.gray('已取消。\n'));
       return;
@@ -151,12 +150,10 @@ async function resolveInstallTargets(toolArg: string | undefined, opts: InstallO
     value: v.tool,
     checked: !v.installed,
   }));
-  const { tools } = await inquirer.prompt<{ tools: CodeTool[] }>([{
-    type: 'checkbox',
-    name: 'tools',
+  const tools = await checkbox<CodeTool>({
     message: '选择要安装/重装的工具',
     choices,
-  }]);
+  });
   return tools;
 }
 
@@ -223,9 +220,7 @@ function resolveUpdateTargets(toolArg: string | undefined, opts: UpdateOptions, 
 }
 
 async function pickInteractive(targets: VersionInfo[]): Promise<VersionInfo[]> {
-  const { tools } = await inquirer.prompt<{ tools: string[] }>([{
-    type: 'checkbox',
-    name: 'tools',
+  const tools = await checkbox<string>({
     message: '选择要更新的工具',
     choices: targets.map((v) => {
       const arrow = v.local && v.latest
@@ -237,7 +232,7 @@ async function pickInteractive(targets: VersionInfo[]): Promise<VersionInfo[]> {
         checked: true,
       };
     }),
-  }]);
+  });
   return targets.filter(v => tools.includes(v.tool));
 }
 
@@ -270,9 +265,7 @@ async function runUpdate(targets: VersionInfo[], opts: UpdateOptions): Promise<v
     if (!await countdownConfirm(2)) return;
   }
   else if (opts.interactive) {
-    const { ok } = await inquirer.prompt<{ ok: boolean }>([{
-      type: 'confirm', name: 'ok', message: '确认更新？', default: true,
-    }]);
+    const ok = await confirm({ message: '确认更新？', default: true });
     if (!ok) {
       console.log(ansis.gray('已取消。\n'));
       return;
@@ -289,9 +282,17 @@ async function runUpdate(targets: VersionInfo[], opts: UpdateOptions): Promise<v
 /**
  * 给用户一个 N 秒的窗口按 Ctrl+C 取消。返回 true 表示 user 默认通过。
  * 没用 inquirer，因为它在 timeout 时不容易优雅清理。
+ *
+ * dumb 终端 / 非 TTY / NO_COLOR 时不做 \r 动画（Windows cmd 会留残影）。
  */
 async function countdownConfirm(seconds: number): Promise<boolean> {
-  if (!process.stdout.isTTY) return true; // 非 TTY 直接通过
+  if (!process.stdout.isTTY) return true;
+  const animated = supportsAnsi();
+  if (!animated) {
+    console.log(ansis.dim(`  ${seconds} 秒后开始执行（Ctrl+C 取消）...`));
+    await sleep(seconds * 1000);
+    return true;
+  }
   process.stdout.write(ansis.dim(`  ${seconds} 秒后开始执行（Ctrl+C 取消）`));
   for (let i = seconds; i > 0; i--) {
     process.stdout.write(ansis.dim(`\r  ${i} 秒后开始执行（Ctrl+C 取消）`));

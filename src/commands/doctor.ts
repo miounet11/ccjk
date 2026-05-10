@@ -1,4 +1,4 @@
-import inquirer from 'inquirer';
+import { confirm } from '@inquirer/prompts';
 import ansis from 'ansis';
 import { autoFix, lintSettings } from '../core/lint.js';
 import type { Severity } from '../core/lint.js';
@@ -87,12 +87,10 @@ export async function doctorCommand(opts: DoctorOptions = {}): Promise<void> {
 
   if (opts.fix && totalFixable > 0) {
     if (!opts.yes) {
-      const { ok } = await inquirer.prompt<{ ok: boolean }>([{
-        type: 'confirm',
-        name: 'ok',
+      const ok = await confirm({
         message: `自动修复 ${totalFixable} 项？（修改前会备份）`,
         default: true,
-      }]);
+      });
       if (!ok) {
         console.log(ansis.gray('已跳过 fix。\n'));
         return;

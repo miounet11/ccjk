@@ -1,6 +1,6 @@
 import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
-import inquirer from 'inquirer';
+import { checkbox, confirm, password, select } from '@inquirer/prompts';
 import ansis from 'ansis';
 import type { Profile } from '../core/profiles.js';
 import { listProfiles, maskKey, readProfile, writeProfile } from '../core/profiles.js';
@@ -31,9 +31,7 @@ export async function profileExportCommand(opts: ExportOptions = {}): Promise<vo
 
   const outPath = resolve(opts.output ?? `ccjk-profiles-${stamp()}.json`);
   if (existsSync(outPath) && !opts.yes) {
-    const { ok } = await inquirer.prompt<{ ok: boolean }>([{
-      type: 'confirm', name: 'ok', message: `${outPath} 已存在，覆盖？`, default: false,
-    }]);
+    const ok = await confirm({ message: `${outPath} 已存在，覆盖？`, default: false });
     if (!ok) {
       console.log(ansis.gray('已取消。'));
       return;
@@ -79,9 +77,7 @@ export async function profileImportCommand(file: string, opts: ImportOptions = {
   console.log();
 
   if (!opts.yes) {
-    const { ok } = await inquirer.prompt<{ ok: boolean }>([{
-      type: 'confirm', name: 'ok', message: '确认导入？', default: true,
-    }]);
+    const ok = await confirm({ message: '确认导入？', default: true });
     if (!ok) {
       console.log(ansis.gray('已取消。'));
       return;
@@ -127,16 +123,14 @@ export async function profileImportCommand(file: string, opts: ImportOptions = {
 }
 
 async function pickProfilesInteractive(all: Profile[]): Promise<Profile[]> {
-  const { names } = await inquirer.prompt<{ names: string[] }>([{
-    type: 'checkbox',
-    name: 'names',
+  const names = await checkbox<string>({
     message: '选择要导出的 profile（空格选择，回车确认）',
     choices: all.map(p => ({
       name: `${p.name.padEnd(16)} ${p.provider.padEnd(12)} ${ansis.dim(maskKey(p.apiKey))}`,
       value: p.name,
       checked: true,
     })),
-  }]);
+  });
   return all.filter(p => names.includes(p.name));
 }
 
@@ -152,17 +146,14 @@ function pickByNames<T extends { name: string }>(all: T[], names: string[]): T[]
 
 async function resolveConflict(name: string, mode: 'skip' | 'overwrite' | 'rename' | 'ask'): Promise<'skip' | 'overwrite' | 'rename'> {
   if (mode !== 'ask') return mode;
-  const { action } = await inquirer.prompt<{ action: 'skip' | 'overwrite' | 'rename' }>([{
-    type: 'list',
-    name: 'action',
+  return await select<'skip' | 'overwrite' | 'rename'>({
     message: `Profile "${name}" 已存在，怎么处理？`,
     choices: [
       { name: '跳过', value: 'skip' },
       { name: '覆盖', value: 'overwrite' },
       { name: '重命名导入', value: 'rename' },
     ],
-  }]);
-  return action;
+  });
 }
 
 async function uniqueName(base: string): Promise<string> {
@@ -173,13 +164,11 @@ async function uniqueName(base: string): Promise<string> {
 }
 
 async function askApiKey(name: string, authType: 'api_key' | 'auth_token'): Promise<string> {
-  const { v } = await inquirer.prompt<{ v: string }>([{
-    type: 'password',
-    name: 'v',
+  const v = await password({
     message: `输入 ${name} 的 ${authType === 'api_key' ? 'API Key' : 'Auth Token'}`,
-    mask: '*',
+    mask: true,
     validate: (s: string) => s.trim().length > 0 || '不能为空',
-  }]);
+  });
   return v.trim();
 }
 

@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import inquirer from 'inquirer';
+import { Separator, select } from '@inquirer/prompts';
 import ansis from 'ansis';
 import { detectCommand } from './detect.js';
 import { initCommand } from './init.js';
@@ -17,6 +17,7 @@ import { modeUseCommand } from './mode.js';
 import { workflowRunCommand } from './workflow.js';
 import { envPermCommand } from './env-perm.js';
 import { collectStatus, renderBanner, renderStatusBar } from '../core/banner.js';
+import { displayWidth, padToWidth, recommendedPageSize, recommendedSepWidth, softClear } from '../core/term.js';
 
 interface MenuItem {
   label: string;
@@ -76,44 +77,23 @@ async function maintenanceSubMenu(): Promise<void> {
     { label: '检测已安装的工具', hint: '看哪些已装哪些没装', run: async () => detectCommand() },
   ];
 
-  const { choice } = await inquirer.prompt<{ choice: number }>([{
-    type: 'list',
-    name: 'choice',
+  const choice = await select<number>({
     message: ansis.bold('维护与诊断'),
-    pageSize: 10,
+    pageSize: recommendedPageSize(),
     loop: false,
     choices: [
       ...SUB_ITEMS.map((it, i) => ({
-        name: `${padToVisibleWidth(it.label, 20)}  ${ansis.dim(it.hint ?? '')}`,
+        name: `${padToWidth(it.label, 20)}  ${ansis.dim(it.hint ?? '')}`,
         value: i,
         short: it.label,
       })),
-      new inquirer.Separator(),
+      new Separator(),
       { name: ansis.gray('返回主菜单'), value: -1, short: '返回' },
     ],
-  }]);
+  });
 
   if (choice < 0) return;
   await SUB_ITEMS[choice].run();
-}
-
-/**
- * 中文/全角字符在 monospace 终端通常占 2 列。padEnd 按字符数算不对齐。
- */
-function visibleWidth(s: string): number {
-  let w = 0;
-  for (const ch of s) {
-    const code = ch.codePointAt(0) ?? 0;
-    if (code >= 0x4e00 && code <= 0x9fff) w += 2;
-    else if (code >= 0x3000 && code <= 0x303f) w += 2;
-    else if (code >= 0xff00 && code <= 0xffef) w += 2;
-    else w += 1;
-  }
-  return w;
-}
-
-function padToVisibleWidth(s: string, width: number): string {
-  return s + ' '.repeat(Math.max(0, width - visibleWidth(s)));
 }
 
 function getVersion(): string {
@@ -129,7 +109,7 @@ function getVersion(): string {
 
 export async function menuCommand(): Promise<void> {
   // 循环：执行完一个动作回到菜单首页，直到用户主动选"退出"。
-  // banner 只在第一次进入时打印，避免重复刷屏。
+  // banner 只在第一次进入时打印；之后软清屏避免重复刷屏。
   let firstRound = true;
 
   while (true) {
@@ -140,9 +120,8 @@ export async function menuCommand(): Promise<void> {
       firstRound = false;
     }
     else {
-      // 第二次以后只清屏不重打 banner（保留品牌但不嘈杂）
-      // 用 ANSI 清屏 + 重置光标。终端不支持就降级成空行分隔。
-      if (process.stdout.isTTY) process.stdout.write('\x1Bc');
+      // 软清屏：ANSI 不支持时降级到换行；不用 \x1Bc 避免重置整个终端
+      softClear();
       console.log();
     }
 
@@ -152,37 +131,35 @@ export async function menuCommand(): Promise<void> {
     for (const l of statusLines) console.log(l);
     console.log();
 
-    type Choice = { name: string; value: number; short?: string } | typeof inquirer.Separator.prototype;
+    type Choice = { name: string; value: number; short?: string } | InstanceType<typeof Separator>;
     const choices: Choice[] = [];
     let idx = 0;
     const flat: MenuItem[] = [];
-    const SEP_WIDTH = 50;
+    const SEP_WIDTH = recommendedSepWidth();
     for (const g of GROUPS) {
-      // 按 visible-width 算横杠数：── 标题 ─...─ 总宽度对齐
+      // 按视觉宽度算横杠数：── 标题 ─...─ 总宽度对齐
       const titlePart = `── ${g.title} `;
-      const titleW = visibleWidth(titlePart);
+      const titleW = displayWidth(titlePart);
       const dashCount = Math.max(3, SEP_WIDTH - titleW);
       const sep = `${titlePart}${'─'.repeat(dashCount)}`;
-      choices.push(new inquirer.Separator(ansis.dim(sep)));
+      choices.push(new Separator(ansis.dim(sep)));
       for (const item of g.items) {
         const hint = item.hint ? `  ${ansis.dim(item.hint)}` : '';
-        const padded = padToVisibleWidth(item.label, 20);
+        const padded = padToWidth(item.label, 20);
         choices.push({ name: `${padded}${hint}`, value: idx, short: item.label });
         flat.push(item);
         idx++;
       }
     }
-    choices.push(new inquirer.Separator(ansis.dim('─'.repeat(SEP_WIDTH))));
+    choices.push(new Separator(ansis.dim('─'.repeat(SEP_WIDTH))));
     choices.push({ name: ansis.gray('退出 ccjk'), value: -1, short: '退出' });
 
-    const { choice } = await inquirer.prompt<{ choice: number }>([{
-      type: 'list',
-      name: 'choice',
+    const choice = await select<number>({
       message: ansis.bold('选择操作'),
       choices,
-      pageSize: 22,
+      pageSize: recommendedPageSize(),
       loop: false,
-    }]);
+    });
 
     if (choice < 0) {
       console.log();
@@ -198,17 +175,15 @@ export async function menuCommand(): Promise<void> {
       console.log(ansis.red(`\n✗ ${item.label} 执行失败: ${(e as Error).message}\n`));
     }
 
-    // 给用户一秒看输出。回车回菜单，q 直接退出。
-    const { next } = await inquirer.prompt<{ next: 'menu' | 'quit' }>([{
-      type: 'list',
-      name: 'next',
+    // 给用户机会看输出。回车回菜单，q 直接退出。
+    const next = await select<'menu' | 'quit'>({
       message: ansis.dim('完成。'),
       default: 'menu',
       choices: [
         { name: '回菜单', value: 'menu' },
         { name: ansis.gray('退出 ccjk'), value: 'quit' },
       ],
-    }]);
+    });
     if (next === 'quit') {
       console.log();
       return;

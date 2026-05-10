@@ -1,7 +1,7 @@
 import { existsSync } from 'node:fs';
 import { copyFile, readdir, stat } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
-import inquirer from 'inquirer';
+import { Separator, confirm, select } from '@inquirer/prompts';
 import ansis from 'ansis';
 import { TOOLS } from '../core/tools.js';
 import type { CodeTool } from '../core/tools.js';
@@ -31,9 +31,7 @@ export async function rollbackCommand(opts: RollbackOptions = {}): Promise<void>
   }
   all.sort((a, b) => b.ts.getTime() - a.ts.getTime());
 
-  const { idx } = await inquirer.prompt<{ idx: number }>([{
-    type: 'list',
-    name: 'idx',
+  const idx = await select<number>({
     message: '选择要还原的备份',
     pageSize: Math.min(15, all.length + 2),
     choices: [
@@ -41,10 +39,10 @@ export async function rollbackCommand(opts: RollbackOptions = {}): Promise<void>
         name: `${ansis.bold(TOOLS[b.tool].displayName.padEnd(12))} ${formatTs(b.ts).padEnd(20)} ${ansis.dim(b.backupPath.split('/').pop() ?? '')}`,
         value: i,
       })),
-      new inquirer.Separator(),
+      new Separator(),
       { name: ansis.gray('取消'), value: -1 },
     ],
-  }]);
+  });
   if (idx < 0) {
     console.log(ansis.gray('已取消。'));
     return;
@@ -52,12 +50,10 @@ export async function rollbackCommand(opts: RollbackOptions = {}): Promise<void>
   const target = all[idx];
 
   if (!opts.yes) {
-    const { ok } = await inquirer.prompt<{ ok: boolean }>([{
-      type: 'confirm',
-      name: 'ok',
+    const ok = await confirm({
       message: `还原 ${TOOLS[target.tool].displayName}\n  ${target.backupPath}\n  →  ${target.origin}\n（当前文件会备份后被覆盖）`,
       default: false,
-    }]);
+    });
     if (!ok) {
       console.log(ansis.gray('已取消。'));
       return;

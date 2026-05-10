@@ -42,12 +42,19 @@ import { envPermCommand } from './commands/env-perm.js';
 const pkgPath = join(dirname(fileURLToPath(import.meta.url)), '..', 'package.json');
 const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8')) as { version: string };
 
+// --no-color：在任何 ansis 输出前生效。命令行 flag 或环境变量都行。
+if (process.argv.includes('--no-color') || process.env.NO_COLOR) {
+  process.env.NO_COLOR = '1';
+  ansis.level = 0;
+}
+
 const program = new Command();
 
 program
   .name('ccjk')
   .description('Clavue / Claude Code 配置 CLI')
-  .version(pkg.version);
+  .version(pkg.version)
+  .option('--no-color', '禁用彩色输出（也可设置环境变量 NO_COLOR=1）');
 
 program
   .command('init')

@@ -9,38 +9,36 @@ import { readSettings } from './settings.js';
 import { detectClaudeTier } from './perms.js';
 import { expandHome } from './paths.js';
 import { readModeState } from './modes.js';
+import { supportsUnicode } from './term.js';
 
 /**
- * 渲染启动横幅。简洁优先：
- * - 不闪烁、不动画
- * - ASCII art 用单字节字符，避免双宽字体导致对齐歪
- * - 终端不支持颜色时降级（ansis 自动处理）
+ * 渲染启动横幅。
+ * - 终端支持 Unicode（UTF-8 locale + 现代终端）→ 出方框字符版 ASCII art
+ * - 不支持 → ASCII fallback（不带方框线/块字符），避免老 cmd / dumb 终端乱码
  */
-export function renderBanner(version: string): string {
+export function renderBanner(version: string, opts: { forceAscii?: boolean } = {}): string {
   const lines: string[] = [];
   const dim = ansis.dim;
   const bold = ansis.bold;
+  const useUnicode = !opts.forceAscii && supportsUnicode();
 
-  //   ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
-  //   ▄▄ ▄▄ ▄ ▄ ▄ ▄
-  // 走字母 art：每行严格 6 字符 × n，全部 ASCII：
-  //
-  //    ██████╗  ██████╗     ██╗██╗  ██╗
-  //   ██╔════╝ ██╔════╝     ██║██║ ██╔╝
-  //   ██║      ██║          ██║█████╔╝
-  //   ██║      ██║     ██   ██║██╔═██╗
-  //   ╚██████╗ ╚██████╗ ╚█████╔╝██║  ██╗
-  //    ╚═════╝  ╚═════╝  ╚════╝ ╚═╝  ╚═╝
-  //
-  // 这些字符（█ ╗ ╔ ║ ═ ╚）大多数 monospace 字体里都是单宽，对齐稳。
-  const art = [
-    '   ██████╗  ██████╗     ██╗██╗  ██╗',
-    '  ██╔════╝ ██╔════╝     ██║██║ ██╔╝',
-    '  ██║      ██║          ██║█████╔╝ ',
-    '  ██║      ██║     ██   ██║██╔═██╗ ',
-    '  ╚██████╗ ╚██████╗ ╚█████╔╝██║  ██╗',
-    '   ╚═════╝  ╚═════╝  ╚════╝ ╚═╝  ╚═╝',
-  ];
+  const art = useUnicode
+    ? [
+        '   ██████╗  ██████╗     ██╗██╗  ██╗',
+        '  ██╔════╝ ██╔════╝     ██║██║ ██╔╝',
+        '  ██║      ██║          ██║█████╔╝ ',
+        '  ██║      ██║     ██   ██║██╔═██╗ ',
+        '  ╚██████╗ ╚██████╗ ╚█████╔╝██║  ██╗',
+        '   ╚═════╝  ╚═════╝  ╚════╝ ╚═╝  ╚═╝',
+      ]
+    : [
+        '   ____  ____      ___ _  __',
+        '  / ___|/ ___|    | | | |/ /',
+        ' | |   | |     _  | | | | / ',
+        ' | |___| |___ | |_| | | |\\ \\ ',
+        '  \\____|\\____| \\___/  |_| \\_\\',
+      ];
+
   for (const a of art) lines.push(bold.cyan(a));
   lines.push('');
   lines.push(`  ${bold('Clavue 官方配置工具')}  ${dim('· Claude Code / Codex 通用')}`);

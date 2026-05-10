@@ -1,4 +1,4 @@
-import inquirer from 'inquirer';
+import { confirm, input, password, select } from '@inquirer/prompts';
 import ansis from 'ansis';
 import type { CodeTool } from '../core/tools.js';
 import { TOOLS } from '../core/tools.js';
@@ -61,12 +61,7 @@ export async function initCommand(opts: InitOptions = {}): Promise<void> {
   console.log();
 
   if (!opts.yes) {
-    const { ok } = await inquirer.prompt<{ ok: boolean }>([{
-      type: 'confirm',
-      name: 'ok',
-      message: '确认写入？',
-      default: true,
-    }]);
+    const ok = await confirm({ message: '确认写入？', default: true });
     if (!ok) {
       console.log(ansis.gray('已取消。'));
       return;
@@ -124,12 +119,10 @@ async function collectModelSlots(provider: ApiProvider, opts: InitOptions): Prom
 }
 
 async function askModelSlot(message: string, defaultValue: string): Promise<string> {
-  const { v } = await inquirer.prompt<{ v: string }>([{
-    type: 'input',
-    name: 'v',
+  const v = await input({
     message,
-    default: defaultValue || undefined,
-  }]);
+    ...(defaultValue ? { default: defaultValue } : {}),
+  });
   // 输入空格表示"清空这个槽位"
   return v.trim();
 }
@@ -147,25 +140,21 @@ async function maybeSaveProfile(args: SaveProfileArgs): Promise<void> {
   let name = args.explicitName;
 
   if (!name && !args.yes) {
-    const { save } = await inquirer.prompt<{ save: boolean }>([{
-      type: 'confirm',
-      name: 'save',
+    const save = await confirm({
       message: '保存为 profile？（之后用 `ccjk use` 一键切换）',
       default: true,
-    }]);
+    });
     if (!save) return;
     const suggested = await suggestName(args.provider.id);
-    const { input } = await inquirer.prompt<{ input: string }>([{
-      type: 'input',
-      name: 'input',
+    const inputName = await input({
       message: 'profile 名称',
       default: suggested,
       validate: (s: string) => {
         try { validateName(s.trim()); return true; }
         catch (e) { return (e as Error).message; }
       },
-    }]);
-    name = input.trim();
+    });
+    name = inputName.trim();
   }
 
   if (!name) return;
@@ -202,9 +191,7 @@ function resolveProvider(tool: CodeTool, id: string): ApiProvider {
 }
 
 async function pickTool(): Promise<CodeTool> {
-  const { tool } = await inquirer.prompt<{ tool: CodeTool }>([{
-    type: 'list',
-    name: 'tool',
+  return await select<CodeTool>({
     message: '选择目标代码工具',
     default: 'clavue',
     choices: [
@@ -212,29 +199,31 @@ async function pickTool(): Promise<CodeTool> {
       { name: TOOLS['claude-code'].displayName, value: 'claude-code' },
       { name: `${TOOLS.codex.displayName} ${ansis.dim('(暂仅检测)')}`, value: 'codex' },
     ],
-  }]);
-  return tool;
+  });
 }
 
 async function pickProvider(tool: CodeTool): Promise<ApiProvider> {
   const list = listProvidersFor(tool);
-  const { id } = await inquirer.prompt<{ id: string }>([{
-    type: 'list',
-    name: 'id',
+  const id = await select<string>({
     message: '选择 API provider',
     choices: list.map(p => ({ name: `${p.name} ${ansis.dim(p.description)}`, value: p.id })),
-  }]);
+  });
   return list.find(p => p.id === id)!;
 }
 
 async function askInput(message: string, mask = false): Promise<string> {
-  const { v } = await inquirer.prompt<{ v: string }>([{
-    type: mask ? 'password' : 'input',
-    name: 'v',
+  if (mask) {
+    const v = await password({
+      message,
+      mask: true,
+      validate: (s: string) => s.trim().length > 0 || '不能为空',
+    });
+    return v.trim();
+  }
+  const v = await input({
     message,
-    mask: mask ? '*' : undefined,
     validate: (s: string) => s.trim().length > 0 || '不能为空',
-  }]);
+  });
   return v.trim();
 }
 

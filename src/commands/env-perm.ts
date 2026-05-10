@@ -1,7 +1,7 @@
 import { existsSync, writeFileSync } from 'node:fs';
 import { spawn } from 'node:child_process';
 import { platform } from 'node:os';
-import inquirer from 'inquirer';
+import { Separator, confirm, select } from '@inquirer/prompts';
 import ansis from 'ansis';
 import { TOOLS } from '../core/tools.js';
 import type { CodeTool } from '../core/tools.js';
@@ -51,9 +51,7 @@ export async function envPermCommand(opts: EnvPermOptions = {}): Promise<void> {
 }
 
 async function pickAction(): Promise<'env' | 'perms' | 'edit' | 'cancel'> {
-  const { v } = await inquirer.prompt<{ v: 'env' | 'perms' | 'edit' | 'cancel' }>([{
-    type: 'list',
-    name: 'v',
+  return await select<'env' | 'perms' | 'edit' | 'cancel'>({
     message: '请选择配置选项',
     choices: [
       {
@@ -71,11 +69,10 @@ async function pickAction(): Promise<'env' | 'perms' | 'edit' | 'cancel'> {
         value: 'edit',
         short: '打开编辑器',
       },
-      new inquirer.Separator(),
+      new Separator(),
       { name: ansis.gray('返回'), value: 'cancel', short: '返回' },
     ],
-  }]);
-  return v;
+  });
 }
 
 async function runImportEnv(tools: CodeTool[], yes: boolean): Promise<void> {
@@ -87,9 +84,7 @@ async function runImportEnv(tools: CodeTool[], yes: boolean): Promise<void> {
   console.log(ansis.dim('  策略: 已存在的 key 不覆盖（保留你已设的值）\n'));
 
   if (!yes) {
-    const { ok } = await inquirer.prompt<{ ok: boolean }>([{
-      type: 'confirm', name: 'ok', message: '确认导入？', default: true,
-    }]);
+    const ok = await confirm({ message: '确认导入？', default: true });
     if (!ok) {
       console.log(ansis.gray('已取消。\n'));
       return;
@@ -124,9 +119,7 @@ async function runImportPerms(tools: CodeTool[], yes: boolean): Promise<void> {
   console.log(ansis.dim('  策略: allow 与现有合并（不覆盖你已加的）；deny 替换（确保危险拦截生效）\n'));
 
   if (!yes) {
-    const { ok } = await inquirer.prompt<{ ok: boolean }>([{
-      type: 'confirm', name: 'ok', message: '确认导入？', default: true,
-    }]);
+    const ok = await confirm({ message: '确认导入？', default: true });
     if (!ok) {
       console.log(ansis.gray('已取消。\n'));
       return;
@@ -156,13 +149,10 @@ async function runOpenEditor(tools: CodeTool[]): Promise<void> {
     target = targets[0];
   }
   else {
-    const { v } = await inquirer.prompt<{ v: CodeTool }>([{
-      type: 'list',
-      name: 'v',
+    target = await select<CodeTool>({
       message: '编辑哪个 settings.json？',
       choices: targets.map(t => ({ name: TOOLS[t].displayName, value: t })),
-    }]);
-    target = v;
+    });
   }
 
   const meta = TOOLS[target];

@@ -1,4 +1,4 @@
-import inquirer from 'inquirer';
+import { checkbox, confirm, input, password, select } from '@inquirer/prompts';
 import ansis from 'ansis';
 import { TOOLS } from '../core/tools.js';
 import type { CodeTool } from '../core/tools.js';
@@ -51,12 +51,10 @@ export async function profileUseCommand(name: string | undefined, opts: UseOptio
       console.log(ansis.gray('  跳过（--yes 模式下不进入 init）\n'));
       return;
     }
-    const { go } = await inquirer.prompt<{ go: boolean }>([{
-      type: 'confirm',
-      name: 'go',
+    const go = await confirm({
       message: '现在去配置一个？（会自动保存为 profile）',
       default: true,
-    }]);
+    });
     if (!go) {
       console.log(ansis.gray('已取消。\n'));
       return;
@@ -82,12 +80,7 @@ export async function profileUseCommand(name: string | undefined, opts: UseOptio
     console.log(ansis.dim(`\n→ 切换到: ${target.name} (${target.provider})`));
     console.log(ansis.dim(`→ Base URL: ${target.baseUrl}`));
     console.log(ansis.dim(`→ 写入: ${meta.settingsFile}\n`));
-    const { ok } = await inquirer.prompt<{ ok: boolean }>([{
-      type: 'confirm',
-      name: 'ok',
-      message: '确认切换？',
-      default: true,
-    }]);
+    const ok = await confirm({ message: '确认切换？', default: true });
     if (!ok) {
       console.log(ansis.gray('已取消。'));
       return;
@@ -113,12 +106,10 @@ export async function profileRmCommand(name: string | undefined, opts: { yes?: b
   if (!target) return;
 
   if (!opts.yes) {
-    const { ok } = await inquirer.prompt<{ ok: boolean }>([{
-      type: 'confirm',
-      name: 'ok',
+    const ok = await confirm({
       message: `确认删除 profile "${target.name}"？（settings.json 不受影响）`,
       default: false,
-    }]);
+    });
     if (!ok) {
       console.log(ansis.gray('已取消。'));
       return;
@@ -167,16 +158,14 @@ function findOrExit(profiles: Profile[], name: string): Profile {
 
 async function pickProfile(profiles: Profile[], message = '选择 Profile'): Promise<Profile | undefined> {
   const state = await readState();
-  const { name } = await inquirer.prompt<{ name: string }>([{
-    type: 'list',
-    name: 'name',
+  const name = await select<string>({
     message,
-    default: state.current,
+    ...(state.current ? { default: state.current } : {}),
     choices: profiles.map(p => ({
       name: `${p.name.padEnd(16)} ${p.provider.padEnd(12)} ${ansis.dim(maskKey(p.apiKey))}${state.current === p.name ? ansis.green('  (当前)') : ''}`,
       value: p.name,
     })),
-  }]);
+  });
   return profiles.find(p => p.name === name);
 }
 
@@ -201,16 +190,14 @@ export async function profileCopyCommand(
   let target = toName;
   if (!target) {
     const suggested = await suggestCopyName(source.name);
-    const { v } = await inquirer.prompt<{ v: string }>([{
-      type: 'input',
-      name: 'v',
+    const v = await input({
       message: '新 profile 名称',
       default: suggested,
       validate: (s: string) => {
         try { validateName(s.trim()); return true; }
         catch (e) { return (e as Error).message; }
       },
-    }]);
+    });
     target = v.trim();
   }
   validateName(target);
@@ -226,9 +213,7 @@ export async function profileCopyCommand(
   const copy: Profile = { ...source, name: target, createdAt: new Date().toISOString() };
 
   if (!opts.yes) {
-    const { fields } = await inquirer.prompt<{ fields: string[] }>([{
-      type: 'checkbox',
-      name: 'fields',
+    const fields = await checkbox<string>({
       message: '要修改哪些字段？（默认全保留源 profile）',
       choices: [
         { name: 'API Key / Auth Token', value: 'apiKey' },
@@ -236,33 +221,31 @@ export async function profileCopyCommand(
         { name: 'Main model', value: 'model' },
         { name: 'Haiku model（fastModel）', value: 'fastModel' },
       ],
-    }]);
+    });
     for (const f of fields) {
       if (f === 'apiKey') {
-        const { v } = await inquirer.prompt<{ v: string }>([{
-          type: 'password', name: 'v', message: '新 API Key / Auth Token', mask: '*',
+        const v = await password({
+          message: '新 API Key / Auth Token',
+          mask: true,
           validate: (s: string) => s.trim().length > 0 || '不能为空',
-        }]);
+        });
         copy.apiKey = v.trim();
       }
       else if (f === 'baseUrl') {
-        const { v } = await inquirer.prompt<{ v: string }>([{
-          type: 'input', name: 'v', message: '新 Base URL', default: source.baseUrl,
+        const v = await input({
+          message: '新 Base URL',
+          default: source.baseUrl,
           validate: (s: string) => s.trim().length > 0 || '不能为空',
-        }]);
+        });
         copy.baseUrl = v.trim();
       }
       else if (f === 'model') {
-        const { v } = await inquirer.prompt<{ v: string }>([{
-          type: 'input', name: 'v', message: '新 Main model', default: source.model ?? '',
-        }]);
+        const v = await input({ message: '新 Main model', default: source.model ?? '' });
         if (v.trim()) copy.model = v.trim();
         else delete copy.model;
       }
       else if (f === 'fastModel') {
-        const { v } = await inquirer.prompt<{ v: string }>([{
-          type: 'input', name: 'v', message: '新 Haiku model', default: source.fastModel ?? '',
-        }]);
+        const v = await input({ message: '新 Haiku model', default: source.fastModel ?? '' });
         if (v.trim()) copy.fastModel = v.trim();
         else delete copy.fastModel;
       }
@@ -293,15 +276,13 @@ export async function profileRenameCommand(
 
   let target = newName;
   if (!target) {
-    const { v } = await inquirer.prompt<{ v: string }>([{
-      type: 'input',
-      name: 'v',
+    const v = await input({
       message: '新名称',
       validate: (s: string) => {
         try { validateName(s.trim()); return true; }
         catch (e) { return (e as Error).message; }
       },
-    }]);
+    });
     target = v.trim();
   }
   validateName(target);
@@ -314,12 +295,10 @@ export async function profileRenameCommand(
   }
 
   if (!opts.yes) {
-    const { ok } = await inquirer.prompt<{ ok: boolean }>([{
-      type: 'confirm',
-      name: 'ok',
+    const ok = await confirm({
       message: `重命名 ${source.name} → ${target}？`,
       default: true,
-    }]);
+    });
     if (!ok) {
       console.log(ansis.gray('已取消。\n'));
       return;
