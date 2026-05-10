@@ -10,7 +10,7 @@ describe('applyApiToSettings', () => {
     expect(s.env?.ANTHROPIC_AUTH_TOKEN).toBe('tok123');
     expect(s.env?.ANTHROPIC_API_KEY).toBeUndefined();
     expect(s.env?.ANTHROPIC_MODEL).toBe('glm-4.6');
-    expect(s.env?.ANTHROPIC_DEFAULT_HAIKU_MODEL).toBe('glm-4.5-air');
+    expect(s.env?.ANTHROPIC_DEFAULT_HAIKU_MODEL).toBeUndefined();
   });
 
   it('删除顶层 model 字段（防止劫持 env）', () => {

@@ -14,9 +14,9 @@ export interface InitOptions {
   apiKey?: string;
   yes?: boolean;
   profile?: string;
-  /** 单 model 模式下的 main model；multiSlot 时被忽略，走交互填四槽位 */
+  /** Main model（写到 ANTHROPIC_MODEL）；与 --haiku-model/--sonnet-model/--opus-model 配套 */
   model?: string;
-  /** multiSlot 槽位（命令行参数）；交互模式下会逐个询问 */
+  /** 槽位（命令行参数）；交互模式下逐个询问，回车=用建议值，空格回车=该槽不写 */
   haikuModel?: string;
   sonnetModel?: string;
   opusModel?: string;
@@ -47,8 +47,7 @@ export async function initCommand(opts: InitOptions = {}): Promise<void> {
     ?? (provider.baseUrl || await askInput('Base URL (例如 https://api.example.com)'));
   const apiKey = opts.apiKey ?? await askInput(provider.authType === 'api_key' ? 'API Key' : 'Auth Token', true);
 
-  // 多 slot 模式（GPT/混合网关）：分别问 main/haiku/sonnet/opus
-  // 单 slot 模式：使用 provider 的默认 model（或用户在 --model 显式指定的）
+  // 所有 provider 都走 4 槽位（main/haiku/sonnet/opus）
   const slots = await collectModelSlots(provider, opts);
 
   console.log(ansis.dim(`\n→ 配置目标: ${meta.settingsFile}`));
@@ -94,16 +93,12 @@ export async function initCommand(opts: InitOptions = {}): Promise<void> {
 }
 
 /**
- * 根据 provider 类型决定要问几个 model 槽位。
- *
- * - multiSlot=true（GPT 网关）：依次问 main/haiku/sonnet/opus，每个有默认值，回车即可跳过单个
- * - 单 slot：用 provider.defaultModel 或 --model 参数，不交互
+ * 依次询问 main / haiku / sonnet / opus 四个槽位。
+ * - main 默认值：--model 参数 → provider.defaultModel
+ * - 其他三个槽位默认值：对应 --xxx-model 参数 → provider.fastModel/sonnetModel/opusModel（可能为空）
+ * - 用户回车=用建议值；输入空格再回车=该槽位留空（不写入 settings）
  */
 async function collectModelSlots(provider: ApiProvider, opts: InitOptions): Promise<ModelSlots> {
-  if (!provider.multiSlot) {
-    return { ...(opts.model ? { main: opts.model } : provider.defaultModel ? { main: provider.defaultModel } : {}) };
-  }
-
   // 命令行已经把全部槽位都给了 → 不交互
   if (opts.yes || (opts.model && opts.haikuModel && opts.sonnetModel && opts.opusModel)) {
     return {
