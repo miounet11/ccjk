@@ -338,6 +338,10 @@ async function runJobs(jobs: Job[]): Promise<void> {
     }
     else {
       const [bin, ...args] = job.cmd.split(/\s+/);
+      if (!bin) {
+        failures.push({ tool: job.tool, cmd: job.cmd, reason: '空命令' });
+        continue;
+      }
       result = spawnSync(bin, args, { stdio: 'inherit' });
     }
 

@@ -99,6 +99,7 @@ export async function mcpListCommand(opts: McpToolOpt = {}): Promise<void> {
   console.log(ansis.bold(`\n[${meta.displayName}] 已安装的 MCP（${names.length}）:\n`));
   for (const name of names.sort()) {
     const e = servers[name];
+    if (!e) continue;
     const argsStr = e.args && e.args.length > 0 ? ansis.dim(` ${e.args.join(' ')}`) : '';
     const isPreset = MCP_SERVICES.some(s => s.id === name) ? ansis.green(' (预设)') : '';
     console.log(`  ${ansis.cyan(name)}${isPreset}`);

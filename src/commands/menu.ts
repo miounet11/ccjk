@@ -93,7 +93,9 @@ async function maintenanceSubMenu(): Promise<void> {
   });
 
   if (choice < 0) return;
-  await SUB_ITEMS[choice].run();
+  const sub = SUB_ITEMS[choice];
+  if (!sub) return;
+  await sub.run();
 }
 
 function getVersion(): string {
@@ -167,6 +169,10 @@ export async function menuCommand(): Promise<void> {
     }
 
     const item = flat[choice];
+    if (!item) {
+      // 不会发生（choice 来自 select 合法 index）；保险兜一下
+      continue;
+    }
     try {
       await item.run();
     }

@@ -49,6 +49,11 @@ export async function rollbackCommand(opts: RollbackOptions = {}): Promise<void>
     return;
   }
   const target = all[idx];
+  if (!target) {
+    // 不会发生（select 只返回有效索引），保险起见兜一下
+    console.log(ansis.red('内部错误：选中的备份索引越界。'));
+    return;
+  }
 
   if (!opts.yes) {
     const ok = await confirm({
@@ -89,7 +94,7 @@ async function collectBackupsFor(tool: CodeTool): Promise<BackupEntry[]> {
     const fullPath = join(dir, f);
     let ts: Date;
     const m = /\.bak-(.+)$/.exec(f);
-    if (m) {
+    if (m && m[1]) {
       const restored = m[1].replace(/^(\d{4}-\d{2}-\d{2}T\d{2})-(\d{2})-(\d{2})-(\d+)Z$/, '$1:$2:$3.$4Z');
       const d = new Date(restored);
       ts = isNaN(d.getTime()) ? (await stat(fullPath)).mtime : d;

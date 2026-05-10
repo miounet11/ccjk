@@ -9,11 +9,11 @@ describe('内置工作流', () => {
   });
 
   it('starter 工作流第一步是 init', () => {
-    expect(BUILTIN_WORKFLOWS.starter.steps[0].action.type).toBe('init');
+    expect(BUILTIN_WORKFLOWS.starter!.steps[0]!.action.type).toBe('init');
   });
 
   it('starter 工作流 mcp 是可选', () => {
-    const mcpStep = BUILTIN_WORKFLOWS.starter.steps.find(s => s.action.type === 'mcp');
+    const mcpStep = BUILTIN_WORKFLOWS.starter!.steps.find(s => s.action.type === 'mcp');
     expect(mcpStep?.optional).toBe(true);
   });
 

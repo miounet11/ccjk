@@ -36,7 +36,7 @@ describe('buildPack', () => {
 
   it('--redact 抹掉 apiKey', () => {
     const pack = buildPack([P()], { redact: true });
-    expect(pack.profiles[0].apiKey).toBe('');
+    expect(pack.profiles[0]!.apiKey).toBe('');
   });
 
   it('多个 profile 顺序保持', () => {
@@ -59,8 +59,8 @@ describe('writePack/readPack 往返', () => {
       await writePack(f, pack);
       const loaded = await readPack(f);
       expect(loaded.profiles).toHaveLength(2);
-      expect(loaded.profiles[1].name).toBe('free');
-      expect(loaded.profiles[1].apiKey).toBe('sk-kimi-9');
+      expect(loaded.profiles[1]!.name).toBe('free');
+      expect(loaded.profiles[1]!.apiKey).toBe('sk-kimi-9');
     }
     finally { rmSync(dir, { recursive: true, force: true }); }
   });
@@ -90,7 +90,7 @@ describe('validatePack', () => {
       schema: 1,
       profiles: [{ name: 'x', provider: 'g', baseUrl: 'https://x', authType: 'api_key' }],
     });
-    expect(r.profiles[0].apiKey).toBe('');
+    expect(r.profiles[0]!.apiKey).toBe('');
   });
   it('正常情况返回标准化对象', () => {
     const r = validatePack({

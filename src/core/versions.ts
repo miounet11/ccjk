@@ -111,8 +111,10 @@ export function compareVersion(a: string, b: string): -1 | 0 | 1 {
   const pa = parseVersion(a);
   const pb = parseVersion(b);
   for (let i = 0; i < 3; i++) {
-    if (pa[i] < pb[i]) return -1;
-    if (pa[i] > pb[i]) return 1;
+    const ai = pa[i] ?? 0;
+    const bi = pb[i] ?? 0;
+    if (ai < bi) return -1;
+    if (ai > bi) return 1;
   }
   return 0;
 }

@@ -64,7 +64,7 @@ function prettifyModelId(id: string): string {
   if (!id) return '';
   // claude-opus-4-7 → Opus 4.7；claude-sonnet-4-6 → Sonnet 4.6
   const m = /^claude-(opus|sonnet|haiku)-(\d)-(\d)/i.exec(id);
-  if (m) {
+  if (m && m[1] && m[2] && m[3]) {
     const fam = m[1].charAt(0).toUpperCase() + m[1].slice(1).toLowerCase();
     return `${fam} ${m[2]}.${m[3]}`;
   }
@@ -76,7 +76,7 @@ function formatDir(input: StatusInput): string {
   if (dir === homedir()) return '~';
   if (dir.startsWith(`${homedir()}/`)) {
     const seg = dir.slice(homedir().length + 1).split('/');
-    if (seg.length === 1) return seg[0];
+    if (seg.length === 1 && seg[0]) return seg[0];
     return basename(dir);
   }
   return basename(dir);

@@ -226,13 +226,13 @@ export function cleanupAllow(allow: string[]): { cleaned: string[]; removed: num
   const wide = new Set<string>();
   for (const p of dedup) {
     const m = /^([A-Za-z][A-Za-z0-9_-]*)\(\*\)$/.exec(p);
-    if (m) wide.add(m[1]);
+    if (m && m[1]) wide.add(m[1]);
   }
 
   const cleaned = dedup.filter((p) => {
     // 自己就是宽泛规则，留着
     const m = /^([A-Za-z][A-Za-z0-9_-]*)\(/.exec(p);
-    if (!m) return true;
+    if (!m || !m[1]) return true;
     const tool = m[1];
     if (`${tool}(*)` === p) return true;
     // 被更宽泛规则覆盖 → 删

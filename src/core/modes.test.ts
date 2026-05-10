@@ -33,12 +33,12 @@ describe('内置模式', () => {
     expect(Object.keys(BUILTIN_MODES).sort()).toEqual(['chat', 'code', 'deep', 'fast']);
   });
   it('code 模式 thinking on + high effort', () => {
-    expect(BUILTIN_MODES.code.claude.thinkingEnabled).toBe(true);
-    expect(BUILTIN_MODES.code.codex.effort).toBe('high');
+    expect(BUILTIN_MODES.code!.claude.thinkingEnabled).toBe(true);
+    expect(BUILTIN_MODES.code!.codex.effort).toBe('high');
   });
   it('fast 模式 thinking off + low effort', () => {
-    expect(BUILTIN_MODES.fast.claude.thinkingEnabled).toBe(false);
-    expect(BUILTIN_MODES.fast.codex.effort).toBe('low');
+    expect(BUILTIN_MODES.fast!.claude.thinkingEnabled).toBe(false);
+    expect(BUILTIN_MODES.fast!.codex.effort).toBe('low');
   });
 });
 
@@ -155,21 +155,21 @@ describe('mode-state 读写', () => {
 describe('applyModeToClaudeSettings', () => {
   it('thinking on + budget', () => {
     const s: Record<string, unknown> = {};
-    applyModeToClaudeSettings(s as Parameters<typeof applyModeToClaudeSettings>[0], BUILTIN_MODES.code);
+    applyModeToClaudeSettings(s as Parameters<typeof applyModeToClaudeSettings>[0], BUILTIN_MODES.code!);
     expect((s.thinking as Record<string, unknown>).enabled).toBe(true);
     expect((s.thinking as Record<string, unknown>).budgetTokens).toBe(16384);
   });
 
   it('thinking off 不写 budget', () => {
     const s: Record<string, unknown> = {};
-    applyModeToClaudeSettings(s as Parameters<typeof applyModeToClaudeSettings>[0], BUILTIN_MODES.fast);
+    applyModeToClaudeSettings(s as Parameters<typeof applyModeToClaudeSettings>[0], BUILTIN_MODES.fast!);
     expect((s.thinking as Record<string, unknown>).enabled).toBe(false);
     expect((s.thinking as Record<string, unknown>).budgetTokens).toBeUndefined();
   });
 
   it('保留无关字段', () => {
     const s = { env: { X: '1' } };
-    applyModeToClaudeSettings(s as Parameters<typeof applyModeToClaudeSettings>[0], BUILTIN_MODES.code);
+    applyModeToClaudeSettings(s as Parameters<typeof applyModeToClaudeSettings>[0], BUILTIN_MODES.code!);
     expect((s as Record<string, unknown>).env).toEqual({ X: '1' });
   });
 });
@@ -177,13 +177,13 @@ describe('applyModeToClaudeSettings', () => {
 describe('applyModeToCodexConfig', () => {
   it('写 model_reasoning_effort', () => {
     const d = parseToml('');
-    applyModeToCodexConfig(d, BUILTIN_MODES.code);
+    applyModeToCodexConfig(d, BUILTIN_MODES.code!);
     expect(d.values.get('model_reasoning_effort')).toBe('high');
   });
 
   it('替换已存在的值', () => {
     const d = parseToml('model_reasoning_effort = "low"\n');
-    applyModeToCodexConfig(d, BUILTIN_MODES.code);
+    applyModeToCodexConfig(d, BUILTIN_MODES.code!);
     expect(d.values.get('model_reasoning_effort')).toBe('high');
     expect(d.raw).toContain('model_reasoning_effort = "high"');
     expect(d.raw).not.toContain('model_reasoning_effort = "low"');
@@ -191,7 +191,7 @@ describe('applyModeToCodexConfig', () => {
 
   it('保留其它字段', () => {
     const d = parseToml('model = "gpt-5"\n[features]\ngoals = true\n');
-    applyModeToCodexConfig(d, BUILTIN_MODES.deep);
+    applyModeToCodexConfig(d, BUILTIN_MODES.deep!);
     expect(d.raw).toContain('model = "gpt-5"');
     expect(d.raw).toContain('goals = true');
   });

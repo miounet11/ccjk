@@ -38,6 +38,7 @@ export async function workflowRunCommand(id: string | undefined, opts: RunOption
   console.log(ansis.bold('步骤：'));
   for (let i = 0; i < target.steps.length; i++) {
     const s = target.steps[i];
+    if (!s) continue;
     const opt = s.optional ? ansis.dim(' (可选)') : '';
     console.log(`  ${i + 1}. ${s.label}${opt}`);
   }
@@ -58,6 +59,7 @@ export async function workflowRunCommand(id: string | undefined, opts: RunOption
   let skipped = 0;
   for (let i = 0; i < target.steps.length; i++) {
     const step = target.steps[i];
+    if (!step) continue;
     const total = target.steps.length;
     console.log(ansis.bold.cyan(`\n━━━ [${i + 1}/${total}] ${step.label} ━━━`));
 

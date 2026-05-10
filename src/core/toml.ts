@@ -54,12 +54,12 @@ export function parseToml(raw: string): TomlDoc {
     const t = line.trim();
     if (!t || t.startsWith('#')) continue;
     const sec = /^\[([^\]]+)\]$/.exec(t);
-    if (sec) {
+    if (sec && sec[1]) {
       section = sec[1].trim();
       continue;
     }
     const kv = /^([A-Za-z0-9_.-]+)\s*=\s*(.+?)\s*(?:#.*)?$/.exec(t);
-    if (!kv) continue;
+    if (!kv || !kv[1] || kv[2] === undefined) continue;
     const key = section ? `${section}.${kv[1]}` : kv[1];
     const v = parseScalar(kv[2]);
     if (v !== undefined) values.set(key, v);
@@ -74,9 +74,9 @@ function parseScalar(s: string): TomlValue | undefined {
   if (/^-?\d+$/.test(s)) return Number.parseInt(s, 10);
   if (/^-?\d+\.\d+$/.test(s)) return Number.parseFloat(s);
   const dq = /^"((?:[^"\\]|\\.)*)"$/.exec(s);
-  if (dq) return dq[1].replace(/\\"/g, '"').replace(/\\\\/g, '\\');
+  if (dq && dq[1] !== undefined) return dq[1].replace(/\\"/g, '"').replace(/\\\\/g, '\\');
   const sq = /^'([^']*)'$/.exec(s);
-  if (sq) return sq[1];
+  if (sq && sq[1] !== undefined) return sq[1];
   return undefined;
 }
 
@@ -110,9 +110,11 @@ function rewriteToml(raw: string, key: string, value: TomlValue): string {
   let firstSectionIdx = -1;
 
   for (let i = 0; i < lines.length; i++) {
-    const t = lines[i].trim();
+    const line = lines[i];
+    if (line === undefined) continue;
+    const t = line.trim();
     const sec = /^\[([^\]]+)\]$/.exec(t);
-    if (sec) {
+    if (sec && sec[1]) {
       curSection = sec[1].trim();
       if (firstSectionIdx < 0) firstSectionIdx = i;
       if (curSection === section) sectionLineIdx = i;
@@ -135,12 +137,12 @@ function rewriteToml(raw: string, key: string, value: TomlValue): string {
     if (firstSectionIdx >= 0) {
       // 找到第一个 section 前最后一个非空行的位置
       let insertAt = firstSectionIdx;
-      while (insertAt > 0 && lines[insertAt - 1].trim() === '') insertAt--;
+      while (insertAt > 0 && (lines[insertAt - 1] ?? '').trim() === '') insertAt--;
       lines.splice(insertAt, 0, formatted);
       return ensureTrailingNewline(lines.join('\n'));
     }
     const out = lines.slice();
-    if (out.length > 0 && out[out.length - 1].trim() !== '') out.push('');
+    if (out.length > 0 && (out[out.length - 1] ?? '').trim() !== '') out.push('');
     out.push(formatted);
     return ensureTrailingNewline(out.join('\n'));
   }
@@ -152,7 +154,7 @@ function rewriteToml(raw: string, key: string, value: TomlValue): string {
   }
 
   const out = lines.slice();
-  if (out.length > 0 && out[out.length - 1].trim() !== '') out.push('');
+  if (out.length > 0 && (out[out.length - 1] ?? '').trim() !== '') out.push('');
   out.push(`[${section}]`, formatted);
   return ensureTrailingNewline(out.join('\n'));
 }

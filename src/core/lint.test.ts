@@ -14,9 +14,9 @@ describe('lintSettings', () => {
       env: { ANTHROPIC_MODEL: 'glm-4.6' },
     });
     expect(r).toHaveLength(1);
-    expect(r[0].rule).toBe('model-overrides-env');
-    expect(r[0].severity).toBe('error');
-    expect(r[0].fix).toBeTypeOf('function');
+    expect(r[0]!.rule).toBe('model-overrides-env');
+    expect(r[0]!.severity).toBe('error');
+    expect(r[0]!.fix).toBeTypeOf('function');
   });
 
   it('双重凭证触发 warn', () => {

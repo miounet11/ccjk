@@ -145,9 +145,13 @@ async function runImportPerms(tools: CodeTool[], yes: boolean): Promise<void> {
 async function runOpenEditor(tools: CodeTool[]): Promise<void> {
   // 多个工具时让用户选哪个
   const targets = tools.filter(t => t !== 'codex');
+  if (targets.length === 0) {
+    console.log(ansis.yellow('没有可编辑的目标（全部是 codex）。'));
+    return;
+  }
   let target: CodeTool;
   if (targets.length === 1) {
-    target = targets[0];
+    target = targets[0]!;
   }
   else {
     target = await select<CodeTool>({

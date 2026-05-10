@@ -10,9 +10,7 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "exactOptionalPropertyTypes": true,
-    // TODO: 开启 noUncheckedIndexedAccess，目前会出 60+ 处错（数组/Map 访问需加判空）
-    // 单独发版做，避免和 P0/P1 修复混在一起评审困难
-    // "noUncheckedIndexedAccess": true,
+    "noUncheckedIndexedAccess": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
