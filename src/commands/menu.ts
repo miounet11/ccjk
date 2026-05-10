@@ -16,6 +16,7 @@ import { installCommand, updateCommand, versionCommand } from './version.js';
 import { modeUseCommand } from './mode.js';
 import { workflowRunCommand } from './workflow.js';
 import { envPermCommand } from './env-perm.js';
+import { statusCommand } from './status.js';
 import { collectStatus, renderBanner, renderStatusBar } from '../core/banner.js';
 import { displayWidth, padToWidth, recommendedPageSize, recommendedSepWidth, softClear } from '../core/term.js';
 
@@ -37,7 +38,7 @@ const GROUPS: MenuGroup[] = [
       { label: '配置 API（init）', hint: '写入 settings.json，自动存为 profile', run: () => initCommand() },
       { label: '切换 Profile', hint: '在已配过的多个 API 之间一键切换', run: () => profileUseCommand(undefined) },
       { label: '权限档位', hint: 'safe / standard / yolo（同步三个工具）', run: () => permsCommand(undefined) },
-      { label: '环境与权限配置', hint: '推荐环境变量 / 推荐权限 / 手动编辑 settings.json', run: () => envPermCommand() },
+      { label: '查看当前设置', hint: 'profile / perms / mode / 工具版本 一览', run: () => statusCommand() },
     ],
   },
   {
@@ -58,6 +59,7 @@ const GROUPS: MenuGroup[] = [
   {
     title: '维护与诊断',
     items: [
+      { label: '环境变量与手动编辑', hint: '推荐 env / 打开 settings.json 手改', run: () => envPermCommand() },
       { label: '更新与检测', hint: '体检 / 版本 / 安装 / 升级 / 检测（合并入口）', run: () => maintenanceSubMenu() },
       { label: '从备份还原', hint: '回滚 settings.json / config.toml', run: () => rollbackCommand() },
     ],

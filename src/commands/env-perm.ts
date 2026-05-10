@@ -9,29 +9,29 @@ import type { CodeTool } from '../core/tools.js';
 import { readSettings, writeSettings } from '../core/settings.js';
 import { expandHome } from '../core/paths.js';
 import {
-  RECOMMENDED_ALLOW,
-  RECOMMENDED_DENY,
   RECOMMENDED_ENV_VARS,
   applyRecommendedEnv,
-  applyRecommendedPerms,
 } from '../core/env-recommend.js';
 
 /**
- * `ccjk env-perm` —— 环境变量与权限的快捷配置。
+ * `ccjk env-perm` —— 环境变量与手动编辑。
  *
- * 三个选项：
- * 1. 导入推荐环境变量（隐私保护 + MCP 超时）
- * 2. 导入推荐权限配置（几乎全开，危险命令由 deny 兜底）
- * 3. 打开 settings.json 手动编辑
+ * 历史上这个命令也管"导入推荐权限"，与 `ccjk perms` 重叠 95%。
+ * 从 v15.17 起，权限只有一个入口：`ccjk perms`（档位）。
+ * 本命令只负责：
+ * 1. 推荐 env 变量（隐私 + MCP 超时）
+ * 2. 打开 settings.json 手动编辑
  */
 
 export interface EnvPermOptions {
   tools?: string;
   yes?: boolean;
+  dryRun?: boolean;
 }
 
 export async function envPermCommand(opts: EnvPermOptions = {}): Promise<void> {
-  console.log(ansis.bold('\n环境与权限配置\n'));
+  console.log(ansis.bold('\n环境变量与手动编辑\n'));
+  console.log(ansis.dim('  权限配置请走 `ccjk perms`（档位选择）\n'));
 
   const action = await pickAction();
   if (action === 'cancel') return;
@@ -40,10 +40,7 @@ export async function envPermCommand(opts: EnvPermOptions = {}): Promise<void> {
 
   switch (action) {
     case 'env':
-      await runImportEnv(tools, opts.yes ?? false);
-      break;
-    case 'perms':
-      await runImportPerms(tools, opts.yes ?? false);
+      await runImportEnv(tools, opts);
       break;
     case 'edit':
       await runOpenEditor(tools);
@@ -51,9 +48,9 @@ export async function envPermCommand(opts: EnvPermOptions = {}): Promise<void> {
   }
 }
 
-async function pickAction(): Promise<'env' | 'perms' | 'edit' | 'cancel'> {
-  return await select<'env' | 'perms' | 'edit' | 'cancel'>({
-    message: '请选择配置选项',
+async function pickAction(): Promise<'env' | 'edit' | 'cancel'> {
+  return await select<'env' | 'edit' | 'cancel'>({
+    message: '请选择',
     choices: [
       {
         name: `${ansis.bold('1. 导入 CCJK 推荐环境变量')}  ${ansis.dim('— 隐私保护变量、MCP 超时设置等')}`,
@@ -61,12 +58,7 @@ async function pickAction(): Promise<'env' | 'perms' | 'edit' | 'cancel'> {
         short: '推荐环境变量',
       },
       {
-        name: `${ansis.bold('2. 导入 CCJK 推荐权限配置')}  ${ansis.dim('— 几乎全部权限，减少频繁请求权限，危险操作由规则限制')}`,
-        value: 'perms',
-        short: '推荐权限',
-      },
-      {
-        name: `${ansis.bold('3. 打开 settings.json 手动配置')}  ${ansis.dim('— 高级用户自定义')}`,
+        name: `${ansis.bold('2. 打开 settings.json 手动配置')}  ${ansis.dim('— 高级用户自定义')}`,
         value: 'edit',
         short: '打开编辑器',
       },
@@ -76,15 +68,56 @@ async function pickAction(): Promise<'env' | 'perms' | 'edit' | 'cancel'> {
   });
 }
 
-async function runImportEnv(tools: CodeTool[], yes: boolean): Promise<void> {
+async function runImportEnv(tools: CodeTool[], opts: EnvPermOptions): Promise<void> {
   console.log(ansis.bold('\n推荐环境变量：\n'));
   for (const v of RECOMMENDED_ENV_VARS) {
     console.log(`  ${ansis.cyan(padToWidth(v.key, 28))} = ${ansis.green(v.value)}  ${ansis.dim(v.description)}`);
   }
-  console.log(ansis.dim(`\n  目标工具: ${tools.join(', ')}`));
-  console.log(ansis.dim('  策略: 已存在的 key 不覆盖（保留你已设的值）\n'));
+  // 预先算每个工具会有什么变化（dry-run / 摘要）
+  const targets = tools.filter(t => t !== 'codex');
+  const skippedCodex = tools.includes('codex');
+  console.log(ansis.dim(`\n  目标工具: ${targets.join(', ') || '(无)'}`));
+  if (skippedCodex) {
+    console.log(ansis.dim(`  ${TOOLS.codex.displayName}: 不适用（env 不写入 codex 的 TOML 配置）`));
+  }
+  console.log(ansis.dim('  策略: 已存在的 key 不覆盖（保留你已设的值）'));
 
-  if (!yes) {
+  // 算预览
+  const previews: { tool: CodeTool; willAdd: string[]; alreadySet: string[] }[] = [];
+  for (const t of targets) {
+    const meta = TOOLS[t];
+    const settings = await readSettings(meta.settingsFile);
+    const env = settings.env ?? {};
+    const willAdd: string[] = [];
+    const alreadySet: string[] = [];
+    for (const v of RECOMMENDED_ENV_VARS) {
+      if (env[v.key] === undefined || env[v.key] === '') willAdd.push(v.key);
+      else alreadySet.push(v.key);
+    }
+    previews.push({ tool: t, willAdd, alreadySet });
+  }
+
+  console.log(ansis.bold('\n预览：'));
+  for (const p of previews) {
+    const meta = TOOLS[p.tool];
+    if (p.willAdd.length === 0) {
+      console.log(`  ${meta.displayName}: ${ansis.gray('已就位（无新增）')}`);
+    }
+    else {
+      console.log(`  ${meta.displayName}: ${ansis.green(`+${p.willAdd.length}`)} ${ansis.dim(p.willAdd.join(', '))}`);
+    }
+    if (p.alreadySet.length > 0) {
+      console.log(`    ${ansis.dim(`(保留已有: ${p.alreadySet.join(', ')})`)}`);
+    }
+  }
+  console.log();
+
+  if (opts.dryRun) {
+    console.log(ansis.dim('（--dry-run 仅预览，不写入）\n'));
+    return;
+  }
+
+  if (!opts.yes) {
     const ok = await confirm({ message: '确认导入？', default: true });
     if (!ok) {
       console.log(ansis.gray('已取消。\n'));
@@ -92,51 +125,16 @@ async function runImportEnv(tools: CodeTool[], yes: boolean): Promise<void> {
     }
   }
 
-  for (const t of tools) {
-    if (t === 'codex') {
-      console.log(ansis.gray(`  ${TOOLS.codex.displayName}: 跳过（env 不适用 codex 的 TOML 配置）`));
+  for (const p of previews) {
+    const meta = TOOLS[p.tool];
+    if (p.willAdd.length === 0) {
+      console.log(ansis.green(`  ✔ ${meta.displayName}: 已就位`));
       continue;
     }
-    const meta = TOOLS[t];
     const settings = await readSettings(meta.settingsFile);
     const added = applyRecommendedEnv(settings);
     const backup = await writeSettings(meta.settingsFile, settings);
-    if (added.length === 0) {
-      console.log(ansis.green(`  ✔ ${meta.displayName}: 已就位（无新增）`));
-    }
-    else {
-      console.log(ansis.green(`  ✔ ${meta.displayName}: 新增 ${added.join(', ')}`));
-    }
-    if (backup) console.log(ansis.dim(`    备份: ${backup}`));
-  }
-  console.log();
-}
-
-async function runImportPerms(tools: CodeTool[], yes: boolean): Promise<void> {
-  console.log(ansis.bold('\n推荐权限配置：\n'));
-  console.log(`  ${ansis.dim('allow:')} ${RECOMMENDED_ALLOW.join(', ')}`);
-  console.log(`  ${ansis.dim('deny:')}  ${ansis.dim(`${RECOMMENDED_DENY.length} 条危险命令拦截`)}`);
-  console.log(ansis.dim(`\n  目标工具: ${tools.filter(t => t !== 'codex').join(', ')}`));
-  console.log(ansis.dim('  策略: allow 与现有合并（不覆盖你已加的）；deny 替换（确保危险拦截生效）\n'));
-
-  if (!yes) {
-    const ok = await confirm({ message: '确认导入？', default: true });
-    if (!ok) {
-      console.log(ansis.gray('已取消。\n'));
-      return;
-    }
-  }
-
-  for (const t of tools) {
-    if (t === 'codex') {
-      console.log(ansis.gray(`  ${TOOLS.codex.displayName}: 跳过（codex 走 sandbox_mode 模型，请用 \`ccjk perms\`）`));
-      continue;
-    }
-    const meta = TOOLS[t];
-    const settings = await readSettings(meta.settingsFile);
-    const { addedAllow } = applyRecommendedPerms(settings);
-    const backup = await writeSettings(meta.settingsFile, settings);
-    console.log(ansis.green(`  ✔ ${meta.displayName}: allow +${addedAllow}, deny 替换为 ${RECOMMENDED_DENY.length} 条`));
+    console.log(ansis.green(`  ✔ ${meta.displayName}: 新增 ${added.join(', ')}`));
     if (backup) console.log(ansis.dim(`    备份: ${backup}`));
   }
   console.log();

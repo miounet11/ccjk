@@ -163,8 +163,9 @@ program
   .description('一键设置权限档位（safe | standard | yolo），同时作用于 clavue/claude-code/codex')
   .option('--tools <list>', '逗号分隔指定工具，如 clavue,claude-code（默认全部）')
   .option('--reset', '完全替换 allow 列表（不做合并；deny 总是替换）')
+  .option('--dry-run', '只展示将应用的变化，不写入')
   .option('-y, --yes', '跳过确认')
-  .action((tier: string | undefined, opts: { tools?: string; reset?: boolean; yes?: boolean }) =>
+  .action((tier: string | undefined, opts: { tools?: string; reset?: boolean; dryRun?: boolean; yes?: boolean }) =>
     permsCommand(tier, opts));
 
 program
@@ -182,10 +183,11 @@ program
 
 program
   .command('env-perm')
-  .description('环境变量与权限配置（导入推荐 env / 推荐 perms / 手动编辑 settings.json）')
+  .description('环境变量与手动编辑（推荐 env / 打开 settings.json）；权限请走 `ccjk perms`')
   .option('--tools <list>', '逗号分隔指定工具，默认 clavue,claude-code')
+  .option('--dry-run', '只展示将应用的变化，不写入')
   .option('-y, --yes', '跳过确认')
-  .action((opts: { tools?: string; yes?: boolean }) => envPermCommand(opts));
+  .action((opts: { tools?: string; dryRun?: boolean; yes?: boolean }) => envPermCommand(opts));
 
 program
   .command('doctor')

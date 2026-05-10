@@ -1,10 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
-  RECOMMENDED_ALLOW,
-  RECOMMENDED_DENY,
   RECOMMENDED_ENV_VARS,
   applyRecommendedEnv,
-  applyRecommendedPerms,
 } from './env-recommend.js';
 
 describe('RECOMMENDED_ENV_VARS', () => {
@@ -42,28 +39,5 @@ describe('applyRecommendedEnv', () => {
     const added = applyRecommendedEnv(s);
     expect(s.env.MCP_TIMEOUT).toBe('15000');
     expect(added).toContain('MCP_TIMEOUT');
-  });
-});
-
-describe('applyRecommendedPerms', () => {
-  it('空 settings 写入完整 allow + deny', () => {
-    const s = {};
-    const r = applyRecommendedPerms(s);
-    expect(r.replacedDeny).toBe(true);
-    expect(r.addedAllow).toBe(RECOMMENDED_ALLOW.length);
-  });
-
-  it('合并已有 allow，去重', () => {
-    const s = { permissions: { allow: ['CustomTool', 'Read'] } };
-    applyRecommendedPerms(s);
-    expect(s.permissions.allow).toContain('CustomTool');
-    expect(s.permissions.allow.filter(p => p === 'Read').length).toBe(1);
-  });
-
-  it('deny 总是被替换', () => {
-    const s = { permissions: { allow: [], deny: ['用户的奇怪 deny'] } };
-    applyRecommendedPerms(s);
-    expect(s.permissions.deny).not.toContain('用户的奇怪 deny');
-    expect(s.permissions.deny.length).toBe(RECOMMENDED_DENY.length);
   });
 });

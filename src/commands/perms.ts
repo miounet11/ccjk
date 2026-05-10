@@ -20,6 +20,7 @@ export interface PermsOptions {
   tools?: string;
   reset?: boolean;
   yes?: boolean;
+  dryRun?: boolean;
 }
 
 export async function permsCommand(tier: string | undefined, opts: PermsOptions = {}): Promise<void> {
@@ -32,6 +33,38 @@ export async function permsCommand(tier: string | undefined, opts: PermsOptions 
   console.log(ansis.dim(`  目标工具: ${tools.join(', ')}`));
   if (opts.reset) console.log(ansis.yellow('  --reset: 将完全替换 allow 列表（用户已有自定义会丢）'));
   console.log();
+
+  // 预览每个工具的变化（当前档位 → 目标档位 + allow 新增数）
+  console.log(ansis.bold('预览：'));
+  for (const t of tools) {
+    if (t === 'codex') {
+      const doc = await readTomlFile(TOOLS.codex.settingsFile);
+      const cur = detectCodexTier(doc);
+      const curLabel = cur ? cur : '自定义/未设';
+      console.log(`  ${TOOLS.codex.displayName}: ${ansis.dim(curLabel)} → ${ansis.green(def.id)} ${ansis.dim(`(policy=${def.codex.approvalPolicy}, sandbox=${def.codex.sandboxMode})`)}`);
+    }
+    else {
+      const meta = TOOLS[t];
+      const settings = await readSettings(meta.settingsFile);
+      const cur = detectClaudeTier(settings);
+      const curLabel = cur ? cur : '自定义/未设';
+      const before = settings.permissions?.allow ?? [];
+      const finalAllow = opts.reset
+        ? def.claude.allow
+        : Array.from(new Set([...before, ...def.claude.allow]));
+      const newCount = finalAllow.length - before.length;
+      const allowMsg = opts.reset
+        ? `allow 替换为 ${def.claude.allow.length} 条`
+        : `allow +${newCount}`;
+      console.log(`  ${meta.displayName}: ${ansis.dim(curLabel)} → ${ansis.green(def.id)} ${ansis.dim(`(${allowMsg}, deny=${def.claude.deny.length}, unsandboxed=${def.claude.allowUnsandboxedCommands})`)}`);
+    }
+  }
+  console.log();
+
+  if (opts.dryRun) {
+    console.log(ansis.dim('（--dry-run 仅预览，不写入）\n'));
+    return;
+  }
 
   if (!opts.yes) {
     const ok = await confirm({

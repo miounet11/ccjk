@@ -54,39 +54,3 @@ export function applyRecommendedEnv(settings: ClaudeSettings): string[] {
   }
   return added;
 }
-
-/**
- * 推荐的"几乎全开"权限白名单。
- *
- * 思路：用户大多数时候希望"少弹权限框"。这一组比 standard 档位更宽，
- * 但比 yolo 保守 —— 仍保留 deny 兜底。
- */
-export const RECOMMENDED_ALLOW: string[] = [
-  // 全部读类
-  'Read', 'Grep', 'Glob', 'LS', 'WebFetch', 'WebSearch',
-  // 全部编辑类
-  'Edit', 'Write', 'NotebookEdit',
-  // Bash 全开（危险命令由 deny 兜底）
-  'Bash',
-];
-
-/**
- * 推荐 deny —— 与 perms 模块的 COMMON_DENY 一致。
- * 直接把 perms 的 standard tier 的 deny 引过来，避免双源。
- */
-import { TIERS } from './perms.js';
-
-export const RECOMMENDED_DENY: string[] = TIERS.standard.claude.deny;
-
-export function applyRecommendedPerms(settings: ClaudeSettings): { addedAllow: number; replacedDeny: boolean } {
-  settings.permissions = settings.permissions ?? {};
-  const before = settings.permissions.allow ?? [];
-  // 用裸 tool 名（如 'Bash' 而不是 'Bash(*)'），效果等同放开整个工具
-  const merged = Array.from(new Set([...before, ...RECOMMENDED_ALLOW]));
-  settings.permissions.allow = merged;
-  settings.permissions.deny = [...RECOMMENDED_DENY];
-  return {
-    addedAllow: merged.length - before.length,
-    replacedDeny: true,
-  };
-}
