@@ -3,6 +3,7 @@ import { copyFile, readdir, stat } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { Separator, confirm, select } from '@inquirer/prompts';
 import ansis from 'ansis';
+import { padToWidth } from '../core/term.js';
 import { TOOLS } from '../core/tools.js';
 import type { CodeTool } from '../core/tools.js';
 import { expandHome } from '../core/paths.js';
@@ -36,7 +37,7 @@ export async function rollbackCommand(opts: RollbackOptions = {}): Promise<void>
     pageSize: Math.min(15, all.length + 2),
     choices: [
       ...all.map((b, i) => ({
-        name: `${ansis.bold(TOOLS[b.tool].displayName.padEnd(12))} ${formatTs(b.ts).padEnd(20)} ${ansis.dim(b.backupPath.split('/').pop() ?? '')}`,
+        name: `${ansis.bold(padToWidth(TOOLS[b.tool].displayName, 12))} ${padToWidth(formatTs(b.ts), 20)} ${ansis.dim(b.backupPath.split('/').pop() ?? '')}`,
         value: i,
       })),
       new Separator(),

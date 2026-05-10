@@ -3,6 +3,7 @@ import { spawn } from 'node:child_process';
 import { platform } from 'node:os';
 import { Separator, confirm, select } from '@inquirer/prompts';
 import ansis from 'ansis';
+import { padToWidth } from '../core/term.js';
 import { TOOLS } from '../core/tools.js';
 import type { CodeTool } from '../core/tools.js';
 import { readSettings, writeSettings } from '../core/settings.js';
@@ -78,7 +79,7 @@ async function pickAction(): Promise<'env' | 'perms' | 'edit' | 'cancel'> {
 async function runImportEnv(tools: CodeTool[], yes: boolean): Promise<void> {
   console.log(ansis.bold('\n推荐环境变量：\n'));
   for (const v of RECOMMENDED_ENV_VARS) {
-    console.log(`  ${ansis.cyan(v.key.padEnd(28))} = ${ansis.green(v.value)}  ${ansis.dim(v.description)}`);
+    console.log(`  ${ansis.cyan(padToWidth(v.key, 28))} = ${ansis.green(v.value)}  ${ansis.dim(v.description)}`);
   }
   console.log(ansis.dim(`\n  目标工具: ${tools.join(', ')}`));
   console.log(ansis.dim('  策略: 已存在的 key 不覆盖（保留你已设的值）\n'));
@@ -172,7 +173,22 @@ async function openInEditor(path: string): Promise<void> {
   // 优先用 $EDITOR / $VISUAL；否则按平台 fallback
   const env = process.env.VISUAL || process.env.EDITOR;
   if (env) {
-    spawn(env, [path], { stdio: 'inherit', shell: true });
+    // 安全地拆分 EDITOR：支持 "code -w" 这种带参数，但拒绝 shell 元字符
+    // 否则恶意/污染的 EDITOR=`code; rm -rf ~` 会变成 RCE
+    if (/[;&|<>`$()\\]/.test(env)) {
+      console.log(ansis.yellow(`EDITOR 含 shell 元字符（拒绝执行）：${env}`));
+      console.log(ansis.dim(`请手动编辑：${path}`));
+      return;
+    }
+    const parts = env.match(/(?:[^\s"]+|"[^"]*")+/g) ?? [];
+    const cleaned = parts.map(p => p.replace(/^"|"$/g, ''));
+    const [bin, ...args] = cleaned;
+    if (!bin) {
+      console.log(ansis.yellow(`EDITOR 为空：${env}`));
+      console.log(ansis.dim(`请手动编辑：${path}`));
+      return;
+    }
+    spawn(bin, [...args, path], { stdio: 'inherit' });
     return;
   }
 

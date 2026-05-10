@@ -1,5 +1,6 @@
 import { checkbox, confirm, input, password, select } from '@inquirer/prompts';
 import ansis from 'ansis';
+import { padToWidth } from '../core/term.js';
 import { TOOLS } from '../core/tools.js';
 import type { CodeTool } from '../core/tools.js';
 import { readSettings, writeSettings } from '../core/settings.js';
@@ -28,10 +29,10 @@ export async function profileListCommand(): Promise<void> {
   for (const p of profiles) {
     const isCurrent = state.current === p.name;
     const mark = isCurrent ? ansis.green('●') : ' ';
-    const name = isCurrent ? ansis.green.bold(p.name.padEnd(16)) : p.name.padEnd(16);
+    const name = isCurrent ? ansis.green.bold(padToWidth(p.name, 16)) : padToWidth(p.name, 16);
     const key = ansis.dim(maskKey(p.apiKey));
     const model = p.model ? ansis.dim(`[${p.model}]`) : '';
-    console.log(`  ${mark} ${name} ${p.provider.padEnd(12)} ${key} ${model}`);
+    console.log(`  ${mark} ${name} ${padToWidth(p.provider, 12)} ${key} ${model}`);
   }
   console.log();
   if (state.current) console.log(ansis.dim(`  当前: ${state.current}\n`));
@@ -162,7 +163,7 @@ async function pickProfile(profiles: Profile[], message = '选择 Profile'): Pro
     message,
     ...(state.current ? { default: state.current } : {}),
     choices: profiles.map(p => ({
-      name: `${p.name.padEnd(16)} ${p.provider.padEnd(12)} ${ansis.dim(maskKey(p.apiKey))}${state.current === p.name ? ansis.green('  (当前)') : ''}`,
+      name: `${padToWidth(p.name, 16)} ${padToWidth(p.provider, 12)} ${ansis.dim(maskKey(p.apiKey))}${state.current === p.name ? ansis.green('  (当前)') : ''}`,
       value: p.name,
     })),
   });

@@ -1,5 +1,6 @@
 import { checkbox, confirm, input, select } from '@inquirer/prompts';
 import ansis from 'ansis';
+import { padToWidth } from '../core/term.js';
 import { MCP_SERVICES } from '../core/mcp.js';
 import { TOOLS } from '../core/tools.js';
 import type { CodeTool } from '../core/tools.js';
@@ -52,7 +53,7 @@ async function pickServices(): Promise<string[]> {
   const ids = await checkbox<string>({
     message: '选择要安装的 MCP 服务（空格选择，回车确认）',
     choices: MCP_SERVICES.map(s => ({
-      name: `${s.name.padEnd(18)} ${ansis.dim(s.description)}`,
+      name: `${padToWidth(s.name, 18)} ${ansis.dim(s.description)}`,
       value: s.id,
     })),
   });

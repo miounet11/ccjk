@@ -1,5 +1,6 @@
 import { confirm, input, select } from '@inquirer/prompts';
 import ansis from 'ansis';
+import { padToWidth } from '../core/term.js';
 import { listWorkflows, readWorkflow } from '../core/workflows.js';
 import type { StepAction, Workflow } from '../core/workflows.js';
 import { initCommand } from './init.js';
@@ -16,7 +17,7 @@ export async function workflowListCommand(): Promise<void> {
   const wfs = await listWorkflows();
   console.log(ansis.bold(`\n可用工作流（${wfs.length}）：\n`));
   for (const w of wfs) {
-    console.log(`  ${ansis.cyan(w.id.padEnd(14))} ${w.name}`);
+    console.log(`  ${ansis.cyan(padToWidth(w.id, 14))} ${w.name}`);
     console.log(`     ${ansis.dim(w.description)}`);
     console.log(`     ${ansis.dim('步骤：')}${w.steps.map(s => s.label).join(' → ')}`);
     console.log();
@@ -143,7 +144,7 @@ async function pickWorkflow(): Promise<Workflow | undefined> {
     message: '选择要运行的工作流',
     pageSize: Math.min(15, wfs.length + 2),
     choices: wfs.map((w: Workflow) => ({
-      name: `${w.id.padEnd(14)} ${ansis.dim(w.description)}`,
+      name: `${padToWidth(w.id, 14)} ${ansis.dim(w.description)}`,
       value: w.id,
     })),
   });

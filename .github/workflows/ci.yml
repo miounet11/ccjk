@@ -8,11 +8,12 @@ on:
 
 jobs:
   test:
-    name: Test (Node ${{ matrix.node }})
-    runs-on: ubuntu-latest
+    name: Test (${{ matrix.os }} · Node ${{ matrix.node }})
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
         node: ['20', '22']
     steps:
       - uses: actions/checkout@v4
@@ -36,7 +37,9 @@ jobs:
 
       - run: pnpm build
 
-      - name: Smoke test built CLI
+      # Smoke test：Linux/macOS 走 bash 默认，Windows 显式 bash（GitHub runner 自带）
+      - name: Smoke test built CLI (POSIX)
+        if: runner.os != 'Windows'
         run: |
           node dist/cli.js --version
           node dist/cli.js --help
@@ -47,3 +50,17 @@ jobs:
           test -s /tmp/ccjk.bash
           test -s /tmp/ccjk.zsh
           test -s /tmp/ccjk.fish
+
+      - name: Smoke test built CLI (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          node dist/cli.js --version
+          node dist/cli.js --help
+          node dist/cli.js status
+          node dist/cli.js completion bash > $env:TEMP/ccjk.bash
+          node dist/cli.js completion zsh > $env:TEMP/ccjk.zsh
+          node dist/cli.js completion fish > $env:TEMP/ccjk.fish
+          if ((Get-Item $env:TEMP/ccjk.bash).Length -le 0) { throw "bash completion empty" }
+          if ((Get-Item $env:TEMP/ccjk.zsh).Length -le 0) { throw "zsh completion empty" }
+          if ((Get-Item $env:TEMP/ccjk.fish).Length -le 0) { throw "fish completion empty" }

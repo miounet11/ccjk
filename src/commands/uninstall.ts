@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import { homedir } from 'node:os';
 import { checkbox, confirm } from '@inquirer/prompts';
 import ansis from 'ansis';
+import { padToWidth } from '../core/term.js';
 import { TOOLS } from '../core/tools.js';
 import type { CodeTool } from '../core/tools.js';
 import { expandHome } from '../core/paths.js';
@@ -131,7 +132,7 @@ export async function uninstallCommand(opts: UninstallOptions = {}): Promise<voi
     const ids = await checkbox<string>({
       message: '选择要清理的内容（空格切换，回车确认）',
       choices: present.map(p => ({
-        name: `${p.target.label.padEnd(28)} ${ansis.dim(p.target.description)}`,
+        name: `${padToWidth(p.target.label, 28)} ${ansis.dim(p.target.description)}`,
         value: p.target.id,
         checked: p.checked,
       })),

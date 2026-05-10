@@ -3,7 +3,7 @@ import { checkbox, confirm } from '@inquirer/prompts';
 import ansis from 'ansis';
 import { TOOLS } from '../core/tools.js';
 import type { CodeTool } from '../core/tools.js';
-import { supportsAnsi } from '../core/term.js';
+import { padToWidth, supportsAnsi } from '../core/term.js';
 import {
   buildInstallCommand,
   buildUpdateCommand,
@@ -30,7 +30,7 @@ export async function versionCommand(opts: VersionOptions = {}): Promise<void> {
   const versions = getAllVersions(opts.checkUpdates ?? false);
 
   for (const v of versions) {
-    const name = ansis.bold(v.meta.displayName.padEnd(14));
+    const name = ansis.bold(padToWidth(v.meta.displayName, 14));
     const installerKind = v.meta.installer.kind === 'script' ? ansis.dim('[native]') : ansis.dim('[npm]');
     const localStr = v.installed
       ? (v.local ? ansis.green(v.local) : ansis.yellow('已装(版本未知)'))
@@ -146,7 +146,7 @@ async function resolveInstallTargets(toolArg: string | undefined, opts: InstallO
   // interactive / 全部已装：让用户勾选
   const versions = getAllVersions(false);
   const choices = versions.map(v => ({
-    name: `${v.meta.displayName.padEnd(14)} ${v.installed ? ansis.green(`已装 ${v.local ?? ''}`) : ansis.gray('未安装')}`,
+    name: `${padToWidth(v.meta.displayName, 14)} ${v.installed ? ansis.green(`已装 ${v.local ?? ''}`) : ansis.gray('未安装')}`,
     value: v.tool,
     checked: !v.installed,
   }));
@@ -227,7 +227,7 @@ async function pickInteractive(targets: VersionInfo[]): Promise<VersionInfo[]> {
         ? `${ansis.dim(v.local)} → ${ansis.green(v.latest)}`
         : ansis.green('latest');
       return {
-        name: `${v.meta.displayName.padEnd(14)} ${arrow}`,
+        name: `${padToWidth(v.meta.displayName, 14)} ${arrow}`,
         value: v.tool,
         checked: true,
       };
@@ -240,11 +240,11 @@ async function runUpdate(targets: VersionInfo[], opts: UpdateOptions): Promise<v
   console.log(ansis.bold(`\n${targets.length === 1 ? '将更新' : `将更新 ${targets.length} 个工具`}：\n`));
   for (const v of targets) {
     if (v.meta.installer.kind === 'script') {
-      console.log(`  ${v.meta.displayName.padEnd(14)} ${ansis.dim(v.local ?? '?')} ${ansis.dim('(native auto-update)')}`);
+      console.log(`  ${padToWidth(v.meta.displayName, 14)} ${ansis.dim(v.local ?? '?')} ${ansis.dim('(native auto-update)')}`);
     }
     else {
       const arrow = v.local && v.latest ? `${ansis.dim(v.local)} → ${ansis.green(v.latest)}` : ansis.green(v.latest ?? 'latest');
-      console.log(`  ${v.meta.displayName.padEnd(14)} ${arrow}`);
+      console.log(`  ${padToWidth(v.meta.displayName, 14)} ${arrow}`);
     }
   }
   console.log();
@@ -295,10 +295,11 @@ async function countdownConfirm(seconds: number): Promise<boolean> {
   }
   process.stdout.write(ansis.dim(`  ${seconds} 秒后开始执行（Ctrl+C 取消）`));
   for (let i = seconds; i > 0; i--) {
-    process.stdout.write(ansis.dim(`\r  ${i} 秒后开始执行（Ctrl+C 取消）`));
+    // \x1b[2K = 清整行；\r 回到行首；不再用 padEnd 估宽度
+    process.stdout.write(`\x1b[2K\r${ansis.dim(`  ${i} 秒后开始执行（Ctrl+C 取消）`)}`);
     await sleep(1000);
   }
-  process.stdout.write(`\r${' '.repeat(40)}\r`);
+  process.stdout.write('\x1b[2K\r');
   return true;
 }
 
@@ -313,8 +314,8 @@ interface Job {
 
 /**
  * 跑一组命令。逐个执行，stdio inherit 让用户看到原始输出。
- * - npm 命令直接 spawn `npm install -g ...`
- * - script 命令（含 |、curl 等管道）通过 `bash -lc` 执行
+ * - 简单 npm 命令：直接 spawn 拆参数
+ * - 复杂命令（含 |、curl 管道、script 类）：走平台 shell（Windows: cmd /c；其它: sh -c）
  */
 async function runJobs(jobs: Job[]): Promise<void> {
   const failures: { tool: CodeTool; cmd: string; reason: string }[] = [];
@@ -325,9 +326,15 @@ async function runJobs(jobs: Job[]): Promise<void> {
     console.log(ansis.bold(`\n→ ${meta.displayName}: ${ansis.cyan(job.cmd)}`));
 
     let result;
-    if (meta.installer.kind === 'script' || job.cmd.includes('|') || job.cmd.includes(' ')) {
-      // 复杂命令走 shell
-      result = spawnSync('bash', ['-lc', job.cmd], { stdio: 'inherit' });
+    const needsShell = meta.installer.kind === 'script' || job.cmd.includes('|') || job.cmd.includes(' ');
+    if (needsShell) {
+      // Windows 用 cmd /c（bash 多数 Windows 没装），其它平台用 sh（POSIX，bash 不一定有）
+      if (process.platform === 'win32') {
+        result = spawnSync('cmd', ['/c', job.cmd], { stdio: 'inherit' });
+      }
+      else {
+        result = spawnSync('sh', ['-c', job.cmd], { stdio: 'inherit' });
+      }
     }
     else {
       const [bin, ...args] = job.cmd.split(/\s+/);
@@ -355,8 +362,11 @@ async function runJobs(jobs: Job[]): Promise<void> {
     for (const f of failures) {
       console.log(`  ${TOOLS[f.tool].displayName}: ${f.reason}`);
       console.log(ansis.dim(`    可手动执行: ${f.cmd}`));
-      if (TOOLS[f.tool].installer.kind === 'npm') {
+      if (TOOLS[f.tool].installer.kind === 'npm' && process.platform !== 'win32') {
         console.log(ansis.dim(`    或权限问题尝试: sudo ${f.cmd}`));
+      }
+      else if (TOOLS[f.tool].installer.kind === 'npm') {
+        console.log(ansis.dim('    或权限问题尝试用管理员 PowerShell 重跑'));
       }
     }
     process.exitCode = 1;

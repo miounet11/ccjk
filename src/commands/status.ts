@@ -11,6 +11,7 @@ import { detectCodexTier } from '../core/perms.js';
 import { readModeState } from '../core/modes.js';
 import { expandHome } from '../core/paths.js';
 import { listWorkflows } from '../core/workflows.js';
+import { padToWidth } from '../core/term.js';
 
 /**
  * `ccjk status` —— 一条命令看全配置状态。
@@ -58,7 +59,7 @@ export async function statusCommand(): Promise<void> {
   for (const tool of ['clavue', 'claude-code'] as const) {
     const meta = TOOLS[tool];
     if (!existsSync(expandHome(meta.settingsFile))) {
-      console.log(`  ${meta.displayName.padEnd(14)} ${ansis.gray('settings.json 不存在')}`);
+      console.log(`  ${padToWidth(meta.displayName, 14)} ${ansis.gray('settings.json 不存在')}`);
       continue;
     }
     try {
@@ -69,10 +70,10 @@ export async function statusCommand(): Promise<void> {
       const tierStr = tier
         ? (tier === 'safe' ? ansis.green(tier) : tier === 'standard' ? ansis.cyan(tier) : ansis.yellow(tier))
         : ansis.gray('自定义');
-      console.log(`  ${meta.displayName.padEnd(14)} ${tierStr}  ${ansis.dim(`allow=${allow} deny=${deny}`)}`);
+      console.log(`  ${padToWidth(meta.displayName, 14)} ${tierStr}  ${ansis.dim(`allow=${allow} deny=${deny}`)}`);
     }
     catch {
-      console.log(`  ${meta.displayName.padEnd(14)} ${ansis.red('settings.json 损坏')}`);
+      console.log(`  ${padToWidth(meta.displayName, 14)} ${ansis.red('settings.json 损坏')}`);
     }
   }
   // codex 也看一眼
@@ -86,14 +87,14 @@ export async function statusCommand(): Promise<void> {
       const tierStr = tier
         ? (tier === 'safe' ? ansis.green(tier) : tier === 'standard' ? ansis.cyan(tier) : ansis.yellow(tier))
         : ansis.gray('自定义');
-      console.log(`  ${codexMeta.displayName.padEnd(14)} ${tierStr}  ${ansis.dim(`policy=${ap} sandbox=${sm}`)}`);
+      console.log(`  ${padToWidth(codexMeta.displayName, 14)} ${tierStr}  ${ansis.dim(`policy=${ap} sandbox=${sm}`)}`);
     }
     catch {
-      console.log(`  ${codexMeta.displayName.padEnd(14)} ${ansis.red('config.toml 解析失败')}`);
+      console.log(`  ${padToWidth(codexMeta.displayName, 14)} ${ansis.red('config.toml 解析失败')}`);
     }
   }
   else {
-    console.log(`  ${codexMeta.displayName.padEnd(14)} ${ansis.gray('config.toml 不存在')}`);
+    console.log(`  ${padToWidth(codexMeta.displayName, 14)} ${ansis.gray('config.toml 不存在')}`);
   }
   console.log();
 
@@ -107,7 +108,7 @@ export async function statusCommand(): Promise<void> {
       const mcpCount = Object.keys(s.mcpServers ?? {}).length;
       const sl = (s as Record<string, unknown>).statusLine as { command?: string } | undefined;
       const slMark = sl?.command ? ansis.green('●') : ansis.gray('○');
-      console.log(`  ${meta.displayName.padEnd(14)} ${ansis.dim('MCP')} ${mcpCount}  ${ansis.dim('statusline')} ${slMark}`);
+      console.log(`  ${padToWidth(meta.displayName, 14)} ${ansis.dim('MCP')} ${mcpCount}  ${ansis.dim('statusline')} ${slMark}`);
     }
     catch {
       // skip
@@ -122,10 +123,10 @@ export async function statusCommand(): Promise<void> {
     const v = getInstalledVersion(tool);
     const installerKind = meta.installer.kind === 'script' ? ansis.dim('[native]') : ansis.dim('[npm]');
     if (!v.installed) {
-      console.log(`  ${meta.displayName.padEnd(14)} ${ansis.gray('未安装')} ${installerKind}`);
+      console.log(`  ${padToWidth(meta.displayName, 14)} ${ansis.gray('未安装')} ${installerKind}`);
     }
     else {
-      console.log(`  ${meta.displayName.padEnd(14)} ${ansis.green(v.version ?? '?')} ${installerKind}`);
+      console.log(`  ${padToWidth(meta.displayName, 14)} ${ansis.green(v.version ?? '?')} ${installerKind}`);
     }
   }
   console.log();

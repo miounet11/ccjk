@@ -1,5 +1,6 @@
 import { confirm, select } from '@inquirer/prompts';
 import ansis from 'ansis';
+import { padToWidth } from '../core/term.js';
 import { TOOLS } from '../core/tools.js';
 import type { CodeTool } from '../core/tools.js';
 import { readSettings, writeSettings } from '../core/settings.js';
@@ -92,7 +93,7 @@ export async function permsShowCommand(): Promise<void> {
     const deny = settings.permissions?.deny ?? [];
     const unsandboxed = (settings as Record<string, unknown>).allowUnsandboxedCommands === true;
     const tierLabel = tier ? ansis.green(tier) : ansis.gray('自定义/未配置');
-    console.log(`  ${ansis.bold(meta.displayName.padEnd(14))} ${tierLabel}`);
+    console.log(`  ${ansis.bold(padToWidth(meta.displayName, 14))} ${tierLabel}`);
     console.log(ansis.dim(`    allow: ${allow.length}, deny: ${deny.length}, allowUnsandboxed: ${unsandboxed}`));
   }
 
@@ -102,7 +103,7 @@ export async function permsShowCommand(): Promise<void> {
   const ap = doc.values.get('approval_policy') ?? '(未设)';
   const sm = doc.values.get('sandbox_mode') ?? '(未设)';
   const tierLabel = codexTier ? ansis.green(codexTier) : ansis.gray('自定义/未配置');
-  console.log(`  ${ansis.bold(codexMeta.displayName.padEnd(14))} ${tierLabel}`);
+  console.log(`  ${ansis.bold(padToWidth(codexMeta.displayName, 14))} ${tierLabel}`);
   console.log(ansis.dim(`    approval_policy: ${ap}, sandbox_mode: ${sm}`));
   console.log();
 }
@@ -112,7 +113,7 @@ async function pickTier(): Promise<PermsTier> {
     message: '选择权限档位',
     default: 'standard',
     choices: Object.values(TIERS).map(t => ({
-      name: `${t.name.padEnd(10)} ${ansis.dim(t.description)}`,
+      name: `${padToWidth(t.name, 10)} ${ansis.dim(t.description)}`,
       value: t.id,
     })),
   });
@@ -153,15 +154,15 @@ export async function permsCleanCommand(opts: PermsCleanOptions = {}): Promise<v
     const settings = await readSettings(meta.settingsFile);
     const before = settings.permissions?.allow ?? [];
     if (before.length === 0) {
-      console.log(`  ${meta.displayName.padEnd(14)} ${ansis.gray('allow 为空，无需清理')}`);
+      console.log(`  ${padToWidth(meta.displayName, 14)} ${ansis.gray('allow 为空，无需清理')}`);
       continue;
     }
     const { cleaned, removed } = cleanupAllow(before);
     if (removed === 0) {
-      console.log(`  ${meta.displayName.padEnd(14)} ${ansis.green('✓ 已干净')}（${before.length} 条）`);
+      console.log(`  ${padToWidth(meta.displayName, 14)} ${ansis.green('✓ 已干净')}（${before.length} 条）`);
       continue;
     }
-    console.log(`  ${meta.displayName.padEnd(14)} ${ansis.yellow(`可清理 ${removed} 条`)}  ${ansis.dim(`${before.length} → ${cleaned.length}`)}`);
+    console.log(`  ${padToWidth(meta.displayName, 14)} ${ansis.yellow(`可清理 ${removed} 条`)}  ${ansis.dim(`${before.length} → ${cleaned.length}`)}`);
     jobs.push({ tool: t, before: before.length, after: cleaned.length, cleaned, meta });
   }
 

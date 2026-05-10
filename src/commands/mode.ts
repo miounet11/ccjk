@@ -1,5 +1,6 @@
 import { confirm, input, select } from '@inquirer/prompts';
 import ansis from 'ansis';
+import { padToWidth } from '../core/term.js';
 import { TOOLS } from '../core/tools.js';
 import type { CodeTool } from '../core/tools.js';
 import { readSettings, writeSettings } from '../core/settings.js';
@@ -23,9 +24,9 @@ export async function modeListCommand(): Promise<void> {
   for (const m of modes) {
     const isCurrent = state.current === m.id;
     const mark = isCurrent ? ansis.green('●') : ' ';
-    const name = isCurrent ? ansis.green.bold(m.id.padEnd(10)) : m.id.padEnd(10);
+    const name = isCurrent ? ansis.green.bold(padToWidth(m.id, 10)) : padToWidth(m.id, 10);
     const builtin = BUILTIN_MODES[m.id] ? ansis.dim('(内置)') : ansis.cyan('(自定义)');
-    console.log(`  ${mark} ${name} ${m.name.padEnd(8)} ${builtin}`);
+    console.log(`  ${mark} ${name} ${padToWidth(m.name, 8)} ${builtin}`);
     console.log(`     ${ansis.dim(m.description)}`);
   }
   console.log();
@@ -150,7 +151,7 @@ async function pickMode(): Promise<ModeDefinition | undefined> {
     message: '选择对话模式',
     ...(state.current ? { default: state.current } : {}),
     choices: modes.map(m => ({
-      name: `${m.id.padEnd(10)} ${ansis.dim(m.description)}${state.current === m.id ? ansis.green('  (当前)') : ''}`,
+      name: `${padToWidth(m.id, 10)} ${ansis.dim(m.description)}${state.current === m.id ? ansis.green('  (当前)') : ''}`,
       value: m.id,
     })),
   });

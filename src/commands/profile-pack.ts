@@ -2,6 +2,7 @@ import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { checkbox, confirm, password, select } from '@inquirer/prompts';
 import ansis from 'ansis';
+import { padToWidth } from '../core/term.js';
 import type { Profile } from '../core/profiles.js';
 import { listProfiles, maskKey, readProfile, writeProfile } from '../core/profiles.js';
 import { buildPack, packProfileToProfile, readPack, writePack } from '../core/profile-pack.js';
@@ -72,7 +73,7 @@ export async function profileImportCommand(file: string, opts: ImportOptions = {
   console.log(ansis.dim(`  导出于: ${pack.exportedAt}\n`));
   for (const p of pack.profiles) {
     const key = p.apiKey ? maskKey(p.apiKey) : ansis.yellow('(空，需补)');
-    console.log(`  · ${p.name.padEnd(16)} ${p.provider.padEnd(12)} ${ansis.dim(key)}`);
+    console.log(`  · ${padToWidth(p.name, 16)} ${padToWidth(p.provider, 12)} ${ansis.dim(key)}`);
   }
   console.log();
 
@@ -126,7 +127,7 @@ async function pickProfilesInteractive(all: Profile[]): Promise<Profile[]> {
   const names = await checkbox<string>({
     message: '选择要导出的 profile（空格选择，回车确认）',
     choices: all.map(p => ({
-      name: `${p.name.padEnd(16)} ${p.provider.padEnd(12)} ${ansis.dim(maskKey(p.apiKey))}`,
+      name: `${padToWidth(p.name, 16)} ${padToWidth(p.provider, 12)} ${ansis.dim(maskKey(p.apiKey))}`,
       value: p.name,
       checked: true,
     })),

@@ -23,21 +23,29 @@ export function supportsAnsi(): boolean {
  * 终端能正确渲染 Unicode（方框线、emoji、中日韩）。
  *
  * 检测顺序：
- * 1. Windows 上：Windows Terminal / VS Code Terminal 设了 WT_SESSION/TERM_PROGRAM，认为 OK；
- *    传统 cmd.exe / 老 PowerShell 没 WT_SESSION，认为不 OK
- * 2. 非 Windows：看 LANG/LC_ALL/LC_CTYPE 是否含 UTF-8/UTF8
- * 3. 兜底：dumb 终端不支持
+ * 1. dumb 终端：必假
+ * 2. Windows：Windows Terminal / VS Code Terminal / ConEmu / Git Bash 设了对应 env，认为 OK；
+ *    传统 cmd.exe / 老 PowerShell 看 chcp（CHCP=65001 或 codepage 65001）
+ * 3. 非 Windows：看 LANG/LC_ALL/LC_CTYPE 是否含 UTF-8/UTF8
  */
 export function supportsUnicode(): boolean {
   if (process.env.TERM === 'dumb') return false;
   if (process.platform === 'win32') {
-    if (process.env.WT_SESSION) return true;
+    // 现代 Windows 终端环境变量
+    if (process.env.WT_SESSION) return true; // Windows Terminal
     if (process.env.TERM_PROGRAM === 'vscode') return true;
     if (process.env.ConEmuTask) return true;
-    // 老 cmd / PowerShell：默认假设不支持
+    if (process.env.MSYSTEM) return true; // Git Bash / MSYS2
+    // xterm 兼容（pwsh + 现代 ConPTY 通常会设 TERM）
+    const term = process.env.TERM ?? '';
+    if (/xterm|vt100|ansi/i.test(term)) return true;
+    // 传统 cmd / pwsh：看是否切到 UTF-8 codepage
+    // PROMPT_COMMAND 或显式 PYTHONIOENCODING=utf-8 都能侧面证明用户在意 unicode
+    if ((process.env.PYTHONIOENCODING ?? '').toLowerCase().includes('utf')) return true;
     return false;
   }
-  const locale = (process.env.LC_ALL ?? process.env.LC_CTYPE ?? process.env.LANG ?? '').toUpperCase();
+  // 注意：环境变量可能被显式设为 ''（不只是 unset），用 || 跳过空串
+  const locale = (process.env.LC_ALL || process.env.LC_CTYPE || process.env.LANG || '').toUpperCase();
   return locale.includes('UTF-8') || locale.includes('UTF8');
 }
 
