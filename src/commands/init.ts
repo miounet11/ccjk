@@ -88,10 +88,15 @@ export async function initCommand(opts: InitOptions = {}): Promise<void> {
 }
 
 /**
- * 依次询问 main / haiku / sonnet / opus 四个槽位。
- * - main 默认值：--model 参数 → provider.defaultModel
- * - 其他三个槽位默认值：对应 --xxx-model 参数 → provider.fastModel/sonnetModel/opusModel（可能为空）
- * - 用户回车=用建议值；输入空格再回车=该槽位留空（不写入 settings）
+ * 询问 main / haiku / sonnet / opus 四个槽位。
+ *
+ * 新交互：默认走「快速档」——三连问简化为一个 select：
+ *   1) 用建议值（4 个槽位都自动填 provider 默认）— 80% 用户的选择
+ *   2) 逐个微调（旧行为，给老用户兜底）
+ *   3) 不写槽位（让 Clavue 用内置 fallback）
+ *
+ * - 命令行参数走完，跳过整个交互。
+ * - 提供商没有任何默认（如 anthropic / custom）→ 自动落到「逐个微调」。
  */
 async function collectModelSlots(provider: ApiProvider, opts: InitOptions): Promise<ModelSlots> {
   // 命令行已经把全部槽位都给了 → 不交互
@@ -104,11 +109,47 @@ async function collectModelSlots(provider: ApiProvider, opts: InitOptions): Prom
     } as ModelSlots;
   }
 
+  const hasAnyDefault = Boolean(
+    provider.defaultModel || provider.fastModel || provider.sonnetModel || provider.opusModel,
+  );
+
+  // provider 没有默认（custom / anthropic）→ 不给「用建议」选项，直接走 advanced
+  let strategy: 'default' | 'advanced' | 'skip' = 'default';
+  if (hasAnyDefault) {
+    strategy = await select<'default' | 'advanced' | 'skip'>({
+      message: '模型配置',
+      default: 'default',
+      choices: [
+        {
+          name: `用 ${provider.name} 推荐设置  ${ansis.dim(formatProviderDefaults(provider))}`,
+          value: 'default',
+          short: '推荐',
+        },
+        { name: '逐个填四个槽位（main / haiku / sonnet / opus）', value: 'advanced', short: '高级' },
+        { name: ansis.gray('不写槽位（让工具用内置默认）'), value: 'skip', short: '跳过' },
+      ],
+    });
+  }
+  else {
+    strategy = 'advanced';
+  }
+
+  if (strategy === 'skip') return {};
+
+  if (strategy === 'default') {
+    return {
+      ...(provider.defaultModel ? { main: provider.defaultModel } : {}),
+      ...(provider.fastModel ? { haiku: provider.fastModel } : {}),
+      ...(provider.sonnetModel ? { sonnet: provider.sonnetModel } : {}),
+      ...(provider.opusModel ? { opus: provider.opusModel } : {}),
+    };
+  }
+
   console.log(ansis.dim('\n配置 model 槽位（直接回车=用建议值；输入空格再回车=该槽不写）：\n'));
-  const main = await askModelSlot('Main model', opts.model ?? provider.defaultModel ?? '');
-  const haiku = await askModelSlot('Haiku 槽（快速 / 简单任务）', opts.haikuModel ?? provider.fastModel ?? '');
-  const sonnet = await askModelSlot('Sonnet 槽（执行 / 中等任务）', opts.sonnetModel ?? provider.sonnetModel ?? '');
-  const opus = await askModelSlot('Opus 槽（规划 / 复杂任务）', opts.opusModel ?? provider.opusModel ?? '');
+  const main = await askModelSlot('Main model', opts.model ?? provider.defaultModel ?? '', provider.modelCatalog);
+  const haiku = await askModelSlot('Haiku 槽（快速 / 简单任务）', opts.haikuModel ?? provider.fastModel ?? '', provider.modelCatalog);
+  const sonnet = await askModelSlot('Sonnet 槽（执行 / 中等任务）', opts.sonnetModel ?? provider.sonnetModel ?? '', provider.modelCatalog);
+  const opus = await askModelSlot('Opus 槽（规划 / 复杂任务）', opts.opusModel ?? provider.opusModel ?? '', provider.modelCatalog);
 
   return {
     ...(main ? { main } : {}),
@@ -118,13 +159,64 @@ async function collectModelSlots(provider: ApiProvider, opts: InitOptions): Prom
   };
 }
 
-async function askModelSlot(message: string, defaultValue: string): Promise<string> {
-  const v = await input({
+/** 把 provider 的默认槽位组装成一行简介，给 select 选项当 hint 用 */
+function formatProviderDefaults(provider: ApiProvider): string {
+  const parts: string[] = [];
+  if (provider.defaultModel) parts.push(`main=${provider.defaultModel}`);
+  if (provider.fastModel) parts.push(`haiku=${provider.fastModel}`);
+  if (provider.sonnetModel && provider.sonnetModel !== provider.defaultModel) {
+    parts.push(`sonnet=${provider.sonnetModel}`);
+  }
+  if (provider.opusModel && provider.opusModel !== provider.defaultModel) {
+    parts.push(`opus=${provider.opusModel}`);
+  }
+  return parts.length > 0 ? `(${parts.join(', ')})` : '';
+}
+
+/**
+ * 询问一个槽位。
+ * - catalog 非空 → select：候选模型 + "其他（手动输入）" + "留空"
+ * - catalog 为空 → 退化为 input
+ *
+ * 返回空字符串表示「不写这个槽位」。
+ */
+async function askModelSlot(message: string, defaultValue: string, catalog?: string[]): Promise<string> {
+  // 没目录或目录为空 → 走 input
+  if (!catalog || catalog.length === 0) {
+    const v = await input({
+      message,
+      ...(defaultValue ? { default: defaultValue } : {}),
+    });
+    return v.trim();
+  }
+
+  // 目录里没有 default？拼到第一项
+  const fullCatalog = defaultValue && !catalog.includes(defaultValue)
+    ? [defaultValue, ...catalog]
+    : [...catalog];
+
+  const CUSTOM = '__custom__';
+  const SKIP = '__skip__';
+  const choice = await select<string>({
     message,
-    ...(defaultValue ? { default: defaultValue } : {}),
+    default: defaultValue || fullCatalog[0],
+    pageSize: Math.min(10, fullCatalog.length + 2),
+    choices: [
+      ...fullCatalog.map(m => ({ name: m, value: m })),
+      { name: ansis.dim('其他… (手动输入)'), value: CUSTOM },
+      { name: ansis.gray('留空（不写这个槽位）'), value: SKIP },
+    ],
   });
-  // 输入空格表示"清空这个槽位"
-  return v.trim();
+
+  if (choice === SKIP) return '';
+  if (choice === CUSTOM) {
+    const v = await input({
+      message: '输入模型 ID',
+      ...(defaultValue ? { default: defaultValue } : {}),
+    });
+    return v.trim();
+  }
+  return choice;
 }
 
 interface SaveProfileArgs {
@@ -137,24 +229,27 @@ interface SaveProfileArgs {
 }
 
 async function maybeSaveProfile(args: SaveProfileArgs): Promise<void> {
+  // 默认始终保存为 profile —— 这是核心心智模型：「配 API = 创建 profile」。
+  // 旧行为多问一步「是否保存」，让 80% 的用户多按一次 Enter，删掉。
+  // 仍允许 --yes 模式跳过命名询问、直接用建议名。
   let name = args.explicitName;
 
-  if (!name && !args.yes) {
-    const save = await confirm({
-      message: '保存为 profile？（之后用 `ccjk use` 一键切换）',
-      default: true,
-    });
-    if (!save) return;
+  if (!name) {
     const suggested = await suggestName(args.provider.id);
-    const inputName = await input({
-      message: 'profile 名称',
-      default: suggested,
-      validate: (s: string) => {
-        try { validateName(s.trim()); return true; }
-        catch (e) { return (e as Error).message; }
-      },
-    });
-    name = inputName.trim();
+    if (args.yes) {
+      name = suggested;
+    }
+    else {
+      const inputName = await input({
+        message: 'Profile 名称（用于 `ccjk use` 切换；留空使用建议名）',
+        default: suggested,
+        validate: (s: string) => {
+          try { validateName(s.trim()); return true; }
+          catch (e) { return (e as Error).message; }
+        },
+      });
+      name = inputName.trim();
+    }
   }
 
   if (!name) return;

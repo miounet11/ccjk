@@ -5,6 +5,8 @@ import { fileURLToPath } from 'node:url';
 import { Command } from 'commander';
 import ansis from 'ansis';
 import { initCommand } from './commands/init.js';
+import { quickCommand } from './commands/quick.js';
+import { editCommand } from './commands/edit.js';
 import { mcpAddCommand, mcpCommand, mcpListCommand, mcpRmCommand } from './commands/mcp.js';
 import { doctorCommand } from './commands/doctor.js';
 import { detectCommand } from './commands/detect.js';
@@ -66,6 +68,33 @@ program
   .option('--profile <name>', '同时保存为 profile，跳过交互询问')
   .option('-y, --yes', '跳过确认')
   .action(initCommand);
+
+program
+  .command('quick [text]')
+  .description('粘贴 ANTHROPIC_BASE_URL/AUTH_TOKEN 文本，一键配置')
+  .option('-t, --tool <tool>', '目标工具', 'clavue')
+  .option('--profile <name>', 'profile 名（默认按 provider 自动起名）')
+  .option('-y, --yes', '跳过确认')
+  .action((text: string | undefined, opts: { tool?: 'clavue' | 'claude-code' | 'codex'; profile?: string; yes?: boolean }) =>
+    quickCommand({ ...(text ? { text } : {}), ...opts }));
+
+program
+  .command('edit [name]')
+  .description('编辑 profile 字段（不带参=当前 profile）；改完可同步到 settings.json')
+  .option('--base-url <url>', '新 Base URL')
+  .option('--api-key <key>', '新 API Key / Auth Token')
+  .option('--model <model>', '新 Main model（传空字符串=删除）')
+  .option('--fast-model <model>', '新 Haiku model（传空字符串=删除）')
+  .option('-t, --tool <tool>', '同步到哪个工具的 settings.json', 'clavue')
+  .option('-y, --yes', '跳过确认，自动同步')
+  .action((name: string | undefined, opts: {
+    baseUrl?: string;
+    apiKey?: string;
+    model?: string;
+    fastModel?: string;
+    tool?: 'clavue' | 'claude-code' | 'codex';
+    yes?: boolean;
+  }) => editCommand({ ...(name ? { name } : {}), ...opts }));
 
 program
   .command('use [name]')

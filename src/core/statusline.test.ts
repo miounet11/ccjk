@@ -97,13 +97,20 @@ describe('readTranscriptToday', () => {
     const dir = mkdtempSync(join(tmpdir(), 'ccjk-'));
     try {
       const f = join(dir, 't.jsonl');
+      // 用相对 now 构造时间戳，避免依赖运行机器的时区。
+      // - yesterday：取 now 的 startOfDay 再回退 1 小时，一定落在本地"昨天"
+      // - today1 / today2：在 [startOfDay, now] 之间
       const now = new Date('2026-05-09T12:00:00Z');
-      const todayMid = '2026-05-09T08:00:00Z';
-      const yesterday = '2026-05-08T15:00:00Z';
+      const startToday = new Date(now);
+      startToday.setHours(0, 0, 0, 0);
+      const yesterday = new Date(startToday.getTime() - 3600_000).toISOString();
+      const today1 = new Date(startToday.getTime() + 3600_000).toISOString();
+      const today2 = new Date(startToday.getTime() + 7200_000).toISOString();
+
       const lines = [
         JSON.stringify({ timestamp: yesterday, message: { usage: { input_tokens: 100, output_tokens: 200 } } }),
-        JSON.stringify({ timestamp: todayMid, message: { usage: { input_tokens: 10, output_tokens: 50, cache_creation_input_tokens: 5 } } }),
-        JSON.stringify({ timestamp: '2026-05-09T11:00:00Z', message: { usage: { input_tokens: 20, output_tokens: 100 } } }),
+        JSON.stringify({ timestamp: today1, message: { usage: { input_tokens: 10, output_tokens: 50, cache_creation_input_tokens: 5 } } }),
+        JSON.stringify({ timestamp: today2, message: { usage: { input_tokens: 20, output_tokens: 100 } } }),
       ];
       writeFileSync(f, `${lines.join('\n')}\n`);
       const r = readTranscriptToday(f, now);

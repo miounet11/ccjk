@@ -5,6 +5,8 @@ import { Separator, select } from '@inquirer/prompts';
 import ansis from 'ansis';
 import { detectCommand } from './detect.js';
 import { initCommand } from './init.js';
+import { quickMenuCommand } from './quick.js';
+import { editCommand } from './edit.js';
 import { mcpCommand } from './mcp.js';
 import { doctorCommand } from './doctor.js';
 import { gitInstallCommand } from './git-install.js';
@@ -35,7 +37,9 @@ const GROUPS: MenuGroup[] = [
   {
     title: '核心',
     items: [
-      { label: '配置 API（init）', hint: '写入 settings.json，自动存为 profile', run: () => initCommand() },
+      { label: '一键粘贴配置（quick）', hint: '粘贴中转厂商发来的一段配置，自动识别', run: () => quickMenuCommand() },
+      { label: '逐步配置 API（init）', hint: '选 provider → 填 URL/Key → 起 profile', run: () => initCommand() },
+      { label: '编辑当前 Profile', hint: '改 key / URL / model，不用重新走 init', run: () => editCommand() },
       { label: '切换 Profile', hint: '在已配过的多个 API 之间一键切换', run: () => profileUseCommand(undefined) },
       { label: '权限档位', hint: 'safe / standard / yolo（同步三个工具）', run: () => permsCommand(undefined) },
       { label: '查看当前设置', hint: 'profile / perms / mode / 工具版本 一览', run: () => statusCommand() },

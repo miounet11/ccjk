@@ -19,6 +19,11 @@ export interface ApiProvider {
    *  true → init 会让用户分别填 main/haiku/sonnet/opus
    *  false/undefined → 只问一个 model */
   multiSlot?: boolean;
+  /**
+   * 该 provider 已知的可用模型 ID 列表，用于 init / edit 的「从列表选」。
+   * 第一项默认被选中。空数组 / 不设 → 退化为纯输入。
+   */
+  modelCatalog?: string[];
   supportedTools: CodeTool[];
   description: string;
 }
@@ -31,6 +36,7 @@ export const PROVIDERS: ApiProvider[] = [
     authType: 'auth_token',
     multiSlot: true,
     defaultModel: 'glm-4.6',
+    modelCatalog: ['glm-4.6', 'glm-4.5', 'glm-4.5-air', 'glm-4-flash'],
     supportedTools: ['clavue', 'claude-code'],
     description: '智谱 AI - GLM 4.6/4.5，国内可直连',
   },
@@ -41,6 +47,7 @@ export const PROVIDERS: ApiProvider[] = [
     authType: 'auth_token',
     multiSlot: true,
     defaultModel: 'kimi-k2-turbo-preview',
+    modelCatalog: ['kimi-k2-turbo-preview', 'kimi-k2-0905-preview', 'moonshot-v1-128k', 'moonshot-v1-32k'],
     supportedTools: ['clavue', 'claude-code'],
     description: 'Moonshot - Kimi K2，长上下文优秀',
   },
@@ -51,6 +58,7 @@ export const PROVIDERS: ApiProvider[] = [
     authType: 'auth_token',
     multiSlot: true,
     defaultModel: 'MiniMax-M2',
+    modelCatalog: ['MiniMax-M2', 'MiniMax-M1'],
     supportedTools: ['clavue', 'claude-code'],
     description: 'MiniMax - M2 模型',
   },
@@ -60,6 +68,11 @@ export const PROVIDERS: ApiProvider[] = [
     baseUrl: 'https://api.anthropic.com',
     authType: 'auth_token',
     multiSlot: true,
+    modelCatalog: [
+      'claude-opus-4-6',
+      'claude-sonnet-4-6',
+      'claude-haiku-4-5-20251001',
+    ],
     supportedTools: ['clavue', 'claude-code'],
     description: '官方 API（需海外网络）',
   },
@@ -73,6 +86,7 @@ export const PROVIDERS: ApiProvider[] = [
     fastModel: 'gpt-5.3-codex',
     sonnetModel: 'gpt-5.5',
     opusModel: 'gpt-5.5',
+    modelCatalog: ['gpt-5.5', 'gpt-5.5-pro', 'gpt-5.3-codex', 'gpt-4o', 'gpt-4o-mini'],
     supportedTools: ['clavue', 'claude-code'],
     description: 'GPT/Codex 类网关 — 分别配 Main/Haiku/Sonnet/Opus 槽位',
   },
