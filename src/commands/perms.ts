@@ -18,6 +18,11 @@ import type { PermsTier, TierDefinition } from '../core/perms.js';
 
 export interface PermsOptions {
   tools?: string;
+  /** 旧行为：append + dedupe（不推荐，仅兜底） */
+  append?: boolean;
+  /** 完全清空：丢掉所有用户自定义 allow，只留档位模板 */
+  fullReset?: boolean;
+  /** v14 旧 alias，等价于 fullReset */
   reset?: boolean;
   yes?: boolean;
   dryRun?: boolean;
@@ -27,14 +32,18 @@ export async function permsCommand(tier: string | undefined, opts: PermsOptions 
   const tierId = tier ?? await pickTier();
   const def = getTier(tierId);
   const tools = parseTools(opts.tools);
+  const fullReset = opts.fullReset ?? opts.reset ?? false;
+  const append = opts.append ?? false;
 
   console.log(ansis.bold(`\n档位: ${def.name} (${def.id})`));
   console.log(ansis.dim(`  ${def.description}\n`));
   console.log(ansis.dim(`  目标工具: ${tools.join(', ')}`));
-  if (opts.reset) console.log(ansis.yellow('  --reset: 将完全替换 allow 列表（用户已有自定义会丢）'));
+  if (fullReset) console.log(ansis.yellow('  --full-reset: 清空 allow，只写档位模板（用户自定义会丢）'));
+  else if (append) console.log(ansis.yellow('  --append: 直接追加（旧行为，可能累积脏数据）'));
+  else console.log(ansis.dim('  默认：智能 reset —— 清掉旧档位脏数据，保留用户自定义'));
   console.log();
 
-  // 预览每个工具的变化（当前档位 → 目标档位 + allow 新增数）
+  // 预览每个工具的变化
   console.log(ansis.bold('预览：'));
   for (const t of tools) {
     if (t === 'codex') {
@@ -49,13 +58,15 @@ export async function permsCommand(tier: string | undefined, opts: PermsOptions 
       const cur = detectClaudeTier(settings);
       const curLabel = cur ? cur : '自定义/未设';
       const before = settings.permissions?.allow ?? [];
-      const finalAllow = opts.reset
-        ? def.claude.allow
-        : Array.from(new Set([...before, ...def.claude.allow]));
-      const newCount = finalAllow.length - before.length;
-      const allowMsg = opts.reset
-        ? `allow 替换为 ${def.claude.allow.length} 条`
-        : `allow +${newCount}`;
+      // 算出最终 allow 数量
+      const dryClone = JSON.parse(JSON.stringify(settings)) as typeof settings;
+      const r = applyTierToClaudeSettings(dryClone, def, { fullReset, append });
+      const finalCount = dryClone.permissions?.allow?.length ?? 0;
+      const allowMsg = fullReset
+        ? `allow=${finalCount}（已清空）`
+        : append
+          ? `allow ${before.length} → ${finalCount}（+${r.addedAllow}）`
+          : `allow ${before.length} → ${finalCount}（保留 ${r.preservedCustom} 条自定义）`;
       console.log(`  ${meta.displayName}: ${ansis.dim(curLabel)} → ${ansis.green(def.id)} ${ansis.dim(`(${allowMsg}, deny=${def.claude.deny.length}, unsandboxed=${def.claude.allowUnsandboxedCommands})`)}`);
     }
   }
@@ -77,7 +88,6 @@ export async function permsCommand(tier: string | undefined, opts: PermsOptions 
     }
   }
 
-  const reset = opts.reset ?? false;
   const results: string[] = [];
 
   for (const t of tools) {
@@ -86,22 +96,33 @@ export async function permsCommand(tier: string | undefined, opts: PermsOptions 
       results.push(r);
     }
     else {
-      const r = await applyToClaudeLike(t, def, reset);
+      const r = await applyToClaudeLike(t, def, { fullReset, append });
       results.push(r);
     }
   }
 
   console.log(ansis.green('\n✔ 权限设置已应用'));
   for (const r of results) console.log(`  ${r}`);
+  console.log(ansis.yellow('\n  提示: 重启对应工具才能生效'));
   console.log();
 }
 
-async function applyToClaudeLike(tool: CodeTool, def: TierDefinition, reset: boolean): Promise<string> {
+async function applyToClaudeLike(
+  tool: CodeTool,
+  def: TierDefinition,
+  opts: { fullReset: boolean; append: boolean },
+): Promise<string> {
   const meta = TOOLS[tool];
   const settings = await readSettings(meta.settingsFile);
-  const { addedAllow } = applyTierToClaudeSettings(settings, def, { reset });
+  const before = settings.permissions?.allow?.length ?? 0;
+  const r = applyTierToClaudeSettings(settings, def, opts);
+  const after = settings.permissions?.allow?.length ?? 0;
   const backup = await writeSettings(meta.settingsFile, settings);
-  const allowMsg = reset ? `allow=${def.claude.allow.length}（已替换）` : `allow +${addedAllow}`;
+  const allowMsg = opts.fullReset
+    ? `allow=${after}（已清空重写）`
+    : opts.append
+      ? `allow ${before} → ${after}（+${r.addedAllow}）`
+      : `allow ${before} → ${after}（保留 ${r.preservedCustom} 条自定义）`;
   const tail = backup ? ansis.dim(` · 备份 ${backup.split('/').pop()}`) : '';
   return `${meta.displayName}: ${allowMsg}, deny=${def.claude.deny.length}, allowUnsandboxed=${def.claude.allowUnsandboxedCommands}${tail}`;
 }

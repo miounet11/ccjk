@@ -195,10 +195,12 @@ program
   .command('perms [tier]')
   .description('一键设置权限档位（safe | standard | yolo），同时作用于 clavue/claude-code/codex')
   .option('--tools <list>', '逗号分隔指定工具，如 clavue,claude-code（默认全部）')
-  .option('--reset', '完全替换 allow 列表（不做合并；deny 总是替换）')
+  .option('--append', '旧行为：直接追加 allow（可能累积脏数据，不推荐）')
+  .option('--full-reset', '完全清空 allow，只写档位模板（用户自定义会丢）')
+  .option('--reset', '【已弃用】等价于 --full-reset')
   .option('--dry-run', '只展示将应用的变化，不写入')
   .option('-y, --yes', '跳过确认')
-  .action((tier: string | undefined, opts: { tools?: string; reset?: boolean; dryRun?: boolean; yes?: boolean }) =>
+  .action((tier: string | undefined, opts: { tools?: string; append?: boolean; fullReset?: boolean; reset?: boolean; dryRun?: boolean; yes?: boolean }) =>
     permsCommand(tier, opts));
 
 program
