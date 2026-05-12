@@ -80,26 +80,30 @@ program
 
 program
   .command('edit [name]')
-  .description('编辑 profile 字段（不带参=当前 profile）；改完可同步到 settings.json')
+  .description('编辑 profile 字段（不带参=当前 profile）；改完默认同步到所有已装工具')
   .option('--base-url <url>', '新 Base URL')
   .option('--api-key <key>', '新 API Key / Auth Token')
   .option('--model <model>', '新 Main model（传空字符串=删除）')
   .option('--fast-model <model>', '新 Haiku model（传空字符串=删除）')
-  .option('-t, --tool <tool>', '同步到哪个工具的 settings.json', 'clavue')
+  .option('--sonnet-model <model>', '新 Sonnet model（传空字符串=删除）')
+  .option('--opus-model <model>', '新 Opus model（传空字符串=删除）')
+  .option('-t, --tool <tool>', '只同步到指定工具的 settings.json（默认所有已装工具）')
   .option('-y, --yes', '跳过确认，自动同步')
   .action((name: string | undefined, opts: {
     baseUrl?: string;
     apiKey?: string;
     model?: string;
     fastModel?: string;
+    sonnetModel?: string;
+    opusModel?: string;
     tool?: 'clavue' | 'claude-code' | 'codex';
     yes?: boolean;
   }) => editCommand({ ...(name ? { name } : {}), ...opts }));
 
 program
   .command('use [name]')
-  .description('切换到指定 profile（不带参则交互选择）')
-  .option('-t, --tool <tool>', '目标工具', 'clavue')
+  .description('切换到指定 profile（不带参则交互选择；默认同步到所有已装工具）')
+  .option('-t, --tool <tool>', '只写到指定工具（clavue / claude-code / codex）')
   .option('-y, --yes', '跳过确认')
   .action((name: string | undefined, opts: { tool?: 'clavue' | 'claude-code' | 'codex'; yes?: boolean }) =>
     profileUseCommand(name, opts));
@@ -113,8 +117,8 @@ profile
   .action(profileListCommand);
 profile
   .command('use [name]')
-  .description('切换到指定 profile')
-  .option('-t, --tool <tool>', '目标工具', 'clavue')
+  .description('切换到指定 profile（默认同步到所有已装工具）')
+  .option('-t, --tool <tool>', '只写到指定工具')
   .option('-y, --yes', '跳过确认')
   .action((name: string | undefined, opts: { tool?: 'clavue' | 'claude-code' | 'codex'; yes?: boolean }) =>
     profileUseCommand(name, opts));

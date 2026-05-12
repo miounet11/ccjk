@@ -111,10 +111,12 @@ export async function quickCommand(opts: QuickOptions = {}): Promise<void> {
   const profileName = opts.profile ?? await suggestAndAskProfileName(finalProvider.id, opts.yes ?? false);
   if (profileName) {
     validateName(profileName);
-    // profile 里的 model 字段：解析到的 > provider 默认值。
-    // 不存的话 edit 之后会把 settings 里的 ANTHROPIC_MODEL 清掉，下次 use 也丢。
+    // profile 里的槽位字段：解析到的 > provider 默认值。
+    // 不存的话 edit 之后会把 settings 里的对应 env 清掉，下次 use 也丢。
     const mainForProfile = slots.main ?? finalProvider.defaultModel;
     const fastForProfile = slots.haiku ?? finalProvider.fastModel;
+    const sonnetForProfile = slots.sonnet ?? finalProvider.sonnetModel;
+    const opusForProfile = slots.opus ?? finalProvider.opusModel;
     await writeProfile({
       name: profileName,
       provider: finalProvider.id,
@@ -123,6 +125,8 @@ export async function quickCommand(opts: QuickOptions = {}): Promise<void> {
       apiKey,
       ...(mainForProfile ? { model: mainForProfile } : {}),
       ...(fastForProfile ? { fastModel: fastForProfile } : {}),
+      ...(sonnetForProfile ? { sonnetModel: sonnetForProfile } : {}),
+      ...(opusForProfile ? { opusModel: opusForProfile } : {}),
       createdAt: new Date().toISOString(),
     });
     await writeState({ current: profileName });

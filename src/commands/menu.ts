@@ -52,8 +52,8 @@ const GROUPS: MenuGroup[] = [
       { label: '一键粘贴配置（quick）', hint: '粘贴中转厂商发来的一段配置，自动识别', run: () => quickMenuCommand() },
       { label: '逐步配置 API（init）', hint: '选 provider → 填 URL/Key → 起 profile', run: () => initCommand() },
       { label: '权限档位（一键减少授权）', hint: 'safe / standard / yolo，同步三个工具 →', run: () => permsSubMenu() },
-      { label: '编辑当前 Profile', hint: '改 key / URL / model，不用重新走 init', run: () => editCommand() },
-      { label: '切换 Profile', hint: '在已配过的多个 API 之间一键切换', run: () => profileUseCommand(undefined) },
+      { label: '编辑当前 Profile', hint: '改 key / URL / model（自动同步到所有已装工具）', run: () => editCommand() },
+      { label: '切换 Profile', hint: '一键切 API；同步到 Clavue / Claude Code', run: () => profileUseCommand(undefined) },
     ],
   },
   {

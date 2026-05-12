@@ -5,6 +5,7 @@ import { TOOLS } from '../core/tools.js';
 import type { CodeTool } from '../core/tools.js';
 import { readSettings, writeSettings } from '../core/settings.js';
 import {
+  applyProfileToInstalledTools,
   applyProfileToSettings,
   listProfiles,
   maskKey,
@@ -15,7 +16,7 @@ import {
   writeProfile,
   writeState,
 } from '../core/profiles.js';
-import type { Profile } from '../core/profiles.js';
+import type { Profile, SyncResult } from '../core/profiles.js';
 
 export async function profileListCommand(): Promise<void> {
   const profiles = await listProfiles();
@@ -39,7 +40,10 @@ export async function profileListCommand(): Promise<void> {
 }
 
 export interface UseOptions {
+  /** 显式指定单一工具：只写到这个工具的 settings */
   tool?: CodeTool;
+  /** 默认行为：写到所有已装工具（clavue + claude-code）。--tool 优先级更高 */
+  allTools?: boolean;
   yes?: boolean;
 }
 
@@ -68,16 +72,26 @@ export async function profileUseCommand(name: string | undefined, opts: UseOptio
   const target = name ? findOrExit(profiles, name) : await pickProfile(profiles);
   if (!target) return;
 
-  const tool: CodeTool = opts.tool ?? 'clavue';
+  // --tool 显式 → 单工具；否则默认同步到所有已装的 clavue / claude-code
+  if (opts.tool) {
+    await useForSingleTool(target, opts.tool, opts.yes ?? false);
+  }
+  else {
+    await useForAllInstalled(target, opts.yes ?? false);
+  }
+  await writeState({ current: target.name });
+}
+
+/** 单工具写入：保留旧行为，给 --tool 用 */
+async function useForSingleTool(target: Profile, tool: CodeTool, yes: boolean): Promise<void> {
   if (tool === 'codex') {
     throw new Error('Codex 配置走 ~/.codex/config.toml，暂不支持 profile 写入。');
   }
   const meta = TOOLS[tool];
-
   const settings = await readSettings(meta.settingsFile);
   applyProfileToSettings(settings, target);
 
-  if (!opts.yes) {
+  if (!yes) {
     console.log(ansis.dim(`\n→ 切换到: ${target.name} (${target.provider})`));
     console.log(ansis.dim(`→ Base URL: ${target.baseUrl}`));
     console.log(ansis.dim(`→ 写入: ${meta.settingsFile}\n`));
@@ -89,11 +103,40 @@ export async function profileUseCommand(name: string | undefined, opts: UseOptio
   }
 
   const backup = await writeSettings(meta.settingsFile, settings);
-  await writeState({ current: target.name });
-
   console.log(ansis.green(`\n✔ 已切换到 profile: ${ansis.bold(target.name)}`));
   if (backup) console.log(ansis.dim(`  备份: ${backup}`));
-  console.log(ansis.yellow('  提示: 重启 Claude Code 才能生效\n'));
+  console.log(ansis.yellow(`  提示: 重启 ${meta.displayName} 才能生效\n`));
+}
+
+/** 默认行为：写到所有已装工具 */
+async function useForAllInstalled(target: Profile, yes: boolean): Promise<void> {
+  if (!yes) {
+    console.log(ansis.dim(`\n→ 切换到: ${target.name} (${target.provider})`));
+    console.log(ansis.dim(`→ Base URL: ${target.baseUrl}`));
+    console.log(ansis.dim('→ 同步到所有已装工具（Clavue / Claude Code）\n'));
+    const ok = await confirm({ message: '确认切换？', default: true });
+    if (!ok) {
+      console.log(ansis.gray('已取消。'));
+      return;
+    }
+  }
+
+  const results = await applyProfileToInstalledTools(target);
+  console.log(ansis.green(`\n✔ 已切换到 profile: ${ansis.bold(target.name)}`));
+  printSyncResults(results);
+  console.log(ansis.yellow('  提示: 重启对应工具才能生效\n'));
+}
+
+function printSyncResults(results: SyncResult[]): void {
+  for (const r of results) {
+    const meta = TOOLS[r.tool];
+    if (r.skipped) {
+      console.log(ansis.dim(`  · ${meta.displayName}: ${r.skipped}（已跳过）`));
+      continue;
+    }
+    console.log(ansis.green(`  ✓ ${meta.displayName} → ${r.settingsFile}`));
+    if (r.backup) console.log(ansis.dim(`    备份: ${r.backup}`));
+  }
 }
 
 export async function profileRmCommand(name: string | undefined, opts: { yes?: boolean } = {}): Promise<void> {
@@ -144,7 +187,9 @@ export async function profileShowCommand(name: string | undefined): Promise<void
   console.log(`  authType   ${p.authType}`);
   console.log(`  apiKey     ${maskKey(p.apiKey)}`);
   if (p.model) console.log(`  model      ${p.model}`);
-  if (p.fastModel) console.log(`  fastModel  ${p.fastModel}`);
+  if (p.fastModel) console.log(`  haiku      ${p.fastModel}`);
+  if (p.sonnetModel) console.log(`  sonnet     ${p.sonnetModel}`);
+  if (p.opusModel) console.log(`  opus       ${p.opusModel}`);
   console.log(ansis.dim(`  createdAt  ${p.createdAt}\n`));
 }
 
@@ -220,7 +265,9 @@ export async function profileCopyCommand(
         { name: 'API Key / Auth Token', value: 'apiKey' },
         { name: 'Base URL', value: 'baseUrl' },
         { name: 'Main model', value: 'model' },
-        { name: 'Haiku model（fastModel）', value: 'fastModel' },
+        { name: 'Haiku model', value: 'fastModel' },
+        { name: 'Sonnet model', value: 'sonnetModel' },
+        { name: 'Opus model', value: 'opusModel' },
       ],
     });
     for (const f of fields) {
@@ -249,6 +296,16 @@ export async function profileCopyCommand(
         const v = await input({ message: '新 Haiku model', default: source.fastModel ?? '' });
         if (v.trim()) copy.fastModel = v.trim();
         else delete copy.fastModel;
+      }
+      else if (f === 'sonnetModel') {
+        const v = await input({ message: '新 Sonnet model', default: source.sonnetModel ?? '' });
+        if (v.trim()) copy.sonnetModel = v.trim();
+        else delete copy.sonnetModel;
+      }
+      else if (f === 'opusModel') {
+        const v = await input({ message: '新 Opus model', default: source.opusModel ?? '' });
+        if (v.trim()) copy.opusModel = v.trim();
+        else delete copy.opusModel;
       }
     }
   }

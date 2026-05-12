@@ -5,6 +5,7 @@ import type { CodeTool } from '../core/tools.js';
 import { readSettings, writeSettings } from '../core/settings.js';
 import { findProvider } from '../core/providers.js';
 import {
+  applyProfileToInstalledTools,
   applyProfileToSettings,
   listProfiles,
   maskKey,
@@ -12,7 +13,7 @@ import {
   readState,
   writeProfile,
 } from '../core/profiles.js';
-import type { Profile } from '../core/profiles.js';
+import type { Profile, SyncResult } from '../core/profiles.js';
 
 export interface EditOptions {
   /** 不传则编辑当前 profile */
@@ -25,6 +26,10 @@ export interface EditOptions {
   model?: string;
   /** 一次性更新 haiku model */
   fastModel?: string;
+  /** 一次性更新 sonnet model */
+  sonnetModel?: string;
+  /** 一次性更新 opus model */
+  opusModel?: string;
   /** 目标工具（默认 clavue），改完会顺手刷一遍 settings.json */
   tool?: CodeTool;
   /** 跳过确认 + 跳过 settings.json 重写询问 */
@@ -46,11 +51,13 @@ export async function editCommand(opts: EditOptions = {}): Promise<void> {
   if (!profile) return;
 
   console.log(ansis.bold(`\n编辑 profile: ${ansis.cyan(profile.name)}`));
-  console.log(ansis.dim(`  provider: ${profile.provider}`));
-  console.log(ansis.dim(`  baseUrl:  ${profile.baseUrl}`));
-  console.log(ansis.dim(`  authKey:  ${maskKey(profile.apiKey)}`));
-  if (profile.model) console.log(ansis.dim(`  model:    ${profile.model}`));
-  if (profile.fastModel) console.log(ansis.dim(`  fastModel: ${profile.fastModel}`));
+  console.log(ansis.dim(`  provider:  ${profile.provider}`));
+  console.log(ansis.dim(`  baseUrl:   ${profile.baseUrl}`));
+  console.log(ansis.dim(`  authKey:   ${maskKey(profile.apiKey)}`));
+  if (profile.model) console.log(ansis.dim(`  model:     ${profile.model}`));
+  if (profile.fastModel) console.log(ansis.dim(`  haiku:     ${profile.fastModel}`));
+  if (profile.sonnetModel) console.log(ansis.dim(`  sonnet:    ${profile.sonnetModel}`));
+  if (profile.opusModel) console.log(ansis.dim(`  opus:      ${profile.opusModel}`));
   console.log();
 
   // 用 CLI 参数传入的字段直接写，不再交互
@@ -64,6 +71,8 @@ export async function editCommand(opts: EditOptions = {}): Promise<void> {
         { name: `Base URL              ${ansis.dim(profile.baseUrl)}`, value: 'baseUrl' },
         { name: `Main model            ${ansis.dim(profile.model ?? '(未设)')}`, value: 'model' },
         { name: `Haiku model           ${ansis.dim(profile.fastModel ?? '(未设)')}`, value: 'fastModel' },
+        { name: `Sonnet model          ${ansis.dim(profile.sonnetModel ?? '(未设)')}`, value: 'sonnetModel' },
+        { name: `Opus model            ${ansis.dim(profile.opusModel ?? '(未设)')}`, value: 'opusModel' },
       ],
     });
     if (fields.length === 0) {
@@ -76,34 +85,56 @@ export async function editCommand(opts: EditOptions = {}): Promise<void> {
   await writeProfile(profile);
   console.log(ansis.green(`\n✔ Profile ${profile.name} 已更新`));
 
-  // 询问要不要把改动顺手同步到 settings.json
+  // 询问要不要把改动同步到 settings.json
   const state = await readState().catch(() => ({} as { current?: string }));
   const isCurrent = state.current === profile.name;
-  if (isCurrent) {
-    let syncIt = opts.yes ?? false;
-    if (!opts.yes) {
-      syncIt = await confirm({
-        message: '当前激活的就是这个 profile，立即同步到 settings.json？',
-        default: true,
-      });
-    }
-    if (syncIt) {
-      const tool: CodeTool = opts.tool ?? 'clavue';
-      if (tool === 'codex') {
-        console.log(ansis.yellow('  Codex 暂不支持自动同步，请手动改 ~/.codex/config.toml'));
-      }
-      else {
-        const meta = TOOLS[tool];
-        const settings = await readSettings(meta.settingsFile);
-        applyProfileToSettings(settings, profile);
-        const backup = await writeSettings(meta.settingsFile, settings);
-        console.log(ansis.green(`  settings.json 已同步: ${meta.settingsFile}`));
-        if (backup) console.log(ansis.dim(`  备份: ${backup}`));
-        console.log(ansis.yellow('  提示: 重启 Claude Code / Clavue 才能生效'));
-      }
-    }
+  if (!isCurrent) {
+    console.log();
+    return;
   }
+
+  const syncIt = opts.yes
+    ? true
+    : await confirm({
+      message: '当前激活的就是这个 profile，立即同步到 settings.json？',
+      default: true,
+    });
+  if (!syncIt) {
+    console.log();
+    return;
+  }
+
+  if (opts.tool === 'codex') {
+    console.log(ansis.yellow('  Codex 暂不支持自动同步，请手动改 ~/.codex/config.toml'));
+  }
+  else if (opts.tool) {
+    // 显式单工具
+    const meta = TOOLS[opts.tool];
+    const settings = await readSettings(meta.settingsFile);
+    applyProfileToSettings(settings, profile);
+    const backup = await writeSettings(meta.settingsFile, settings);
+    console.log(ansis.green(`  ✓ ${meta.displayName} → ${meta.settingsFile}`));
+    if (backup) console.log(ansis.dim(`    备份: ${backup}`));
+  }
+  else {
+    // 默认：所有已装工具一起同步
+    const results = await applyProfileToInstalledTools(profile);
+    printEditSyncResults(results);
+  }
+  console.log(ansis.yellow('  提示: 重启对应工具才能生效'));
   console.log();
+}
+
+function printEditSyncResults(results: SyncResult[]): void {
+  for (const r of results) {
+    const meta = TOOLS[r.tool];
+    if (r.skipped) {
+      console.log(ansis.dim(`  · ${meta.displayName}: ${r.skipped}（已跳过）`));
+      continue;
+    }
+    console.log(ansis.green(`  ✓ ${meta.displayName} → ${r.settingsFile}`));
+    if (r.backup) console.log(ansis.dim(`    备份: ${r.backup}`));
+  }
 }
 
 async function loadTarget(explicitName?: string): Promise<Profile | null> {
@@ -157,6 +188,16 @@ async function applyDirectOpts(profile: Profile, opts: EditOptions): Promise<boo
     else delete profile.fastModel;
     changed = true;
   }
+  if (opts.sonnetModel !== undefined) {
+    if (opts.sonnetModel.trim()) profile.sonnetModel = opts.sonnetModel.trim();
+    else delete profile.sonnetModel;
+    changed = true;
+  }
+  if (opts.opusModel !== undefined) {
+    if (opts.opusModel.trim()) profile.opusModel = opts.opusModel.trim();
+    else delete profile.opusModel;
+    changed = true;
+  }
   return changed;
 }
 
@@ -196,6 +237,16 @@ async function applyInteractive(profile: Profile, fields: string[]): Promise<voi
       const v = await pickModel('新 Haiku model', profile.fastModel ?? '', catalog);
       if (v) profile.fastModel = v;
       else delete profile.fastModel;
+    }
+    else if (f === 'sonnetModel') {
+      const v = await pickModel('新 Sonnet model', profile.sonnetModel ?? '', catalog);
+      if (v) profile.sonnetModel = v;
+      else delete profile.sonnetModel;
+    }
+    else if (f === 'opusModel') {
+      const v = await pickModel('新 Opus model', profile.opusModel ?? '', catalog);
+      if (v) profile.opusModel = v;
+      else delete profile.opusModel;
     }
   }
 }

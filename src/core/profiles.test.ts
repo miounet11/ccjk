@@ -197,4 +197,35 @@ describe('applyProfileToSettings', () => {
     expect(s.env?.OTHER).toBe('keep');
     expect(s.permissions).toEqual({ allow: ['Bash'] });
   });
+
+  it('写入全部 4 槽位', () => {
+    const s: { env?: Record<string, string> } = { env: {} };
+    applyProfileToSettings(s, P({
+      model: 'glm-4.6',
+      fastModel: 'glm-4.5-air',
+      sonnetModel: 'glm-4.6-flash',
+      opusModel: 'glm-4.6-plus',
+    }));
+    expect(s.env?.ANTHROPIC_MODEL).toBe('glm-4.6');
+    expect(s.env?.ANTHROPIC_DEFAULT_HAIKU_MODEL).toBe('glm-4.5-air');
+    expect(s.env?.ANTHROPIC_DEFAULT_SONNET_MODEL).toBe('glm-4.6-flash');
+    expect(s.env?.ANTHROPIC_DEFAULT_OPUS_MODEL).toBe('glm-4.6-plus');
+  });
+
+  it('切换 profile 时清掉前一个 profile 留下的 sonnet / opus（核心回归）', () => {
+    // 模拟：上一个 profile 配了 4 槽位，settings.json 已写入 sonnet/opus
+    const s: { env?: Record<string, string> } = {
+      env: {
+        ANTHROPIC_DEFAULT_SONNET_MODEL: 'old-sonnet',
+        ANTHROPIC_DEFAULT_OPUS_MODEL: 'old-opus',
+      },
+    };
+    // 切到一个只配了 main + haiku 的 profile，sonnet/opus 必须被清掉
+    const p = P();
+    delete p.sonnetModel;
+    delete p.opusModel;
+    applyProfileToSettings(s, p);
+    expect(s.env?.ANTHROPIC_DEFAULT_SONNET_MODEL).toBeUndefined();
+    expect(s.env?.ANTHROPIC_DEFAULT_OPUS_MODEL).toBeUndefined();
+  });
 });

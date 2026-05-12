@@ -2,6 +2,10 @@ import { existsSync } from 'node:fs';
 import { mkdir, readFile, readdir, unlink, writeFile } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
+import { readSettings, writeSettings } from './settings.js';
+import { TOOLS } from './tools.js';
+import type { CodeTool } from './tools.js';
+import { getInstalledVersion } from './versions.js';
 
 export interface Profile {
   name: string;
@@ -9,8 +13,14 @@ export interface Profile {
   baseUrl: string;
   authType: 'api_key' | 'auth_token';
   apiKey: string;
+  /** main 槽位 → ANTHROPIC_MODEL */
   model?: string;
+  /** haiku 槽位 → ANTHROPIC_DEFAULT_HAIKU_MODEL（历史字段名，保留兼容旧 profile 文件） */
   fastModel?: string;
+  /** sonnet 槽位 → ANTHROPIC_DEFAULT_SONNET_MODEL */
+  sonnetModel?: string;
+  /** opus 槽位 → ANTHROPIC_DEFAULT_OPUS_MODEL */
+  opusModel?: string;
   createdAt: string;
 }
 
@@ -95,8 +105,8 @@ export function maskKey(key: string): string {
 
 /**
  * 把 profile 应用到 settings.env，行为对齐 applyApiToSettings：
- * - auth_token 写 ANTHROPIC_AUTH_TOKEN，清掉 ANTHROPIC_API_KEY
- * - api_key 反之
+ * - auth_token 写 ANTHROPIC_AUTH_TOKEN，清掉 ANTHROPIC_API_KEY（api_key 反之）
+ * - 4 个槽位（main/haiku/sonnet/opus）：profile 有就写，没有就 delete —— 避免切 profile 后旧值残留
  * - 删除顶层 model 防止覆盖 env
  */
 export function applyProfileToSettings(
@@ -113,10 +123,48 @@ export function applyProfileToSettings(
     settings.env.ANTHROPIC_API_KEY = profile.apiKey;
     delete settings.env.ANTHROPIC_AUTH_TOKEN;
   }
-  if (profile.model) settings.env.ANTHROPIC_MODEL = profile.model;
-  else delete settings.env.ANTHROPIC_MODEL;
-  if (profile.fastModel) settings.env.ANTHROPIC_DEFAULT_HAIKU_MODEL = profile.fastModel;
-  else delete settings.env.ANTHROPIC_DEFAULT_HAIKU_MODEL;
+  applyOrDelete(settings.env, 'ANTHROPIC_MODEL', profile.model);
+  applyOrDelete(settings.env, 'ANTHROPIC_DEFAULT_HAIKU_MODEL', profile.fastModel);
+  applyOrDelete(settings.env, 'ANTHROPIC_DEFAULT_SONNET_MODEL', profile.sonnetModel);
+  applyOrDelete(settings.env, 'ANTHROPIC_DEFAULT_OPUS_MODEL', profile.opusModel);
 
   if ('model' in settings) delete settings.model;
+}
+
+function applyOrDelete(env: Record<string, string>, key: string, value: string | undefined): void {
+  if (value) env[key] = value;
+  else delete env[key];
+}
+
+/** 单个工具的同步结果，便于 use / edit 命令统一报告 */
+export interface SyncResult {
+  tool: CodeTool;
+  settingsFile: string;
+  backup: string;
+  skipped?: string;
+}
+
+/**
+ * 把 profile 同步到所有"已装且支持 settings.json 写入"的工具。
+ * 当前覆盖 clavue + claude-code（同 settings.json 结构）。
+ * codex 用 toml，本函数不处理（避免误覆盖；将来如要打通用专门通道）。
+ *
+ * 没装的工具会被跳过（不报错），返回中可见 `skipped`。
+ */
+export async function applyProfileToInstalledTools(profile: Profile): Promise<SyncResult[]> {
+  const targets: CodeTool[] = ['clavue', 'claude-code'];
+  const results: SyncResult[] = [];
+  for (const t of targets) {
+    const meta = TOOLS[t];
+    const v = getInstalledVersion(t);
+    if (!v.installed) {
+      results.push({ tool: t, settingsFile: meta.settingsFile, backup: '', skipped: '未安装' });
+      continue;
+    }
+    const settings = await readSettings(meta.settingsFile);
+    applyProfileToSettings(settings, profile);
+    const backup = await writeSettings(meta.settingsFile, settings);
+    results.push({ tool: t, settingsFile: meta.settingsFile, backup });
+  }
+  return results;
 }

@@ -263,6 +263,8 @@ async function maybeSaveProfile(args: SaveProfileArgs): Promise<void> {
     apiKey: args.apiKey,
     ...(args.slots.main ? { model: args.slots.main } : {}),
     ...(args.slots.haiku ? { fastModel: args.slots.haiku } : {}),
+    ...(args.slots.sonnet ? { sonnetModel: args.slots.sonnet } : {}),
+    ...(args.slots.opus ? { opusModel: args.slots.opus } : {}),
     createdAt: new Date().toISOString(),
   });
   await writeState({ current: name });
