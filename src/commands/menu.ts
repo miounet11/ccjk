@@ -11,7 +11,7 @@ import { mcpCommand } from './mcp.js';
 import { doctorCommand } from './doctor.js';
 import { gitInstallCommand } from './git-install.js';
 import { profileUseCommand } from './profile.js';
-import { permsCommand } from './perms.js';
+import { permsCommand, permsCleanCommand, permsShowCommand } from './perms.js';
 import { rollbackCommand } from './rollback.js';
 import { statusLineInstallCommand } from './statusline.js';
 import { installCommand, updateCommand, versionCommand } from './version.js';
@@ -33,42 +33,67 @@ interface MenuGroup {
   items: MenuItem[];
 }
 
+/**
+ * 主菜单。
+ *
+ * 布局原则（参考 ZCF 的线性工作流）：
+ *   1. "开始使用"块走新用户最常见路径：配 API → 设权限 → 编辑/切换
+ *      — 权限档位是第 3 项（紧挨 API 配置），因为"装完就立刻想减少授权弹窗"是高频诉求
+ *   2. "对话能力"块是装完后的深度配置
+ *   3. "增强"块是可选工具（statusline / mcp / slash 命令）
+ *   4. "工具与维护"块合并所有低频管理动作，走二级菜单避免主菜单膨胀
+ *
+ * 同一类功能（perms 有 3 条：切档 / 查看 / 清理）走二级菜单。
+ */
 const GROUPS: MenuGroup[] = [
   {
-    title: '核心',
+    title: '开始使用',
     items: [
       { label: '一键粘贴配置（quick）', hint: '粘贴中转厂商发来的一段配置，自动识别', run: () => quickMenuCommand() },
       { label: '逐步配置 API（init）', hint: '选 provider → 填 URL/Key → 起 profile', run: () => initCommand() },
+      { label: '权限档位（一键减少授权）', hint: 'safe / standard / yolo，同步三个工具 →', run: () => permsSubMenu() },
       { label: '编辑当前 Profile', hint: '改 key / URL / model，不用重新走 init', run: () => editCommand() },
       { label: '切换 Profile', hint: '在已配过的多个 API 之间一键切换', run: () => profileUseCommand(undefined) },
-      { label: '权限档位', hint: 'safe / standard / yolo（同步三个工具）', run: () => permsCommand(undefined) },
-      { label: '查看当前设置', hint: 'profile / perms / mode / 工具版本 一览', run: () => statusCommand() },
     ],
   },
   {
-    title: '进阶用法',
+    title: '对话能力',
     items: [
-      { label: '运行工作流', hint: '一组命令一键跑（starter / dev-ready / ...）', run: () => workflowRunCommand(undefined) },
       { label: '切换对话模式', hint: 'code / chat / fast / deep（thinking + effort）', run: () => modeUseCommand(undefined) },
+      { label: '运行工作流', hint: '一组命令一键跑（starter / dev-ready / ...）', run: () => workflowRunCommand(undefined) },
     ],
   },
   {
-    title: '增强体验',
+    title: '增强',
     items: [
-      { label: '安装状态栏', hint: '显示模型 / 用量 / 速率', run: () => statusLineInstallCommand() },
-      { label: '配置 MCP 服务', hint: 'context7 / serena / playwright ...', run: () => mcpCommand() },
-      { label: '安装 Git 命令模板', hint: '/ccjk:git-commit 等 slash 命令', run: () => gitInstallCommand() },
+      { label: '状态栏', hint: '显示模型 / 用量 / 速率', run: () => statusLineInstallCommand() },
+      { label: 'MCP 服务', hint: 'context7 / serena / playwright ...', run: () => mcpCommand() },
+      { label: 'Git 命令模板', hint: '/ccjk:git-commit 等 slash 命令', run: () => gitInstallCommand() },
     ],
   },
   {
-    title: '维护与诊断',
+    title: '工具与维护',
     items: [
-      { label: '环境变量与手动编辑', hint: '推荐 env / 打开 settings.json 手改', run: () => envPermCommand() },
-      { label: '更新与检测', hint: '体检 / 版本 / 安装 / 升级 / 检测（合并入口）', run: () => maintenanceSubMenu() },
+      { label: '查看当前设置', hint: 'profile / perms / mode / 工具版本 一览', run: () => statusCommand() },
+      { label: '更新与检测', hint: '体检 / 版本 / 安装 / 升级 / 检测 →', run: () => maintenanceSubMenu() },
       { label: '从备份还原', hint: '回滚 settings.json / config.toml', run: () => rollbackCommand() },
     ],
   },
 ];
+
+/**
+ * 权限子菜单。把"档位切换 / 查看 / 清理 / 环境变量"四个命令合到一起，
+ * 主菜单只露一级入口，降低视觉负担。
+ */
+async function permsSubMenu(): Promise<void> {
+  const SUB_ITEMS: MenuItem[] = [
+    { label: '切换档位（safe/standard/yolo）', hint: '同步作用于 Clavue / Claude Code / Codex', run: () => permsCommand(undefined) },
+    { label: '查看当前权限', hint: '三个工具的 allow/deny 明细', run: () => permsShowCommand() },
+    { label: '清理冗余规则', hint: '去重 / 去掉被覆盖的 allow 条目', run: () => permsCleanCommand() },
+    { label: '环境变量与手动编辑', hint: '推荐 env / 打开 settings.json 手改', run: () => envPermCommand() },
+  ];
+  await runSubMenu('权限与授权', SUB_ITEMS);
+}
 
 /**
  * 维护与诊断的二级菜单。把 5 个低频维护动作合并到一个入口，避免主菜单太长。
@@ -82,14 +107,20 @@ async function maintenanceSubMenu(): Promise<void> {
     { label: '更新代码工具', hint: '升级到最新版', run: () => updateCommand(undefined) },
     { label: '检测已安装的工具', hint: '看哪些已装哪些没装', run: async () => detectCommand() },
   ];
+  await runSubMenu('维护与诊断', SUB_ITEMS);
+}
 
+/**
+ * 统一的二级菜单渲染 + 选择循环。提出来避免 permsSubMenu / maintenanceSubMenu 各写一份。
+ */
+async function runSubMenu(title: string, items: MenuItem[]): Promise<void> {
   const choice = await select<number>({
-    message: ansis.bold('维护与诊断'),
+    message: ansis.bold(title),
     pageSize: recommendedPageSize(),
     loop: false,
     choices: [
-      ...SUB_ITEMS.map((it, i) => ({
-        name: `${padToWidth(it.label, 20)}  ${ansis.dim(it.hint ?? '')}`,
+      ...items.map((it, i) => ({
+        name: `${padToWidth(it.label, 28)}  ${ansis.dim(it.hint ?? '')}`,
         value: i,
         short: it.label,
       })),
@@ -99,7 +130,7 @@ async function maintenanceSubMenu(): Promise<void> {
   });
 
   if (choice < 0) return;
-  const sub = SUB_ITEMS[choice];
+  const sub = items[choice];
   if (!sub) return;
   await sub.run();
 }
@@ -144,6 +175,11 @@ export async function menuCommand(): Promise<void> {
     let idx = 0;
     const flat: MenuItem[] = [];
     const SEP_WIDTH = recommendedSepWidth();
+    // label 宽度取所有项的视觉最大值，保底 20，避免窄屏炸列
+    const LABEL_W = Math.max(
+      20,
+      ...GROUPS.flatMap(g => g.items.map(it => displayWidth(it.label))),
+    );
     for (const g of GROUPS) {
       // 按视觉宽度算横杠数：── 标题 ─...─ 总宽度对齐
       const titlePart = `── ${g.title} `;
@@ -153,7 +189,7 @@ export async function menuCommand(): Promise<void> {
       choices.push(new Separator(ansis.dim(sep)));
       for (const item of g.items) {
         const hint = item.hint ? `  ${ansis.dim(item.hint)}` : '';
-        const padded = padToWidth(item.label, 20);
+        const padded = padToWidth(item.label, LABEL_W);
         choices.push({ name: `${padded}${hint}`, value: idx, short: item.label });
         flat.push(item);
         idx++;
