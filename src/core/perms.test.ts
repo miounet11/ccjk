@@ -265,6 +265,11 @@ describe('cleanupAllow', () => {
     expect(r.cleaned).toContain('ReadOnly(./file)');
   });
 
+  it('裸工具名比 Foo(*) 更宽：同时存在时只留裸名', () => {
+    const r = cleanupAllow(['Bash', 'Bash(*)', 'Bash(git status)']);
+    expect(r.cleaned).toEqual(['Bash']);
+  });
+
   it('混合场景：脏数据真实快照', () => {
     const before = [
       'Bash(*)', 'Bash(git status)', 'Bash(*)',

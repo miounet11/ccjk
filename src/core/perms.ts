@@ -356,31 +356,33 @@ export function cleanupAllow(allow: string[]): { cleaned: string[]; removed: num
     dedup.push(p);
   }
 
-  // 找"宽泛规则"
-  // - 裸工具名（如 `Bash`、`Read`）→ 吞掉同名带括号的所有规则
-  // - `Foo(*)` → 同样吞掉同名带括号的所有规则
-  const wide = new Set<string>();
+  // 分类宽泛规则：
+  //   - 裸工具名 `Bash` 是最宽——同时吞 `Bash(*)` 和所有 `Bash(...)`
+  //   - `Foo(*)` 只在没有裸名 `Foo` 时才算自己也是宽泛
+  const bareWide = new Set<string>();
+  const starWide = new Set<string>();
   for (const p of dedup) {
-    // 裸工具名
     const bare = /^([A-Za-z][A-Za-z0-9_-]*)$/.exec(p);
     if (bare && bare[1]) {
-      wide.add(bare[1]);
+      bareWide.add(bare[1]);
       continue;
     }
-    // 通配 (*)
     const m = /^([A-Za-z][A-Za-z0-9_-]*)\(\*\)$/.exec(p);
-    if (m && m[1]) wide.add(m[1]);
+    if (m && m[1]) starWide.add(m[1]);
   }
 
   const cleaned = dedup.filter((p) => {
-    // 自己就是宽泛规则（裸名或 Foo(*)）→ 留着
+    // 裸名永远留
     if (/^[A-Za-z][A-Za-z0-9_-]*$/.test(p)) return true;
     const m = /^([A-Za-z][A-Za-z0-9_-]*)\(/.exec(p);
     if (!m || !m[1]) return true;
     const tool = m[1];
+    // 如果同名裸规则存在，连 `Foo(*)` 都要删（裸名更宽）
+    if (bareWide.has(tool)) return false;
+    // 自己是 `Foo(*)` 而且没有裸 `Foo` → 留
     if (`${tool}(*)` === p) return true;
-    // 被更宽泛规则覆盖 → 删
-    return !wide.has(tool);
+    // `Foo(args)` 被 `Foo(*)` 覆盖 → 删
+    return !starWide.has(tool);
   });
 
   return { cleaned, removed: allow.length - cleaned.length };
