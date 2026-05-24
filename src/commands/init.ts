@@ -6,6 +6,7 @@ import { listProvidersFor } from '../core/providers.js';
 import type { ApiProvider } from '../core/providers.js';
 import { readSettings, writeSettings } from '../core/settings.js';
 import { listProfiles, validateName, writeProfile, writeState } from '../core/profiles.js';
+import { readTomlFile, setTomlValue, writeTomlFile } from '../core/toml.js';
 
 export interface InitOptions {
   tool?: CodeTool;
@@ -34,8 +35,7 @@ export async function initCommand(opts: InitOptions = {}): Promise<void> {
   const meta = TOOLS[tool];
 
   if (tool === 'codex') {
-    console.log(ansis.yellow('\nCodex 配置走 ~/.codex/config.toml，本工具暂未实现 codex 写入。'));
-    console.log(ansis.dim('如需配置 codex，请直接编辑 ~/.codex/config.toml。\n'));
+    await initCodex(opts);
     return;
   }
 
@@ -287,6 +287,102 @@ function resolveProvider(tool: CodeTool, id: string): ApiProvider {
   return found;
 }
 
+/**
+ * Codex 走 ~/.codex/config.toml，结构和 Claude/Clavue 完全不同：
+ * - 顶层 `model` = main 模型 ID
+ * - 顶层 `model_provider` = provider 短名（指向下面的 [model_providers.<id>] 段）
+ * - [model_providers.<id>] 段 = base_url / wire_api / env_key
+ *
+ * Codex **不接受 API key 写进 toml**，所以这里只把 env_key 名字写进 toml，
+ * key 本身要用户在 shell 里 `export`。这是 codex 官方推荐姿势，不要绕过。
+ *
+ * 不写 4 槽位（codex 没有 haiku/sonnet/opus 概念），只写一个 main model。
+ */
+async function initCodex(opts: InitOptions): Promise<void> {
+  const meta = TOOLS.codex;
+  // codex 只有 custom 一个 provider 候选（见 providers.ts）
+  const provider = opts.provider
+    ? resolveProvider('codex', opts.provider)
+    : (listProvidersFor('codex')[0] ?? resolveProvider('codex', 'custom'));
+
+  const baseUrl = opts.baseUrl
+    ?? (provider.baseUrl || await askInput('Base URL (例如 https://api.openai.com/v1)'));
+  const providerId = await askProviderId();
+  const wireApi = await askWireApi();
+  const envKey = await askEnvKey(providerId);
+  const requiresOpenaiAuth = await confirm({
+    message: 'requires_openai_auth？(走 OpenAI 官方鉴权时选 true，自建网关多半 false)',
+    default: false,
+  });
+  const model = opts.model
+    ?? await askInput('Main model (例如 gpt-5.5 / gpt-4o)');
+
+  console.log(ansis.dim(`\n→ 配置目标: ${meta.settingsFile}`));
+  console.log(ansis.dim(`→ Provider: ${providerId}`));
+  console.log(ansis.dim(`→ Base URL: ${baseUrl}`));
+  console.log(ansis.dim(`→ wire_api: ${wireApi}`));
+  console.log(ansis.dim(`→ env_key: ${envKey}`));
+  console.log(ansis.dim(`→ Model: ${model}`));
+  console.log();
+
+  if (!opts.yes) {
+    const ok = await confirm({ message: '确认写入？', default: true });
+    if (!ok) {
+      console.log(ansis.gray('已取消。'));
+      return;
+    }
+  }
+
+  const doc = await readTomlFile(meta.settingsFile);
+  setTomlValue(doc, 'model', model);
+  setTomlValue(doc, 'model_provider', providerId);
+  setTomlValue(doc, `model_providers.${providerId}.name`, providerId);
+  setTomlValue(doc, `model_providers.${providerId}.base_url`, baseUrl);
+  setTomlValue(doc, `model_providers.${providerId}.wire_api`, wireApi);
+  setTomlValue(doc, `model_providers.${providerId}.env_key`, envKey);
+  setTomlValue(doc, `model_providers.${providerId}.requires_openai_auth`, requiresOpenaiAuth);
+  const backup = await writeTomlFile(meta.settingsFile, doc);
+
+  console.log(ansis.green('\n✔ Codex 配置已写入'));
+  if (backup) console.log(ansis.dim(`  备份: ${backup}`));
+  console.log(ansis.dim(`  目标: ${meta.settingsFile}`));
+  console.log();
+  console.log(ansis.yellow(`! API key 不能写入 toml，请在 shell 里导出：`));
+  console.log(ansis.cyan(`    export ${envKey}=<your-api-key>`));
+  console.log(ansis.dim(`  （写到 ~/.zshrc 或 ~/.bashrc 里持久化）`));
+  console.log();
+}
+
+async function askProviderId(): Promise<string> {
+  const v = await input({
+    message: 'Provider 短名（写进 [model_providers.<id>]，建议小写无空格，例如 myapi）',
+    default: 'custom',
+    validate: (s: string) => /^[a-z0-9_-]+$/.test(s.trim()) || '只允许小写字母、数字、_、-',
+  });
+  return v.trim();
+}
+
+async function askWireApi(): Promise<'chat' | 'responses'> {
+  return await select<'chat' | 'responses'>({
+    message: 'wire_api',
+    default: 'chat',
+    choices: [
+      { name: 'chat (OpenAI Chat Completions，最通用)', value: 'chat' },
+      { name: 'responses (OpenAI Responses API)', value: 'responses' },
+    ],
+  });
+}
+
+async function askEnvKey(providerId: string): Promise<string> {
+  const suggested = `${providerId.toUpperCase().replace(/-/g, '_')}_API_KEY`;
+  const v = await input({
+    message: 'env_key 名（codex 启动时从此环境变量读取 API key）',
+    default: suggested,
+    validate: (s: string) => /^[A-Z_][A-Z0-9_]*$/.test(s.trim()) || '只允许大写字母、数字、_，且不能数字开头',
+  });
+  return v.trim();
+}
+
 async function pickTool(): Promise<CodeTool> {
   return await select<CodeTool>({
     message: '选择目标代码工具',
@@ -294,7 +390,7 @@ async function pickTool(): Promise<CodeTool> {
     choices: [
       { name: `${TOOLS.clavue.displayName} ${ansis.dim('(主推)')}`, value: 'clavue' },
       { name: TOOLS['claude-code'].displayName, value: 'claude-code' },
-      { name: `${TOOLS.codex.displayName} ${ansis.dim('(暂仅检测)')}`, value: 'codex' },
+      { name: `${TOOLS.codex.displayName}`, value: 'codex' },
     ],
   });
 }
