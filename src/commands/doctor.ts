@@ -2,7 +2,9 @@ import { confirm } from '@inquirer/prompts';
 import ansis from 'ansis';
 import { autoFix, lintSettings } from '../core/lint.js';
 import type { Severity } from '../core/lint.js';
+import { autoFixCodex, lintCodexConfig } from '../core/codex-config.js';
 import { readSettings, writeSettings } from '../core/settings.js';
+import { readTomlFile, writeTomlFile } from '../core/toml.js';
 import { TOOLS } from '../core/tools.js';
 import type { CodeTool } from '../core/tools.js';
 import { detectAll } from '../core/detect.js';
@@ -26,12 +28,15 @@ export interface DoctorOptions {
 
 export async function doctorCommand(opts: DoctorOptions = {}): Promise<void> {
   const detected = detectAll();
-  const targets: CodeTool[] = detected
+  // claude-family（clavue / claude-code）走 settings.json lint
+  const claudeTargets: CodeTool[] = detected
     .filter(d => d.configExists && d.tool !== 'codex')
     .map(d => d.tool);
+  // codex 走 toml lint
+  const codexDetected = detected.find(d => d.tool === 'codex' && d.configExists);
 
-  if (targets.length === 0) {
-    console.log(ansis.gray('\n未发现已配置的 Claude/Clavue 实例（~/.claude/ 或 ~/.codex/ 不存在）。\n'));
+  if (claudeTargets.length === 0 && !codexDetected) {
+    console.log(ansis.gray('\n未发现已配置的实例（~/.claude/、~/.clavue/、~/.codex/ 都不存在）。\n'));
     return;
   }
 
@@ -39,7 +44,7 @@ export async function doctorCommand(opts: DoctorOptions = {}): Promise<void> {
   let totalWarns = 0;
   let totalFixable = 0;
 
-  for (const tool of targets) {
+  for (const tool of claudeTargets) {
     const meta = TOOLS[tool];
     console.log(ansis.bold(`\n[${meta.displayName}] ${meta.settingsFile}`));
     let settings;
@@ -64,6 +69,34 @@ export async function doctorCommand(opts: DoctorOptions = {}): Promise<void> {
       if (f.severity === 'error') totalErrors++;
       else if (f.severity === 'warn') totalWarns++;
       if (f.fix) totalFixable++;
+    }
+  }
+
+  // codex toml lint
+  if (codexDetected) {
+    const meta = TOOLS.codex;
+    console.log(ansis.bold(`\n[${meta.displayName}] ${meta.settingsFile}`));
+    try {
+      const doc = await readTomlFile(meta.settingsFile);
+      const findings = lintCodexConfig(doc);
+      if (findings.length === 0) {
+        console.log(`  ${ansis.green('✓')} 无问题`);
+      }
+      else {
+        for (const f of findings) {
+          const fixable = f.fix ? ansis.dim(' [可自动修]') : '';
+          const tag = COLOR[f.severity](`${ICON[f.severity]} [${f.rule}]`);
+          console.log(`  ${tag} ${f.message}${fixable}`);
+          if (f.fixHint) console.log(`    ${ansis.dim('→')} ${ansis.dim(f.fixHint)}`);
+          if (f.severity === 'error') totalErrors++;
+          else if (f.severity === 'warn') totalWarns++;
+          if (f.fix) totalFixable++;
+        }
+      }
+    }
+    catch (e) {
+      console.log(`  ${ansis.red('✗')} 读取失败: ${(e as Error).message}`);
+      totalErrors++;
     }
   }
 
@@ -96,7 +129,10 @@ export async function doctorCommand(opts: DoctorOptions = {}): Promise<void> {
         return;
       }
     }
-    await runFix(targets);
+    await runFix(claudeTargets);
+    if (codexDetected) {
+      await runFixCodex();
+    }
   }
 
   console.log('');
@@ -122,4 +158,20 @@ async function runFix(targets: CodeTool[]): Promise<void> {
     }
   }
   if (fixedCount > 0) console.log(ansis.green(`\n✔ 共修复 ${fixedCount} 项`));
+}
+
+async function runFixCodex(): Promise<void> {
+  const meta = TOOLS.codex;
+  const doc = await readTomlFile(meta.settingsFile);
+  const { fixed, unfixable } = autoFixCodex(doc);
+  if (fixed.length === 0 && unfixable.length === 0) return;
+  if (fixed.length > 0) {
+    const backup = await writeTomlFile(meta.settingsFile, doc);
+    console.log(ansis.green(`\n  ✔ [${meta.displayName}] 修复 ${fixed.length} 项: ${fixed.join(', ')}`));
+    if (backup) console.log(ansis.dim(`    备份: ${backup}`));
+  }
+  if (unfixable.length > 0) {
+    console.log(ansis.yellow(`  ! [${meta.displayName}] ${unfixable.length} 项需人工: ${unfixable.join(', ')}`));
+    process.exitCode = 1;
+  }
 }

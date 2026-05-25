@@ -24,7 +24,7 @@
  */
 
 import type { TomlDoc, TomlValue } from './toml.js';
-import { setTomlValue } from './toml.js';
+import { deleteTomlKey, setTomlValue } from './toml.js';
 
 export type CodexWireApi = 'responses';
 export type CodexReasoningEffort = 'low' | 'medium' | 'high';
@@ -123,4 +123,120 @@ function shouldWriteProviderSection(p: CodexProfileParams): boolean {
     || p.envKey !== undefined
     || p.requiresOpenaiAuth !== undefined
   );
+}
+
+/**
+ * Codex toml lint。返回 finding 列表（severity / rule / message / fix?）。
+ *
+ * 当前规则：
+ *  - codex-provider-model-field：`[model_providers.<X>].model` 是无效字段，
+ *    codex 不读它，会让用户以为"切了 model"但其实没切。可自动修（删字段）。
+ *  - codex-stale-wire-api：`wire_api = "chat"` 是旧字段，codex 当前只支持
+ *    `"responses"`，会被忽略 / 报错。可自动修（改成 responses）。
+ *  - codex-toplevel-model-without-profile：顶层有 `model = "..."` 但没设
+ *    `profile = "..."`，单 model 锁定模式（反人性，建议改用 profiles）。
+ *    info 级别——不强制改，提示用户。
+ */
+export interface CodexFinding {
+  severity: 'error' | 'warn' | 'info';
+  rule: string;
+  message: string;
+  fixHint?: string;
+  /** 自动修函数；返回 true 表示已修。in-place 改 doc.raw / values */
+  fix?: (doc: TomlDoc) => boolean;
+}
+
+export function lintCodexConfig(doc: TomlDoc): CodexFinding[] {
+  const findings: CodexFinding[] = [];
+
+  // 规则 1：model_providers.X.model 是脏数据
+  const providerModelKeys: string[] = [];
+  for (const k of doc.values.keys()) {
+    const m = /^model_providers\.([^.]+)\.model$/.exec(k);
+    if (m) providerModelKeys.push(k);
+  }
+  if (providerModelKeys.length > 0) {
+    findings.push({
+      severity: 'warn',
+      rule: 'codex-provider-model-field',
+      message:
+        `[model_providers.X].model 不是 codex 支持的字段（codex 启动时静默忽略），`
+        + `命中 ${providerModelKeys.length} 处：${providerModelKeys
+          .map(k => k.split('.')[1])
+          .join(', ')}`,
+      fixHint: '删除这些无效字段；要切 model 请用 [profiles.X].model',
+      fix: (d) => {
+        let changed = false;
+        for (const k of [...d.values.keys()]) {
+          if (/^model_providers\.[^.]+\.model$/.test(k)) {
+            if (deleteTomlKey(d, k)) changed = true;
+          }
+        }
+        return changed;
+      },
+    });
+  }
+
+  // 规则 2：wire_api = "chat" 是旧字段
+  const staleWireApi: string[] = [];
+  for (const [k, v] of doc.values.entries()) {
+    if (/^model_providers\.[^.]+\.wire_api$/.test(k) && v === 'chat') {
+      staleWireApi.push(k.split('.')[1] ?? '');
+    }
+  }
+  if (staleWireApi.length > 0) {
+    findings.push({
+      severity: 'warn',
+      rule: 'codex-stale-wire-api',
+      message:
+        `wire_api = "chat" 是旧字段，codex 当前只支持 "responses"。命中：${staleWireApi.join(', ')}`,
+      fixHint: '把 wire_api 改为 "responses"',
+      fix: (d) => {
+        let changed = false;
+        for (const [k, v] of [...d.values.entries()]) {
+          if (/^model_providers\.[^.]+\.wire_api$/.test(k) && v === 'chat') {
+            setTomlValue(d, k, 'responses');
+            changed = true;
+          }
+        }
+        return changed;
+      },
+    });
+  }
+
+  // 规则 3：顶层 model 但没 profile（单 model 锁定）
+  if (doc.values.has('model') && !doc.values.has('profile')) {
+    findings.push({
+      severity: 'info',
+      rule: 'codex-toplevel-model-without-profile',
+      message:
+        '顶层只设了 model 没设 profile —— 这是单 model 锁定模式。'
+        + '建议把它搬到 [profiles.<name>] 段，方便用 `codex --profile <other>` 切换其它 model。',
+      fixHint: '运行 `ccjk init`，选 codex，新建一个 profile',
+    });
+  }
+
+  return findings;
+}
+
+/** 跑可自动修的 codex 规则，返回已修规则名。 */
+export function autoFixCodex(doc: TomlDoc): { fixed: string[]; unfixable: string[] } {
+  const fixed: string[] = [];
+  const unfixable: string[] = [];
+  for (let i = 0; i < 5; i++) {
+    const findings = lintCodexConfig(doc);
+    if (findings.length === 0) break;
+    let changed = false;
+    for (const f of findings) {
+      if (f.fix && f.fix(doc)) {
+        if (!fixed.includes(f.rule)) fixed.push(f.rule);
+        changed = true;
+      }
+      else if (!f.fix) {
+        if (!unfixable.includes(f.rule)) unfixable.push(f.rule);
+      }
+    }
+    if (!changed) break;
+  }
+  return { fixed, unfixable };
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseToml, setTomlValue } from './toml.js';
+import { deleteTomlKey, parseToml, setTomlValue } from './toml.js';
 
 describe('toml parse', () => {
   it('解析顶层标量', () => {
@@ -87,5 +87,40 @@ describe('setTomlValue 写回', () => {
     expect(reparsed.values.get('approval_policy')).toBe('untrusted');
     expect(reparsed.values.get('sandbox_mode')).toBe('read-only');
     expect(reparsed.values.get('projects."/a".trust')).toBe('yes');
+  });
+});
+
+describe('deleteTomlKey', () => {
+  it('删顶层标量', () => {
+    const d = parseToml(`name = "ccjk"\nversion = 15\n`);
+    expect(deleteTomlKey(d, 'name')).toBe(true);
+    expect(d.values.has('name')).toBe(false);
+    expect(d.raw).not.toMatch(/^name\s*=/m);
+    expect(d.raw).toMatch(/^version\s*=/m);
+  });
+
+  it('删 section 内字段，保留 section header', () => {
+    const d = parseToml(`[a]\nx = 1\ny = 2\n`);
+    expect(deleteTomlKey(d, 'a.x')).toBe(true);
+    expect(d.values.has('a.x')).toBe(false);
+    expect(d.values.get('a.y')).toBe(2);
+    expect(d.raw).toContain('[a]');
+    expect(d.raw).not.toMatch(/^x\s*=/m);
+    expect(d.raw).toMatch(/^y\s*=/m);
+  });
+
+  it('不存在的 key 返回 false 且不动 raw', () => {
+    const d = parseToml(`x = 1\n`);
+    const before = d.raw;
+    expect(deleteTomlKey(d, 'nope')).toBe(false);
+    expect(d.raw).toBe(before);
+  });
+
+  it('只删目标 section 的同名字段，不串到其它 section', () => {
+    const d = parseToml(`[a]\nmodel = "x"\n\n[b]\nmodel = "y"\n`);
+    expect(deleteTomlKey(d, 'a.model')).toBe(true);
+    expect(d.values.has('a.model')).toBe(false);
+    expect(d.values.get('b.model')).toBe('y');
+    expect(d.raw).toMatch(/\[b\][^[]*model\s*=\s*"y"/);
   });
 });

@@ -96,6 +96,44 @@ export function setTomlValue(doc: TomlDoc, key: string, value: TomlValue): void 
   doc.raw = rewriteToml(doc.raw, key, value);
 }
 
+/**
+ * 删除一个 key（'foo.bar' 表示 [foo] section 下的 bar）。
+ * - 若不存在：返回 false
+ * - section header 不动（即使整段没字段了），避免误伤注释、空行或后续字段。
+ */
+export function deleteTomlKey(doc: TomlDoc, key: string): boolean {
+  if (!doc.values.has(key)) return false;
+  doc.values.delete(key);
+  doc.raw = removeTomlLine(doc.raw, key);
+  return true;
+}
+
+function removeTomlLine(raw: string, key: string): string {
+  const dot = key.lastIndexOf('.');
+  const section = dot >= 0 ? key.slice(0, dot) : '';
+  const localKey = dot >= 0 ? key.slice(dot + 1) : key;
+  const lines = raw.split('\n');
+  let curSection = '';
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (line === undefined) continue;
+    const t = line.trim();
+    const sec = /^\[([^\]]+)\]$/.exec(t);
+    if (sec && sec[1]) {
+      curSection = sec[1].trim();
+      continue;
+    }
+    if (curSection !== section) continue;
+    const kv = /^([A-Za-z0-9_.-]+)\s*=/.exec(t);
+    if (!kv) continue;
+    if (kv[1] === localKey) {
+      lines.splice(i, 1);
+      return lines.join('\n');
+    }
+  }
+  return raw;
+}
+
 function rewriteToml(raw: string, key: string, value: TomlValue): string {
   const dot = key.lastIndexOf('.');
   const section = dot >= 0 ? key.slice(0, dot) : '';

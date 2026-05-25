@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { applyCodexProfile, listCodexProfiles, listCodexProviders } from './codex-config.js';
+import {
+  applyCodexProfile,
+  autoFixCodex,
+  lintCodexConfig,
+  listCodexProfiles,
+  listCodexProviders,
+} from './codex-config.js';
 import { parseToml } from './toml.js';
 
 describe('applyCodexProfile', () => {
@@ -154,5 +160,99 @@ base_url = "http://y"
     const doc = parseToml('');
     expect(listCodexProfiles(doc)).toEqual([]);
     expect(listCodexProviders(doc)).toEqual([]);
+  });
+});
+
+describe('lintCodexConfig', () => {
+  it('清白 toml 无 finding', () => {
+    const doc = parseToml(`profile = "work"
+
+[profiles.work]
+model = "gpt-5.5"
+model_provider = "myapi"
+
+[model_providers.myapi]
+base_url = "http://x"
+wire_api = "responses"
+env_key = "MYAPI_KEY"
+`);
+    expect(lintCodexConfig(doc)).toEqual([]);
+  });
+
+  it('命中 model_providers.X.model 脏字段', () => {
+    const doc = parseToml(`[model_providers.ttkk]
+base_url = "http://x"
+model = "gpt-5.4"
+`);
+    const findings = lintCodexConfig(doc);
+    expect(findings.some(f => f.rule === 'codex-provider-model-field')).toBe(true);
+  });
+
+  it('命中 stale wire_api = "chat"', () => {
+    const doc = parseToml(`[model_providers.legacy]
+base_url = "http://x"
+wire_api = "chat"
+`);
+    const findings = lintCodexConfig(doc);
+    expect(findings.some(f => f.rule === 'codex-stale-wire-api')).toBe(true);
+  });
+
+  it('顶层 model 没 profile → info 提示单 model 锁定', () => {
+    const doc = parseToml(`model = "gpt-5.5"
+model_provider = "myapi"
+`);
+    const findings = lintCodexConfig(doc);
+    const single = findings.find(f => f.rule === 'codex-toplevel-model-without-profile');
+    expect(single).toBeDefined();
+    expect(single?.severity).toBe('info');
+  });
+
+  it('顶层 model + profile 同时存在 → 不再报 single-model（已经在用 profiles）', () => {
+    const doc = parseToml(`model = "gpt-5.5"
+profile = "work"
+
+[profiles.work]
+model = "gpt-5.5"
+`);
+    const findings = lintCodexConfig(doc);
+    expect(findings.some(f => f.rule === 'codex-toplevel-model-without-profile')).toBe(false);
+  });
+});
+
+describe('autoFixCodex', () => {
+  it('修 model_providers.X.model：从 raw 和 values 都删掉', () => {
+    const doc = parseToml(`[model_providers.ttkk]
+base_url = "http://x"
+model = "gpt-5.4"
+env_key = "TTKK_KEY"
+`);
+    const { fixed } = autoFixCodex(doc);
+    expect(fixed).toContain('codex-provider-model-field');
+    expect(doc.values.has('model_providers.ttkk.model')).toBe(false);
+    expect(doc.raw).not.toMatch(/^\s*model\s*=\s*"gpt-5\.4"/m);
+    // 周围字段保留
+    expect(doc.raw).toContain('base_url = "http://x"');
+    expect(doc.raw).toContain('env_key = "TTKK_KEY"');
+  });
+
+  it('修 stale wire_api = "chat" → responses', () => {
+    const doc = parseToml(`[model_providers.legacy]
+base_url = "http://x"
+wire_api = "chat"
+`);
+    const { fixed } = autoFixCodex(doc);
+    expect(fixed).toContain('codex-stale-wire-api');
+    expect(doc.values.get('model_providers.legacy.wire_api')).toBe('responses');
+    expect(doc.raw).toContain('wire_api = "responses"');
+    expect(doc.raw).not.toContain('wire_api = "chat"');
+  });
+
+  it('单 model 锁定提示不可自动修（保守，不擅自改用户配置）', () => {
+    const doc = parseToml(`model = "gpt-5.5"
+model_provider = "myapi"
+`);
+    const { fixed, unfixable } = autoFixCodex(doc);
+    expect(fixed).not.toContain('codex-toplevel-model-without-profile');
+    expect(unfixable).toContain('codex-toplevel-model-without-profile');
   });
 });
