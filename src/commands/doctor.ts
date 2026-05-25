@@ -5,10 +5,13 @@ import type { Finding, Severity } from '../core/lint.js';
 import { autoFixCodex, lintCodexConfig } from '../core/codex-config.js';
 import type { CodexFinding } from '../core/codex-config.js';
 import { readSettings, writeSettings } from '../core/settings.js';
+import type { ClaudeSettings } from '../core/settings.js';
 import { readTomlFile, writeTomlFile } from '../core/toml.js';
 import { TOOLS } from '../core/tools.js';
 import type { CodeTool } from '../core/tools.js';
 import { detectAll } from '../core/detect.js';
+import { inspectRuntimeEnv } from '../core/runtime-env.js';
+import type { RuntimeFinding } from '../core/runtime-env.js';
 
 const COLOR: Record<Severity, (s: string) => string> = {
   error: (s) => ansis.red(s),
@@ -43,9 +46,18 @@ interface JsonTarget {
   findings: JsonFinding[];
 }
 
+interface JsonRuntimeFinding {
+  rule: RuntimeFinding['rule'];
+  severity: 'warn' | 'info';
+  message: string;
+  fixHint: string;
+}
+
 interface JsonReport {
   schemaVersion: 1;
   targets: JsonTarget[];
+  /** v15.27.5 起：shell 环境扫描结果。已知 callers 不读时安全忽略。 */
+  runtime: { findings: JsonRuntimeFinding[] };
   summary: { errors: number; warnings: number; infos: number; fixable: number };
 }
 
@@ -89,6 +101,9 @@ async function runJson(): Promise<void> {
   let infos = 0;
   let fixable = 0;
 
+  // 顺手收集所有 claude-family settings 给 runtime 扫描用
+  const settingsByTool = new Map<string, ClaudeSettings>();
+
   for (const tool of claudeTargets) {
     const meta = TOOLS[tool];
     const target: JsonTarget = {
@@ -99,6 +114,7 @@ async function runJson(): Promise<void> {
     };
     try {
       const settings = await readSettings(meta.settingsFile);
+      settingsByTool.set(tool, settings);
       const findings = lintSettings(settings);
       for (const f of findings) {
         target.findings.push(toJsonFinding(f));
@@ -153,9 +169,27 @@ async function runJson(): Promise<void> {
     targets.push(target);
   }
 
+  const runtimeFindings = inspectRuntimeEnv({
+    settingsByTool,
+    env: process.env,
+    anySettingsExist: claudeTargets.length > 0 || !!codexDetected,
+  });
+  for (const f of runtimeFindings) {
+    if (f.severity === 'warn') warnings++;
+    else infos++;
+  }
+
   const report: JsonReport = {
     schemaVersion: 1,
     targets,
+    runtime: {
+      findings: runtimeFindings.map(f => ({
+        rule: f.rule,
+        severity: f.severity,
+        message: f.message,
+        fixHint: f.fixHint,
+      })),
+    },
     summary: { errors, warnings, infos, fixable },
   };
   process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
@@ -183,12 +217,16 @@ async function runHuman(opts: DoctorOptions): Promise<void> {
   let totalWarns = 0;
   let totalFixable = 0;
 
+  // 顺手收集所有 claude-family settings 给 runtime 扫描用
+  const settingsByTool = new Map<string, ClaudeSettings>();
+
   for (const tool of claudeTargets) {
     const meta = TOOLS[tool];
     console.log(ansis.bold(`\n[${meta.displayName}] ${meta.settingsFile}`));
     let settings;
     try {
       settings = await readSettings(meta.settingsFile);
+      settingsByTool.set(tool, settings);
     }
     catch (e) {
       console.log(`  ${ansis.red('✗')} 读取失败: ${(e as Error).message}`);
@@ -236,6 +274,22 @@ async function runHuman(opts: DoctorOptions): Promise<void> {
     catch (e) {
       console.log(`  ${ansis.red('✗')} 读取失败: ${(e as Error).message}`);
       totalErrors++;
+    }
+  }
+
+  // 运行时 env 扫描：检测 shell 是否 shadow 了 settings.json 的 env
+  const runtimeFindings = inspectRuntimeEnv({
+    settingsByTool,
+    env: process.env,
+    anySettingsExist: claudeTargets.length > 0 || !!codexDetected,
+  });
+  if (runtimeFindings.length > 0) {
+    console.log(ansis.bold('\n[Runtime] shell environment'));
+    for (const f of runtimeFindings) {
+      const tag = COLOR[f.severity](`${ICON[f.severity]} [${f.rule}]`);
+      console.log(`  ${tag} ${f.message}`);
+      console.log(`    ${ansis.dim('→')} ${ansis.dim(f.fixHint)}`);
+      if (f.severity === 'warn') totalWarns++;
     }
   }
 

@@ -31,6 +31,22 @@ describe('doctorCommand --json', () => {
     process.exitCode = 0;
     stdoutSpy = vi.spyOn(process.stdout, 'write').mockImplementation((() => true) as never) as never;
     stderrSpy = vi.spyOn(process.stderr, 'write').mockImplementation((() => true) as never) as never;
+    // 清干净 process.env 里可能 leak 的相关键，否则 runtime-env 扫描会
+    // 受宿主机 ~/.zshrc 影响产出非确定性 findings。
+    for (const k of [
+      'ANTHROPIC_BASE_URL',
+      'ANTHROPIC_API_KEY',
+      'ANTHROPIC_AUTH_TOKEN',
+      'ANTHROPIC_MODEL',
+      'ANTHROPIC_DEFAULT_HAIKU_MODEL',
+      'ANTHROPIC_DEFAULT_SONNET_MODEL',
+      'ANTHROPIC_DEFAULT_OPUS_MODEL',
+      'ANTHROPIC_SMALL_FAST_MODEL',
+      'ANTHROPIC_CUSTOM_MODEL_OPTION',
+      'CLAUDE_CODE_SUBAGENT_MODEL',
+    ]) {
+      vi.stubEnv(k, '');
+    }
     // 默认只装 clavue，避免触碰 codex 路径
     mockedDetectAll.mockReturnValue([
       { tool: 'clavue', cliInstalled: true, configExists: true },
@@ -41,6 +57,7 @@ describe('doctorCommand --json', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.unstubAllEnvs();
   });
 
   it('输出 schemaVersion=1 的合法 JSON，字段齐全（clean case，exit code 0）', async () => {
@@ -123,5 +140,43 @@ describe('doctorCommand --json', () => {
     expect(stdoutSpy).not.toHaveBeenCalled();
 
     exitSpy.mockRestore();
+  });
+
+  it('runtime: shell shadow 把 settings env 覆盖时 → 进 summary.warnings + 返回 exitCode 1', async () => {
+    mockedReadSettings.mockResolvedValue({
+      env: { ANTHROPIC_BASE_URL: 'https://file.com', ANTHROPIC_AUTH_TOKEN: 't' },
+    });
+    vi.stubEnv('ANTHROPIC_BASE_URL', 'https://shell-shadow.com');
+
+    await doctorCommand({ json: true });
+
+    const out = stdoutSpy.mock.calls[0]![0] as string;
+    const parsed = JSON.parse(out) as {
+      runtime: { findings: Array<{ rule: string; severity: string; message: string }> };
+      summary: { warnings: number; errors: number };
+    };
+    expect(parsed.runtime).toBeDefined();
+    expect(parsed.runtime.findings).toHaveLength(1);
+    expect(parsed.runtime.findings[0]!.rule).toBe('shell-env-shadow');
+    expect(parsed.runtime.findings[0]!.message).toContain('shell-shadow.com');
+    expect(parsed.summary.warnings).toBeGreaterThanOrEqual(1);
+    expect(process.exitCode).toBe(1);
+  });
+
+  it('runtime: 干净 shell + 干净 settings → runtime.findings 为空，exit 0', async () => {
+    mockedReadSettings.mockResolvedValue({
+      env: { ANTHROPIC_BASE_URL: 'https://api.x.com', ANTHROPIC_AUTH_TOKEN: 't' },
+    });
+
+    await doctorCommand({ json: true });
+
+    const out = stdoutSpy.mock.calls[0]![0] as string;
+    const parsed = JSON.parse(out) as {
+      runtime: { findings: unknown[] };
+      summary: { warnings: number; errors: number };
+    };
+    expect(parsed.runtime.findings).toEqual([]);
+    expect(parsed.summary.warnings).toBe(0);
+    expect(process.exitCode).toBe(0);
   });
 });

@@ -6,6 +6,21 @@ ccjk 是 Clavue / Claude Code / Codex 的本地配置 CLI。本文记录用户�
 
 ## [Unreleased]
 
+## [15.27.5] - 2026-05-25
+
+### Added
+- `ccjk doctor` 新增 `[Runtime] shell environment` 段：检测 shell rc 残留 env shadow 文件配置
+  - **shell-env-shadow**（warn）：`process.env.X` 与所有 `settings.env.X` 都不一致时报警；
+    Claude Code 启动优先读 shell，文件配置完全失效——这是「切了 profile 没生效」的头号黑洞
+  - **shell-env-deprecated-export**（info）：shell 在 export 已知坏 env（`ANTHROPIC_SMALL_FAST_MODEL` /
+    `ANTHROPIC_CUSTOM_MODEL_OPTION` / `CLAUDE_CODE_SUBAGENT_MODEL`）
+  - **shell-env-orphan**（info）：shell 有 baseUrl/凭证但无任何 settings 文件，建议 `ccjk migrate`
+- `ccjk doctor --json` schema 新增 `runtime.findings[]` 字段（schemaVersion 不变）；warn 计入 summary
+
+### Internal
+- 新增 `src/core/runtime-env.ts`：纯函数 `inspectRuntimeEnv()`，无 IO，便于测试
+- 测试基线 325 → 335（+10：runtime-env 8、doctor-json 2）
+
 ## [15.27.4] - 2026-05-25
 
 ### Fixed
