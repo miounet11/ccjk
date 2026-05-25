@@ -6,6 +6,13 @@ ccjk 是 Clavue / Claude Code / Codex 的本地配置 CLI。本文记录用户�
 
 ## [Unreleased]
 
+## [15.27.4] - 2026-05-25
+
+### Fixed
+- `ccjk onboard` 老用户路径：之前已有 profile 时静默退出，用户跑了命令却没任何反馈
+  - 现在打印「已有 N 个 profile，跳过向导」+ 提示 `--force` / `ccjk` 进菜单
+  - onboard 测试覆盖该提示
+
 ## [15.27.3] - 2026-05-25
 
 ### Changed

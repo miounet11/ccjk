@@ -16,6 +16,9 @@ export interface OnboardOptions {
 export async function onboardCommand(opts: OnboardOptions = {}): Promise<void> {
   const profiles = await listProfiles();
   if (profiles.length > 0 && !opts.force) {
+    console.log(ansis.gray(`\n已有 ${profiles.length} 个 profile，跳过向导。`));
+    console.log(ansis.gray('  · 想强制重跑：ccjk onboard --force'));
+    console.log(ansis.gray('  · 直接进菜单：ccjk\n'));
     return;
   }
 

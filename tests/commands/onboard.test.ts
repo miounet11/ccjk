@@ -46,11 +46,20 @@ describe('onboardCommand', () => {
       // 只要 length>0 即可，字段不在断言里
       { name: 'glm', baseUrl: 'https://x.com', apiKey: 'k' } as never,
     ]);
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
     await onboardCommand({});
 
     expect(mockedInitCommand).not.toHaveBeenCalled();
     expect(mockedDoctorCommand).not.toHaveBeenCalled();
+    // 给出明确提示，不是静默退出（用户跑了 onboard 但被悄无声息打回会困惑）
+    const printed = logSpy.mock.calls.map(c => String(c[0])).join('\n');
+    // eslint-disable-next-line no-control-regex
+    const plain = printed.replace(/\x1b\[[0-9;]*m/g, '');
+    expect(plain).toContain('已有 1 个 profile');
+    expect(plain).toContain('--force');
+
+    logSpy.mockRestore();
   });
 
   it('profiles 非空但 force=true 时，照常跑向导', async () => {
