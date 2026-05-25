@@ -25,6 +25,7 @@ npm install -g ccjk
 | 装机后想一键配置好 | `ccjk workflow run starter` |
 | 写代码 / 闲聊切换思考强度 | `ccjk mode use code` / `ccjk mode use chat` |
 | 多个 API key 之间切换（GLM/Kimi/Anthropic/...） | `ccjk use` |
+| 想知道 API 通不通 / 多快 | `ccjk probe` / `ccjk bench` |
 | 不想每次都点确认权限 | `ccjk perms standard` |
 | 看不到当前模型/用量 | `ccjk statusline-install` |
 | settings.json 出问题 | `ccjk doctor --fix` |
@@ -33,6 +34,8 @@ npm install -g ccjk
 | 看哪个工具该升级了 | `ccjk tools --check-updates` |
 | 写入出错想还原 | `ccjk rollback` |
 | 跨机器迁移配置 | `ccjk profile export` / `import` |
+| 已经手配过 settings.json 想纳入管理 | `ccjk migrate` |
+| 两个 profile 字段对比 | `ccjk profile-diff <a> <b>` |
 | 不想记命令 | `ccjk`（交互菜单） |
 | 想一眼看全配置状态 | `ccjk status` |
 
@@ -55,11 +58,15 @@ npm install -g ccjk
 |---|---|
 | `ccjk init` | 配 API：写 `~/.claude/settings.json` 的 env，并自动保存为 profile |
 | `ccjk use [name]` | 一键切换 profile（不带参=交互选） |
+| `ccjk migrate` | 反向导入：把已配好的 settings.json 抽成 profile（不动 settings 本身） |
 | `ccjk profile ls` / `show` / `rm` | profile 列表 / 详情 / 删除 |
 | `ccjk profile copy <from> <to>` | 基于现有 profile 复制（可选改 apiKey/baseUrl/model） |
 | `ccjk profile rename <old> <new>` | 重命名 profile |
+| `ccjk profile-diff <a> <b>` | 两个 profile 字段差异对比（`--json` CI 用） |
 | `ccjk profile export` | 导出 profile 为 JSON 包（迁移 / 团队共享） |
 | `ccjk profile import <file>` | 从 JSON 包导入 profile |
+| `ccjk probe [profile]` | 真实 HTTP 探活，看 baseUrl 通不通（`--json` CI 用） |
+| `ccjk bench [profile]` | 性能基准（TTFT / 吞吐），默认 3 run 取平均（`--json` CI 用） |
 
 ### 权限档位（perms）
 
