@@ -6,6 +6,16 @@ ccjk 是 Clavue / Claude Code / Codex 的本地配置 CLI。本文记录用户�
 
 ## [Unreleased]
 
+## [15.27.3] - 2026-05-25
+
+### Changed
+- `ccjk perms-show` 改横向单行布局：每工具一行（工具名 / 档位 / 详情 inline）
+  - 之前是「标题 + 缩进 dim 详情」两行，三工具要扫 6 行才能比对
+  - 现在和 `ccjk status` 的「权限档位」段视觉一致
+
+### Internal
+- 测试基线 323 → 325（+2 用例覆盖 perms-show 布局回归）
+
 ## [15.27.2] - 2026-05-25
 
 ### Fixed

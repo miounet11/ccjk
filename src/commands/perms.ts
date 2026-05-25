@@ -139,6 +139,10 @@ async function applyToCodex(def: TierDefinition): Promise<string> {
 export async function permsShowCommand(): Promise<void> {
   console.log(ansis.bold('\n当前权限状态:\n'));
 
+  // 横向单行：和 `ccjk status` 的风格保持一致——工具列对齐 / 档位列彩色 / 详情 inline。
+  // 之前是两行（标题 + 缩进 dim 详情），切档后想一眼比对要竖着扫。
+  const NAME_W = 14;
+  const TIER_W = 12;
   for (const tool of ['clavue', 'claude-code'] as const) {
     const meta = TOOLS[tool];
     const settings = await readSettings(meta.settingsFile);
@@ -146,9 +150,9 @@ export async function permsShowCommand(): Promise<void> {
     const allow = settings.permissions?.allow ?? [];
     const deny = settings.permissions?.deny ?? [];
     const unsandboxed = (settings as Record<string, unknown>).allowUnsandboxedCommands === true;
-    const tierLabel = tier ? ansis.green(tier) : ansis.gray('自定义/未配置');
-    console.log(`  ${ansis.bold(padToWidth(meta.displayName, 14))} ${tierLabel}`);
-    console.log(ansis.dim(`    allow: ${allow.length}, deny: ${deny.length}, allowUnsandboxed: ${unsandboxed}`));
+    const tierLabel = tier ? ansis.green(tier) : ansis.gray('自定义');
+    const detail = `allow=${allow.length} deny=${deny.length}${unsandboxed ? ' unsandboxed' : ''}`;
+    console.log(`  ${padToWidth(meta.displayName, NAME_W)}${padToWidth(tierLabel, TIER_W)}${ansis.dim(detail)}`);
   }
 
   const codexMeta = TOOLS.codex;
@@ -156,9 +160,9 @@ export async function permsShowCommand(): Promise<void> {
   const codexTier = detectCodexTier(doc);
   const ap = doc.values.get('approval_policy') ?? '(未设)';
   const sm = doc.values.get('sandbox_mode') ?? '(未设)';
-  const tierLabel = codexTier ? ansis.green(codexTier) : ansis.gray('自定义/未配置');
-  console.log(`  ${ansis.bold(padToWidth(codexMeta.displayName, 14))} ${tierLabel}`);
-  console.log(ansis.dim(`    approval_policy: ${ap}, sandbox_mode: ${sm}`));
+  const tierLabel = codexTier ? ansis.green(codexTier) : ansis.gray('自定义');
+  const detail = `policy=${ap} sandbox=${sm}`;
+  console.log(`  ${padToWidth(codexMeta.displayName, NAME_W)}${padToWidth(tierLabel, TIER_W)}${ansis.dim(detail)}`);
   console.log();
 }
 
