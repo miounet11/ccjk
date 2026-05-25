@@ -92,16 +92,19 @@ export async function initCommand(opts: InitOptions = {}): Promise<void> {
 /**
  * 询问 main / haiku / sonnet / opus 四个槽位。
  *
- * 新交互：默认走「快速档」——三连问简化为一个 select：
- *   1) 用建议值（4 个槽位都自动填 provider 默认）— 80% 用户的选择
- *   2) 逐个微调（旧行为，给老用户兜底）
- *   3) 不写槽位（让 Clavue 用内置 fallback）
+ * 心智模型：**默认就是单 model**，4 槽位是 advanced 才暴露的能力。
+ * 历史上 init 强行问 4 次，让用户填一堆其实是同一个 model ID 的礼仪空格——反人性。
  *
- * - 命令行参数走完，跳过整个交互。
- * - 提供商没有任何默认（如 anthropic / custom）→ 自动落到「逐个微调」。
+ * 新交互：
+ *   1) simple（默认）：只问一个 main model，其它槽不写——适合 80% 用户
+ *   2) recommended（仅当 provider 自带分级默认时显示）：一键写 provider 推荐的 4 槽
+ *   3) advanced：逐个填 4 个槽，给真要做分级路由的人
+ *   4) skip：什么都不写，让工具用内置 fallback
+ *
+ * - 命令行参数走完，跳过整个交互（保留向后兼容）。
  */
 async function collectModelSlots(provider: ApiProvider, opts: InitOptions): Promise<ModelSlots> {
-  // 命令行已经把全部槽位都给了 → 不交互
+  // 命令行已经把全部槽位都给了 → 不交互（保留旧行为）
   if (opts.yes || (opts.model && opts.haikuModel && opts.sonnetModel && opts.opusModel)) {
     return {
       ...(opts.model ?? provider.defaultModel ? { main: opts.model ?? provider.defaultModel } : {}),
@@ -111,34 +114,40 @@ async function collectModelSlots(provider: ApiProvider, opts: InitOptions): Prom
     } as ModelSlots;
   }
 
-  const hasAnyDefault = Boolean(
-    provider.defaultModel || provider.fastModel || provider.sonnetModel || provider.opusModel,
+  // 是否有 provider 推荐的「分级 4 槽」（即 fast/sonnet/opus 至少有一个跟 default 不一样）
+  const hasGradedDefaults = Boolean(
+    provider.fastModel || provider.sonnetModel || provider.opusModel,
   );
 
-  // provider 没有默认（custom / anthropic）→ 不给「用建议」选项，直接走 advanced
-  let strategy: 'default' | 'advanced' | 'skip' = 'default';
-  if (hasAnyDefault) {
-    strategy = await select<'default' | 'advanced' | 'skip'>({
-      message: '模型配置',
-      default: 'default',
-      choices: [
-        {
-          name: `用 ${provider.name} 推荐设置  ${ansis.dim(formatProviderDefaults(provider))}`,
-          value: 'default',
-          short: '推荐',
-        },
-        { name: '逐个填四个槽位（main / haiku / sonnet / opus）', value: 'advanced', short: '高级' },
-        { name: ansis.gray('不写槽位（让工具用内置默认）'), value: 'skip', short: '跳过' },
-      ],
+  type Strategy = 'simple' | 'recommended' | 'advanced' | 'skip';
+  const choices: Array<{ name: string; value: Strategy; short: string }> = [
+    {
+      name: `单 model（推荐）${ansis.dim('— 只填一个 main，绝大多数 provider 这样就够了')}`,
+      value: 'simple',
+      short: '单 model',
+    },
+  ];
+  if (hasGradedDefaults) {
+    choices.push({
+      name: `用 ${provider.name} 分级推荐  ${ansis.dim(formatProviderDefaults(provider))}`,
+      value: 'recommended',
+      short: '分级推荐',
     });
   }
-  else {
-    strategy = 'advanced';
-  }
+  choices.push(
+    { name: '高级：手动配 4 槽位（main / haiku / sonnet / opus）', value: 'advanced', short: '高级' },
+    { name: ansis.gray('跳过：不写任何槽位（让工具用内置默认）'), value: 'skip', short: '跳过' },
+  );
+
+  const strategy = await select<Strategy>({
+    message: '模型配置',
+    default: 'simple',
+    choices,
+  });
 
   if (strategy === 'skip') return {};
 
-  if (strategy === 'default') {
+  if (strategy === 'recommended') {
     return {
       ...(provider.defaultModel ? { main: provider.defaultModel } : {}),
       ...(provider.fastModel ? { haiku: provider.fastModel } : {}),
@@ -147,6 +156,16 @@ async function collectModelSlots(provider: ApiProvider, opts: InitOptions): Prom
     };
   }
 
+  if (strategy === 'simple') {
+    const main = await askModelSlot(
+      'Main model',
+      opts.model ?? provider.defaultModel ?? '',
+      provider.modelCatalog,
+    );
+    return main ? { main } : {};
+  }
+
+  // advanced
   console.log(ansis.dim('\n配置 model 槽位（直接回车=用建议值；输入空格再回车=该槽不写）：\n'));
   const main = await askModelSlot('Main model', opts.model ?? provider.defaultModel ?? '', provider.modelCatalog);
   const haiku = await askModelSlot('Haiku 槽（快速 / 简单任务）', opts.haikuModel ?? provider.fastModel ?? '', provider.modelCatalog);
