@@ -44,6 +44,7 @@ import { envPermCommand } from './commands/env-perm.js';
 import { probeCommand } from './commands/probe.js';
 import { migrateCommand } from './commands/migrate.js';
 import { profileDiffCommand } from './commands/profile-diff.js';
+import { benchCommand } from './commands/bench.js';
 
 const pkgPath = join(dirname(fileURLToPath(import.meta.url)), '..', 'package.json');
 const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8')) as { version: string };
@@ -401,6 +402,14 @@ program
   .option('--json', '结构化 JSON 输出')
   .action((a: string, b: string, opts: { json?: boolean }) =>
     profileDiffCommand(a, b, opts));
+
+program
+  .command('bench [profile]')
+  .description('真实性能基准：流式调用 /v1/messages，测 TTFT / 吞吐')
+  .option('--json', '结构化 JSON 输出（CI 集成用）')
+  .option('--runs <n>', '运行次数（1..10，默认 3）', (v) => Number(v))
+  .action((profile: string | undefined, opts: { json?: boolean; runs?: number }) =>
+    benchCommand(profile, opts));
 
 program.parseAsync(process.argv).catch((err: Error) => {
   // inquirer 9+ 在 Ctrl+C 时抛 ExitPromptError，安静退出不报红

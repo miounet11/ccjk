@@ -14,6 +14,8 @@ npm install -g ccjk
 
 升级：`npm install -g ccjk@latest`
 
+5 分钟上手 → [QUICKSTART.md](./docs/QUICKSTART.md)
+
 ## ccjk 能干什么
 
 | 场景 | 命令 |

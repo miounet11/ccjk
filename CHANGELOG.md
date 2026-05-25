@@ -6,7 +6,25 @@ ccjk 是 Clavue / Claude Code / Codex 的本地配置 CLI。本文记录用户�
 
 ## [Unreleased]
 
-## [15.26.0] - 2026-05-25
+## [15.27.0] - 2026-05-25
+
+### Added
+- `ccjk bench [profile]`：真实性能基准，流式调用 `/v1/messages` 测 TTFT / 总耗时 / 吞吐
+  - 默认 3 run 取平均（`--runs 1..10` 可调）
+  - `--json` 输出结构化结果（含每 run 详情 + avg），失败 run 不计入平均
+  - 全部失败 → exit 1；和 `probe`（看通不通）互补，`bench` 看快不快
+- `docs/QUICKSTART.md`：5 分钟上手文档（profile / use / doctor / probe / migrate / 最常见 30 秒流程）
+
+### Changed
+- `ccjk status` 重写为横向对比表：Clavue / Claude Code / Codex 三工具一屏对照（profile / baseUrl / model / 健康 / 权限档位 / 版本）
+  - 之前是分段纵向输出，需要滚屏比对
+  - 健康徽章：✓ healthy / ! warn / ✗ broken / – unknown
+- `ccjk menu` 接入新命令：
+  - "开始使用"组末尾加"从现有 settings 导入"（`migrate`）
+  - 维护组加 `probe` / `profile-diff`（两段选择交互）/ `onboard --force`
+
+### Internal
+- 测试基线 301 → 317（+16 用例：bench 11、status 5）
 
 ### Added
 - `ccjk probe [profile]`：真实 HTTP 探活，区分 ok / auth-failed / unreachable / unexpected

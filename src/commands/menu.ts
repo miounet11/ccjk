@@ -19,6 +19,11 @@ import { modeUseCommand } from './mode.js';
 import { workflowRunCommand } from './workflow.js';
 import { envPermCommand } from './env-perm.js';
 import { statusCommand } from './status.js';
+import { probeCommand } from './probe.js';
+import { migrateCommand } from './migrate.js';
+import { profileDiffCommand } from './profile-diff.js';
+import { onboardCommand } from './onboard.js';
+import { listProfiles } from '../core/profiles.js';
 import { collectStatus, renderBanner, renderStatusBar } from '../core/banner.js';
 import { displayWidth, padToWidth, recommendedPageSize, recommendedSepWidth, softClear } from '../core/term.js';
 
@@ -54,6 +59,9 @@ const GROUPS: MenuGroup[] = [
       { label: '权限档位（一键减少授权）', hint: 'safe / standard / yolo，同步三个工具 →', run: () => permsSubMenu() },
       { label: '编辑当前 Profile', hint: '改 key / URL / model（自动同步到所有已装工具）', run: () => editCommand() },
       { label: '切换 Profile', hint: '一键切 API；同步到 Clavue / Claude Code', run: () => profileUseCommand(undefined) },
+      // migrate 放在"开始使用"末尾：场景属新用户 onboarding（手动配过 settings.json，想纳入 ccjk 管理），
+      // 跟 init / quick 并列；避免埋到维护菜单让新用户找不到。
+      { label: '从现有 settings 导入', hint: '反向抽取已配好的 settings.json 生成 profile', run: async () => { await migrateCommand({}); } },
     ],
   },
   {
@@ -102,12 +110,44 @@ async function permsSubMenu(): Promise<void> {
 async function maintenanceSubMenu(): Promise<void> {
   const SUB_ITEMS: MenuItem[] = [
     { label: '体检（doctor）', hint: '检查 settings.json 配置问题（--fix 自动修）', run: () => doctorCommand() },
+    // probe 紧邻 doctor：两者都属"诊断"，doctor 看配置静态健康，probe 看 API 实际能否打通
+    { label: '健康探针（probe）', hint: '对当前 profile 发 /v1/messages ping 一下', run: () => probeCommand(undefined, {}) },
+    // profile-diff 单独放在维护：低频对比工具，按"不要为单项新建二级菜单"原则放维护
+    { label: '对比两个 Profile', hint: '逐字段 diff 找配置漂移', run: () => profileDiffMenuItem() },
     { label: '查看版本 / 检查更新', hint: '本地 + npm latest', run: () => versionCommand({ checkUpdates: true }) },
     { label: '安装代码工具', hint: 'Clavue / Claude Code / Codex', run: () => installCommand(undefined) },
     { label: '更新代码工具', hint: '升级到最新版', run: () => updateCommand(undefined) },
     { label: '检测已安装的工具', hint: '看哪些已装哪些没装', run: async () => detectCommand() },
+    // 重做向导：用户改完一堆设置想从头走一遍 init+doctor 时的入口
+    { label: '重做首次向导（onboard）', hint: '强制重跑 init + doctor', run: () => onboardCommand({ force: true }) },
   ];
   await runSubMenu('维护与诊断', SUB_ITEMS);
+}
+
+/**
+ * profile-diff 的内联交互：让用户连续选 a、b 两个 profile，然后调命令。
+ * 不单开二级菜单，沿用 select prompt 在维护菜单里就地完成。
+ */
+async function profileDiffMenuItem(): Promise<void> {
+  const profiles = await listProfiles();
+  if (profiles.length < 2) {
+    console.log(ansis.yellow('\n至少需要 2 个 profile 才能比较。当前只有 ' + profiles.length + ' 个。\n'));
+    return;
+  }
+  const choices = profiles.map(p => ({ name: p.name, value: p.name, short: p.name }));
+  const a = await select<string>({
+    message: ansis.bold('选第一个 profile (A)'),
+    choices,
+    pageSize: recommendedPageSize(),
+    loop: false,
+  });
+  const b = await select<string>({
+    message: ansis.bold('选第二个 profile (B)'),
+    choices: choices.filter(c => c.value !== a),
+    pageSize: recommendedPageSize(),
+    loop: false,
+  });
+  await profileDiffCommand(a, b, {});
 }
 
 /**
