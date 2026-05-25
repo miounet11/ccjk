@@ -1,14 +1,16 @@
-import { mkdtempSync, rmSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
   applyProfileToSettings,
+  codexEnvKeyFor,
   listProfiles,
   maskKey,
   readProfile,
   readState,
   removeProfile,
+  syncProfileToCodex,
   validateName,
   writeProfile,
   writeState,
@@ -227,5 +229,102 @@ describe('applyProfileToSettings', () => {
     applyProfileToSettings(s, p);
     expect(s.env?.ANTHROPIC_DEFAULT_SONNET_MODEL).toBeUndefined();
     expect(s.env?.ANTHROPIC_DEFAULT_OPUS_MODEL).toBeUndefined();
+  });
+});
+
+describe('codexEnvKeyFor', () => {
+  it('小写 provider 转大写 + _API_KEY', () => {
+    expect(codexEnvKeyFor(P({ provider: 'custom' }))).toBe('CUSTOM_API_KEY');
+  });
+  it('短横线转下划线', () => {
+    expect(codexEnvKeyFor(P({ provider: 'gpt-gateway' }))).toBe('GPT_GATEWAY_API_KEY');
+  });
+});
+
+describe('syncProfileToCodex', () => {
+  it('空 toml → 写出 [profiles.<name>] + [model_providers.<provider>]', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'ccjk-codex-'));
+    try {
+      const file = join(dir, 'config.toml');
+      writeFileSync(file, '');
+      const r = await syncProfileToCodex(P({ name: 'work', provider: 'glm', model: 'glm-4.6' }), file);
+      expect(r.skipped).toBeUndefined();
+      const raw = readFileSync(file, 'utf-8');
+      expect(raw).toContain('profile = "work"');
+      expect(raw).toContain('[profiles.work]');
+      expect(raw).toContain('model = "glm-4.6"');
+      expect(raw).toContain('model_provider = "glm"');
+      expect(raw).toContain('[model_providers.glm]');
+      expect(raw).toContain('wire_api = "responses"');
+      expect(raw).toContain('env_key = "GLM_API_KEY"');
+    }
+    finally {
+      rmSync(dir, { recursive: true });
+    }
+  });
+
+  it('已有同名 provider → 复用，不动 provider 段', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'ccjk-codex-'));
+    try {
+      const file = join(dir, 'config.toml');
+      writeFileSync(file, `[model_providers.glm]
+name = "glm"
+base_url = "https://existing.example.com/v1"
+wire_api = "responses"
+env_key = "EXISTING_GLM_KEY"
+requires_openai_auth = false
+`);
+      await syncProfileToCodex(P({ name: 'work', provider: 'glm', model: 'glm-4.6' }), file);
+      const raw = readFileSync(file, 'utf-8');
+      // provider 段保持原值
+      expect(raw).toContain('base_url = "https://existing.example.com/v1"');
+      expect(raw).toContain('env_key = "EXISTING_GLM_KEY"');
+      // base_url 只出现一次（没被复制）
+      expect((raw.match(/base_url =/g) ?? []).length).toBe(1);
+      // 但 profile 段已加入
+      expect(raw).toContain('[profiles.work]');
+      expect(raw).toContain('model_provider = "glm"');
+    }
+    finally {
+      rmSync(dir, { recursive: true });
+    }
+  });
+
+  it('profile 没有 main model → 跳过（不写出残缺 codex profile）', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'ccjk-codex-'));
+    try {
+      const file = join(dir, 'config.toml');
+      writeFileSync(file, '');
+      const p = P();
+      delete p.model;
+      const r = await syncProfileToCodex(p, file);
+      expect(r.skipped).toMatch(/main model/);
+      // 文件保持空（没有副作用）
+      expect(readFileSync(file, 'utf-8')).toBe('');
+    }
+    finally {
+      rmSync(dir, { recursive: true });
+    }
+  });
+
+  it('保留 toml 里其它段（mcp_servers / projects）', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'ccjk-codex-'));
+    try {
+      const file = join(dir, 'config.toml');
+      writeFileSync(file, `[mcp_servers.context7]
+command = "npx"
+
+[projects."/x/y"]
+trust_level = "trusted"
+`);
+      await syncProfileToCodex(P({ name: 'work', provider: 'glm', model: 'glm-4.6' }), file);
+      const raw = readFileSync(file, 'utf-8');
+      expect(raw).toContain('[mcp_servers.context7]');
+      expect(raw).toContain('command = "npx"');
+      expect(raw).toContain('[projects."/x/y"]');
+    }
+    finally {
+      rmSync(dir, { recursive: true });
+    }
   });
 });

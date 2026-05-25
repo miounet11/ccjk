@@ -2,7 +2,9 @@ import { existsSync } from 'node:fs';
 import { mkdir, readFile, readdir, unlink, writeFile } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
+import { applyCodexProfile, listCodexProviders } from './codex-config.js';
 import { readSettings, writeSettings } from './settings.js';
+import { readTomlFile, writeTomlFile } from './toml.js';
 import { TOOLS } from './tools.js';
 import type { CodeTool } from './tools.js';
 import { getInstalledVersion } from './versions.js';
@@ -145,14 +147,16 @@ export interface SyncResult {
 }
 
 /**
- * 把 profile 同步到所有"已装且支持 settings.json 写入"的工具。
- * 当前覆盖 clavue + claude-code（同 settings.json 结构）。
- * codex 用 toml，本函数不处理（避免误覆盖；将来如要打通用专门通道）。
+ * 把 profile 同步到所有"已装"的工具。
+ * - clavue / claude-code 写 settings.env（applyProfileToSettings）
+ * - codex 写 ~/.codex/config.toml 的 [profiles.<name>] 段，顶层 profile 也指向它
+ *   （API key 不能写 toml，sync 后调用方需要提示 export）
  *
  * 没装的工具会被跳过（不报错），返回中可见 `skipped`。
+ * profile 没绑 codex 用得到的 main model 时跳过 codex（避免写空 model）。
  */
 export async function applyProfileToInstalledTools(profile: Profile): Promise<SyncResult[]> {
-  const targets: CodeTool[] = ['clavue', 'claude-code'];
+  const targets: CodeTool[] = ['clavue', 'claude-code', 'codex'];
   const results: SyncResult[] = [];
   for (const t of targets) {
     const meta = TOOLS[t];
@@ -161,10 +165,68 @@ export async function applyProfileToInstalledTools(profile: Profile): Promise<Sy
       results.push({ tool: t, settingsFile: meta.settingsFile, backup: '', skipped: '未安装' });
       continue;
     }
+    if (t === 'codex') {
+      const r = await syncProfileToCodex(profile, meta.settingsFile);
+      results.push(r);
+      continue;
+    }
     const settings = await readSettings(meta.settingsFile);
     applyProfileToSettings(settings, profile);
     const backup = await writeSettings(meta.settingsFile, settings);
     results.push({ tool: t, settingsFile: meta.settingsFile, backup });
   }
   return results;
+}
+
+/**
+ * 把 ccjk profile 落到 codex 的 [profiles.<profile.name>] 段。
+ *
+ * 复用规则：如果 toml 里已经有同名 provider（id == profile.provider），就直接引用，
+ * 不再覆盖它的 base_url / env_key —— 避免 ccjk profile 把 codex 现存网关配置改掉。
+ * 没有同名 provider 才会新建一个段（env_key 用 ccjk profile 的兜底规则）。
+ *
+ * codex 不接受 API key 写 toml，所以 profile.apiKey 不会落进文件。
+ */
+export async function syncProfileToCodex(
+  profile: Profile,
+  settingsFile: string,
+): Promise<SyncResult> {
+  const meta = TOOLS.codex;
+  if (!profile.model) {
+    return {
+      tool: 'codex',
+      settingsFile,
+      backup: '',
+      skipped: '该 profile 未设 main model（codex 必填）',
+    };
+  }
+  const doc = await readTomlFile(settingsFile);
+  const existingProviders = new Set(listCodexProviders(doc));
+  const reuse = existingProviders.has(profile.provider);
+
+  applyCodexProfile(doc, {
+    profileName: profile.name,
+    providerId: profile.provider,
+    model: profile.model,
+    ...(reuse
+      ? {}
+      : {
+          baseUrl: profile.baseUrl,
+          wireApi: 'responses',
+          envKey: codexEnvKeyFor(profile),
+          // ccjk profile 默认 auth_token 不走 OpenAI 原生鉴权
+          requiresOpenaiAuth: false,
+        }),
+  });
+  const backup = await writeTomlFile(settingsFile, doc);
+  return { tool: 'codex', settingsFile: meta.settingsFile, backup };
+}
+
+/**
+ * 给 codex profile 段推一个 env_key 名。简单规则：
+ *   provider id 大写 + 把 - 换成 _ + _API_KEY 后缀
+ * 例如 'custom' → 'CUSTOM_API_KEY'；'gpt-gateway' → 'GPT_GATEWAY_API_KEY'。
+ */
+export function codexEnvKeyFor(profile: Profile): string {
+  return `${profile.provider.toUpperCase().replace(/-/g, '_')}_API_KEY`;
 }

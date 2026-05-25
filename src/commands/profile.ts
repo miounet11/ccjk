@@ -7,11 +7,13 @@ import { readSettings, writeSettings } from '../core/settings.js';
 import {
   applyProfileToInstalledTools,
   applyProfileToSettings,
+  codexEnvKeyFor,
   listProfiles,
   maskKey,
   readProfile,
   readState,
   removeProfile,
+  syncProfileToCodex,
   validateName,
   writeProfile,
   writeState,
@@ -84,10 +86,32 @@ export async function profileUseCommand(name: string | undefined, opts: UseOptio
 
 /** 单工具写入：保留旧行为，给 --tool 用 */
 async function useForSingleTool(target: Profile, tool: CodeTool, yes: boolean): Promise<void> {
-  if (tool === 'codex') {
-    throw new Error('Codex 配置走 ~/.codex/config.toml，暂不支持 profile 写入。');
-  }
   const meta = TOOLS[tool];
+
+  if (tool === 'codex') {
+    if (!yes) {
+      console.log(ansis.dim(`\n→ 切换到: ${target.name} (${target.provider})`));
+      console.log(ansis.dim(`→ 写入: ${meta.settingsFile} 的 [profiles.${target.name}] 段`));
+      console.log(ansis.dim(`→ 顶层 profile = "${target.name}"\n`));
+      const ok = await confirm({ message: '确认切换？', default: true });
+      if (!ok) {
+        console.log(ansis.gray('已取消。'));
+        return;
+      }
+    }
+    const r = await syncProfileToCodex(target, meta.settingsFile);
+    if (r.skipped) {
+      console.log(ansis.yellow(`\n! ${meta.displayName} 跳过：${r.skipped}\n`));
+      return;
+    }
+    console.log(ansis.green(`\n✔ 已切换到 profile: ${ansis.bold(target.name)}`));
+    if (r.backup) console.log(ansis.dim(`  备份: ${r.backup}`));
+    console.log(ansis.yellow(`! API key 不能写入 toml，请在 shell 里导出：`));
+    console.log(ansis.cyan(`    export ${codexEnvKeyFor(target)}=<your-api-key>`));
+    console.log(ansis.dim(`  下次启动 codex 时会自动用 [profiles.${target.name}]\n`));
+    return;
+  }
+
   const settings = await readSettings(meta.settingsFile);
   applyProfileToSettings(settings, target);
 
@@ -113,7 +137,7 @@ async function useForAllInstalled(target: Profile, yes: boolean): Promise<void> 
   if (!yes) {
     console.log(ansis.dim(`\n→ 切换到: ${target.name} (${target.provider})`));
     console.log(ansis.dim(`→ Base URL: ${target.baseUrl}`));
-    console.log(ansis.dim('→ 同步到所有已装工具（Clavue / Claude Code）\n'));
+    console.log(ansis.dim('→ 同步到所有已装工具（Clavue / Claude Code / Codex）\n'));
     const ok = await confirm({ message: '确认切换？', default: true });
     if (!ok) {
       console.log(ansis.gray('已取消。'));
@@ -124,6 +148,12 @@ async function useForAllInstalled(target: Profile, yes: boolean): Promise<void> 
   const results = await applyProfileToInstalledTools(target);
   console.log(ansis.green(`\n✔ 已切换到 profile: ${ansis.bold(target.name)}`));
   printSyncResults(results);
+  // 如果同步到了 codex，提示一下 export env key（其它工具不需要）
+  const codexHit = results.find(r => r.tool === 'codex' && !r.skipped);
+  if (codexHit) {
+    console.log(ansis.yellow(`! Codex 需要 API key 走环境变量：`));
+    console.log(ansis.cyan(`    export ${codexEnvKeyFor(target)}=<your-api-key>`));
+  }
   console.log(ansis.yellow('  提示: 重启对应工具才能生效\n'));
 }
 
