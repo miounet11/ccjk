@@ -7,6 +7,8 @@ import {
   codexEnvKeyFor,
   listProfiles,
   maskKey,
+  profileHealth,
+  PROFILE_STALE_MS,
   readProfile,
   readState,
   removeProfile,
@@ -325,6 +327,90 @@ trust_level = "trusted"
     }
     finally {
       rmSync(dir, { recursive: true });
+    }
+  });
+});
+
+describe('profileHealth', () => {
+  const NOW = Date.parse('2026-05-25T00:00:00.000Z');
+
+  it('healthy: 字段齐全且最近用过', () => {
+    const p = P({ lastUsedAt: '2026-05-20T00:00:00.000Z' });
+    const h = profileHealth(p, NOW);
+    expect(h.status).toBe('healthy');
+    expect(h.reason).toBeUndefined();
+  });
+
+  it('stale: 从未使用（无 lastUsedAt）', () => {
+    const p = P();
+    const h = profileHealth(p, NOW);
+    expect(h.status).toBe('stale');
+  });
+
+  it('stale: 超过 90 天未使用', () => {
+    const p = P({ lastUsedAt: new Date(NOW - PROFILE_STALE_MS - 1000).toISOString() });
+    expect(profileHealth(p, NOW).status).toBe('stale');
+  });
+
+  it('broken: 缺 apiKey', () => {
+    const p = P({ apiKey: '', lastUsedAt: new Date(NOW).toISOString() });
+    const h = profileHealth(p, NOW);
+    expect(h.status).toBe('broken');
+    expect(h.reason).toMatch(/apiKey/);
+  });
+
+  it('broken: baseUrl 无效', () => {
+    const p = P({ baseUrl: 'not-a-url', lastUsedAt: new Date(NOW).toISOString() });
+    expect(profileHealth(p, NOW).status).toBe('broken');
+  });
+
+  it('broken: 没有任何 model', () => {
+    const p = P({ lastUsedAt: new Date(NOW).toISOString() });
+    delete p.model;
+    delete p.fastModel;
+    delete p.sonnetModel;
+    delete p.opusModel;
+    expect(profileHealth(p, NOW).status).toBe('broken');
+  });
+});
+
+describe('lastUsedAt 兼容性', () => {
+  it('旧 profile（无 lastUsedAt）能正常 read', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'ccjk-'));
+    try {
+      // 手写一份不含 lastUsedAt 的 JSON，模拟旧 profile
+      const legacy = {
+        name: 'work',
+        provider: 'glm',
+        baseUrl: 'https://open.bigmodel.cn/api/anthropic',
+        authType: 'auth_token' as const,
+        apiKey: 'sk-test-0123456789abcdef',
+        model: 'glm-4.6',
+        createdAt: '2024-01-01T00:00:00.000Z',
+      };
+      writeFileSync(join(dir, 'work.json'), `${JSON.stringify(legacy, null, 2)}\n`);
+      const loaded = await readProfile('work', dir);
+      expect(loaded).not.toBeNull();
+      expect(loaded?.lastUsedAt).toBeUndefined();
+      // listProfiles 也能加载
+      const list = await listProfiles(dir);
+      expect(list.map(p => p.name)).toEqual(['work']);
+    }
+    finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('writeProfile 携带 lastUsedAt 字段会被持久化', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'ccjk-'));
+    try {
+      const stamp = '2026-05-25T12:00:00.000Z';
+      await writeProfile(P({ lastUsedAt: stamp }), dir);
+      const loaded = await readProfile('work', dir);
+      expect(loaded?.lastUsedAt).toBe(stamp);
+    }
+    finally {
+      rmSync(dir, { recursive: true, force: true });
     }
   });
 });

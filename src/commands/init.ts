@@ -9,6 +9,7 @@ import { listProfiles, validateName, writeProfile, writeState } from '../core/pr
 import { readTomlFile, writeTomlFile } from '../core/toml.js';
 import { applyCodexProfile, listCodexProviders } from '../core/codex-config.js';
 import type { CodexReasoningEffort } from '../core/codex-config.js';
+import { lintSettings } from '../core/lint.js';
 
 export interface InitOptions {
   tool?: CodeTool;
@@ -77,6 +78,21 @@ export async function initCommand(opts: InitOptions = {}): Promise<void> {
   console.log(ansis.green('\n✔ 配置已写入'));
   if (backup) console.log(ansis.dim(`  备份: ${backup}`));
   console.log(ansis.dim(`  目标: ${meta.settingsFile}`));
+
+  // 写完顺便体检一次：用户可能有上次配置遗留的脏数据
+  const findings = lintSettings(settings);
+  if (findings.length > 0) {
+    const errs = findings.filter(f => f.severity === 'error').length;
+    const warns = findings.filter(f => f.severity === 'warn').length;
+    const fixable = findings.filter(f => f.fix).length;
+    const parts: string[] = [];
+    if (errs > 0) parts.push(ansis.red(`${errs} error`));
+    if (warns > 0) parts.push(ansis.yellow(`${warns} warning`));
+    if (parts.length > 0) {
+      console.log(ansis.dim(`  体检: `) + parts.join(', ')
+        + (fixable > 0 ? ansis.dim(`（${fixable} 项可自动修 — 运行 \`ccjk doctor --fix\`）`) : ''));
+    }
+  }
 
   await maybeSaveProfile({
     explicitName: opts.profile,

@@ -1,8 +1,9 @@
 import { confirm } from '@inquirer/prompts';
 import ansis from 'ansis';
 import { autoFix, lintSettings } from '../core/lint.js';
-import type { Severity } from '../core/lint.js';
+import type { Finding, Severity } from '../core/lint.js';
 import { autoFixCodex, lintCodexConfig } from '../core/codex-config.js';
+import type { CodexFinding } from '../core/codex-config.js';
 import { readSettings, writeSettings } from '../core/settings.js';
 import { readTomlFile, writeTomlFile } from '../core/toml.js';
 import { TOOLS } from '../core/tools.js';
@@ -24,9 +25,147 @@ const ICON: Record<Severity, string> = {
 export interface DoctorOptions {
   fix?: boolean;
   yes?: boolean;
+  json?: boolean;
+}
+
+interface JsonFinding {
+  rule: string;
+  severity: Severity;
+  message: string;
+  fixHint?: string;
+  fixable: boolean;
+}
+
+interface JsonTarget {
+  tool: CodeTool;
+  path: string;
+  ok: boolean;
+  findings: JsonFinding[];
+}
+
+interface JsonReport {
+  schemaVersion: 1;
+  targets: JsonTarget[];
+  summary: { errors: number; warnings: number; infos: number; fixable: number };
+}
+
+function toJsonFinding(f: Finding | CodexFinding): JsonFinding {
+  const out: JsonFinding = {
+    rule: f.rule,
+    severity: f.severity,
+    message: f.message,
+    fixable: typeof f.fix === 'function',
+  };
+  if (f.fixHint) out.fixHint = f.fixHint;
+  return out;
 }
 
 export async function doctorCommand(opts: DoctorOptions = {}): Promise<void> {
+  // --json 与 --fix 互斥
+  if (opts.json && opts.fix) {
+    const msg = '--json 与 --fix 互斥：JSON 输出模式下不执行修复。';
+    process.stderr.write(`${msg}\n`);
+    process.exit(1);
+  }
+
+  if (opts.json) {
+    await runJson();
+    return;
+  }
+
+  await runHuman(opts);
+}
+
+async function runJson(): Promise<void> {
+  const detected = detectAll();
+  const claudeTargets: CodeTool[] = detected
+    .filter(d => d.configExists && d.tool !== 'codex')
+    .map(d => d.tool);
+  const codexDetected = detected.find(d => d.tool === 'codex' && d.configExists);
+
+  const targets: JsonTarget[] = [];
+  let errors = 0;
+  let warnings = 0;
+  let infos = 0;
+  let fixable = 0;
+
+  for (const tool of claudeTargets) {
+    const meta = TOOLS[tool];
+    const target: JsonTarget = {
+      tool,
+      path: meta.settingsFile,
+      ok: true,
+      findings: [],
+    };
+    try {
+      const settings = await readSettings(meta.settingsFile);
+      const findings = lintSettings(settings);
+      for (const f of findings) {
+        target.findings.push(toJsonFinding(f));
+        if (f.severity === 'error') errors++;
+        else if (f.severity === 'warn') warnings++;
+        else infos++;
+        if (f.fix) fixable++;
+      }
+    }
+    catch (e) {
+      target.findings.push({
+        rule: 'read-failed',
+        severity: 'error',
+        message: `读取失败: ${(e as Error).message}`,
+        fixable: false,
+      });
+      errors++;
+    }
+    target.ok = target.findings.every(f => f.severity === 'info');
+    targets.push(target);
+  }
+
+  if (codexDetected) {
+    const meta = TOOLS.codex;
+    const target: JsonTarget = {
+      tool: 'codex',
+      path: meta.settingsFile,
+      ok: true,
+      findings: [],
+    };
+    try {
+      const doc = await readTomlFile(meta.settingsFile);
+      const findings = lintCodexConfig(doc);
+      for (const f of findings) {
+        target.findings.push(toJsonFinding(f));
+        if (f.severity === 'error') errors++;
+        else if (f.severity === 'warn') warnings++;
+        else infos++;
+        if (f.fix) fixable++;
+      }
+    }
+    catch (e) {
+      target.findings.push({
+        rule: 'read-failed',
+        severity: 'error',
+        message: `读取失败: ${(e as Error).message}`,
+        fixable: false,
+      });
+      errors++;
+    }
+    target.ok = target.findings.every(f => f.severity === 'info');
+    targets.push(target);
+  }
+
+  const report: JsonReport = {
+    schemaVersion: 1,
+    targets,
+    summary: { errors, warnings, infos, fixable },
+  };
+  process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+
+  if (errors > 0) process.exitCode = 2;
+  else if (warnings > 0) process.exitCode = 1;
+  else process.exitCode = 0;
+}
+
+async function runHuman(opts: DoctorOptions): Promise<void> {
   const detected = detectAll();
   // claude-family（clavue / claude-code）走 settings.json lint
   const claudeTargets: CodeTool[] = detected
@@ -103,10 +242,11 @@ export async function doctorCommand(opts: DoctorOptions = {}): Promise<void> {
   console.log('');
   if (totalErrors > 0) {
     console.log(ansis.red(`✗ ${totalErrors} error${totalErrors > 1 ? 's' : ''}`) + (totalWarns > 0 ? `, ${ansis.yellow(`${totalWarns} warning${totalWarns > 1 ? 's' : ''}`)}` : ''));
-    if (!opts.fix) process.exitCode = 1;
+    if (!opts.fix) process.exitCode = 2;
   }
   else if (totalWarns > 0) {
     console.log(ansis.yellow(`! ${totalWarns} warning${totalWarns > 1 ? 's' : ''}`));
+    if (!opts.fix) process.exitCode = 1;
   }
   else {
     console.log(ansis.green('✓ 全部通过'));

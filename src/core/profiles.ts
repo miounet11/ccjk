@@ -24,6 +24,58 @@ export interface Profile {
   /** opus 槽位 → ANTHROPIC_DEFAULT_OPUS_MODEL */
   opusModel?: string;
   createdAt: string;
+  /** ISO8601 时间戳，最后一次被 `ccjk use` 切换激活。旧 profile 无此字段。 */
+  lastUsedAt?: string;
+}
+
+export type ProfileHealthStatus = 'healthy' | 'stale' | 'broken';
+
+export interface ProfileHealth {
+  status: ProfileHealthStatus;
+  reason?: string;
+}
+
+/** stale 判定阈值：90 天 */
+export const PROFILE_STALE_MS = 90 * 24 * 60 * 60 * 1000;
+
+function isValidUrl(s: string | undefined): boolean {
+  if (!s) return false;
+  try {
+    const u = new URL(s);
+    return u.protocol === 'http:' || u.protocol === 'https:';
+  }
+  catch {
+    return false;
+  }
+}
+
+/**
+ * 纯函数：判断 profile 的健康状态。
+ * - broken: 缺 apiKey、缺 baseUrl 或 baseUrl 不是有效 http(s) URL、四个 model 槽位都没填
+ * - stale: 字段齐全，但 lastUsedAt 缺失或超过 PROFILE_STALE_MS
+ * - healthy: 字段齐全且最近用过
+ *
+ * @param now 注入"当前时间"便于测试，默认 Date.now()
+ */
+export function profileHealth(p: Profile, now: number = Date.now()): ProfileHealth {
+  if (!p.apiKey || !p.apiKey.trim()) {
+    return { status: 'broken', reason: '缺少 apiKey' };
+  }
+  if (!isValidUrl(p.baseUrl)) {
+    return { status: 'broken', reason: 'baseUrl 无效' };
+  }
+  const hasModel = Boolean(p.model || p.fastModel || p.sonnetModel || p.opusModel);
+  if (!hasModel) {
+    return { status: 'broken', reason: '未配置任何 model' };
+  }
+  if (!p.lastUsedAt) {
+    return { status: 'stale', reason: '从未使用' };
+  }
+  const t = Date.parse(p.lastUsedAt);
+  if (!Number.isFinite(t) || now - t > PROFILE_STALE_MS) {
+    return { status: 'stale', reason: '超过 90 天未使用' };
+  }
+  return { status: 'healthy' };
 }
 
 export const PROFILES_DIR = join(homedir(), '.ccjk', 'profiles');

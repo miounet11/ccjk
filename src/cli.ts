@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { Command } from 'commander';
 import ansis from 'ansis';
 import { initCommand } from './commands/init.js';
+import { onboardCommand } from './commands/onboard.js';
 import { quickCommand } from './commands/quick.js';
 import { editCommand } from './commands/edit.js';
 import { mcpAddCommand, mcpCommand, mcpListCommand, mcpRmCommand } from './commands/mcp.js';
@@ -228,6 +229,7 @@ program
   .command('doctor')
   .description('检查 settings.json 中的常见配置问题')
   .option('--fix', '自动修复可修的项目（修改前会备份）')
+  .option('--json', '以 JSON 结构输出（不打印彩色文本；与 --fix 互斥）')
   .option('-y, --yes', '跳过确认')
   .action(doctorCommand);
 
@@ -366,6 +368,12 @@ program
   .command('menu', { isDefault: true })
   .description('交互菜单（默认命令）')
   .action(menuCommand);
+
+program
+  .command('onboard')
+  .description('首次运行向导（无 profile 时自动配 API + 跑 doctor）')
+  .option('--force', '即使已有 profile 也强制跑一次向导')
+  .action((opts: { force?: boolean }) => onboardCommand(opts));
 
 program.parseAsync(process.argv).catch((err: Error) => {
   // inquirer 9+ 在 Ctrl+C 时抛 ExitPromptError，安静退出不报红

@@ -190,6 +190,39 @@ export function lintSettings(settings: ClaudeSettings): Finding[] {
     });
   }
 
+  // apiKeyHelper 路径明显坏掉：包含 Windows 反斜杠或未展开的 $HOME / ${HOME}
+  // 纯启发式（lintSettings 不碰 IO），不试图 stat 文件
+  if (typeof settings.apiKeyHelper === 'string' && settings.apiKeyHelper.length > 0) {
+    const p = settings.apiKeyHelper;
+    const hasBackslash = p.includes('\\');
+    const hasUnexpandedHome = p.includes('$HOME') || p.includes('${HOME}');
+    if (hasBackslash || hasUnexpandedHome) {
+      findings.push({
+        severity: 'warn',
+        rule: 'apiKeyHelper-stale',
+        message: `apiKeyHelper 路径 "${p}" 看起来无效（含 Windows 反斜杠或未展开的 $HOME）`,
+        fixHint: 'apiKeyHelper 路径无效；删除该字段或修正为绝对路径',
+      });
+    }
+  }
+
+  // permissions.allow 包含过宽的 Bash 通配
+  const allow = settings.permissions?.allow;
+  if (Array.isArray(allow)) {
+    const hasWildcardBash = allow.includes('Bash(*)');
+    const hasRm = allow.some(p => typeof p === 'string' && (p === 'Bash(rm:*)' || p.includes('rm -rf')));
+    const hasCurl = allow.some(p => typeof p === 'string' && p === 'Bash(curl:*)');
+    const hasSh = allow.some(p => typeof p === 'string' && p === 'Bash(sh:*)');
+    if (hasWildcardBash || hasRm || (hasCurl && hasSh)) {
+      findings.push({
+        severity: 'warn',
+        rule: 'bash-permissions-too-broad',
+        message: 'permissions.allow 包含过宽的 Bash 通配（"Bash(*)"），等价于无限制 shell 访问',
+        fixHint: '人工审查 permissions.allow，把 "Bash(*)" 替换为具体命令清单（如 Bash(git:*)、Bash(pnpm:*)）',
+      });
+    }
+  }
+
   const hooks = settings.hooks as Record<string, unknown> | undefined;
   if (hooks) {
     for (const [name, value] of Object.entries(hooks)) {

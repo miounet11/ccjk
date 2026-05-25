@@ -120,6 +120,58 @@ describe('lintSettings', () => {
     expect(f?.fix).toBeTypeOf('function');
   });
 
+  it('apiKeyHelper 含 Windows 反斜杠触发 apiKeyHelper-stale warn', () => {
+    const r = lintSettings({
+      apiKeyHelper: 'C:\\Users\\foo\\get-key.cmd',
+      env: { ANTHROPIC_BASE_URL: 'https://x.com', ANTHROPIC_AUTH_TOKEN: 't' },
+    });
+    const f = r.find(x => x.rule === 'apiKeyHelper-stale');
+    expect(f?.severity).toBe('warn');
+    expect(f?.fix).toBeUndefined();
+  });
+
+  it('apiKeyHelper 含未展开 $HOME 触发 apiKeyHelper-stale warn', () => {
+    const r = lintSettings({
+      apiKeyHelper: '$HOME/.config/get-key.sh',
+      env: { ANTHROPIC_BASE_URL: 'https://x.com', ANTHROPIC_AUTH_TOKEN: 't' },
+    });
+    expect(r.find(x => x.rule === 'apiKeyHelper-stale')?.severity).toBe('warn');
+  });
+
+  it('apiKeyHelper 是干净绝对路径不触发', () => {
+    const r = lintSettings({
+      apiKeyHelper: '/usr/local/bin/get-key.sh',
+      env: { ANTHROPIC_BASE_URL: 'https://x.com', ANTHROPIC_AUTH_TOKEN: 't' },
+    });
+    expect(r.find(x => x.rule === 'apiKeyHelper-stale')).toBeUndefined();
+  });
+
+  it('permissions.allow 含 Bash(*) 触发 bash-permissions-too-broad', () => {
+    const r = lintSettings({
+      env: { ANTHROPIC_BASE_URL: 'https://x.com', ANTHROPIC_AUTH_TOKEN: 't' },
+      permissions: { allow: ['Bash(*)', 'Read(*)'] },
+    });
+    const f = r.find(x => x.rule === 'bash-permissions-too-broad');
+    expect(f?.severity).toBe('warn');
+    expect(f?.fix).toBeUndefined();
+  });
+
+  it('permissions.allow 含 curl + sh 同时存在触发 bash-permissions-too-broad', () => {
+    const r = lintSettings({
+      env: { ANTHROPIC_BASE_URL: 'https://x.com', ANTHROPIC_AUTH_TOKEN: 't' },
+      permissions: { allow: ['Bash(curl:*)', 'Bash(sh:*)'] },
+    });
+    expect(r.find(x => x.rule === 'bash-permissions-too-broad')?.severity).toBe('warn');
+  });
+
+  it('permissions.allow 是窄清单不触发 bash-permissions-too-broad', () => {
+    const r = lintSettings({
+      env: { ANTHROPIC_BASE_URL: 'https://x.com', ANTHROPIC_AUTH_TOKEN: 't' },
+      permissions: { allow: ['Bash(git:*)', 'Bash(pnpm:*)', 'Read(*)'] },
+    });
+    expect(r.find(x => x.rule === 'bash-permissions-too-broad')).toBeUndefined();
+  });
+
   it('仅 3 槽同值不触发 redundant-model-slots', () => {
     const r = lintSettings({
       env: {

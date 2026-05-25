@@ -10,6 +10,7 @@ import {
   codexEnvKeyFor,
   listProfiles,
   maskKey,
+  profileHealth,
   readProfile,
   readState,
   removeProfile,
@@ -35,10 +36,19 @@ export async function profileListCommand(): Promise<void> {
     const name = isCurrent ? ansis.green.bold(padToWidth(p.name, 16)) : padToWidth(p.name, 16);
     const key = ansis.dim(maskKey(p.apiKey));
     const model = p.model ? ansis.dim(`[${p.model}]`) : '';
-    console.log(`  ${mark} ${name} ${padToWidth(p.provider, 12)} ${key} ${model}`);
+    const badge = renderHealthBadge(p);
+    console.log(`  ${mark} ${name} ${padToWidth(p.provider, 12)} ${key} ${badge} ${model}`);
   }
   console.log();
   if (state.current) console.log(ansis.dim(`  当前: ${state.current}\n`));
+}
+
+/** 健康徽章：固定 11 个可见字符宽度，便于列对齐 */
+function renderHealthBadge(p: Profile): string {
+  const h = profileHealth(p);
+  if (h.status === 'healthy') return ansis.green(padToWidth('✓ healthy', 11));
+  if (h.status === 'stale') return ansis.yellow(padToWidth('! stale', 11));
+  return ansis.red(padToWidth('✗ broken', 11));
 }
 
 export interface UseOptions {
@@ -75,17 +85,18 @@ export async function profileUseCommand(name: string | undefined, opts: UseOptio
   if (!target) return;
 
   // --tool 显式 → 单工具；否则默认同步到所有已装的 clavue / claude-code
-  if (opts.tool) {
-    await useForSingleTool(target, opts.tool, opts.yes ?? false);
-  }
-  else {
-    await useForAllInstalled(target, opts.yes ?? false);
-  }
+  const ok = opts.tool
+    ? await useForSingleTool(target, opts.tool, opts.yes ?? false)
+    : await useForAllInstalled(target, opts.yes ?? false);
+  if (!ok) return;
+  // 切换成功后回写 lastUsedAt 到 profile 文件，给健康徽章用
+  const updated: Profile = { ...target, lastUsedAt: new Date().toISOString() };
+  await writeProfile(updated);
   await writeState({ current: target.name });
 }
 
-/** 单工具写入：保留旧行为，给 --tool 用 */
-async function useForSingleTool(target: Profile, tool: CodeTool, yes: boolean): Promise<void> {
+/** 单工具写入：保留旧行为，给 --tool 用。返回是否真的写了 settings（取消/跳过返回 false） */
+async function useForSingleTool(target: Profile, tool: CodeTool, yes: boolean): Promise<boolean> {
   const meta = TOOLS[tool];
 
   if (tool === 'codex') {
@@ -96,20 +107,20 @@ async function useForSingleTool(target: Profile, tool: CodeTool, yes: boolean): 
       const ok = await confirm({ message: '确认切换？', default: true });
       if (!ok) {
         console.log(ansis.gray('已取消。'));
-        return;
+        return false;
       }
     }
     const r = await syncProfileToCodex(target, meta.settingsFile);
     if (r.skipped) {
       console.log(ansis.yellow(`\n! ${meta.displayName} 跳过：${r.skipped}\n`));
-      return;
+      return false;
     }
     console.log(ansis.green(`\n✔ 已切换到 profile: ${ansis.bold(target.name)}`));
     if (r.backup) console.log(ansis.dim(`  备份: ${r.backup}`));
     console.log(ansis.yellow(`! API key 不能写入 toml，请在 shell 里导出：`));
     console.log(ansis.cyan(`    export ${codexEnvKeyFor(target)}=<your-api-key>`));
     console.log(ansis.dim(`  下次启动 codex 时会自动用 [profiles.${target.name}]\n`));
-    return;
+    return true;
   }
 
   const settings = await readSettings(meta.settingsFile);
@@ -122,7 +133,7 @@ async function useForSingleTool(target: Profile, tool: CodeTool, yes: boolean): 
     const ok = await confirm({ message: '确认切换？', default: true });
     if (!ok) {
       console.log(ansis.gray('已取消。'));
-      return;
+      return false;
     }
   }
 
@@ -130,10 +141,11 @@ async function useForSingleTool(target: Profile, tool: CodeTool, yes: boolean): 
   console.log(ansis.green(`\n✔ 已切换到 profile: ${ansis.bold(target.name)}`));
   if (backup) console.log(ansis.dim(`  备份: ${backup}`));
   console.log(ansis.yellow(`  提示: 重启 ${meta.displayName} 才能生效\n`));
+  return true;
 }
 
-/** 默认行为：写到所有已装工具 */
-async function useForAllInstalled(target: Profile, yes: boolean): Promise<void> {
+/** 默认行为：写到所有已装工具。返回是否真的写了（取消返回 false） */
+async function useForAllInstalled(target: Profile, yes: boolean): Promise<boolean> {
   if (!yes) {
     console.log(ansis.dim(`\n→ 切换到: ${target.name} (${target.provider})`));
     console.log(ansis.dim(`→ Base URL: ${target.baseUrl}`));
@@ -141,7 +153,7 @@ async function useForAllInstalled(target: Profile, yes: boolean): Promise<void> 
     const ok = await confirm({ message: '确认切换？', default: true });
     if (!ok) {
       console.log(ansis.gray('已取消。'));
-      return;
+      return false;
     }
   }
 
@@ -155,6 +167,7 @@ async function useForAllInstalled(target: Profile, yes: boolean): Promise<void> 
     console.log(ansis.cyan(`    export ${codexEnvKeyFor(target)}=<your-api-key>`));
   }
   console.log(ansis.yellow('  提示: 重启对应工具才能生效\n'));
+  return true;
 }
 
 function printSyncResults(results: SyncResult[]): void {
