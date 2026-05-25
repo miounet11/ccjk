@@ -58,7 +58,7 @@ const GROUPS: MenuGroup[] = [
       { label: '逐步配置 API（init）', hint: '选 provider → 填 URL/Key → 起 profile', run: () => initCommand() },
       { label: '权限档位（一键减少授权）', hint: 'safe / standard / yolo，同步三个工具 →', run: () => permsSubMenu() },
       { label: '编辑当前 Profile', hint: '改 key / URL / model（自动同步到所有已装工具）', run: () => editCommand() },
-      { label: '切换 Profile', hint: '一键切 API；同步到 Clavue / Claude Code', run: () => profileUseCommand(undefined) },
+      { label: '切换 Profile', hint: '一键切 API；同步到 Clavue / Claude Code / Codex', run: () => profileUseCommand(undefined) },
       // migrate 放在"开始使用"末尾：场景属新用户 onboarding（手动配过 settings.json，想纳入 ccjk 管理），
       // 跟 init / quick 并列；避免埋到维护菜单让新用户找不到。
       { label: '从现有 settings 导入', hint: '反向抽取已配好的 settings.json 生成 profile', run: async () => { await migrateCommand({}); } },

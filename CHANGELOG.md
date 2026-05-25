@@ -6,6 +6,12 @@ ccjk 是 Clavue / Claude Code / Codex 的本地配置 CLI。本文记录用户�
 
 ## [Unreleased]
 
+## [15.27.2] - 2026-05-25
+
+### Fixed
+- `ccjk --help` 顶层描述补上 Codex（之前写「Clavue / Claude Code 配置 CLI」，遗漏了 v15.20 后已经一等公民化的 Codex）
+- menu「切换 Profile」hint 同步范围补上 Codex
+
 ## [15.27.1] - 2026-05-25
 
 ### Fixed

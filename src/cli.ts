@@ -59,7 +59,7 @@ const program = new Command();
 
 program
   .name('ccjk')
-  .description('Clavue / Claude Code 配置 CLI')
+  .description('Clavue / Claude Code / Codex 配置 CLI')
   .version(pkg.version)
   .option('--no-color', '禁用彩色输出（也可设置环境变量 NO_COLOR=1）');
 
