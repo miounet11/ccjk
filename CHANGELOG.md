@@ -6,6 +6,28 @@ ccjk 是 Clavue / Claude Code / Codex 的本地配置 CLI。本文记录用户�
 
 ## [Unreleased]
 
+## [15.26.0] - 2026-05-25
+
+### Added
+- `ccjk probe [profile]`：真实 HTTP 探活，区分 ok / auth-failed / unreachable / unexpected
+  - exit code: ok=0、auth-failed=1、unreachable=2、unexpected=3
+  - `--json` 输出延迟 / 状态码 / error 详情，CI 友好
+- `ccjk migrate`：反向导入已存在的 `settings.json` 为 ccjk profile
+  - 从 env 抽 baseUrl / 凭证 / 4 槽位 model
+  - 通过 hostname 反向匹配 provider catalog；找不到落 `custom`
+  - 不修改 settings.json 本身（单向：settings → profile）
+- `ccjk profile-diff <a> <b>`：对比两个 profile 字段差异
+  - 默认彩色表格高亮不同字段
+  - `--json` 输出结构化 diff，identical=true 时 exit 0；有差异 exit 1
+- provider catalog 元数据扩展：`docsUrl` / `hint` / `region`
+  - 新增 OpenRouter / DeepSeek（之前没收录）
+  - 已收录的 anthropic / glm / kimi / minimax / custom 全部补齐 hint+docsUrl
+
+### Internal
+- 测试基线 273 → 301（+28 用例 / 25 文件）
+- 4 个并行 worker 完成 doctor-json / onboarding / profile-health / lint-extra（v15.25）
+- 4 个并行 worker 完成 probe / migrate / provider-catalog / profile-diff（本批，其中 1 个 worker 异常退出，由协调器接手 migrate 实现）
+
 ## [15.25.0] - 2026-05-25
 
 ### Added

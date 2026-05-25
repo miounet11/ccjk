@@ -18,6 +18,7 @@ npm install -g ccjk
 
 | 场景 | 命令 |
 |---|---|
+| 第一次装 ccjk 配置零基础 | `ccjk onboard`（无 profile 时自动跑） |
 | 第一次配 API key | `ccjk init` |
 | 装机后想一键配置好 | `ccjk workflow run starter` |
 | 写代码 / 闲聊切换思考强度 | `ccjk mode use code` / `ccjk mode use chat` |
@@ -25,6 +26,7 @@ npm install -g ccjk
 | 不想每次都点确认权限 | `ccjk perms standard` |
 | 看不到当前模型/用量 | `ccjk statusline-install` |
 | settings.json 出问题 | `ccjk doctor --fix` |
+| CI 集成 / 脚本检测配置 drift | `ccjk doctor --json` |
 | 装 MCP 服务（context7、serena、playwright...） | `ccjk mcp` |
 | 看哪个工具该升级了 | `ccjk tools --check-updates` |
 | 写入出错想还原 | `ccjk rollback` |

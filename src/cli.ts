@@ -41,6 +41,9 @@ import { statusCommand } from './commands/status.js';
 import { completionCommand } from './commands/completion.js';
 import { uninstallCommand } from './commands/uninstall.js';
 import { envPermCommand } from './commands/env-perm.js';
+import { probeCommand } from './commands/probe.js';
+import { migrateCommand } from './commands/migrate.js';
+import { profileDiffCommand } from './commands/profile-diff.js';
 
 const pkgPath = join(dirname(fileURLToPath(import.meta.url)), '..', 'package.json');
 const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8')) as { version: string };
@@ -374,6 +377,30 @@ program
   .description('首次运行向导（无 profile 时自动配 API + 跑 doctor）')
   .option('--force', '即使已有 profile 也强制跑一次向导')
   .action((opts: { force?: boolean }) => onboardCommand(opts));
+
+program
+  .command('probe [profile]')
+  .description('真实 HTTP 探活：测当前/指定 profile 的 baseUrl 通不通')
+  .option('--json', '结构化 JSON 输出（CI 集成用）')
+  .action((profile: string | undefined, opts: { json?: boolean }) =>
+    probeCommand(profile, opts));
+
+program
+  .command('migrate')
+  .description('反向导入：从已存在的 settings.json 抽 baseUrl/key/model 生成 profile')
+  .option('-t, --tool <tool>', '指定来源工具：clavue | claude-code')
+  .option('--name <name>', 'profile 名（默认按 provider 自动起）')
+  .option('-y, --yes', '跳过确认')
+  .action(async (opts: { tool?: 'clavue' | 'claude-code'; name?: string; yes?: boolean }) => {
+    await migrateCommand(opts);
+  });
+
+program
+  .command('profile-diff <a> <b>')
+  .description('对比两个 profile 的字段差异')
+  .option('--json', '结构化 JSON 输出')
+  .action((a: string, b: string, opts: { json?: boolean }) =>
+    profileDiffCommand(a, b, opts));
 
 program.parseAsync(process.argv).catch((err: Error) => {
   // inquirer 9+ 在 Ctrl+C 时抛 ExitPromptError，安静退出不报红
