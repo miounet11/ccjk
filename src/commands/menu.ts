@@ -186,6 +186,19 @@ function getVersion(): string {
   }
 }
 
+/**
+ * 识别 inquirer 在 Ctrl+C / ESC 取消时抛的 ExitPromptError。
+ * 抽成可测纯函数：菜单循环要把这种"用户主动取消"和真实错误区分开，
+ * 否则每次取消都被打成红色「执行失败」，是 v15.27 之前一直存在的回归。
+ */
+export function isExitPromptCancellation(err: unknown): boolean {
+  if (!err || typeof err !== 'object') return false;
+  const e = err as { name?: unknown; message?: unknown };
+  if (e.name === 'ExitPromptError') return true;
+  if (typeof e.message === 'string' && /User force closed/i.test(e.message)) return true;
+  return false;
+}
+
 export async function menuCommand(): Promise<void> {
   // 循环：执行完一个动作回到菜单首页，直到用户主动选"退出"。
   // banner 只在第一次进入时打印；之后软清屏避免重复刷屏。
@@ -259,7 +272,12 @@ export async function menuCommand(): Promise<void> {
       await item.run();
     }
     catch (e) {
-      // 子命令出错不该让整个 ccjk 崩。打印后回菜单。
+      // inquirer 在 Ctrl+C / ESC 时抛 ExitPromptError，这是用户主动取消，不是错误。
+      // 顶层 cli.ts 已对此安静退出；菜单循环里则应该静默回主菜单（不打红字、不再 prompt）。
+      if (isExitPromptCancellation(e)) {
+        continue;
+      }
+      // 子命令真的出错时才打印；不让整个 ccjk 崩。
       console.log(ansis.red(`\n✗ ${item.label} 执行失败: ${(e as Error).message}\n`));
     }
 

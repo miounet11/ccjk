@@ -6,6 +6,18 @@ ccjk 是 Clavue / Claude Code / Codex 的本地配置 CLI。本文记录用户�
 
 ## [Unreleased]
 
+## [15.27.1] - 2026-05-25
+
+### Fixed
+- `ccjk menu`：用户在子菜单按 Ctrl+C / ESC 取消时不再误报红色「执行失败」，改为静默回主菜单
+  - 顶层 `cli.ts` 早就识别 `ExitPromptError`，菜单内层 catch 没跟上 — 修复后菜单循环 `continue` 直接进入下一轮
+  - 新增 `isExitPromptCancellation()` 纯函数 + 4 个微测
+- `ccjk status` Profile 段：手配过 `settings.json` 但没纳入 ccjk 管理时，提示从「运行 `ccjk init`」改为「运行 `ccjk migrate` 反向导入」
+  - 之前的提示对已经手配的用户是误导
+
+### Internal
+- 测试基线 317 → 323（+6：menu 4、status 2）
+
 ## [15.27.0] - 2026-05-25
 
 ### Added

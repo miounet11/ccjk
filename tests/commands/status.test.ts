@@ -214,4 +214,33 @@ describe('statusCommand', () => {
     expect(out).toContain('(无 profile)');
     expect(out).toContain('gpt-5.5');
   });
+
+  it('Profile 段：手配过 settings 但没 profile → 提示 migrate（不是 init）', async () => {
+    mockedExists.mockImplementation((p) => String(p).includes('.clavue/'));
+    mockedReadSettings.mockResolvedValue({
+      env: {
+        ANTHROPIC_BASE_URL: 'https://api.x.com',
+        ANTHROPIC_AUTH_TOKEN: 't',
+        ANTHROPIC_MODEL: 'glm-4.6',
+      },
+    });
+    // listProfiles 已经默认 [] / readState 默认空（beforeEach 设的）
+
+    await statusCommand();
+
+    const out = plain();
+    expect(out).toContain('未纳入 ccjk 管理');
+    expect(out).toContain('ccjk migrate');
+    expect(out).not.toContain('未配置 — 运行 `ccjk init`');
+  });
+
+  it('Profile 段：完全空（无 settings、无 profile）→ 提示 init', async () => {
+    mockedExists.mockReturnValue(false);
+
+    await statusCommand();
+
+    const out = plain();
+    expect(out).toContain('未配置 — 运行 `ccjk init`');
+    expect(out).not.toContain('ccjk migrate');
+  });
 });

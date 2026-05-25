@@ -69,7 +69,14 @@ export async function statusCommand(): Promise<void> {
 
   console.log(ansis.bold('Profile'));
   if (profiles.length === 0) {
-    console.log(ansis.gray('  未配置 — 运行 `ccjk init` 配第一个'));
+    // 区分两种"没 profile"：完全空 → init；已经手配了 settings 但没纳入管理 → migrate
+    const hasDirectConfig = rows.some(r => r.installed && r.profile === '(直接配置)');
+    if (hasDirectConfig) {
+      console.log(ansis.gray('  未纳入 ccjk 管理 — 检测到 settings.json 已直接配置；运行 `ccjk migrate` 反向导入'));
+    }
+    else {
+      console.log(ansis.gray('  未配置 — 运行 `ccjk init` 配第一个'));
+    }
   }
   else {
     console.log(`  ${ansis.green(`${profiles.length} 个`)}：${profiles.map((p) => {
