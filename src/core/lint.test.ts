@@ -42,6 +42,97 @@ describe('lintSettings', () => {
     });
     expect(r.find(f => f.rule === 'hook-bloat')?.severity).toBe('warn');
   });
+
+  it('已弃用 env 触发 deprecated-env warn', () => {
+    const r = lintSettings({
+      env: {
+        ANTHROPIC_BASE_URL: 'https://x.com',
+        ANTHROPIC_AUTH_TOKEN: 't',
+        ANTHROPIC_SMALL_FAST_MODEL: 'haiku',
+      },
+    });
+    const f = r.find(x => x.rule === 'deprecated-env');
+    expect(f?.severity).toBe('warn');
+    expect(f?.fix).toBeTypeOf('function');
+  });
+
+  it('第三方私有字段 ANTHROPIC_CUSTOM_MODEL_OPTION 触发 deprecated-env', () => {
+    const r = lintSettings({
+      env: {
+        ANTHROPIC_BASE_URL: 'https://x.com',
+        ANTHROPIC_AUTH_TOKEN: 't',
+        ANTHROPIC_CUSTOM_MODEL_OPTION: 'foo',
+      },
+    });
+    expect(r.find(f => f.rule === 'deprecated-env')).toBeDefined();
+  });
+
+  it('CLAUDE_CODE_SUBAGENT_MODEL 也触发 deprecated-env', () => {
+    const r = lintSettings({
+      env: {
+        ANTHROPIC_BASE_URL: 'https://x.com',
+        ANTHROPIC_AUTH_TOKEN: 't',
+        CLAUDE_CODE_SUBAGENT_MODEL: 'sonnet',
+      },
+    });
+    expect(r.find(f => f.rule === 'deprecated-env')).toBeDefined();
+  });
+
+  it('未知 ANTHROPIC_* env 触发 unknown-anthropic-env info（不可自动修）', () => {
+    const r = lintSettings({
+      env: {
+        ANTHROPIC_BASE_URL: 'https://x.com',
+        ANTHROPIC_AUTH_TOKEN: 't',
+        ANTHROPIC_FUTURE_THING: 'whatever',
+      },
+    });
+    const f = r.find(x => x.rule === 'unknown-anthropic-env');
+    expect(f?.severity).toBe('info');
+    expect(f?.fix).toBeUndefined();
+    expect(f?.message).toContain('ANTHROPIC_FUTURE_THING');
+  });
+
+  it('用户业务变量（无 ANTHROPIC_/CLAUDE_CODE_ 前缀）不被 flag', () => {
+    const r = lintSettings({
+      env: {
+        ANTHROPIC_BASE_URL: 'https://x.com',
+        ANTHROPIC_AUTH_TOKEN: 't',
+        MY_CUSTOM_VAR: 'foo',
+        SOME_OTHER_KEY: 'bar',
+      },
+    });
+    expect(r.find(f => f.rule === 'unknown-anthropic-env')).toBeUndefined();
+  });
+
+  it('4 槽全同值触发 redundant-model-slots info', () => {
+    const r = lintSettings({
+      env: {
+        ANTHROPIC_BASE_URL: 'https://x.com',
+        ANTHROPIC_AUTH_TOKEN: 't',
+        ANTHROPIC_MODEL: 'glm-4.6',
+        ANTHROPIC_DEFAULT_HAIKU_MODEL: 'glm-4.6',
+        ANTHROPIC_DEFAULT_SONNET_MODEL: 'glm-4.6',
+        ANTHROPIC_DEFAULT_OPUS_MODEL: 'glm-4.6',
+      },
+    });
+    const f = r.find(x => x.rule === 'redundant-model-slots');
+    expect(f?.severity).toBe('info');
+    expect(f?.fix).toBeTypeOf('function');
+  });
+
+  it('仅 3 槽同值不触发 redundant-model-slots', () => {
+    const r = lintSettings({
+      env: {
+        ANTHROPIC_BASE_URL: 'https://x.com',
+        ANTHROPIC_AUTH_TOKEN: 't',
+        ANTHROPIC_MODEL: 'glm-4.6',
+        ANTHROPIC_DEFAULT_HAIKU_MODEL: 'glm-4.6',
+        ANTHROPIC_DEFAULT_SONNET_MODEL: 'glm-4.6',
+        ANTHROPIC_DEFAULT_OPUS_MODEL: 'opus-4',
+      },
+    });
+    expect(r.find(f => f.rule === 'redundant-model-slots')).toBeUndefined();
+  });
 });
 
 describe('autoFix', () => {
@@ -89,5 +180,52 @@ describe('autoFix', () => {
     const r = autoFix(s);
     expect(r.fixed).toEqual([]);
     expect(r.unfixable).toEqual([]);
+  });
+
+  it('修 deprecated-env：删 ANTHROPIC_SMALL_FAST_MODEL', () => {
+    const s = {
+      env: {
+        ANTHROPIC_BASE_URL: 'https://x.com',
+        ANTHROPIC_AUTH_TOKEN: 't',
+        ANTHROPIC_SMALL_FAST_MODEL: 'haiku',
+        ANTHROPIC_CUSTOM_MODEL_OPTION: 'foo',
+      },
+    };
+    const r = autoFix(s);
+    expect(r.fixed).toContain('deprecated-env');
+    expect((s.env as Record<string, string>).ANTHROPIC_SMALL_FAST_MODEL).toBeUndefined();
+    expect((s.env as Record<string, string>).ANTHROPIC_CUSTOM_MODEL_OPTION).toBeUndefined();
+  });
+
+  it('unknown-anthropic-env 进 unfixable，不动 env', () => {
+    const s = {
+      env: {
+        ANTHROPIC_BASE_URL: 'https://x.com',
+        ANTHROPIC_AUTH_TOKEN: 't',
+        ANTHROPIC_FUTURE_THING: 'keep',
+      },
+    };
+    const r = autoFix(s);
+    expect(r.unfixable).toContain('unknown-anthropic-env');
+    expect(s.env.ANTHROPIC_FUTURE_THING).toBe('keep');
+  });
+
+  it('修 redundant-model-slots：保留 ANTHROPIC_MODEL 删另外 3 个', () => {
+    const s = {
+      env: {
+        ANTHROPIC_BASE_URL: 'https://x.com',
+        ANTHROPIC_AUTH_TOKEN: 't',
+        ANTHROPIC_MODEL: 'glm-4.6',
+        ANTHROPIC_DEFAULT_HAIKU_MODEL: 'glm-4.6',
+        ANTHROPIC_DEFAULT_SONNET_MODEL: 'glm-4.6',
+        ANTHROPIC_DEFAULT_OPUS_MODEL: 'glm-4.6',
+      },
+    };
+    const r = autoFix(s);
+    expect(r.fixed).toContain('redundant-model-slots');
+    expect(s.env.ANTHROPIC_MODEL).toBe('glm-4.6');
+    expect((s.env as Record<string, string>).ANTHROPIC_DEFAULT_HAIKU_MODEL).toBeUndefined();
+    expect((s.env as Record<string, string>).ANTHROPIC_DEFAULT_SONNET_MODEL).toBeUndefined();
+    expect((s.env as Record<string, string>).ANTHROPIC_DEFAULT_OPUS_MODEL).toBeUndefined();
   });
 });
