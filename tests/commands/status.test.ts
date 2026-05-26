@@ -69,6 +69,19 @@ describe('statusCommand', () => {
       allOutput += `${args.map(a => String(a)).join(' ')}\n`;
     });
 
+    // 清干净 process.env 防止宿主机 ~/.zshrc 让 drift 测试非确定
+    for (const k of [
+      'ANTHROPIC_BASE_URL',
+      'ANTHROPIC_API_KEY',
+      'ANTHROPIC_AUTH_TOKEN',
+      'ANTHROPIC_MODEL',
+      'ANTHROPIC_DEFAULT_HAIKU_MODEL',
+      'ANTHROPIC_DEFAULT_SONNET_MODEL',
+      'ANTHROPIC_DEFAULT_OPUS_MODEL',
+    ]) {
+      vi.stubEnv(k, '');
+    }
+
     mockedListProfiles.mockResolvedValue([]);
     mockedReadState.mockResolvedValue({});
     mockedReadModeState.mockResolvedValue({});
@@ -78,6 +91,7 @@ describe('statusCommand', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.unstubAllEnvs();
   });
 
   /** 把彩色输出剥掉，方便断言 */
@@ -242,5 +256,69 @@ describe('statusCommand', () => {
     const out = plain();
     expect(out).toContain('未配置 — 运行 `ccjk init`');
     expect(out).not.toContain('ccjk migrate');
+  });
+
+  it('drift badge: shell ANTHROPIC_BASE_URL 与文件不一致 → row 显示 ! 前缀 + 底部 hint', async () => {
+    mockedExists.mockImplementation((p) => String(p).includes('.clavue/'));
+    mockedReadSettings.mockResolvedValue({
+      env: {
+        ANTHROPIC_BASE_URL: 'https://file.com',
+        ANTHROPIC_AUTH_TOKEN: 't',
+        ANTHROPIC_MODEL: 'glm-4.6',
+      },
+    });
+    vi.stubEnv('ANTHROPIC_BASE_URL', 'https://shell-different.com');
+
+    await statusCommand();
+
+    const out = plain();
+    expect(out).toMatch(/!\s+file\.com/);
+    expect(out).toContain('shell rc 已 export 同名 env');
+    expect(out).toContain('ccjk doctor');
+
+    vi.unstubAllEnvs();
+  });
+
+  it('drift badge: shell ANTHROPIC_MODEL 与文件不一致 → model 列显示 ! + footer', async () => {
+    mockedExists.mockImplementation((p) => String(p).includes('.clavue/'));
+    mockedReadSettings.mockResolvedValue({
+      env: {
+        ANTHROPIC_BASE_URL: 'https://file.com',
+        ANTHROPIC_AUTH_TOKEN: 't',
+        ANTHROPIC_MODEL: 'file-model',
+      },
+    });
+    vi.stubEnv('ANTHROPIC_MODEL', 'shell-model');
+
+    await statusCommand();
+
+    const out = plain();
+    expect(out).toMatch(/!\s+file-model/);
+    expect(out).toContain('shell rc 已 export');
+
+    vi.unstubAllEnvs();
+  });
+
+  it('drift badge: shell 与文件完全一致 → 无 ! 标记，无 footer hint', async () => {
+    mockedExists.mockImplementation((p) => String(p).includes('.clavue/'));
+    mockedReadSettings.mockResolvedValue({
+      env: {
+        ANTHROPIC_BASE_URL: 'https://same.com',
+        ANTHROPIC_AUTH_TOKEN: 't',
+        ANTHROPIC_MODEL: 'same-model',
+      },
+    });
+    vi.stubEnv('ANTHROPIC_BASE_URL', 'https://same.com');
+    vi.stubEnv('ANTHROPIC_MODEL', 'same-model');
+
+    await statusCommand();
+
+    const out = plain();
+    expect(out).not.toContain('shell rc 已 export');
+    // 不会无 ! 在 base url / model 列旁边（我们的 ! 后跟空格+域名）
+    expect(out).not.toMatch(/!\s+same\.com/);
+    expect(out).not.toMatch(/!\s+same-model/);
+
+    vi.unstubAllEnvs();
   });
 });

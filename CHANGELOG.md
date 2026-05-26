@@ -6,6 +6,17 @@ ccjk 是 Clavue / Claude Code / Codex 的本地配置 CLI。本文记录用户�
 
 ## [Unreleased]
 
+## [15.27.6] - 2026-05-26
+
+### Added
+- `ccjk status` 工具配置对比表加 drift badge：当 `process.env.ANTHROPIC_BASE_URL` /
+  `ANTHROPIC_MODEL` 与该工具 settings.json 对应字段不一致时，列前加黄色 `!`
+- 表底部新增一行 hint：`shell rc 已 export 同名 env，shadow 了文件配置 — 跑 ccjk doctor 看详情`
+- 接续 v15.27.5：doctor 已能检测 shell shadow，status 现在每次都会主动暴露这个事实
+
+### Internal
+- 测试基线 335 → 338（+3：status drift badge 3 case）
+
 ## [15.27.5] - 2026-05-25
 
 ### Added

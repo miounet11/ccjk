@@ -42,6 +42,9 @@ export async function statusCommand(): Promise<void> {
     health: 'ok' | 'warn' | 'broken' | 'unknown';
     permsTier: string;
     permsDetail: string;
+    /** v15.27.6: shell env shadow drift 标记。true = baseUrl/model 被 shell 覆盖 */
+    baseUrlDrift?: boolean;
+    modelDrift?: boolean;
   };
 
   const rows: Row[] = [];
@@ -49,7 +52,27 @@ export async function statusCommand(): Promise<void> {
     rows.push(await collectRow(tool, currentProfile));
   }
 
+  // v15.27.6: per-row drift 检测。和 doctor 的 shadow 逻辑不同——doctor 只在
+  // shell 与所有 file 都不一致时报 shadow（避免重复噪声）；status 是每行独立显示，
+  // 单个工具与 shell 不一致就要标 `!`。
+  const baseUrlShell = process.env.ANTHROPIC_BASE_URL;
+  const modelShell = process.env.ANTHROPIC_MODEL;
+  if (baseUrlShell || modelShell) {
+    for (const row of rows) {
+      if (!row.installed || row.tool === 'codex') continue;
+      if (baseUrlShell && row.baseUrl && row.baseUrl !== '(未设)' && hostnameOf(baseUrlShell) !== row.baseUrl) {
+        row.baseUrlDrift = true;
+      }
+      if (modelShell && row.model && row.model !== '(未设)' && modelShell !== row.model) {
+        row.modelDrift = true;
+      }
+    }
+  }
+
   renderCompareTable(rows);
+  if (rows.some(r => r.baseUrlDrift || r.modelDrift)) {
+    console.log(`  ${ansis.yellow('!')} ${ansis.dim('shell rc 已 export 同名 env，shadow 了文件配置 — 跑 `ccjk doctor` 看详情')}`);
+  }
   console.log();
   renderPermsSection(rows);
   console.log();
@@ -292,6 +315,8 @@ function renderCompareTable(rows: Array<{
   baseUrl: string;
   model: string;
   health: 'ok' | 'warn' | 'broken' | 'unknown';
+  baseUrlDrift?: boolean;
+  modelDrift?: boolean;
 }>): void {
   console.log(ansis.bold('工具配置对比'));
   // header
@@ -315,8 +340,11 @@ function renderCompareTable(rows: Array<{
     }
     // padToWidth 走 string-width，会自动忽略 ANSI 转义，直接传染色字符串就行
     const profileText = colorizeCurrent(row.profile);
-    const baseUrlText = row.baseUrl || ansis.gray('(未设)');
-    const modelText = row.model || ansis.gray('(未设)');
+    const baseUrlRaw = row.baseUrl || ansis.gray('(未设)');
+    const modelRaw = row.model || ansis.gray('(未设)');
+    // v15.27.6: drift 加黄色 `!` 前缀
+    const baseUrlText = row.baseUrlDrift ? `${ansis.yellow('!')} ${baseUrlRaw}` : baseUrlRaw;
+    const modelText = row.modelDrift ? `${ansis.yellow('!')} ${modelRaw}` : modelRaw;
 
     const line
       = padToWidth(meta.displayName, COLS.tool)
