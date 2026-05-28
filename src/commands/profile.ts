@@ -37,10 +37,23 @@ export async function profileListCommand(): Promise<void> {
     const key = ansis.dim(maskKey(p.apiKey));
     const model = p.model ? ansis.dim(`[${p.model}]`) : '';
     const badge = renderHealthBadge(p);
-    console.log(`  ${mark} ${name} ${padToWidth(p.provider, 12)} ${key} ${badge} ${model}`);
+    const scope = renderScope(p);
+    console.log(`  ${mark} ${name} ${padToWidth(p.provider, 12)} ${key} ${badge} ${scope} ${model}`);
   }
   console.log();
   if (state.current) console.log(ansis.dim(`  当前: ${state.current}\n`));
+}
+
+/** 作用范围徽章：v15.28.1+ 显示 profile 仅同步到哪些工具；老 profile 显示 "all" */
+function renderScope(p: Profile): string {
+  if (!p.targetTools || p.targetTools.length === 0) return ansis.dim(padToWidth('all', 8));
+  const short = p.targetTools.map((t) => {
+    if (t === 'clavue') return 'C';
+    if (t === 'claude-code') return 'CC';
+    if (t === 'codex') return 'CX';
+    return t;
+  }).join('+');
+  return ansis.cyan(padToWidth(short, 8));
 }
 
 /** 健康徽章：固定 11 个可见字符宽度，便于列对齐 */
@@ -143,12 +156,20 @@ async function useForSingleTool(target: Profile, tool: CodeTool, yes: boolean): 
   return true;
 }
 
-/** 默认行为：写到所有已装工具。返回是否真的写了（取消返回 false） */
+/** 默认行为：写到 profile.targetTools 列出的工具（老 profile 同步到全部）。返回是否真的写了 */
 async function useForAllInstalled(target: Profile, yes: boolean): Promise<boolean> {
+  const scope = target.targetTools && target.targetTools.length > 0
+    ? target.targetTools.map(t => TOOLS[t].displayName).join(' / ')
+    : 'Clavue / Claude Code / Codex';
+
   if (!yes) {
     console.log(ansis.dim(`\n→ 切换到: ${target.name} (${target.provider})`));
     console.log(ansis.dim(`→ Base URL: ${target.baseUrl}`));
-    console.log(ansis.dim('→ 同步到所有已装工具（Clavue / Claude Code / Codex）\n'));
+    console.log(ansis.dim(`→ 同步到: ${scope}`));
+    if (!target.targetTools) {
+      console.log(ansis.dim('  （老 profile：未指定作用范围，默认同步到全部已装工具；用 `ccjk edit` 改）'));
+    }
+    console.log();
     const ok = await confirm({ message: '确认切换？', default: true });
     if (!ok) {
       console.log(ansis.gray('已取消。'));
@@ -231,6 +252,13 @@ export async function profileShowCommand(name: string | undefined): Promise<void
   if (p.fastModel) console.log(`  haiku      ${p.fastModel}`);
   if (p.sonnetModel) console.log(`  sonnet     ${p.sonnetModel}`);
   if (p.opusModel) console.log(`  opus       ${p.opusModel}`);
+  if (p.targetTools && p.targetTools.length > 0) {
+    const names = p.targetTools.map(t => TOOLS[t].displayName).join(', ');
+    console.log(`  scope      ${names}`);
+  }
+  else {
+    console.log(ansis.dim(`  scope      all（老 profile，默认同步到所有已装工具）`));
+  }
   console.log(ansis.dim(`  createdAt  ${p.createdAt}\n`));
 }
 

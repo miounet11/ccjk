@@ -109,6 +109,7 @@ export async function migrateCommand(opts: MigrateOptions = {}): Promise<Migrate
     ...(extracted.fastModel ? { fastModel: extracted.fastModel } : {}),
     ...(extracted.sonnetModel ? { sonnetModel: extracted.sonnetModel } : {}),
     ...(extracted.opusModel ? { opusModel: extracted.opusModel } : {}),
+    targetTools: [tool],
     createdAt: new Date().toISOString(),
   });
   await writeState({ current: name });

@@ -6,6 +6,18 @@ ccjk 是 Clavue / Claude Code / Codex 的本地配置 CLI。本文记录用户�
 
 ## [Unreleased]
 
+## [15.28.1] - 2026-05-28
+
+### Fixed
+- **Profile 不再一把刷三个工具的 settings**：`Profile` 新增 `targetTools` 字段，
+  init / quick / migrate 写入时只记录"配置时选的那个工具"。`ccjk use` 切换 profile
+  时只同步到 `targetTools` 列出的工具——配 codex 不再污染 clavue 的 settings。
+  老 profile（无字段）保持向后兼容，默认同步到全部已装工具。
+- `ccjk list` / `ccjk show` 显示作用范围：`C` / `CC` / `CX` 缩写或全名。
+
+### Internal
+- 测试基线 349 → 351（targetTools 字段往返、老 profile 兼容）
+
 ## [15.28.0] - 2026-05-28
 
 复刻 [zcf](https://github.com/UfoMiao/zcf) 的 provider / perms / codex 设计端到端，

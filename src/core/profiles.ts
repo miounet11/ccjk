@@ -28,6 +28,15 @@ export interface Profile {
   createdAt: string;
   /** ISO8601 时间戳，最后一次被 `ccjk use` 切换激活。旧 profile 无此字段。 */
   lastUsedAt?: string;
+  /**
+   * 这个 profile 应当同步到哪些工具。
+   * - 显式数组：只同步到列表里的工具（init 时根据用户选的 tool 写入）
+   * - undefined：旧 profile 兼容路径，同步到全部已装工具（v15.27 及之前行为）
+   *
+   * 设计意图：v15.28 之前所有 profile 切换会一把刷三个工具的 settings；
+   * 用户配 codex 的 key 不应该污染 clavue / claude-code 的 settings。
+   */
+  targetTools?: CodeTool[];
 }
 
 export type ProfileHealthStatus = 'healthy' | 'stale' | 'broken';
@@ -236,16 +245,19 @@ export interface SyncResult {
 }
 
 /**
- * 把 profile 同步到所有"已装"的工具。
- * - clavue / claude-code 写 settings.env（applyProfileToSettings）
- * - codex 写 ~/.codex/config.toml 的 [profiles.<name>] 段，顶层 profile 也指向它；
- *   API key 同时写入 ~/.codex/auth.json（envKey + OPENAI_API_KEY 兜底），无需用户 export
+ * 把 profile 同步到对应工具。
  *
- * 没装的工具会被跳过（不报错），返回中可见 `skipped`。
- * profile 没绑 codex 用得到的 main model 时跳过 codex（避免写空 model）。
+ * 目标列表来源：
+ * - `profile.targetTools` 非空 → 只动列表里的工具（v15.28.1+）
+ * - 否则（老 profile）→ 全部三个工具（保持向后兼容）
+ *
+ * 工具未安装会被跳过（返回中可见 `skipped: '未安装'`）。
+ * codex profile 没 main model 时跳过 codex（避免写空 model）。
  */
 export async function applyProfileToInstalledTools(profile: Profile): Promise<SyncResult[]> {
-  const targets: CodeTool[] = ['clavue', 'claude-code', 'codex'];
+  const targets: CodeTool[] = profile.targetTools && profile.targetTools.length > 0
+    ? profile.targetTools
+    : ['clavue', 'claude-code', 'codex'];
   const results: SyncResult[] = [];
   for (const t of targets) {
     const meta = TOOLS[t];

@@ -125,6 +125,7 @@ export async function quickCommand(opts: QuickOptions = {}): Promise<void> {
       ...(slots.haiku ? { fastModel: slots.haiku } : {}),
       ...(slots.sonnet ? { sonnetModel: slots.sonnet } : {}),
       ...(slots.opus ? { opusModel: slots.opus } : {}),
+      targetTools: [tool],
       createdAt: new Date().toISOString(),
     });
     await writeState({ current: profileName });

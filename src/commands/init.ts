@@ -127,6 +127,7 @@ async function initClaudeLike(tool: CodeTool, opts: InitOptions): Promise<void> 
     authType,
     apiKey,
     slots,
+    targetTools: [tool],
   });
   console.log();
 }
@@ -185,6 +186,8 @@ interface SaveProfileArgs {
   authType: AuthType;
   apiKey: string;
   slots: ModelSlots;
+  /** 这个 profile 应当只同步到哪些工具。init 调用方根据当前选的 tool 设定 */
+  targetTools: CodeTool[];
 }
 
 async function maybeSaveProfile(args: SaveProfileArgs): Promise<void> {
@@ -218,10 +221,12 @@ async function maybeSaveProfile(args: SaveProfileArgs): Promise<void> {
     ...(args.slots.haiku ? { fastModel: args.slots.haiku } : {}),
     ...(args.slots.sonnet ? { sonnetModel: args.slots.sonnet } : {}),
     ...(args.slots.opus ? { opusModel: args.slots.opus } : {}),
+    targetTools: args.targetTools,
     createdAt: new Date().toISOString(),
   });
   await writeState({ current: name });
   console.log(ansis.green(`  Profile: ${name} 已保存（当前激活）`));
+  console.log(ansis.dim(`  作用范围: ${args.targetTools.map(t => TOOLS[t].displayName).join(', ')}`));
 }
 
 async function suggestName(providerId: string): Promise<string> {
@@ -324,6 +329,7 @@ async function initCodex(opts: InitOptions): Promise<void> {
     authType: 'auth_token',
     apiKey,
     slots: { main: model },
+    targetTools: ['codex'],
   });
 }
 

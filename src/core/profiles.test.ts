@@ -414,6 +414,36 @@ describe('lastUsedAt 兼容性', () => {
       rmSync(dir, { recursive: true, force: true });
     }
   });
+
+  it('targetTools 字段往返（v15.28.1+ 限定作用范围）', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'ccjk-'));
+    try {
+      await writeProfile(P({ name: 'codex-only', targetTools: ['codex'] }), dir);
+      const loaded = await readProfile('codex-only', dir);
+      expect(loaded?.targetTools).toEqual(['codex']);
+
+      await writeProfile(P({ name: 'cc-only', targetTools: ['claude-code'] }), dir);
+      const cc = await readProfile('cc-only', dir);
+      expect(cc?.targetTools).toEqual(['claude-code']);
+    }
+    finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('老 profile（无 targetTools）能正常加载', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'ccjk-'));
+    try {
+      const legacy = { ...P() };
+      delete legacy.targetTools;
+      writeFileSync(join(dir, 'work.json'), `${JSON.stringify(legacy, null, 2)}\n`);
+      const loaded = await readProfile('work', dir);
+      expect(loaded?.targetTools).toBeUndefined();
+    }
+    finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
 });
 
 describe('migrateLegacyProfile', () => {
