@@ -191,8 +191,11 @@ export function guessProviderId(baseUrl: string | undefined): string {
   if (!baseUrl) return 'custom';
   const u = baseUrl.toLowerCase();
   if (u.includes('bigmodel.cn') || u.includes('glm')) return 'glm';
+  if (u.includes('z.ai')) return 'z-ai';
+  if (u.includes('dashscope.aliyuncs.com')) return 'bailian-coding';
   if (u.includes('moonshot.cn') || u.includes('kimi')) return 'kimi';
-  if (u.includes('minimaxi.com') || u.includes('minimax')) return 'minimax';
+  if (u.includes('minimax')) return 'minimax';
+  if (u.includes('deepseek.com')) return 'deepseek';
   if (u.includes('api.anthropic.com')) return 'anthropic';
   return 'custom';
 }

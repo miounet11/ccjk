@@ -35,22 +35,30 @@ describe('TIERS 语法符合 Claude Code 官方规范', () => {
     }
   });
 
-  it('standard 档覆盖关键日常命令（git tag/push/reset、rm、chmod、docker 等）', () => {
+  it('standard 档对齐 zcf 模板：裸 Bash + 全部内置工具 + 主流 MCP', () => {
     const allow = TIERS.standard.claude.allow;
-    // 这些命令历史上漏了，导致用户被弹窗
-    expect(allow).toContain('Bash(git tag *)');
-    expect(allow).toContain('Bash(git push *)');
-    expect(allow).toContain('Bash(git reset *)');
-    expect(allow).toContain('Bash(git clone *)');
-    expect(allow).toContain('Bash(git remote *)');
-    expect(allow).toContain('Bash(rm *)');
-    expect(allow).toContain('Bash(chmod *)');
-    expect(allow).toContain('Bash(docker *)');
-    expect(allow).toContain('Bash(kubectl *)');
-    expect(allow).toContain('Bash(ssh *)');
-    expect(allow).toContain('Bash(tar *)');
-    expect(allow).toContain('Bash(sed *)');
-    expect(allow).toContain('Bash(awk *)');
+    // 裸 Bash —— 比 Bash(cmd *) 长清单更稳，弹窗只可能因 deny 命中
+    expect(allow).toContain('Bash');
+    // 内置工具裸名
+    expect(allow).toContain('Edit');
+    expect(allow).toContain('Write');
+    expect(allow).toContain('Read');
+    expect(allow).toContain('Grep');
+    expect(allow).toContain('Glob');
+    expect(allow).toContain('Skill');
+    expect(allow).toContain('Task');
+    expect(allow).toContain('TodoWrite');
+    // 主流 MCP 服务器（未安装时 Claude 自动忽略，不会报错）
+    expect(allow).toContain('mcp__context7');
+    expect(allow).toContain('mcp__serena');
+    expect(allow).toContain('mcp__Playwright');
+  });
+
+  it('standard 不再写 Bash(cmd *) 长清单（裸 Bash 已覆盖）', () => {
+    const allow = TIERS.standard.claude.allow;
+    expect(allow).not.toContain('Bash(git tag *)');
+    expect(allow).not.toContain('Bash(rm *)');
+    expect(allow).not.toContain('Bash(docker *)');
   });
 
   it('yolo 档使用裸 Bash 而不是 Bash(*)', () => {
@@ -111,7 +119,7 @@ describe('applyTierToClaudeSettings', () => {
     expect(s.permissions.allow).not.toContain('Bash(rg:*)');
     expect(s.permissions.allow).not.toContain('Read(*)');
     expect(s.permissions.allow).toContain('Read'); // 新模板写入的裸名
-    expect(s.permissions.allow).toContain('Bash(git tag *)');
+    expect(s.permissions.allow).toContain('Bash'); // 新模板的裸 Bash
   });
 
   it('--append 走旧行为：append + dedupe', () => {
@@ -122,7 +130,7 @@ describe('applyTierToClaudeSettings', () => {
     // append 模式下旧脏数据保留
     expect(s.permissions.allow).toContain('Bash(rg:*)');
     expect(s.permissions.allow).toContain('Read(*)');
-    expect(s.permissions.allow).toContain('Bash(git tag *)');
+    expect(s.permissions.allow).toContain('Bash');
   });
 
   it('--append 自动 dedupe', () => {
@@ -189,7 +197,11 @@ describe('detectClaudeTier', () => {
     const s = { permissions: { allow: ['Bash(*)'] }, allowUnsandboxedCommands: true };
     expect(detectClaudeTier(s as Parameters<typeof detectClaudeTier>[0])).toBe('yolo');
   });
-  it('识别 standard（含 Bash(git ...)）', () => {
+  it('识别 standard（裸 Bash + allowUnsandboxed=false，对齐 zcf 模板）', () => {
+    const s = { permissions: { allow: ['Bash', 'Edit', 'Read'] }, allowUnsandboxedCommands: false };
+    expect(detectClaudeTier(s as Parameters<typeof detectClaudeTier>[0])).toBe('standard');
+  });
+  it('识别 standard（兼容 v15.27 之前的 Bash(git ...) 写法）', () => {
     const s = { permissions: { allow: ['Read', 'Bash(git status)'] } };
     expect(detectClaudeTier(s as Parameters<typeof detectClaudeTier>[0])).toBe('standard');
   });

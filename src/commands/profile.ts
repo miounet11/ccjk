@@ -117,8 +117,7 @@ async function useForSingleTool(target: Profile, tool: CodeTool, yes: boolean): 
     }
     console.log(ansis.green(`\n✔ 已切换到 profile: ${ansis.bold(target.name)}`));
     if (r.backup) console.log(ansis.dim(`  备份: ${r.backup}`));
-    console.log(ansis.yellow(`! API key 不能写入 toml，请在 shell 里导出：`));
-    console.log(ansis.cyan(`    export ${codexEnvKeyFor(target)}=<your-api-key>`));
+    console.log(ansis.dim(`  API key 已写入 ~/.codex/auth.json（${codexEnvKeyFor(target)} + OPENAI_API_KEY）`));
     console.log(ansis.dim(`  下次启动 codex 时会自动用 [profiles.${target.name}]\n`));
     return true;
   }
@@ -160,11 +159,10 @@ async function useForAllInstalled(target: Profile, yes: boolean): Promise<boolea
   const results = await applyProfileToInstalledTools(target);
   console.log(ansis.green(`\n✔ 已切换到 profile: ${ansis.bold(target.name)}`));
   printSyncResults(results);
-  // 如果同步到了 codex，提示一下 export env key（其它工具不需要）
+  // 如果同步到了 codex，提示一下 auth.json 已写好
   const codexHit = results.find(r => r.tool === 'codex' && !r.skipped);
   if (codexHit) {
-    console.log(ansis.yellow(`! Codex 需要 API key 走环境变量：`));
-    console.log(ansis.cyan(`    export ${codexEnvKeyFor(target)}=<your-api-key>`));
+    console.log(ansis.dim(`  Codex API key 已写入 ~/.codex/auth.json（${codexEnvKeyFor(target)} + OPENAI_API_KEY）`));
   }
   console.log(ansis.yellow('  提示: 重启对应工具才能生效\n'));
   return true;

@@ -202,9 +202,10 @@ async function applyDirectOpts(profile: Profile, opts: EditOptions): Promise<boo
 }
 
 async function applyInteractive(profile: Profile, fields: string[]): Promise<void> {
-  // 如果 profile 的 provider 有 modelCatalog，model / fastModel 编辑用 select
+  // 如果 profile 的 provider 在表里且有 claudeCode.defaultModels，model 编辑用 select；
+  // 否则退化为纯 input
   const provider = findProvider(profile.provider);
-  const catalog = provider?.modelCatalog;
+  const catalog = provider?.claudeCode?.defaultModels;
 
   for (const f of fields) {
     if (f === 'apiKey') {

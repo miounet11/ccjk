@@ -152,13 +152,15 @@ function extract(settings: { env?: Record<string, string> }): ExtractedSettings 
 }
 
 function matchProvider(providers: ApiProvider[], baseUrl: string): ApiProvider | undefined {
-  // 完全相等优先；其次 hostname 同（去掉路径差异）
-  const exact = providers.find(p => p.baseUrl === baseUrl);
+  // claude-code 来源：只看 provider.claudeCode.baseUrl
+  const exact = providers.find(p => p.claudeCode?.baseUrl === baseUrl);
   if (exact) return exact;
   try {
     const target = new URL(baseUrl).host;
-    return providers.find(p => {
-      try { return new URL(p.baseUrl).host === target; }
+    return providers.find((p) => {
+      const url = p.claudeCode?.baseUrl;
+      if (!url) return false;
+      try { return new URL(url).host === target; }
       catch { return false; }
     });
   }

@@ -7,6 +7,7 @@ import {
   codexEnvKeyFor,
   listProfiles,
   maskKey,
+  migrateLegacyProfile,
   profileHealth,
   PROFILE_STALE_MS,
   readProfile,
@@ -408,6 +409,61 @@ describe('lastUsedAt 兼容性', () => {
       await writeProfile(P({ lastUsedAt: stamp }), dir);
       const loaded = await readProfile('work', dir);
       expect(loaded?.lastUsedAt).toBe(stamp);
+    }
+    finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+});
+
+describe('migrateLegacyProfile', () => {
+  it('已知重命名（glm-cn → glm）', () => {
+    const p = P({ provider: 'glm-cn' });
+    const m = migrateLegacyProfile(p);
+    expect(m.provider).toBe('glm');
+    expect(m).not.toBe(p); // 返回新对象，触发回写
+  });
+
+  it('已知重命名（kimi-coding → kimi）', () => {
+    const p = P({ provider: 'kimi-coding' });
+    expect(migrateLegacyProfile(p).provider).toBe('kimi');
+  });
+
+  it('未知 provider id → custom', () => {
+    const p = P({ provider: 'some-deprecated-gateway' });
+    expect(migrateLegacyProfile(p).provider).toBe('custom');
+  });
+
+  it('当前 provider id 不变（幂等：返回同一引用）', () => {
+    const p = P({ provider: 'glm' });
+    const m = migrateLegacyProfile(p);
+    expect(m).toBe(p); // 同一引用 → listProfiles 不回写
+  });
+
+  it('listProfiles 自动迁移并回写', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'ccjk-'));
+    try {
+      const legacy = { ...P(), provider: 'glm-cn' };
+      writeFileSync(join(dir, 'work.json'), `${JSON.stringify(legacy, null, 2)}\n`);
+      const list = await listProfiles(dir);
+      expect(list[0]?.provider).toBe('glm');
+      // 文件已被回写
+      const raw = readFileSync(join(dir, 'work.json'), 'utf-8');
+      expect(raw).toContain('"provider": "glm"');
+      expect(raw).not.toContain('glm-cn');
+    }
+    finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('readProfile 也走迁移', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'ccjk-'));
+    try {
+      const legacy = { ...P(), provider: 'kimi-coding' };
+      writeFileSync(join(dir, 'work.json'), `${JSON.stringify(legacy, null, 2)}\n`);
+      const loaded = await readProfile('work', dir);
+      expect(loaded?.provider).toBe('kimi');
     }
     finally {
       rmSync(dir, { recursive: true, force: true });

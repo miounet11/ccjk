@@ -2,8 +2,8 @@ import { confirm, editor, input, password, select } from '@inquirer/prompts';
 import ansis from 'ansis';
 import { TOOLS } from '../core/tools.js';
 import type { CodeTool } from '../core/tools.js';
-import { findProvider } from '../core/providers.js';
-import type { ApiProvider } from '../core/providers.js';
+import { defaultClaudeModel, findProvider } from '../core/providers.js';
+import type { ApiProvider, AuthType } from '../core/providers.js';
 import { readSettings, writeSettings } from '../core/settings.js';
 import { guessProviderId, parseQuickConfig } from '../core/quick-parse.js';
 import type { QuickConfig } from '../core/quick-parse.js';
@@ -63,31 +63,35 @@ export async function quickCommand(opts: QuickOptions = {}): Promise<void> {
   // 3) 补缺
   const baseUrl = parsed.baseUrl ?? await askBaseUrl();
   const apiKey = parsed.apiKey ?? await askApiKey();
-  const authType = parsed.authType ?? 'auth_token';
+  const authType: AuthType = parsed.authType ?? 'auth_token';
 
   // 4) 猜 provider；如果不是已知 provider，落到 custom
   const providerId = guessProviderId(baseUrl);
-  const provider = findProvider(providerId) ?? findProvider('custom')!;
-  const finalProvider: ApiProvider = { ...provider, authType, ...(baseUrl ? { baseUrl } : {}) };
+  const provider: ApiProvider = findProvider(providerId) ?? findProvider('custom')!;
 
-  // 5) 槽位：解析到啥用啥，没解析到 fallback 到 provider 默认
+  // 5) 槽位：解析到啥用啥，没解析到就用 provider 默认；都没有就不写
+  const fallback = defaultClaudeModel(provider);
+  const mainSlot = parsed.model ?? fallback;
+  const haikuSlot = parsed.haikuModel ?? mainSlot;
+  const sonnetSlot = parsed.sonnetModel ?? mainSlot;
+  const opusSlot = parsed.opusModel ?? mainSlot;
   const slots: ModelSlots = {
-    ...(parsed.model ? { main: parsed.model } : {}),
-    ...(parsed.haikuModel ? { haiku: parsed.haikuModel } : {}),
-    ...(parsed.sonnetModel ? { sonnet: parsed.sonnetModel } : {}),
-    ...(parsed.opusModel ? { opus: parsed.opusModel } : {}),
+    ...(mainSlot ? { main: mainSlot } : {}),
+    ...(haikuSlot ? { haiku: haikuSlot } : {}),
+    ...(sonnetSlot ? { sonnet: sonnetSlot } : {}),
+    ...(opusSlot ? { opus: opusSlot } : {}),
   };
 
   // 6) 总结 + 确认
   console.log();
   console.log(ansis.dim(`→ 目标: ${meta.displayName}（${meta.settingsFile}）`));
-  console.log(ansis.dim(`→ Provider: ${finalProvider.name}（猜测）`));
+  console.log(ansis.dim(`→ Provider: ${provider.name}（猜测）`));
   console.log(ansis.dim(`→ Base URL: ${baseUrl}`));
   console.log(ansis.dim(`→ Auth: ${authType}`));
   if (slots.main) console.log(ansis.dim(`→ Main: ${slots.main}`));
-  if (slots.haiku) console.log(ansis.dim(`→ Haiku: ${slots.haiku}`));
-  if (slots.sonnet) console.log(ansis.dim(`→ Sonnet: ${slots.sonnet}`));
-  if (slots.opus) console.log(ansis.dim(`→ Opus: ${slots.opus}`));
+  if (slots.haiku && slots.haiku !== slots.main) console.log(ansis.dim(`→ Haiku: ${slots.haiku}`));
+  if (slots.sonnet && slots.sonnet !== slots.main) console.log(ansis.dim(`→ Sonnet: ${slots.sonnet}`));
+  if (slots.opus && slots.opus !== slots.main) console.log(ansis.dim(`→ Opus: ${slots.opus}`));
   console.log();
 
   if (!opts.yes) {
@@ -100,7 +104,7 @@ export async function quickCommand(opts: QuickOptions = {}): Promise<void> {
 
   // 7) 写 settings
   const settings = await readSettings(meta.settingsFile);
-  applyApiToSettings(settings, baseUrl, apiKey, finalProvider, slots);
+  applyApiToSettings(settings, baseUrl, apiKey, authType, slots);
   const backup = await writeSettings(meta.settingsFile, settings);
 
   console.log(ansis.green('\n✔ 配置已写入'));
@@ -108,25 +112,19 @@ export async function quickCommand(opts: QuickOptions = {}): Promise<void> {
   console.log(ansis.dim(`  目标: ${meta.settingsFile}`));
 
   // 8) profile 名
-  const profileName = opts.profile ?? await suggestAndAskProfileName(finalProvider.id, opts.yes ?? false);
+  const profileName = opts.profile ?? await suggestAndAskProfileName(provider.id, opts.yes ?? false);
   if (profileName) {
     validateName(profileName);
-    // profile 里的槽位字段：解析到的 > provider 默认值。
-    // 不存的话 edit 之后会把 settings 里的对应 env 清掉，下次 use 也丢。
-    const mainForProfile = slots.main ?? finalProvider.defaultModel;
-    const fastForProfile = slots.haiku ?? finalProvider.fastModel;
-    const sonnetForProfile = slots.sonnet ?? finalProvider.sonnetModel;
-    const opusForProfile = slots.opus ?? finalProvider.opusModel;
     await writeProfile({
       name: profileName,
-      provider: finalProvider.id,
+      provider: provider.id,
       baseUrl,
       authType,
       apiKey,
-      ...(mainForProfile ? { model: mainForProfile } : {}),
-      ...(fastForProfile ? { fastModel: fastForProfile } : {}),
-      ...(sonnetForProfile ? { sonnetModel: sonnetForProfile } : {}),
-      ...(opusForProfile ? { opusModel: opusForProfile } : {}),
+      ...(slots.main ? { model: slots.main } : {}),
+      ...(slots.haiku ? { fastModel: slots.haiku } : {}),
+      ...(slots.sonnet ? { sonnetModel: slots.sonnet } : {}),
+      ...(slots.opus ? { opusModel: slots.opus } : {}),
       createdAt: new Date().toISOString(),
     });
     await writeState({ current: profileName });

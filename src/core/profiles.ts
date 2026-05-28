@@ -2,7 +2,9 @@ import { existsSync } from 'node:fs';
 import { mkdir, readFile, readdir, unlink, writeFile } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
+import { writeAuthFile } from './codex-auth.js';
 import { applyCodexProfile, listCodexProviders } from './codex-config.js';
+import { findProvider } from './providers.js';
 import { readSettings, writeSettings } from './settings.js';
 import { readTomlFile, writeTomlFile } from './toml.js';
 import { TOOLS } from './tools.js';
@@ -101,7 +103,13 @@ export async function listProfiles(dir = PROFILES_DIR): Promise<Profile[]> {
     if (!f.endsWith('.json')) continue;
     try {
       const raw = await readFile(join(dir, f), 'utf-8');
-      out.push(JSON.parse(raw) as Profile);
+      const parsed = JSON.parse(raw) as Profile;
+      const migrated = migrateLegacyProfile(parsed);
+      if (migrated !== parsed) {
+        // 幂等回写——下次启动就不会再触发
+        await writeFile(join(dir, f), `${JSON.stringify(migrated, null, 2)}\n`, 'utf-8');
+      }
+      out.push(migrated);
     }
     catch {
       // 跳过损坏文件
@@ -110,12 +118,41 @@ export async function listProfiles(dir = PROFILES_DIR): Promise<Profile[]> {
   return out.sort((a, b) => a.name.localeCompare(b.name));
 }
 
+/**
+ * v15.27 → v15.28 老 profile 迁移：
+ * - 旧 provider id（glm-cn / kimi-coding 等）已从 PROVIDERS 表里删掉
+ * - 检测到 provider id 不在表里时，回退到 'custom'，不影响 baseUrl / apiKey / model
+ *
+ * 幂等：未命中迁移规则时返回原对象（引用相同），listProfiles 据此决定是否回写。
+ */
+export function migrateLegacyProfile(p: Profile): Profile {
+  // 已知重命名映射
+  const renames: Record<string, string> = {
+    'glm-cn': 'glm',
+    'kimi-coding': 'kimi',
+  };
+  const renamed = renames[p.provider];
+  if (renamed && findProvider(renamed)) {
+    return { ...p, provider: renamed };
+  }
+  // provider id 已不在表里 → 当 custom 处理（baseUrl/apiKey 都还在，能正常工作）
+  if (!findProvider(p.provider)) {
+    return { ...p, provider: 'custom' };
+  }
+  return p;
+}
+
 export async function readProfile(name: string, dir = PROFILES_DIR): Promise<Profile | null> {
   validateName(name);
   const p = profilePath(name, dir);
   if (!existsSync(p)) return null;
   const raw = await readFile(p, 'utf-8');
-  return JSON.parse(raw) as Profile;
+  const parsed = JSON.parse(raw) as Profile;
+  const migrated = migrateLegacyProfile(parsed);
+  if (migrated !== parsed) {
+    await writeFile(p, `${JSON.stringify(migrated, null, 2)}\n`, 'utf-8');
+  }
+  return migrated;
 }
 
 export async function writeProfile(profile: Profile, dir = PROFILES_DIR): Promise<void> {
@@ -201,8 +238,8 @@ export interface SyncResult {
 /**
  * 把 profile 同步到所有"已装"的工具。
  * - clavue / claude-code 写 settings.env（applyProfileToSettings）
- * - codex 写 ~/.codex/config.toml 的 [profiles.<name>] 段，顶层 profile 也指向它
- *   （API key 不能写 toml，sync 后调用方需要提示 export）
+ * - codex 写 ~/.codex/config.toml 的 [profiles.<name>] 段，顶层 profile 也指向它；
+ *   API key 同时写入 ~/.codex/auth.json（envKey + OPENAI_API_KEY 兜底），无需用户 export
  *
  * 没装的工具会被跳过（不报错），返回中可见 `skipped`。
  * profile 没绑 codex 用得到的 main model 时跳过 codex（避免写空 model）。
@@ -231,13 +268,12 @@ export async function applyProfileToInstalledTools(profile: Profile): Promise<Sy
 }
 
 /**
- * 把 ccjk profile 落到 codex 的 [profiles.<profile.name>] 段。
+ * 把 ccjk profile 落到 codex 的 [profiles.<profile.name>] 段，并把 API key 写到
+ * `~/.codex/auth.json`（envKey + OPENAI_API_KEY 兜底）。
  *
  * 复用规则：如果 toml 里已经有同名 provider（id == profile.provider），就直接引用，
  * 不再覆盖它的 base_url / env_key —— 避免 ccjk profile 把 codex 现存网关配置改掉。
  * 没有同名 provider 才会新建一个段（env_key 用 ccjk profile 的兜底规则）。
- *
- * codex 不接受 API key 写 toml，所以 profile.apiKey 不会落进文件。
  */
 export async function syncProfileToCodex(
   profile: Profile,
@@ -255,6 +291,7 @@ export async function syncProfileToCodex(
   const doc = await readTomlFile(settingsFile);
   const existingProviders = new Set(listCodexProviders(doc));
   const reuse = existingProviders.has(profile.provider);
+  const envKey = codexEnvKeyFor(profile);
 
   applyCodexProfile(doc, {
     profileName: profile.name,
@@ -265,12 +302,19 @@ export async function syncProfileToCodex(
       : {
           baseUrl: profile.baseUrl,
           wireApi: 'responses',
-          envKey: codexEnvKeyFor(profile),
+          envKey,
           // ccjk profile 默认 auth_token 不走 OpenAI 原生鉴权
           requiresOpenaiAuth: false,
         }),
   });
   const backup = await writeTomlFile(settingsFile, doc);
+
+  // 写 auth.json：envKey 给 codex profile 用，OPENAI_API_KEY 兜底（codex CLI 默认查找）
+  await writeAuthFile({
+    [envKey]: profile.apiKey,
+    OPENAI_API_KEY: profile.apiKey,
+  });
+
   return { tool: 'codex', settingsFile: meta.settingsFile, backup };
 }
 

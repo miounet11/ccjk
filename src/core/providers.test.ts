@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { findProvider, listProvidersFor, PROVIDERS } from './providers.js';
+import { defaultClaudeModel, findProvider, listProvidersFor, PROVIDERS } from './providers.js';
 
 describe('providers', () => {
   it('每个 provider 有 id 和 name', () => {
@@ -19,66 +19,56 @@ describe('providers', () => {
     expect(listProvidersFor('clavue').some(p => p.id === 'glm')).toBe(true);
   });
 
-  it('codex 仅 custom 可用（其它都是 anthropic-compatible）', () => {
+  it('codex 仅 custom 可用（其它都是 anthropic-compatible 端点）', () => {
     expect(listProvidersFor('codex').map(p => p.id)).toEqual(['custom']);
   });
 
-  describe('enriched catalog (docsUrl / hint / region)', () => {
-    it('glm: baseUrl + hint + docsUrl + region', () => {
-      const p = findProvider('glm');
-      expect(p).toBeDefined();
-      expect(p!.baseUrl).toContain('bigmodel.cn');
-      expect(p!.hint).toBeTruthy();
-      expect(p!.docsUrl).toBeTruthy();
-      expect(p!.region).toBe('cn');
+  describe('claudeCode 子配置', () => {
+    it('glm: bigmodel.cn 端点 + auth_token', () => {
+      const p = findProvider('glm')!;
+      expect(p.claudeCode?.baseUrl).toContain('bigmodel.cn');
+      expect(p.claudeCode?.authType).toBe('auth_token');
     });
 
-    it('kimi: baseUrl + hint + docsUrl + region', () => {
-      const p = findProvider('kimi');
-      expect(p).toBeDefined();
-      expect(p!.baseUrl).toContain('moonshot.cn');
-      expect(p!.hint).toBeTruthy();
-      expect(p!.docsUrl).toBeTruthy();
-      expect(p!.region).toBe('cn');
+    it('kimi: kimi.com/coding 端点 + auth_token', () => {
+      const p = findProvider('kimi')!;
+      expect(p.claudeCode?.baseUrl).toContain('kimi.com');
+      expect(p.claudeCode?.authType).toBe('auth_token');
     });
 
-    it('deepseek: baseUrl + hint + docsUrl + region', () => {
-      const p = findProvider('deepseek');
-      expect(p).toBeDefined();
-      expect(p!.baseUrl).toContain('deepseek.com');
-      expect(p!.hint).toBeTruthy();
-      expect(p!.docsUrl).toBeTruthy();
-      expect(p!.region).toBe('cn');
+    it('deepseek: deepseek.com 端点', () => {
+      const p = findProvider('deepseek')!;
+      expect(p.claudeCode?.baseUrl).toContain('deepseek.com');
+      expect(p.claudeCode?.authType).toBe('auth_token');
     });
 
-    it('anthropic: baseUrl + hint + docsUrl + region', () => {
-      const p = findProvider('anthropic');
-      expect(p).toBeDefined();
-      expect(p!.baseUrl).toContain('api.anthropic.com');
-      expect(p!.hint).toBeTruthy();
-      expect(p!.docsUrl).toBeTruthy();
-      expect(p!.region).toBe('global');
+    it('anthropic: api.anthropic.com 端点', () => {
+      const p = findProvider('anthropic')!;
+      expect(p.claudeCode?.baseUrl).toContain('api.anthropic.com');
     });
 
-    it('openrouter: baseUrl + hint + docsUrl + region', () => {
-      const p = findProvider('openrouter');
-      expect(p).toBeDefined();
-      expect(p!.baseUrl).toContain('openrouter.ai');
-      expect(p!.hint).toBeTruthy();
-      expect(p!.docsUrl).toBeTruthy();
-      expect(p!.region).toBe('global');
+    it('custom: 没有 claudeCode preset（强制用户输 baseUrl）', () => {
+      const p = findProvider('custom')!;
+      expect(p.claudeCode).toBeUndefined();
+      expect(p.region).toBeTruthy();
     });
 
-    it('custom: hint + region（baseUrl 留空让用户填）', () => {
-      const p = findProvider('custom');
-      expect(p).toBeDefined();
-      expect(p!.hint).toBeTruthy();
-      expect(p!.region).toBe('global');
+    it('z-ai 和 bailian-coding 在表里', () => {
+      expect(findProvider('z-ai')).toBeDefined();
+      expect(findProvider('bailian-coding')).toBeDefined();
     });
   });
 
-  describe('listProvidersFor clavue / claude-code 覆盖核心 id', () => {
-    const expectedIds = ['anthropic', 'glm', 'kimi', 'deepseek', 'openrouter', 'custom'];
+  describe('defaultClaudeModel', () => {
+    it('返回 defaultModels[0]，没有就 undefined', () => {
+      expect(defaultClaudeModel(findProvider('deepseek')!)).toBe('deepseek-v4-pro');
+      expect(defaultClaudeModel(findProvider('glm')!)).toBeUndefined();
+      expect(defaultClaudeModel(findProvider('custom')!)).toBeUndefined();
+    });
+  });
+
+  describe('listProvidersFor 覆盖', () => {
+    const expectedIds = ['anthropic', 'glm', 'kimi', 'deepseek', 'custom'];
 
     it('clavue 工具支持以上全部 provider', () => {
       const ids = listProvidersFor('clavue').map(p => p.id);
