@@ -6,6 +6,35 @@ ccjk 是 Clavue / Claude Code / Codex 的本地配置 CLI。本文记录用户�
 
 ## [Unreleased]
 
+## [15.28.0] - 2026-05-28
+
+复刻 [zcf](https://github.com/UfoMiao/zcf) 的 provider / perms / codex 设计端到端，
+剔除全部第三方中转网关，三套配置（clavue / claude-code / codex）统一最简版。
+
+### Changed
+- **Provider 表瘦身**：内置 provider 只保留官方直连——`glm` / `z-ai` /
+  `bailian-coding` / `minimax` / `kimi` / `deepseek` / `anthropic` / `custom`。
+  删除 302.ai / Packy / Pateway / APIKEY.FUN / AICodeMirror / Crazyrouter 等
+  中转网关 preset；要用走 `custom` 手填 baseUrl + key。
+- **Provider 结构**：拆出 `claudeCode { baseUrl, authType, defaultModels }` 和
+  `codex { baseUrl, wireApi, defaultModel }` 两套字段。同一家厂商两端 baseUrl
+  不同时不再混淆。
+- **Codex API key 自动落到 `~/.codex/auth.json`**：`ccjk use` 切到 codex profile
+  会同时写入 `<ENV_KEY>` + `OPENAI_API_KEY` 两条；用户不再需要手动 `export`。
+- **权限档位对齐 zcf 模板**：`standard` / `yolo` 改用裸 `Bash` + 全部内置工具
+  裸名 + 主流 MCP 服务器名；老的 90 条 `Bash(cmd *)` 长清单删掉，靠 deny
+  兜底高危命令（`rm -rf /`、`git push --force`、`sudo`、`mkfs` 等）。
+- **init 流程简化**：默认一个 main model，自动填 haiku/sonnet/opus 槽位
+  （不再让用户配 4 槽位策略）。
+
+### Added
+- `src/core/codex-auth.ts`：`readAuthFile` / `writeAuthFile` / `removeAuthKey`
+- 启动时自动迁移老 profile：`glm-cn` → `glm`，`kimi-coding` → `kimi`，已删的
+  provider id 自动回退到 `custom`（baseUrl/apiKey 保留可用，幂等回写）
+
+### Internal
+- 测试基线 343 → 349（+8：codex auth 写入、profile 迁移、新模板覆盖）
+
 ## [15.27.6] - 2026-05-26
 
 ### Added
