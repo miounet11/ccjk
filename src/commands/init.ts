@@ -318,7 +318,7 @@ async function initCodex(opts: InitOptions): Promise<void> {
   console.log(ansis.dim(`  config: ${meta.settingsFile}`));
   console.log(ansis.dim(`  auth:   ~/.codex/auth.json`));
   console.log();
-  console.log(ansis.dim('提示：随时可以 `codex --profile <name>` 切换其它 profile。\n'));
+  console.log(ansis.dim(`提示：用 \`codex --profile ${profileName}\` 启动指定 profile（顶层 profile 字段已被新版 codex 弃用）。\n`));
 
   // 顺便把这次 codex 配置也存为 ccjk profile，方便 `ccjk use` 同步
   await maybeSaveProfile({

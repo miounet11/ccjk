@@ -9,7 +9,7 @@ import {
 import { parseToml } from './toml.js';
 
 describe('applyCodexProfile', () => {
-  it('从空 doc 创建 profile + provider 段，并把顶层 profile 指向它', () => {
+  it('从空 doc 创建 profile + provider 段（不写顶层 profile，新版 codex 已禁用）', () => {
     const doc = parseToml('');
     applyCodexProfile(doc, {
       profileName: 'work',
@@ -19,7 +19,9 @@ describe('applyCodexProfile', () => {
       envKey: 'MYAPI_API_KEY',
       requiresOpenaiAuth: false,
     });
-    expect(doc.values.get('profile')).toBe('work');
+    // 顶层 profile 必须不写（写了 codex 启动会报 legacy 错）
+    expect(doc.values.has('profile')).toBe(false);
+    expect(doc.raw).not.toMatch(/^profile\s*=/m);
     expect(doc.values.get('profiles.work.model')).toBe('gpt-5.5');
     expect(doc.values.get('profiles.work.model_provider')).toBe('myapi');
     expect(doc.values.get('model_providers.myapi.base_url')).toBe('https://api.example.com/v1');
@@ -73,7 +75,7 @@ requires_openai_auth = false
     expect(occurrences).toBe(1);
   });
 
-  it('多次写入不同 profile，互不覆盖；顶层 profile 指向最新的', () => {
+  it('多次写入不同 profile，互不覆盖；不写顶层 profile', () => {
     const doc = parseToml('');
     applyCodexProfile(doc, {
       profileName: 'first',
@@ -89,11 +91,32 @@ requires_openai_auth = false
       baseUrl: 'http://2',
       envKey: 'P2_KEY',
     });
-    expect(doc.values.get('profile')).toBe('second');
+    expect(doc.values.has('profile')).toBe(false);
     expect(doc.values.get('profiles.first.model')).toBe('gpt-5.5');
     expect(doc.values.get('profiles.second.model')).toBe('gpt-4o');
     expect(doc.values.get('model_providers.p1.base_url')).toBe('http://1');
     expect(doc.values.get('model_providers.p2.base_url')).toBe('http://2');
+  });
+
+  it('迁移老配置：发现顶层 `profile = "..."` 时主动删除（avoid legacy 报错）', () => {
+    const doc = parseToml(`profile = "old-default"
+
+[profiles.old-default]
+model = "gpt-4"
+model_provider = "p"
+`);
+    expect(doc.values.has('profile')).toBe(true);
+    applyCodexProfile(doc, {
+      profileName: 'work',
+      providerId: 'p',
+      model: 'gpt-5.5',
+    });
+    expect(doc.values.has('profile')).toBe(false);
+    expect(doc.raw).not.toMatch(/^profile\s*=\s*"old-default"/m);
+    // 老 profile 段保留
+    expect(doc.values.get('profiles.old-default.model')).toBe('gpt-4');
+    // 新 profile 段写好
+    expect(doc.values.get('profiles.work.model')).toBe('gpt-5.5');
   });
 
   it('修改已有 profile 的 model（同名 profileName）时就地替换', () => {
@@ -136,9 +159,7 @@ command = "npx"
 
 describe('listCodexProfiles / listCodexProviders', () => {
   it('从 toml 中正确提取 profile 名和 provider 名', () => {
-    const doc = parseToml(`profile = "work"
-
-[profiles.work]
+    const doc = parseToml(`[profiles.work]
 model = "gpt-5.5"
 model_provider = "myapi"
 
@@ -165,9 +186,7 @@ base_url = "http://y"
 
 describe('lintCodexConfig', () => {
   it('清白 toml 无 finding', () => {
-    const doc = parseToml(`profile = "work"
-
-[profiles.work]
+    const doc = parseToml(`[profiles.work]
 model = "gpt-5.5"
 model_provider = "myapi"
 
@@ -177,6 +196,24 @@ wire_api = "responses"
 env_key = "MYAPI_KEY"
 `);
     expect(lintCodexConfig(doc)).toEqual([]);
+  });
+
+  it('命中 legacy 顶层 profile（error 级，可自动修）', () => {
+    const doc = parseToml(`profile = "work"
+
+[profiles.work]
+model = "gpt-5.5"
+model_provider = "myapi"
+
+[model_providers.myapi]
+base_url = "http://x"
+wire_api = "responses"
+`);
+    const findings = lintCodexConfig(doc);
+    const f = findings.find(x => x.rule === 'codex-legacy-toplevel-profile');
+    expect(f).toBeDefined();
+    expect(f?.severity).toBe('error');
+    expect(f?.fix).toBeDefined();
   });
 
   it('命中 model_providers.X.model 脏字段', () => {
@@ -202,20 +239,19 @@ wire_api = "chat"
 model_provider = "myapi"
 `);
     const findings = lintCodexConfig(doc);
-    const single = findings.find(f => f.rule === 'codex-toplevel-model-without-profile');
+    const single = findings.find(f => f.rule === 'codex-toplevel-model');
     expect(single).toBeDefined();
     expect(single?.severity).toBe('info');
   });
 
-  it('顶层 model + profile 同时存在 → 不再报 single-model（已经在用 profiles）', () => {
+  it('顶层 model 永远提示（不管有没有 profile）', () => {
     const doc = parseToml(`model = "gpt-5.5"
-profile = "work"
 
 [profiles.work]
 model = "gpt-5.5"
 `);
     const findings = lintCodexConfig(doc);
-    expect(findings.some(f => f.rule === 'codex-toplevel-model-without-profile')).toBe(false);
+    expect(findings.some(f => f.rule === 'codex-toplevel-model')).toBe(true);
   });
 });
 
@@ -252,7 +288,26 @@ wire_api = "chat"
 model_provider = "myapi"
 `);
     const { fixed, unfixable } = autoFixCodex(doc);
-    expect(fixed).not.toContain('codex-toplevel-model-without-profile');
-    expect(unfixable).toContain('codex-toplevel-model-without-profile');
+    expect(fixed).not.toContain('codex-toplevel-model');
+    expect(unfixable).toContain('codex-toplevel-model');
+  });
+
+  it('修 legacy 顶层 profile：从 raw 和 values 都删掉', () => {
+    const doc = parseToml(`profile = "work"
+
+[profiles.work]
+model = "gpt-5.5"
+model_provider = "p"
+
+[model_providers.p]
+base_url = "http://x"
+wire_api = "responses"
+`);
+    const { fixed } = autoFixCodex(doc);
+    expect(fixed).toContain('codex-legacy-toplevel-profile');
+    expect(doc.values.has('profile')).toBe(false);
+    expect(doc.raw).not.toMatch(/^profile\s*=\s*"work"/m);
+    // [profiles.work] 段保留（这是有效配置）
+    expect(doc.values.get('profiles.work.model')).toBe('gpt-5.5');
   });
 });

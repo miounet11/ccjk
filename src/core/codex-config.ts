@@ -1,9 +1,10 @@
 /**
  * Codex `~/.codex/config.toml` 写入封装。
  *
- * 设计核心：**永远走 `[profiles.<name>]` 段，不直接写顶层 model/model_provider**。
- * 顶层只设 `profile = "<name>"` 作为启动默认值——用户随时可用 `codex --profile foo`
- * 现场切换，多套 model 并存。这才是 codex 官方推荐姿势（developers.openai.com/codex/config-reference）。
+ * 设计核心：**永远走 `[profiles.<name>]` 段，绝不写顶层 `profile = "..."`**。
+ * 新版 codex CLI 已经把顶层 `profile = "..."` 拒绝为 legacy（启动时直接报错：
+ * `legacy \`profile = "<name>"\` config is no longer supported; use \`--profile <name>\` ...`）。
+ * 用户切 profile 走命令行 `codex --profile <name>`。
  *
  * 字段映射：
  *   `[profiles.<name>]`
@@ -30,7 +31,7 @@ export type CodexWireApi = 'responses';
 export type CodexReasoningEffort = 'low' | 'medium' | 'high';
 
 export interface CodexProfileParams {
-  /** profile 名，写入 `[profiles.<name>]` 与顶层 `profile = "<name>"` */
+  /** profile 名，写入 `[profiles.<name>]` 段；用户用 `codex --profile <name>` 切换 */
   profileName: string;
   /** 指向 `[model_providers.<id>]` 的 id */
   providerId: string;
@@ -57,9 +58,11 @@ export interface CodexProfileParams {
 export function applyCodexProfile(doc: TomlDoc, params: CodexProfileParams): void {
   const { profileName, providerId, model, reasoningEffort } = params;
 
-  // 顶层 profile = 启动默认。若用户之前已经设过，会被替换——这是预期行为
-  // （刚 init 完的 profile 自然成为下次启动的默认）。
-  setTomlValue(doc, 'profile', profileName);
+  // 顶层 profile = "<name>" 是 legacy：新版 codex 启动时直接报错拒绝。
+  // 不写、且主动迁移：老 ccjk 写的顶层 profile 行直接删掉。
+  if (doc.values.has('profile')) {
+    deleteTomlKey(doc, 'profile');
+  }
 
   // [profiles.<name>] 段
   setTomlValue(doc, `profiles.${profileName}.model`, model);
@@ -129,13 +132,14 @@ function shouldWriteProviderSection(p: CodexProfileParams): boolean {
  * Codex toml lint。返回 finding 列表（severity / rule / message / fix?）。
  *
  * 当前规则：
+ *  - codex-legacy-toplevel-profile：顶层 `profile = "..."` 已被新版 codex 拒绝
+ *    （启动报 `legacy profile ... no longer supported`），**error 级，可自动修**（删字段）。
  *  - codex-provider-model-field：`[model_providers.<X>].model` 是无效字段，
  *    codex 不读它，会让用户以为"切了 model"但其实没切。可自动修（删字段）。
  *  - codex-stale-wire-api：`wire_api = "chat"` 是旧字段，codex 当前只支持
  *    `"responses"`，会被忽略 / 报错。可自动修（改成 responses）。
- *  - codex-toplevel-model-without-profile：顶层有 `model = "..."` 但没设
- *    `profile = "..."`，单 model 锁定模式（反人性，建议改用 profiles）。
- *    info 级别——不强制改，提示用户。
+ *  - codex-toplevel-model：顶层有 `model = "..."` —— 单 model 锁定模式（反人性），
+ *    info 级别。建议搬到 `[profiles.<name>].model`，用 `codex --profile <name>` 切换。
  */
 export interface CodexFinding {
   severity: 'error' | 'warn' | 'info';
@@ -148,6 +152,22 @@ export interface CodexFinding {
 
 export function lintCodexConfig(doc: TomlDoc): CodexFinding[] {
   const findings: CodexFinding[] = [];
+
+  // 规则 0：顶层 profile = "<name>" 是 legacy，新版 codex 启动时硬报错
+  if (doc.values.has('profile')) {
+    const name = doc.values.get('profile');
+    findings.push({
+      severity: 'error',
+      rule: 'codex-legacy-toplevel-profile',
+      message:
+        `顶层 \`profile = "${String(name)}"\` 是已弃用字段，新版 codex 启动时会报错。`
+        + ` 用 \`codex --profile <name>\` 在命令行切换 profile。`,
+      fixHint: '删除顶层 profile 字段；命令行用 `codex --profile <name>`',
+      fix: (d) => {
+        return deleteTomlKey(d, 'profile');
+      },
+    });
+  }
 
   // 规则 1：model_providers.X.model 是脏数据
   const providerModelKeys: string[] = [];
@@ -204,14 +224,15 @@ export function lintCodexConfig(doc: TomlDoc): CodexFinding[] {
     });
   }
 
-  // 规则 3：顶层 model 但没 profile（单 model 锁定）
-  if (doc.values.has('model') && !doc.values.has('profile')) {
+  // 规则 3：顶层 model（单 model 锁定）。注意：顶层 profile 已被规则 0 视为 legacy，
+  // 所以这里不再区分"有/无 profile"——只要顶层有 model 就提示搬到 [profiles.<name>]。
+  if (doc.values.has('model')) {
     findings.push({
       severity: 'info',
-      rule: 'codex-toplevel-model-without-profile',
+      rule: 'codex-toplevel-model',
       message:
-        '顶层只设了 model 没设 profile —— 这是单 model 锁定模式。'
-        + '建议把它搬到 [profiles.<name>] 段，方便用 `codex --profile <other>` 切换其它 model。',
+        '顶层 `model = "..."` 是单 model 锁定模式。'
+        + '建议搬到 `[profiles.<name>].model`，再用 `codex --profile <name>` 切换。',
       fixHint: '运行 `ccjk init`，选 codex，新建一个 profile',
     });
   }

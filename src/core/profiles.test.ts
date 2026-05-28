@@ -245,7 +245,7 @@ describe('codexEnvKeyFor', () => {
 });
 
 describe('syncProfileToCodex', () => {
-  it('空 toml → 写出 [profiles.<name>] + [model_providers.<provider>]', async () => {
+  it('空 toml → 写出 [profiles.<name>] + [model_providers.<provider>]，不写顶层 profile', async () => {
     const dir = mkdtempSync(join(tmpdir(), 'ccjk-codex-'));
     try {
       const file = join(dir, 'config.toml');
@@ -253,7 +253,8 @@ describe('syncProfileToCodex', () => {
       const r = await syncProfileToCodex(P({ name: 'work', provider: 'glm', model: 'glm-4.6' }), file);
       expect(r.skipped).toBeUndefined();
       const raw = readFileSync(file, 'utf-8');
-      expect(raw).toContain('profile = "work"');
+      // 顶层 profile 必须不写（v15.28.2+ codex legacy 修复）
+      expect(raw).not.toMatch(/^profile\s*=\s*"work"/m);
       expect(raw).toContain('[profiles.work]');
       expect(raw).toContain('model = "glm-4.6"');
       expect(raw).toContain('model_provider = "glm"');
@@ -325,6 +326,29 @@ trust_level = "trusted"
       expect(raw).toContain('[mcp_servers.context7]');
       expect(raw).toContain('command = "npx"');
       expect(raw).toContain('[projects."/x/y"]');
+    }
+    finally {
+      rmSync(dir, { recursive: true });
+    }
+  });
+
+  it('迁移老 config：发现顶层 `profile = "..."` 时主动删除（修 codex legacy 报错）', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'ccjk-codex-'));
+    try {
+      const file = join(dir, 'config.toml');
+      writeFileSync(file, `profile = "stale-default"
+
+[profiles.stale-default]
+model = "old"
+model_provider = "p"
+`);
+      await syncProfileToCodex(P({ name: 'work', provider: 'glm', model: 'glm-4.6' }), file);
+      const raw = readFileSync(file, 'utf-8');
+      expect(raw).not.toMatch(/^profile\s*=/m);
+      // 老 profile 段不动
+      expect(raw).toContain('[profiles.stale-default]');
+      // 新 profile 写入
+      expect(raw).toContain('[profiles.work]');
     }
     finally {
       rmSync(dir, { recursive: true });

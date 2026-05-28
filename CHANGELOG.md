@@ -6,6 +6,23 @@ ccjk 是 Clavue / Claude Code / Codex 的本地配置 CLI。本文记录用户�
 
 ## [Unreleased]
 
+## [15.28.2] - 2026-05-28
+
+### Fixed
+- **Codex 启动报 `legacy \`profile = "..."\` config is no longer supported`**：
+  ccjk 之前在 `~/.codex/config.toml` 顶层写 `profile = "<name>"` 作启动默认，
+  新版 codex CLI 已把它当 legacy 直接拒绝。改用 codex 官方推荐姿势：
+  - 不再写顶层 `profile`；用户用 `codex --profile <name>` 启动指定 profile
+  - `applyCodexProfile` 检测到老 `profile = "..."` 行会主动删除（迁移幂等）
+  - `ccjk doctor` 新增规则 `codex-legacy-toplevel-profile`（**error 级**，可
+    `ccjk doctor --fix` 自动清掉）
+  - `init` / `use` 完成后的提示语统一改成 `codex --profile <name>` 启动
+- 旧规则 `codex-toplevel-model-without-profile` 重写为 `codex-toplevel-model`：
+  顶层有 `model = "..."` 一律提示搬到 `[profiles.<name>].model`（不再因为有顶层 profile 就放过——顶层 profile 本身就是 legacy）
+
+### Internal
+- 测试基线 351 → 355（+4：legacy 顶层 profile 自动删 / lint error 规则 / autoFix 回归 / syncProfileToCodex 老配置迁移）
+
 ## [15.28.1] - 2026-05-28
 
 ### Fixed

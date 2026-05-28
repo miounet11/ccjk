@@ -116,7 +116,7 @@ async function useForSingleTool(target: Profile, tool: CodeTool, yes: boolean): 
     if (!yes) {
       console.log(ansis.dim(`\n→ 切换到: ${target.name} (${target.provider})`));
       console.log(ansis.dim(`→ 写入: ${meta.settingsFile} 的 [profiles.${target.name}] 段`));
-      console.log(ansis.dim(`→ 顶层 profile = "${target.name}"\n`));
+      console.log(ansis.dim(`→ 启动用: codex --profile ${target.name}\n`));
       const ok = await confirm({ message: '确认切换？', default: true });
       if (!ok) {
         console.log(ansis.gray('已取消。'));
@@ -131,7 +131,7 @@ async function useForSingleTool(target: Profile, tool: CodeTool, yes: boolean): 
     console.log(ansis.green(`\n✔ 已切换到 profile: ${ansis.bold(target.name)}`));
     if (r.backup) console.log(ansis.dim(`  备份: ${r.backup}`));
     console.log(ansis.dim(`  API key 已写入 ~/.codex/auth.json（${codexEnvKeyFor(target)} + OPENAI_API_KEY）`));
-    console.log(ansis.dim(`  下次启动 codex 时会自动用 [profiles.${target.name}]\n`));
+    console.log(ansis.dim(`  启动: codex --profile ${target.name}\n`));
     return true;
   }
 
