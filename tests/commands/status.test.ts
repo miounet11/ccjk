@@ -112,7 +112,7 @@ describe('statusCommand', () => {
       permissions: { allow: ['Bash(git status)'], deny: [] },
     });
     mockedReadTomlFile.mockResolvedValue(makeTomlDoc({
-      'profile': 'openai',
+      // v15.28.x 真实形态：无顶层 profile，只有 [profiles.openai] 段
       'profiles.openai.model': 'gpt-5.5',
       'profiles.openai.model_provider': 'openai',
       'model_providers.openai.base_url': 'https://api.openai.com/v1',
@@ -227,6 +227,49 @@ describe('statusCommand', () => {
     const out = plain();
     expect(out).toContain('(无 profile)');
     expect(out).toContain('gpt-5.5');
+  });
+
+  it('codex 新姿势（无顶层 profile，只有 [profiles.glm] 段）：自动发现并显示 profile + baseUrl + model', async () => {
+    // 这是 v15.28.x 之后 init/use 写出的真实形态：不写顶层 `profile`，
+    // 只写 [profiles.<name>]，用户用 `codex --profile <name>` 启动。
+    mockedExists.mockImplementation((p) => String(p).includes('.codex/'));
+    mockedReadTomlFile.mockResolvedValue(makeTomlDoc({
+      'profiles.glm.model': 'glm-4.6',
+      'profiles.glm.model_provider': 'glm',
+      'model_providers.glm.base_url': 'https://open.bigmodel.cn/api/coding/paas/v4',
+      'model_providers.glm.wire_api': 'responses',
+      'approval_policy': 'on-request',
+      'sandbox_mode': 'workspace-write',
+    }));
+
+    await statusCommand();
+
+    const out = plain();
+    // 回归点：之前这里会显示 (无 profile) + 空 baseUrl
+    expect(out).toContain('glm');
+    expect(out).not.toContain('(无 profile)');
+    expect(out).toContain('open.bigmodel.cn');
+    expect(out).toContain('glm-4.6');
+  });
+
+  it('codex 多个 [profiles.*] 段、无顶层 profile：显示第一个 + (+N) 提示靠 --profile 选', async () => {
+    mockedExists.mockImplementation((p) => String(p).includes('.codex/'));
+    mockedReadTomlFile.mockResolvedValue(makeTomlDoc({
+      'profiles.glm.model': 'glm-4.6',
+      'profiles.glm.model_provider': 'glm',
+      'profiles.kimi.model': 'kimi-k2',
+      'profiles.kimi.model_provider': 'kimi',
+      'model_providers.glm.base_url': 'https://open.bigmodel.cn/api/coding/paas/v4',
+      'approval_policy': 'on-request',
+      'sandbox_mode': 'workspace-write',
+    }));
+
+    await statusCommand();
+
+    const out = plain();
+    // 字母序第一个是 glm；多 profile 时附 (+1) 暗示还有别的，靠 codex --profile 选
+    expect(out).toContain('glm');
+    expect(out).toContain('+1');
   });
 
   it('Profile 段：手配过 settings 但没 profile → 提示 migrate（不是 init）', async () => {

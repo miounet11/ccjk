@@ -6,6 +6,20 @@ ccjk 是 Clavue / Claude Code / Codex 的本地配置 CLI。本文记录用户�
 
 ## [Unreleased]
 
+## [15.28.3] - 2026-05-29
+
+### Fixed
+- **`ccjk status` 的 Codex 行永远显示 `(无 profile)`**：v15.28.0 改成"不写顶层
+  `profile = "..."`、只写 `[profiles.<name>]`"后，`status` 的读取逻辑没跟上——
+  还在用顶层 `profile` 字段判断当前 profile，导致按新姿势配好 codex 的用户看到
+  `(无 profile)` + 空 baseUrl。改成：无顶层 profile 时从 `[profiles.*]` 段自动发现，
+  单个直接用，多个显示第一个 + `(+N)`（codex 靠 `--profile` 选，config 无"当前"概念）。
+  顶层 `profile`（老配置/手设）仍兼容。
+
+### Internal
+- 测试基线 355 → 357（+2：codex 新姿势段发现、多 profile 的 (+N) 提示）；
+  同时把 status.test.ts "全装齐"用例从已废弃的顶层 `profile` 改成新姿势，避免固化旧行为掩盖回归。
+
 ## [15.28.2] - 2026-05-28
 
 ### Fixed

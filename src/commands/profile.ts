@@ -180,10 +180,12 @@ async function useForAllInstalled(target: Profile, yes: boolean): Promise<boolea
   const results = await applyProfileToInstalledTools(target);
   console.log(ansis.green(`\n✔ 已切换到 profile: ${ansis.bold(target.name)}`));
   printSyncResults(results);
-  // 如果同步到了 codex，提示一下 auth.json 已写好
+  // 如果同步到了 codex，提示一下 auth.json 已写好 + 启动方式
   const codexHit = results.find(r => r.tool === 'codex' && !r.skipped);
   if (codexHit) {
     console.log(ansis.dim(`  Codex API key 已写入 ~/.codex/auth.json（${codexEnvKeyFor(target)} + OPENAI_API_KEY）`));
+    // codex 靠 `--profile` 启动，重启 codex 不带参数不会用到新 profile —— 必须明示
+    console.log(ansis.yellow(`  Codex 启动用: codex --profile ${target.name}（不带 --profile 仍走旧默认）`));
   }
   console.log(ansis.yellow('  提示: 重启对应工具才能生效\n'));
   return true;
