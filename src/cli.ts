@@ -60,7 +60,7 @@ const program = new Command();
 
 program
   .name('ccjk')
-  .description('Clavue / Claude Code / Codex / Grok 配置 CLI')
+  .description('Clavue / Claude Code / Codex / Grok CLI 的统一专业配置工具（所有工具配置体验完全一致）')
   .version(pkg.version)
   .option('--no-color', '禁用彩色输出（也可设置环境变量 NO_COLOR=1）');
 

@@ -1,6 +1,8 @@
 # ccjk
 
-> Clavue / Claude Code / Codex 的本地配置 CLI。一条命令搞定 API、Profile、权限、MCP、状态栏、版本管理。
+> Clavue / Claude Code / Codex / Grok CLI 的统一专业配置工具。所有工具采用完全一致的配置体验（API Key + Base URL + 模型选择），profile 管理、权限策略一站式搞定。参考 zcf 合理交互设计，让配置简单高效、无例外。
+
+**核心亮点**：Grok CLI 配置已与 Codex、Clavue、Claude Code 完全统一，无任何例外。一次配置，多工具通用。
 
 [![npm](https://img.shields.io/npm/v/ccjk.svg)](https://www.npmjs.com/package/ccjk)
 [![license](https://img.shields.io/npm/l/ccjk.svg)](./LICENSE)
@@ -73,7 +75,7 @@ npm install -g ccjk
 | 命令 | 用途 |
 |---|---|
 | `ccjk perms [tier]` | 一键设权限档位（`safe` / `standard` / `yolo`），同步 3 个工具 |
-| `ccjk perms-show` | 查看三个工具当前的权限状态 |
+| `ccjk perms-show` | 查看当前各工具的权限档位状态 |
 
 ### MCP 服务
 
@@ -103,7 +105,7 @@ npm install -g ccjk
 
 | 命令 | 用途 |
 |---|---|
-| `ccjk tools` | 查看 Clavue / Claude Code / Codex 本地版本 |
+| `ccjk tools` | 查看 Clavue / Claude Code / Codex / Grok 本地版本 |
 | `ccjk tools --check-updates` | 加查 npm latest，标记 outdated |
 | `ccjk install [tool]` | 安装代码工具（`--all` 装全部缺失的） |
 | `ccjk update [tool]` | 升级代码工具到最新版（`--all` 全部 outdated） |
@@ -196,7 +198,7 @@ ccjk profile import team.json --conflict skip -y    # 全部 skip 已有的
 
 ### Perms：一键档位授权
 
-一条命令把 Clavue / Claude Code / Codex 的权限同步到同一档位，减少每次操作都要点确认的烦躁。
+一条命令把 Clavue / Claude Code / Codex 的权限同步到同一档位，减少每次操作都要点确认的烦躁。（Grok CLI 走 OAuth 自管，不参与 perms 同步。）
 
 | 档位 | 适合 | Claude / Clavue | Codex |
 |---|---|---|---|
@@ -321,6 +323,7 @@ ccjk git-install --scope user -y
 | Clavue | `~/.claude/settings.json` | API / Profile / Perms / MCP / Statusline / Doctor / Rollback |
 | Claude Code | `~/.claude/settings.json` | API / Profile / Perms / MCP / Statusline / Doctor / Rollback |
 | Codex | `~/.codex/config.toml` | Perms / Detect / Install / Update（API 配置请直接编辑 config.toml） |
+| Grok CLI | OAuth（`~/.grok/auth.json`） | Detect / Status / 使用指引（`ccjk grok`）；登录走 `grok login`，不参与 ccjk profile/perms 同步 |
 
 ### 内置 API Provider
 

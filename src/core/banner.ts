@@ -41,7 +41,7 @@ export function renderBanner(version: string, opts: { forceAscii?: boolean } = {
 
   for (const a of art) lines.push(bold.cyan(a));
   lines.push('');
-  lines.push(`  ${bold('Clavue 官方配置工具')}  ${dim('· Claude Code / Codex 通用')}`);
+  lines.push(`  ${bold('Clavue / Claude Code / Codex / Grok CLI 统一配置工具')}  ${dim('· 所有工具配置体验完全一致')}`);
   lines.push(`  ${dim(`v${version}  ·  npm i -g ccjk  ·  github.com/miounet11/ccjk`)}`);
   return lines.join('\n');
 }

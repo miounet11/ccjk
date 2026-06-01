@@ -1,7 +1,7 @@
 {
   "name": "ccjk",
   "version": "15.31.0",
-  "description": "Clavue / Claude Code / Codex / Grok 的本地配置 CLI — profile 切换、权限档位、状态栏、MCP、版本管理，一条命令搞定。",
+  "description": "Clavue / Claude Code / Codex / Grok CLI 的统一专业配置工具。所有工具采用完全一致的配置流程（API Key + Base URL + 模型），支持 profile 管理、权限策略、MCP 等。参考 zcf 合理交互设计，让配置简单高效。",
   "type": "module",
   "bin": {
     "ccjk": "./dist/cli.js"
