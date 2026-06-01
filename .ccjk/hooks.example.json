@@ -1,0 +1,200 @@
+{
+  "$schema": "./hooks.schema.json",
+  "description": "CCJK Hooks Configuration - 智能触发和推荐系统",
+  "version": "1.0.0",
+
+  "hooks": {
+    "onUserPromptSubmit": {
+      "enabled": true,
+      "description": "用户输入提交前触发，自动识别意图并建议技能",
+      "config": {
+        "autoExecuteThreshold": 0.8,
+        "suggestionThreshold": 0.5,
+        "blockOnCriticalViolation": true
+      }
+    },
+
+    "onFileChange": {
+      "enabled": true,
+      "description": "文件变更后触发，检测是否需要测试或文档更新",
+      "config": {
+        "checkTests": true,
+        "checkDocs": true,
+        "ignorePatterns": ["*.md", "*.json", "*.lock"]
+      }
+    },
+
+    "onPreCommit": {
+      "enabled": true,
+      "description": "Git 提交前触发，验证代码质量",
+      "config": {
+        "requireTests": true,
+        "requireLint": false,
+        "suggestReviewThreshold": 5
+      }
+    },
+
+    "onTestFailure": {
+      "enabled": true,
+      "description": "测试失败后触发，记录失败次数并建议调试方法",
+      "config": {
+        "blockAfterFailures": 3,
+        "suggestDebugAfterFailures": 2
+      }
+    }
+  },
+
+  "skillTriggers": {
+    "browser": {
+      "enabled": true,
+      "autoExecute": true,
+      "patterns": [
+        "访问 {url}",
+        "打开 {url}",
+        "浏览 {url}",
+        "查看 {url}",
+        "搜索 {query}",
+        "google {query}"
+      ],
+      "examples": [
+        "访问 https://github.com",
+        "打开 google.com",
+        "搜索 TypeScript 教程"
+      ]
+    },
+
+    "commit": {
+      "enabled": true,
+      "autoExecute": false,
+      "patterns": [
+        "提交代码",
+        "git commit",
+        "保存更改"
+      ]
+    },
+
+    "review": {
+      "enabled": true,
+      "autoExecute": false,
+      "patterns": [
+        "审查代码",
+        "code review",
+        "检查代码"
+      ]
+    },
+
+    "test": {
+      "enabled": true,
+      "autoExecute": false,
+      "patterns": [
+        "写测试",
+        "添加测试",
+        "test this"
+      ]
+    },
+
+    "debug": {
+      "enabled": true,
+      "autoExecute": false,
+      "patterns": [
+        "调试",
+        "修复 bug",
+        "为什么不工作"
+      ]
+    },
+
+    "plan": {
+      "enabled": true,
+      "autoExecute": false,
+      "patterns": [
+        "规划功能",
+        "实现 {feature}",
+        "怎么做 {task}"
+      ]
+    }
+  },
+
+  "superpowersTriggers": {
+    "systematic-debugging": {
+      "enabled": true,
+      "autoTriggerOnFailures": 2,
+      "patterns": [
+        "系统性调试",
+        "根因分析"
+      ]
+    },
+
+    "test-driven-development": {
+      "enabled": true,
+      "enforceRedGreenRefactor": true,
+      "warnOnImplementationFirst": true
+    },
+
+    "requesting-code-review": {
+      "enabled": true,
+      "autoTriggerOnLargeChanges": 10,
+      "autoTriggerBeforeMerge": true
+    },
+
+    "subagent-driven-development": {
+      "enabled": true,
+      "autoReviewAfterEachTask": true
+    }
+  },
+
+  "violations": {
+    "tdd": {
+      "noTests": {
+        "severity": "ERROR",
+        "block": false,
+        "message": "检测到新代码但没有测试"
+      },
+      "implementationFirst": {
+        "severity": "ERROR",
+        "block": true,
+        "message": "违反 TDD 原则：先写了实现代码"
+      }
+    },
+
+    "debug": {
+      "noRootCause": {
+        "severity": "ERROR",
+        "block": true,
+        "message": "必须先进行根因分析"
+      },
+      "multipleFailures": {
+        "severity": "WARNING",
+        "block": false,
+        "threshold": 2
+      },
+      "architectureIssue": {
+        "severity": "ERROR",
+        "block": true,
+        "threshold": 3
+      }
+    },
+
+    "commit": {
+      "noTests": {
+        "severity": "WARNING",
+        "block": false,
+        "threshold": 5
+      },
+      "largeChanges": {
+        "severity": "INFO",
+        "block": false,
+        "threshold": 10
+      }
+    }
+  },
+
+  "smartSuggestions": {
+    "enabled": true,
+    "maxSuggestions": 3,
+    "priorities": {
+      "HIGH": ["debug", "test"],
+      "MEDIUM": ["review", "plan", "verify"],
+      "LOW": ["brainstorm", "docs"]
+    }
+  }
+}

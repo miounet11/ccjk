@@ -1,0 +1,598 @@
+{
+  "generatedAt": "2026-03-04T11:20:16+08:00",
+  "tool": "init-architect",
+  "version": "13.3.3",
+  "truncated": false,
+  "coverage": {
+    "estimatedTotalFiles": 450,
+    "scannedFiles": 450,
+    "coveragePercent": 100,
+    "notes": "All modules documented with CLAUDE.md files. node_modules, dist, coverage, .git excluded per .gitignore"
+  },
+  "ignoredPatterns": [
+    "node_modules/**",
+    "dist/**",
+    "coverage/**",
+    ".git/**",
+    ".vscode/**",
+    ".idea/**",
+    "*.log",
+    "*.tsbuildinfo",
+    "*.backup",
+    "*.bak"
+  ],
+  "modules": [
+    {
+      "id": "cli-entry",
+      "path": "src/cli.ts",
+      "entryFile": "src/cli.ts",
+      "lazyLoader": "src/cli-lazy.ts",
+      "description": "CLI entry point; delegates to cli-lazy.ts for tiered lazy-loading command registration",
+      "coverage": "high",
+      "gaps": []
+    },
+    {
+      "id": "commands",
+      "path": "src/commands/",
+      "claudeMd": "src/commands/CLAUDE.md",
+      "entryFile": "src/commands/menu.ts",
+      "keyFiles": [
+        "src/commands/init.ts",
+        "src/commands/menu.ts",
+        "src/commands/status.ts",
+        "src/commands/boost.ts",
+        "src/commands/mcp.ts",
+        "src/commands/agents.ts",
+        "src/commands/doctor.ts",
+        "src/commands/config-switch.ts",
+        "src/commands/uninstall.ts"
+      ],
+      "tests": ["tests/commands/"],
+      "description": "All CLI command implementations",
+      "coverage": "high",
+      "gaps": []
+    },
+    {
+      "id": "brain",
+      "path": "src/brain/",
+      "claudeMd": "src/brain/CLAUDE.md",
+      "entryFile": "src/brain/index.ts",
+      "keyFiles": [
+        "src/brain/orchestrator.ts",
+        "src/brain/task-decomposer.ts",
+        "src/brain/task-queue.ts",
+        "src/brain/worker-pool.ts",
+        "src/brain/agent-dispatcher.ts",
+        "src/brain/skill-registry.ts",
+        "src/brain/skill-hot-reload.ts",
+        "src/brain/session-manager.ts",
+        "src/brain/health-monitor.ts",
+        "src/brain/self-healing.ts"
+      ],
+      "tests": ["tests/orchestrators/", "tests/orchestrator/"],
+      "description": "Multi-agent orchestration, skill hot-reload, session management",
+      "coverage": "medium",
+      "gaps": ["dedicated unit tests for brain/orchestrator.ts", "brain/skill-hot-reload.ts test coverage"]
+    },
+    {
+      "id": "cloud-sync",
+      "path": "src/cloud-sync/",
+      "claudeMd": "src/cloud-sync/CLAUDE.md",
+      "entryFile": "src/cloud-sync/index.ts",
+      "keyFiles": [
+        "src/cloud-sync/adapters/github-gist-adapter.ts",
+        "src/cloud-sync/adapters/webdav-adapter.ts",
+        "src/cloud-sync/adapters/local-adapter.ts",
+        "src/cloud-sync/conflict-resolver.ts",
+        "src/cloud-sync/skill.ts"
+      ],
+      "tests": ["tests/e2e/cloud-sync.test.ts"],
+      "description": "Config sync via GitHub Gist, WebDAV, S3",
+      "coverage": "medium",
+      "gaps": ["unit tests for individual adapters", "conflict-resolver unit tests"]
+    },
+    {
+      "id": "cloud-client",
+      "path": "src/cloud-client/",
+      "claudeMd": "src/cloud-client/CLAUDE.md",
+      "entryFile": "src/cloud-client/index.ts",
+      "keyFiles": [
+        "src/cloud-client/client.ts",
+        "src/cloud-client/cache.ts",
+        "src/cloud-client/retry.ts",
+        "src/cloud-client/skills-marketplace-api.ts",
+        "src/cloud-client/user-skills-api.ts",
+        "src/cloud-client/telemetry.ts"
+      ],
+      "tests": [
+        "tests/cloud-client/dto.test.ts",
+        "tests/cloud-client/skills.test.ts",
+        "tests/integration/cloud-api.test.ts"
+      ],
+      "description": "Remote API client: skills marketplace, recommendations, telemetry",
+      "coverage": "high",
+      "gaps": []
+    },
+    {
+      "id": "cloud-plugins",
+      "path": "src/cloud-plugins/",
+      "claudeMd": "src/cloud-plugins/CLAUDE.md",
+      "entryFile": "src/cloud-plugins/index.ts",
+      "keyFiles": [
+        "src/cloud-plugins/manager.ts",
+        "src/cloud-plugins/recommendation-engine.ts",
+        "src/cloud-plugins/cache.ts"
+      ],
+      "tests": [],
+      "description": "Cloud plugin management and recommendation engine",
+      "coverage": "low",
+      "gaps": ["unit tests needed"]
+    },
+    {
+      "id": "code-tools",
+      "path": "src/code-tools/",
+      "claudeMd": "src/code-tools/CLAUDE.md",
+      "entryFile": "src/code-tools/index.ts",
+      "keyFiles": [
+        "src/code-tools/core/interfaces.ts",
+        "src/code-tools/core/tool-registry.ts",
+        "src/code-tools/core/tool-factory.ts",
+        "src/code-tools/adapters/claude-code.ts",
+        "src/code-tools/adapters/codex.ts"
+      ],
+      "tests": ["src/code-tools/core/__tests__/"],
+      "description": "Unified abstraction for Claude Code, Codex, Aider, Continue, Cline, Cursor",
+      "coverage": "high",
+      "gaps": []
+    },
+    {
+      "id": "health",
+      "path": "src/health/",
+      "claudeMd": "src/health/CLAUDE.md",
+      "entryFile": "src/health/index.ts",
+      "keyFiles": ["src/health/scorer.ts", "src/health/types.ts"],
+      "tests": [],
+      "description": "Score-based health check engine (6 weighted checks)",
+      "coverage": "low",
+      "gaps": ["dedicated unit tests for scorer.ts"]
+    },
+    {
+      "id": "discovery",
+      "path": "src/discovery/",
+      "claudeMd": "src/discovery/CLAUDE.md",
+      "entryFile": "src/discovery/index.ts",
+      "keyFiles": [
+        "src/discovery/project-analyzer.ts",
+        "src/discovery/skill-matcher.ts",
+        "src/discovery/types.ts"
+      ],
+      "tests": ["tests/analyzers/analyzers.test.ts"],
+      "description": "Project analyzer + skill/MCP matcher",
+      "coverage": "medium",
+      "gaps": ["skill-matcher unit tests"]
+    },
+    {
+      "id": "context",
+      "path": "src/context/",
+      "claudeMd": "src/context/CLAUDE.md",
+      "entryFile": "src/context/index.ts",
+      "keyFiles": [
+        "src/context/context-manager.ts",
+        "src/context/cache.ts",
+        "src/context/analytics.ts",
+        "src/context/compression/strategies/aggressive.ts",
+        "src/context/compression/strategies/balanced.ts",
+        "src/context/compression/algorithms/lz-compression.ts"
+      ],
+      "tests": ["src/context/__tests__/"],
+      "description": "Context window management, compression (rule-based + LLM), caching, analytics",
+      "coverage": "medium",
+      "gaps": ["LLM-based compression integration tests"]
+    },
+    {
+      "id": "agents",
+      "path": "src/agents/",
+      "claudeMd": "src/agents/CLAUDE.md",
+      "entryFile": "src/agents/index.ts",
+      "keyFiles": ["src/agents/cowork-orchestrator.ts"],
+      "tests": [
+        "tests/agents/orchestrator.test.ts",
+        "tests/agents/multi-agent.test.ts",
+        "tests/agents/communication.test.ts"
+      ],
+      "description": "Cowork orchestration patterns for multi-agent tasks",
+      "coverage": "medium",
+      "gaps": ["cowork-orchestrator deep coverage"]
+    },
+    {
+      "id": "generation",
+      "path": "src/generation/",
+      "claudeMd": "src/generation/CLAUDE.md",
+      "entryFile": "src/generation/index.ts",
+      "keyFiles": [
+        "src/generation/analyzer/project-analyzer.ts",
+        "src/generation/selector/template-selector.ts",
+        "src/generation/generator/config-generator.ts"
+      ],
+      "tests": ["tests/v2/integration/e2e-workflow.test.ts"],
+      "description": "Smart project analysis -> agent/skill config generation",
+      "coverage": "low",
+      "gaps": ["unit tests for analyzer, selector, generator"]
+    },
+    {
+      "id": "skills",
+      "path": "src/skills/",
+      "claudeMd": "src/skills/CLAUDE.md",
+      "entryFile": "src/skills/index.ts",
+      "keyFiles": [
+        "src/skills/manager.ts",
+        "src/skills/auto-trigger.ts",
+        "src/skills/intent-detector.ts",
+        "src/skills/context-analyzer.ts",
+        "src/skills/types.ts"
+      ],
+      "tests": [
+        "tests/skills/context-analyzer.test.ts",
+        "tests/skills/intent-detector.test.ts",
+        "tests/skills/auto-trigger.test.ts"
+      ],
+      "description": "Skill registry, auto-trigger, intent detection",
+      "coverage": "medium",
+      "gaps": ["manager.ts CRUD unit tests"]
+    },
+    {
+      "id": "api-providers",
+      "path": "src/api-providers/",
+      "claudeMd": "src/api-providers/CLAUDE.md",
+      "entryFile": "src/api-providers/index.ts",
+      "keyFiles": [
+        "src/api-providers/core/provider-registry.ts",
+        "src/api-providers/core/provider-factory.ts",
+        "src/api-providers/wizard/setup-wizard.ts",
+        "src/api-providers/wizard/validation.ts"
+      ],
+      "tests": ["src/api-providers/__tests__/"],
+      "description": "Multi-provider API management (302.AI, GLM, OpenAI, Anthropic, etc.)",
+      "coverage": "high",
+      "gaps": []
+    },
+    {
+      "id": "config",
+      "path": "src/config/",
+      "claudeMd": "src/config/CLAUDE.md",
+      "entryFile": "src/config/",
+      "keyFiles": [
+        "src/config/workflows.ts",
+        "src/config/mcp-services.ts",
+        "src/config/mcp-tiers.ts"
+      ],
+      "tests": ["tests/config/"],
+      "description": "Workflow, MCP service, and API provider definitions",
+      "coverage": "high",
+      "gaps": []
+    },
+    {
+      "id": "utils",
+      "path": "src/utils/",
+      "claudeMd": "src/utils/CLAUDE.md",
+      "entryFile": "src/utils/index.ts",
+      "keyFiles": [
+        "src/utils/features.ts",
+        "src/utils/config.ts",
+        "src/utils/claude-config.ts",
+        "src/utils/permission-cleaner.ts",
+        "src/utils/ccjk-config.ts",
+        "src/utils/platform.ts",
+        "src/utils/workflow-installer.ts"
+      ],
+      "tests": ["tests/utils/"],
+      "description": "Config management, platform support, installer, workflow installer",
+      "coverage": "high",
+      "gaps": []
+    },
+    {
+      "id": "i18n",
+      "path": "src/i18n/",
+      "claudeMd": "src/i18n/CLAUDE.md",
+      "entryFile": "src/i18n/index.ts",
+      "keyFiles": ["src/i18n/locales/zh-CN/", "src/i18n/locales/en/"],
+      "tests": [],
+      "description": "i18next with zh-CN and en locales (15 translation modules)",
+      "coverage": "high",
+      "gaps": []
+    },
+    {
+      "id": "cli-completion",
+      "path": "src/cli/",
+      "claudeMd": "src/cli/CLAUDE.md",
+      "entryFile": "src/cli/completion/completion.ts",
+      "keyFiles": [
+        "src/cli/completions/bash.ts",
+        "src/cli/completions/zsh.ts",
+        "src/cli/completions/fish.ts",
+        "src/cli/completions/powershell.ts"
+      ],
+      "tests": [],
+      "description": "Shell completion for Bash, Zsh, Fish, PowerShell",
+      "coverage": "low",
+      "gaps": ["completion integration tests"]
+    },
+    {
+      "id": "bootstrap",
+      "path": "src/bootstrap/",
+      "claudeMd": "src/bootstrap/CLAUDE.md",
+      "entryFile": "src/bootstrap/index.ts",
+      "keyFiles": [],
+      "tests": [],
+      "description": "Application bootstrap and initialization",
+      "coverage": "low",
+      "gaps": ["needs tests"]
+    },
+    {
+      "id": "core",
+      "path": "src/core/",
+      "claudeMd": "src/core/CLAUDE.md",
+      "entryFile": "src/core/index.ts",
+      "keyFiles": [],
+      "tests": [],
+      "description": "Core utilities and shared functionality",
+      "coverage": "medium",
+      "gaps": ["needs tests"]
+    },
+    {
+      "id": "interview",
+      "path": "src/interview/",
+      "claudeMd": "src/interview/CLAUDE.md",
+      "entryFile": "src/interview/index.ts",
+      "keyFiles": [],
+      "tests": [],
+      "description": "Interactive interview system for configuration",
+      "coverage": "low",
+      "gaps": ["needs tests"]
+    },
+    {
+      "id": "intents",
+      "path": "src/intents/",
+      "claudeMd": "src/intents/CLAUDE.md",
+      "entryFile": "src/intents/index.ts",
+      "keyFiles": [],
+      "tests": [],
+      "description": "Intent detection and routing",
+      "coverage": "low",
+      "gaps": ["needs tests"]
+    },
+    {
+      "id": "mcp-marketplace",
+      "path": "src/mcp-marketplace/",
+      "claudeMd": "src/mcp-marketplace/CLAUDE.md",
+      "entryFile": "src/mcp-marketplace/index.ts",
+      "keyFiles": [],
+      "tests": [],
+      "description": "MCP service marketplace and discovery",
+      "coverage": "medium",
+      "gaps": ["needs tests"]
+    },
+    {
+      "id": "monitoring",
+      "path": "src/monitoring/",
+      "claudeMd": "src/monitoring/CLAUDE.md",
+      "entryFile": "src/monitoring/index.ts",
+      "keyFiles": [],
+      "tests": [],
+      "description": "System monitoring and metrics collection",
+      "coverage": "low",
+      "gaps": ["needs tests"]
+    },
+    {
+      "id": "orchestrators",
+      "path": "src/orchestrators/",
+      "claudeMd": "src/orchestrators/CLAUDE.md",
+      "entryFile": "src/orchestrators/index.ts",
+      "keyFiles": [],
+      "tests": [],
+      "description": "Task orchestration and workflow management",
+      "coverage": "medium",
+      "gaps": []
+    },
+    {
+      "id": "permissions",
+      "path": "src/permissions/",
+      "claudeMd": "src/permissions/CLAUDE.md",
+      "entryFile": "src/permissions/index.ts",
+      "keyFiles": [],
+      "tests": [],
+      "description": "Permission management and validation",
+      "coverage": "medium",
+      "gaps": []
+    },
+    {
+      "id": "plugins-v2",
+      "path": "src/plugins-v2/",
+      "claudeMd": "src/plugins-v2/CLAUDE.md",
+      "entryFile": "src/plugins-v2/index.ts",
+      "keyFiles": [],
+      "tests": [],
+      "description": "Plugin system v2 architecture",
+      "coverage": "low",
+      "gaps": []
+    },
+    {
+      "id": "postmortem",
+      "path": "src/postmortem/",
+      "claudeMd": "src/postmortem/CLAUDE.md",
+      "entryFile": "src/postmortem/index.ts",
+      "keyFiles": [],
+      "tests": [],
+      "description": "Post-execution analysis and reporting",
+      "coverage": "low",
+      "gaps": ["needs tests"]
+    },
+    {
+      "id": "sandbox",
+      "path": "src/sandbox/",
+      "claudeMd": "src/sandbox/CLAUDE.md",
+      "entryFile": "src/sandbox/index.ts",
+      "keyFiles": [],
+      "tests": [],
+      "description": "Sandboxed execution environment",
+      "coverage": "low",
+      "gaps": []
+    },
+    {
+      "id": "services",
+      "path": "src/services/",
+      "claudeMd": "src/services/CLAUDE.md",
+      "entryFile": "src/services/index.ts",
+      "keyFiles": [],
+      "tests": [],
+      "description": "Shared services and utilities",
+      "coverage": "medium",
+      "gaps": []
+    },
+    {
+      "id": "task-manager",
+      "path": "src/task-manager/",
+      "claudeMd": "src/task-manager/CLAUDE.md",
+      "entryFile": "src/task-manager/index.ts",
+      "keyFiles": [],
+      "tests": [],
+      "description": "Task queue and execution management",
+      "coverage": "low",
+      "gaps": ["needs tests"]
+    },
+    {
+      "id": "terminal",
+      "path": "src/terminal/",
+      "claudeMd": "src/terminal/CLAUDE.md",
+      "entryFile": "src/terminal/index.ts",
+      "keyFiles": [],
+      "tests": [],
+      "description": "Terminal UI and interaction utilities",
+      "coverage": "low",
+      "gaps": ["needs tests"]
+    },
+    {
+      "id": "types",
+      "path": "src/types/",
+      "claudeMd": "src/types/CLAUDE.md",
+      "entryFile": "src/types/index.ts",
+      "keyFiles": [],
+      "tests": [],
+      "description": "Shared TypeScript type definitions",
+      "coverage": "n/a",
+      "gaps": []
+    },
+    {
+      "id": "workflow",
+      "path": "src/workflow/",
+      "claudeMd": "src/workflow/CLAUDE.md",
+      "entryFile": "src/workflow/index.ts",
+      "keyFiles": [],
+      "tests": [],
+      "description": "Workflow definition and execution",
+      "coverage": "medium",
+      "gaps": []
+    },
+    {
+      "id": "analyzers",
+      "path": "src/analyzers/",
+      "claudeMd": "src/analyzers/CLAUDE.md",
+      "entryFile": "src/analyzers/index.ts",
+      "keyFiles": [],
+      "tests": [],
+      "description": "Code and project analysis utilities",
+      "coverage": "low",
+      "gaps": ["needs tests"]
+    }
+  ],
+  "gaps": [
+    {
+      "module": "health",
+      "priority": "high",
+      "description": "No unit tests for scorer.ts -- the core health check logic is untested in isolation"
+    },
+    {
+      "module": "generation",
+      "priority": "high",
+      "description": "No unit tests for analyzer, selector, or generator -- smartGenerate pipeline untested"
+    },
+    {
+      "module": "brain",
+      "priority": "medium",
+      "description": "orchestrator.ts and skill-hot-reload.ts lack dedicated unit tests"
+    },
+    {
+      "module": "cloud-sync",
+      "priority": "medium",
+      "description": "Individual adapter unit tests missing; only E2E test exists"
+    },
+    {
+      "module": "cli-completion",
+      "priority": "low",
+      "description": "No automated tests for shell completion script generation"
+    },
+    {
+      "module": "cloud-plugins",
+      "priority": "medium",
+      "description": "Unit tests needed"
+    },
+    {
+      "module": "bootstrap",
+      "priority": "low",
+      "description": "Needs unit tests for initialization logic"
+    },
+    {
+      "module": "core",
+      "priority": "medium",
+      "description": "Needs unit tests for core utilities"
+    },
+    {
+      "module": "interview",
+      "priority": "low",
+      "description": "Needs unit tests for interview flow logic"
+    },
+    {
+      "module": "intents",
+      "priority": "low",
+      "description": "Needs unit tests for intent detection"
+    },
+    {
+      "module": "mcp-marketplace",
+      "priority": "medium",
+      "description": "Needs unit tests for marketplace API"
+    },
+    {
+      "module": "monitoring",
+      "priority": "low",
+      "description": "Needs unit tests for metrics collection"
+    },
+    {
+      "module": "postmortem",
+      "priority": "low",
+      "description": "Needs unit tests for analysis logic"
+    },
+    {
+      "module": "task-manager",
+      "priority": "low",
+      "description": "Needs unit tests for task queue management"
+    },
+    {
+      "module": "terminal",
+      "priority": "low",
+      "description": "Needs unit tests for terminal UI components"
+    },
+    {
+      "module": "analyzers",
+      "priority": "low",
+      "description": "Needs unit tests for code analysis"
+    }
+  ],
+  "nextSteps": [
+    "Add unit tests for src/health/scorer.ts (high priority)",
+    "Add unit tests for src/generation/analyzer/, selector/, generator/ (high priority)",
+    "Add unit tests for src/brain/orchestrator.ts (medium priority)",
+    "Add adapter-level unit tests for src/cloud-sync/adapters/ (medium priority)",
+    "Add unit tests for newly documented modules (low-medium priority)",
+    "Consider adding integration tests for module interactions"
+  ]
+}

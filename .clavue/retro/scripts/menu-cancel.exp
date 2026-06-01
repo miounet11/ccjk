@@ -1,0 +1,18 @@
+#!/usr/bin/env expect -f
+# 模拟：进入主菜单 → 选第一项（一键粘贴） → 在「配置哪个工具？」prompt 按 Ctrl+C → 看是否回到主菜单且无红字
+set timeout 10
+spawn node dist/cli.js menu
+expect {
+  "选择操作" { send "\r" }
+  timeout { exit 2 }
+}
+expect {
+  "配置哪个工具" { send "\003" }
+  timeout { exit 3 }
+}
+# 取消后期待主菜单标题再次出现
+expect {
+  -re "执行失败" { puts "FAIL: still shows red error"; exit 4 }
+  "选择操作" { puts "OK: returned to main menu silently"; send "\003"; exit 0 }
+  timeout { puts "FAIL: did not return"; exit 5 }
+}

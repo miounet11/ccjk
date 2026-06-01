@@ -116,7 +116,7 @@ async function useForSingleTool(target: Profile, tool: CodeTool, yes: boolean): 
       console.log(ansis.yellow(`\n! ${meta.displayName} 跳过：${r.skipped}\n`));
       return false;
     }
-    console.log(ansis.green(`\n✔ 已切换到 profile: ${ansis.bold(target.name)}`));
+    console.log(ansis.green(`\n✔ 已切换到配置: ${ansis.bold(target.name)}`));
     if (r.backup) console.log(ansis.dim(`  备份: ${r.backup}`));
     console.log(ansis.yellow(`! API key 不能写入 toml，请在 shell 里导出：`));
     console.log(ansis.cyan(`    export ${codexEnvKeyFor(target)}=<your-api-key>`));
@@ -139,7 +139,7 @@ async function useForSingleTool(target: Profile, tool: CodeTool, yes: boolean): 
   }
 
   const backup = await writeSettings(meta.settingsFile, settings);
-  console.log(ansis.green(`\n✔ 已切换到 profile: ${ansis.bold(target.name)}`));
+  console.log(ansis.green(`\n✔ 已切换到配置: ${ansis.bold(target.name)}`));
   if (backup) console.log(ansis.dim(`  备份: ${backup}`));
   console.log(ansis.yellow(`  提示: 重启 ${meta.displayName} 才能生效\n`));
   warnShellShadow(target.baseUrl, target.model ? { main: target.model } : {});
@@ -153,14 +153,14 @@ async function useForAllInstalled(target: Profile, yes: boolean): Promise<boolea
     : 'Clavue / Claude Code / Codex';
 
   if (!yes) {
-    console.log(ansis.dim(`\n→ 切换到: ${target.name} (${target.provider})`));
+    console.log(ansis.dim(`\n→ 切换配置: ${target.name} (${target.provider})`));
     console.log(ansis.dim(`→ Base URL: ${target.baseUrl}`));
-    console.log(ansis.dim(`→ 同步到: ${scope}`));
+    console.log(ansis.dim(`→ 应用范围: ${scope}`));
     if (!target.targetTools) {
-      console.log(ansis.dim('  （老 profile：未指定作用范围，默认同步到全部已装工具；用 `ccjk edit` 改）'));
+      console.log(ansis.dim('  （旧配置未记录范围，默认应用到已安装工具，可用「调整当前配置」修改）'));
     }
     console.log();
-    const ok = await confirm({ message: '确认切换？', default: true });
+    const ok = await confirm({ message: '确认切换到此配置？', default: true });
     if (!ok) {
       console.log(ansis.gray('已取消。'));
       return false;
@@ -168,13 +168,13 @@ async function useForAllInstalled(target: Profile, yes: boolean): Promise<boolea
   }
 
   const results = await applyProfileToInstalledTools(target);
-  console.log(ansis.green(`\n✔ 已切换到 profile: ${ansis.bold(target.name)}`));
+  console.log(ansis.green(`\n✔ 已切换到配置: ${ansis.bold(target.name)}`));
   printSyncResults(results);
-  // 如果同步到了 codex，提示一下 auth.json 已写好 + 启动方式（复刻 zcf 合理提示）
+  // 复刻 zcf-port 的合理 Codex 提示风格
   const codexHit = results.find(r => r.tool === 'codex' && !r.skipped);
   if (codexHit) {
-    console.log(ansis.dim(`  API key 已写入 ~/.codex/auth.json（${codexEnvKeyFor(target)} + OPENAI_API_KEY）`));
-    console.log(ansis.dim(`  启动: codex --profile ${target.name}\n`));
+    console.log(ansis.dim(`  Codex API key 已写入 ~/.codex/auth.json（${codexEnvKeyFor(target)} + OPENAI_API_KEY）`));
+    console.log(ansis.yellow(`  Codex 启动用: codex --profile ${target.name}（不带 --profile 仍走旧默认）`));
   }
   console.log(ansis.yellow('  提示: 重启对应工具才能生效\n'));
   warnShellShadow(target.baseUrl, target.model ? { main: target.model } : {});

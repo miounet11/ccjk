@@ -65,7 +65,7 @@ export async function editCommand(opts: EditOptions = {}): Promise<void> {
   if (!direct) {
     // 没有 CLI 参数 → 进入交互勾选
     const fields = await checkbox<string>({
-      message: '要修改哪些字段？',
+      message: '选择要调整的配置项',
       choices: [
         { name: `API Key / Auth Token  ${ansis.dim(maskKey(profile.apiKey))}`, value: 'apiKey' },
         { name: `Base URL              ${ansis.dim(profile.baseUrl)}`, value: 'baseUrl' },
@@ -202,7 +202,7 @@ async function applyDirectOpts(profile: Profile, opts: EditOptions): Promise<boo
 }
 
 async function applyInteractive(profile: Profile, fields: string[]): Promise<void> {
-  // 按 zcf 合理结构，目录在 claudeCode.defaultModels
+  // 配置调整流程（zcf 风格）
   const provider = findProvider(profile.provider);
   const catalog = provider?.claudeCode?.defaultModels;
 
@@ -229,7 +229,8 @@ async function applyInteractive(profile: Profile, fields: string[]): Promise<voi
       profile.baseUrl = v.trim();
     }
     else if (f === 'model') {
-      const v = await pickModel('新 Main model', profile.model ?? '', catalog);
+      // 复刻 zcf 风格：有目录就给好选择，无则 input
+      const v = await pickModel('新 Main model（zcf 推荐目录选择）', profile.model ?? '', catalog);
       if (v) profile.model = v;
       else delete profile.model;
     }

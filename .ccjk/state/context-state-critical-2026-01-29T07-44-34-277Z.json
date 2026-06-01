@@ -1,0 +1,13 @@
+{
+  "timestamp": "2026-01-29T07:44:34.277Z",
+  "reason": "critical",
+  "analysis": {
+    "contextWindow": 200000,
+    "toolDescriptionSize": 195000,
+    "percentageUsed": 97,
+    "threshold": 30,
+    "shouldDefer": true
+  },
+  "serviceBreakdown": [],
+  "checkCount": 1
+}

@@ -1,6 +1,6 @@
 # PRODUCT.md — ccjk 产品身份
 
-> 「Clavue / Claude Code / Codex 的本地配置 CLI。」
+> 「Clavue / Claude Code / Codex / Grok 的本地配置 CLI。」
 > — package.json description
 
 本文件是 ccjk 的 program.md：人类拥有的 steering 文档。代码改动可以指出本文件需要更新的地方，但不直接 silent rewrite 本文件。
@@ -43,7 +43,7 @@ ccjk 是**配置工具**，不是 IDE 也不是 agent runtime。明确不做：
 - ❌ 单向：`settings.json → profile`（`migrate`），不反向覆盖 settings
 - ❌ 不在 Claude / Clavue 的 runtime 里偷偷调 ccjk 命令（reentrancy）
 
-这条边界保证：用户随时可以卸了 ccjk 而不影响三个工具的正常使用。
+这条边界保证：用户随时可以卸了 ccjk 而不影响四个工具（Clavue / Claude Code / Codex / Grok）的正常使用。
 
 ---
 

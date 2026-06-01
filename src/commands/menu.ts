@@ -54,14 +54,14 @@ const GROUPS: MenuGroup[] = [
   {
     title: '开始使用',
     items: [
-      { label: '一键粘贴配置（quick）', hint: '粘贴中转厂商发来的一段配置，自动识别', run: () => quickMenuCommand() },
-      { label: '逐步配置 API（init）', hint: '选 provider → 填 URL/Key → 起 profile', run: () => initCommand() },
-      { label: '权限档位（一键减少授权）', hint: 'safe / standard / yolo，同步三个工具 →', run: () => permsSubMenu() },
-      { label: '编辑当前 Profile', hint: '改 key / URL / model（自动同步到所有已装工具）', run: () => editCommand() },
-      { label: '切换 Profile', hint: '一键切 API；同步到 Clavue / Claude Code / Codex', run: () => profileUseCommand(undefined) },
-      // migrate 放在"开始使用"末尾：场景属新用户 onboarding（手动配过 settings.json，想纳入 ccjk 管理），
-      // 跟 init / quick 并列；避免埋到维护菜单让新用户找不到。
+      { label: '新增 / 配置 API 接入', hint: '支持 Clavue、Claude Code、Codex、Grok CLI（推荐主流程）', run: () => initCommand() },
+      { label: '设置权限策略（档位）', hint: 'safe / standard / yolo — 统一应用于已配置工具（含 Grok CLI）', run: () => permsSubMenu() },
+      { label: '调整当前配置', hint: '修改 Key / BaseURL / 模型（自动同步所有工具）', run: () => editCommand() },
+      { label: '切换配置', hint: '切换到其他 Profile（支持 Grok CLI）', run: () => profileUseCommand(undefined) },
+      // migrate 放在前面：新用户 onboarding 重要路径
       { label: '从现有 settings 导入', hint: '反向抽取已配好的 settings.json 生成 profile', run: async () => { await migrateCommand({}); } },
+      // quick 放最后：辅助工具，不是主配置路径
+      { label: '一键粘贴配置（quick）', hint: '粘贴中转厂商发来的一段配置，快速导入（辅助功能）', run: () => quickMenuCommand() },
     ],
   },
   {
@@ -95,12 +95,12 @@ const GROUPS: MenuGroup[] = [
  */
 async function permsSubMenu(): Promise<void> {
   const SUB_ITEMS: MenuItem[] = [
-    { label: '切换档位（safe/standard/yolo）', hint: '同步作用于 Clavue / Claude Code / Codex', run: () => permsCommand(undefined) },
-    { label: '查看当前权限', hint: '三个工具的 allow/deny 明细', run: () => permsShowCommand() },
-    { label: '清理冗余规则', hint: '去重 / 去掉被覆盖的 allow 条目', run: () => permsCleanCommand() },
-    { label: '环境变量与手动编辑', hint: '推荐 env / 打开 settings.json 手改', run: () => envPermCommand() },
+    { label: '切换权限档位（safe / standard / yolo）', hint: '一键应用到已配置工具（支持 Grok CLI）', run: () => permsCommand(undefined) },
+    { label: '查看当前权限状态', hint: '各工具 allow/deny 明细', run: () => permsShowCommand() },
+    { label: '清理冗余权限规则', hint: '去重 / 清理被覆盖的条目', run: () => permsCleanCommand() },
+    { label: '环境变量与手动调整', hint: '推荐通过 env 配置，或直接编辑 settings.json', run: () => envPermCommand() },
   ];
-  await runSubMenu('权限与授权', SUB_ITEMS);
+  await runSubMenu('权限策略设置', SUB_ITEMS);
 }
 
 /**

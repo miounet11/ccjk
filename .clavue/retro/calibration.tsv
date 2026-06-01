@@ -1,0 +1,4 @@
+timestamp	run_tag	slice	predicted_energy_delta	actual_energy_delta	note
+2026-05-25T07:07:52Z	2026-05-25-product-interaction-retro	menu-ctrl-c-silent-return	+0.7	+0.6	predicted +0.7 vs actual +0.6 (delta 0.1, within 0.4 threshold)
+2026-05-25T08:00:00Z	2026-05-25-product-interaction-retro	doctor-runtime-env-shadow	+0.7	+0.7	doctor folds runtime env scan; actual matches predict; production shadow+deprecated both fire on real machine
+2026-05-26T08:10:00Z	2026-05-25-product-interaction-retro	status-drift-badge	+0.4	+0.5	预测保守了点；实机 footer hint 引导效果好于预期
