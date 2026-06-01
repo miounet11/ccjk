@@ -414,8 +414,11 @@ program
 
 const grok = program
   .command('grok')
-  .description('Grok CLI（xAI 官方）状态与使用指引；OAuth 登录，不参与 profile 同步')
-  .action(grokCommand);
+  .description('Grok CLI 状态与使用指引；专业支持 ccjk profile（可使用其他模型）')
+  .option('--profile <name>', '使用指定的 ccjk profile 启动 Grok（注入对应模型配置）')
+  .action(async (opts: { profile?: string }) => {
+    await grokCommand(opts.profile);
+  });
 grok
   .command('models')
   .description('列出 Grok 可用模型（转发 grok models）')

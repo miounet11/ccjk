@@ -1,4 +1,22 @@
-# ccjk Release Notes（v15.20 – v15.28）
+# ccjk Release Notes（v15.20 – v15.31）
+
+## v15.31.0 — Grok CLI 配置完全统一（无例外）
+
+Grok CLI 的配置流程现在与 Codex、Clavue、Claude Code **完全一致**：
+
+- 在 `ccjk init` 中选择 Grok CLI 后，走相同的 “选择 Provider → 设置 API Key / Base URL → 选择模型” 流程。
+- 支持通过 `xai` provider 或 custom 进行专业配置。
+- 配置后可通过 `ccjk grok --profile <name>` 启动使用（已支持注入对应模型配置）。
+- 移除了所有针对 Grok 的特殊分支和例外处理，实现“和大家都一样”的统一体验。
+
+此版本完成了用户要求的“最前面几个核心入口 + 设置逻辑和方法完全对齐 zcf 风格，同时 Grok 无例外”的目标。
+
+**验证**
+- pnpm typecheck + lint 通过
+- 构建成功
+- 交互流程已统一
+
+---
 
 ## v15.28.0 — 交互与设置方法完全对齐 zcf（用户体验重大打磨）
 

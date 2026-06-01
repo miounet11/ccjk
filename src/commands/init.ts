@@ -43,14 +43,9 @@ export async function initCommand(opts: InitOptions = {}): Promise<void> {
     return;
   }
 
-  // Grok 走 OAuth 自管认证，没有 ccjk 可写的 settings 文件——不进 API 写入流程。
-  // 命令行 `init --tool grok` 时引导到专属命令。
-  if (tool === 'grok') {
-    console.log(ansis.yellow('\nGrok CLI 走 OAuth 登录，不需要 ccjk 写 API 配置。'));
-    console.log(ansis.dim('  查看状态与使用指引: ') + ansis.cyan('ccjk grok'));
-    console.log(ansis.dim('  登录: ') + ansis.cyan('grok login') + '\n');
-    return;
-  }
+  // Grok 也走统一的配置流程（和 Codex/Clavue/Claude Code 保持一致）
+  // 配置后可通过 `ccjk grok --profile xxx` 使用
+
 
   const provider = opts.provider
     ? resolveProvider(tool, opts.provider)
@@ -394,12 +389,13 @@ async function askEnvKey(providerId: string): Promise<string> {
 
 async function pickTool(): Promise<CodeTool> {
   return await select<CodeTool>({
-    message: '选择目标代码工具',
+    message: '选择要新增或配置的工具',
     default: 'clavue',
     choices: [
-      { name: `${TOOLS.clavue.displayName} ${ansis.dim('(主推)')}`, value: 'clavue' },
+      { name: `${TOOLS.clavue.displayName} ${ansis.dim('(主推，推荐)')}`, value: 'clavue' },
       { name: TOOLS['claude-code'].displayName, value: 'claude-code' },
       { name: TOOLS.codex.displayName, value: 'codex' },
+      { name: `${TOOLS.grok.displayName} ${ansis.dim('(Grok CLI)')}`, value: 'grok' },
     ],
   });
 }
@@ -407,7 +403,7 @@ async function pickTool(): Promise<CodeTool> {
 async function pickProvider(tool: CodeTool): Promise<ApiProvider> {
   const list = listProvidersFor(tool);
   const id = await select<string>({
-    message: '选择 API provider',
+    message: '选择配置方式（大部分已知 Provider 会自动带出地址和认证类型）',
     choices: list.map(p => ({ name: `${p.name} ${ansis.dim(p.description || p.hint || '')}`, value: p.id })),
   });
   return list.find(p => p.id === id)!;
