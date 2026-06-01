@@ -24,56 +24,57 @@ describe('providers', () => {
   });
 
   describe('enriched catalog (docsUrl / hint / region)', () => {
-    it('glm: baseUrl + hint + docsUrl + region', () => {
+    it('glm: claudeCode preset + hint + docsUrl + region (zcf 合理结构)', () => {
       const p = findProvider('glm');
       expect(p).toBeDefined();
-      expect(p!.baseUrl).toContain('bigmodel.cn');
+      expect(p!.claudeCode?.baseUrl).toContain('bigmodel.cn');
       expect(p!.hint).toBeTruthy();
       expect(p!.docsUrl).toBeTruthy();
       expect(p!.region).toBe('cn');
     });
 
-    it('kimi: baseUrl + hint + docsUrl + region', () => {
+    it('kimi: claudeCode preset + hint + docsUrl + region (zcf 合理结构)', () => {
       const p = findProvider('kimi');
       expect(p).toBeDefined();
-      expect(p!.baseUrl).toContain('moonshot.cn');
+      expect(p!.claudeCode?.baseUrl).toContain('moonshot.cn');
       expect(p!.hint).toBeTruthy();
       expect(p!.docsUrl).toBeTruthy();
       expect(p!.region).toBe('cn');
     });
 
-    it('deepseek: baseUrl + hint + docsUrl + region', () => {
+    it('deepseek: claudeCode preset + hint + docsUrl + region (zcf 合理结构)', () => {
       const p = findProvider('deepseek');
       expect(p).toBeDefined();
-      expect(p!.baseUrl).toContain('deepseek.com');
+      expect(p!.claudeCode?.baseUrl).toContain('deepseek.com');
       expect(p!.hint).toBeTruthy();
       expect(p!.docsUrl).toBeTruthy();
       expect(p!.region).toBe('cn');
     });
 
-    it('anthropic: baseUrl + hint + docsUrl + region', () => {
+    it('anthropic: claudeCode preset + hint + docsUrl + region (zcf 合理结构)', () => {
       const p = findProvider('anthropic');
       expect(p).toBeDefined();
-      expect(p!.baseUrl).toContain('api.anthropic.com');
+      expect(p!.claudeCode?.baseUrl).toContain('api.anthropic.com');
       expect(p!.hint).toBeTruthy();
       expect(p!.docsUrl).toBeTruthy();
       expect(p!.region).toBe('global');
     });
 
-    it('openrouter: baseUrl + hint + docsUrl + region', () => {
+    it('openrouter: claudeCode preset + hint + docsUrl + region (zcf 合理结构)', () => {
       const p = findProvider('openrouter');
       expect(p).toBeDefined();
-      expect(p!.baseUrl).toContain('openrouter.ai');
+      expect(p!.claudeCode?.baseUrl).toContain('openrouter.ai');
       expect(p!.hint).toBeTruthy();
       expect(p!.docsUrl).toBeTruthy();
       expect(p!.region).toBe('global');
     });
 
-    it('custom: hint + region（baseUrl 留空让用户填）', () => {
+    it('custom: hint + region（按 zcf 结构无 claudeCode preset，init 时强制询问）', () => {
       const p = findProvider('custom');
       expect(p).toBeDefined();
       expect(p!.hint).toBeTruthy();
       expect(p!.region).toBe('global');
+      expect(p!.claudeCode).toBeUndefined(); // 符合 zcf 合理设计
     });
   });
 

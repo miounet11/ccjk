@@ -152,14 +152,19 @@ function extract(settings: { env?: Record<string, string> }): ExtractedSettings 
 }
 
 function matchProvider(providers: ApiProvider[], baseUrl: string): ApiProvider | undefined {
-  // 完全相等优先；其次 hostname 同（去掉路径差异）
-  const exact = providers.find(p => p.baseUrl === baseUrl);
+  // 按 zcf 合理 preset 结构匹配（优先 claudeCode，其次 codex）
+  const exact = providers.find(p =>
+    p.claudeCode?.baseUrl === baseUrl || p.codex?.baseUrl === baseUrl
+  );
   if (exact) return exact;
   try {
     const target = new URL(baseUrl).host;
     return providers.find(p => {
-      try { return new URL(p.baseUrl).host === target; }
-      catch { return false; }
+      try {
+        const c = p.claudeCode?.baseUrl ? new URL(p.claudeCode.baseUrl).host : '';
+        const x = p.codex?.baseUrl ? new URL(p.codex.baseUrl).host : '';
+        return c === target || x === target;
+      } catch { return false; }
     });
   }
   catch {

@@ -3,7 +3,8 @@ import ansis from 'ansis';
 import type { CodeTool } from '../core/tools.js';
 import { TOOLS } from '../core/tools.js';
 import { listProvidersFor } from '../core/providers.js';
-import type { ApiProvider } from '../core/providers.js';
+import type { ApiProvider, AuthType } from '../core/providers.js';
+import { defaultClaudeModel } from '../core/providers.js';
 import { readSettings, writeSettings } from '../core/settings.js';
 import { listProfiles, validateName, writeProfile, writeState } from '../core/profiles.js';
 import { readTomlFile, writeTomlFile } from '../core/toml.js';
@@ -42,21 +43,44 @@ export async function initCommand(opts: InitOptions = {}): Promise<void> {
     return;
   }
 
+  // Grok 走 OAuth 自管认证，没有 ccjk 可写的 settings 文件——不进 API 写入流程。
+  // 命令行 `init --tool grok` 时引导到专属命令。
+  if (tool === 'grok') {
+    console.log(ansis.yellow('\nGrok CLI 走 OAuth 登录，不需要 ccjk 写 API 配置。'));
+    console.log(ansis.dim('  查看状态与使用指引: ') + ansis.cyan('ccjk grok'));
+    console.log(ansis.dim('  登录: ') + ansis.cyan('grok login') + '\n');
+    return;
+  }
+
   const provider = opts.provider
     ? resolveProvider(tool, opts.provider)
     : await pickProvider(tool);
 
-  const baseUrl = opts.baseUrl
-    ?? (provider.baseUrl || await askInput('Base URL (例如 https://api.example.com)'));
-  const apiKey = opts.apiKey ?? await askInput(provider.authType === 'api_key' ? 'API Key' : 'Auth Token', true);
+  if (!provider.claudeCode && provider.id !== 'custom') {
+    throw new Error(`provider "${provider.id}" 没有 claude-code 配置`);
+  }
 
-  // 所有 provider 都走 4 槽位（main/haiku/sonnet/opus）
-  const slots = await collectModelSlots(provider, opts);
+  // claudeCode preset 在 custom 时为 undefined → 都向用户问（zcf 合理逻辑）
+  const preset = provider.claudeCode;
+  const baseUrl = opts.baseUrl
+    ?? preset?.baseUrl
+    ?? await askInput('Base URL (例如 https://api.example.com)');
+  const authType: AuthType = preset?.authType ?? 'auth_token';
+  const apiKey = opts.apiKey ?? await askInput(authType === 'api_key' ? 'API Key' : 'Auth Token', true);
+
+  // 复刻 zcf 的合理设置方法：只问 main model（有 defaultModels 列表时给好选择），其他槽位用命令行或默认=main
+  const model = await pickModel(opts, provider);
+  const slots: ModelSlots = {
+    ...(model ? { main: model } : {}),
+    ...(opts.haikuModel ? { haiku: opts.haikuModel } : model ? { haiku: model } : {}),
+    ...(opts.sonnetModel ? { sonnet: opts.sonnetModel } : model ? { sonnet: model } : {}),
+    ...(opts.opusModel ? { opus: opts.opusModel } : model ? { opus: model } : {}),
+  };
 
   console.log(ansis.dim(`\n→ 配置目标: ${meta.settingsFile}`));
   console.log(ansis.dim(`→ Provider: ${provider.name}`));
   console.log(ansis.dim(`→ Base URL: ${baseUrl}`));
-  console.log(ansis.dim(`→ Auth: ${provider.authType}`));
+  console.log(ansis.dim(`→ Auth: ${authType}`));
   if (slots.main) console.log(ansis.dim(`→ Main model: ${slots.main}`));
   if (slots.haiku) console.log(ansis.dim(`→ Haiku 槽: ${slots.haiku}`));
   if (slots.sonnet) console.log(ansis.dim(`→ Sonnet 槽: ${slots.sonnet}`));
@@ -72,7 +96,7 @@ export async function initCommand(opts: InitOptions = {}): Promise<void> {
   }
 
   const settings = await readSettings(meta.settingsFile);
-  applyApiToSettings(settings, baseUrl, apiKey, provider, slots);
+  applyApiToSettings(settings, baseUrl, apiKey, authType, slots);
   const backup = await writeSettings(meta.settingsFile, settings);
 
   console.log(ansis.green('\n✔ 配置已写入'));
@@ -94,166 +118,20 @@ export async function initCommand(opts: InitOptions = {}): Promise<void> {
     }
   }
 
+  // v15.27.7: 写完后立刻 warn shell shadow，否则用户重启 Claude Code 才发现没生效
+  warnShellShadow(baseUrl, slots);
+
   await maybeSaveProfile({
     explicitName: opts.profile,
     yes: opts.yes ?? false,
     provider,
     baseUrl,
+    authType,
     apiKey,
     slots,
+    targetTools: [tool],
   });
   console.log();
-}
-
-/**
- * 询问 main / haiku / sonnet / opus 四个槽位。
- *
- * 心智模型：**默认就是单 model**，4 槽位是 advanced 才暴露的能力。
- * 历史上 init 强行问 4 次，让用户填一堆其实是同一个 model ID 的礼仪空格——反人性。
- *
- * 新交互：
- *   1) simple（默认）：只问一个 main model，其它槽不写——适合 80% 用户
- *   2) recommended（仅当 provider 自带分级默认时显示）：一键写 provider 推荐的 4 槽
- *   3) advanced：逐个填 4 个槽，给真要做分级路由的人
- *   4) skip：什么都不写，让工具用内置 fallback
- *
- * - 命令行参数走完，跳过整个交互（保留向后兼容）。
- */
-async function collectModelSlots(provider: ApiProvider, opts: InitOptions): Promise<ModelSlots> {
-  // 命令行已经把全部槽位都给了 → 不交互（保留旧行为）
-  if (opts.yes || (opts.model && opts.haikuModel && opts.sonnetModel && opts.opusModel)) {
-    return {
-      ...(opts.model ?? provider.defaultModel ? { main: opts.model ?? provider.defaultModel } : {}),
-      ...(opts.haikuModel ?? provider.fastModel ? { haiku: opts.haikuModel ?? provider.fastModel } : {}),
-      ...(opts.sonnetModel ?? provider.sonnetModel ? { sonnet: opts.sonnetModel ?? provider.sonnetModel } : {}),
-      ...(opts.opusModel ?? provider.opusModel ? { opus: opts.opusModel ?? provider.opusModel } : {}),
-    } as ModelSlots;
-  }
-
-  // 是否有 provider 推荐的「分级 4 槽」（即 fast/sonnet/opus 至少有一个跟 default 不一样）
-  const hasGradedDefaults = Boolean(
-    provider.fastModel || provider.sonnetModel || provider.opusModel,
-  );
-
-  type Strategy = 'simple' | 'recommended' | 'advanced' | 'skip';
-  const choices: Array<{ name: string; value: Strategy; short: string }> = [
-    {
-      name: `单 model（推荐）${ansis.dim('— 只填一个 main，绝大多数 provider 这样就够了')}`,
-      value: 'simple',
-      short: '单 model',
-    },
-  ];
-  if (hasGradedDefaults) {
-    choices.push({
-      name: `用 ${provider.name} 分级推荐  ${ansis.dim(formatProviderDefaults(provider))}`,
-      value: 'recommended',
-      short: '分级推荐',
-    });
-  }
-  choices.push(
-    { name: '高级：手动配 4 槽位（main / haiku / sonnet / opus）', value: 'advanced', short: '高级' },
-    { name: ansis.gray('跳过：不写任何槽位（让工具用内置默认）'), value: 'skip', short: '跳过' },
-  );
-
-  const strategy = await select<Strategy>({
-    message: '模型配置',
-    default: 'simple',
-    choices,
-  });
-
-  if (strategy === 'skip') return {};
-
-  if (strategy === 'recommended') {
-    return {
-      ...(provider.defaultModel ? { main: provider.defaultModel } : {}),
-      ...(provider.fastModel ? { haiku: provider.fastModel } : {}),
-      ...(provider.sonnetModel ? { sonnet: provider.sonnetModel } : {}),
-      ...(provider.opusModel ? { opus: provider.opusModel } : {}),
-    };
-  }
-
-  if (strategy === 'simple') {
-    const main = await askModelSlot(
-      'Main model',
-      opts.model ?? provider.defaultModel ?? '',
-      provider.modelCatalog,
-    );
-    return main ? { main } : {};
-  }
-
-  // advanced
-  console.log(ansis.dim('\n配置 model 槽位（直接回车=用建议值；输入空格再回车=该槽不写）：\n'));
-  const main = await askModelSlot('Main model', opts.model ?? provider.defaultModel ?? '', provider.modelCatalog);
-  const haiku = await askModelSlot('Haiku 槽（快速 / 简单任务）', opts.haikuModel ?? provider.fastModel ?? '', provider.modelCatalog);
-  const sonnet = await askModelSlot('Sonnet 槽（执行 / 中等任务）', opts.sonnetModel ?? provider.sonnetModel ?? '', provider.modelCatalog);
-  const opus = await askModelSlot('Opus 槽（规划 / 复杂任务）', opts.opusModel ?? provider.opusModel ?? '', provider.modelCatalog);
-
-  return {
-    ...(main ? { main } : {}),
-    ...(haiku ? { haiku } : {}),
-    ...(sonnet ? { sonnet } : {}),
-    ...(opus ? { opus } : {}),
-  };
-}
-
-/** 把 provider 的默认槽位组装成一行简介，给 select 选项当 hint 用 */
-function formatProviderDefaults(provider: ApiProvider): string {
-  const parts: string[] = [];
-  if (provider.defaultModel) parts.push(`main=${provider.defaultModel}`);
-  if (provider.fastModel) parts.push(`haiku=${provider.fastModel}`);
-  if (provider.sonnetModel && provider.sonnetModel !== provider.defaultModel) {
-    parts.push(`sonnet=${provider.sonnetModel}`);
-  }
-  if (provider.opusModel && provider.opusModel !== provider.defaultModel) {
-    parts.push(`opus=${provider.opusModel}`);
-  }
-  return parts.length > 0 ? `(${parts.join(', ')})` : '';
-}
-
-/**
- * 询问一个槽位。
- * - catalog 非空 → select：候选模型 + "其他（手动输入）" + "留空"
- * - catalog 为空 → 退化为 input
- *
- * 返回空字符串表示「不写这个槽位」。
- */
-async function askModelSlot(message: string, defaultValue: string, catalog?: string[]): Promise<string> {
-  // 没目录或目录为空 → 走 input
-  if (!catalog || catalog.length === 0) {
-    const v = await input({
-      message,
-      ...(defaultValue ? { default: defaultValue } : {}),
-    });
-    return v.trim();
-  }
-
-  // 目录里没有 default？拼到第一项
-  const fullCatalog = defaultValue && !catalog.includes(defaultValue)
-    ? [defaultValue, ...catalog]
-    : [...catalog];
-
-  const CUSTOM = '__custom__';
-  const SKIP = '__skip__';
-  const choice = await select<string>({
-    message,
-    default: defaultValue || fullCatalog[0],
-    pageSize: Math.min(10, fullCatalog.length + 2),
-    choices: [
-      ...fullCatalog.map(m => ({ name: m, value: m })),
-      { name: ansis.dim('其他… (手动输入)'), value: CUSTOM },
-      { name: ansis.gray('留空（不写这个槽位）'), value: SKIP },
-    ],
-  });
-
-  if (choice === SKIP) return '';
-  if (choice === CUSTOM) {
-    const v = await input({
-      message: '输入模型 ID',
-      ...(defaultValue ? { default: defaultValue } : {}),
-    });
-    return v.trim();
-  }
-  return choice;
 }
 
 interface SaveProfileArgs {
@@ -261,8 +139,10 @@ interface SaveProfileArgs {
   yes: boolean;
   provider: ApiProvider;
   baseUrl: string;
+  authType: AuthType;
   apiKey: string;
   slots: ModelSlots;
+  targetTools?: CodeTool[];
 }
 
 async function maybeSaveProfile(args: SaveProfileArgs): Promise<void> {
@@ -296,7 +176,7 @@ async function maybeSaveProfile(args: SaveProfileArgs): Promise<void> {
     name,
     provider: args.provider.id,
     baseUrl: args.baseUrl,
-    authType: args.provider.authType,
+    authType: args.authType,
     apiKey: args.apiKey,
     ...(args.slots.main ? { model: args.slots.main } : {}),
     ...(args.slots.haiku ? { fastModel: args.slots.haiku } : {}),
@@ -519,7 +399,7 @@ async function pickTool(): Promise<CodeTool> {
     choices: [
       { name: `${TOOLS.clavue.displayName} ${ansis.dim('(主推)')}`, value: 'clavue' },
       { name: TOOLS['claude-code'].displayName, value: 'claude-code' },
-      { name: `${TOOLS.codex.displayName}`, value: 'codex' },
+      { name: TOOLS.codex.displayName, value: 'codex' },
     ],
   });
 }
@@ -528,7 +408,7 @@ async function pickProvider(tool: CodeTool): Promise<ApiProvider> {
   const list = listProvidersFor(tool);
   const id = await select<string>({
     message: '选择 API provider',
-    choices: list.map(p => ({ name: `${p.name} ${ansis.dim(p.description)}`, value: p.id })),
+    choices: list.map(p => ({ name: `${p.name} ${ansis.dim(p.description || p.hint || '')}`, value: p.id })),
   });
   return list.find(p => p.id === id)!;
 }
@@ -550,6 +430,52 @@ async function askInput(message: string, mask = false): Promise<string> {
 }
 
 /**
+ * 让用户挑一个 main model（完全复刻 zcf 的合理交互）。
+ *
+ * - --model 已传 → 直接用
+ * - provider.claudeCode.defaultModels 非空 → 给漂亮的 select（含“其他…”和“留空”）
+ * - 否则 → 简单 input
+ * 返回 undefined 表示不写 model（让 Claude Code 用自己默认）。
+ */
+async function pickModel(opts: InitOptions, provider: ApiProvider): Promise<string | undefined> {
+  if (opts.model !== undefined) {
+    const t = opts.model.trim();
+    return t || undefined;
+  }
+  if (opts.yes) {
+    return defaultClaudeModel(provider);
+  }
+
+  const catalog = provider.claudeCode?.defaultModels ?? [];
+  if (catalog.length === 0) {
+    const v = await input({ message: 'Main model（留空跳过）' });
+    return v.trim() || undefined;
+  }
+
+  const CUSTOM = '__custom__';
+  const SKIP = '__skip__';
+  const choice = await select<string>({
+    message: 'Main model',
+    default: catalog[0],
+    pageSize: Math.min(10, catalog.length + 2),
+    choices: [
+      ...catalog.map(m => ({ name: m, value: m })),
+      { name: ansis.dim('其他… (手动输入)'), value: CUSTOM },
+      { name: ansis.gray('留空（不写 model）'), value: SKIP },
+    ],
+  });
+
+  if (choice === SKIP) return undefined;
+  if (choice === CUSTOM) {
+    const v = await input({ message: '输入模型 ID' });
+    return v.trim() || undefined;
+  }
+  return choice;
+}
+
+
+
+/**
  * 写 settings.env：
  * - 总是写 ANTHROPIC_BASE_URL + 凭证
  * - main slot → ANTHROPIC_MODEL
@@ -563,12 +489,12 @@ export function applyApiToSettings(
   settings: { env?: Record<string, string>; model?: string; [k: string]: unknown },
   baseUrl: string,
   apiKey: string,
-  provider: ApiProvider,
+  authType: AuthType,
   slots: ModelSlots = {},
 ): void {
   settings.env = settings.env ?? {};
   settings.env.ANTHROPIC_BASE_URL = baseUrl;
-  if (provider.authType === 'auth_token') {
+  if (authType === 'auth_token') {
     settings.env.ANTHROPIC_AUTH_TOKEN = apiKey;
     delete settings.env.ANTHROPIC_API_KEY;
   }
@@ -577,16 +503,11 @@ export function applyApiToSettings(
     delete settings.env.ANTHROPIC_AUTH_TOKEN;
   }
 
-  // 槽位写入：fallback 到 provider 默认值（保持兼容 v15 之前的行为）
-  const main = slots.main ?? provider.defaultModel;
-  const haiku = slots.haiku ?? provider.fastModel;
-  const sonnet = slots.sonnet ?? provider.sonnetModel;
-  const opus = slots.opus ?? provider.opusModel;
-
-  applyOrDelete(settings.env, 'ANTHROPIC_MODEL', main);
-  applyOrDelete(settings.env, 'ANTHROPIC_DEFAULT_HAIKU_MODEL', haiku);
-  applyOrDelete(settings.env, 'ANTHROPIC_DEFAULT_SONNET_MODEL', sonnet);
-  applyOrDelete(settings.env, 'ANTHROPIC_DEFAULT_OPUS_MODEL', opus);
+  // 槽位写入：zcf 合理流程已在调用方用 pickModel + main 回退算好 slots，这里直接写
+  applyOrDelete(settings.env, 'ANTHROPIC_MODEL', slots.main);
+  applyOrDelete(settings.env, 'ANTHROPIC_DEFAULT_HAIKU_MODEL', slots.haiku);
+  applyOrDelete(settings.env, 'ANTHROPIC_DEFAULT_SONNET_MODEL', slots.sonnet);
+  applyOrDelete(settings.env, 'ANTHROPIC_DEFAULT_OPUS_MODEL', slots.opus);
 
   if ('model' in settings) delete settings.model;
 }
@@ -594,4 +515,31 @@ export function applyApiToSettings(
 function applyOrDelete(env: Record<string, string>, key: string, value: string | undefined): void {
   if (value) env[key] = value;
   else delete env[key];
+}
+
+/**
+ * v15.27.7: 写完 settings 后，立刻警告 shell rc 残留 env shadow。
+ *
+ * 之前的流程是：用户 init → 高高兴兴重启 Claude Code → 发现没生效 →
+ * 跑 doctor 才知道是 shell shadow。现在 init 现场就提示一次。
+ *
+ * 只比 baseUrl 和 main model（最常被 shadow 的两条）；deprecated env
+ * 已经在 doctor runtime 段处理。
+ */
+export function warnShellShadow(baseUrl: string, slots: ModelSlots): void {
+  const shellBase = process.env.ANTHROPIC_BASE_URL;
+  const shellModel = process.env.ANTHROPIC_MODEL;
+  const conflicts: string[] = [];
+  if (shellBase && shellBase !== baseUrl) {
+    conflicts.push(`ANTHROPIC_BASE_URL（shell="${shellBase}"，文件="${baseUrl}"）`);
+  }
+  if (shellModel && slots.main && shellModel !== slots.main) {
+    conflicts.push(`ANTHROPIC_MODEL（shell="${shellModel}"，文件="${slots.main}"）`);
+  }
+  if (conflicts.length === 0) return;
+  console.log();
+  console.log(ansis.yellow('⚠ 警告：shell 环境变量会 shadow 这次配置'));
+  for (const c of conflicts) console.log(ansis.yellow(`  · ${c}`));
+  console.log(ansis.dim('  Claude Code 启动时优先读 shell 环境变量，文件配置会被覆盖。'));
+  console.log(ansis.dim('  打开 ~/.zshrc / ~/.bashrc 删掉对应 export，重开终端即可。'));
 }

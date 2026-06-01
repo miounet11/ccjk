@@ -45,6 +45,7 @@ import { probeCommand } from './commands/probe.js';
 import { migrateCommand } from './commands/migrate.js';
 import { profileDiffCommand } from './commands/profile-diff.js';
 import { benchCommand } from './commands/bench.js';
+import { grokCommand, grokModelsCommand } from './commands/grok.js';
 
 const pkgPath = join(dirname(fileURLToPath(import.meta.url)), '..', 'package.json');
 const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8')) as { version: string };
@@ -59,7 +60,7 @@ const program = new Command();
 
 program
   .name('ccjk')
-  .description('Clavue / Claude Code / Codex 配置 CLI')
+  .description('Clavue / Claude Code / Codex / Grok 配置 CLI')
   .version(pkg.version)
   .option('--no-color', '禁用彩色输出（也可设置环境变量 NO_COLOR=1）');
 
@@ -210,7 +211,7 @@ program
 
 program
   .command('perms-show')
-  .description('查看三个工具当前的权限状态')
+  .description('查看当前各工具的权限档位状态')
   .action(permsShowCommand);
 
 program
@@ -410,6 +411,15 @@ program
   .option('--runs <n>', '运行次数（1..10，默认 3）', (v) => Number(v))
   .action((profile: string | undefined, opts: { json?: boolean; runs?: number }) =>
     benchCommand(profile, opts));
+
+const grok = program
+  .command('grok')
+  .description('Grok CLI（xAI 官方）状态与使用指引；OAuth 登录，不参与 profile 同步')
+  .action(grokCommand);
+grok
+  .command('models')
+  .description('列出 Grok 可用模型（转发 grok models）')
+  .action(grokModelsCommand);
 
 program.parseAsync(process.argv).catch((err: Error) => {
   // inquirer 9+ 在 Ctrl+C 时抛 ExitPromptError，安静退出不报红

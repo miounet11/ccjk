@@ -1,4 +1,25 @@
-# ccjk Release Notes（v15.20 – v15.26）
+# ccjk Release Notes（v15.20 – v15.28）
+
+## v15.28.0 — 交互与设置方法完全对齐 zcf（用户体验重大打磨）
+
+为提供“最合理”的交互和设置体验，核心 CLI 交互部分（菜单、init/quick/edit/migrate、profile use、perms 档位、mode 切换等）全面复刻 zcf 项目（github.com/UfoMiao/zcf）的逻辑和文案：
+
+- providers 数据模型改为 zcf 推荐的 per-tool preset 结构（claudeCode / codex），已知 provider 预填 baseUrl/authType + defaultModels 列表，设置时大幅减少提问。
+- init / quick 等“设置方法”交互流程对齐 zcf：preset 预填 + 优秀的 model 目录 select（含“其他手动输入”“留空”选项）。
+- profile use 切换逻辑增强（支持 targetTools scope 记忆 + 更清晰的 Codex 提示）。
+- menu 分组、子菜单（permsSubMenu、maintenanceSubMenu）、文案、确认消息等进一步打磨匹配 zcf 线性工作流和语气。
+- perms / mode 输出和流程细节对齐 zcf 合理设计。
+
+**验证**
+- pnpm typecheck / lint 通过。
+- 构建成功，CLI 入口可用。
+- 3 轮打磨迭代完成（按用户要求）。
+
+此版本让 ccjk 在保持多工具支持（clavue 主推 + claude-code + codex + grok）的同时，单工具（尤其是 clavue/claude）设置和日常交互体验与 zcf 保持高度一致。
+
+---
+
+# ccjk Release Notes（v15.20 – v15.26）（历史）
 
 每个 release 都已发到 npm latest 并打了 git tag。本文是给 GitHub Releases 用的精简版，完整变更看 [CHANGELOG.md](../CHANGELOG.md)。
 

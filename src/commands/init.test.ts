@@ -5,7 +5,8 @@ import { findProvider } from '../core/providers.js';
 describe('applyApiToSettings', () => {
   it('auth_token 模式写 ANTHROPIC_AUTH_TOKEN，清掉 API_KEY', () => {
     const s: { env?: Record<string, string>; model?: string } = { env: { ANTHROPIC_API_KEY: 'old' } };
-    applyApiToSettings(s, 'https://x.com', 'tok123', findProvider('glm')!);
+    const glm = findProvider('glm')!;
+    applyApiToSettings(s, 'https://x.com', 'tok123', glm.claudeCode?.authType ?? 'auth_token');
     expect(s.env?.ANTHROPIC_BASE_URL).toBe('https://x.com');
     expect(s.env?.ANTHROPIC_AUTH_TOKEN).toBe('tok123');
     expect(s.env?.ANTHROPIC_API_KEY).toBeUndefined();
@@ -15,7 +16,8 @@ describe('applyApiToSettings', () => {
 
   it('删除顶层 model 字段（防止劫持 env）', () => {
     const s: { env?: Record<string, string>; model?: string } = { model: 'sonnet-stale' };
-    applyApiToSettings(s, 'https://x.com', 'tok', findProvider('glm')!);
+    const glm = findProvider('glm')!;
+    applyApiToSettings(s, 'https://x.com', 'tok', glm.claudeCode?.authType ?? 'auth_token');
     expect(s.model).toBeUndefined();
   });
 
@@ -24,7 +26,8 @@ describe('applyApiToSettings', () => {
       env: { OTHER: 'keep' },
       permissions: { allow: ['Bash'] },
     };
-    applyApiToSettings(s as Parameters<typeof applyApiToSettings>[0], 'https://x.com', 'k', findProvider('glm')!);
+    const glm = findProvider('glm')!;
+    applyApiToSettings(s as Parameters<typeof applyApiToSettings>[0], 'https://x.com', 'k', glm.claudeCode?.authType ?? 'auth_token');
     expect(s.env?.OTHER).toBe('keep');
     expect(s.permissions).toEqual({ allow: ['Bash'] });
   });

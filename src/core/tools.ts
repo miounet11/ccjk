@@ -1,4 +1,4 @@
-export type CodeTool = 'clavue' | 'claude-code' | 'codex';
+export type CodeTool = 'clavue' | 'claude-code' | 'codex' | 'grok';
 
 /**
  * 工具的安装方式。
@@ -22,6 +22,20 @@ export interface CodeToolMeta {
   installer: Installer;
   /** 友好的"如何安装"提示文案 */
   installHint: string;
+  /**
+   * 可选能力声明（v15.28+ 引入，用于减少未来加工具时的硬编码 if）。
+   * 目前为可选，后续命令会逐步从硬编码列表迁移到这里。
+   */
+  capabilities?: {
+    /** 是否有持久化配置文件可被 ccjk 直接管理 */
+    hasPersistentConfig?: boolean;
+    /** 是否参与 ccjk use / profile 同步 */
+    participatesInProfiles?: boolean;
+    supportsPerms?: boolean;
+    supportsModes?: boolean;
+    /** 是否为 launcher 类型（grok 这种启动代理而非直接写配置的工具） */
+    isLauncher?: boolean;
+  };
 }
 
 export const TOOLS: Record<CodeTool, CodeToolMeta> = {
@@ -60,5 +74,29 @@ export const TOOLS: Record<CodeTool, CodeToolMeta> = {
     binName: 'codex',
     installer: { kind: 'npm', package: '@openai/codex' },
     installHint: 'npm install -g @openai/codex',
+  },
+  'grok': {
+    id: 'grok',
+    displayName: 'Grok CLI',
+    homepage: 'https://x.ai',
+    configDir: '~/.grok',
+    settingsFile: '',           // 认证走 OAuth，存于 ~/.grok/auth.json，无 ccjk 可写的 settings
+    binName: 'grok',
+    installer: {
+      kind: 'script',
+      // xAI 官方一行脚本安装（与本机实际安装方式一致）
+      install: 'curl -fsSL https://x.ai/cli/install.sh | bash',
+      update: 'grok update',
+    },
+    installHint: 'curl -fsSL https://x.ai/cli/install.sh | bash',
+    capabilities: {
+      // Grok CLI 是完整的 agent TUI（非代理 launcher）：自带 login/models/agent/mcp。
+      // 认证走 OAuth（grok login），不是 ccjk 写文件的模式，所以不参与 profile 同步。
+      hasPersistentConfig: false,
+      participatesInProfiles: false,
+      supportsPerms: false,
+      supportsModes: false,
+      isLauncher: false,
+    },
   },
 };

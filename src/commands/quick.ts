@@ -3,7 +3,7 @@ import ansis from 'ansis';
 import { TOOLS } from '../core/tools.js';
 import type { CodeTool } from '../core/tools.js';
 import { findProvider } from '../core/providers.js';
-import type { ApiProvider } from '../core/providers.js';
+
 import { readSettings, writeSettings } from '../core/settings.js';
 import { guessProviderId, parseQuickConfig } from '../core/quick-parse.js';
 import type { QuickConfig } from '../core/quick-parse.js';
@@ -68,7 +68,9 @@ export async function quickCommand(opts: QuickOptions = {}): Promise<void> {
   // 4) 猜 provider；如果不是已知 provider，落到 custom
   const providerId = guessProviderId(baseUrl);
   const provider = findProvider(providerId) ?? findProvider('custom')!;
-  const finalProvider: ApiProvider = { ...provider, authType, ...(baseUrl ? { baseUrl } : {}) };
+  // 复刻 zcf 风格：不污染 provider 对象本身，用有效 preset + 覆盖值
+  const effectiveBaseUrl = baseUrl || provider.claudeCode?.baseUrl || '';
+  const effectiveAuthType = authType || provider.claudeCode?.authType || 'auth_token';
 
   // 5) 槽位：解析到啥用啥，没解析到 fallback 到 provider 默认
   const slots: ModelSlots = {
@@ -81,9 +83,9 @@ export async function quickCommand(opts: QuickOptions = {}): Promise<void> {
   // 6) 总结 + 确认
   console.log();
   console.log(ansis.dim(`→ 目标: ${meta.displayName}（${meta.settingsFile}）`));
-  console.log(ansis.dim(`→ Provider: ${finalProvider.name}（猜测）`));
-  console.log(ansis.dim(`→ Base URL: ${baseUrl}`));
-  console.log(ansis.dim(`→ Auth: ${authType}`));
+  console.log(ansis.dim(`→ Provider: ${provider.name}（猜测）`));
+  console.log(ansis.dim(`→ Base URL: ${effectiveBaseUrl || baseUrl}`));
+  console.log(ansis.dim(`→ Auth: ${effectiveAuthType}`));
   if (slots.main) console.log(ansis.dim(`→ Main: ${slots.main}`));
   if (slots.haiku) console.log(ansis.dim(`→ Haiku: ${slots.haiku}`));
   if (slots.sonnet) console.log(ansis.dim(`→ Sonnet: ${slots.sonnet}`));
@@ -98,9 +100,9 @@ export async function quickCommand(opts: QuickOptions = {}): Promise<void> {
     }
   }
 
-  // 7) 写 settings
+  // 7) 写 settings (按 zcf 对齐后的 apply 签名)
   const settings = await readSettings(meta.settingsFile);
-  applyApiToSettings(settings, baseUrl, apiKey, finalProvider, slots);
+  applyApiToSettings(settings, effectiveBaseUrl || baseUrl, apiKey, effectiveAuthType, slots);
   const backup = await writeSettings(meta.settingsFile, settings);
 
   console.log(ansis.green('\n✔ 配置已写入'));
@@ -108,20 +110,20 @@ export async function quickCommand(opts: QuickOptions = {}): Promise<void> {
   console.log(ansis.dim(`  目标: ${meta.settingsFile}`));
 
   // 8) profile 名
-  const profileName = opts.profile ?? await suggestAndAskProfileName(finalProvider.id, opts.yes ?? false);
+  const profileName = opts.profile ?? await suggestAndAskProfileName(provider.id, opts.yes ?? false);
   if (profileName) {
     validateName(profileName);
-    // profile 里的槽位字段：解析到的 > provider 默认值。
-    // 不存的话 edit 之后会把 settings 里的对应 env 清掉，下次 use 也丢。
-    const mainForProfile = slots.main ?? finalProvider.defaultModel;
-    const fastForProfile = slots.haiku ?? finalProvider.fastModel;
-    const sonnetForProfile = slots.sonnet ?? finalProvider.sonnetModel;
-    const opusForProfile = slots.opus ?? finalProvider.opusModel;
+    // 按 zcf preset 逻辑取默认（claudeCode.defaultModels[0] 作为 main fallback）
+    const defaultMain = provider.claudeCode?.defaultModels?.[0];
+    const mainForProfile = slots.main ?? defaultMain;
+    const fastForProfile = slots.haiku ?? defaultMain;
+    const sonnetForProfile = slots.sonnet ?? defaultMain;
+    const opusForProfile = slots.opus ?? defaultMain;
     await writeProfile({
       name: profileName,
-      provider: finalProvider.id,
-      baseUrl,
-      authType,
+      provider: provider.id,
+      baseUrl: effectiveBaseUrl || baseUrl,
+      authType: effectiveAuthType,
       apiKey,
       ...(mainForProfile ? { model: mainForProfile } : {}),
       ...(fastForProfile ? { fastModel: fastForProfile } : {}),
