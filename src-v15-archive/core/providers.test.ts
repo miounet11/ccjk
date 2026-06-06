@@ -24,7 +24,7 @@ describe('providers', () => {
   });
 
   describe('enriched catalog (docsUrl / hint / region)', () => {
-    it('glm: claudeCode preset + hint + docsUrl + region (zcf 合理结构)', () => {
+    it('glm: claudeCode preset + hint + docsUrl + region (ccjk 统一结构)', () => {
       const p = findProvider('glm');
       expect(p).toBeDefined();
       expect(p!.claudeCode?.baseUrl).toContain('bigmodel.cn');
@@ -33,7 +33,7 @@ describe('providers', () => {
       expect(p!.region).toBe('cn');
     });
 
-    it('kimi: claudeCode preset + hint + docsUrl + region (zcf 合理结构)', () => {
+    it('kimi: claudeCode preset + hint + docsUrl + region (ccjk 统一结构)', () => {
       const p = findProvider('kimi');
       expect(p).toBeDefined();
       expect(p!.claudeCode?.baseUrl).toContain('moonshot.cn');
@@ -42,7 +42,7 @@ describe('providers', () => {
       expect(p!.region).toBe('cn');
     });
 
-    it('deepseek: claudeCode preset + hint + docsUrl + region (zcf 合理结构)', () => {
+    it('deepseek: claudeCode preset + hint + docsUrl + region (ccjk 统一结构)', () => {
       const p = findProvider('deepseek');
       expect(p).toBeDefined();
       expect(p!.claudeCode?.baseUrl).toContain('deepseek.com');
@@ -51,7 +51,7 @@ describe('providers', () => {
       expect(p!.region).toBe('cn');
     });
 
-    it('anthropic: claudeCode preset + hint + docsUrl + region (zcf 合理结构)', () => {
+    it('anthropic: claudeCode preset + hint + docsUrl + region (ccjk 统一结构)', () => {
       const p = findProvider('anthropic');
       expect(p).toBeDefined();
       expect(p!.claudeCode?.baseUrl).toContain('api.anthropic.com');
@@ -60,7 +60,7 @@ describe('providers', () => {
       expect(p!.region).toBe('global');
     });
 
-    it('openrouter: claudeCode preset + hint + docsUrl + region (zcf 合理结构)', () => {
+    it('openrouter: claudeCode preset + hint + docsUrl + region (ccjk 统一结构)', () => {
       const p = findProvider('openrouter');
       expect(p).toBeDefined();
       expect(p!.claudeCode?.baseUrl).toContain('openrouter.ai');
@@ -69,12 +69,12 @@ describe('providers', () => {
       expect(p!.region).toBe('global');
     });
 
-    it('custom: hint + region（按 zcf 结构无 claudeCode preset，init 时强制询问）', () => {
+    it('custom: hint + region（按 ccjk 结构无 claudeCode preset，init 时强制询问）', () => {
       const p = findProvider('custom');
       expect(p).toBeDefined();
       expect(p!.hint).toBeTruthy();
       expect(p!.region).toBe('global');
-      expect(p!.claudeCode).toBeUndefined(); // 符合 zcf 合理设计
+      expect(p!.claudeCode).toBeUndefined(); // 符合 ccjk 统一设计
     });
   });
 

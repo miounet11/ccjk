@@ -6,7 +6,7 @@ describe('applyApiToSettings', () => {
   it('auth_token 模式写 ANTHROPIC_AUTH_TOKEN，清掉 API_KEY', () => {
     const s: { env?: Record<string, string>; model?: string } = { env: { ANTHROPIC_API_KEY: 'old' } };
     const glm = findProvider('glm')!;
-    // 按当前 applyApiToSettings 签名，需要显式传 slots（zcf 对齐后的行为）
+    // 按当前 applyApiToSettings 签名，需要显式传 slots（ccjk 对齐后的行为）
     applyApiToSettings(s, 'https://x.com', 'tok123', glm.claudeCode?.authType ?? 'auth_token', { main: 'glm-4.6' });
     expect(s.env?.ANTHROPIC_BASE_URL).toBe('https://x.com');
     expect(s.env?.ANTHROPIC_AUTH_TOKEN).toBe('tok123');

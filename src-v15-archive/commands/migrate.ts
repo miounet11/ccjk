@@ -152,7 +152,7 @@ function extract(settings: { env?: Record<string, string> }): ExtractedSettings 
 }
 
 function matchProvider(providers: ApiProvider[], baseUrl: string): ApiProvider | undefined {
-  // 按 zcf 合理 preset 结构匹配（优先 claudeCode，其次 codex）
+  // 按 ccjk 统一 preset 结构匹配（优先 claudeCode，其次 codex）
   const exact = providers.find(p =>
     p.claudeCode?.baseUrl === baseUrl || p.codex?.baseUrl === baseUrl
   );

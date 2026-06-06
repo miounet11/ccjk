@@ -1,6 +1,6 @@
 # ccjk
 
-> Clavue / Claude Code / Codex / Grok CLI 的统一专业配置工具。所有工具采用完全一致的配置体验（API Key + Base URL + 模型选择），profile 管理、权限策略一站式搞定。参考 zcf 合理交互设计，让配置简单高效、无例外。
+> Clavue / Claude Code / Codex / Grok CLI 的统一专业配置工具。所有工具采用完全一致的配置体验（API Key + Base URL + 模型选择），profile 管理、权限策略一站式搞定。ccjk 统一交互设计，让配置简单高效、无例外。
 
 **核心亮点**：Grok CLI 配置已与 Codex、Clavue、Claude Code 完全统一，无任何例外。一次配置，多工具通用。
 

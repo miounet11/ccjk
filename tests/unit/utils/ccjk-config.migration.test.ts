@@ -36,7 +36,7 @@ vi.mock('../../../src/utils/toml-edit', () => ({
 
 describe('ccjk-config migration', () => {
   const home = homedir()
-  const newDir = join(home, '.ufomiao', 'ccjk')
+  const newDir = join(home, '.ccjk')
   const newPath = join(newDir, 'config.toml')
   const claudeLegacy = join(home, '.claude', '.ccjk-config.json')
   const legacyJson = join(home, '.ccjk.json')

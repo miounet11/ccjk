@@ -60,7 +60,7 @@ export async function initCommand(opts: InitOptions = {}): Promise<void> {
     throw new Error(`provider "${provider.id}" 没有 claude-code 配置`);
   }
 
-  // claudeCode preset 在 custom 时为 undefined → 都向用户问（zcf 合理逻辑）
+  // claudeCode preset 在 custom 时为 undefined → 都向用户问（ccjk 统一逻辑）
   const preset = provider.claudeCode;
   const baseUrl = opts.baseUrl
     ?? preset?.baseUrl
@@ -68,7 +68,7 @@ export async function initCommand(opts: InitOptions = {}): Promise<void> {
   const authType: AuthType = preset?.authType ?? 'auth_token';
   const apiKey = opts.apiKey ?? await askInput(authType === 'api_key' ? 'API Key' : 'Auth Token', true);
 
-  // 复刻 zcf 的合理设置方法：只问 main model（有 defaultModels 列表时给好选择），其他槽位用命令行或默认=main
+  // 按 ccjk 的合理设置方法：只问 main model（有 defaultModels 列表时给好选择），其他槽位用命令行或默认=main
   const model = await pickModel(opts, provider);
   const slots: ModelSlots = {
     ...(model ? { main: model } : {}),
@@ -435,7 +435,7 @@ async function askInput(message: string, mask = false): Promise<string> {
 }
 
 /**
- * 让用户挑一个 main model（完全复刻 zcf 的合理交互）。
+ * 让用户挑一个 main model（完全按 ccjk 的合理交互）。
  *
  * - --model 已传 → 直接用
  * - provider.claudeCode.defaultModels 非空 → 给漂亮的 select（含“其他…”和“留空”）
@@ -508,7 +508,7 @@ export function applyApiToSettings(
     delete settings.env.ANTHROPIC_AUTH_TOKEN;
   }
 
-  // 槽位写入：zcf 合理流程已在调用方用 pickModel + main 回退算好 slots，这里直接写
+  // 槽位写入：ccjk 统一流程已在调用方用 pickModel + main 回退算好 slots，这里直接写
   applyOrDelete(settings.env, 'ANTHROPIC_MODEL', slots.main);
   applyOrDelete(settings.env, 'ANTHROPIC_DEFAULT_HAIKU_MODEL', slots.haiku);
   applyOrDelete(settings.env, 'ANTHROPIC_DEFAULT_SONNET_MODEL', slots.sonnet);

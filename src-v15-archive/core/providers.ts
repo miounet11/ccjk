@@ -3,7 +3,7 @@ import type { CodeTool } from './tools.js';
 export type AuthType = 'api_key' | 'auth_token';
 
 /**
- * 参考 zcf（github.com/UfoMiao/zcf）的合理 preset 结构。
+ * ccjk 统一 preset 结构的合理 preset 结构。
  * 每个 provider 按目标工具声明独立接入参数，避免扁平化导致的设置交互混乱。
  */
 export interface ApiProvider {
@@ -17,7 +17,7 @@ export interface ApiProvider {
   region?: 'cn' | 'global';
   /** Provider 官方文档 URL */
   docsUrl?: string;
-  /** Claude Code / Clavue 接入参数（zcf 推荐的合理方式） */
+  /** Claude Code / Clavue 接入参数（ccjk 推荐的合理方式） */
   claudeCode?: {
     baseUrl: string;
     authType: AuthType;
@@ -165,7 +165,7 @@ export function listProvidersFor(tool: CodeTool): ApiProvider[] {
   return PROVIDERS.filter(p => p.supportedTools.includes(tool));
 }
 
-/** 复刻 zcf 合理 helper：取 claudeCode preset 的第一个默认 model */
+/** 复刻 ccjk 统一 helper：取 claudeCode preset 的第一个默认 model */
 export function defaultClaudeModel(provider: ApiProvider): string | undefined {
   return provider.claudeCode?.defaultModels?.[0];
 }

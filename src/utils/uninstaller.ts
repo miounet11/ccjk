@@ -32,7 +32,7 @@ export interface UninstallResult {
 /**
  * CCJK Uninstaller - Handles removal of CCJK configurations and tools
  */
-export class ZcfUninstaller {
+export class CcjkUninstaller {
   private _lang: SupportedLang // Reserved for future i18n support
   private conflictResolution = new Map<UninstallItem, UninstallItem[]>()
 

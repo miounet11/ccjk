@@ -1,6 +1,6 @@
 import type { UninstallItem } from '../../src/utils/uninstaller'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { ZcfUninstaller } from '../../src/utils/uninstaller'
+import { CcjkUninstaller } from '../../src/utils/uninstaller'
 
 // Mock dependencies - more comprehensive edge case mocking
 vi.mock('node:fs')
@@ -76,10 +76,10 @@ vi.mock('../../src/constants', () => ({
 }))
 
 describe('ccjkUninstaller - Edge Cases', () => {
-  let uninstaller: ZcfUninstaller
+  let uninstaller: CcjkUninstaller
 
   beforeEach(() => {
-    uninstaller = new ZcfUninstaller()
+    uninstaller = new CcjkUninstaller()
     vi.clearAllMocks()
     // Reset all mocks to default resolved states
     mockFsExtra.pathExists.mockResolvedValue(false)
@@ -92,13 +92,13 @@ describe('ccjkUninstaller - Edge Cases', () => {
 
   describe('constructor edge cases', () => {
     it('should initialize with Chinese language', () => {
-      const chineseUninstaller = new ZcfUninstaller('zh-CN')
-      expect(chineseUninstaller).toBeInstanceOf(ZcfUninstaller)
+      const chineseUninstaller = new CcjkUninstaller('zh-CN')
+      expect(chineseUninstaller).toBeInstanceOf(CcjkUninstaller)
     })
 
     it('should handle conflict resolution setup correctly', () => {
       // Test private conflictResolution map functionality indirectly
-      expect(uninstaller).toBeInstanceOf(ZcfUninstaller)
+      expect(uninstaller).toBeInstanceOf(CcjkUninstaller)
     })
   })
 

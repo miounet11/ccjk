@@ -8,7 +8,7 @@ import type { CodeToolType, SupportedLang } from '../constants'
 import { CLAUDE_DIR, CODE_TOOL_BANNERS, DEFAULT_CODE_TOOL_TYPE, isCodeToolType } from '../constants'
 import { i18n } from '../i18n'
 import { displayBannerWithInfo } from '../utils/banner'
-import { readZcfConfig, updateZcfConfig } from '../utils/ccjk-config'
+import { readCcjkConfig, updateCcjkConfig } from '../utils/ccjk-config'
 import { readMcpConfig } from '../utils/claude-config'
 import { resolveCodeType } from '../utils/code-type-resolver'
 import { handleExitPromptError, handleGeneralError } from '../utils/error-handler'
@@ -45,7 +45,7 @@ const CODE_TOOL_LABELS: Record<CodeToolType, string> = {
 }
 
 function getCurrentCodeTool(): CodeToolType {
-  const config = readZcfConfig()
+  const config = readCcjkConfig()
   if (config?.codeToolType && isCodeToolType(config.codeToolType)) {
     return config.codeToolType
   }
@@ -84,7 +84,7 @@ async function handleCodeToolSwitch(current: CodeToolType): Promise<boolean> {
     return false
   }
 
-  updateZcfConfig({ codeToolType: tool })
+  updateCcjkConfig({ codeToolType: tool })
   console.log(ansis.green(`✔ ${isZh ? '已切换到' : 'Switched to'} ${getCodeToolLabel(tool)}`))
   return true
 }
@@ -282,13 +282,13 @@ async function handleHierarchicalMenu(): Promise<MenuResult> {
 }
 
 /**
- * Show the ZCF-style CCJK main menu
+ * Show the ccjk CCJK main menu
  */
 async function showSimplifiedMenu(): Promise<MenuResult> {
   const lang = i18n.language as SupportedLang
   const isZh = lang === 'zh-CN'
 
-  // Display ZCF-style menu
+  // Display ccjk menu
   console.log('')
   console.log(ansis.bold.yellow(isZh ? '请选择功能' : 'Select Feature'))
 
@@ -351,7 +351,7 @@ async function showSimplifiedMenu(): Promise<MenuResult> {
   switch (normalized) {
     // -------- Claude Code --------
     case '1': {
-      // Full Init - call init() directly like zcf
+      // Full Init - call init() directly like ccjk
       await init({ skipBanner: true, codeType: 'claude-code' })
       const offerGen = await promptBoolean({
         message: isZh ? '是否运行智能 Agent/Skill 生成？（推荐）' : 'Run smart agent/skill generation for this project? (recommended)',
@@ -371,7 +371,7 @@ async function showSimplifiedMenu(): Promise<MenuResult> {
     }
 
     case '3': {
-      // Configure API or CCR Proxy - use configureApiFeature() like zcf
+      // Configure API or CCR Proxy - use configureApiFeature() like ccjk
       await configureApiFeature()
       break
     }
@@ -433,7 +433,7 @@ async function showSimplifiedMenu(): Promise<MenuResult> {
     }
 
     case '5': {
-      // Configure MCP - use configureMcpFeature() like zcf
+      // Configure MCP - use configureMcpFeature() like ccjk
       await configureMcpFeature()
       break
     }
@@ -500,7 +500,7 @@ async function showSimplifiedMenu(): Promise<MenuResult> {
 
     // ------------ CCJK ------------
     case '0': {
-      // Language Settings - matches zcf pattern
+      // Language Settings - matches ccjk pattern
       const currentLang = i18n.language as SupportedLang
       await changeScriptLanguageFeature(currentLang)
       printSeparator()
@@ -508,7 +508,7 @@ async function showSimplifiedMenu(): Promise<MenuResult> {
     }
 
     case 's': {
-      // Switch Code Tool - matches zcf pattern
+      // Switch Code Tool - matches ccjk pattern
       const switched = await handleCodeToolSwitch(getCurrentCodeTool())
       if (switched) {
         return 'switch'
@@ -590,7 +590,7 @@ async function isFirstTimeUser(): Promise<boolean> {
   // Check explicit onboarding completion flag first
   const { isOnboardingCompleted } = await import('./onboarding-wizard')
   if (isOnboardingCompleted()) return false
-  const config = readZcfConfig()
+  const config = readCcjkConfig()
   if (!config || !config.version) {
     return true
   }
@@ -637,7 +637,7 @@ export async function showMainMenu(options: { codeType?: string } = {}): Promise
         const currentType = getCurrentCodeTool()
 
         if (resolvedType !== currentType) {
-          updateZcfConfig({ codeToolType: resolvedType })
+          updateCcjkConfig({ codeToolType: resolvedType })
           const isZh = i18n.language === 'zh-CN'
           console.log(ansis.green(`✔ ${isZh ? '已切换到' : 'Switched to'} ${getCodeToolLabel(resolvedType)}`))
         }
@@ -648,7 +648,7 @@ export async function showMainMenu(options: { codeType?: string } = {}): Promise
       }
     }
 
-    // Menu loop - matches zcf pattern
+    // Menu loop - matches ccjk pattern
     let exitMenu = false
     while (!exitMenu) {
       const codeTool = getCurrentCodeTool()

@@ -68,7 +68,7 @@ export async function quickCommand(opts: QuickOptions = {}): Promise<void> {
   // 4) 猜 provider；如果不是已知 provider，落到 custom
   const providerId = guessProviderId(baseUrl);
   const provider = findProvider(providerId) ?? findProvider('custom')!;
-  // 复刻 zcf 风格：不污染 provider 对象本身，用有效 preset + 覆盖值
+  // 复刻 ccjk 风格：不污染 provider 对象本身，用有效 preset + 覆盖值
   const effectiveBaseUrl = baseUrl || provider.claudeCode?.baseUrl || '';
   const effectiveAuthType = authType || provider.claudeCode?.authType || 'auth_token';
 
@@ -100,7 +100,7 @@ export async function quickCommand(opts: QuickOptions = {}): Promise<void> {
     }
   }
 
-  // 7) 写 settings (按 zcf 对齐后的 apply 签名)
+  // 7) 写 settings (按 ccjk 对齐后的 apply 签名)
   const settings = await readSettings(meta.settingsFile);
   applyApiToSettings(settings, effectiveBaseUrl || baseUrl, apiKey, effectiveAuthType, slots);
   const backup = await writeSettings(meta.settingsFile, settings);
@@ -113,7 +113,7 @@ export async function quickCommand(opts: QuickOptions = {}): Promise<void> {
   const profileName = opts.profile ?? await suggestAndAskProfileName(provider.id, opts.yes ?? false);
   if (profileName) {
     validateName(profileName);
-    // 按 zcf preset 逻辑取默认（claudeCode.defaultModels[0] 作为 main fallback）
+    // 按 ccjk preset 逻辑取默认（claudeCode.defaultModels[0] 作为 main fallback）
     const defaultMain = provider.claudeCode?.defaultModels?.[0];
     const mainForProfile = slots.main ?? defaultMain;
     const fastForProfile = slots.haiku ?? defaultMain;

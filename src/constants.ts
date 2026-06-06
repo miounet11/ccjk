@@ -23,12 +23,11 @@ export const CODEX_PROMPTS_DIR = join(CODEX_DIR, 'prompts')
 // CCJK configuration paths
 export const CCJK_CONFIG_DIR = join(homedir(), '.ccjk')
 export const CCJK_CONFIG_FILE = join(CCJK_CONFIG_DIR, 'config.toml')
+/** 旧版配置路径（仅用于 migrate，不含当前 canonical ~/.ccjk/config.toml） */
 export const LEGACY_CCJK_CONFIG_FILES = [
   join(CLAUDE_DIR, '.ccjk-config.json'),
   join(homedir(), '.ccjk.json'),
-  join(homedir(), '.ufomiao', 'zcf', 'config.toml'),
   join(homedir(), '.ufomiao', 'ccjk', 'config.toml'),
-  join(homedir(), '.zcf', 'config.toml'),
 ]
 
 export const CODE_TOOL_TYPES = ['clavue', 'claude-code', 'codex'] as const

@@ -1205,7 +1205,7 @@ requires_openai_auth = true
 
     it('parseCodexConfig should handle model_provider detection with CCJK comments', async () => {
       const codexModule = await import('../../../../src/utils/code-tools/codex')
-      const tomlWithZcfComments = `
+      const tomlWithLegacyComments = `
 [some_section]
 key = "value"
 
@@ -1219,7 +1219,7 @@ wire_api = "responses"
 temp_env_key = "ANTHROPIC_API_KEY"
 requires_openai_auth = true
 `
-      const result = codexModule.parseCodexConfig(tomlWithZcfComments)
+      const result = codexModule.parseCodexConfig(tomlWithLegacyComments)
       expect(result.modelProvider).toBe('claude')
       expect(result.modelProviderCommented).toBe(false)
       // CCJK comment should reset inSection flag, so model_provider is treated as global

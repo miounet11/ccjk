@@ -37,7 +37,7 @@ const mockI18n = vi.hoisted(() => ({
 }))
 
 const mockUninstaller = vi.hoisted(() => ({
-  ZcfUninstaller: vi.fn().mockImplementation(() => ({
+  CcjkUninstaller: vi.fn().mockImplementation(() => ({
     completeUninstall: vi.fn().mockResolvedValue({ success: true, removed: [], errors: [], warnings: [] }),
     customUninstall: vi.fn().mockResolvedValue([{ success: true, removed: [], errors: [], warnings: [] }]),
   })),
@@ -54,7 +54,7 @@ function queuePromptBooleans(...values: boolean[]) {
 
 vi.mocked(await import('inquirer')).default = mockInquirer as any
 vi.mocked(await import('../../src/i18n')).i18n = mockI18n as any
-vi.mocked(await import('../../src/utils/uninstaller')).ZcfUninstaller = mockUninstaller.ZcfUninstaller
+vi.mocked(await import('../../src/utils/uninstaller')).CcjkUninstaller = mockUninstaller.CcjkUninstaller
 vi.mocked(await import('../../src/utils/code-tools/codex')).runCodexUninstall = codexUninstallMock.runCodexUninstall
 
 describe('uninstall command', () => {
@@ -63,7 +63,7 @@ describe('uninstall command', () => {
     mockedPromptBoolean.mockReset()
     mockedPromptBoolean.mockResolvedValue(false)
     mockInquirer.prompt.mockReset()
-    mockUninstaller.ZcfUninstaller.mockImplementation(() => ({
+    mockUninstaller.CcjkUninstaller.mockImplementation(() => ({
       completeUninstall: vi.fn().mockResolvedValue({ success: true, removed: [], errors: [], warnings: [] }),
       customUninstall: vi.fn().mockResolvedValue([{ success: true, removed: [], errors: [], warnings: [] }]),
     }))
@@ -104,7 +104,7 @@ describe('uninstall command', () => {
         warnings: [],
       })
 
-      mockUninstaller.ZcfUninstaller.mockImplementation(() => ({
+      mockUninstaller.CcjkUninstaller.mockImplementation(() => ({
         completeUninstall: mockCompleteUninstall,
       }))
 
@@ -129,7 +129,7 @@ describe('uninstall command', () => {
         { success: true, removed: [], errors: [], warnings: [] },
       ])
 
-      mockUninstaller.ZcfUninstaller.mockImplementation(() => ({
+      mockUninstaller.CcjkUninstaller.mockImplementation(() => ({
         customUninstall: mockCustomUninstall,
       }))
 
@@ -194,7 +194,7 @@ describe('uninstall command', () => {
         warnings: [],
       })
 
-      mockUninstaller.ZcfUninstaller.mockImplementation(() => ({
+      mockUninstaller.CcjkUninstaller.mockImplementation(() => ({
         completeUninstall: mockCompleteUninstall,
       }))
 
@@ -217,7 +217,7 @@ describe('uninstall command', () => {
         { success: true, removed: [], errors: [], warnings: [] },
       ])
 
-      mockUninstaller.ZcfUninstaller.mockImplementation(() => ({
+      mockUninstaller.CcjkUninstaller.mockImplementation(() => ({
         customUninstall: mockCustomUninstall,
       }))
 
@@ -246,7 +246,7 @@ describe('uninstall command', () => {
         warnings: [],
       })
 
-      mockUninstaller.ZcfUninstaller.mockImplementation(() => ({
+      mockUninstaller.CcjkUninstaller.mockImplementation(() => ({
         completeUninstall: mockCompleteUninstall,
       }))
 
@@ -321,7 +321,7 @@ describe('uninstall command', () => {
         warnings: [],
       })
 
-      mockUninstaller.ZcfUninstaller.mockImplementation(() => ({
+      mockUninstaller.CcjkUninstaller.mockImplementation(() => ({
         completeUninstall: mockCompleteUninstall,
       }))
 
@@ -357,7 +357,7 @@ describe('uninstall command', () => {
       },
     ])
 
-    mockUninstaller.ZcfUninstaller.mockImplementation(() => ({
+    mockUninstaller.CcjkUninstaller.mockImplementation(() => ({
       customUninstall: mockCustomUninstall,
     }))
 
@@ -385,7 +385,7 @@ describe('uninstall command', () => {
       },
     ])
 
-    mockUninstaller.ZcfUninstaller.mockImplementation(() => ({
+    mockUninstaller.CcjkUninstaller.mockImplementation(() => ({
       customUninstall: mockCustomUninstall,
     }))
 

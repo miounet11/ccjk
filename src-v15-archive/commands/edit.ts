@@ -202,7 +202,7 @@ async function applyDirectOpts(profile: Profile, opts: EditOptions): Promise<boo
 }
 
 async function applyInteractive(profile: Profile, fields: string[]): Promise<void> {
-  // 配置调整流程（zcf 风格）
+  // 配置调整流程（ccjk 风格）
   const provider = findProvider(profile.provider);
   const catalog = provider?.claudeCode?.defaultModels;
 
@@ -229,8 +229,8 @@ async function applyInteractive(profile: Profile, fields: string[]): Promise<voi
       profile.baseUrl = v.trim();
     }
     else if (f === 'model') {
-      // 复刻 zcf 风格：有目录就给好选择，无则 input
-      const v = await pickModel('新 Main model（zcf 推荐目录选择）', profile.model ?? '', catalog);
+      // 复刻 ccjk 风格：有目录就给好选择，无则 input
+      const v = await pickModel('新 Main model（ccjk 推荐目录选择）', profile.model ?? '', catalog);
       if (v) profile.model = v;
       else delete profile.model;
     }

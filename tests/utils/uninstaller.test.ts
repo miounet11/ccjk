@@ -1,6 +1,6 @@
 import type { UninstallItem } from '../../src/utils/uninstaller'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { ZcfUninstaller } from '../../src/utils/uninstaller'
+import { CcjkUninstaller } from '../../src/utils/uninstaller'
 
 // Mock dependencies
 vi.mock('node:fs')
@@ -70,10 +70,10 @@ vi.mocked(await import('../../src/i18n')).i18n = mockI18n.i18n
 vi.mocked(await import('../../src/utils/trash')).moveToTrash = mockTrash.moveToTrash
 
 describe('ccjkUninstaller', () => {
-  let uninstaller: ZcfUninstaller
+  let uninstaller: CcjkUninstaller
 
   beforeEach(() => {
-    uninstaller = new ZcfUninstaller()
+    uninstaller = new CcjkUninstaller()
     vi.clearAllMocks()
     mockUninstallCodeTool.mockReset()
   })

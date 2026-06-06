@@ -170,7 +170,7 @@ async function useForAllInstalled(target: Profile, yes: boolean): Promise<boolea
   const results = await applyProfileToInstalledTools(target);
   console.log(ansis.green(`\n✔ 已切换到配置: ${ansis.bold(target.name)}`));
   printSyncResults(results);
-  // 复刻 zcf-port 的合理 Codex 提示风格
+  // 复刻 ccjk 的合理 Codex 提示风格
   const codexHit = results.find(r => r.tool === 'codex' && !r.skipped);
   if (codexHit) {
     console.log(ansis.dim(`  Codex API key 已写入 ~/.codex/auth.json（${codexEnvKeyFor(target)} + OPENAI_API_KEY）`));

@@ -39,7 +39,7 @@ Grok CLI 的配置流程现在与 Codex、Clavue、Claude Code **完全一致**�
 - 配置后可通过 `ccjk grok --profile <name>` 启动使用（已支持注入对应模型配置）。
 - 移除了所有针对 Grok 的特殊分支和例外处理，实现“和大家都一样”的统一体验。
 
-此版本完成了用户要求的“最前面几个核心入口 + 设置逻辑和方法完全对齐 zcf 风格，同时 Grok 无例外”的目标。
+此版本完成了用户要求的“最前面几个核心入口 + 设置逻辑和方法完全对齐 ccjk 统一风格，同时 Grok 无例外”的目标。
 
 **验证**
 - pnpm typecheck + lint 通过
@@ -48,22 +48,22 @@ Grok CLI 的配置流程现在与 Codex、Clavue、Claude Code **完全一致**�
 
 ---
 
-## v15.28.0 — 交互与设置方法完全对齐 zcf（用户体验重大打磨）
+## v15.28.0 — 交互与设置方法统一打磨（用户体验重大升级）
 
-为提供“最合理”的交互和设置体验，核心 CLI 交互部分（菜单、init/quick/edit/migrate、profile use、perms 档位、mode 切换等）全面复刻 zcf 项目（github.com/UfoMiao/zcf）的逻辑和文案：
+为提供一致的交互和设置体验，核心 CLI 交互部分（菜单、init/quick/edit/migrate、profile use、perms 档位、mode 切换等）统一为 ccjk 工作流与文案：
 
-- providers 数据模型改为 zcf 推荐的 per-tool preset 结构（claudeCode / codex），已知 provider 预填 baseUrl/authType + defaultModels 列表，设置时大幅减少提问。
-- init / quick 等“设置方法”交互流程对齐 zcf：preset 预填 + 优秀的 model 目录 select（含“其他手动输入”“留空”选项）。
+- providers 数据模型改为 ccjk per-tool preset 结构（claudeCode / codex），已知 provider 预填 baseUrl/authType + defaultModels 列表，设置时大幅减少提问。
+- init / quick 等“设置方法”交互流程：preset 预填 + 优秀的 model 目录 select（含“其他手动输入”“留空”选项）。
 - profile use 切换逻辑增强（支持 targetTools scope 记忆 + 更清晰的 Codex 提示）。
-- menu 分组、子菜单（permsSubMenu、maintenanceSubMenu）、文案、确认消息等进一步打磨匹配 zcf 线性工作流和语气。
-- perms / mode 输出和流程细节对齐 zcf 合理设计。
+- menu 分组、子菜单（permsSubMenu、maintenanceSubMenu）、文案、确认消息等进一步打磨匹配 ccjk 线性工作流。
+- perms / mode 输出和流程细节统一为 ccjk 设计。
 
 **验证**
 - pnpm typecheck / lint 通过。
 - 构建成功，CLI 入口可用。
 - 3 轮打磨迭代完成（按用户要求）。
 
-此版本让 ccjk 在保持多工具支持（clavue 主推 + claude-code + codex + grok）的同时，单工具（尤其是 clavue/claude）设置和日常交互体验与 zcf 保持高度一致。
+此版本让 ccjk 在保持多工具支持（clavue 主推 + claude-code + codex + grok）的同时，单工具（尤其是 clavue/claude）设置和日常交互体验保持高度一致。
 
 ---
 

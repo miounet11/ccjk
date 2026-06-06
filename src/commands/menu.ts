@@ -110,7 +110,7 @@ function printOtherToolsSection(): void {
   console.log('')
 }
 
-function printZcfSection(options: {
+function printCcjkSection(options: {
   uninstallOption: string
   uninstallDescription: string
   updateOption: string
@@ -159,7 +159,7 @@ async function showClaudeCodeMenu(): Promise<MenuResult> {
   )
   console.log('')
   printOtherToolsSection()
-  printZcfSection({
+  printCcjkSection({
     uninstallOption: i18n.t('menu:menuOptions.uninstall'),
     uninstallDescription: i18n.t('menu:menuDescriptions.uninstall'),
     updateOption: i18n.t('menu:menuOptions.checkUpdates'),
@@ -295,7 +295,7 @@ async function showCodexMenu(): Promise<MenuResult> {
     `  ${ansis.cyan('6.')} ${i18n.t('menu:menuOptions.codexConfigureAiMemory')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.codexConfigureAiMemory')}`)}`,
   )
   console.log('')
-  printZcfSection({
+  printCcjkSection({
     uninstallOption: i18n.t('menu:menuOptions.codexUninstall'),
     uninstallDescription: i18n.t('menu:menuDescriptions.codexUninstall'),
     updateOption: i18n.t('menu:menuOptions.codexCheckUpdates'),

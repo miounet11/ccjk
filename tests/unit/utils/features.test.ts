@@ -148,7 +148,7 @@ describe('features utilities', () => {
     expect(module.configureMcpFeature).toBeDefined()
     expect(module.configureDefaultModelFeature).toBeDefined()
     expect(module.configureAiMemoryFeature).toBeDefined()
-    // clearZcfCacheFeature was replaced with uninstall functionality
+    // clearCcjkCacheFeature was replaced with uninstall functionality
     expect(module.changeScriptLanguageFeature).toBeDefined()
     expect(module.configureEnvPermissionFeature).toBeDefined()
 
@@ -156,7 +156,7 @@ describe('features utilities', () => {
     expect(typeof module.configureMcpFeature).toBe('function')
     expect(typeof module.configureDefaultModelFeature).toBe('function')
     expect(typeof module.configureAiMemoryFeature).toBe('function')
-    // clearZcfCacheFeature was replaced with uninstall functionality
+    // clearCcjkCacheFeature was replaced with uninstall functionality
     expect(typeof module.changeScriptLanguageFeature).toBe('function')
     expect(typeof module.configureEnvPermissionFeature).toBe('function')
   })
@@ -467,7 +467,7 @@ describe('features utilities', () => {
     })
   })
 
-  // clearZcfCacheFeature tests removed - functionality replaced with uninstall command
+  // clearCcjkCacheFeature tests removed - functionality replaced with uninstall command
 
   describe('changeScriptLanguageFeature', () => {
     it('should change script language', async () => {

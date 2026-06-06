@@ -42,7 +42,7 @@ async function launchWithProfile(name: string): Promise<void> {
   const profile = readProfile(name)
   if (!profile) {
     console.log(ansis.red(`Profile "${name}" 不存在`))
-    console.log(ansis.dim('  先运行 ccjk init 配置 API（ZCF 流程会自动保存 profile）\n'))
+    console.log(ansis.dim('  先运行 ccjk init 配置 API（会自动保存 profile）\n'))
     return
   }
   const env = { ...process.env } as Record<string, string>

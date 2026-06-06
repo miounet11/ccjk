@@ -8,7 +8,7 @@ import { resolveCodeType } from '../utils/code-type-resolver'
 import { handleExitPromptError, handleGeneralError } from '../utils/error-handler'
 import { addNumbersToChoices } from '../utils/prompt-helpers'
 import { promptBoolean } from '../utils/toggle-prompt'
-import { ZcfUninstaller } from '../utils/uninstaller'
+import { CcjkUninstaller } from '../utils/uninstaller'
 import { readCcjkConfig } from '../utils/ccjk-config'
 
 export interface UninstallOptions {
@@ -52,7 +52,7 @@ export async function uninstall(options: UninstallOptions = {}): Promise<void> {
     }
 
     // Initialize uninstaller
-    const uninstaller = new ZcfUninstaller(options.lang || 'en')
+    const uninstaller = new CcjkUninstaller(options.lang || 'en')
 
     // For Codex, use Codex-specific uninstaller
     if (codeType === 'codex') {
@@ -95,7 +95,7 @@ export async function uninstall(options: UninstallOptions = {}): Promise<void> {
 /**
  * Show interactive uninstall menu
  */
-async function showInteractiveUninstall(uninstaller: ZcfUninstaller): Promise<void> {
+async function showInteractiveUninstall(uninstaller: CcjkUninstaller): Promise<void> {
   console.log(ansis.cyan.bold(i18n.t('uninstall:title')))
   console.log('')
 
@@ -134,7 +134,7 @@ async function showInteractiveUninstall(uninstaller: ZcfUninstaller): Promise<vo
 /**
  * Show custom uninstall menu with multi-select options
  */
-async function showCustomUninstallMenu(uninstaller: ZcfUninstaller): Promise<void> {
+async function showCustomUninstallMenu(uninstaller: CcjkUninstaller): Promise<void> {
   console.log('')
   console.log(ansis.cyan(i18n.t('uninstall:selectCustomItems')))
 
@@ -207,7 +207,7 @@ async function showCustomUninstallMenu(uninstaller: ZcfUninstaller): Promise<voi
 /**
  * Execute complete uninstall
  */
-async function executeCompleteUninstall(uninstaller: ZcfUninstaller): Promise<void> {
+async function executeCompleteUninstall(uninstaller: CcjkUninstaller): Promise<void> {
   console.log('')
   console.log(ansis.red.bold(i18n.t('uninstall:executingComplete')))
   console.log(ansis.yellow(i18n.t('uninstall:completeWarning')))
@@ -233,7 +233,7 @@ async function executeCompleteUninstall(uninstaller: ZcfUninstaller): Promise<vo
 /**
  * Execute custom uninstall
  */
-async function executeCustomUninstall(uninstaller: ZcfUninstaller, items: UninstallItem[]): Promise<void> {
+async function executeCustomUninstall(uninstaller: CcjkUninstaller, items: UninstallItem[]): Promise<void> {
   console.log('')
   console.log(ansis.cyan(i18n.t('uninstall:executingCustom')))
 

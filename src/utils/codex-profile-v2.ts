@@ -1,7 +1,7 @@
 /**
  * Codex 0.135+ profile 文件写入（CCJK 扩展）。
  *
- * ZCF 仍写 config.toml 顶层 model/model_provider；本模块额外维护
+ * ccjk 仍写 config.toml 顶层 model/model_provider；本模块额外维护
  * ~/.codex/<name>.config.toml，供 `codex --profile <name>` 使用。
  */
 
@@ -61,8 +61,8 @@ export function stripLegacyCodexProfileFields(): void {
 }
 
 /**
- * 在 ZCF 更新 API 字段后同步 profile 文件。
- * profile 名默认 = providerId（与 ZCF config-switch 一致）。
+ * 在 ccjk 更新 API 字段后同步 profile 文件。
+ * profile 名默认 = providerId（与 ccjk config-switch 一致）。
  */
 export function syncCodexProfileFileAfterApiUpdate(
   model: string | null | undefined,

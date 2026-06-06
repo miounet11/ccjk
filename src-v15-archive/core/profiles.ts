@@ -31,7 +31,7 @@ export interface Profile {
   createdAt: string;
   /** ISO8601 时间戳，最后一次被 `ccjk use` 切换激活。旧 profile 无此字段。 */
   lastUsedAt?: string;
-  /** 该 profile 主要作用于哪些工具（zcf 合理设计，支持范围记忆） */
+  /** 该 profile 主要作用于哪些工具（ccjk 统一设计，支持范围记忆） */
   targetTools?: CodeTool[];
 }
 

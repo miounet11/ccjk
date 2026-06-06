@@ -58,7 +58,7 @@ describe('constants', () => {
     })
 
     it('should define correct CCJK config directory path', () => {
-      expect(CCJK_CONFIG_DIR).toBe(join(homedir(), '.ufomiao', 'ccjk'))
+      expect(CCJK_CONFIG_DIR).toBe(join(homedir(), '.ccjk'))
     })
 
     it('should define correct CCJK config file path', () => {
@@ -69,6 +69,7 @@ describe('constants', () => {
       expect(LEGACY_CCJK_CONFIG_FILES).toEqual([
         join(CLAUDE_DIR, '.ccjk-config.json'),
         join(homedir(), '.ccjk.json'),
+        join(homedir(), '.ufomiao', 'ccjk', 'config.toml'),
       ])
     })
   })
