@@ -6,6 +6,20 @@ ccjk 是 Clavue / Claude Code / Codex 的本地配置 CLI。本文记录用户�
 
 ## [Unreleased]
 
+## [16.0.1] - 2026-06-03
+
+### Added
+- `ccjk reasonix`：Reasonix CLI 状态探测与启动指引（DeepSeek 原生 agent 伴侣）
+- `ccjk reasonix <profile>`：从 ccjk profile 注入 API key 并启动；无 `reasonix.toml` 时自动生成最小配置
+- 主菜单「其他工具」新增 `X.` Reasonix 入口
+
+### Changed
+- 全面剔除 ZCF 品牌引用，统一为 ccjk（`CcjkUninstaller`、文案、文档）
+- 配置目录 canonical 路径：`~/.ccjk/config.toml`
+
+### Internal
+- ZCF 基座重建合并为 16.x 正式线；`zcf-config` 测试重命名为 `ccjk-config`
+
 ## [16.0.0-alpha.3] - 2026-06-03
 
 ### Added

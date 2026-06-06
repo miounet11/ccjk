@@ -1,4 +1,24 @@
-# ccjk Release Notes（v15.20 – v16.0.0-alpha.3）
+# ccjk Release Notes（v15.20 – v16.0.1）
+
+## v16.0.1 — 16.x 正式版（Reasonix + ccjk 品牌统一）
+
+16.x 首版正式发布，合并 alpha 线能力并剔除第三方品牌残留：
+
+- `ccjk reasonix` / `ccjk reasonix <profile>` — DeepSeek Reasonix agent 配置伴侣
+- 主菜单 `X.` Reasonix 快捷入口
+- 全面统一 ccjk 品牌（类名、文案、文档）；配置目录 `~/.ccjk/config.toml`
+
+**安装**
+
+```bash
+npm i -g ccjk@16.0.1
+```
+
+**验证**
+- `pnpm typecheck` 通过
+- `pnpm build` 通过
+
+---
 
 ## v16.0.0-alpha.3 — Reasonix 伴侣集成
 

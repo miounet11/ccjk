@@ -1,6 +1,6 @@
 {
   "name": "ccjk",
-  "version": "16.0.0-alpha.3",
+  "version": "16.0.1",
   "description": "Clavue / Claude Code / Codex / Grok CLI 统一配置工具（ccjk 交互与配置方法）",
   "type": "module",
   "bin": {
