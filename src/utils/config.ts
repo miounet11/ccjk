@@ -7,9 +7,10 @@ import ansis from 'ansis'
 import dayjs from 'dayjs'
 import inquirer from 'inquirer'
 import { dirname, join } from 'pathe'
-import { AI_OUTPUT_LANGUAGES, CLAUDE_DIR, CLAUDE_VSC_CONFIG_FILE, settingsFileForTool, type CodeToolType } from '../constants'
+import { AI_OUTPUT_LANGUAGES, CLAUDE_VSC_CONFIG_FILE, type CodeToolType } from '../constants'
 import { ensureI18nInitialized, i18n } from '../i18n'
 import { addCompletedOnboarding, setPrimaryApiKey } from './claude-config'
+import { normalizeClaudeFamilySettings } from './claude-settings-normalizer'
 import { clearModelEnv, MODEL_ENV_KEYS } from './config.model-keys'
 import {
   copyDir,
@@ -19,57 +20,50 @@ import {
   writeFile,
 } from './fs-operations'
 import { readJsonConfig, writeJsonConfig } from './json-config'
-import { readCcjkConfig } from './ccjk-config'
 import { deepMerge } from './object-utils'
 import { mergeAndCleanPermissions } from './permission-cleaner'
+import { activeSettingsFile, resolveClaudeFamilySettingsTarget } from './runtime-settings'
 
 export type { ApiConfig } from '../types/config'
 
-function activeSettingsFile(): string {
-  const tool = (readCcjkConfig()?.codeToolType ?? 'clavue') as CodeToolType
-  return settingsFileForTool(tool === 'codex' ? 'claude-code' : tool)
+export { activeSettingsFile }
+
+export function ensureClaudeDir(codeTool?: CodeToolType): void {
+  ensureDir(resolveClaudeFamilySettingsTarget(codeTool).configDir)
 }
 
-export function ensureClaudeDir(): void {
-  ensureDir(CLAUDE_DIR)
-}
-
-export function backupExistingConfig(): string | null {
-  if (!exists(CLAUDE_DIR)) {
+export function backupExistingConfig(codeTool?: CodeToolType): string | null {
+  const target = resolveClaudeFamilySettingsTarget(codeTool)
+  if (!exists(target.configDir)) {
     return null
   }
 
   const timestamp = dayjs().format('YYYY-MM-DD_HH-mm-ss')
-  const backupBaseDir = join(CLAUDE_DIR, 'backup')
+  const backupBaseDir = join(target.configDir, target.runtimeBackupDirName)
   const backupDir = join(backupBaseDir, `backup_${timestamp}`)
 
-  // Create backup directory
   ensureDir(backupDir)
 
-  // Copy all files from CLAUDE_DIR to backup directory (excluding backup folder itself)
   const filter: CopyDirOptions['filter'] = (path) => {
-    return !path.includes('/backup')
+    return !path.includes('/backup') && !path.includes('/backups')
   }
 
-  copyDir(CLAUDE_DIR, backupDir, { filter })
+  copyDir(target.configDir, backupDir, { filter })
 
   return backupDir
 }
 
-export function copyConfigFiles(onlyMd: boolean = false): void {
-  // Get the root directory of the package
+export function copyConfigFiles(onlyMd: boolean = false, codeTool?: CodeToolType): void {
+  const target = resolveClaudeFamilySettingsTarget(codeTool)
   const currentFilePath = fileURLToPath(import.meta.url)
-  // Navigate from dist/shared/xxx.mjs to package root
   const distDir = dirname(dirname(currentFilePath))
   const rootDir = dirname(distDir)
   const baseTemplateDir = join(rootDir, 'templates', 'claude-code')
 
   if (!onlyMd) {
-    // Intelligently merge settings.json instead of copying
     const baseSettingsPath = join(baseTemplateDir, 'common', 'settings.json')
-    const destSettingsPath = join(CLAUDE_DIR, 'settings.json')
     if (exists(baseSettingsPath)) {
-      mergeSettingsFile(baseSettingsPath, destSettingsPath)
+      mergeSettingsFile(baseSettingsPath, target.settingsFile, target.codeTool)
     }
   }
 }
@@ -93,15 +87,17 @@ function getDefaultSettings(): ClaudeSettings {
   }
 }
 
-export function configureApi(apiConfig: ApiConfig | null): ApiConfig | null {
+export function configureApi(apiConfig: ApiConfig | null, codeTool?: CodeToolType): ApiConfig | null {
   if (!apiConfig)
     return null
+
+  const target = resolveClaudeFamilySettingsTarget(codeTool)
 
   // Get default configuration from template
   let settings = getDefaultSettings()
 
   // Merge with existing user configuration if available
-  const existingSettings = readJsonConfig<ClaudeSettings>(activeSettingsFile())
+  const existingSettings = readJsonConfig<ClaudeSettings>(target.settingsFile)
   if (existingSettings) {
     // Use deepMerge for deep merge, preserving user's custom configuration
     settings = deepMerge(settings, existingSettings)
@@ -129,12 +125,12 @@ export function configureApi(apiConfig: ApiConfig | null): ApiConfig | null {
     settings.env.ANTHROPIC_BASE_URL = apiConfig.url
   }
 
-  writeJsonConfig(activeSettingsFile(), settings)
+  normalizeClaudeFamilySettings(settings, { codeTool: target.codeTool })
+  writeJsonConfig(target.settingsFile, settings)
 
-  // Set primaryApiKey for third-party API (Claude Code 2.0 requirement)
   if (apiConfig.authType) {
     try {
-      setPrimaryApiKey()
+      setPrimaryApiKey(target.codeTool)
     }
     catch (error) {
       ensureI18nInitialized()
@@ -145,7 +141,7 @@ export function configureApi(apiConfig: ApiConfig | null): ApiConfig | null {
 
   // Add hasCompletedOnboarding flag after successful API configuration
   try {
-    addCompletedOnboarding()
+    addCompletedOnboarding(target.codeTool)
   }
   catch (error) {
     // Log error but don't fail the API configuration
@@ -180,7 +176,9 @@ export function updateCustomModel(
   haikuModel?: string,
   sonnetModel?: string,
   opusModel?: string,
+  codeTool?: CodeToolType,
 ): void {
+  const target = resolveClaudeFamilySettingsTarget(codeTool)
   // Skip if both models are empty
   if (!primaryModel?.trim() && !haikuModel?.trim() && !sonnetModel?.trim() && !opusModel?.trim()) {
     return
@@ -188,7 +186,7 @@ export function updateCustomModel(
 
   let settings = getDefaultSettings()
 
-  const existingSettings = readJsonConfig<ClaudeSettings>(activeSettingsFile())
+  const existingSettings = readJsonConfig<ClaudeSettings>(target.settingsFile)
   if (existingSettings) {
     settings = existingSettings
   }
@@ -213,7 +211,8 @@ export function updateCustomModel(
   if (opusModel?.trim())
     settings.env.ANTHROPIC_DEFAULT_OPUS_MODEL = opusModel.trim()
 
-  writeJsonConfig(activeSettingsFile(), settings)
+  normalizeClaudeFamilySettings(settings, { codeTool: target.codeTool })
+  writeJsonConfig(target.settingsFile, settings)
 }
 
 /**
@@ -221,10 +220,14 @@ export function updateCustomModel(
  * @param model - The model type to set: opus, sonnet, sonnet[1m], default, or custom
  * Note: 'custom' model type is handled differently - it should use environment variables instead
  */
-export function updateDefaultModel(model: 'opus' | 'sonnet' | 'sonnet[1m]' | 'default' | 'custom'): void {
+export function updateDefaultModel(
+  model: 'opus' | 'sonnet' | 'sonnet[1m]' | 'default' | 'custom',
+  codeTool?: CodeToolType,
+): void {
+  const target = resolveClaudeFamilySettingsTarget(codeTool)
   let settings = getDefaultSettings()
 
-  const existingSettings = readJsonConfig<ClaudeSettings>(activeSettingsFile())
+  const existingSettings = readJsonConfig<ClaudeSettings>(target.settingsFile)
   if (existingSettings) {
     settings = existingSettings
   }
@@ -240,22 +243,21 @@ export function updateDefaultModel(model: 'opus' | 'sonnet' | 'sonnet[1m]' | 'de
   }
 
   if (model === 'default' || model === 'custom') {
-    // Remove model field to let Claude Code auto-select or use custom env
     delete settings.model
   }
   else {
-    // Set explicit model for built-in options
     settings.model = model
   }
 
-  writeJsonConfig(activeSettingsFile(), settings)
+  normalizeClaudeFamilySettings(settings, { codeTool: target.codeTool })
+  writeJsonConfig(target.settingsFile, settings)
 }
 
 /**
  * Merge settings.json intelligently
  * Preserves user's environment variables and custom configurations
  */
-export function mergeSettingsFile(templatePath: string, targetPath: string): void {
+export function mergeSettingsFile(templatePath: string, targetPath: string, codeTool?: CodeToolType): void {
   try {
     // Read template settings
     const templateSettings = readJsonConfig<ClaudeSettings>(templatePath)
@@ -296,7 +298,7 @@ export function mergeSettingsFile(templatePath: string, targetPath: string): voi
       )
     }
 
-    // Write merged settings
+    normalizeClaudeFamilySettings(mergedSettings, { codeTool })
     writeJsonConfig(targetPath, mergedSettings)
   }
   catch (error) {
@@ -315,8 +317,8 @@ export function mergeSettingsFile(templatePath: string, targetPath: string): voi
 /**
  * Get existing model configuration from settings.json
  */
-export function getExistingModelConfig(): 'opus' | 'sonnet' | 'sonnet[1m]' | 'default' | 'custom' | null {
-  const settings = readJsonConfig<ClaudeSettings>(activeSettingsFile())
+export function getExistingModelConfig(codeTool?: CodeToolType): 'opus' | 'sonnet' | 'sonnet[1m]' | 'default' | 'custom' | null {
+  const settings = readJsonConfig<ClaudeSettings>(activeSettingsFile(codeTool))
 
   if (!settings) {
     return null
@@ -345,8 +347,8 @@ export function getExistingModelConfig(): 'opus' | 'sonnet' | 'sonnet[1m]' | 'de
 /**
  * Get existing API configuration from settings.json
  */
-export function getExistingApiConfig(): ApiConfig | null {
-  const settings = readJsonConfig<ClaudeSettings>(activeSettingsFile())
+export function getExistingApiConfig(codeTool?: CodeToolType): ApiConfig | null {
+  const settings = readJsonConfig<ClaudeSettings>(activeSettingsFile(codeTool))
 
   if (!settings || !settings.env) {
     return null
@@ -379,9 +381,9 @@ export function getExistingApiConfig(): ApiConfig | null {
   }
 }
 
-export function applyAiLanguageDirective(aiOutputLang: AiOutputLanguage | string): void {
-  // Write language directive directly to CLAUDE.md file
-  const claudeFile = join(CLAUDE_DIR, 'CLAUDE.md')
+export function applyAiLanguageDirective(aiOutputLang: AiOutputLanguage | string, codeTool?: CodeToolType): void {
+  const target = resolveClaudeFamilySettingsTarget(codeTool)
+  const instructionsFile = target.instructionsFile
 
   // Prepare the language directive
   let directive = ''
@@ -397,8 +399,8 @@ export function applyAiLanguageDirective(aiOutputLang: AiOutputLanguage | string
     directive = `Always respond in ${aiOutputLang}`
   }
 
-  // Write to CLAUDE.md file directly without markers
-  writeFile(claudeFile, directive)
+  ensureDir(target.configDir)
+  writeFile(instructionsFile, directive)
 }
 
 /**
@@ -406,24 +408,26 @@ export function applyAiLanguageDirective(aiOutputLang: AiOutputLanguage | string
  * Removes: ANTHROPIC_BASE_URL, ANTHROPIC_AUTH_TOKEN, ANTHROPIC_API_KEY from settings.json
  * Removes: primaryApiKey from ~/.claude/config.json
  */
-export function switchToOfficialLogin(): boolean {
+export function switchToOfficialLogin(codeTool?: CodeToolType): boolean {
   try {
     ensureI18nInitialized()
+    const target = resolveClaudeFamilySettingsTarget(codeTool)
 
-    // 1. Clean settings.json - remove all API-related env vars
-    const settings = readJsonConfig<ClaudeSettings>(activeSettingsFile()) || {}
+    const settings = readJsonConfig<ClaudeSettings>(target.settingsFile) || {}
     if (settings.env) {
       delete settings.env.ANTHROPIC_BASE_URL
       delete settings.env.ANTHROPIC_AUTH_TOKEN
       delete settings.env.ANTHROPIC_API_KEY
     }
-    writeJsonConfig(activeSettingsFile(), settings)
+    normalizeClaudeFamilySettings(settings, { codeTool: target.codeTool })
+    writeJsonConfig(target.settingsFile, settings)
 
-    // 2. Clean ~/.claude/config.json - remove primaryApiKey
-    const vscConfig = readJsonConfig<{ primaryApiKey?: string }>(CLAUDE_VSC_CONFIG_FILE)
-    if (vscConfig) {
-      delete vscConfig.primaryApiKey
-      writeJsonConfig(CLAUDE_VSC_CONFIG_FILE, vscConfig)
+    if (target.codeTool === 'claude-code') {
+      const vscConfig = readJsonConfig<{ primaryApiKey?: string }>(CLAUDE_VSC_CONFIG_FILE)
+      if (vscConfig) {
+        delete vscConfig.primaryApiKey
+        writeJsonConfig(CLAUDE_VSC_CONFIG_FILE, vscConfig)
+      }
     }
 
     console.log(i18n.t('api:officialLoginConfigured'))

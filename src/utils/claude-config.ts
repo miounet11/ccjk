@@ -1,26 +1,29 @@
+import type { CodeToolType } from '../constants'
 import type { ClaudeConfiguration, McpServerConfig } from '../types'
 import { join } from 'pathe'
-import { ClAUDE_CONFIG_FILE, CLAUDE_DIR, CLAUDE_VSC_CONFIG_FILE } from '../constants'
+import { CLAUDE_VSC_CONFIG_FILE } from '../constants'
+import { resolveClaudeFamilySettingsTarget } from './runtime-settings'
 import { ensureI18nInitialized, i18n } from '../i18n'
 import { backupJsonConfig, readJsonConfig, writeJsonConfig } from './json-config'
 import { deepClone } from './object-utils'
 import { getMcpCommand, isWindows } from './platform'
 
-export function getMcpConfigPath(): string {
-  return ClAUDE_CONFIG_FILE
+export function getMcpConfigPath(codeTool?: CodeToolType): string {
+  return resolveClaudeFamilySettingsTarget(codeTool).runtimeConfigFile
 }
 
-export function readMcpConfig(): ClaudeConfiguration | null {
-  return readJsonConfig<ClaudeConfiguration>(ClAUDE_CONFIG_FILE)
+export function readMcpConfig(codeTool?: CodeToolType): ClaudeConfiguration | null {
+  return readJsonConfig<ClaudeConfiguration>(resolveClaudeFamilySettingsTarget(codeTool).runtimeConfigFile)
 }
 
-export function writeMcpConfig(config: ClaudeConfiguration): void {
-  writeJsonConfig(ClAUDE_CONFIG_FILE, config)
+export function writeMcpConfig(config: ClaudeConfiguration, codeTool?: CodeToolType): void {
+  writeJsonConfig(resolveClaudeFamilySettingsTarget(codeTool).runtimeConfigFile, config)
 }
 
-export function backupMcpConfig(): string | null {
-  const backupBaseDir = join(CLAUDE_DIR, 'backup')
-  return backupJsonConfig(ClAUDE_CONFIG_FILE, backupBaseDir)
+export function backupMcpConfig(codeTool?: CodeToolType): string | null {
+  const target = resolveClaudeFamilySettingsTarget(codeTool)
+  const backupBaseDir = join(target.configDir, target.runtimeBackupDirName)
+  return backupJsonConfig(target.runtimeConfigFile, backupBaseDir)
 }
 
 export function mergeMcpServers(
@@ -102,10 +105,9 @@ export function fixWindowsMcpConfig(config: ClaudeConfiguration): ClaudeConfigur
   return fixed
 }
 
-export function addCompletedOnboarding(): void {
+export function addCompletedOnboarding(codeTool?: CodeToolType): void {
   try {
-    // Read existing config or create new one
-    let config = readMcpConfig()
+    let config = readMcpConfig(codeTool)
     if (!config) {
       config = { mcpServers: {} }
     }
@@ -119,7 +121,7 @@ export function addCompletedOnboarding(): void {
     config.hasCompletedOnboarding = true
 
     // Write updated config
-    writeMcpConfig(config)
+    writeMcpConfig(config, codeTool)
   }
   catch (error) {
     console.error('Failed to add onboarding flag', error)
@@ -207,10 +209,9 @@ export function removeApiKeyFromRejected(config: ClaudeConfiguration, apiKey: st
  * Manages API key approval status by reading config, updating it, and writing it back
  * @param apiKey - The API key to ensure is approved (e.g., 'sk-ccjk-x-ccr')
  */
-export function manageApiKeyApproval(apiKey: string): void {
+export function manageApiKeyApproval(apiKey: string, codeTool?: CodeToolType): void {
   try {
-    // Read existing config or create new one
-    let config = readMcpConfig()
+    let config = readMcpConfig(codeTool)
     if (!config) {
       config = { mcpServers: {} }
     }
@@ -219,7 +220,7 @@ export function manageApiKeyApproval(apiKey: string): void {
     const updatedConfig = ensureApiKeyApproved(config, apiKey)
 
     // Write updated config
-    writeMcpConfig(updatedConfig)
+    writeMcpConfig(updatedConfig, codeTool)
   }
   catch (error) {
     ensureI18nInitialized()
@@ -234,9 +235,12 @@ export function manageApiKeyApproval(apiKey: string): void {
  * This is required for Claude Code 2.0 to properly recognize third-party API configurations
  * and prevent redirecting to official login page
  */
-export function setPrimaryApiKey(): void {
+export function setPrimaryApiKey(codeTool?: CodeToolType): void {
   try {
-    // Read existing VSCode config or create new one
+    if (resolveClaudeFamilySettingsTarget(codeTool).codeTool !== 'claude-code') {
+      return
+    }
+
     let config = readJsonConfig<{ primaryApiKey?: string }>(CLAUDE_VSC_CONFIG_FILE)
     if (!config) {
       config = {}

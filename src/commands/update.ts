@@ -2,6 +2,8 @@ import type { AiOutputLanguage, CodeToolType, SupportedLang } from '../constants
 import ansis from 'ansis'
 import { version } from '../../package.json'
 import { DEFAULT_CODE_TOOL_TYPE, isCodeToolType, resolveCodeToolType as resolveCodeToolTypeAlias } from '../constants'
+import { getClaudeFamilyRuntimeLabel } from '../utils/code-tool-labels'
+import { isClaudeFamilyCodeTool } from '../utils/runtime-settings'
 import { i18n } from '../i18n'
 import { displayBanner } from '../utils/banner'
 import { runCodexUpdate } from '../utils/code-tools/codex'
@@ -80,16 +82,18 @@ export async function update(options: UpdateOptions = {}): Promise<void> {
     // Select AI output language
     const aiOutputLang = await resolveAiOutputLanguage(i18n.language as SupportedLang, options.aiOutputLang, ccjkConfig, options.skipPrompt)
 
-    console.log(ansis.cyan(`\n${i18n.t('configuration:updatingPrompts')}\n`))
+    const runtimeLabel = isClaudeFamilyCodeTool(codeToolType)
+      ? getClaudeFamilyRuntimeLabel(codeToolType)
+      : 'Claude Code'
+    console.log(ansis.cyan(`\n${i18n.t('configuration:updatingPrompts', { runtime: runtimeLabel })}\n`))
 
-    // Execute prompt-only update with AI language
     await updatePromptOnly(aiOutputLang)
 
-    // Select and install workflows
-    await selectAndInstallWorkflows(configLang)
+    await selectAndInstallWorkflows(configLang, undefined, { codeToolType: isClaudeFamilyCodeTool(codeToolType) ? codeToolType : 'claude-code' })
 
-    // Check for Claude Code updates (update command always checks interactively)
-    await checkClaudeCodeVersionAndPrompt(false)
+    if (codeToolType === 'claude-code') {
+      await checkClaudeCodeVersionAndPrompt(false)
+    }
 
     // Update ccjk config with new version, template language, and AI language preference
     updateCcjkConfig({

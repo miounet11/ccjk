@@ -1,10 +1,11 @@
-import type { SupportedLang } from '../constants'
+import type { CodeToolType, SupportedLang } from '../constants'
 import type { ClaudeSettings } from '../types/config'
 import { fileURLToPath } from 'node:url'
 import ansis from 'ansis'
 import inquirer from 'inquirer'
 import { dirname, join } from 'pathe'
-import { CLAUDE_DIR, SETTINGS_FILE } from '../constants'
+import { normalizeClaudeFamilySettings } from './claude-settings-normalizer'
+import { resolveClaudeFamilySettingsTarget } from './runtime-settings'
 import { ensureI18nInitialized, i18n } from '../i18n'
 import { copyFile, ensureDir, exists, removeFile } from './fs-operations'
 import { readJsonConfig, writeJsonConfig } from './json-config'
@@ -71,8 +72,9 @@ export function getAvailableOutputStyles(): OutputStyle[] {
   return OUTPUT_STYLES
 }
 
-export async function copyOutputStyles(selectedStyles: string[], lang: SupportedLang): Promise<void> {
-  const outputStylesDir = join(CLAUDE_DIR, 'output-styles')
+export async function copyOutputStyles(selectedStyles: string[], lang: SupportedLang, codeTool?: CodeToolType): Promise<void> {
+  const target = resolveClaudeFamilySettingsTarget(codeTool)
+  const outputStylesDir = join(target.configDir, 'output-styles')
   ensureDir(outputStylesDir)
 
   // Get the root directory of the package
@@ -97,32 +99,37 @@ export async function copyOutputStyles(selectedStyles: string[], lang: Supported
   }
 }
 
-export function setGlobalDefaultOutputStyle(styleId: string): void {
-  const existingSettings = readJsonConfig<ClaudeSettings>(SETTINGS_FILE) || {}
+export function setGlobalDefaultOutputStyle(styleId: string, codeTool?: CodeToolType): void {
+  const target = resolveClaudeFamilySettingsTarget(codeTool)
+  const existingSettings = readJsonConfig<ClaudeSettings>(target.settingsFile) || {}
 
   const updatedSettings: ClaudeSettings = {
     ...existingSettings,
     outputStyle: styleId,
   }
 
-  writeJsonConfig(SETTINGS_FILE, updatedSettings)
+  normalizeClaudeFamilySettings(updatedSettings, { codeTool: target.codeTool })
+  writeJsonConfig(target.settingsFile, updatedSettings)
 }
 
-export function clearGlobalOutputStyle(): void {
-  const existingSettings = readJsonConfig<ClaudeSettings>(SETTINGS_FILE) || {}
+export function clearGlobalOutputStyle(codeTool?: CodeToolType): void {
+  const target = resolveClaudeFamilySettingsTarget(codeTool)
+  const existingSettings = readJsonConfig<ClaudeSettings>(target.settingsFile) || {}
 
-  // Remove the outputStyle key entirely
   const { outputStyle: _, ...rest } = existingSettings
-  writeJsonConfig(SETTINGS_FILE, rest)
+  normalizeClaudeFamilySettings(rest, { codeTool: target.codeTool })
+  writeJsonConfig(target.settingsFile, rest)
 }
 
-export function hasLegacyPersonalityFiles(): boolean {
-  return LEGACY_FILES.some(filename => exists(join(CLAUDE_DIR, filename)))
+export function hasLegacyPersonalityFiles(codeTool?: CodeToolType): boolean {
+  const target = resolveClaudeFamilySettingsTarget(codeTool)
+  return LEGACY_FILES.some(filename => exists(join(target.configDir, filename)))
 }
 
-export function cleanupLegacyPersonalityFiles(): void {
+export function cleanupLegacyPersonalityFiles(codeTool?: CodeToolType): void {
+  const target = resolveClaudeFamilySettingsTarget(codeTool)
   LEGACY_FILES.forEach((filename) => {
-    const filePath = join(CLAUDE_DIR, filename)
+    const filePath = join(target.configDir, filename)
     if (exists(filePath)) {
       removeFile(filePath)
     }
@@ -132,8 +139,10 @@ export function cleanupLegacyPersonalityFiles(): void {
 export async function configureOutputStyle(
   preselectedStyles?: string[],
   preselectedDefault?: string,
+  codeTool?: CodeToolType,
 ): Promise<void> {
   ensureI18nInitialized()
+  const target = resolveClaudeFamilySettingsTarget(codeTool)
 
   // Create static output style list for i18n-ally compatibility
   // Order: default first for discoverability, then custom styles, then other built-in styles
@@ -188,7 +197,7 @@ export async function configureOutputStyle(
   const availableStyles = getAvailableOutputStyles()
 
   // Check for legacy files
-  if (hasLegacyPersonalityFiles() && !preselectedStyles) {
+  if (hasLegacyPersonalityFiles(target.codeTool) && !preselectedStyles) {
     console.log(ansis.yellow(`⚠️  ${i18n.t('configuration:legacyFilesDetected')}`))
 
     const cleanupLegacy = await promptBoolean({
@@ -197,13 +206,12 @@ export async function configureOutputStyle(
     })
 
     if (cleanupLegacy) {
-      cleanupLegacyPersonalityFiles()
+      cleanupLegacyPersonalityFiles(target.codeTool)
       console.log(ansis.green(`✔ ${i18n.t('configuration:legacyFilesRemoved')}`))
     }
   }
-  else if (hasLegacyPersonalityFiles() && preselectedStyles) {
-    // Auto cleanup in non-interactive mode
-    cleanupLegacyPersonalityFiles()
+  else if (hasLegacyPersonalityFiles(target.codeTool) && preselectedStyles) {
+    cleanupLegacyPersonalityFiles(target.codeTool)
   }
 
   let selectedStyles: string[]
@@ -270,7 +278,7 @@ export async function configureOutputStyle(
 
       if (promptedDefault === '__none__') {
         // User explicitly chose not to use any output style - clear existing settings
-        clearGlobalOutputStyle()
+        clearGlobalOutputStyle(target.codeTool)
         updateCcjkConfig({
           outputStyles: [],
           defaultOutputStyle: 'none',
@@ -281,7 +289,7 @@ export async function configureOutputStyle(
 
       // User selected a built-in style as default
       defaultStyle = promptedDefault
-      setGlobalDefaultOutputStyle(defaultStyle)
+      setGlobalDefaultOutputStyle(defaultStyle, target.codeTool)
       updateCcjkConfig({
         outputStyles: [],
         defaultOutputStyle: defaultStyle,
@@ -330,10 +338,9 @@ export async function configureOutputStyle(
   }
 
   // Copy selected output styles using configLang for template language
-  await copyOutputStyles(selectedStyles, 'zh-CN')
+  await copyOutputStyles(selectedStyles, 'zh-CN', target.codeTool)
 
-  // Set global default output style
-  setGlobalDefaultOutputStyle(defaultStyle)
+  setGlobalDefaultOutputStyle(defaultStyle, target.codeTool)
 
   // Update CCJK config
   updateCcjkConfig({

@@ -65,6 +65,10 @@ vi.mock('../../../src/commands/check-updates', () => ({
   checkUpdates: vi.fn(),
 }))
 
+vi.mock('../../../src/commands/onboarding-wizard', () => ({
+  runOnboardingWizard: vi.fn().mockResolvedValue(undefined),
+}))
+
 vi.mock('../../../src/utils/error-handler', () => ({
   handleExitPromptError: vi.fn().mockReturnValue(false),
   handleGeneralError: vi.fn(),
@@ -129,6 +133,51 @@ describe('menu command', () => {
       await showMainMenu()
 
       expect(inquirer.prompt).toHaveBeenCalled()
+    })
+
+    it('should display banner with Clavue label', async () => {
+      const { showMainMenu } = await import('../../../src/commands/menu')
+      const { readCcjkConfig } = await import('../../../src/utils/ccjk-config')
+      const { displayBannerWithInfo } = await import('../../../src/utils/banner')
+
+      vi.mocked(readCcjkConfig).mockReturnValue({ preferredLang: 'en', codeToolType: 'clavue' } as any)
+      vi.mocked(inquirer.prompt).mockResolvedValue({ choice: 'q' })
+
+      await showMainMenu({ skipOnboarding: true })
+
+      expect(displayBannerWithInfo).toHaveBeenCalledWith(expect.stringContaining('Clavue'))
+    })
+
+    it('should route clavue setup option with codeType clavue', async () => {
+      const { showMainMenu } = await import('../../../src/commands/menu')
+      const { init } = await import('../../../src/commands/init')
+      const { readCcjkConfig } = await import('../../../src/utils/ccjk-config')
+
+      vi.mocked(readCcjkConfig).mockReturnValue({ preferredLang: 'en', codeToolType: 'clavue' } as any)
+      vi.mocked(inquirer.prompt)
+        .mockResolvedValueOnce({ choice: '1' })
+      queuePromptBooleans(false)
+      vi.mocked(init).mockResolvedValue(undefined)
+
+      await showMainMenu({ skipOnboarding: true })
+
+      expect(init).toHaveBeenCalledWith(expect.objectContaining({ codeType: 'clavue', skipBanner: true }))
+    })
+
+    it('should route clavue update option with codeType clavue', async () => {
+      const { showMainMenu } = await import('../../../src/commands/menu')
+      const { update } = await import('../../../src/commands/update')
+      const { readCcjkConfig } = await import('../../../src/utils/ccjk-config')
+
+      vi.mocked(readCcjkConfig).mockReturnValue({ preferredLang: 'en', codeToolType: 'clavue' } as any)
+      vi.mocked(inquirer.prompt)
+        .mockResolvedValueOnce({ choice: '2' })
+      queuePromptBooleans(false)
+      vi.mocked(update).mockResolvedValue(undefined)
+
+      await showMainMenu({ skipOnboarding: true })
+
+      expect(update).toHaveBeenCalledWith(expect.objectContaining({ codeType: 'clavue', skipBanner: true }))
     })
 
     it('should display banner with Claude Code label', async () => {

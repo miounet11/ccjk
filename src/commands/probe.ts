@@ -1,5 +1,6 @@
 import ansis from 'ansis'
-import { CLAVUE_SETTINGS_FILE, settingsFileForTool, type CodeToolType } from '../constants'
+import type { CodeToolType } from '../constants'
+import { activeSettingsFile } from '../utils/runtime-settings'
 import { readCcjkConfig } from '../utils/ccjk-config'
 import { readJsonConfig } from '../utils/json-config'
 
@@ -44,7 +45,7 @@ export async function probeCommand(opts: { json?: boolean } = {}): Promise<void>
 
 function readActiveApiCreds(): { baseUrl: string; apiKey: string; authToken: string } {
   const tool = (readCcjkConfig()?.codeToolType ?? 'clavue') as CodeToolType
-  const file = tool === 'clavue' ? CLAVUE_SETTINGS_FILE : settingsFileForTool(tool === 'codex' ? 'claude-code' : tool)
+  const file = activeSettingsFile(tool === 'codex' || tool === 'grok' ? 'claude-code' : tool)
   const settings = readJsonConfig<{ env?: Record<string, string> }>(file) || {}
   const env = settings.env || {}
   return {

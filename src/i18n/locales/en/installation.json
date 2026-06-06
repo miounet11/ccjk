@@ -1,4 +1,8 @@
 {
+  "clavueInstallPrompt": "Clavue not found. Install automatically?",
+  "clavueInstallSuccess": "Clavue installed successfully",
+  "clavueNotInstalledHint": "Clavue is not installed. Run: npm install -g clavue",
+  "installingClavue": "Installing Clavue...",
   "alreadyInstalled": "Claude Code is already installed",
   "installFailed": "Failed to install Claude Code",
   "installPrompt": "Claude Code not found. Install automatically?",

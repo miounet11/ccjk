@@ -4,7 +4,7 @@
   "emptyToSkip": " (press Enter with empty content to skip)",
   "cancelled": "Operation cancelled",
   "error": "Error",
-  "complete": "🎉 Setup complete! Use 'claude' command to start.",
+  "complete": "🎉 Setup complete! Use '{{runtime}}' command to start.",
   "none": "None",
   "enterChoice": "Enter your choice and press enter (case-insensitive)",
   "invalidChoice": "Invalid choice. Please enter a valid option.",

@@ -1,4 +1,8 @@
 {
+  "clavueInstallPrompt": "检测到 Clavue 未安装，是否自动安装？",
+  "clavueInstallSuccess": "Clavue 安装成功",
+  "clavueNotInstalledHint": "Clavue 未安装。请运行: npm install -g clavue",
+  "installingClavue": "正在安装 Clavue...",
   "alreadyInstalled": "Claude Code 已安装",
   "installFailed": "Claude Code 安装失败",
   "installPrompt": "检测到 Claude Code 未安装，是否自动安装？",

@@ -5,6 +5,8 @@ import { ensureI18nInitialized, i18n } from '../i18n'
 import { ClaudeCodeConfigManager } from './claude-code-config-manager'
 import { addNumbersToChoices } from './prompt-helpers'
 import { promptBoolean } from './toggle-prompt'
+import { getClaudeFamilyRuntimeLabel } from './code-tool-labels'
+import { getActiveCodeTool } from './runtime-settings'
 import { validateApiKey } from './validator'
 // Inline i18n helper to avoid extra file
 export function getAuthTypeLabel(authType: ClaudeCodeProfile['authType']): string {
@@ -38,7 +40,8 @@ export async function configureIncrementalManagement(): Promise<void> {
   const profiles = Object.values(config.profiles)
   const currentProfile = config.currentProfileId ? config.profiles[config.currentProfileId] : null
 
-  console.log(ansis.cyan(i18n.t('multi-config:incrementalManagementTitle')))
+  const runtimeLabel = getClaudeFamilyRuntimeLabel(getActiveCodeTool())
+  console.log(ansis.cyan(i18n.t('multi-config:incrementalManagementTitle', { runtime: runtimeLabel })))
   console.log(ansis.gray(i18n.t('multi-config:currentProfileCount', { count: profiles.length })))
 
   if (currentProfile) {

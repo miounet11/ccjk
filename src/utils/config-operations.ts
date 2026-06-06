@@ -2,7 +2,8 @@ import type { AiOutputLanguage } from '../constants'
 import type { ApiConfig } from '../types/config'
 import ansis from 'ansis'
 import inquirer from 'inquirer'
-import { CLAUDE_DIR } from '../constants'
+import { getActiveCodeTool } from './code-tool-labels'
+import { isClaudeFamilyCodeTool, resolveClaudeFamilySettingsTarget } from './runtime-settings'
 import { ensureI18nInitialized, i18n } from '../i18n'
 import {
   applyAiLanguageDirective,
@@ -262,21 +263,21 @@ export async function updatePromptOnly(
   aiOutputLang?: AiOutputLanguage | string,
 ): Promise<void> {
   ensureI18nInitialized()
+  const activeTool = getActiveCodeTool()
+  const settingsTool = isClaudeFamilyCodeTool(activeTool) ? activeTool : 'claude-code'
+  const target = resolveClaudeFamilySettingsTarget(settingsTool)
 
-  // Backup existing config
-  const backupDir = backupExistingConfig()
+  const backupDir = backupExistingConfig(settingsTool)
   if (backupDir) {
     console.log(ansis.gray(`✔ ${i18n.t('configuration:backupSuccess')}: ${backupDir}`))
   }
 
-  // Apply AI language directive if provided
   if (aiOutputLang) {
-    applyAiLanguageDirective(aiOutputLang)
+    applyAiLanguageDirective(aiOutputLang, settingsTool)
   }
 
-  // Configure output styles
-  await configureOutputStyle()
+  await configureOutputStyle(undefined, undefined, settingsTool)
 
-  console.log(ansis.green(`✔ ${i18n.t('configuration:configSuccess')} ${CLAUDE_DIR}`))
-  console.log(`\n${ansis.cyan(i18n.t('common:complete'))}`)
+  console.log(ansis.green(`✔ ${i18n.t('configuration:configSuccess')} ${target.configDirDisplay}`))
+  console.log(`\n${ansis.cyan(i18n.t('common:complete', { runtime: target.runtimeCommand }))}`)
 }

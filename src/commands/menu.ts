@@ -135,10 +135,153 @@ function printCcjkSection(options: {
   console.log('')
 }
 
-async function showClaudeCodeMenu(currentTool: CodeToolType): Promise<MenuResult> {
-  const sectionTitle = currentTool === 'clavue' ? 'Clavue' : 'Claude Code'
+async function showClavueMenu(): Promise<MenuResult> {
   console.log(ansis.cyan(i18n.t('menu:selectFunction')))
-  console.log(`  -------- ${sectionTitle} --------`)
+  console.log('  -------- Clavue --------')
+  console.log(
+    `  ${ansis.cyan('1.')} ${i18n.t('menu:menuOptions.clavueFullInit')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.clavueFullInit')}`)}`,
+  )
+  console.log(
+    `  ${ansis.cyan('2.')} ${i18n.t('menu:menuOptions.clavueUpdateWorkflow')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.clavueUpdateWorkflow')}`)}`,
+  )
+  console.log(
+    `  ${ansis.cyan('3.')} ${i18n.t('menu:menuOptions.clavueConfigureApi')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.clavueConfigureApi')}`)}`,
+  )
+  console.log(
+    `  ${ansis.cyan('4.')} ${i18n.t('menu:menuOptions.clavueConfigureMcp')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.clavueConfigureMcp')}`)}`,
+  )
+  console.log(
+    `  ${ansis.cyan('5.')} ${i18n.t('menu:menuOptions.clavueConfigureModel')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.clavueConfigureModel')}`)}`,
+  )
+  console.log(
+    `  ${ansis.cyan('6.')} ${i18n.t('menu:menuOptions.clavueConfigureAiMemory')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.clavueConfigureAiMemory')}`)}`,
+  )
+  console.log(
+    `  ${ansis.cyan('7.')} ${i18n.t('menu:menuOptions.clavueConfigureEnvPermission')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.clavueConfigureEnvPermission')}`)}`,
+  )
+  console.log(
+    `  ${ansis.cyan('8.')} ${i18n.t('menu:menuOptions.clavueStatus')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.clavueStatus')}`)}`,
+  )
+  console.log('')
+  printOtherToolsSection()
+  printCcjkSection({
+    uninstallOption: i18n.t('menu:menuOptions.clavueUninstall'),
+    uninstallDescription: i18n.t('menu:menuDescriptions.clavueUninstall'),
+    updateOption: i18n.t('menu:menuOptions.clavueCheckUpdates'),
+    updateDescription: i18n.t('menu:menuDescriptions.clavueCheckUpdates'),
+  })
+
+  const { choice } = await inquirer.prompt<{ choice: string }>({
+    type: 'input',
+    name: 'choice',
+    message: i18n.t('common:enterChoice'),
+    validate: (value) => {
+      const valid = ['1', '2', '3', '4', '5', '6', '7', '8', 'r', 'R', 'u', 'U', 'l', 'L', 'p', 'P', 'g', 'G', 'x', 'X', '0', '-', '+', 's', 'S', 'q', 'Q']
+      return valid.includes(value) || i18n.t('common:invalidChoice')
+    },
+  })
+
+  if (!choice) {
+    console.log(ansis.yellow(i18n.t('common:cancelled')))
+    return 'exit'
+  }
+
+  const normalized = choice.toLowerCase()
+
+  switch (normalized) {
+    case '1':
+      await init({ skipBanner: true, codeType: 'clavue' })
+      break
+    case '2':
+      await update({ skipBanner: true, codeType: 'clavue' })
+      break
+    case '3':
+      await configureApiFeature()
+      break
+    case '4':
+      await configureMcpFeature()
+      break
+    case '5':
+      await configureDefaultModelFeature()
+      break
+    case '6':
+      await configureAiMemoryFeature()
+      break
+    case '7':
+      await configureEnvPermissionFeature()
+      break
+    case '8':
+    case 'p':
+      await probeCommand()
+      printSeparator()
+      return undefined
+    case 'r':
+      await runCcrMenuFeature()
+      printSeparator()
+      return undefined
+    case 'u':
+      await runCcusageFeature()
+      printSeparator()
+      return undefined
+    case 'l':
+      await runCometixMenuFeature()
+      printSeparator()
+      return undefined
+    case 'g':
+      await grokCommand()
+      printSeparator()
+      return undefined
+    case 'x':
+      await reasonixCommand()
+      printSeparator()
+      return undefined
+    case '0': {
+      const currentLang = i18n.language as SupportedLang
+      await changeScriptLanguageFeature(currentLang)
+      printSeparator()
+      return undefined
+    }
+    case '-':
+      await uninstall()
+      printSeparator()
+      return undefined
+    case '+':
+      await checkUpdates()
+      printSeparator()
+      return undefined
+    case 's': {
+      const switched = await handleCodeToolSwitch('clavue')
+      if (switched) {
+        return 'switch'
+      }
+      printSeparator()
+      return undefined
+    }
+    case 'q':
+      console.log(ansis.cyan(i18n.t('common:goodbye')))
+      return 'exit'
+    default:
+      return undefined
+  }
+
+  printSeparator()
+
+  const shouldContinue = await promptBoolean({
+    message: i18n.t('common:returnToMenu'),
+    defaultValue: true,
+  })
+
+  if (!shouldContinue) {
+    console.log(ansis.cyan(i18n.t('common:goodbye')))
+    return 'exit'
+  }
+
+  return undefined
+}
+
+async function showClaudeCodeMenu(): Promise<MenuResult> {
+  console.log(ansis.cyan(i18n.t('menu:selectFunction')))
+  console.log('  -------- Claude Code --------')
   console.log(
     `  ${ansis.cyan('1.')} ${i18n.t('menu:menuOptions.fullInit')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.fullInit')}`)}`,
   )
@@ -247,7 +390,7 @@ async function showClaudeCodeMenu(currentTool: CodeToolType): Promise<MenuResult
       printSeparator()
       return undefined
     case 's': {
-      const switched = await handleCodeToolSwitch(currentTool)
+      const switched = await handleCodeToolSwitch('claude-code')
       if (switched) {
         return 'switch'
       }
@@ -524,11 +667,13 @@ export async function showMainMenu(options: { codeType?: string, skipOnboarding?
       const codeTool = getCurrentCodeTool()
       displayBannerWithInfo(CODE_TOOL_BANNERS[codeTool] || 'CCJK')
 
-      const result = codeTool === 'codex'
-        ? await showCodexMenu()
-        : codeTool === 'grok'
-          ? await showGrokMenu()
-          : await showClaudeCodeMenu(codeTool)
+      const result = codeTool === 'clavue'
+        ? await showClavueMenu()
+        : codeTool === 'codex'
+          ? await showCodexMenu()
+          : codeTool === 'grok'
+            ? await showGrokMenu()
+            : await showClaudeCodeMenu()
 
       if (result === 'exit') {
         exitMenu = true

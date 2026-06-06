@@ -7,6 +7,11 @@ vi.mock('node:fs')
 vi.mock('tinyexec')
 vi.mock('../../../src/utils/fs-operations', () => ({
   ensureDir: vi.fn(),
+  exists: vi.fn(),
+}))
+
+vi.mock('../../../src/utils/ccjk-config', () => ({
+  readCcjkConfig: vi.fn().mockReturnValue({ codeToolType: 'claude-code' }),
 }))
 vi.mock('../../../src/utils/platform', () => ({
   getPlatform: vi.fn().mockReturnValue('macos'),
@@ -176,7 +181,7 @@ describe('simple-config utilities', () => {
 
       expect(writeSpy).toHaveBeenCalled()
       const savedSettings = JSON.parse(writeSpy.mock.calls[0][1] as string)
-      expect(savedSettings.permissions).toBeUndefined()
+      expect(savedSettings.permissions?.trustedOperatorMode).toBe(true)
     })
 
     it('should handle permissions without allow array', async () => {
@@ -202,9 +207,8 @@ describe('simple-config utilities', () => {
 
       expect(writeSpy).toHaveBeenCalled()
       const savedSettings = JSON.parse(writeSpy.mock.calls[0][1] as string)
-      expect(savedSettings.permissions).toEqual({
-        deny: ['DangerousOp'],
-      })
+      expect(savedSettings.permissions.deny).toEqual(['DangerousOp'])
+      expect(savedSettings.permissions.trustedOperatorMode).toBe(true)
     })
   })
 

@@ -6,6 +6,19 @@ ccjk 是 Clavue / Claude Code / Codex 的本地配置 CLI。本文记录用户�
 
 ## [Unreleased]
 
+## [16.0.2] - 2026-06-06
+
+### Added
+- 首次引导：先选显示语言，再选 Clavue / Claude Code / Codex / Grok CLI
+- Clavue 专用控制中心菜单（设置、更新、API、MCP、模型、记忆、权限、探活）
+- `runtime-settings` / `claude-settings-normalizer`：按工具路由 `~/.clavue` 与 `~/.claude`
+
+### Changed
+- Clavue 配置全流程写入 `~/.clavue`（不再误写 `~/.claude`）
+- 配置 API/模型/记忆/MCP/工作流/权限的界面文案按当前工具显示（Clavue 不再显示 Claude Code 文案）
+- Clavue init 检测并安装 `clavue` CLI，跳过 Claude Code 安装逻辑
+- Profile 应用、环境变量导入、输出风格等均按活动工具选择目标路径
+
 ## [16.0.1] - 2026-06-03
 
 ### Added

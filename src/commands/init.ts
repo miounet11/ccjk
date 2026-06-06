@@ -9,7 +9,7 @@ import inquirer from 'inquirer'
 import { version } from '../../package.json'
 import { getMcpServices, MCP_SERVICE_CONFIGS } from '../config/mcp-services'
 import { WORKFLOW_CONFIG_BASE } from '../config/workflows'
-import { API_DEFAULT_URL, CLAUDE_DIR, CODE_TOOL_BANNERS, DEFAULT_CODE_TOOL_TYPE, settingsFileForTool } from '../constants'
+import { API_DEFAULT_URL, CODE_TOOL_BANNERS, DEFAULT_CODE_TOOL_TYPE, settingsFileForTool } from '../constants'
 import { i18n } from '../i18n'
 import { displayBannerWithInfo } from '../utils/banner'
 import { backupCcrConfig, configureCcrProxy, createDefaultCcrConfig, readCcrConfig, setupCcrConfiguration, writeCcrConfig } from '../utils/ccr/config'
@@ -43,7 +43,8 @@ import { handleMultipleInstallations } from '../utils/installation-manager'
 import { getInstallationStatus, installClaudeCode } from '../utils/installer'
 import { selectMcpServices } from '../utils/mcp-selector'
 import { configureOutputStyle } from '../utils/output-style'
-import { isTermux, isWindows } from '../utils/platform'
+import { commandExists, isTermux, isWindows } from '../utils/platform'
+import { isClaudeFamilyCodeTool, resolveClaudeFamilySettingsTarget } from '../utils/runtime-settings'
 import { addNumbersToChoices } from '../utils/prompt-helpers'
 import { resolveAiOutputLanguage } from '../utils/prompts'
 import { promptBoolean } from '../utils/toggle-prompt'
@@ -291,6 +292,10 @@ export async function init(options: InitOptions = {}): Promise<void> {
     const targetSettingsFile = settingsFileForTool(
       codeToolType === 'codex' ? 'claude-code' : codeToolType,
     )
+    const runtimeTarget = isClaudeFamilyCodeTool(codeToolType)
+      ? resolveClaudeFamilySettingsTarget(codeToolType)
+      : null
+    const claudeFamilyTool = codeToolType === 'clavue' ? 'clavue' as const : 'claude-code' as const
 
     // Add the new API configuration mode selection function
     async function selectApiConfigurationMode(): Promise<string> {
@@ -500,6 +505,30 @@ export async function init(options: InitOptions = {}): Promise<void> {
     // Step 4: Select AI output language
     const aiOutputLang = await resolveAiOutputLanguage(i18n.language as SupportedLang, options.aiOutputLang, ccjkConfig, options.skipPrompt)
 
+    if (codeToolType === 'clavue') {
+      const clavueInstalled = await commandExists('clavue')
+      if (!clavueInstalled) {
+        if (options.skipPrompt) {
+          console.log(ansis.yellow(i18n.t('installation:clavueNotInstalledHint')))
+        }
+        else {
+          const shouldInstall = await promptBoolean({
+            message: i18n.t('installation:clavueInstallPrompt'),
+            defaultValue: true,
+          })
+          if (shouldInstall) {
+            const { exec } = await import('tinyexec')
+            console.log(ansis.cyan(i18n.t('installation:installingClavue')))
+            await exec('npm', ['install', '-g', 'clavue'])
+            console.log(ansis.green(`✔ ${i18n.t('installation:clavueInstallSuccess')}`))
+          }
+          else {
+            console.log(ansis.yellow(i18n.t('common:skip')))
+          }
+        }
+      }
+    }
+    else if (codeToolType === 'claude-code') {
     // Step 4: Check and handle Claude Code installation
     const installationStatus = await getInstallationStatus()
 
@@ -569,14 +598,16 @@ export async function init(options: InitOptions = {}): Promise<void> {
       }
     }
 
-    // Step 4.5: Check for Claude Code updates (if any installation exists)
     if (installationStatus.hasGlobal || installationStatus.hasLocal) {
-      // Skip version check if Claude Code was just installed (it's already latest)
       await checkClaudeCodeVersionAndPrompt(options.skipPrompt)
     }
+    }
 
-    // Step 5: Handle existing config
-    ensureClaudeDir()
+    if (!runtimeTarget) {
+      return
+    }
+
+    ensureClaudeDir(codeToolType)
     let action = 'new' // default action for new installation
 
     if (existsSync(targetSettingsFile) && !options.force) {
@@ -775,7 +806,7 @@ export async function init(options: InitOptions = {}): Promise<void> {
 
     // Step 7: Execute the chosen action
     if (['backup', 'docs-only', 'merge'].includes(action)) {
-      const backupDir = backupExistingConfig()
+      const backupDir = backupExistingConfig(codeToolType)
       if (backupDir) {
         console.log(ansis.gray(`✔ ${i18n.t('configuration:backupSuccess')}: ${backupDir}`))
       }
@@ -783,35 +814,29 @@ export async function init(options: InitOptions = {}): Promise<void> {
 
     if (action === 'docs-only') {
       // Only copy base config files without agents/commands
-      copyConfigFiles(true)
-      // Select and install workflows
+      copyConfigFiles(true, codeToolType)
       if (options.skipPrompt) {
-        // Use provided workflows or default to all workflows, skip if false
         if (options.workflows !== false) {
-          await selectAndInstallWorkflows(configLang!, options.workflows as string[])
+          await selectAndInstallWorkflows(configLang!, options.workflows as string[], { codeToolType })
         }
       }
       else {
-        await selectAndInstallWorkflows(configLang!)
+        await selectAndInstallWorkflows(configLang!, undefined, { codeToolType })
       }
     }
     else if (['backup', 'merge', 'new'].includes(action)) {
-      // Copy all base config files
-      copyConfigFiles(false)
-      // Select and install workflows
+      copyConfigFiles(false, codeToolType)
       if (options.skipPrompt) {
-        // Use provided workflows or default to all workflows, skip if false
         if (options.workflows !== false) {
-          await selectAndInstallWorkflows(configLang!, options.workflows as string[])
+          await selectAndInstallWorkflows(configLang!, options.workflows as string[], { codeToolType })
         }
       }
       else {
-        await selectAndInstallWorkflows(configLang!)
+        await selectAndInstallWorkflows(configLang!, undefined, { codeToolType })
       }
     }
 
-    // Step 8: Apply language directive to CLAUDE.md
-    applyAiLanguageDirective(aiOutputLang as AiOutputLanguage | string)
+    applyAiLanguageDirective(aiOutputLang as AiOutputLanguage | string, codeToolType)
     // Step 8.5: Configure Output Styles
     if (options.skipPrompt) {
       // Use provided output styles and default
@@ -819,16 +844,17 @@ export async function init(options: InitOptions = {}): Promise<void> {
         await configureOutputStyle(
           options.outputStyles as string[],
           options.defaultOutputStyle,
+          codeToolType,
         )
       }
     }
     else {
-      await configureOutputStyle()
+      await configureOutputStyle(undefined, undefined, codeToolType)
     }
 
     // Step 9: Apply API configuration (skip if only updating docs)
     if (apiConfig && action !== 'docs-only') {
-      const configuredApi = configureApi(apiConfig as any)
+      const configuredApi = configureApi(apiConfig as any, codeToolType)
       if (configuredApi) {
         console.log(ansis.green(`✔ ${i18n.t('api:apiConfigSuccess')}`))
         console.log(ansis.gray(`  URL: ${configuredApi.url}`))
@@ -837,9 +863,8 @@ export async function init(options: InitOptions = {}): Promise<void> {
       }
     }
 
-    // Step 9.5: Configure API models if provided (Claude Code only)
     const hasModelParams = options.apiModel || options.apiHaikuModel || options.apiSonnetModel || options.apiOpusModel
-    if (hasModelParams && action !== 'docs-only' && codeToolType === 'claude-code') {
+    if (hasModelParams && action !== 'docs-only' && isClaudeFamilyCodeTool(codeToolType)) {
       if (options.skipPrompt) {
         // In skip-prompt mode, configure models
         const { updateCustomModel } = await import('../utils/config')
@@ -848,6 +873,7 @@ export async function init(options: InitOptions = {}): Promise<void> {
           options.apiHaikuModel || undefined,
           options.apiSonnetModel || undefined,
           options.apiOpusModel || undefined,
+          codeToolType,
         )
         console.log(ansis.green(`✔ ${i18n.t('api:modelConfigSuccess')}`))
         if (options.apiModel) {
@@ -900,7 +926,7 @@ export async function init(options: InitOptions = {}): Promise<void> {
 
         if (selectedServices.length > 0) {
           // Backup existing MCP config if exists
-          const mcpBackupPath = backupMcpConfig()
+          const mcpBackupPath = backupMcpConfig(claudeFamilyTool)
           if (mcpBackupPath) {
             console.log(ansis.gray(`✔ ${i18n.t('mcp:mcpBackupSuccess')}: ${mcpBackupPath}`))
           }
@@ -957,7 +983,7 @@ export async function init(options: InitOptions = {}): Promise<void> {
           }
 
           // Merge with existing config
-          const existingConfig = readMcpConfig()
+          const existingConfig = readMcpConfig(claudeFamilyTool)
           let mergedConfig = mergeMcpServers(existingConfig, newServers)
 
           // Fix Windows config if needed
@@ -965,7 +991,7 @@ export async function init(options: InitOptions = {}): Promise<void> {
 
           // Write the config with error handling
           try {
-            writeMcpConfig(mergedConfig)
+            writeMcpConfig(mergedConfig, claudeFamilyTool)
             console.log(ansis.green(`✔ ${i18n.t('mcp:mcpConfigSuccess')}`))
           }
           catch (error) {
@@ -1014,8 +1040,8 @@ export async function init(options: InitOptions = {}): Promise<void> {
     })
 
     // Step 13: Success message
-    console.log(ansis.green(`✔ ${i18n.t('configuration:configSuccess')} ${CLAUDE_DIR}`))
-    console.log(`\n${ansis.cyan(i18n.t('common:complete'))}`)
+    console.log(ansis.green(`✔ ${i18n.t('configuration:configSuccess')} ${runtimeTarget.configDirDisplay}`))
+    console.log(`\n${ansis.cyan(i18n.t('common:complete', { runtime: runtimeTarget.runtimeCommand }))}`)
   }
   catch (error) {
     if (!handleExitPromptError(error)) {
@@ -1062,7 +1088,7 @@ export async function handleMultiConfigurations(options: InitOptions, codeToolTy
     await validateApiConfigs(configs)
 
     // Process configurations based on code tool type
-    if (codeToolType === 'claude-code') {
+    if (codeToolType === 'claude-code' || codeToolType === 'clavue') {
       await handleClaudeCodeConfigs(configs)
     }
     else if (codeToolType === 'codex') {

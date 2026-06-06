@@ -3,7 +3,10 @@ import type { ClaudeCodeConfigData, ClaudeCodeProfile, OperationResult } from '.
 import type { CcjkTomlConfig } from '../types/toml-config'
 import dayjs from 'dayjs'
 import { join } from 'pathe'
-import { SETTINGS_FILE, CCJK_CONFIG_DIR, CCJK_CONFIG_FILE } from '../constants'
+import { CCJK_CONFIG_DIR, CCJK_CONFIG_FILE } from '../constants'
+import type { CodeToolType } from '../constants'
+import { normalizeClaudeFamilySettings } from './claude-settings-normalizer'
+import { activeSettingsFile, getActiveCodeTool } from './runtime-settings'
 import { clearModelEnv } from './config.model-keys'
 import { copyFile, ensureDir, exists } from './fs-operations'
 import { readJsonConfig } from './json-config'
@@ -202,19 +205,21 @@ export class ClaudeCodeConfigManager {
   /**
    * Apply profile settings to Claude Code runtime
    */
-  static async applyProfileSettings(profile: ClaudeCodeProfile | null): Promise<void> {
+  static async applyProfileSettings(profile: ClaudeCodeProfile | null, codeTool?: CodeToolType): Promise<void> {
     const { ensureI18nInitialized, i18n } = await import('../i18n')
     ensureI18nInitialized()
+    const targetTool = codeTool ?? getActiveCodeTool()
+    const settingsFile = activeSettingsFile(targetTool === 'codex' || targetTool === 'grok' ? 'claude-code' : targetTool)
 
     try {
       if (!profile) {
         const { switchToOfficialLogin } = await import('./config')
-        switchToOfficialLogin()
+        switchToOfficialLogin(targetTool === 'clavue' ? 'clavue' : 'claude-code')
         return
       }
 
       const { readJsonConfig, writeJsonConfig } = await import('./json-config')
-      const settings = readJsonConfig<any>(SETTINGS_FILE) || {}
+      const settings = readJsonConfig<any>(settingsFile) || {}
 
       if (!settings.env)
         settings.env = {}
@@ -279,11 +284,13 @@ export class ClaudeCodeConfigManager {
         clearModelEnv(settings.env)
       }
 
-      writeJsonConfig(SETTINGS_FILE, settings)
+      const normalizedTool = targetTool === 'clavue' ? 'clavue' : 'claude-code'
+      normalizeClaudeFamilySettings(settings, { codeTool: normalizedTool })
+      writeJsonConfig(settingsFile, settings)
 
       const { setPrimaryApiKey, addCompletedOnboarding } = await import('./claude-config')
-      setPrimaryApiKey()
-      addCompletedOnboarding()
+      setPrimaryApiKey(normalizedTool)
+      addCompletedOnboarding(normalizedTool)
 
       if (shouldRestartCcr) {
         const { runCcrRestart } = await import('./ccr/commands')

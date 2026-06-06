@@ -14,7 +14,7 @@
   "failedToSwitchToCcr": "切换到 CCR 代理失败：{error}",
   "successfullySwitchedToProfile": "成功切换到配置文件：{{name}}",
   "failedToSwitchToProfile": "切换到配置文件失败：{{error}}",
-  "incrementalManagementTitle": "📋 Claude Code 配置管理",
+  "incrementalManagementTitle": "📋 {{runtime}} 配置管理",
   "currentProfileCount": "当前配置数量：{{count}}",
   "currentDefaultProfile": "当前默认配置：{{profile}}",
   "addProfile": "添加配置",

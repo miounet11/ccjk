@@ -1,29 +1,30 @@
+import type { CodeToolType } from '../constants'
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'pathe'
 import { exec } from 'tinyexec'
-import { CLAUDE_DIR, SETTINGS_FILE } from '../constants.js'
+import { applyTrustedOperatorPermissions, normalizeClaudeFamilySettings } from './claude-settings-normalizer'
 import { ensureDir } from './fs-operations.js'
 import { mergeAndCleanPermissions } from './permission-cleaner.js'
 import { getPlatform } from './platform.js'
+import { resolveClaudeFamilySettingsTarget } from './runtime-settings'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
-// Get template settings
 function getTemplateSettings(): any {
   const templatePath = join(__dirname, '../../templates/claude-code/common/settings.json')
   const content = readFileSync(templatePath, 'utf-8')
   return JSON.parse(content)
 }
 
-// Load current settings
-function loadCurrentSettings(): any {
-  if (!existsSync(SETTINGS_FILE)) {
+function loadCurrentSettings(codeTool?: CodeToolType): any {
+  const target = resolveClaudeFamilySettingsTarget(codeTool)
+  if (!existsSync(target.settingsFile)) {
     return {}
   }
 
   try {
-    const content = readFileSync(SETTINGS_FILE, 'utf-8')
+    const content = readFileSync(target.settingsFile, 'utf-8')
     return JSON.parse(content)
   }
   catch {
@@ -31,32 +32,33 @@ function loadCurrentSettings(): any {
   }
 }
 
-// Save settings
-function saveSettings(settings: any): void {
-  ensureDir(CLAUDE_DIR)
-  writeFileSync(SETTINGS_FILE, JSON.stringify(settings, null, 2))
+function saveSettings(settings: any, codeTool?: CodeToolType): void {
+  const target = resolveClaudeFamilySettingsTarget(codeTool)
+  ensureDir(target.configDir)
+  normalizeClaudeFamilySettings(settings, { codeTool: target.codeTool })
+  writeSettingsFile(target.settingsFile, settings)
 }
 
-// Import recommended environment variables
-export async function importRecommendedEnv(): Promise<void> {
-  const templateSettings = getTemplateSettings()
-  const currentSettings = loadCurrentSettings()
+function writeSettingsFile(path: string, settings: any): void {
+  writeFileSync(path, JSON.stringify(settings, null, 2))
+}
 
-  // Merge env variables
+export async function importRecommendedEnv(codeTool?: CodeToolType): Promise<void> {
+  const templateSettings = getTemplateSettings()
+  const currentSettings = loadCurrentSettings(codeTool)
+
   currentSettings.env = {
     ...currentSettings.env,
     ...templateSettings.env,
   }
 
-  saveSettings(currentSettings)
+  saveSettings(currentSettings, codeTool)
 }
 
-// Import recommended permissions
-export async function importRecommendedPermissions(): Promise<void> {
+export async function importRecommendedPermissions(codeTool?: CodeToolType): Promise<void> {
   const templateSettings = getTemplateSettings()
-  const currentSettings = loadCurrentSettings()
+  const currentSettings = loadCurrentSettings(codeTool)
 
-  // Merge permissions with cleanup
   if (templateSettings.permissions && templateSettings.permissions.allow) {
     currentSettings.permissions = {
       ...templateSettings.permissions,
@@ -70,16 +72,16 @@ export async function importRecommendedPermissions(): Promise<void> {
     currentSettings.permissions = templateSettings.permissions
   }
 
-  saveSettings(currentSettings)
+  applyTrustedOperatorPermissions(currentSettings)
+  saveSettings(currentSettings, codeTool)
 }
 
-// Open settings.json in system editor
-export async function openSettingsJson(): Promise<void> {
-  ensureDir(CLAUDE_DIR)
+export async function openSettingsJson(codeTool?: CodeToolType): Promise<void> {
+  const target = resolveClaudeFamilySettingsTarget(codeTool)
+  ensureDir(target.configDir)
 
-  // Ensure file exists
-  if (!existsSync(SETTINGS_FILE)) {
-    saveSettings({})
+  if (!existsSync(target.settingsFile)) {
+    saveSettings({}, codeTool)
   }
 
   const platform = getPlatform()
@@ -93,24 +95,22 @@ export async function openSettingsJson(): Promise<void> {
       command = 'start'
       break
     default:
-      // Linux - try common editors
       command = 'xdg-open'
   }
 
   try {
-    await exec(command, [SETTINGS_FILE])
+    await exec(command, [target.settingsFile])
   }
   catch {
-    // Fallback to code/vim/nano
     try {
-      await exec('code', [SETTINGS_FILE])
+      await exec('code', [target.settingsFile])
     }
     catch {
       try {
-        await exec('vim', [SETTINGS_FILE])
+        await exec('vim', [target.settingsFile])
       }
       catch {
-        await exec('nano', [SETTINGS_FILE])
+        await exec('nano', [target.settingsFile])
       }
     }
   }

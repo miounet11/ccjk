@@ -1,4 +1,27 @@
-# ccjk Release Notes（v15.20 – v16.0.1）
+# ccjk Release Notes（v15.20 – v16.0.2）
+
+## v16.0.2 — 四工具独立配置与 Clavue 专用菜单
+
+各代码工具（Clavue / Claude Code / Codex / Grok）配置路径与界面文案彻底分离，不再混用 Claude Code 品牌：
+
+- **首次引导**：先选语言，再选四种开发工具（Clavue 默认推荐）
+- **Clavue 专用菜单**：设置 / 更新 / API / MCP / 模型 / 记忆 / 权限 / 探活
+- **工具感知路由**：Clavue 写入 `~/.clavue`（settings、MCP、工作流、记忆文件）；Claude Code 仍写 `~/.claude`
+- **Clavue init**：检测/安装 `clavue` CLI，不再误装 Claude Code
+- **配置文案**：API 管理、模型选择、完成提示等均按当前工具显示名称（如「Clavue 配置管理」）
+
+**安装**
+
+```bash
+npm i -g ccjk@16.0.2
+```
+
+**验证**
+- `pnpm typecheck` 通过
+- `pnpm build` 通过
+- `tests/unit/utils/runtime-settings.test.ts`、`menu.test.ts`、`simple-config.test.ts` 通过
+
+---
 
 ## v16.0.1 — 16.x 正式版（Reasonix + ccjk 品牌统一）
 

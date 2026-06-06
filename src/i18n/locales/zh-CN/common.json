@@ -4,7 +4,7 @@
   "emptyToSkip": "（空内容回车则跳过）",
   "cancelled": "操作已取消",
   "error": "错误",
-  "complete": "🎉 配置完成！使用 'claude' 命令开始体验。",
+  "complete": "🎉 配置完成！使用 '{{runtime}}' 命令开始体验。",
   "none": "无",
   "enterChoice": "请输入选项，回车确认（不区分大小写）",
   "invalidChoice": "无效选择。请输入有效选项。",

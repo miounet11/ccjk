@@ -33,7 +33,9 @@ import { addNumbersToChoices } from './prompt-helpers'
 import { importRecommendedEnv, importRecommendedPermissions, openSettingsJson } from './simple-config'
 import { promptBoolean } from './toggle-prompt'
 import { formatApiKeyDisplay, validateApiKey } from './validator'
+import { getActiveCodeTool, getClaudeFamilyRuntimeLabel } from './code-tool-labels'
 import { readCcjkConfig, updateCcjkConfig } from './ccjk-config'
+import { isClaudeFamilyCodeTool } from './runtime-settings'
 
 // Helper function to handle cancelled operations
 async function handleCancellation(): Promise<void> {
@@ -58,11 +60,9 @@ async function handleCustomApiMode(): Promise<void> {
   ensureI18nInitialized()
 
   // Get current code tool type from CCJK config
-  const ccjkConfig = readCcjkConfig()
-  const codeToolType = ccjkConfig?.codeToolType || 'claude-code'
+  const codeToolType = getActiveCodeTool()
 
-  // For Claude Code, use the new incremental configuration management
-  if (codeToolType === 'claude-code') {
+  if (isClaudeFamilyCodeTool(codeToolType)) {
     const { configureIncrementalManagement } = await import('../utils/claude-code-incremental-manager')
     await configureIncrementalManagement()
     return
@@ -195,7 +195,10 @@ async function handleSwitchConfigMode(): Promise<void> {
 
   // Import and call the interactive switch function from config-switch command
   const { configSwitchCommand } = await import('../commands/config-switch')
-  await configSwitchCommand({ codeType: 'claude-code' })
+  const activeTool = getActiveCodeTool()
+  await configSwitchCommand({
+    codeType: isClaudeFamilyCodeTool(activeTool) ? activeTool : 'claude-code',
+  })
 }
 
 // Configure API
@@ -243,6 +246,8 @@ export async function configureApiFeature(): Promise<void> {
 // Configure MCP
 export async function configureMcpFeature(): Promise<void> {
   ensureI18nInitialized()
+  const codeToolType = getActiveCodeTool()
+  const mcpTool = isClaudeFamilyCodeTool(codeToolType) ? codeToolType : 'claude-code'
 
   // Check if Windows needs fix
   if (isWindows()) {
@@ -252,9 +257,9 @@ export async function configureMcpFeature(): Promise<void> {
     })
 
     if (fixWindows) {
-      const existingConfig = readMcpConfig() || { mcpServers: {} }
+      const existingConfig = readMcpConfig(mcpTool) || { mcpServers: {} }
       const fixedConfig = fixWindowsMcpConfig(existingConfig)
-      writeMcpConfig(fixedConfig)
+      writeMcpConfig(fixedConfig, mcpTool)
       console.log(ansis.green(`✔ ${i18n.t('configuration:windowsMcpConfigFixed')}`))
     }
   }
@@ -267,7 +272,7 @@ export async function configureMcpFeature(): Promise<void> {
   }
 
   if (selectedServices.length > 0) {
-    const mcpBackupPath = backupMcpConfig()
+    const mcpBackupPath = backupMcpConfig(mcpTool)
     if (mcpBackupPath) {
       console.log(ansis.gray(`✔ ${i18n.t('mcp:mcpBackupSuccess')}: ${mcpBackupPath}`))
     }
@@ -300,11 +305,11 @@ export async function configureMcpFeature(): Promise<void> {
       newServers[service.id] = config
     }
 
-    const existingConfig = readMcpConfig()
+    const existingConfig = readMcpConfig(mcpTool)
     let mergedConfig = mergeMcpServers(existingConfig, newServers)
     mergedConfig = fixWindowsMcpConfig(mergedConfig)
 
-    writeMcpConfig(mergedConfig)
+    writeMcpConfig(mergedConfig, mcpTool)
     console.log(ansis.green(`✔ ${i18n.t('mcp:mcpConfigSuccess')}`))
   }
 }
@@ -312,16 +317,16 @@ export async function configureMcpFeature(): Promise<void> {
 // Configure default model
 export async function configureDefaultModelFeature(): Promise<void> {
   ensureI18nInitialized()
-
-  // Check for existing model configuration
-  const existingModel = getExistingModelConfig()
+  const codeToolType = getActiveCodeTool()
+  const runtimeLabel = getClaudeFamilyRuntimeLabel(isClaudeFamilyCodeTool(codeToolType) ? codeToolType : 'claude-code')
+  const existingModel = getExistingModelConfig(isClaudeFamilyCodeTool(codeToolType) ? codeToolType : 'claude-code')
 
   if (existingModel) {
     // Display existing configuration
     console.log(`\n${ansis.blue(`ℹ ${i18n.t('configuration:existingModelConfig') || 'Existing model configuration'}`)}`)
     const modelDisplay
       = existingModel === 'default'
-        ? i18n.t('configuration:defaultModelOption') || 'Default (Let Claude Code choose)'
+        ? i18n.t('configuration:defaultModelOption', { runtime: runtimeLabel })
         : existingModel.charAt(0).toUpperCase() + existingModel.slice(1)
     console.log(ansis.gray(`  ${i18n.t('configuration:currentModel') || 'Current model'}: ${modelDisplay}\n`))
 
@@ -343,7 +348,7 @@ export async function configureDefaultModelFeature(): Promise<void> {
     message: i18n.t('configuration:selectDefaultModel') || 'Select default model',
     choices: addNumbersToChoices([
       {
-        name: i18n.t('configuration:defaultModelOption') || 'Default - Let Claude Code choose',
+        name: i18n.t('configuration:defaultModelOption', { runtime: runtimeLabel }),
         value: 'default' as const,
       },
       {
@@ -378,12 +383,13 @@ export async function configureDefaultModelFeature(): Promise<void> {
     }
 
     // Use the new updateCustomModel function to handle environment variables
-    updateCustomModel(primaryModel, haikuModel, sonnetModel, opusModel)
+    const modelTool = isClaudeFamilyCodeTool(codeToolType) ? codeToolType : 'claude-code'
+    updateCustomModel(primaryModel, haikuModel, sonnetModel, opusModel, modelTool)
     console.log(ansis.green(`✔ ${i18n.t('configuration:customModelConfigured') || 'Custom model configuration completed'}`))
     return
   }
 
-  updateDefaultModel(model)
+  updateDefaultModel(model, isClaudeFamilyCodeTool(codeToolType) ? codeToolType : 'claude-code')
   console.log(ansis.green(`✔ ${i18n.t('configuration:modelConfigured') || 'Default model configured'}`))
 }
 
@@ -431,6 +437,8 @@ export async function promptCustomModels(
 // Configure AI memory
 export async function configureAiMemoryFeature(): Promise<void> {
   ensureI18nInitialized()
+  const codeToolType = getActiveCodeTool()
+  const memoryTool = isClaudeFamilyCodeTool(codeToolType) ? codeToolType : 'claude-code'
 
   const { option } = await inquirer.prompt<{ option: string }>({
     type: 'list',
@@ -479,12 +487,12 @@ export async function configureAiMemoryFeature(): Promise<void> {
     const { selectAiOutputLanguage } = await import('./prompts')
     const aiOutputLang = await selectAiOutputLanguage()
 
-    applyAiLanguageDirective(aiOutputLang)
+    applyAiLanguageDirective(aiOutputLang, memoryTool)
     updateCcjkConfig({ aiOutputLang })
     console.log(ansis.green(`✔ ${i18n.t('configuration:aiLanguageConfigured') || 'AI output language configured'}`))
   }
   else if (option === 'outputStyle') {
-    await configureOutputStyle()
+    await configureOutputStyle(undefined, undefined, memoryTool)
   }
 }
 
@@ -798,6 +806,8 @@ async function updateCodexLanguageDirective(aiOutputLang: string): Promise<void>
 // Configure environment variables and permissions
 export async function configureEnvPermissionFeature(): Promise<void> {
   ensureI18nInitialized()
+  const codeToolType = getActiveCodeTool()
+  const settingsTool = isClaudeFamilyCodeTool(codeToolType) ? codeToolType : 'claude-code'
 
   const { choice } = await inquirer.prompt<{ choice: string }>({
     type: 'list',
@@ -833,16 +843,16 @@ export async function configureEnvPermissionFeature(): Promise<void> {
   try {
     switch (choice) {
       case 'env':
-        await importRecommendedEnv()
+        await importRecommendedEnv(settingsTool)
         console.log(ansis.green(`✅ ${i18n.t('configuration:envImportSuccess')}`))
         break
       case 'permissions':
-        await importRecommendedPermissions()
+        await importRecommendedPermissions(settingsTool)
         console.log(ansis.green(`✅ ${i18n.t('configuration:permissionsImportSuccess') || 'Permissions imported'}`))
         break
       case 'open':
         console.log(ansis.cyan(i18n.t('configuration:openingSettingsJson') || 'Opening settings.json...'))
-        await openSettingsJson()
+        await openSettingsJson(settingsTool)
         break
     }
   }
