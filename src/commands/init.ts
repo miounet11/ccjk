@@ -393,6 +393,13 @@ export async function init(options: InitOptions = {}): Promise<void> {
       displayBannerWithInfo(CODE_TOOL_BANNERS[codeToolType] || 'CCJK')
     }
 
+    if (codeToolType === 'grok') {
+      const { configureIncrementalManagement } = await import('../utils/claude-code-incremental-manager')
+      await configureIncrementalManagement()
+      console.log(ansis.dim(`\n  ${i18n.t('menu:menuDescriptions.grokInitHint')}\n`))
+      return
+    }
+
     // Show Termux environment info if detected
     if (isTermux()) {
       console.log(ansis.yellow(`\nℹ ${i18n.t('installation:termuxDetected')}`))

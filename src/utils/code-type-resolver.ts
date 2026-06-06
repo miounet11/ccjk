@@ -1,7 +1,10 @@
 import type { CodeToolType } from '../constants'
-import { DEFAULT_CODE_TOOL_TYPE } from '../constants'
+import { CODE_TOOL_TYPES, DEFAULT_CODE_TOOL_TYPE } from '../constants'
 import { i18n } from '../i18n'
 import { readCcjkConfigAsync } from './ccjk-config'
+
+/** 启动向导与工具切换支持的四种开发工具 */
+export const STARTUP_CODE_TOOL_CHOICES = CODE_TOOL_TYPES
 
 /**
  * Code type abbreviation mapping
@@ -10,6 +13,7 @@ const CODE_TYPE_ABBREVIATIONS: Record<string, CodeToolType> = {
   cv: 'clavue',
   cc: 'claude-code',
   cx: 'codex',
+  gk: 'grok',
 } as const
 
 /**
@@ -76,5 +80,5 @@ export async function resolveCodeType(codeTypeParam?: string): Promise<CodeToolT
  * @returns True if valid code tool type
  */
 function isValidCodeType(value: string): value is CodeToolType {
-  return ['clavue', 'claude-code', 'codex'].includes(value)
+  return (CODE_TOOL_TYPES as readonly string[]).includes(value)
 }

@@ -30,7 +30,7 @@ export const LEGACY_CCJK_CONFIG_FILES = [
   join(homedir(), '.ufomiao', 'ccjk', 'config.toml'),
 ]
 
-export const CODE_TOOL_TYPES = ['clavue', 'claude-code', 'codex'] as const
+export const CODE_TOOL_TYPES = ['clavue', 'claude-code', 'codex', 'grok'] as const
 export type CodeToolType = (typeof CODE_TOOL_TYPES)[number]
 export const DEFAULT_CODE_TOOL_TYPE: CodeToolType = 'clavue'
 
@@ -38,6 +38,7 @@ export const CODE_TOOL_BANNERS: Record<CodeToolType, string> = {
   'clavue': 'for Clavue',
   'claude-code': 'for Claude Code',
   'codex': 'for Codex',
+  'grok': 'for Grok CLI',
 }
 
 export function settingsFileForTool(tool: CodeToolType): string {
@@ -51,6 +52,7 @@ export const CODE_TOOL_ALIASES: Record<string, CodeToolType> = {
   cv: 'clavue',
   cc: 'claude-code',
   cx: 'codex',
+  gk: 'grok',
 }
 
 export function isCodeToolType(value: any): value is CodeToolType {

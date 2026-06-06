@@ -46,7 +46,7 @@
   "help.exampleDescriptions.checkClaudeCode": "Check and update Claude Code tools",
   "help.exampleDescriptions.checkCodex": "Check and update Codex tools",
   "help.exampleDescriptions.nonInteractiveModeCicd": "Non-interactive mode (CI/CD)",
-  "banner.subtitle": "One-click configuration tool for Claude Code",
+  "banner.subtitle": "Unified config for 4 tools",
   "banner.updateSubtitle": "Update configuration for Claude Code",
   "help.defaults.dailyUsage": "Daily usage (default)",
   "help.defaults.interactiveUninstall": "Interactive uninstall menu",

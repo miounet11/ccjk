@@ -111,7 +111,7 @@ export function customizeHelp(sections: any[]): any[] {
   // Add custom header
   sections.unshift({
     title: '',
-    body: ansis.cyan.bold(`CCJK - Zero-Config Code Flow v${version}`),
+    body: ansis.cyan.bold(`CCJK v${version}`),
   })
 
   // Add commands section with aliases
@@ -233,10 +233,10 @@ export async function setupCommands(cli: CAC): Promise<void> {
     .option('--all-lang, -g <lang>', 'Set all language parameters to this value')
     .option('--config-lang, -c <lang>', 'Configuration language (zh-CN, en)')
     .option('--force, -f', 'Force overwrite existing configuration')
-    .option('--code-type, -T <codeType>', 'Select code tool type (claude-code, codex, cc, cx)')
+    .option('--code-type, -T <codeType>', 'Select code tool type (clavue, claude-code, codex, grok, cv, cc, cx, gk)')
     .action(await withLanguageResolution(async (options) => {
       await showMainMenu({ codeType: options.codeType })
-    }))
+    }, true))
 
   // Init command
   cli

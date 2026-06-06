@@ -28,6 +28,7 @@ import { update } from './update'
 import { grokCommand } from './grok'
 import { reasonixCommand } from './reasonix'
 import { probeCommand } from './probe'
+import { runOnboardingWizard } from './onboarding-wizard'
 
 type MenuResult = 'exit' | 'switch' | undefined
 
@@ -35,6 +36,7 @@ const CODE_TOOL_LABELS: Record<CodeToolType, string> = {
   'clavue': 'Clavue',
   'claude-code': 'Claude Code',
   'codex': 'Codex',
+  'grok': 'Grok CLI',
 }
 
 function getCurrentCodeTool(): CodeToolType {
@@ -133,9 +135,10 @@ function printCcjkSection(options: {
   console.log('')
 }
 
-async function showClaudeCodeMenu(): Promise<MenuResult> {
+async function showClaudeCodeMenu(currentTool: CodeToolType): Promise<MenuResult> {
+  const sectionTitle = currentTool === 'clavue' ? 'Clavue' : 'Claude Code'
   console.log(ansis.cyan(i18n.t('menu:selectFunction')))
-  console.log('  -------- Claude Code --------')
+  console.log(`  -------- ${sectionTitle} --------`)
   console.log(
     `  ${ansis.cyan('1.')} ${i18n.t('menu:menuOptions.fullInit')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.fullInit')}`)}`,
   )
@@ -244,7 +247,7 @@ async function showClaudeCodeMenu(): Promise<MenuResult> {
       printSeparator()
       return undefined
     case 's': {
-      const switched = await handleCodeToolSwitch('claude-code')
+      const switched = await handleCodeToolSwitch(currentTool)
       if (switched) {
         return 'switch'
       }
@@ -382,8 +385,122 @@ async function showCodexMenu(): Promise<MenuResult> {
   return undefined
 }
 
-export async function showMainMenu(options: { codeType?: string } = {}): Promise<void> {
+async function showGrokMenu(): Promise<MenuResult> {
+  console.log(ansis.cyan(i18n.t('menu:selectFunction')))
+  console.log('  -------- Grok CLI --------')
+  console.log(
+    `  ${ansis.cyan('1.')} ${i18n.t('menu:menuOptions.grokInit')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.grokInit')}`)}`,
+  )
+  console.log(
+    `  ${ansis.cyan('2.')} ${i18n.t('menu:menuOptions.grokStatus')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.grokStatus')}`)}`,
+  )
+  console.log('')
+  printOtherToolsSection()
+  printCcjkSection({
+    uninstallOption: i18n.t('menu:menuOptions.uninstall'),
+    uninstallDescription: i18n.t('menu:menuDescriptions.uninstall'),
+    updateOption: i18n.t('menu:menuOptions.checkUpdates'),
+    updateDescription: i18n.t('menu:menuDescriptions.checkUpdates'),
+  })
+
+  const { choice } = await inquirer.prompt<{ choice: string }>({
+    type: 'input',
+    name: 'choice',
+    message: i18n.t('common:enterChoice'),
+    validate: (value) => {
+      const valid = ['1', '2', 'r', 'R', 'u', 'U', 'l', 'L', 'p', 'P', 'g', 'G', 'x', 'X', '0', '-', '+', 's', 'S', 'q', 'Q']
+      return valid.includes(value) || i18n.t('common:invalidChoice')
+    },
+  })
+
+  if (!choice) {
+    console.log(ansis.yellow(i18n.t('common:cancelled')))
+    return 'exit'
+  }
+
+  const normalized = choice.toLowerCase()
+
+  switch (normalized) {
+    case '1':
+      await init({ skipBanner: true, codeType: 'grok' })
+      break
+    case '2':
+      await grokCommand()
+      break
+    case 'r':
+      await runCcrMenuFeature()
+      printSeparator()
+      return undefined
+    case 'u':
+      await runCcusageFeature()
+      printSeparator()
+      return undefined
+    case 'l':
+      await runCometixMenuFeature()
+      printSeparator()
+      return undefined
+    case 'p':
+      await probeCommand()
+      printSeparator()
+      return undefined
+    case 'g':
+      await grokCommand()
+      printSeparator()
+      return undefined
+    case 'x':
+      await reasonixCommand()
+      printSeparator()
+      return undefined
+    case '0': {
+      const currentLang = i18n.language as SupportedLang
+      await changeScriptLanguageFeature(currentLang)
+      printSeparator()
+      return undefined
+    }
+    case '-':
+      await uninstall()
+      printSeparator()
+      return undefined
+    case '+':
+      await checkUpdates()
+      printSeparator()
+      return undefined
+    case 's': {
+      const switched = await handleCodeToolSwitch('grok')
+      if (switched) {
+        return 'switch'
+      }
+      printSeparator()
+      return undefined
+    }
+    case 'q':
+      console.log(ansis.cyan(i18n.t('common:goodbye')))
+      return 'exit'
+    default:
+      return undefined
+  }
+
+  printSeparator()
+
+  const shouldContinue = await promptBoolean({
+    message: i18n.t('common:returnToMenu'),
+    defaultValue: true,
+  })
+
+  if (!shouldContinue) {
+    console.log(ansis.cyan(i18n.t('common:goodbye')))
+    return 'exit'
+  }
+
+  return undefined
+}
+
+export async function showMainMenu(options: { codeType?: string, skipOnboarding?: boolean } = {}): Promise<void> {
   try {
+    if (!options.skipOnboarding) {
+      await runOnboardingWizard({ preferredCodeTool: options.codeType })
+    }
+
     // Handle code type parameter if provided
     if (options.codeType) {
       try {
@@ -409,7 +526,9 @@ export async function showMainMenu(options: { codeType?: string } = {}): Promise
 
       const result = codeTool === 'codex'
         ? await showCodexMenu()
-        : await showClaudeCodeMenu()
+        : codeTool === 'grok'
+          ? await showGrokMenu()
+          : await showClaudeCodeMenu(codeTool)
 
       if (result === 'exit') {
         exitMenu = true

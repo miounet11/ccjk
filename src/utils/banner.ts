@@ -27,20 +27,20 @@ export function displayBanner(subtitle?: string): void {
   const defaultSubtitle = i18n.t('cli:banner.subtitle')
   const subtitleText = subtitle || defaultSubtitle
   const paddedSubtitle = padToDisplayWidth(subtitleText, 30)
-  const paddedTitle = padToDisplayWidth('Zero-Config Code Flow', 60)
+  const paddedTitle = padToDisplayWidth('CCJK', 60)
 
   console.log(
     ansis.cyan.bold(`
 ╔════════════════════════════════════════════════════════════════╗
 ║                                                                ║
-║   ███████╗  ██████╗ ███████╗                                   ║
-║       ██╔╝  ██╔═══╝  ██╔═══╝                                   ║
-║      ██╔╝   ██║      █████╗                                    ║
-║    ██╔╝     ██║      ██╔══╝                                    ║
-║   ███████╗  ╚██████╗ ██║                                       ║
-║   ╚══════╝   ╚═════╝ ╚═╝        ${ansis.gray(paddedSubtitle)} ║
+║    ██████╗ ██████╗     ██╗  ██╗                               ║
+║   ██╔════╝██╔════╝     ██║ ██╔╝                               ║
+║   ██║     ██║          █████╔╝                                ║
+║   ██║     ██║          ██╔═██╗                                ║
+║   ╚██████╗╚██████╗     ██║  ██╗                               ║
+║    ╚═════╝ ╚═════╝     ╚═╝  ╚═╝   ${ansis.gray(paddedSubtitle)} ║
 ║                                                                ║
-║   ${ansis.white.bold(paddedTitle)} ║
+║   ${ansis.white.bold(paddedTitle)} — Clavue / Claude / Codex / Grok 统一配置          ║
 ║                                                                ║
 ╚════════════════════════════════════════════════════════════════╝
 `),
