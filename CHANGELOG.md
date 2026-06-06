@@ -6,6 +6,19 @@ ccjk 是 Clavue / Claude Code / Codex 的本地配置 CLI。本文记录用户�
 
 ## [Unreleased]
 
+## [16.0.0-alpha.3] - 2026-06-03
+
+### Added
+- `ccjk reasonix`：Reasonix CLI 状态探测与启动指引（DeepSeek 原生 agent 伴侣，非 runtime 嵌入）
+- `ccjk reasonix <profile>`：从 `~/.ccjk/profiles` 注入 `DEEPSEEK_API_KEY` / `MIMO_API_KEY` 并启动 `reasonix chat`
+- 项目根无 `reasonix.toml` 时，从 profile 自动生成最小配置（不覆盖已有文件）
+- `--run` / `-p` 支持单次 `reasonix run`；`--no-sync` 跳过 toml 生成
+- 主菜单「其他工具」新增 `X.` Reasonix 入口
+
+### Internal
+- 新增 `src/utils/reasonix-config.ts`、`src/commands/reasonix.ts`
+- 新增 `tests/utils/reasonix-config.test.ts`（7 case）
+
 ## [15.27.6] - 2026-05-26
 
 ### Added

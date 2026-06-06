@@ -1,13 +1,15 @@
 {
   "name": "ccjk",
-  "version": "15.31.0",
-  "description": "Clavue / Claude Code / Codex / Grok CLI 的统一专业配置工具。所有工具采用完全一致的配置流程（API Key + Base URL + 模型），支持 profile 管理、权限策略、MCP 等。参考 zcf 合理交互设计，让配置简单高效。",
+  "version": "16.0.0-alpha.3",
+  "description": "Clavue / Claude Code / Codex / Grok CLI 统一配置工具（基于 ZCF 交互与配置方法）",
   "type": "module",
   "bin": {
-    "ccjk": "./dist/cli.js"
+    "ccjk": "bin/ccjk.mjs"
   },
   "files": [
+    "bin",
     "dist",
+    "templates",
     "README.md",
     "LICENSE"
   ],
@@ -42,28 +44,46 @@
   },
   "license": "MIT",
   "scripts": {
-    "dev": "tsx src/cli.ts",
-    "build": "tsc -p tsconfig.build.json && chmod +x dist/cli.js",
-    "start": "node dist/cli.js",
+    "dev": "tsx ./src/cli.ts",
+    "build": "unbuild",
+    "start": "node bin/ccjk.mjs",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint src --ext .ts",
+    "lint": "eslint",
     "test": "vitest run",
     "test:watch": "vitest",
-    "prepublishOnly": "pnpm typecheck && pnpm test && pnpm build"
+    "prepublishOnly": "pnpm typecheck && pnpm build"
   },
   "dependencies": {
-    "@inquirer/prompts": "^8.4.2",
+    "@rainbowatcher/toml-edit-js": "^0.6.4",
+    "@types/semver": "^7.5.8",
     "ansis": "^4.0.1",
-    "commander": "^14.0.0",
-    "string-width": "^8.2.1"
+    "cac": "^6.7.14",
+    "dayjs": "^1.11.13",
+    "find-up-simple": "^1.0.0",
+    "fs-extra": "^11.2.0",
+    "i18next": "^24.2.0",
+    "i18next-fs-backend": "^2.6.0",
+    "inquirer": "^12.4.2",
+    "inquirer-toggle": "^1.0.1",
+    "ora": "^8.2.0",
+    "pathe": "^2.0.3",
+    "semver": "^7.7.1",
+    "tinyexec": "^0.3.2",
+    "trash": "^9.0.0"
   },
   "devDependencies": {
+    "@antfu/eslint-config": "^4.11.0",
+    "@types/fs-extra": "^11.0.4",
+    "@types/inquirer": "^9.0.7",
     "@types/node": "^22.0.0",
-    "@typescript-eslint/eslint-plugin": "^8.0.0",
-    "@typescript-eslint/parser": "^8.0.0",
     "eslint": "^9.0.0",
+    "glob": "^11.0.1",
     "tsx": "^4.0.0",
     "typescript": "^5.6.0",
+    "unbuild": "^3.5.0",
     "vitest": "^3.0.0"
-  }
+  },
+  "main": "dist/index.mjs",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.mts"
 }

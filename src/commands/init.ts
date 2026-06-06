@@ -1,541 +1,1412 @@
-import { confirm, input, password, select } from '@inquirer/prompts';
-import ansis from 'ansis';
-import type { CodeTool } from '../core/tools.js';
-import { TOOLS } from '../core/tools.js';
-import { listProvidersFor } from '../core/providers.js';
-import type { ApiProvider, AuthType } from '../core/providers.js';
-import { defaultClaudeModel } from '../core/providers.js';
-import { readSettings, writeSettings } from '../core/settings.js';
-import { listProfiles, validateName, writeProfile, writeState } from '../core/profiles.js';
-import { readTomlFile, writeTomlFile } from '../core/toml.js';
-import { applyCodexProfile, listCodexProviders } from '../core/codex-config.js';
-import type { CodexReasoningEffort } from '../core/codex-config.js';
-import { lintSettings } from '../core/lint.js';
+import type { AiOutputLanguage, CodeToolType, SupportedLang } from '../constants'
+import type { McpServerConfig } from '../types'
+import type { ApiConfigDefinition, ClaudeCodeProfile } from '../types/claude-code-config'
+import type { CodexProvider } from '../utils/code-tools/codex'
+import { existsSync } from 'node:fs'
+import process from 'node:process'
+import ansis from 'ansis'
+import inquirer from 'inquirer'
+import { version } from '../../package.json'
+import { getMcpServices, MCP_SERVICE_CONFIGS } from '../config/mcp-services'
+import { WORKFLOW_CONFIG_BASE } from '../config/workflows'
+import { API_DEFAULT_URL, CLAUDE_DIR, CODE_TOOL_BANNERS, DEFAULT_CODE_TOOL_TYPE, settingsFileForTool } from '../constants'
+import { i18n } from '../i18n'
+import { displayBannerWithInfo } from '../utils/banner'
+import { backupCcrConfig, configureCcrProxy, createDefaultCcrConfig, readCcrConfig, setupCcrConfiguration, writeCcrConfig } from '../utils/ccr/config'
+import { installCcr, isCcrInstalled } from '../utils/ccr/installer'
+import {
+  addCompletedOnboarding,
+  backupMcpConfig,
+  buildMcpServerConfig,
+  fixWindowsMcpConfig,
+  mergeMcpServers,
+  readMcpConfig,
+  setPrimaryApiKey,
+  writeMcpConfig,
+} from '../utils/claude-config'
+import { runCodexFullInit } from '../utils/code-tools/codex'
+import { resolveCodeType } from '../utils/code-type-resolver'
+import { installCometixLine, isCometixLineInstalled } from '../utils/cometix/installer'
+import {
+  applyAiLanguageDirective,
+  backupExistingConfig,
+  configureApi,
+  copyConfigFiles,
+  ensureClaudeDir,
+  getExistingApiConfig,
+  promptApiConfigurationAction,
+  switchToOfficialLogin,
+} from '../utils/config'
+import { configureApiCompletely, modifyApiConfigPartially } from '../utils/config-operations'
+import { handleExitPromptError, handleGeneralError } from '../utils/error-handler'
+import { handleMultipleInstallations } from '../utils/installation-manager'
+import { getInstallationStatus, installClaudeCode } from '../utils/installer'
+import { selectMcpServices } from '../utils/mcp-selector'
+import { configureOutputStyle } from '../utils/output-style'
+import { isTermux, isWindows } from '../utils/platform'
+import { addNumbersToChoices } from '../utils/prompt-helpers'
+import { resolveAiOutputLanguage } from '../utils/prompts'
+import { promptBoolean } from '../utils/toggle-prompt'
+import { formatApiKeyDisplay } from '../utils/validator'
+import { checkClaudeCodeVersionAndPrompt } from '../utils/version-checker'
+import { selectAndInstallWorkflows } from '../utils/workflow-installer'
+import { readCcjkConfig, updateCcjkConfig } from '../utils/ccjk-config'
 
 export interface InitOptions {
-  tool?: CodeTool;
-  provider?: string;
-  baseUrl?: string;
-  apiKey?: string;
-  yes?: boolean;
-  profile?: string;
-  /** Main model（写到 ANTHROPIC_MODEL）；与 --haiku-model/--sonnet-model/--opus-model 配套 */
-  model?: string;
-  /** 槽位（命令行参数）；交互模式下逐个询问，回车=用建议值，空格回车=该槽不写 */
-  haikuModel?: string;
-  sonnetModel?: string;
-  opusModel?: string;
+  configLang?: SupportedLang
+  aiOutputLang?: AiOutputLanguage | string
+  force?: boolean
+  skipBanner?: boolean
+  skipPrompt?: boolean
+  codeType?: CodeToolType | string // Accept abbreviations like 'cc', 'cx'
+  // Non-interactive parameters
+  configAction?: 'new' | 'backup' | 'merge' | 'docs-only' | 'skip'
+  apiType?: 'auth_token' | 'api_key' | 'ccr_proxy' | 'skip'
+  apiKey?: string // Used for both API key and auth token
+  apiUrl?: string
+  apiModel?: string // Primary API model (e.g., claude-sonnet-4-5)
+  apiHaikuModel?: string // Default Haiku model
+  apiSonnetModel?: string // Default Sonnet model
+  apiOpusModel?: string // Default Opus model
+  provider?: string // API provider preset (302ai, glm, minimax, kimi, custom)
+  mcpServices?: string[] | string | boolean
+  workflows?: string[] | string | boolean
+  outputStyles?: string[] | string | boolean
+  defaultOutputStyle?: string
+  allLang?: string // New: unified language parameter
+  installCometixLine?: string | boolean // New: CCometixLine installation control
+  // Multi-configuration parameters
+  apiConfigs?: string // JSON string for multiple API configurations
+  apiConfigsFile?: string // Path to JSON file with API configurations
 }
 
-export interface ModelSlots {
-  main?: string;
-  haiku?: string;
-  sonnet?: string;
-  opus?: string;
-}
-
-export async function initCommand(opts: InitOptions = {}): Promise<void> {
-  const tool = opts.tool ?? await pickTool();
-  const meta = TOOLS[tool];
-
-  if (tool === 'codex') {
-    await initCodex(opts);
-    return;
-  }
-
-  // Grok 也走统一的配置流程（和 Codex/Clavue/Claude Code 保持一致）
-  // 配置后可通过 `ccjk grok --profile xxx` 使用
-
-
-  const provider = opts.provider
-    ? resolveProvider(tool, opts.provider)
-    : await pickProvider(tool);
-
-  if (!provider.claudeCode && provider.id !== 'custom') {
-    throw new Error(`provider "${provider.id}" 没有 claude-code 配置`);
-  }
-
-  // claudeCode preset 在 custom 时为 undefined → 都向用户问（zcf 合理逻辑）
-  const preset = provider.claudeCode;
-  const baseUrl = opts.baseUrl
-    ?? preset?.baseUrl
-    ?? await askInput('Base URL (例如 https://api.example.com)');
-  const authType: AuthType = preset?.authType ?? 'auth_token';
-  const apiKey = opts.apiKey ?? await askInput(authType === 'api_key' ? 'API Key' : 'Auth Token', true);
-
-  // 复刻 zcf 的合理设置方法：只问 main model（有 defaultModels 列表时给好选择），其他槽位用命令行或默认=main
-  const model = await pickModel(opts, provider);
-  const slots: ModelSlots = {
-    ...(model ? { main: model } : {}),
-    ...(opts.haikuModel ? { haiku: opts.haikuModel } : model ? { haiku: model } : {}),
-    ...(opts.sonnetModel ? { sonnet: opts.sonnetModel } : model ? { sonnet: model } : {}),
-    ...(opts.opusModel ? { opus: opts.opusModel } : model ? { opus: model } : {}),
-  };
-
-  console.log(ansis.dim(`\n→ 配置目标: ${meta.settingsFile}`));
-  console.log(ansis.dim(`→ Provider: ${provider.name}`));
-  console.log(ansis.dim(`→ Base URL: ${baseUrl}`));
-  console.log(ansis.dim(`→ Auth: ${authType}`));
-  if (slots.main) console.log(ansis.dim(`→ Main model: ${slots.main}`));
-  if (slots.haiku) console.log(ansis.dim(`→ Haiku 槽: ${slots.haiku}`));
-  if (slots.sonnet) console.log(ansis.dim(`→ Sonnet 槽: ${slots.sonnet}`));
-  if (slots.opus) console.log(ansis.dim(`→ Opus 槽: ${slots.opus}`));
-  console.log();
-
-  if (!opts.yes) {
-    const ok = await confirm({ message: '确认写入？', default: true });
-    if (!ok) {
-      console.log(ansis.gray('已取消。'));
-      return;
-    }
-  }
-
-  const settings = await readSettings(meta.settingsFile);
-  applyApiToSettings(settings, baseUrl, apiKey, authType, slots);
-  const backup = await writeSettings(meta.settingsFile, settings);
-
-  console.log(ansis.green('\n✔ 配置已写入'));
-  if (backup) console.log(ansis.dim(`  备份: ${backup}`));
-  console.log(ansis.dim(`  目标: ${meta.settingsFile}`));
-
-  // 写完顺便体检一次：用户可能有上次配置遗留的脏数据
-  const findings = lintSettings(settings);
-  if (findings.length > 0) {
-    const errs = findings.filter(f => f.severity === 'error').length;
-    const warns = findings.filter(f => f.severity === 'warn').length;
-    const fixable = findings.filter(f => f.fix).length;
-    const parts: string[] = [];
-    if (errs > 0) parts.push(ansis.red(`${errs} error`));
-    if (warns > 0) parts.push(ansis.yellow(`${warns} warning`));
-    if (parts.length > 0) {
-      console.log(ansis.dim(`  体检: `) + parts.join(', ')
-        + (fixable > 0 ? ansis.dim(`（${fixable} 项可自动修 — 运行 \`ccjk doctor --fix\`）`) : ''));
-    }
-  }
-
-  // v15.27.7: 写完后立刻 warn shell shadow，否则用户重启 Claude Code 才发现没生效
-  warnShellShadow(baseUrl, slots);
-
-  await maybeSaveProfile({
-    explicitName: opts.profile,
-    yes: opts.yes ?? false,
-    provider,
-    baseUrl,
-    authType,
-    apiKey,
-    slots,
-    targetTools: [tool],
-  });
-  console.log();
-}
-
-interface SaveProfileArgs {
-  explicitName?: string | undefined;
-  yes: boolean;
-  provider: ApiProvider;
-  baseUrl: string;
-  authType: AuthType;
-  apiKey: string;
-  slots: ModelSlots;
-  targetTools?: CodeTool[];
-}
-
-async function maybeSaveProfile(args: SaveProfileArgs): Promise<void> {
-  // 默认始终保存为 profile —— 这是核心心智模型：「配 API = 创建 profile」。
-  // 旧行为多问一步「是否保存」，让 80% 的用户多按一次 Enter，删掉。
-  // 仍允许 --yes 模式跳过命名询问、直接用建议名。
-  let name = args.explicitName;
-
-  if (!name) {
-    const suggested = await suggestName(args.provider.id);
-    if (args.yes) {
-      name = suggested;
+export async function validateSkipPromptOptions(options: InitOptions): Promise<void> {
+  // Apply --all-lang logic first
+  if (options.allLang) {
+    if (options.allLang === 'zh-CN' || options.allLang === 'en') {
+      // Use allLang for config and AI output language parameters
+      options.configLang = options.allLang as SupportedLang
+      options.aiOutputLang = options.allLang
     }
     else {
-      const inputName = await input({
-        message: 'Profile 名称（用于 `ccjk use` 切换；留空使用建议名）',
-        default: suggested,
-        validate: (s: string) => {
-          try { validateName(s.trim()); return true; }
-          catch (e) { return (e as Error).message; }
-        },
-      });
-      name = inputName.trim();
+      // Use en for config-lang, allLang for ai-output-lang
+      options.configLang = 'en'
+      options.aiOutputLang = options.allLang
     }
   }
 
-  if (!name) return;
+  // Validate and process provider parameter
+  if (options.provider) {
+    const { getValidProviderIds, getProviderPreset } = await import('../config/api-providers')
+    const validProviders = [...getValidProviderIds(), 'custom']
 
-  validateName(name);
-  await writeProfile({
-    name,
-    provider: args.provider.id,
-    baseUrl: args.baseUrl,
-    authType: args.authType,
-    apiKey: args.apiKey,
-    ...(args.slots.main ? { model: args.slots.main } : {}),
-    ...(args.slots.haiku ? { fastModel: args.slots.haiku } : {}),
-    ...(args.slots.sonnet ? { sonnetModel: args.slots.sonnet } : {}),
-    ...(args.slots.opus ? { opusModel: args.slots.opus } : {}),
-    createdAt: new Date().toISOString(),
-  });
-  await writeState({ current: name });
-  console.log(ansis.green(`  Profile: ${name} 已保存（当前激活）`));
-}
-
-async function suggestName(providerId: string): Promise<string> {
-  const existing = (await listProfiles()).map(p => p.name);
-  if (!existing.includes(providerId)) return providerId;
-  let i = 2;
-  while (existing.includes(`${providerId}-${i}`)) i++;
-  return `${providerId}-${i}`;
-}
-
-function resolveProvider(tool: CodeTool, id: string): ApiProvider {
-  const found = listProvidersFor(tool).find(p => p.id === id);
-  if (!found) {
-    throw new Error(`未找到 provider "${id}"，可选: ${listProvidersFor(tool).map(p => p.id).join(', ')}`);
-  }
-  return found;
-}
-
-/**
- * Codex init —— 走 codex 原生 `[profiles.<name>]` 机制。
- *
- * 心智模型：
- * - 顶层 `profile = "<name>"` 只是启动默认，**不是单 model 锁定**。
- * - 用户随时 `codex --profile <other>` 现场切，多套 model 并存——这才是 codex
- *   的"多 model"正确姿势（developers.openai.com/codex/config-reference）。
- *
- * 写入策略：
- * - 新建 provider：写 `[model_providers.<id>]`（base_url / wire_api / env_key / requires_openai_auth）
- * - 复用已有 provider：不动 provider 段，只在新 profile 里引用它
- * - profile 段固定写 model + model_provider（+ 可选 reasoning effort）
- * - 顶层 profile 指向本次的 profile 名
- *
- * API key 仍然不入 toml；这是 codex 的硬限制。
- */
-async function initCodex(opts: InitOptions): Promise<void> {
-  const meta = TOOLS.codex;
-
-  const doc = await readTomlFile(meta.settingsFile);
-  const existingProviders = listCodexProviders(doc);
-
-  // 第一步：决定用哪个 provider —— 已有的就让用户选；没有就直接走「新建」流程。
-  let providerId: string;
-  let providerFields: { baseUrl?: string; envKey?: string; requiresOpenaiAuth?: boolean } = {};
-  let reusedProvider = false;
-
-  if (existingProviders.length > 0 && !opts.provider) {
-    const NEW = '__new__';
-    const picked = await select<string>({
-      message: 'Codex provider',
-      choices: [
-        ...existingProviders.map(p => ({
-          name: `复用 ${p}  ${ansis.dim(`[model_providers.${p}]`)}`,
-          value: p,
-        })),
-        { name: ansis.dim('新建一个 provider…'), value: NEW },
-      ],
-    });
-    if (picked === NEW) {
-      providerId = await askProviderId(existingProviders);
-      providerFields = await askProviderFields(providerId);
-    }
-    else {
-      providerId = picked;
-      reusedProvider = true;
-    }
-  }
-  else {
-    providerId = opts.provider ?? await askProviderId(existingProviders);
-    providerFields = await askProviderFields(providerId);
-  }
-
-  // 第二步：profile 名（默认建议 providerId；如果重了就 providerId-2）
-  const profileName = await askProfileName(providerId, doc);
-
-  // 第三步：model 必填；reasoning effort 可选
-  const model = opts.model ?? await askInput('Main model (例如 gpt-5.5 / gpt-4o)');
-  const reasoningEffort = await askReasoningEffort();
-
-  // 预览
-  console.log(ansis.dim(`\n→ 配置目标: ${meta.settingsFile}`));
-  console.log(ansis.dim(`→ Profile: ${profileName}  ${ansis.gray('([profiles.' + profileName + '])')}`));
-  console.log(ansis.dim(`→ Provider: ${providerId}${reusedProvider ? ansis.gray(' (复用现有)') : ''}`));
-  if (providerFields.baseUrl) console.log(ansis.dim(`→ Base URL: ${providerFields.baseUrl}`));
-  if (providerFields.envKey) console.log(ansis.dim(`→ env_key: ${providerFields.envKey}`));
-  console.log(ansis.dim(`→ Model: ${model}`));
-  if (reasoningEffort) console.log(ansis.dim(`→ Reasoning effort: ${reasoningEffort}`));
-  console.log();
-
-  if (!opts.yes) {
-    const ok = await confirm({ message: '确认写入？', default: true });
-    if (!ok) {
-      console.log(ansis.gray('已取消。'));
-      return;
-    }
-  }
-
-  applyCodexProfile(doc, {
-    profileName,
-    providerId,
-    model,
-    ...(reasoningEffort ? { reasoningEffort } : {}),
-    ...(reusedProvider
-      ? {}
-      : {
-          ...(providerFields.baseUrl !== undefined ? { baseUrl: providerFields.baseUrl } : {}),
-          wireApi: 'responses', // codex 当前只支持 responses
-          ...(providerFields.envKey !== undefined ? { envKey: providerFields.envKey } : {}),
-          ...(providerFields.requiresOpenaiAuth !== undefined
-            ? { requiresOpenaiAuth: providerFields.requiresOpenaiAuth }
-            : {}),
+    if (!validProviders.includes(options.provider)) {
+      throw new Error(
+        i18n.t('errors:invalidProvider', {
+          provider: options.provider,
+          validProviders: validProviders.join(', '),
         }),
-  });
-  const backup = await writeTomlFile(meta.settingsFile, doc);
+      )
+    }
 
-  console.log(ansis.green(`\n✔ Codex profile "${profileName}" 已写入`));
-  if (backup) console.log(ansis.dim(`  备份: ${backup}`));
-  console.log(ansis.dim(`  目标: ${meta.settingsFile}`));
-  console.log();
-  if (!reusedProvider && providerFields.envKey) {
-    console.log(ansis.yellow(`! API key 不能写入 toml，请在 shell 里导出：`));
-    console.log(ansis.cyan(`    export ${providerFields.envKey}=<your-api-key>`));
-    console.log(ansis.dim(`  （写到 ~/.zshrc 或 ~/.bashrc 里持久化）`));
-    console.log();
+    // Auto-set apiType based on provider preset's authType
+    if (!options.apiType) {
+      const preset = options.provider !== 'custom' ? getProviderPreset(options.provider) : null
+      options.apiType = preset?.claudeCode?.authType || 'api_key'
+    }
   }
-  console.log(ansis.dim('提示：随时可以 `codex --profile <name>` 切换其它 profile，'));
-  console.log(ansis.dim('或再次运行 `ccjk init` 新建一个 profile。\n'));
-}
 
-async function askProviderId(taken: string[]): Promise<string> {
-  const v = await input({
-    message: 'Provider 短名（写进 [model_providers.<id>]，建议小写无空格，例如 myapi）',
-    default: 'custom',
-    validate: (s: string) => {
-      const t = s.trim();
-      if (!/^[a-z0-9_-]+$/.test(t)) return '只允许小写字母、数字、_、-';
-      if (taken.includes(t)) return `provider "${t}" 已存在；用「复用」选项，或换个名字`;
-      return true;
-    },
-  });
-  return v.trim();
-}
-
-async function askProviderFields(providerId: string): Promise<{
-  baseUrl: string;
-  envKey: string;
-  requiresOpenaiAuth: boolean;
-}> {
-  const baseUrl = await askInput('Base URL (例如 https://api.openai.com/v1)');
-  const envKey = await askEnvKey(providerId);
-  const requiresOpenaiAuth = await confirm({
-    message: 'requires_openai_auth？(走 OpenAI 官方鉴权时 true，自建网关多半 false)',
-    default: false,
-  });
-  return { baseUrl, envKey, requiresOpenaiAuth };
-}
-
-async function askProfileName(
-  providerId: string,
-  doc: import('../core/toml.js').TomlDoc,
-): Promise<string> {
-  // 默认建议 = providerId；若已被占用，加 -2/-3
-  const existing = new Set<string>();
-  for (const k of doc.values.keys()) {
-    const m = /^profiles\.([^.]+)\./.exec(k);
-    if (m && m[1]) existing.add(m[1]);
+  // Set defaults
+  if (!options.configAction) {
+    options.configAction = 'backup'
   }
-  let suggested = providerId;
-  if (existing.has(suggested)) {
-    let i = 2;
-    while (existing.has(`${providerId}-${i}`)) i++;
-    suggested = `${providerId}-${i}`;
+  // Parse outputStyles parameter
+  if (typeof options.outputStyles === 'string') {
+    if (options.outputStyles === 'skip') {
+      options.outputStyles = false
+    }
+    else if (options.outputStyles === 'all') {
+      options.outputStyles = ['engineer-professional', 'nekomata-engineer', 'laowang-engineer']
+    }
+    else {
+      options.outputStyles = options.outputStyles.split(',').map(s => s.trim())
+    }
   }
-  const v = await input({
-    message: 'Profile 名称（用于 `codex --profile <name>` 切换）',
-    default: suggested,
-    validate: (s: string) => /^[a-zA-Z0-9_-]+$/.test(s.trim()) || '只允许字母、数字、_、-',
-  });
-  return v.trim();
-}
-
-async function askReasoningEffort(): Promise<CodexReasoningEffort | undefined> {
-  const SKIP = '__skip__';
-  const v = await select<string>({
-    message: 'Reasoning effort（codex 推理强度，可跳过）',
-    default: SKIP,
-    choices: [
-      { name: ansis.dim('不设置（用 codex 默认）'), value: SKIP },
-      { name: 'low', value: 'low' },
-      { name: 'medium', value: 'medium' },
-      { name: 'high', value: 'high' },
-    ],
-  });
-  if (v === SKIP) return undefined;
-  return v as CodexReasoningEffort;
-}
-
-async function askEnvKey(providerId: string): Promise<string> {
-  const suggested = `${providerId.toUpperCase().replace(/-/g, '_')}_API_KEY`;
-  const v = await input({
-    message: 'env_key 名（codex 启动时从此环境变量读取 API key）',
-    default: suggested,
-    validate: (s: string) => /^[A-Z_][A-Z0-9_]*$/.test(s.trim()) || '只允许大写字母、数字、_，且不能数字开头',
-  });
-  return v.trim();
-}
-
-async function pickTool(): Promise<CodeTool> {
-  return await select<CodeTool>({
-    message: '选择要新增或配置的工具',
-    default: 'clavue',
-    choices: [
-      { name: `${TOOLS.clavue.displayName} ${ansis.dim('(主推，推荐)')}`, value: 'clavue' },
-      { name: TOOLS['claude-code'].displayName, value: 'claude-code' },
-      { name: TOOLS.codex.displayName, value: 'codex' },
-      { name: `${TOOLS.grok.displayName} ${ansis.dim('(Grok CLI)')}`, value: 'grok' },
-    ],
-  });
-}
-
-async function pickProvider(tool: CodeTool): Promise<ApiProvider> {
-  const list = listProvidersFor(tool);
-  const id = await select<string>({
-    message: '选择配置方式（大部分已知 Provider 会自动带出地址和认证类型）',
-    choices: list.map(p => ({ name: `${p.name} ${ansis.dim(p.description || p.hint || '')}`, value: p.id })),
-  });
-  return list.find(p => p.id === id)!;
-}
-
-async function askInput(message: string, mask = false): Promise<string> {
-  if (mask) {
-    const v = await password({
-      message,
-      mask: true,
-      validate: (s: string) => s.trim().length > 0 || '不能为空',
-    });
-    return v.trim();
+  if (options.outputStyles === undefined) {
+    options.outputStyles = ['engineer-professional', 'nekomata-engineer', 'laowang-engineer']
   }
-  const v = await input({
-    message,
-    validate: (s: string) => s.trim().length > 0 || '不能为空',
-  });
-  return v.trim();
+
+  // Set default output style
+  if (!options.defaultOutputStyle) {
+    options.defaultOutputStyle = 'engineer-professional'
+  }
+  // Parse installCometixLine parameter
+  if (typeof options.installCometixLine === 'string') {
+    options.installCometixLine = options.installCometixLine.toLowerCase() === 'true'
+  }
+  if (options.installCometixLine === undefined) {
+    options.installCometixLine = true
+  }
+
+  // Validate configAction
+  if (options.configAction && !['new', 'backup', 'merge', 'docs-only', 'skip'].includes(options.configAction)) {
+    throw new Error(
+      i18n.t('errors:invalidConfigAction', { value: options.configAction }),
+    )
+  }
+
+  // Validate apiType
+  if (options.apiType && !['auth_token', 'api_key', 'ccr_proxy', 'skip'].includes(options.apiType)) {
+    throw new Error(
+      i18n.t('errors:invalidApiType', { value: options.apiType }),
+    )
+  }
+
+  // Validate multi-configuration parameters
+  if (options.apiConfigs && options.apiConfigsFile) {
+    throw new Error(i18n.t('multi-config:conflictingParams'))
+  }
+
+  // Validate API model parameters
+  const modelParams: Array<[string, unknown]> = [
+    ['apiModel', options.apiModel],
+    ['apiHaikuModel', options.apiHaikuModel],
+    ['apiSonnetModel', options.apiSonnetModel],
+    ['apiOpusModel', options.apiOpusModel],
+  ]
+  for (const [key, value] of modelParams) {
+    if (value !== undefined && typeof value !== 'string') {
+      if (key === 'apiModel')
+        throw new Error(i18n.t('errors:invalidApiModel', { value }))
+      throw new Error(i18n.t('errors:invalidModelParam', { key, value }))
+    }
+  }
+
+  // Validate required API parameters (both use apiKey now)
+  if (options.apiType === 'api_key' && !options.apiKey) {
+    throw new Error(i18n.t('errors:apiKeyRequiredForApiKey'))
+  }
+
+  if (options.apiType === 'auth_token' && !options.apiKey) {
+    throw new Error(i18n.t('errors:apiKeyRequiredForAuthToken'))
+  }
+
+  // Parse and validate MCP services
+  if (typeof options.mcpServices === 'string') {
+    if (options.mcpServices === 'skip') {
+      options.mcpServices = false
+    }
+    else if (options.mcpServices === 'all') {
+      options.mcpServices = MCP_SERVICE_CONFIGS.filter(s => !s.requiresApiKey).map(s => s.id)
+    }
+    else {
+      options.mcpServices = options.mcpServices.split(',').map(s => s.trim())
+    }
+  }
+  if (Array.isArray(options.mcpServices)) {
+    const validServices = MCP_SERVICE_CONFIGS.map(s => s.id)
+    for (const service of options.mcpServices) {
+      if (!validServices.includes(service)) {
+        throw new Error(i18n.t('errors:invalidMcpService', { service, validServices: validServices.join(', ') }))
+      }
+    }
+  }
+
+  // Parse and validate output styles
+  if (Array.isArray(options.outputStyles)) {
+    const validStyles = ['engineer-professional', 'nekomata-engineer', 'laowang-engineer', 'default', 'explanatory', 'learning']
+    for (const style of options.outputStyles) {
+      if (!validStyles.includes(style)) {
+        throw new Error(i18n.t('errors:invalidOutputStyle', { style, validStyles: validStyles.join(', ') }))
+      }
+    }
+  }
+
+  // Validate default output style
+  if (options.defaultOutputStyle) {
+    const validStyles = ['engineer-professional', 'nekomata-engineer', 'laowang-engineer', 'default', 'explanatory', 'learning']
+    if (!validStyles.includes(options.defaultOutputStyle)) {
+      throw new Error(i18n.t('errors:invalidDefaultOutputStyle', { style: options.defaultOutputStyle, validStyles: validStyles.join(', ') }))
+    }
+  }
+
+  // Parse and validate workflows
+  if (typeof options.workflows === 'string') {
+    if (options.workflows === 'skip') {
+      options.workflows = false
+    }
+    else if (options.workflows === 'all') {
+      options.workflows = WORKFLOW_CONFIG_BASE.map(w => w.id)
+    }
+    else {
+      options.workflows = options.workflows.split(',').map(s => s.trim())
+    }
+  }
+  if (Array.isArray(options.workflows)) {
+    const validWorkflows = WORKFLOW_CONFIG_BASE.map(w => w.id)
+    for (const workflow of options.workflows) {
+      if (!validWorkflows.includes(workflow)) {
+        throw new Error(i18n.t('errors:invalidWorkflow', { workflow, validWorkflows: validWorkflows.join(', ') }))
+      }
+    }
+  }
+
+  // Set default MCP services (use "all" as explicit default)
+  if (options.mcpServices === undefined) {
+    options.mcpServices = 'all'
+    // Convert "all" to actual service array
+    options.mcpServices = MCP_SERVICE_CONFIGS.filter(s => !s.requiresApiKey).map(s => s.id)
+  }
+
+  // Set default workflows (use "all" as explicit default)
+  if (options.workflows === undefined) {
+    options.workflows = 'all'
+    // Convert "all" to actual workflow array
+    options.workflows = WORKFLOW_CONFIG_BASE.map(w => w.id)
+  }
+}
+
+export async function init(options: InitOptions = {}): Promise<void> {
+  // Validate options if in skip-prompt mode (outside try-catch to allow errors to propagate in tests)
+  if (options.skipPrompt) {
+    await validateSkipPromptOptions(options)
+  }
+
+  try {
+    // Step 2: Read CCJK config once for multiple uses
+    const ccjkConfig = readCcjkConfig()
+
+    // Step 3: Select code tool
+    let codeToolType: CodeToolType
+    try {
+      codeToolType = await resolveCodeType(options.codeType)
+    }
+    catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      console.error(ansis.red(`${i18n.t('errors:generalError')} ${errorMessage}`))
+      // Fallback to default value
+      codeToolType = DEFAULT_CODE_TOOL_TYPE
+    }
+    options.codeType = codeToolType
+    const targetSettingsFile = settingsFileForTool(
+      codeToolType === 'codex' ? 'claude-code' : codeToolType,
+    )
+
+    // Add the new API configuration mode selection function
+    async function selectApiConfigurationMode(): Promise<string> {
+      const { apiMode } = await inquirer.prompt<{ apiMode: string }>({
+        type: 'list',
+        name: 'apiMode',
+        message: i18n.t('api:selectApiMode'),
+        choices: [
+          {
+            name: i18n.t('api:useOfficialLogin'),
+            value: 'official',
+          },
+          {
+            name: i18n.t('api:customApiConfig'),
+            value: 'custom',
+          },
+          {
+            name: i18n.t('api:useCcrProxy'),
+            value: 'ccr',
+          },
+          {
+            name: i18n.t('api:skipApi'),
+            value: 'skip',
+          },
+        ],
+      })
+      return apiMode
+    }
+
+    async function handleCustomApiConfiguration(existingConfig: any): Promise<any> {
+      // For Claude Code, always use the new incremental configuration management
+      if (codeToolType === 'claude-code' || codeToolType === 'clavue') {
+        const { configureIncrementalManagement } = await import('../utils/claude-code-incremental-manager')
+        await configureIncrementalManagement()
+        return null
+      }
+
+      // For Codex or other tools, keep the existing logic
+      if (existingConfig) {
+        // Handle existing configuration with smart choices using common function
+        const customConfigAction = await promptApiConfigurationAction()
+
+        if (customConfigAction === 'modify-partial') {
+          await modifyApiConfigPartially(existingConfig)
+          return null // No need to configure again
+        }
+        else if (customConfigAction === 'modify-all') {
+          return await configureApiCompletely()
+        }
+        else if (customConfigAction === 'keep-existing') {
+          try {
+            addCompletedOnboarding()
+          }
+          catch (error) {
+            console.error(ansis.red(i18n.t('errors:failedToSetOnboarding')), error)
+          }
+          // Set primaryApiKey for third-party API (Claude Code 2.0 requirement)
+          try {
+            setPrimaryApiKey()
+          }
+          catch (error) {
+            const { ensureI18nInitialized, i18n: i18nModule } = await import('../i18n')
+            ensureI18nInitialized()
+            console.error(i18nModule.t('mcp:primaryApiKeySetFailed'), error)
+          }
+          return null
+        }
+      }
+      else {
+        // No existing config, show standard choices
+        const { apiChoice } = await inquirer.prompt<{ apiChoice: string }>({
+          type: 'list',
+          name: 'apiChoice',
+          message: i18n.t('api:configureApi'),
+          choices: [
+            {
+              name: `${i18n.t('api:useAuthToken')} - ${ansis.gray(i18n.t('api:authTokenDesc'))}`,
+              value: 'auth_token',
+              short: i18n.t('api:useAuthToken'),
+            },
+            {
+              name: `${i18n.t('api:useApiKey')} - ${ansis.gray(i18n.t('api:apiKeyDesc'))}`,
+              value: 'api_key',
+              short: i18n.t('api:useApiKey'),
+            },
+          ],
+        })
+
+        if (!apiChoice) {
+          console.log(ansis.yellow(i18n.t('common:cancelled')))
+          process.exit(0)
+        }
+
+        return await configureApiCompletely(apiChoice as 'auth_token' | 'api_key')
+      }
+    }
+
+    // Display banner based on selected code tool
+    if (!options.skipBanner) {
+      displayBannerWithInfo(CODE_TOOL_BANNERS[codeToolType] || 'CCJK')
+    }
+
+    // Show Termux environment info if detected
+    if (isTermux()) {
+      console.log(ansis.yellow(`\nℹ ${i18n.t('installation:termuxDetected')}`))
+      console.log(ansis.gray(i18n.t('installation:termuxEnvironmentInfo')))
+    }
+
+    // Step 2.1: Select config language with intelligent detection (skip duplicate prompts for Codex)
+    let configLang = options.configLang
+    if (codeToolType === 'codex') {
+      if (!configLang) {
+        if (options.skipPrompt) {
+          configLang = ccjkConfig?.templateLang || 'en'
+        }
+        else {
+          configLang = ccjkConfig?.templateLang || (i18n.language as SupportedLang) || 'en'
+        }
+      }
+    }
+    else {
+      if (!configLang) {
+        const { resolveTemplateLanguage } = await import('../utils/prompts')
+        configLang = await resolveTemplateLanguage(
+          options.configLang,
+          ccjkConfig,
+          options.skipPrompt,
+        )
+      }
+    }
+
+    if (!configLang) {
+      configLang = 'en'
+    }
+
+    if (codeToolType === 'codex') {
+      if (options.skipPrompt)
+        process.env.CCJK_CODEX_SKIP_PROMPT_SINGLE_BACKUP = 'true'
+
+      const hasApiConfigs = Boolean(options.apiConfigs || options.apiConfigsFile)
+
+      // Map InitOptions to CodexFullInitOptions
+      const apiMode = hasApiConfigs
+        ? 'skip' // Multi-config already handles providers; skip built-in API setup
+        : options.apiType === 'auth_token'
+          ? 'official'
+          : options.apiType === 'api_key'
+            ? 'custom'
+            : options.apiType === 'skip'
+              ? 'skip'
+              : options.skipPrompt ? 'skip' : undefined
+
+      const customApiConfig = (!hasApiConfigs && options.apiType === 'api_key' && options.apiKey)
+        ? {
+            type: 'api_key' as const,
+            token: options.apiKey,
+            baseUrl: options.apiUrl,
+            model: options.apiModel, // Add model parameter for Codex
+          }
+        : undefined
+
+      // Convert workflows parameter to string array
+      let selectedWorkflows: string[] | undefined
+      if (Array.isArray(options.workflows)) {
+        selectedWorkflows = options.workflows
+      }
+      else if (typeof options.workflows === 'string') {
+        selectedWorkflows = [options.workflows]
+      }
+      else if (options.workflows === true) {
+        selectedWorkflows = [] // Empty array means install all workflows
+      }
+
+      // Handle multi-config providers before running full init
+      if (hasApiConfigs) {
+        await handleMultiConfigurations(options, 'codex')
+      }
+
+      const resolvedAiOutputLang = await runCodexFullInit({
+        aiOutputLang: options.aiOutputLang,
+        skipPrompt: options.skipPrompt,
+        apiMode,
+        customApiConfig,
+        workflows: selectedWorkflows,
+      })
+      updateCcjkConfig({
+        version,
+        preferredLang: i18n.language as SupportedLang, // CCJK界面语言
+        templateLang: configLang, // 模板语言
+        aiOutputLang: resolvedAiOutputLang
+          ?? options.aiOutputLang
+          ?? ccjkConfig?.aiOutputLang
+          ?? 'en',
+        codeToolType,
+      })
+      console.log(ansis.green(i18n.t('codex:setupComplete')))
+      return
+    }
+
+    // Step 4: Select AI output language
+    const aiOutputLang = await resolveAiOutputLanguage(i18n.language as SupportedLang, options.aiOutputLang, ccjkConfig, options.skipPrompt)
+
+    // Step 4: Check and handle Claude Code installation
+    const installationStatus = await getInstallationStatus()
+
+    // Handle installations (including none, single, or multiple)
+    if (installationStatus.hasGlobal || installationStatus.hasLocal) {
+      // Handle existing installations - always use the installation manager in interactive mode
+      if (!options.skipPrompt) {
+        await handleMultipleInstallations(installationStatus)
+      }
+      else {
+        // Skip-prompt mode: prefer global, auto-handle conflicts
+        if (installationStatus.hasLocal) {
+          // If local installation exists, we prefer global - install global if needed, then remove local
+          if (!installationStatus.hasGlobal) {
+            console.log(ansis.blue(`${i18n.t('installation:installingGlobalClaudeCode')}...`))
+            await installClaudeCode(true) // Skip method selection in non-interactive mode
+            console.log(ansis.green(`✔ ${i18n.t('installation:globalInstallationCompleted')}`))
+          }
+
+          // Always remove local installation in skip-prompt mode
+          if (installationStatus.hasGlobal && installationStatus.hasLocal) {
+            console.log(ansis.yellow(`⚠️  ${i18n.t('installation:multipleInstallationsDetected')}`))
+          }
+          console.log(ansis.blue(`${i18n.t('installation:removingLocalInstallation')}...`))
+          const { removeLocalClaudeCode } = await import('../utils/installer')
+          await removeLocalClaudeCode()
+          console.log(ansis.green(`✔ ${i18n.t('installation:localInstallationRemoved')}`))
+        }
+        // If only global exists, no action needed
+      }
+
+      // Verify installation and ensure symlink exists (handles cask installations without symlink)
+      // This runs regardless of skipPrompt mode to fix broken/missing symlinks
+      const { verifyInstallation, displayVerificationResult } = await import('../utils/installer')
+      const verification = await verifyInstallation('claude-code')
+      if (verification.symlinkCreated) {
+        console.log(ansis.green(`✔ ${i18n.t('installation:alreadyInstalled')}`))
+        displayVerificationResult(verification, 'claude-code')
+      }
+      else if (!verification.success) {
+        // If verification failed, try to install
+        console.log(ansis.yellow(`⚠ ${i18n.t('installation:verificationFailed')}`))
+        if (verification.error) {
+          console.log(ansis.gray(`  ${verification.error}`))
+        }
+      }
+    }
+    else {
+      // No installation found - install Claude Code
+      if (options.skipPrompt) {
+        // In skip-prompt mode, auto-install Claude Code with npm (skip method selection)
+        await installClaudeCode(true)
+      }
+      else {
+        const shouldInstall = await promptBoolean({
+          message: i18n.t('installation:installPrompt'),
+          defaultValue: true,
+        })
+
+        if (shouldInstall) {
+          // In interactive mode, allow method selection
+          await installClaudeCode(false)
+        }
+        else {
+          console.log(ansis.yellow(i18n.t('common:skip')))
+        }
+      }
+    }
+
+    // Step 4.5: Check for Claude Code updates (if any installation exists)
+    if (installationStatus.hasGlobal || installationStatus.hasLocal) {
+      // Skip version check if Claude Code was just installed (it's already latest)
+      await checkClaudeCodeVersionAndPrompt(options.skipPrompt)
+    }
+
+    // Step 5: Handle existing config
+    ensureClaudeDir()
+    let action = 'new' // default action for new installation
+
+    if (existsSync(targetSettingsFile) && !options.force) {
+      if (options.skipPrompt) {
+        // In skip-prompt mode, use configAction option (default: backup)
+        action = options.configAction || 'backup'
+        if (action === 'skip') {
+          console.log(ansis.yellow(i18n.t('common:skip')))
+          return
+        }
+      }
+      else {
+        const { action: userAction } = await inquirer.prompt<{ action: string }>({
+          type: 'list',
+          name: 'action',
+          message: i18n.t('configuration:existingConfig'),
+          choices: addNumbersToChoices([
+            { name: i18n.t('configuration:backupAndOverwrite'), value: 'backup' },
+            { name: i18n.t('configuration:updateDocsOnly'), value: 'docs-only' },
+            { name: i18n.t('configuration:mergeConfig'), value: 'merge' },
+            { name: i18n.t('common:skip'), value: 'skip' },
+          ]),
+        })
+
+        if (!userAction) {
+          console.log(ansis.yellow(i18n.t('common:cancelled')))
+          process.exit(0)
+        }
+
+        action = userAction
+
+        // Handle special cases early
+        if (action === 'skip') {
+          console.log(ansis.yellow(i18n.t('common:skip')))
+          return
+        }
+      }
+    }
+    else if (options.skipPrompt && options.configAction) {
+      action = options.configAction
+    }
+
+    // Step 6: Configure API (skip if only updating docs)
+    let apiConfig = null
+    const isNewInstall = !existsSync(targetSettingsFile)
+    if (action !== 'docs-only' && (isNewInstall || ['backup', 'merge', 'new'].includes(action))) {
+      // In skip-prompt mode, handle API configuration directly
+      if (options.skipPrompt) {
+        // Handle multi-configuration parameters (priority over traditional single config)
+        if (options.apiConfigs || options.apiConfigsFile) {
+          await handleMultiConfigurations(options, codeToolType)
+          apiConfig = null // Multi-config handles its own API configuration
+        }
+        else if (options.provider && options.apiKey) {
+          // Handle provider-based configuration
+          const { getProviderPreset } = await import('../config/api-providers')
+          const preset = options.provider !== 'custom' ? getProviderPreset(options.provider) : null
+
+          apiConfig = {
+            authType: preset?.claudeCode?.authType || 'api_key',
+            key: options.apiKey,
+            url: preset?.claudeCode?.baseUrl || options.apiUrl || API_DEFAULT_URL,
+          }
+
+          // Apply provider preset models if available
+          if (preset?.claudeCode?.defaultModels && preset.claudeCode.defaultModels.length > 0) {
+            const [primary, haiku, sonnet, opus] = preset.claudeCode.defaultModels
+            options.apiModel = options.apiModel || primary
+            options.apiHaikuModel = options.apiHaikuModel || haiku
+            options.apiSonnetModel = options.apiSonnetModel || sonnet
+            options.apiOpusModel = options.apiOpusModel || opus
+          }
+
+          // Save configuration to CCJK TOML config for persistence and switching
+          await saveSingleConfigToToml(apiConfig, options.provider, options)
+        }
+        else if (options.apiType === 'auth_token' && options.apiKey) {
+          apiConfig = {
+            authType: 'auth_token' as const,
+            key: options.apiKey,
+            url: options.apiUrl || API_DEFAULT_URL,
+          }
+
+          // Save configuration to CCJK TOML config for persistence and switching
+          await saveSingleConfigToToml(apiConfig, undefined, options)
+        }
+        else if (options.apiType === 'api_key' && options.apiKey) {
+          apiConfig = {
+            authType: 'api_key' as const,
+            key: options.apiKey,
+            url: options.apiUrl || API_DEFAULT_URL,
+          }
+
+          // Save configuration to CCJK TOML config for persistence and switching
+          await saveSingleConfigToToml(apiConfig, undefined, options)
+        }
+        else if (options.apiType === 'ccr_proxy') {
+          // Handle CCR proxy configuration in skip-prompt mode
+          const ccrStatus = await isCcrInstalled()
+          if (!ccrStatus.hasCorrectPackage) {
+            await installCcr()
+          }
+          else {
+            console.log(ansis.green(`✔ ${i18n.t('ccr:ccrAlreadyInstalled')}`))
+          }
+
+          // Backup existing CCR config if exists
+          const existingCcrConfig = readCcrConfig()
+          if (existingCcrConfig) {
+            const backupPath = await backupCcrConfig()
+            if (backupPath) {
+              console.log(ansis.gray(`✔ ${i18n.t('ccr:ccrBackupSuccess')}: ${backupPath}`))
+            }
+          }
+
+          // Create default skip configuration (empty providers - user configures in UI)
+          const defaultCcrConfig = createDefaultCcrConfig()
+
+          // Write CCR config
+          writeCcrConfig(defaultCcrConfig)
+          console.log(ansis.green(`✔ ${i18n.t('ccr:ccrConfigSuccess')}`))
+
+          // Configure proxy in settings.json
+          await configureCcrProxy(defaultCcrConfig)
+          console.log(ansis.green(`✔ ${i18n.t('ccr:proxyConfigSuccess')}`))
+
+          // Add onboarding flag
+          try {
+            addCompletedOnboarding()
+          }
+          catch (error) {
+            console.error(ansis.red(i18n.t('errors:failedToSetOnboarding')), error)
+          }
+
+          apiConfig = null // CCR sets up its own proxy config
+        }
+      }
+      else {
+        // Check for existing API configuration
+        const existingApiConfig = getExistingApiConfig()
+
+        // Use unified API configuration mode selection
+        const apiMode = await selectApiConfigurationMode()
+
+        switch (apiMode) {
+          case 'official': {
+            // Handle official login
+            const success = switchToOfficialLogin()
+            if (success) {
+              console.log(ansis.green(`✔ ${i18n.t('api:officialLoginConfigured')}`))
+              apiConfig = null // No need for API config
+            }
+            else {
+              console.log(ansis.red(i18n.t('api:officialLoginFailed')))
+            }
+            break
+          }
+
+          case 'custom':
+            // Handle custom API configuration with smart existing config handling
+            apiConfig = await handleCustomApiConfiguration(existingApiConfig)
+            break
+
+          case 'ccr': {
+            // Handle CCR proxy configuration
+            const ccrStatus = await isCcrInstalled()
+            if (!ccrStatus.hasCorrectPackage) {
+              await installCcr()
+            }
+            else {
+              console.log(ansis.green(`✔ ${i18n.t('ccr:ccrAlreadyInstalled')}`))
+            }
+
+            // Setup CCR configuration
+            const ccrConfigured = await setupCcrConfiguration()
+            if (ccrConfigured) {
+              console.log(ansis.green(`✔ ${i18n.t('ccr:ccrSetupComplete')}`))
+              // CCR configuration already sets up the proxy in settings.json
+              // addCompletedOnboarding is already called inside setupCcrConfiguration
+              apiConfig = null // No need for traditional API config
+            }
+            break
+          }
+
+          case 'skip':
+            // Skip API configuration
+            apiConfig = null
+            break
+
+          default:
+            console.log(ansis.yellow(i18n.t('common:cancelled')))
+            process.exit(0)
+        }
+      }
+    }
+
+    // Step 7: Execute the chosen action
+    if (['backup', 'docs-only', 'merge'].includes(action)) {
+      const backupDir = backupExistingConfig()
+      if (backupDir) {
+        console.log(ansis.gray(`✔ ${i18n.t('configuration:backupSuccess')}: ${backupDir}`))
+      }
+    }
+
+    if (action === 'docs-only') {
+      // Only copy base config files without agents/commands
+      copyConfigFiles(true)
+      // Select and install workflows
+      if (options.skipPrompt) {
+        // Use provided workflows or default to all workflows, skip if false
+        if (options.workflows !== false) {
+          await selectAndInstallWorkflows(configLang!, options.workflows as string[])
+        }
+      }
+      else {
+        await selectAndInstallWorkflows(configLang!)
+      }
+    }
+    else if (['backup', 'merge', 'new'].includes(action)) {
+      // Copy all base config files
+      copyConfigFiles(false)
+      // Select and install workflows
+      if (options.skipPrompt) {
+        // Use provided workflows or default to all workflows, skip if false
+        if (options.workflows !== false) {
+          await selectAndInstallWorkflows(configLang!, options.workflows as string[])
+        }
+      }
+      else {
+        await selectAndInstallWorkflows(configLang!)
+      }
+    }
+
+    // Step 8: Apply language directive to CLAUDE.md
+    applyAiLanguageDirective(aiOutputLang as AiOutputLanguage | string)
+    // Step 8.5: Configure Output Styles
+    if (options.skipPrompt) {
+      // Use provided output styles and default
+      if (options.outputStyles !== false) {
+        await configureOutputStyle(
+          options.outputStyles as string[],
+          options.defaultOutputStyle,
+        )
+      }
+    }
+    else {
+      await configureOutputStyle()
+    }
+
+    // Step 9: Apply API configuration (skip if only updating docs)
+    if (apiConfig && action !== 'docs-only') {
+      const configuredApi = configureApi(apiConfig as any)
+      if (configuredApi) {
+        console.log(ansis.green(`✔ ${i18n.t('api:apiConfigSuccess')}`))
+        console.log(ansis.gray(`  URL: ${configuredApi.url}`))
+        console.log(ansis.gray(`  Key: ${formatApiKeyDisplay(configuredApi.key)}`))
+        // addCompletedOnboarding is now called inside configureApi
+      }
+    }
+
+    // Step 9.5: Configure API models if provided (Claude Code only)
+    const hasModelParams = options.apiModel || options.apiHaikuModel || options.apiSonnetModel || options.apiOpusModel
+    if (hasModelParams && action !== 'docs-only' && codeToolType === 'claude-code') {
+      if (options.skipPrompt) {
+        // In skip-prompt mode, configure models
+        const { updateCustomModel } = await import('../utils/config')
+        updateCustomModel(
+          options.apiModel || undefined,
+          options.apiHaikuModel || undefined,
+          options.apiSonnetModel || undefined,
+          options.apiOpusModel || undefined,
+        )
+        console.log(ansis.green(`✔ ${i18n.t('api:modelConfigSuccess')}`))
+        if (options.apiModel) {
+          console.log(ansis.gray(`  ${i18n.t('api:primaryModel')}: ${options.apiModel}`))
+        }
+        if (options.apiHaikuModel)
+          console.log(ansis.gray(`  Haiku: ${options.apiHaikuModel}`))
+        if (options.apiSonnetModel)
+          console.log(ansis.gray(`  Sonnet: ${options.apiSonnetModel}`))
+        if (options.apiOpusModel)
+          console.log(ansis.gray(`  Opus: ${options.apiOpusModel}`))
+      }
+    }
+
+    // Step 10: Configure MCP services (skip if only updating docs)
+    if (action !== 'docs-only') {
+      let shouldConfigureMcp = false
+
+      if (options.skipPrompt) {
+        // In skip-prompt mode, configure MCP only if services are not explicitly disabled
+        shouldConfigureMcp = options.mcpServices !== false
+      }
+      else {
+        const userChoice = await promptBoolean({
+          message: i18n.t('mcp:configureMcp'),
+          defaultValue: true,
+        })
+
+        shouldConfigureMcp = userChoice
+      }
+
+      if (shouldConfigureMcp) {
+        // Show Windows-specific notice
+        if (isWindows()) {
+          console.log(ansis.blue(`ℹ ${i18n.t('installation:windowsDetected')}`))
+        }
+
+        // Use common MCP selector or skip-prompt services
+        let selectedServices: string[] | undefined
+
+        if (options.skipPrompt) {
+          selectedServices = options.mcpServices as string[]
+        }
+        else {
+          selectedServices = await selectMcpServices()
+          if (selectedServices === undefined) {
+            process.exit(0)
+          }
+        }
+
+        if (selectedServices.length > 0) {
+          // Backup existing MCP config if exists
+          const mcpBackupPath = backupMcpConfig()
+          if (mcpBackupPath) {
+            console.log(ansis.gray(`✔ ${i18n.t('mcp:mcpBackupSuccess')}: ${mcpBackupPath}`))
+          }
+
+          // Build MCP server configs
+          const newServers: Record<string, McpServerConfig> = {}
+
+          for (const serviceId of selectedServices) {
+            const services = await getMcpServices()
+            const service = services.find(s => s.id === serviceId)
+            if (!service)
+              continue
+
+            let config = service.config
+
+            // Special handling: serena context differs by code tool
+            if (service.id === 'serena' && Array.isArray(config.args)) {
+              const adjusted = { ...config, args: [...(config.args || [])] }
+              const idx = adjusted.args.indexOf('--context')
+              if (idx >= 0 && idx + 1 < adjusted.args.length) {
+                adjusted.args[idx + 1] = (codeToolType as CodeToolType === 'codex') ? 'codex' : 'ide-assistant'
+              }
+              else {
+                adjusted.args.push('--context', (codeToolType as CodeToolType === 'codex') ? 'codex' : 'ide-assistant')
+              }
+              config = adjusted
+            }
+
+            // Handle services that require API key
+            if (service.requiresApiKey) {
+              if (options.skipPrompt) {
+                // In skip-prompt mode, skip services that require API keys
+                console.log(ansis.yellow(`${i18n.t('common:skip')}: ${service.name} (requires API key)`))
+                continue
+              }
+              else {
+                const response = await inquirer.prompt<{ apiKey: string }>({
+                  type: 'input',
+                  name: 'apiKey',
+                  message: service.apiKeyPrompt!,
+                  validate: (value: string) => !!value || i18n.t('api:keyRequired'),
+                })
+
+                if (!response.apiKey) {
+                  console.log(ansis.yellow(`${i18n.t('common:skip')}: ${service.name}`))
+                  continue
+                }
+
+                config = buildMcpServerConfig(service.config, response.apiKey, service.apiKeyPlaceholder, service.apiKeyEnvVar)
+              }
+            }
+
+            newServers[service.id] = config
+          }
+
+          // Merge with existing config
+          const existingConfig = readMcpConfig()
+          let mergedConfig = mergeMcpServers(existingConfig, newServers)
+
+          // Fix Windows config if needed
+          mergedConfig = fixWindowsMcpConfig(mergedConfig)
+
+          // Write the config with error handling
+          try {
+            writeMcpConfig(mergedConfig)
+            console.log(ansis.green(`✔ ${i18n.t('mcp:mcpConfigSuccess')}`))
+          }
+          catch (error) {
+            console.error(ansis.red(`${i18n.t('errors:failedToWriteMcpConfig')} ${error}`))
+          }
+        }
+      }
+    }
+
+    // Step 11: CCometixLine installation
+    const cometixInstalled = await isCometixLineInstalled()
+    if (!cometixInstalled) {
+      let shouldInstallCometix = false
+
+      if (options.skipPrompt) {
+        // Use installCometixLine option or default to true
+        shouldInstallCometix = options.installCometixLine !== false
+      }
+      else {
+        const userChoice = await promptBoolean({
+          message: i18n.t('cometix:installCometixPrompt'),
+          defaultValue: true,
+        })
+
+        shouldInstallCometix = userChoice
+      }
+
+      if (shouldInstallCometix) {
+        await installCometixLine()
+      }
+      else {
+        console.log(ansis.yellow(i18n.t('cometix:cometixSkipped')))
+      }
+    }
+    else {
+      console.log(ansis.green(`✔ ${i18n.t('cometix:cometixAlreadyInstalled')}`))
+    }
+
+    // Step 12: Save ccjk config
+    updateCcjkConfig({
+      version,
+      preferredLang: i18n.language as SupportedLang, // CCJK界面语言
+      templateLang: configLang, // 模板语言
+      aiOutputLang: aiOutputLang as AiOutputLanguage | string,
+      codeToolType,
+    })
+
+    // Step 13: Success message
+    console.log(ansis.green(`✔ ${i18n.t('configuration:configSuccess')} ${CLAUDE_DIR}`))
+    console.log(`\n${ansis.cyan(i18n.t('common:complete'))}`)
+  }
+  catch (error) {
+    if (!handleExitPromptError(error)) {
+      handleGeneralError(error)
+    }
+  }
 }
 
 /**
- * 让用户挑一个 main model（完全复刻 zcf 的合理交互）。
- *
- * - --model 已传 → 直接用
- * - provider.claudeCode.defaultModels 非空 → 给漂亮的 select（含“其他…”和“留空”）
- * - 否则 → 简单 input
- * 返回 undefined 表示不写 model（让 Claude Code 用自己默认）。
+ * Handle multi-configuration API setup
+ * @param options - Command line options
+ * @param codeToolType - Target code tool type
  */
-async function pickModel(opts: InitOptions, provider: ApiProvider): Promise<string | undefined> {
-  if (opts.model !== undefined) {
-    const t = opts.model.trim();
-    return t || undefined;
+export async function handleMultiConfigurations(options: InitOptions, codeToolType: CodeToolType): Promise<void> {
+  const { ensureI18nInitialized } = await import('../i18n')
+  ensureI18nInitialized()
+
+  try {
+    let configs: ApiConfigDefinition[] = []
+
+    // Parse API configurations from JSON string
+    if (options.apiConfigs) {
+      try {
+        configs = JSON.parse(options.apiConfigs) as ApiConfigDefinition[]
+      }
+      catch (error) {
+        throw new Error(i18n.t('multi-config:invalidJson', { error: error instanceof Error ? error.message : String(error) }))
+      }
+    }
+
+    // Parse API configurations from file
+    if (options.apiConfigsFile) {
+      try {
+        const { readFile } = await import('../utils/fs-operations')
+        const fileContent = readFile(options.apiConfigsFile)
+        configs = JSON.parse(fileContent) as ApiConfigDefinition[]
+      }
+      catch (error) {
+        throw new Error(i18n.t('multi-config:fileReadFailed', { error: error instanceof Error ? error.message : String(error) }))
+      }
+    }
+
+    // Validate configurations
+    await validateApiConfigs(configs)
+
+    // Process configurations based on code tool type
+    if (codeToolType === 'claude-code') {
+      await handleClaudeCodeConfigs(configs)
+    }
+    else if (codeToolType === 'codex') {
+      await handleCodexConfigs(configs)
+    }
+
+    console.log(ansis.green(`✔ ${i18n.t('multi-config:configsAddedSuccessfully')}`))
   }
-  if (opts.yes) {
-    return defaultClaudeModel(provider);
+  catch (error) {
+    console.error(ansis.red(`${i18n.t('multi-config:configsFailed')}: ${error instanceof Error ? error.message : String(error)}`))
+    throw error
   }
-
-  const catalog = provider.claudeCode?.defaultModels ?? [];
-  if (catalog.length === 0) {
-    const v = await input({ message: 'Main model（留空跳过）' });
-    return v.trim() || undefined;
-  }
-
-  const CUSTOM = '__custom__';
-  const SKIP = '__skip__';
-  const choice = await select<string>({
-    message: 'Main model',
-    default: catalog[0],
-    pageSize: Math.min(10, catalog.length + 2),
-    choices: [
-      ...catalog.map(m => ({ name: m, value: m })),
-      { name: ansis.dim('其他… (手动输入)'), value: CUSTOM },
-      { name: ansis.gray('留空（不写 model）'), value: SKIP },
-    ],
-  });
-
-  if (choice === SKIP) return undefined;
-  if (choice === CUSTOM) {
-    const v = await input({ message: '输入模型 ID' });
-    return v.trim() || undefined;
-  }
-  return choice;
-}
-
-
-
-/**
- * 写 settings.env：
- * - 总是写 ANTHROPIC_BASE_URL + 凭证
- * - main slot → ANTHROPIC_MODEL
- * - haiku slot → ANTHROPIC_DEFAULT_HAIKU_MODEL
- * - sonnet slot → ANTHROPIC_DEFAULT_SONNET_MODEL
- * - opus slot → ANTHROPIC_DEFAULT_OPUS_MODEL
- *
- * 没指定的槽位会被 delete，避免上一次配置的旧值残留。
- */
-export function applyApiToSettings(
-  settings: { env?: Record<string, string>; model?: string; [k: string]: unknown },
-  baseUrl: string,
-  apiKey: string,
-  authType: AuthType,
-  slots: ModelSlots = {},
-): void {
-  settings.env = settings.env ?? {};
-  settings.env.ANTHROPIC_BASE_URL = baseUrl;
-  if (authType === 'auth_token') {
-    settings.env.ANTHROPIC_AUTH_TOKEN = apiKey;
-    delete settings.env.ANTHROPIC_API_KEY;
-  }
-  else {
-    settings.env.ANTHROPIC_API_KEY = apiKey;
-    delete settings.env.ANTHROPIC_AUTH_TOKEN;
-  }
-
-  // 槽位写入：zcf 合理流程已在调用方用 pickModel + main 回退算好 slots，这里直接写
-  applyOrDelete(settings.env, 'ANTHROPIC_MODEL', slots.main);
-  applyOrDelete(settings.env, 'ANTHROPIC_DEFAULT_HAIKU_MODEL', slots.haiku);
-  applyOrDelete(settings.env, 'ANTHROPIC_DEFAULT_SONNET_MODEL', slots.sonnet);
-  applyOrDelete(settings.env, 'ANTHROPIC_DEFAULT_OPUS_MODEL', slots.opus);
-
-  if ('model' in settings) delete settings.model;
-}
-
-function applyOrDelete(env: Record<string, string>, key: string, value: string | undefined): void {
-  if (value) env[key] = value;
-  else delete env[key];
 }
 
 /**
- * v15.27.7: 写完 settings 后，立刻警告 shell rc 残留 env shadow。
- *
- * 之前的流程是：用户 init → 高高兴兴重启 Claude Code → 发现没生效 →
- * 跑 doctor 才知道是 shell shadow。现在 init 现场就提示一次。
- *
- * 只比 baseUrl 和 main model（最常被 shadow 的两条）；deprecated env
- * 已经在 doctor runtime 段处理。
+ * Validate API configurations
+ * @param configs - Array of API configurations to validate
  */
-export function warnShellShadow(baseUrl: string, slots: ModelSlots): void {
-  const shellBase = process.env.ANTHROPIC_BASE_URL;
-  const shellModel = process.env.ANTHROPIC_MODEL;
-  const conflicts: string[] = [];
-  if (shellBase && shellBase !== baseUrl) {
-    conflicts.push(`ANTHROPIC_BASE_URL（shell="${shellBase}"，文件="${baseUrl}"）`);
+export async function validateApiConfigs(configs: ApiConfigDefinition[]): Promise<void> {
+  if (!Array.isArray(configs)) {
+    throw new TypeError(i18n.t('multi-config:mustBeArray'))
   }
-  if (shellModel && slots.main && shellModel !== slots.main) {
-    conflicts.push(`ANTHROPIC_MODEL（shell="${shellModel}"，文件="${slots.main}"）`);
+
+  const { getValidProviderIds } = await import('../config/api-providers')
+  const validProviders = [...getValidProviderIds(), 'custom']
+  const names = new Set<string>()
+
+  for (const config of configs) {
+    // Auto-infer type from provider
+    if (config.provider && !config.type) {
+      config.type = 'api_key'
+    }
+
+    // Auto-generate name from provider
+    if (config.provider && !config.name) {
+      config.name = config.provider.toUpperCase()
+    }
+
+    // Validate provider or type must be present
+    if (!config.provider && !config.type) {
+      throw new Error(i18n.t('multi-config:providerOrTypeRequired'))
+    }
+
+    // Validate provider if specified
+    if (config.provider && !validProviders.includes(config.provider)) {
+      throw new Error(i18n.t('errors:invalidProvider', {
+        provider: config.provider,
+        validProviders: validProviders.join(', '),
+      }))
+    }
+
+    // Validate name is present (after auto-generation)
+    if (!config.name || typeof config.name !== 'string' || config.name.trim() === '') {
+      throw new Error(i18n.t('multi-config:mustHaveValidName'))
+    }
+
+    // Validate type is valid
+    if (!['api_key', 'auth_token', 'ccr_proxy'].includes(config.type!)) {
+      throw new Error(i18n.t('multi-config:invalidAuthType', { type: config.type }))
+    }
+
+    // Validate name uniqueness
+    if (names.has(config.name)) {
+      throw new Error(i18n.t('multi-config:duplicateName', { name: config.name }))
+    }
+    names.add(config.name)
+
+    // Validate API key for non-CCR types
+    if (config.type !== 'ccr_proxy' && !config.key) {
+      throw new Error(i18n.t('multi-config:configApiKeyRequired', { name: config.name }))
+    }
   }
-  if (conflicts.length === 0) return;
-  console.log();
-  console.log(ansis.yellow('⚠ 警告：shell 环境变量会 shadow 这次配置'));
-  for (const c of conflicts) console.log(ansis.yellow(`  · ${c}`));
-  console.log(ansis.dim('  Claude Code 启动时优先读 shell 环境变量，文件配置会被覆盖。'));
-  console.log(ansis.dim('  打开 ~/.zshrc / ~/.bashrc 删掉对应 export，重开终端即可。'));
+}
+
+/**
+ * Handle Claude Code API configurations
+ * @param configs - Array of API configurations
+ */
+async function handleClaudeCodeConfigs(configs: ApiConfigDefinition[]): Promise<void> {
+  const { ClaudeCodeConfigManager } = await import('../utils/claude-code-config-manager')
+  const addedProfiles: ClaudeCodeProfile[] = []
+
+  for (const config of configs) {
+    if (config.type === 'ccr_proxy') {
+      throw new Error(i18n.t('multi-config:ccrProxyReserved', { name: config.name }))
+    }
+
+    const profile = await convertToClaudeCodeProfile(config)
+    const result = await ClaudeCodeConfigManager.addProfile(profile)
+
+    if (!result.success) {
+      throw new Error(i18n.t('multi-config:configProfileAddFailed', { name: config.name, error: result.error }))
+    }
+
+    const storedProfile = result.addedProfile
+      || ClaudeCodeConfigManager.getProfileByName(config.name!)
+      || profile
+    addedProfiles.push(storedProfile)
+
+    console.log(ansis.green(`✔ ${i18n.t('multi-config:profileAdded', { name: config.name })}`))
+  }
+
+  if (addedProfiles.length > 0) {
+    const summary = addedProfiles
+      .map(profile => `${profile.name} [${profile.authType}]`)
+      .join(', ')
+    console.log(ansis.gray(`  • ${ClaudeCodeConfigManager.CONFIG_FILE}: ${summary}`))
+  }
+
+  // Set default profile if specified
+  const defaultConfig = configs.find(c => c.default)
+  if (defaultConfig) {
+    const profile = addedProfiles.find(p => p.name === defaultConfig.name)
+      || ClaudeCodeConfigManager.getProfileByName(defaultConfig.name!)
+    if (profile && profile.id) {
+      await ClaudeCodeConfigManager.switchProfile(profile.id)
+      await ClaudeCodeConfigManager.applyProfileSettings(profile)
+      console.log(ansis.green(`✔ ${i18n.t('multi-config:defaultProfileSet', { name: defaultConfig.name })}`))
+    }
+  }
+
+  // Sync CCR configuration if needed
+  await ClaudeCodeConfigManager.syncCcrProfile()
+}
+
+/**
+ * Handle Codex API configurations
+ * @param configs - Array of API configurations
+ */
+async function handleCodexConfigs(configs: ApiConfigDefinition[]): Promise<void> {
+  // Import Codex provider management functions
+  const { addProviderToExisting } = await import('../utils/code-tools/codex-provider-manager')
+
+  const addedProviderIds: string[] = []
+  for (const config of configs) {
+    try {
+      const provider = await convertToCodexProvider(config)
+      const result = await addProviderToExisting(provider, config.key || '')
+
+      if (!result.success) {
+        throw new Error(i18n.t('multi-config:providerAddFailed', { name: config.name, error: result.error }))
+      }
+
+      addedProviderIds.push(provider.id)
+      console.log(ansis.green(`✔ ${i18n.t('multi-config:providerAdded', { name: config.name })}`))
+    }
+    catch (error) {
+      console.error(ansis.red(i18n.t('multi-config:providerAddFailed', {
+        name: config.name,
+        error: error instanceof Error ? error.message : String(error),
+      })))
+      throw error
+    }
+  }
+
+  // Set default provider if specified
+  const defaultConfig = configs.find(c => c.default)
+  if (defaultConfig) {
+    // Import and call Codex provider switching function
+    const { switchCodexProvider } = await import('../utils/code-tools/codex')
+    const displayName = defaultConfig.name || defaultConfig.provider || 'custom'
+    const providerId = displayName.toLowerCase().replace(/[^a-z0-9]/g, '-')
+    if (addedProviderIds.includes(providerId)) {
+      await switchCodexProvider(providerId)
+      console.log(ansis.green(`✔ ${i18n.t('multi-config:defaultProviderSet', { name: displayName })}`))
+    }
+    else {
+      console.log(ansis.red(i18n.t('multi-config:providerAddFailed', { name: displayName, error: 'provider not added' })))
+    }
+  }
+}
+
+/**
+ * Convert API config definition to Claude Code profile
+ * @param config - API configuration definition
+ */
+/**
+ * Convert single API configuration to Claude Code profile
+ * Used in skip-prompt mode for provider-based or traditional API configurations
+ * @param apiConfig - Basic API configuration object
+ * @param provider - Optional provider name
+ * @param options - Command line options for models
+ */
+/**
+ * Save single API configuration to CCJK TOML config
+ * Handles profile creation, switching, and error reporting
+ * @param apiConfig - API configuration object
+ * @param apiConfig.authType - API authentication type
+ * @param apiConfig.key - API key
+ * @param apiConfig.url - API URL
+ * @param provider - Optional provider name
+ * @param options - Command line options for models
+ * @param options.apiModel - Primary API model
+ * @param options.apiHaikuModel - Default Haiku model
+ * @param options.apiSonnetModel - Default Sonnet model
+ * @param options.apiOpusModel - Default Opus model
+ */
+async function saveSingleConfigToToml(
+  apiConfig: { authType: 'api_key' | 'auth_token', key: string, url?: string },
+  provider?: string,
+  options?: { apiModel?: string, apiHaikuModel?: string, apiSonnetModel?: string, apiOpusModel?: string },
+): Promise<void> {
+  try {
+    const { ClaudeCodeConfigManager } = await import('../utils/claude-code-config-manager')
+    const profile = await convertSingleConfigToProfile(apiConfig, provider, options)
+    const result = await ClaudeCodeConfigManager.addProfile(profile)
+
+    if (result.success) {
+      const savedProfile = result.addedProfile || ClaudeCodeConfigManager.getProfileByName(profile.name) || profile
+      // Set as default and apply settings
+      if (savedProfile.id) {
+        await ClaudeCodeConfigManager.switchProfile(savedProfile.id)
+        await ClaudeCodeConfigManager.applyProfileSettings(savedProfile)
+      }
+      console.log(ansis.green(`✔ ${i18n.t('configuration:singleConfigSaved', { name: profile.name })}`))
+    }
+    else {
+      console.warn(ansis.yellow(`${i18n.t('configuration:singleConfigSaveFailed')}: ${result.error}`))
+    }
+  }
+  catch (error) {
+    console.warn(ansis.yellow(`${i18n.t('configuration:singleConfigSaveFailed')}: ${error instanceof Error ? error.message : String(error)}`))
+  }
+}
+
+async function convertSingleConfigToProfile(
+  apiConfig: { authType: 'api_key' | 'auth_token', key: string, url?: string },
+  provider?: string,
+  options?: { apiModel?: string, apiHaikuModel?: string, apiSonnetModel?: string, apiOpusModel?: string },
+): Promise<ClaudeCodeProfile> {
+  const { ClaudeCodeConfigManager } = await import('../utils/claude-code-config-manager')
+
+  // Generate configuration name based on provider or use default
+  const configName = provider && provider !== 'custom'
+    ? provider
+    : 'custom-config'
+
+  // Apply provider preset if specified
+  let baseUrl = apiConfig.url || API_DEFAULT_URL
+  let primaryModel = options?.apiModel
+  let defaultHaikuModel = options?.apiHaikuModel
+  let defaultSonnetModel = options?.apiSonnetModel
+  let defaultOpusModel = options?.apiOpusModel
+  let authType = apiConfig.authType
+
+  if (provider && provider !== 'custom') {
+    const { getProviderPreset } = await import('../config/api-providers')
+    const preset = getProviderPreset(provider)
+
+    if (preset?.claudeCode) {
+      baseUrl = apiConfig.url || preset.claudeCode.baseUrl
+      authType = preset.claudeCode.authType
+      if (preset.claudeCode.defaultModels && preset.claudeCode.defaultModels.length > 0) {
+        const [p, h, s, o] = preset.claudeCode.defaultModels
+        primaryModel = primaryModel || p
+        defaultHaikuModel = defaultHaikuModel || h
+        defaultSonnetModel = defaultSonnetModel || s
+        defaultOpusModel = defaultOpusModel || o
+      }
+    }
+  }
+
+  const profile: ClaudeCodeProfile = {
+    name: configName,
+    authType,
+    apiKey: apiConfig.key,
+    baseUrl,
+    primaryModel,
+    defaultHaikuModel,
+    defaultSonnetModel,
+    defaultOpusModel,
+    id: ClaudeCodeConfigManager.generateProfileId(configName),
+  }
+
+  return profile
+}
+
+async function convertToClaudeCodeProfile(config: ApiConfigDefinition): Promise<ClaudeCodeProfile> {
+  const { ClaudeCodeConfigManager } = await import('../utils/claude-code-config-manager')
+
+  // Apply provider preset if specified
+  let baseUrl = config.url
+  let primaryModel = config.primaryModel
+  let defaultHaikuModel = config.defaultHaikuModel
+  let defaultSonnetModel = config.defaultSonnetModel
+  let defaultOpusModel = config.defaultOpusModel
+  let authType = config.type || 'api_key'
+
+  if (config.provider && config.provider !== 'custom') {
+    const { getProviderPreset } = await import('../config/api-providers')
+    const preset = getProviderPreset(config.provider)
+
+    if (preset?.claudeCode) {
+      baseUrl = baseUrl || preset.claudeCode.baseUrl
+      authType = preset.claudeCode.authType
+      if (preset.claudeCode.defaultModels && preset.claudeCode.defaultModels.length > 0) {
+        const [p, h, s, o] = preset.claudeCode.defaultModels
+        primaryModel = primaryModel || p
+        defaultHaikuModel = defaultHaikuModel || h
+        defaultSonnetModel = defaultSonnetModel || s
+        defaultOpusModel = defaultOpusModel || o
+      }
+    }
+  }
+
+  const profile: ClaudeCodeProfile = {
+    name: config.name!,
+    authType,
+    apiKey: config.key,
+    baseUrl,
+    primaryModel,
+    defaultHaikuModel,
+    defaultSonnetModel,
+    defaultOpusModel,
+    id: ClaudeCodeConfigManager.generateProfileId(config.name!),
+  }
+
+  return profile
+}
+
+/**
+ * Convert API config definition to Codex provider
+ * @param config - API configuration definition
+ */
+async function convertToCodexProvider(config: ApiConfigDefinition): Promise<CodexProvider> {
+  // Apply provider preset if specified
+  const displayName = config.name || config.provider || 'custom'
+  const providerId = displayName.toLowerCase().replace(/[^a-z0-9]/g, '-')
+
+  let baseUrl = config.url || API_DEFAULT_URL
+  let model = config.primaryModel || 'gpt-5.2'
+  let wireApi = 'responses' as const
+
+  if (config.provider && config.provider !== 'custom') {
+    const { getProviderPreset } = await import('../config/api-providers')
+    const preset = getProviderPreset(config.provider)
+
+    if (preset?.codex) {
+      baseUrl = config.url || preset.codex.baseUrl
+      model = config.primaryModel || preset.codex.defaultModel || model
+      wireApi = preset.codex.wireApi
+    }
+  }
+
+  return {
+    id: providerId,
+    name: displayName,
+    baseUrl,
+    wireApi,
+    tempEnvKey: `${displayName}_API_KEY`.replace(/\W/g, '_').toUpperCase(),
+    requiresOpenaiAuth: false,
+    model,
+  }
 }

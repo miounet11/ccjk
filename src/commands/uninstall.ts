@@ -1,195 +1,365 @@
-import { existsSync } from 'node:fs';
-import { readdir, rm, unlink } from 'node:fs/promises';
-import { join } from 'node:path';
-import { homedir } from 'node:os';
-import { checkbox, confirm } from '@inquirer/prompts';
-import ansis from 'ansis';
-import { padToWidth } from '../core/term.js';
-import { TOOLS } from '../core/tools.js';
-import type { CodeTool } from '../core/tools.js';
-import { expandHome } from '../core/paths.js';
-import { readSettings, writeSettings } from '../core/settings.js';
-
-/**
- * `ccjk uninstall` — 清理 ccjk 自己写过的东西。
- *
- * 设计原则（很重要）：
- * - 不删除 settings.json / config.toml 主体 —— 那是用户的配置文件，可能还有用
- * - 只删可识别为"ccjk 自己创建的"东西：
- *   1. ~/.ccjk/ 目录（profile / mode / state）
- *   2. settings.json.bak-* 和 config.toml.bak-* 备份文件
- *   3. settings.statusLine 字段如果命令是 `ccjk statusline`（用户没改过的话）
- * - 不删用户的 permissions / env / mcpServers —— 这些是被 ccjk 修改过但归用户所有
- *
- * 用户可以选粒度。
- */
-
-interface UninstallTarget {
-  id: string;
-  label: string;
-  description: string;
-  /** 探测：这个 target 当前有没有东西可删 */
-  has: () => Promise<boolean>;
-  /** 执行删除，返回简短说明 */
-  remove: () => Promise<string>;
-}
+import type { CodeToolType, SupportedLang } from '../constants'
+import type { UninstallItem } from '../utils/uninstaller'
+import ansis from 'ansis'
+import inquirer from 'inquirer'
+import { DEFAULT_CODE_TOOL_TYPE, isCodeToolType } from '../constants'
+import { ensureI18nInitialized, i18n } from '../i18n'
+import { resolveCodeType } from '../utils/code-type-resolver'
+import { handleExitPromptError, handleGeneralError } from '../utils/error-handler'
+import { addNumbersToChoices } from '../utils/prompt-helpers'
+import { promptBoolean } from '../utils/toggle-prompt'
+import { ZcfUninstaller } from '../utils/uninstaller'
+import { readCcjkConfig } from '../utils/ccjk-config'
 
 export interface UninstallOptions {
-  yes?: boolean;
-  /** 只删指定的 target id（逗号分隔） */
-  only?: string;
+  lang?: SupportedLang
+  codeType?: CodeToolType | string
+  mode?: 'complete' | 'custom' | 'interactive'
+  items?: UninstallItem[] | string // Can be array or comma-separated string from CLI
 }
 
-const CCJK_DIR = join(homedir(), '.ccjk');
+/**
+ * Main uninstall command - Remove CCJK configurations and tools
+ * Supports both interactive and non-interactive modes
+ */
+export async function uninstall(options: UninstallOptions = {}): Promise<void> {
+  try {
+    // Initialize i18n system
+    ensureI18nInitialized()
 
-export async function uninstallCommand(opts: UninstallOptions = {}): Promise<void> {
-  console.log(ansis.bold('\nccjk 卸载向导\n'));
-  console.log(ansis.dim('  只删除 ccjk 自己创建的东西，不动你的 settings.json 主体。'));
-  console.log(ansis.dim('  如果想完全卸载 ccjk CLI，再跑：npm uninstall -g ccjk\n'));
-
-  const targets: UninstallTarget[] = [
-    {
-      id: 'ccjk-dir',
-      label: '~/.ccjk/ 目录',
-      description: 'profile / mode / state.json — 删了之后所有 profile 和模式都没了',
-      has: async () => existsSync(CCJK_DIR),
-      remove: async () => {
-        await rm(CCJK_DIR, { recursive: true, force: true });
-        return '已删除 ~/.ccjk/';
-      },
-    },
-    {
-      id: 'backups',
-      label: 'settings 备份文件',
-      description: 'settings.json.bak-* 和 config.toml.bak-* — 删了 rollback 就找不回来了',
-      has: async () => (await collectBackups()).length > 0,
-      remove: async () => {
-        const files = await collectBackups();
-        for (const f of files) await unlink(f);
-        return `已删除 ${files.length} 个备份文件`;
-      },
-    },
-    {
-      id: 'statusline',
-      label: 'statusLine 配置（settings.json）',
-      description: '从 Clavue/Claude Code 的 settings.json 移除 ccjk 装的 statusLine',
-      has: async () => {
-        for (const t of ['clavue', 'claude-code'] as CodeTool[]) {
-          const meta = TOOLS[t];
-          if (!existsSync(expandHome(meta.settingsFile))) continue;
-          const s = await readSettings(meta.settingsFile);
-          const sl = (s as Record<string, unknown>).statusLine as { command?: string } | undefined;
-          if (sl?.command === 'ccjk statusline') return true;
-        }
-        return false;
-      },
-      remove: async () => {
-        let count = 0;
-        for (const t of ['clavue', 'claude-code'] as CodeTool[]) {
-          const meta = TOOLS[t];
-          if (!existsSync(expandHome(meta.settingsFile))) continue;
-          const s = await readSettings(meta.settingsFile);
-          const sl = (s as Record<string, unknown>).statusLine as { command?: string } | undefined;
-          if (sl?.command === 'ccjk statusline') {
-            delete (s as Record<string, unknown>).statusLine;
-            await writeSettings(meta.settingsFile, s);
-            count++;
-          }
-        }
-        return `从 ${count} 个 settings.json 中移除了 statusLine`;
-      },
-    },
-  ];
-
-  // 先看哪些有东西
-  const present: { target: UninstallTarget; checked: boolean }[] = [];
-  for (const t of targets) {
-    if (await t.has()) {
-      present.push({ target: t, checked: true });
-    }
-  }
-
-  if (present.length === 0) {
-    console.log(ansis.green('✓ 没有可清理的内容（ccjk 已经是干净状态）\n'));
-    return;
-  }
-
-  // 选要删的
-  let chosenIds: string[];
-  if (opts.only) {
-    chosenIds = opts.only.split(',').map(s => s.trim()).filter(Boolean);
-    for (const id of chosenIds) {
-      if (!targets.find(t => t.id === id)) {
-        throw new Error(`未知 target "${id}"。可选: ${targets.map(t => t.id).join(', ')}`);
+    // Determine code tool type (from option or config)
+    let codeType: CodeToolType
+    if (options.codeType) {
+      try {
+        codeType = await resolveCodeType(options.codeType)
+      }
+      catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error)
+        console.error(ansis.red(`${i18n.t('errors:generalError')} ${errorMessage}`))
+        // Fallback to config
+        const config = readCcjkConfig()
+        codeType = config?.codeToolType && isCodeToolType(config.codeToolType)
+          ? config.codeToolType
+          : DEFAULT_CODE_TOOL_TYPE
       }
     }
+    else {
+      // Read from config
+      const config = readCcjkConfig()
+      codeType = config?.codeToolType && isCodeToolType(config.codeToolType)
+        ? config.codeToolType
+        : DEFAULT_CODE_TOOL_TYPE
+    }
+
+    // Initialize uninstaller
+    const uninstaller = new ZcfUninstaller(options.lang || 'en')
+
+    // For Codex, use Codex-specific uninstaller
+    if (codeType === 'codex') {
+      const { runCodexUninstall } = await import('../utils/code-tools/codex')
+      await runCodexUninstall()
+      return
+    }
+
+    // For Claude Code, continue with existing logic
+    // Handle non-interactive mode
+    if (options.mode && options.mode !== 'interactive') {
+      if (options.mode === 'complete') {
+        await executeCompleteUninstall(uninstaller)
+        return
+      }
+      else if (options.mode === 'custom' && options.items) {
+        // Handle CLI items (can be string or array)
+        let items: UninstallItem[]
+        if (typeof options.items === 'string') {
+          items = options.items.split(',').map(item => item.trim() as UninstallItem)
+        }
+        else {
+          items = options.items
+        }
+        await executeCustomUninstall(uninstaller, items)
+        return
+      }
+    }
+
+    // Interactive mode - show main choice menu
+    await showInteractiveUninstall(uninstaller)
   }
-  else if (opts.yes) {
-    // -y 默认全选
-    chosenIds = present.map(p => p.target.id);
+  catch (error) {
+    if (!handleExitPromptError(error)) {
+      handleGeneralError(error)
+    }
+  }
+}
+
+/**
+ * Show interactive uninstall menu
+ */
+async function showInteractiveUninstall(uninstaller: ZcfUninstaller): Promise<void> {
+  console.log(ansis.cyan.bold(i18n.t('uninstall:title')))
+  console.log('')
+
+  // Main choice: complete vs custom
+  const { mainChoice } = await inquirer.prompt<{ mainChoice: 'complete' | 'custom' }>({
+    type: 'list',
+    name: 'mainChoice',
+    message: i18n.t('uninstall:selectMainOption'),
+    choices: addNumbersToChoices([
+      {
+        name: `${i18n.t('uninstall:completeUninstall')} - ${ansis.gray(i18n.t('uninstall:completeUninstallDesc'))}`,
+        value: 'complete',
+        short: i18n.t('uninstall:completeUninstall'),
+      },
+      {
+        name: `${i18n.t('uninstall:customUninstall')} - ${ansis.gray(i18n.t('uninstall:customUninstallDesc'))}`,
+        value: 'custom',
+        short: i18n.t('uninstall:customUninstall'),
+      },
+    ]),
+  })
+
+  if (!mainChoice) {
+    console.log(ansis.yellow(i18n.t('common:cancelled')))
+    return
+  }
+
+  if (mainChoice === 'complete') {
+    await executeCompleteUninstall(uninstaller)
   }
   else {
-    const ids = await checkbox<string>({
-      message: '选择要清理的内容（空格切换，回车确认）',
-      choices: present.map(p => ({
-        name: `${padToWidth(p.target.label, 28)} ${ansis.dim(p.target.description)}`,
-        value: p.target.id,
-        checked: p.checked,
-      })),
-    });
-    chosenIds = ids;
+    await showCustomUninstallMenu(uninstaller)
   }
-
-  if (chosenIds.length === 0) {
-    console.log(ansis.gray('未选择任何项。\n'));
-    return;
-  }
-
-  if (!opts.yes) {
-    const ok = await confirm({
-      message: `确认删除 ${chosenIds.length} 项？（不可还原）`,
-      default: false,
-    });
-    if (!ok) {
-      console.log(ansis.gray('已取消。\n'));
-      return;
-    }
-  }
-
-  // 执行
-  console.log();
-  for (const id of chosenIds) {
-    const t = targets.find(x => x.id === id)!;
-    try {
-      const msg = await t.remove();
-      console.log(ansis.green(`  ✔ ${t.label}: ${msg}`));
-    }
-    catch (e) {
-      console.log(ansis.red(`  ✗ ${t.label}: ${(e as Error).message}`));
-    }
-  }
-  console.log();
-  console.log(ansis.dim('  如果想完全卸载 ccjk 二进制：npm uninstall -g ccjk\n'));
 }
 
-async function collectBackups(): Promise<string[]> {
-  const dirs = new Set<string>();
-  for (const t of Object.keys(TOOLS) as CodeTool[]) {
-    const meta = TOOLS[t];
-    const dir = expandHome(meta.settingsFile).replace(/\/[^/]+$/, '');
-    if (existsSync(dir)) dirs.add(dir);
-  }
-  const out: string[] = [];
-  for (const dir of dirs) {
-    try {
-      const files = await readdir(dir);
-      for (const f of files) {
-        if (/\.bak-\d{4}-\d{2}-\d{2}T/.test(f)) {
-          out.push(join(dir, f));
-        }
+/**
+ * Show custom uninstall menu with multi-select options
+ */
+async function showCustomUninstallMenu(uninstaller: ZcfUninstaller): Promise<void> {
+  console.log('')
+  console.log(ansis.cyan(i18n.t('uninstall:selectCustomItems')))
+
+  const { customItems } = await inquirer.prompt<{ customItems: UninstallItem[] }>({
+    type: 'checkbox',
+    name: 'customItems',
+    message: `${i18n.t('uninstall:selectItemsToRemove')} ${i18n.t('common:multiSelectHint')}`,
+    choices: [
+      {
+        name: i18n.t('uninstall:outputStyles'),
+        value: 'output-styles' as const,
+      },
+      {
+        name: i18n.t('uninstall:commands'),
+        value: 'commands' as const,
+      },
+      {
+        name: i18n.t('uninstall:agents'),
+        value: 'agents' as const,
+      },
+      {
+        name: i18n.t('uninstall:claudeMd'),
+        value: 'claude-md' as const,
+      },
+      {
+        name: i18n.t('uninstall:permissionsEnvs'),
+        value: 'permissions-envs' as const,
+      },
+      {
+        name: i18n.t('uninstall:mcps'),
+        value: 'mcps' as const,
+      },
+      {
+        name: i18n.t('uninstall:ccr'),
+        value: 'ccr' as const,
+      },
+      {
+        name: i18n.t('uninstall:ccline'),
+        value: 'ccline' as const,
+      },
+      {
+        name: i18n.t('uninstall:claudeCode'),
+        value: 'claude-code' as const,
+      },
+      {
+        name: i18n.t('uninstall:backups'),
+        value: 'backups' as const,
+      },
+      {
+        name: i18n.t('uninstall:ccjkConfig'),
+        value: 'ccjk-config' as const,
+      },
+    ],
+    validate: (answers: readonly unknown[]) => {
+      if (answers.length === 0) {
+        return i18n.t('uninstall:selectAtLeastOne')
       }
-    }
-    catch { /* skip */ }
+      return true
+    },
+  })
+
+  if (!customItems || customItems.length === 0) {
+    console.log(ansis.yellow(i18n.t('common:cancelled')))
+    return
   }
-  return out;
+
+  await executeCustomUninstall(uninstaller, customItems)
+}
+
+/**
+ * Execute complete uninstall
+ */
+async function executeCompleteUninstall(uninstaller: ZcfUninstaller): Promise<void> {
+  console.log('')
+  console.log(ansis.red.bold(i18n.t('uninstall:executingComplete')))
+  console.log(ansis.yellow(i18n.t('uninstall:completeWarning')))
+
+  // Final confirmation
+  const confirm = await promptBoolean({
+    message: i18n.t('uninstall:confirmComplete'),
+    defaultValue: false,
+  })
+
+  if (!confirm) {
+    console.log(ansis.yellow(i18n.t('common:cancelled')))
+    return
+  }
+
+  console.log('')
+  console.log(ansis.cyan(i18n.t('uninstall:processingComplete')))
+
+  const result = await uninstaller.completeUninstall()
+  displayUninstallResult('complete', [result])
+}
+
+/**
+ * Execute custom uninstall
+ */
+async function executeCustomUninstall(uninstaller: ZcfUninstaller, items: UninstallItem[]): Promise<void> {
+  console.log('')
+  console.log(ansis.cyan(i18n.t('uninstall:executingCustom')))
+
+  // Show selected items
+  console.log(ansis.gray(i18n.t('uninstall:selectedItems')))
+  items.forEach((item) => {
+    console.log(`  • ${i18n.t(`uninstall:${item}`)}`)
+  })
+
+  // Final confirmation
+  const confirm = await promptBoolean({
+    message: i18n.t('uninstall:confirmCustom'),
+    defaultValue: false,
+  })
+
+  if (!confirm) {
+    console.log(ansis.yellow(i18n.t('common:cancelled')))
+    return
+  }
+
+  console.log('')
+  console.log(ansis.cyan(i18n.t('uninstall:processingCustom')))
+
+  const results = await uninstaller.customUninstall(items)
+  displayUninstallResult('custom', results)
+}
+
+/**
+ * Display uninstall results with proper formatting
+ */
+function displayUninstallResult(mode: 'complete' | 'custom', results: any[]): void {
+  console.log('')
+  console.log(ansis.cyan('─'.repeat(50)))
+
+  let totalSuccess = 0
+  let totalErrors = 0
+  let totalWarnings = 0
+
+  results.forEach((result) => {
+    if (result.success) {
+      totalSuccess++
+    }
+
+    // Display moved to trash items
+    if (result.removed && result.removed.length > 0) {
+      console.log(ansis.green(`🗑️ ${i18n.t('uninstall:movedToTrash')}:`))
+      result.removed.forEach((item: string) => {
+        console.log(ansis.gray(`  • ${item}`))
+      })
+    }
+
+    // Display removed config items
+    if (result.removedConfigs && result.removedConfigs.length > 0) {
+      console.log(ansis.green(`✔ ${i18n.t('uninstall:removedConfigs')}:`))
+      result.removedConfigs.forEach((item: string) => {
+        console.log(ansis.gray(`  • ${item}`))
+      })
+    }
+
+    // Display errors
+    if (result.errors && result.errors.length > 0) {
+      totalErrors += result.errors.length
+      console.log(ansis.red(`✖ ${i18n.t('uninstall:errors')}:`))
+      result.errors.forEach((error: string) => {
+        console.log(ansis.red(`  • ${error}`))
+      })
+    }
+
+    // Display warnings
+    if (result.warnings && result.warnings.length > 0) {
+      totalWarnings += result.warnings.length
+      console.log(ansis.yellow(`⚠ ${i18n.t('uninstall:warnings')}:`))
+      result.warnings.forEach((warning: string) => {
+        console.log(ansis.yellow(`  • ${warning}`))
+      })
+    }
+  })
+
+  // Calculate counts for summary
+  const totalRemovedFiles = results.reduce((count, result) =>
+    count + (result.removed?.length || 0), 0)
+  const totalRemovedConfigs = results.reduce((count, result) =>
+    count + (result.removedConfigs?.length || 0), 0)
+
+  // Summary
+  console.log('')
+  console.log(ansis.cyan('─'.repeat(50)))
+
+  if (mode === 'complete') {
+    if (totalErrors === 0) {
+      console.log(ansis.green.bold(`✔ ${i18n.t('uninstall:completeSuccess')}`))
+    }
+    else {
+      console.log(ansis.yellow.bold(`⚠ ${i18n.t('uninstall:completePartialSuccess')}`))
+    }
+  }
+  else {
+    // Custom success message based on what was actually removed
+    if (totalRemovedFiles > 0 && totalRemovedConfigs > 0) {
+      console.log(ansis.green.bold(`✔ ${i18n.t('uninstall:customSuccessBoth', {
+        fileCount: totalRemovedFiles,
+        configCount: totalRemovedConfigs,
+      })}`))
+    }
+    else if (totalRemovedFiles > 0) {
+      console.log(ansis.green.bold(`✔ ${i18n.t('uninstall:customSuccessFiles', {
+        count: totalRemovedFiles,
+      })}`))
+    }
+    else if (totalRemovedConfigs > 0) {
+      console.log(ansis.green.bold(`✔ ${i18n.t('uninstall:customSuccessConfigs', {
+        count: totalRemovedConfigs,
+      })}`))
+    }
+    else {
+      console.log(ansis.green.bold(`✔ ${i18n.t('uninstall:customSuccess', { count: totalSuccess })}`))
+    }
+
+    if (totalErrors > 0) {
+      console.log(ansis.red(`✖ ${i18n.t('uninstall:errorsCount', { count: totalErrors })}`))
+    }
+
+    if (totalWarnings > 0) {
+      console.log(ansis.yellow(`⚠ ${i18n.t('uninstall:warningsCount', { count: totalWarnings })}`))
+    }
+  }
+
+  console.log('')
 }

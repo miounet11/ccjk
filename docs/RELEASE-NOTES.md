@@ -1,4 +1,34 @@
-# ccjk Release Notes（v15.20 – v15.31）
+# ccjk Release Notes（v15.20 – v16.0.0-alpha.3）
+
+## v16.0.0-alpha.3 — Reasonix 伴侣集成
+
+在保持 ccjk「配置工具、非 Agent 运行时」边界的前提下，新增 Reasonix（DeepSeek 原生终端 coding agent）支持：
+
+- `ccjk reasonix` — 探测安装 / 配置 / API key，打印启动指引
+- `ccjk reasonix <profile>` — 从 ccjk profile 注入密钥并启动；无 `reasonix.toml` 时自动生成
+- 主菜单 `X.` 快捷入口
+
+**验证**
+- `pnpm typecheck` 通过
+- `pnpm build` 通过
+- `tests/utils/reasonix-config.test.ts` 7/7 通过
+
+---
+
+## v15.31.1 — 修复 Codex 0.135+ profile 配置
+
+Codex 0.135+ 不再接受 `config.toml` 里的顶层 `profile = "..."` 和旧 `[profiles.<name>]` 段。ccjk 现在按新格式写入：
+
+- `~/.codex/config.toml`：只保留通用配置、provider、MCP、projects。
+- `~/.codex/<name>.config.toml`：写入该 profile 的 `model`、`model_provider`、`model_reasoning_effort`。
+- 启动提示固定为 `codex --profile <name>`。
+- doctor 会识别旧 `profile` / `[profiles.*]`；自动修复只删除安全的顶层 `profile`，避免误删旧 profile 内容。
+
+**验证**
+- pnpm typecheck / lint / test 通过。
+- pnpm build 通过。
+
+---
 
 ## v15.31.0 — Grok CLI 配置完全统一（无例外）
 
