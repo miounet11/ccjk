@@ -25,7 +25,7 @@ ccjk **不替代** 四个原生 CLI 写代码，只管理它们的**本地配置
 |---|---|---|---|
 | Clavue | `~/.clavue/` | settings.json | settings.json |
 | Claude Code | `~/.claude/` | settings.json | settings.json |
-| Codex | `~/.codex/` | config.toml | config.toml `[profiles.*]` |
+| Codex | `~/.codex/`（`CODEX_HOME`；CLI / 桌面 App / IDE 共用） | config.toml | config.toml + `~/.codex/<name>.config.toml` |
 | Grok CLI | `~/.grok/` | （ccjk 不写 MCP） | `~/.ccjk/config.toml` profile |
 
 ccjk 自身配置只在 `~/.ccjk/`，**绝不混入** 各工具目录。

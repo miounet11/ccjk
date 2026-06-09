@@ -19,5 +19,6 @@
   "reason.mcpPurgeAll": "MCP 服务（全部清理模式）",
   "reason.mcpOrphan": "config.toml 中残留的 MCP 配置节（含嵌套子表）",
   "reason.promptPurgeAll": "Codex workflow prompt（全部清理模式）",
+  "reason.configDoctor": "config.toml 配置体检项（只读提示，不自动修改）",
   "purgeAllWarning": "⚠️  全部清理模式：将移除所有 MCP（Codex/Claude）、Skills（Codex/Claude/Grok）、prompts 与 ~/.codex/AGENTS.md（删除前已备份 Codex 配置）"
 }

@@ -13,9 +13,10 @@ import { backupCodexComplete, getBackupMessage } from './code-tools/codex'
 import { deleteAllCodexMcpServices, deleteCodexMcpService, listCodexMcpServiceIds } from './code-tools/codex-toml-updater'
 import { exists, isDirectory, readDir, readFile } from './fs-operations'
 import { addNumbersToChoices } from './prompt-helpers'
+import { detectCodexRuntimes, scanCodexConfigDoctorFindings } from './codex-runtime'
 import { moveToTrash } from './trash'
 
-export type CleanupCategory = 'mcp' | 'skill' | 'prompt' | 'agents-file'
+export type CleanupCategory = 'mcp' | 'skill' | 'prompt' | 'agents-file' | 'config'
 
 export interface CleanupCandidate {
   id: string
@@ -356,6 +357,48 @@ const SCAN_SECTION_KEYS: Record<CleanupCategory, string> = {
   skill: 'hub:doctor.scanSection.skill',
   prompt: 'hub:doctor.scanSection.prompt',
   'agents-file': 'hub:doctor.scanSection.agents',
+  config: 'hub:doctor.scanSection.config',
+}
+
+function scanCodexConfigCandidates(): CleanupCandidate[] {
+  const findings = scanCodexConfigDoctorFindings()
+  return findings
+    .filter(finding => finding.severity === 'warn')
+    .map((finding) => {
+      const label = finding.messageParams
+        ? i18n.t(finding.messageKey, finding.messageParams)
+        : i18n.t(finding.messageKey)
+      return {
+        id: `config:codex:${finding.id}`,
+        category: 'config' as const,
+        tool: 'codex' as const,
+        label,
+        reason: i18n.t('clean:reason.configDoctor'),
+        checked: true,
+      }
+    })
+}
+
+export function printCodexRuntimeStatus(): void {
+  ensureI18nInitialized()
+  const summary = detectCodexRuntimes()
+
+  console.log(ansis.white(`  ${i18n.t('hub:doctor.scanSection.runtime')}`))
+  console.log(ansis.gray(`    ${i18n.t('codex:runtime.sharedConfig', { path: summary.configHome })}`))
+  if (summary.configHomeFromEnv)
+    console.log(ansis.gray(`    ${i18n.t('codex:runtime.codexHomeEnv')}`))
+
+  for (const runtime of summary.runtimes) {
+    const label = i18n.t(`codex:runtime.kind.${runtime.kind}`)
+    if (!runtime.detected) {
+      console.log(ansis.dim(`    ${label}: ${i18n.t('codex:runtime.notDetected')}`))
+      continue
+    }
+    const pathText = runtime.path ? ansis.gray(` (${runtime.path})`) : ''
+    const weak = runtime.weakSignal ? ansis.yellow(` — ${i18n.t('codex:runtime.weakDesktopSignal')}`) : ''
+    console.log(`    ${label}: ${ansis.green(i18n.t('codex:runtime.detected'))}${pathText}${weak}`)
+  }
+  console.log('')
 }
 
 export function printEnvironmentScanReport(): boolean {
@@ -364,12 +407,27 @@ export function printEnvironmentScanReport(): boolean {
   const smart = scanEnvironmentIssues(false).candidates
   const all = scanEnvironmentIssues(true).candidates
 
+  const configFindings = scanCodexConfigCandidates()
+
   console.log(ansis.cyan(`\n${i18n.t('hub:doctor.scanReport')}\n`))
+  printCodexRuntimeStatus()
   console.log(ansis.gray(`  ${i18n.t('hub:doctor.scanHint', { smart: smart.length, all: all.length })}\n`))
+
+  if (configFindings.length > 0) {
+    console.log(ansis.white(`  ${i18n.t('hub:doctor.scanSection.config')} (${configFindings.length})`))
+    for (const item of configFindings)
+      console.log(`    ${ansis.yellow('[codex]')} ${item.label}`)
+    console.log('')
+  }
+
+  if (smart.length === 0 && configFindings.length === 0) {
+    console.log(ansis.green(`  ${i18n.t('clean:nothingFound')}\n`))
+    return false
+  }
 
   if (smart.length === 0) {
     console.log(ansis.green(`  ${i18n.t('clean:nothingFound')}\n`))
-    return false
+    return configFindings.length > 0
   }
 
   const grouped = new Map<CleanupCategory, CleanupCandidate[]>()

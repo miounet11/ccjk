@@ -7,6 +7,7 @@ vi.mock('inquirer', () => ({
 }))
 
 vi.mock('../../../src/utils/environment-cleaner', () => ({
+  printCodexRuntimeStatus: vi.fn(),
   printEnvironmentScanReport: vi.fn(() => true),
 }))
 

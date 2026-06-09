@@ -507,6 +507,8 @@ export async function init(options: InitOptions = {}): Promise<void> {
         codeToolType,
       })
       console.log(ansis.green(i18n.t('codex:setupComplete')))
+      const { printCodexReloadHint } = await import('../utils/codex-runtime')
+      printCodexReloadHint()
       return
     }
 

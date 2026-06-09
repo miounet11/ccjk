@@ -19,5 +19,6 @@
   "reason.mcpPurgeAll": "MCP server (purge-all mode)",
   "reason.mcpOrphan": "Orphan MCP section left in config.toml (including nested sub-tables)",
   "reason.promptPurgeAll": "Codex workflow prompt (purge-all mode)",
+  "reason.configDoctor": "config.toml doctor finding (read-only hint — not auto-fixed)",
   "purgeAllWarning": "⚠️  Purge-all mode: removes all MCP (Codex/Claude), skills (Codex/Claude/Grok), prompts, and ~/.codex/AGENTS.md (Codex config backed up first)"
 }

@@ -11,6 +11,7 @@ ccjk = **四工具（Clavue / Claude Code / Codex / Grok CLI）的医生 + 快�
 - **操作员**：`ccjk init` / 菜单子项 —— 备份后写入 API、MCP、模型、工作流、权限；不碰 agent runtime。
 - **能力矩阵**：`src/config/tool-matrix.ts`（四工具配置根、MCP 格式、doctor/operator 清单）。
 - **Codex 预设**：干净（零安装）/ 优化（baseline + 默认工作流 + context7）/ 自定义。
+- **Codex 多端**：CLI / 桌面 App / IDE 扩展共用 `CODEX_HOME`（`src/utils/codex-runtime.ts`）；桌面 App 改配置后需完全退出重开。
 - **清理范围**：Codex + Claude MCP、`~/.codex` skills/prompts/AGENTS、Grok skills（含 bundled）。
 - **菜单交互**（`ccjk` 启动）：
   - 主菜单：`list` 箭头选择，按「操作员 / 医生 / 跨工具 / CCJK」分区
@@ -19,7 +20,7 @@ ccjk = **四工具（Clavue / Claude Code / Codex / Grok CLI）的医生 + 快�
 
 ## 项目概览
 - **名称**：ccjk —— Clavue / Claude Code / Codex / Grok 的本地配置 CLI
-- **当前版本**：16.1.0
+- **当前版本**：16.2.0
 - **当前分支**：`fix/codex-init-write`（领先 origin 18 commits）
 - **描述**：统一 profile 切换、权限档位、状态栏、MCP、版本管理于一条命令。
 - **仓库**：https://github.com/miounet11/ccjk

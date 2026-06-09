@@ -12,6 +12,8 @@
   "doctor.scanSection.skill": "Skills",
   "doctor.scanSection.prompt": "Prompts",
   "doctor.scanSection.agents": "AGENTS 文件",
+  "doctor.scanSection.config": "配置风险",
+  "doctor.scanSection.runtime": "Codex 运行时",
   "doctor.scanHint": "发现 {{smart}} 项建议清理，全部清理模式可见 {{all}} 项",
   "operator.title": "快捷向导",
   "operator.subtitle": "常用配置路径，每步经确认后写入（备份先行）",

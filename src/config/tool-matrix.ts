@@ -116,7 +116,7 @@ export const TOOL_MATRIX: Record<CodeToolType, ToolMatrixEntry> = {
   },
   codex: {
     id: 'codex',
-    displayName: 'Codex',
+    displayName: 'Codex (CLI / 桌面 / IDE)',
     configRoot: CODEX_DIR,
     configFile: settingsFileForTool('codex'),
     skillsDirs: [join(CODEX_DIR, 'skills')],
@@ -137,6 +137,8 @@ export const TOOL_MATRIX: Record<CodeToolType, ToolMatrixEntry> = {
       setupPresets: true,
     },
     doctorChecks: [
+      'runtime-status',
+      'config-feature-risk',
       'mcp-unmanaged',
       'mcp-broken',
       'mcp-orphan-toml',

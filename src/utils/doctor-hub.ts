@@ -5,7 +5,7 @@ import { TOOL_MATRIX } from '../config/tool-matrix'
 import { ensureI18nInitialized, i18n } from '../i18n'
 import { cleanCommand } from '../commands/clean'
 import { probeCommand } from '../commands/probe'
-import { printEnvironmentScanReport } from './environment-cleaner'
+import { printCodexRuntimeStatus, printEnvironmentScanReport } from './environment-cleaner'
 import { addNumbersToChoices } from './prompt-helpers'
 
 export async function runDoctorHub(tool: CodeToolType): Promise<void> {
@@ -18,6 +18,8 @@ export async function runDoctorHub(tool: CodeToolType): Promise<void> {
     console.log(ansis.cyan(`\n${i18n.t('hub:doctor.title')}`))
     console.log(ansis.gray(`  ${i18n.t('hub:doctor.subtitle')}`))
     console.log(ansis.dim(`  ${TOOL_MATRIX[tool].displayName}\n`))
+    if (tool === 'codex')
+      printCodexRuntimeStatus()
 
     const choices = addNumbersToChoices([
       {

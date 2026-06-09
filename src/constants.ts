@@ -1,3 +1,4 @@
+import process from 'node:process'
 import { homedir } from 'node:os'
 import { join } from 'pathe'
 import { i18n } from './i18n'
@@ -15,8 +16,15 @@ export const CLAUDE_MD_FILE = join(CLAUDE_DIR, 'CLAUDE.md')
 export const ClAUDE_CONFIG_FILE = join(homedir(), '.claude.json')
 export const CLAUDE_VSC_CONFIG_FILE = join(CLAUDE_DIR, 'config.json')
 
-// Codex configuration paths
-export const CODEX_DIR = join(homedir(), '.codex')
+// Codex configuration paths — CLI / 桌面 App / IDE 扩展共用 CODEX_HOME（默认 ~/.codex）
+export function resolveCodexHome(): string {
+  const fromEnv = process.env?.CODEX_HOME?.trim()
+  if (fromEnv)
+    return fromEnv
+  return join(homedir(), '.codex')
+}
+
+export const CODEX_DIR = resolveCodexHome()
 export const CODEX_CONFIG_FILE = join(CODEX_DIR, 'config.toml')
 export const CODEX_AUTH_FILE = join(CODEX_DIR, 'auth.json')
 export const CODEX_AGENTS_FILE = join(CODEX_DIR, 'AGENTS.md')
@@ -39,7 +47,7 @@ export const DEFAULT_CODE_TOOL_TYPE: CodeToolType = 'clavue'
 export const CODE_TOOL_BANNERS: Record<CodeToolType, string> = {
   'clavue': 'for Clavue',
   'claude-code': 'for Claude Code',
-  'codex': 'for Codex',
+  'codex': 'for Codex (CLI / App / IDE)',
   'grok': 'for Grok CLI',
 }
 

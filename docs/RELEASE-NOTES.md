@@ -1,4 +1,39 @@
-# ccjk Release Notes（v15.20 – v16.0.2）
+# ccjk Release Notes（v15.20 – v16.2.0）
+
+## v16.2.0 — Codex 桌面端 + CLI + IDE 统一配置
+
+Codex 的 CLI、桌面 App、IDE 扩展共用同一份 `config.toml`（默认 `~/.codex`，可用 `CODEX_HOME` 覆盖）。ccjk 现在能识别三端运行时，并在医生/操作员流程里给出正确提示。
+
+- **运行时检测**：医生中心与扫描报告显示 CLI / 桌面 App / IDE 扩展安装状态
+- **配置体检**：第三方 API provider 开启 `features.goals` 或 `multi_agent` 时发出 warn（防 spawn_agent 400）
+- **写入后提示**：配置变更后提醒桌面 App 完全退出重开；CLI/IDE 通常即时生效
+- **README** 更新为 v16 医生+操作员产品模型
+
+**安装**
+
+```bash
+npm i -g ccjk@16.2.0
+```
+
+**验证**
+- `pnpm typecheck && pnpm test` 通过（2541 tests）
+- `pnpm build` 通过
+
+---
+
+## v16.1.0 — 医生 + 操作员模型、环境清理与分区菜单
+
+- `ccjk clean` / `--purge-all`：扫描并清理脏 MCP、坏 Skills、冗余 prompts
+- Codex 初始化预设：干净 / 优化 / 自定义
+- 菜单 **W** 快捷向导、**H** 医生中心；list 分区（操作员 / 医生 / 跨工具 / CCJK）
+
+**安装**
+
+```bash
+npm i -g ccjk@16.1.0
+```
+
+---
 
 ## v16.0.2 — 四工具独立配置与 Clavue 专用菜单
 

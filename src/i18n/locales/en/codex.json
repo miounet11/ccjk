@@ -129,5 +129,18 @@
   "providerManager.baseUrlRequired": "Base URL is required",
   "providerManager.wireApiInvalid": "Wire API must be \"responses\"",
   "providerManager.unknownError": "Unknown error",
-  "envKeyMigrationComplete": "✔ env_key to temp_env_key migration completed"
+  "envKeyMigrationComplete": "✔ env_key to temp_env_key migration completed",
+  "runtime.sharedConfig": "Shared config root: {{path}} (CLI / desktop app / IDE extension use the same config.toml)",
+  "runtime.codexHomeEnv": "CODEX_HOME environment variable overrides the default path",
+  "runtime.kind.cli": "CLI",
+  "runtime.kind.desktop": "Desktop app",
+  "runtime.kind.ide": "IDE extension",
+  "runtime.detected": "Detected",
+  "runtime.notDetected": "Not detected",
+  "runtime.weakDesktopSignal": "Electron data dir only — no .app bundle found",
+  "runtime.reloadHint.shared": "Config written to {{path}}; CLI and IDE extension usually pick it up immediately",
+  "runtime.reloadHint.desktop": "If the Codex desktop app is open, quit fully and reopen to load the new config",
+  "runtime.finding.goalsThirdParty": "features.goals=true with third-party provider \"{{provider}}\" may cause spawn_agent 400 errors",
+  "runtime.finding.multiAgentThirdParty": "features.multi_agent=true with third-party provider \"{{provider}}\" may break subagent calls",
+  "runtime.finding.configMissing": "config.toml not found (normal on first use)"
 }

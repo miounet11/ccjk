@@ -6,6 +6,18 @@ ccjk 是 Clavue / Claude Code / Codex 的本地配置 CLI。本文记录用户�
 
 ## [Unreleased]
 
+## [16.2.0] - 2026-06-09
+
+### Added
+- **Codex 多端运行时**：`src/utils/codex-runtime.ts` 检测 CLI / 桌面 App / IDE 扩展（三者共用 `CODEX_HOME` / `~/.codex`）
+- `resolveCodexHome()`：尊重 `CODEX_HOME` 环境变量
+- 医生扫描报告新增「Codex 运行时」与「配置风险」段（第三方 provider + `features.goals` / `multi_agent` 预警）
+- 操作员写入后提示：桌面 App 需完全退出重开以加载新配置
+
+### Changed
+- 工具矩阵与菜单文案：Codex 显示为「CLI / 桌面 / IDE」共用配置
+- `README.md` 重写为 v16 医生+操作员模型与当前命令集
+
 ## [16.1.0] - 2026-06-09
 
 ### Added

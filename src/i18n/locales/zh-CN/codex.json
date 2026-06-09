@@ -129,5 +129,18 @@
   "providerManager.baseUrlRequired": "基础 URL 是必需的",
   "providerManager.wireApiInvalid": "Wire API 必须是 \"responses\"",
   "providerManager.unknownError": "未知错误",
-  "envKeyMigrationComplete": "✔ 已完成 env_key 到 temp_env_key 的迁移"
+  "envKeyMigrationComplete": "✔ 已完成 env_key 到 temp_env_key 的迁移",
+  "runtime.sharedConfig": "共用配置根：{{path}}（CLI / 桌面 App / IDE 扩展读取同一份 config.toml）",
+  "runtime.codexHomeEnv": "当前通过 CODEX_HOME 环境变量覆盖默认路径",
+  "runtime.kind.cli": "CLI",
+  "runtime.kind.desktop": "桌面 App",
+  "runtime.kind.ide": "IDE 扩展",
+  "runtime.detected": "已检测",
+  "runtime.notDetected": "未检测",
+  "runtime.weakDesktopSignal": "仅有 Electron 数据目录，未找到 .app 安装包",
+  "runtime.reloadHint.shared": "配置已写入 {{path}}，CLI 与 IDE 扩展通常即时生效",
+  "runtime.reloadHint.desktop": "若 Codex 桌面 App 正在运行，请完全退出后重新打开以加载新配置",
+  "runtime.finding.goalsThirdParty": "features.goals=true + 第三方提供商「{{provider}}」可能导致 spawn_agent 400",
+  "runtime.finding.multiAgentThirdParty": "features.multi_agent=true + 第三方提供商「{{provider}}」可能导致子代理调用失败",
+  "runtime.finding.configMissing": "config.toml 不存在（首次使用正常）"
 }

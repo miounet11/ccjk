@@ -23,8 +23,13 @@ import {
   runCodexFullInit,
   runCodexWorkflowImportWithLanguageSelection,
 } from './code-tools/codex'
+import { printCodexReloadHint } from './codex-runtime'
 import { addNumbersToChoices } from './prompt-helpers'
 import { getToolMenuLayout } from './menu-layout'
+
+async function finishCodexOperatorAction(): Promise<void> {
+  printCodexReloadHint()
+}
 
 async function promptTuneSingle(tool: CodeToolType): Promise<void> {
   const layout = getToolMenuLayout(tool)
@@ -48,6 +53,7 @@ async function promptTuneSingle(tool: CodeToolType): Promise<void> {
       case '5': await configureCodexDefaultModelFeature(); break
       case '6': await configureCodexAiMemoryFeature(); break
     }
+    await finishCodexOperatorAction()
     return
   }
 
@@ -95,6 +101,7 @@ async function runCodexFreshStart(): Promise<void> {
 
   const presetOptions = applyCodexSetupPreset(preset, { setupPreset: preset, skipPrompt: true })
   await runCodexFullInit(presetOptions)
+  await finishCodexOperatorAction()
 }
 
 async function runCodexOperatorHub(): Promise<void> {
@@ -126,9 +133,11 @@ async function runCodexOperatorHub(): Promise<void> {
   switch (action) {
     case 'init':
       await runCodexFullInit()
+      await finishCodexOperatorAction()
       break
     case 'workflow':
       await runCodexWorkflowImportWithLanguageSelection()
+      await finishCodexOperatorAction()
       break
     case 'tune':
       await promptTuneSingle('codex')

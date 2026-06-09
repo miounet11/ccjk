@@ -12,6 +12,8 @@
   "doctor.scanSection.skill": "Skills",
   "doctor.scanSection.prompt": "Prompts",
   "doctor.scanSection.agents": "AGENTS files",
+  "doctor.scanSection.config": "Config risks",
+  "doctor.scanSection.runtime": "Codex runtimes",
   "doctor.scanHint": "{{smart}} item(s) for smart cleanup; purge-all mode shows {{all}} item(s)",
   "operator.title": "Quick wizard",
   "operator.subtitle": "Common setup paths — each write is confirmed (backup first)",
