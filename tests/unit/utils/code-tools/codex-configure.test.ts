@@ -44,6 +44,7 @@ vi.mock('../../../../src/utils/code-tools/codex', () => ({
 
 vi.mock('../../../../src/utils/code-tools/codex-toml-updater', () => ({
   batchUpdateCodexMcpServices: vi.fn(),
+  deleteCodexMcpService: vi.fn(),
 }))
 
 vi.mock('../../../../src/utils/code-tools/codex-platform', () => ({
@@ -396,6 +397,61 @@ describe('codex-configure', () => {
       expect(batchUpdateCodexMcpServices).toHaveBeenCalled()
       const callArgs = batchUpdateCodexMcpServices.mock.calls[0][0] as CodexMcpService[]
       expect(callArgs.some((s: CodexMcpService) => s.env?.SYSTEMROOT === 'C:\\Windows')).toBe(true)
+    })
+  })
+
+  describe('manageCodexMcp', () => {
+    it('should remove selected installed MCP services', async () => {
+      const { manageCodexMcp } = await import('../../../../src/utils/code-tools/codex-configure')
+      const { readCodexConfig, backupCodexComplete } = vi.mocked(await import('../../../../src/utils/code-tools/codex'))
+      const { deleteCodexMcpService } = vi.mocked(await import('../../../../src/utils/code-tools/codex-toml-updater'))
+      const { updateCcjkConfig } = vi.mocked(await import('../../../../src/utils/ccjk-config'))
+      const inquirer = await import('inquirer')
+
+      readCodexConfig.mockReturnValue({
+        model: null,
+        modelProvider: null,
+        providers: [],
+        mcpServices: [
+          { id: 'context7', command: 'npx', args: ['-y', '@upstash/context7-mcp@latest'] },
+          { id: 'open-websearch', command: 'npx', args: ['-y', 'open-websearch@latest'] },
+        ],
+        managed: true,
+        otherConfig: [],
+      })
+      backupCodexComplete.mockReturnValue('/backup/path')
+      vi.mocked(inquirer.default.prompt)
+        .mockResolvedValueOnce({ action: 'remove' })
+        .mockResolvedValueOnce({ selected: ['open-websearch'] })
+        .mockResolvedValueOnce({ confirmed: true })
+
+      await manageCodexMcp()
+
+      expect(backupCodexComplete).toHaveBeenCalled()
+      expect(deleteCodexMcpService).toHaveBeenCalledWith('open-websearch')
+      expect(updateCcjkConfig).toHaveBeenCalledWith({ codeToolType: 'codex' })
+    })
+
+    it('should not remove anything when no MCP services are installed', async () => {
+      const { manageCodexMcp } = await import('../../../../src/utils/code-tools/codex-configure')
+      const { readCodexConfig, backupCodexComplete } = vi.mocked(await import('../../../../src/utils/code-tools/codex'))
+      const { deleteCodexMcpService } = vi.mocked(await import('../../../../src/utils/code-tools/codex-toml-updater'))
+      const inquirer = await import('inquirer')
+
+      readCodexConfig.mockReturnValue({
+        model: null,
+        modelProvider: null,
+        providers: [],
+        mcpServices: [],
+        managed: false,
+        otherConfig: [],
+      })
+      vi.mocked(inquirer.default.prompt).mockResolvedValueOnce({ action: 'remove' })
+
+      await manageCodexMcp()
+
+      expect(backupCodexComplete).not.toHaveBeenCalled()
+      expect(deleteCodexMcpService).not.toHaveBeenCalled()
     })
   })
 })

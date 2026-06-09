@@ -1,0 +1,23 @@
+{
+  "title": "环境清理（医生）",
+  "description": "扫描四工具环境中的脏 MCP、Skills、prompts 与过时 AGENTS.md，确认后移入废纸篓",
+  "scanSummary": "发现 {{count}} 个可清理项",
+  "selectItems": "选择要清理的项目",
+  "confirmCleanup": "确认清理选中的 {{count}} 项？（将移入系统废纸篓）",
+  "nothingFound": "未发现需要清理的 MCP / Skills / prompts",
+  "cleanupDone": "已清理 {{count}} 项",
+  "cleanupErrors": "{{count}} 项清理失败",
+  "reason.mcpDuplicate": "重复的 MCP 服务配置",
+  "reason.mcpBroken": "MCP 配置无效（缺少 command 或 url）",
+  "reason.mcpUnmanaged": "非 CCJK 管理的实验性 MCP，可能干扰上下文",
+  "reason.mcpBloat": "MCP 数量过多（{{count}} 个），拖慢启动与推理",
+  "reason.skillMissingFile": "Skill 目录缺少 SKILL.md",
+  "reason.skillEmpty": "SKILL.md 内容过短或无效",
+  "reason.promptInstalled": "已安装的 Codex workflow prompt（可选清理后重装）",
+  "reason.skillPurgeAll": "Skill 目录（全部清理模式）",
+  "reason.agentsFileStale": "老旧 ~/.codex/AGENTS.md 全局指令",
+  "reason.mcpPurgeAll": "MCP 服务（全部清理模式）",
+  "reason.mcpOrphan": "config.toml 中残留的 MCP 配置节（含嵌套子表）",
+  "reason.promptPurgeAll": "Codex workflow prompt（全部清理模式）",
+  "purgeAllWarning": "⚠️  全部清理模式：将移除所有 MCP（Codex/Claude）、Skills（Codex/Claude/Grok）、prompts 与 ~/.codex/AGENTS.md（删除前已备份 Codex 配置）"
+}

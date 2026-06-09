@@ -145,7 +145,7 @@ describe('cli-setup', () => {
       const result = customizeHelp(sections)
 
       // Should add header
-      expect(result[0].body).toContain('CCJK - Zero-Config Code Flow')
+      expect(result[0].body).toContain(`CCJK v${version}`)
 
       // Should add commands section
       const commandsSection = result.find(s => s.title.includes('Commands'))
@@ -252,13 +252,13 @@ describe('cli-setup', () => {
       })
 
       it('should recognize -o as shortcut for --output-styles', () => {
-        const parsed = cli.parse(['node', 'test', 'init', '-o', 'nekomata-engineer'], { run: false })
-        expect(parsed.options.outputStyles).toBe('nekomata-engineer')
+        const parsed = cli.parse(['node', 'test', 'init', '-o', 'linus-mode'], { run: false })
+        expect(parsed.options.outputStyles).toBe('linus-mode')
       })
 
       it('should recognize -d as shortcut for --default-output-style', () => {
-        const parsed = cli.parse(['node', 'test', 'init', '-d', 'engineer-professional'], { run: false })
-        expect(parsed.options.defaultOutputStyle).toBe('engineer-professional')
+        const parsed = cli.parse(['node', 'test', 'init', '-d', 'linus-mode'], { run: false })
+        expect(parsed.options.defaultOutputStyle).toBe('linus-mode')
       })
 
       it('should recognize -g as shortcut for --all-lang', () => {

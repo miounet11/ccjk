@@ -12,6 +12,7 @@ import { readJsonConfig, writeJsonConfig } from './json-config'
 import { addNumbersToChoices } from './prompt-helpers'
 import { promptBoolean } from './toggle-prompt'
 import { updateCcjkConfig } from './ccjk-config'
+import { CUSTOM_OUTPUT_STYLE_CONFIGS } from '../config/output-styles'
 
 export interface OutputStyle {
   id: string
@@ -20,37 +21,11 @@ export interface OutputStyle {
 }
 
 const OUTPUT_STYLES: OutputStyle[] = [
-  // Custom styles (have template files)
-  {
-    id: 'engineer-professional',
-    isCustom: true,
-    filePath: 'engineer-professional.md',
-  },
-  {
-    id: 'nekomata-engineer',
-    isCustom: true,
-    filePath: 'nekomata-engineer.md',
-  },
-  {
-    id: 'laowang-engineer',
-    isCustom: true,
-    filePath: 'laowang-engineer.md',
-  },
-  {
-    id: 'ojousama-engineer',
-    isCustom: true,
-    filePath: 'ojousama-engineer.md',
-  },
-  {
-    id: 'rem-engineer',
-    isCustom: true,
-    filePath: 'rem-engineer.md',
-  },
-  {
-    id: 'leibus-engineer',
-    isCustom: true,
-    filePath: 'leibus-engineer.md',
-  },
+  ...CUSTOM_OUTPUT_STYLE_CONFIGS.map(style => ({
+    id: style.id,
+    isCustom: true as const,
+    filePath: style.filename,
+  })),
   // Built-in styles (no template files)
   {
     id: 'default',
@@ -116,7 +91,8 @@ export function clearGlobalOutputStyle(codeTool?: CodeToolType): void {
   const target = resolveClaudeFamilySettingsTarget(codeTool)
   const existingSettings = readJsonConfig<ClaudeSettings>(target.settingsFile) || {}
 
-  const { outputStyle: _, ...rest } = existingSettings
+  const rest = { ...existingSettings }
+  delete rest.outputStyle
   normalizeClaudeFamilySettings(rest, { codeTool: target.codeTool })
   writeJsonConfig(target.settingsFile, rest)
 }
@@ -153,34 +129,34 @@ export async function configureOutputStyle(
       description: i18n.t('configuration:outputStyles.default.description'),
     },
     {
-      id: 'engineer-professional',
-      name: i18n.t('configuration:outputStyles.engineer-professional.name'),
-      description: i18n.t('configuration:outputStyles.engineer-professional.description'),
+      id: 'linus-mode',
+      name: i18n.t('configuration:outputStyles.linus-mode.name'),
+      description: i18n.t('configuration:outputStyles.linus-mode.description'),
     },
     {
-      id: 'nekomata-engineer',
-      name: i18n.t('configuration:outputStyles.nekomata-engineer.name'),
-      description: i18n.t('configuration:outputStyles.nekomata-engineer.description'),
+      id: 'uncle-bob-mode',
+      name: i18n.t('configuration:outputStyles.uncle-bob-mode.name'),
+      description: i18n.t('configuration:outputStyles.uncle-bob-mode.description'),
     },
     {
-      id: 'laowang-engineer',
-      name: i18n.t('configuration:outputStyles.laowang-engineer.name'),
-      description: i18n.t('configuration:outputStyles.laowang-engineer.description'),
+      id: 'dhh-mode',
+      name: i18n.t('configuration:outputStyles.dhh-mode.name'),
+      description: i18n.t('configuration:outputStyles.dhh-mode.description'),
     },
     {
-      id: 'ojousama-engineer',
-      name: i18n.t('configuration:outputStyles.ojousama-engineer.name'),
-      description: i18n.t('configuration:outputStyles.ojousama-engineer.description'),
+      id: 'carmack-mode',
+      name: i18n.t('configuration:outputStyles.carmack-mode.name'),
+      description: i18n.t('configuration:outputStyles.carmack-mode.description'),
     },
     {
-      id: 'leibus-engineer',
-      name: i18n.t('configuration:outputStyles.leibus-engineer.name'),
-      description: i18n.t('configuration:outputStyles.leibus-engineer.description'),
+      id: 'jobs-mode',
+      name: i18n.t('configuration:outputStyles.jobs-mode.name'),
+      description: i18n.t('configuration:outputStyles.jobs-mode.description'),
     },
     {
-      id: 'rem-engineer',
-      name: i18n.t('configuration:outputStyles.rem-engineer.name'),
-      description: i18n.t('configuration:outputStyles.rem-engineer.description'),
+      id: 'evan-you-mode',
+      name: i18n.t('configuration:outputStyles.evan-you-mode.name'),
+      description: i18n.t('configuration:outputStyles.evan-you-mode.description'),
     },
     {
       id: 'explanatory',
@@ -221,6 +197,16 @@ export async function configureOutputStyle(
     // Non-interactive mode
     selectedStyles = preselectedStyles
     defaultStyle = preselectedDefault
+    if (defaultStyle === 'none') {
+      await copyOutputStyles(selectedStyles, 'zh-CN', target.codeTool)
+      clearGlobalOutputStyle(target.codeTool)
+      updateCcjkConfig({
+        outputStyles: selectedStyles,
+        defaultOutputStyle: 'none',
+      })
+      console.log(ansis.green(`✔ ${i18n.t('configuration:outputStyleCleared')}`))
+      return
+    }
   }
   else {
     // Interactive mode - only show custom styles for installation
@@ -234,7 +220,7 @@ export async function configureOutputStyle(
         return {
           name: `${styleInfo?.name || style.id} - ${ansis.gray(styleInfo?.description || '')}`,
           value: style.id,
-          checked: true, // Default select all custom styles
+          checked: false, // 默认不安装任何输出风格，保持工具原始行为
         }
       })),
       // Allow empty selection - user can choose to not install any custom styles
@@ -299,11 +285,17 @@ export async function configureOutputStyle(
       return
     }
 
+    const noneOption = { id: '__none__', name: i18n.t('configuration:noOutputStyle'), description: i18n.t('configuration:noOutputStyleDesc') }
     const { defaultStyle: promptedDefault } = await inquirer.prompt<{ defaultStyle: string }>({
       type: 'list',
       name: 'defaultStyle',
       message: i18n.t('configuration:selectDefaultOutputStyle'),
       choices: addNumbersToChoices([
+        {
+          name: `${noneOption.name} - ${ansis.gray(noneOption.description)}`,
+          value: '__none__',
+          short: noneOption.name,
+        },
         // Show selected custom styles first (only what user actually installed)
         ...selectedStyles.map((styleId) => {
           const styleInfo = outputStyleList.find(s => s.id === styleId)
@@ -326,7 +318,7 @@ export async function configureOutputStyle(
             }
           }),
       ]),
-      default: selectedStyles.includes('engineer-professional') ? 'engineer-professional' : selectedStyles[0],
+      default: '__none__',
     })
 
     if (!promptedDefault) {
@@ -339,6 +331,18 @@ export async function configureOutputStyle(
 
   // Copy selected output styles using configLang for template language
   await copyOutputStyles(selectedStyles, 'zh-CN', target.codeTool)
+
+  if (defaultStyle === '__none__' || defaultStyle === 'none') {
+    clearGlobalOutputStyle(target.codeTool)
+    updateCcjkConfig({
+      outputStyles: selectedStyles,
+      defaultOutputStyle: 'none',
+    })
+    console.log(ansis.green(`✔ ${i18n.t('configuration:outputStyleInstalled')}`))
+    console.log(ansis.gray(`  ${i18n.t('configuration:selectedStyles')}: ${selectedStyles.join(', ')}`))
+    console.log(ansis.gray(`  ${i18n.t('configuration:defaultStyle')}: none`))
+    return
+  }
 
   setGlobalDefaultOutputStyle(defaultStyle, target.codeTool)
 

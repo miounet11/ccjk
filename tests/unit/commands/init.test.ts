@@ -137,16 +137,21 @@ vi.mock('node:fs', () => ({
   existsSync: vi.fn(),
 }))
 
-vi.mock('../../../src/constants', () => ({
-  CLAUDE_DIR: '/test/.claude',
-  DEFAULT_CODE_TOOL_TYPE: 'claude-code',
-  SETTINGS_FILE: '/test/.claude/settings.json',
-  CODE_TOOL_BANNERS: {
-    'claude-code': 'CCJK',
-    'codex': 'Codex',
-  },
-  isCodeToolType: vi.fn((type: string) => ['claude-code', 'codex'].includes(type)),
-}))
+vi.mock('../../../src/constants', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../../src/constants')>()
+  return {
+    ...actual,
+    CLAUDE_DIR: '/test/.claude',
+    DEFAULT_CODE_TOOL_TYPE: 'claude-code',
+    SETTINGS_FILE: '/test/.claude/settings.json',
+    CODE_TOOL_BANNERS: {
+      ...actual.CODE_TOOL_BANNERS,
+      'claude-code': 'CCJK',
+      'codex': 'Codex',
+    },
+    isCodeToolType: vi.fn((type: string) => ['claude-code', 'codex', 'clavue', 'grok'].includes(type)),
+  }
+})
 
 // Common test setup
 interface TestMocks {
@@ -196,7 +201,7 @@ describe('init command', () => {
     const { selectAndInstallWorkflows } = await import('../../../src/utils/workflow-installer')
     const { configureOutputStyle } = await import('../../../src/utils/output-style')
     const { updateCcjkConfig, readCcjkConfig } = await import('../../../src/utils/ccjk-config')
-    const { isCcrInstalled, installCcr: _installCcr } = await import('../../../src/utils/ccr/installer')
+    const { isCcrInstalled } = await import('../../../src/utils/ccr/installer')
     const { setupCcrConfiguration } = await import('../../../src/utils/ccr/config')
     const { configureApiCompletely, modifyApiConfigPartially } = await import('../../../src/utils/config-operations')
     const { configureIncrementalManagement } = await import('../../../src/utils/claude-code-incremental-manager')

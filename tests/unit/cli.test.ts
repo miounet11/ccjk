@@ -18,7 +18,7 @@ describe('cLI', () => {
       const result = await exec(process.execPath, [cliPath, '--help'])
 
       expect(result.exitCode).toBe(0)
-      expect(result.stdout).toContain('CCJK - Zero-Config Code Flow')
+      expect(result.stdout).toContain('CCJK v')
       expect(result.stdout).toContain('Commands')
     })
 

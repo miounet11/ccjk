@@ -49,17 +49,22 @@ vi.mock('node:fs', () => ({
   existsSync: vi.fn(),
 }))
 
-vi.mock('../../../src/constants', () => ({
-  CLAUDE_DIR: '/test/.claude',
-  DEFAULT_CODE_TOOL_TYPE: 'claude-code',
-  SETTINGS_FILE: '/test/.claude/settings.json',
-  CODE_TOOL_BANNERS: {
-    'claude-code': 'CCJK',
-    'codex': 'Codex',
-  },
-  API_DEFAULT_URL: 'https://api.anthropic.com',
-  API_ENV_KEY: 'ANTHROPIC_API_KEY',
-}))
+vi.mock('../../../src/constants', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../../src/constants')>()
+  return {
+    ...actual,
+    CLAUDE_DIR: '/test/.claude',
+    DEFAULT_CODE_TOOL_TYPE: 'claude-code',
+    SETTINGS_FILE: '/test/.claude/settings.json',
+    CODE_TOOL_BANNERS: {
+      ...actual.CODE_TOOL_BANNERS,
+      'claude-code': 'CCJK',
+      'codex': 'Codex',
+    },
+    API_DEFAULT_URL: 'https://api.anthropic.com',
+    API_ENV_KEY: 'ANTHROPIC_API_KEY',
+  }
+})
 
 describe('init command - multi-configuration', () => {
   beforeEach(async () => {

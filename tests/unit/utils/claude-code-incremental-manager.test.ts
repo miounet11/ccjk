@@ -47,11 +47,15 @@ vi.mock('../../../src/utils/features', () => ({
     opusModel: 'claude-3-opus-20241022',
   }),
 }))
-vi.mock('../../../src/constants', () => ({
-  CCJK_CONFIG_DIR: '/test/.ccjk',
-  SETTINGS_FILE: '/test/settings.json',
-  CCJK_CONFIG_FILE: '/test/.ccjk/config.toml',
-}))
+vi.mock('../../../src/constants', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../../src/constants')>()
+  return {
+    ...actual,
+    CCJK_CONFIG_DIR: '/test/.ccjk',
+    SETTINGS_FILE: '/test/settings.json',
+    CCJK_CONFIG_FILE: '/test/.ccjk/config.toml',
+  }
+})
 describe('claudeCode Incremental Configuration Manager', () => {
   beforeEach(() => {
     vi.clearAllMocks()

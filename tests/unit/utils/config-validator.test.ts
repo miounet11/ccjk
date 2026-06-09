@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { sanitizeClaudeSettings, validateClaudeSettings } from '../../../src/utils/config-validator'
 
 vi.mock('../../../src/utils/ccjk-config', () => ({
-  readCcjkConfig: vi.fn().mockReturnValue({ preferredLang: 'en' }),
+  readCcjkConfig: vi.fn().mockReturnValue({ preferredLang: 'en', codeToolType: 'claude-code' }),
 }))
 
 // Mock i18n system
@@ -222,7 +222,9 @@ describe('config-validator utilities', () => {
         },
       }
       const sanitized = sanitizeClaudeSettings(settings)
-      expect(sanitized.permissions).toEqual({})
+      expect(sanitized.permissions).toEqual({
+        deny: ['DangerousOp'],
+      })
     })
 
     it('should preserve other properties', () => {

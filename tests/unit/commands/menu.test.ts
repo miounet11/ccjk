@@ -50,6 +50,7 @@ vi.mock('../../../src/utils/code-tools/codex', () => ({
   runCodexWorkflowImport: vi.fn(),
   configureCodexApi: vi.fn(),
   configureCodexMcp: vi.fn(),
+  manageCodexMcp: vi.fn(),
   runCodexUpdate: vi.fn(),
   runCodexUninstall: vi.fn(),
   checkCodexCliUpdate: vi.fn().mockResolvedValue(false),
@@ -268,38 +269,6 @@ describe('menu command', () => {
       await showMainMenu()
 
       expect(changeScriptLanguageFeature).toHaveBeenCalled()
-    })
-
-    it('should handle CCU usage analysis option', async () => {
-      const { showMainMenu } = await import('../../../src/commands/menu')
-      const { runCcusageFeature } = await import('../../../src/utils/tools')
-      const { readCcjkConfigAsync } = await import('../../../src/utils/ccjk-config')
-
-      vi.mocked(readCcjkConfigAsync).mockResolvedValue({ preferredLang: 'zh-CN', codeToolType: 'claude-code' } as any)
-      vi.mocked(inquirer.prompt)
-        .mockResolvedValueOnce({ choice: 'u' })
-      queuePromptBooleans(false)
-      vi.mocked(runCcusageFeature).mockResolvedValue(undefined)
-
-      await showMainMenu()
-
-      expect(runCcusageFeature).toHaveBeenCalledWith()
-    })
-
-    it('should handle CCU usage analysis option in English', async () => {
-      const { showMainMenu } = await import('../../../src/commands/menu')
-      const { runCcusageFeature } = await import('../../../src/utils/tools')
-      const { readCcjkConfigAsync } = await import('../../../src/utils/ccjk-config')
-
-      vi.mocked(readCcjkConfigAsync).mockResolvedValue({ preferredLang: 'en', codeToolType: 'claude-code' } as any)
-      vi.mocked(inquirer.prompt)
-        .mockResolvedValueOnce({ choice: 'u' })
-      queuePromptBooleans(false)
-      vi.mocked(runCcusageFeature).mockResolvedValue(undefined)
-
-      await showMainMenu()
-
-      expect(runCcusageFeature).toHaveBeenCalledWith()
     })
 
     it('should handle check updates option', async () => {

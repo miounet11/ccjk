@@ -4,7 +4,9 @@ import inquirer from 'inquirer'
 import { CODE_TOOL_BANNERS, DEFAULT_CODE_TOOL_TYPE, isCodeToolType } from '../constants'
 import { i18n } from '../i18n'
 import { displayBannerWithInfo } from '../utils/banner'
-import { configureCodexApi, configureCodexMcp, runCodexFullInit, runCodexUninstall, runCodexUpdate, runCodexWorkflowImportWithLanguageSelection } from '../utils/code-tools/codex'
+import { runDoctorHub } from '../utils/doctor-hub'
+import { runOperatorHub } from '../utils/operator-hub'
+import { configureCodexApi, manageCodexMcp, runCodexFullInit, runCodexUninstall, runCodexUpdate, runCodexWorkflowImportWithLanguageSelection } from '../utils/code-tools/codex'
 import { resolveCodeType } from '../utils/code-type-resolver'
 import { handleExitPromptError, handleGeneralError } from '../utils/error-handler'
 import {
@@ -17,9 +19,8 @@ import {
   configureEnvPermissionFeature,
   configureMcpFeature,
 } from '../utils/features'
-import { addNumbersToChoices } from '../utils/prompt-helpers'
+import { buildMenuListChoices, getToolMenuLayout, printToolMenuHeader } from '../utils/menu-layout'
 import { promptBoolean } from '../utils/toggle-prompt'
-import { runCcrMenuFeature, runCcusageFeature, runCometixMenuFeature } from '../utils/tools'
 import { readCcjkConfig, updateCcjkConfig } from '../utils/ccjk-config'
 import { checkUpdates } from './check-updates'
 import { init } from './init'
@@ -27,7 +28,7 @@ import { uninstall } from './uninstall'
 import { update } from './update'
 import { grokCommand } from './grok'
 import { reasonixCommand } from './reasonix'
-import { probeCommand } from './probe'
+
 import { runOnboardingWizard } from './onboarding-wizard'
 
 type MenuResult = 'exit' | 'switch' | undefined
@@ -56,6 +57,7 @@ function getCodeToolLabel(codeTool: CodeToolType): string {
 }
 
 async function promptCodeToolSelection(current: CodeToolType): Promise<CodeToolType | null> {
+  const { addNumbersToChoices } = await import('../utils/prompt-helpers')
   const choices = addNumbersToChoices(Object.entries(CODE_TOOL_LABELS).map(([value, label]) => ({
     name: label,
     value,
@@ -89,471 +91,186 @@ async function handleCodeToolSwitch(current: CodeToolType): Promise<boolean> {
   return true
 }
 
-function printOtherToolsSection(): void {
-  console.log(`  --------- ${i18n.t('menu:menuSections.otherTools')} ----------`)
-  console.log(
-    `  ${ansis.cyan('R.')} ${i18n.t('menu:menuOptions.ccrManagement')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.ccrManagement')}`)}`,
-  )
-  console.log(
-    `  ${ansis.cyan('U.')} ${i18n.t('menu:menuOptions.ccusage')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.ccusage')}`)}`,
-  )
-  console.log(
-    `  ${ansis.cyan('L.')} ${i18n.t('menu:menuOptions.cometixLine')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.cometixLine')}`)}`,
-  )
-  console.log(
-    `  ${ansis.cyan('P.')} Probe API ${ansis.gray('- HTTP 探活当前配置')}`,
-  )
-  console.log(
-    `  ${ansis.cyan('G.')} Grok CLI ${ansis.gray('- 状态 / 启动指引')}`,
-  )
-  console.log(
-    `  ${ansis.cyan('X.')} Reasonix ${ansis.gray('- DeepSeek agent 状态 / 启动指引')}`,
-  )
-  console.log('')
-}
-
-function printCcjkSection(options: {
-  uninstallOption: string
-  uninstallDescription: string
-  updateOption: string
-  updateDescription: string
-}): void {
-  console.log('  ------------ CCJK ------------')
-  console.log(
-    `  ${ansis.cyan('0.')} ${i18n.t('menu:menuOptions.changeLanguage')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.changeLanguage')}`)}`,
-  )
-  console.log(
-    `  ${ansis.cyan('S.')} ${i18n.t('menu:menuOptions.switchCodeTool')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.switchCodeTool')}`)}`,
-  )
-  console.log(
-    `  ${ansis.cyan('-.')} ${options.uninstallOption} ${ansis.gray(`- ${options.uninstallDescription}`)}`,
-  )
-  console.log(
-    `  ${ansis.cyan('+.')} ${options.updateOption} ${ansis.gray(`- ${options.updateDescription}`)}`,
-  )
-  console.log(`  ${ansis.red('Q.')} ${ansis.red(i18n.t('menu:menuOptions.exit'))}`)
-  console.log('')
-}
-
-async function showClavueMenu(): Promise<MenuResult> {
-  console.log(ansis.cyan(i18n.t('menu:selectFunction')))
-  console.log('  -------- Clavue --------')
-  console.log(
-    `  ${ansis.cyan('1.')} ${i18n.t('menu:menuOptions.clavueFullInit')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.clavueFullInit')}`)}`,
-  )
-  console.log(
-    `  ${ansis.cyan('2.')} ${i18n.t('menu:menuOptions.clavueUpdateWorkflow')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.clavueUpdateWorkflow')}`)}`,
-  )
-  console.log(
-    `  ${ansis.cyan('3.')} ${i18n.t('menu:menuOptions.clavueConfigureApi')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.clavueConfigureApi')}`)}`,
-  )
-  console.log(
-    `  ${ansis.cyan('4.')} ${i18n.t('menu:menuOptions.clavueConfigureMcp')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.clavueConfigureMcp')}`)}`,
-  )
-  console.log(
-    `  ${ansis.cyan('5.')} ${i18n.t('menu:menuOptions.clavueConfigureModel')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.clavueConfigureModel')}`)}`,
-  )
-  console.log(
-    `  ${ansis.cyan('6.')} ${i18n.t('menu:menuOptions.clavueConfigureAiMemory')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.clavueConfigureAiMemory')}`)}`,
-  )
-  console.log(
-    `  ${ansis.cyan('7.')} ${i18n.t('menu:menuOptions.clavueConfigureEnvPermission')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.clavueConfigureEnvPermission')}`)}`,
-  )
-  console.log(
-    `  ${ansis.cyan('8.')} ${i18n.t('menu:menuOptions.clavueStatus')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.clavueStatus')}`)}`,
-  )
-  console.log('')
-  printOtherToolsSection()
-  printCcjkSection({
-    uninstallOption: i18n.t('menu:menuOptions.clavueUninstall'),
-    uninstallDescription: i18n.t('menu:menuDescriptions.clavueUninstall'),
-    updateOption: i18n.t('menu:menuOptions.clavueCheckUpdates'),
-    updateDescription: i18n.t('menu:menuDescriptions.clavueCheckUpdates'),
-  })
-
-  const { choice } = await inquirer.prompt<{ choice: string }>({
-    type: 'input',
-    name: 'choice',
-    message: i18n.t('common:enterChoice'),
-    validate: (value) => {
-      const valid = ['1', '2', '3', '4', '5', '6', '7', '8', 'r', 'R', 'u', 'U', 'l', 'L', 'p', 'P', 'g', 'G', 'x', 'X', '0', '-', '+', 's', 'S', 'q', 'Q']
-      return valid.includes(value) || i18n.t('common:invalidChoice')
-    },
-  })
-
-  if (!choice) {
-    console.log(ansis.yellow(i18n.t('common:cancelled')))
-    return 'exit'
-  }
-
-  const normalized = choice.toLowerCase()
-
-  switch (normalized) {
+async function handleClaudeFamilyChoice(
+  tool: 'clavue' | 'claude-code',
+  choice: string,
+): Promise<MenuResult | 'handled'> {
+  switch (choice) {
     case '1':
-      await init({ skipBanner: true, codeType: 'clavue' })
-      break
+      await init({ skipBanner: true, codeType: tool })
+      return 'handled'
     case '2':
-      await update({ skipBanner: true, codeType: 'clavue' })
-      break
+      await update({ skipBanner: true, codeType: tool })
+      return 'handled'
     case '3':
       await configureApiFeature()
-      break
+      return 'handled'
     case '4':
       await configureMcpFeature()
-      break
+      return 'handled'
     case '5':
       await configureDefaultModelFeature()
-      break
+      return 'handled'
     case '6':
       await configureAiMemoryFeature()
-      break
+      return 'handled'
     case '7':
       await configureEnvPermissionFeature()
-      break
-    case '8':
-    case 'p':
-      await probeCommand()
-      printSeparator()
-      return undefined
-    case 'r':
-      await runCcrMenuFeature()
-      printSeparator()
-      return undefined
-    case 'u':
-      await runCcusageFeature()
-      printSeparator()
-      return undefined
-    case 'l':
-      await runCometixMenuFeature()
-      printSeparator()
-      return undefined
-    case 'g':
-      await grokCommand()
-      printSeparator()
-      return undefined
-    case 'x':
-      await reasonixCommand()
-      printSeparator()
-      return undefined
-    case '0': {
-      const currentLang = i18n.language as SupportedLang
-      await changeScriptLanguageFeature(currentLang)
-      printSeparator()
-      return undefined
-    }
-    case '-':
-      await uninstall()
-      printSeparator()
-      return undefined
-    case '+':
-      await checkUpdates()
-      printSeparator()
-      return undefined
-    case 's': {
-      const switched = await handleCodeToolSwitch('clavue')
-      if (switched) {
-        return 'switch'
-      }
-      printSeparator()
-      return undefined
-    }
-    case 'q':
-      console.log(ansis.cyan(i18n.t('common:goodbye')))
-      return 'exit'
+      return 'handled'
     default:
-      return undefined
+      return undefined as never
   }
-
-  printSeparator()
-
-  const shouldContinue = await promptBoolean({
-    message: i18n.t('common:returnToMenu'),
-    defaultValue: true,
-  })
-
-  if (!shouldContinue) {
-    console.log(ansis.cyan(i18n.t('common:goodbye')))
-    return 'exit'
-  }
-
-  return undefined
 }
 
-async function showClaudeCodeMenu(): Promise<MenuResult> {
-  console.log(ansis.cyan(i18n.t('menu:selectFunction')))
-  console.log('  -------- Claude Code --------')
-  console.log(
-    `  ${ansis.cyan('1.')} ${i18n.t('menu:menuOptions.fullInit')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.fullInit')}`)}`,
-  )
-  console.log(
-    `  ${ansis.cyan('2.')} ${i18n.t('menu:menuOptions.importWorkflow')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.importWorkflow')}`)}`,
-  )
-  console.log(
-    `  ${ansis.cyan('3.')} ${i18n.t('menu:menuOptions.configureApiOrCcr')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.configureApiOrCcr')}`)}`,
-  )
-  console.log(
-    `  ${ansis.cyan('4.')} ${i18n.t('menu:menuOptions.configureMcp')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.configureMcp')}`)}`,
-  )
-  console.log(
-    `  ${ansis.cyan('5.')} ${i18n.t('menu:menuOptions.configureModel')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.configureModel')}`)}`,
-  )
-  console.log(
-    `  ${ansis.cyan('6.')} ${i18n.t('menu:menuOptions.configureAiMemory')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.configureAiMemory')}`)}`,
-  )
-  console.log(
-    `  ${ansis.cyan('7.')} ${i18n.t('menu:menuOptions.configureEnvPermission')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.configureEnvPermission')}`)}`,
-  )
-  console.log('')
-  printOtherToolsSection()
-  printCcjkSection({
-    uninstallOption: i18n.t('menu:menuOptions.uninstall'),
-    uninstallDescription: i18n.t('menu:menuDescriptions.uninstall'),
-    updateOption: i18n.t('menu:menuOptions.checkUpdates'),
-    updateDescription: i18n.t('menu:menuDescriptions.checkUpdates'),
-  })
-
-  const { choice } = await inquirer.prompt<{ choice: string }>({
-    type: 'input',
-    name: 'choice',
-    message: i18n.t('common:enterChoice'),
-    validate: (value) => {
-      const valid = ['1', '2', '3', '4', '5', '6', '7', 'r', 'R', 'u', 'U', 'l', 'L', 'p', 'P', 'g', 'G', '0', '-', '+', 's', 'S', 'q', 'Q']
-      return valid.includes(value) || i18n.t('common:invalidChoice')
-    },
-  })
-
-  if (!choice) {
-    console.log(ansis.yellow(i18n.t('common:cancelled')))
-    return 'exit'
-  }
-
-  const normalized = choice.toLowerCase()
-
-  switch (normalized) {
-    case '1':
-      await init({ skipBanner: true })
-      break
-    case '2':
-      await update({ skipBanner: true })
-      break
-    case '3':
-      await configureApiFeature()
-      break
-    case '4':
-      await configureMcpFeature()
-      break
-    case '5':
-      await configureDefaultModelFeature()
-      break
-    case '6':
-      await configureAiMemoryFeature()
-      break
-    case '7':
-      await configureEnvPermissionFeature()
-      break
-    case 'r':
-      await runCcrMenuFeature()
-      printSeparator()
-      return undefined
-    case 'u':
-      await runCcusageFeature()
-      printSeparator()
-      return undefined
-    case 'l':
-      await runCometixMenuFeature()
-      printSeparator()
-      return undefined
-    case 'p':
-      await probeCommand()
-      printSeparator()
-      return undefined
-    case 'g':
-      await grokCommand()
-      printSeparator()
-      return undefined
-    case 'x':
-      await reasonixCommand()
-      printSeparator()
-      return undefined
-    case '0': {
-      const currentLang = i18n.language as SupportedLang
-      await changeScriptLanguageFeature(currentLang)
-      printSeparator()
-      return undefined
-    }
-    case '-':
-      await uninstall()
-      printSeparator()
-      return undefined
-    case '+':
-      await checkUpdates()
-      printSeparator()
-      return undefined
-    case 's': {
-      const switched = await handleCodeToolSwitch('claude-code')
-      if (switched) {
-        return 'switch'
-      }
-      printSeparator()
-      return undefined
-    }
-    case 'q':
-      console.log(ansis.cyan(i18n.t('common:goodbye')))
-      return 'exit'
-    default:
-      return undefined
-  }
-
-  printSeparator()
-
-  const shouldContinue = await promptBoolean({
-    message: i18n.t('common:returnToMenu'),
-    defaultValue: true,
-  })
-
-  if (!shouldContinue) {
-    console.log(ansis.cyan(i18n.t('common:goodbye')))
-    return 'exit'
-  }
-
-  return undefined
-}
-
-async function showCodexMenu(): Promise<MenuResult> {
-  console.log(ansis.cyan(i18n.t('menu:selectFunction')))
-  console.log('  -------- Codex --------')
-  console.log(
-    `  ${ansis.cyan('1.')} ${i18n.t('menu:menuOptions.codexFullInit')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.codexFullInit')}`)}`,
-  )
-  console.log(
-    `  ${ansis.cyan('2.')} ${i18n.t('menu:menuOptions.codexImportWorkflow')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.codexImportWorkflow')}`)}`,
-  )
-  console.log(
-    `  ${ansis.cyan('3.')} ${i18n.t('menu:menuOptions.codexConfigureApi')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.codexConfigureApi')}`)}`,
-  )
-  console.log(
-    `  ${ansis.cyan('4.')} ${i18n.t('menu:menuOptions.codexConfigureMcp')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.codexConfigureMcp')}`)}`,
-  )
-  console.log(
-    `  ${ansis.cyan('5.')} ${i18n.t('menu:menuOptions.codexConfigureModel')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.codexConfigureModel')}`)}`,
-  )
-  console.log(
-    `  ${ansis.cyan('6.')} ${i18n.t('menu:menuOptions.codexConfigureAiMemory')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.codexConfigureAiMemory')}`)}`,
-  )
-  console.log('')
-  printCcjkSection({
-    uninstallOption: i18n.t('menu:menuOptions.codexUninstall'),
-    uninstallDescription: i18n.t('menu:menuDescriptions.codexUninstall'),
-    updateOption: i18n.t('menu:menuOptions.codexCheckUpdates'),
-    updateDescription: i18n.t('menu:menuDescriptions.codexCheckUpdates'),
-  })
-
-  const { choice } = await inquirer.prompt<{ choice: string }>({
-    type: 'input',
-    name: 'choice',
-    message: i18n.t('common:enterChoice'),
-    validate: (value) => {
-      const valid = ['1', '2', '3', '4', '5', '6', '0', '-', '+', 's', 'S', 'q', 'Q']
-      return valid.includes(value) || i18n.t('common:invalidChoice')
-    },
-  })
-
-  if (!choice) {
-    console.log(ansis.yellow(i18n.t('common:cancelled')))
-    return 'exit'
-  }
-
-  const normalized = choice.toLowerCase()
-
-  switch (normalized) {
+async function handleCodexChoice(choice: string): Promise<MenuResult | 'handled'> {
+  switch (choice) {
     case '1':
       await runCodexFullInit()
-      break
+      return 'handled'
     case '2':
       await runCodexWorkflowImportWithLanguageSelection()
-      break
+      return 'handled'
     case '3':
       await configureCodexApi()
-      break
+      return 'handled'
     case '4':
-      await configureCodexMcp()
-      break
+      await manageCodexMcp()
+      return 'handled'
     case '5':
       await configureCodexDefaultModelFeature()
-      break
+      return 'handled'
     case '6':
       await configureCodexAiMemoryFeature()
-      break
+      return 'handled'
+    default:
+      return undefined as never
+  }
+}
+
+async function handleGrokChoice(choice: string): Promise<MenuResult | 'handled'> {
+  switch (choice) {
+    case '1':
+      await init({ skipBanner: true, codeType: 'grok' })
+      return 'handled'
+    case '2':
+      await grokCommand()
+      return 'handled'
+    default:
+      return undefined as never
+  }
+}
+
+async function handleHubChoice(
+  tool: CodeToolType,
+  choice: string,
+): Promise<MenuResult | 'handled' | 'continue'> {
+  switch (choice) {
+    case 'h':
+      await runDoctorHub(tool)
+      return 'continue'
+    case 'w':
+      await runOperatorHub(tool)
+      return 'handled'
+    default:
+      return undefined as never
+  }
+}
+
+async function handleSharedChoice(
+  tool: CodeToolType,
+  choice: string,
+): Promise<MenuResult | 'handled' | 'continue'> {
+  switch (choice) {
+    case 'g':
+      await grokCommand()
+      return 'continue'
+    case 'x':
+      await reasonixCommand()
+      return 'continue'
     case '0': {
       const currentLang = i18n.language as SupportedLang
       await changeScriptLanguageFeature(currentLang)
-      printSeparator()
-      return undefined
+      return 'continue'
     }
-    case '-':
-      await runCodexUninstall()
-      printSeparator()
-      return undefined
-    case '+':
-      await runCodexUpdate()
-      printSeparator()
-      return undefined
     case 's': {
-      const switched = await handleCodeToolSwitch('codex')
-      if (switched) {
-        return 'switch'
-      }
-      printSeparator()
-      return undefined
+      const switched = await handleCodeToolSwitch(tool)
+      return switched ? 'switch' : 'continue'
     }
     case 'q':
       console.log(ansis.cyan(i18n.t('common:goodbye')))
       return 'exit'
     default:
-      return undefined
+      return undefined as never
+  }
+}
+
+async function handleToolSpecificMaintenance(
+  tool: CodeToolType,
+  choice: string,
+): Promise<MenuResult | 'handled' | 'continue'> {
+  if (choice === '-') {
+    if (tool === 'codex') {
+      await runCodexUninstall()
+    }
+    else {
+      await uninstall()
+    }
+    return 'continue'
   }
 
-  printSeparator()
-
-  const shouldContinue = await promptBoolean({
-    message: i18n.t('common:returnToMenu'),
-    defaultValue: true,
-  })
-
-  if (!shouldContinue) {
-    console.log(ansis.cyan(i18n.t('common:goodbye')))
-    return 'exit'
+  if (choice === '+') {
+    if (tool === 'codex') {
+      await runCodexUpdate()
+    }
+    else {
+      await checkUpdates()
+    }
+    return 'continue'
   }
+
+  return undefined as never
+}
+
+async function dispatchMenuChoice(tool: CodeToolType, rawChoice: string): Promise<MenuResult | 'handled' | 'continue'> {
+  const choice = rawChoice.toLowerCase()
+
+  const hubResult = ['h', 'w'].includes(choice)
+    ? await handleHubChoice(tool, choice)
+    : undefined
+  if (hubResult)
+    return hubResult
+
+  const sharedResult = await handleSharedChoice(tool, choice)
+  if (sharedResult)
+    return sharedResult
+
+  const maintenanceResult = await handleToolSpecificMaintenance(tool, choice)
+  if (maintenanceResult)
+    return maintenanceResult
+
+  const layout = getToolMenuLayout(tool)
+  if (!layout.operatorLines.some(item => item.key === choice))
+    return undefined
+
+  if (tool === 'clavue' || tool === 'claude-code')
+    return await handleClaudeFamilyChoice(tool, choice)
+  if (tool === 'codex')
+    return await handleCodexChoice(choice)
+  if (tool === 'grok')
+    return await handleGrokChoice(choice)
 
   return undefined
 }
 
-async function showGrokMenu(): Promise<MenuResult> {
-  console.log(ansis.cyan(i18n.t('menu:selectFunction')))
-  console.log('  -------- Grok CLI --------')
-  console.log(
-    `  ${ansis.cyan('1.')} ${i18n.t('menu:menuOptions.grokInit')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.grokInit')}`)}`,
-  )
-  console.log(
-    `  ${ansis.cyan('2.')} ${i18n.t('menu:menuOptions.grokStatus')} ${ansis.gray(`- ${i18n.t('menu:menuDescriptions.grokStatus')}`)}`,
-  )
-  console.log('')
-  printOtherToolsSection()
-  printCcjkSection({
-    uninstallOption: i18n.t('menu:menuOptions.uninstall'),
-    uninstallDescription: i18n.t('menu:menuDescriptions.uninstall'),
-    updateOption: i18n.t('menu:menuOptions.checkUpdates'),
-    updateDescription: i18n.t('menu:menuDescriptions.checkUpdates'),
-  })
+async function showToolMenu(tool: CodeToolType): Promise<MenuResult> {
+  printToolMenuHeader(tool)
 
   const { choice } = await inquirer.prompt<{ choice: string }>({
-    type: 'input',
+    type: 'list',
     name: 'choice',
-    message: i18n.t('common:enterChoice'),
-    validate: (value) => {
-      const valid = ['1', '2', 'r', 'R', 'u', 'U', 'l', 'L', 'p', 'P', 'g', 'G', 'x', 'X', '0', '-', '+', 's', 'S', 'q', 'Q']
-      return valid.includes(value) || i18n.t('common:invalidChoice')
-    },
+    message: i18n.t('menu:selectFunction'),
+    choices: buildMenuListChoices(tool),
+    pageSize: 20,
   })
 
   if (!choice) {
@@ -561,66 +278,15 @@ async function showGrokMenu(): Promise<MenuResult> {
     return 'exit'
   }
 
-  const normalized = choice.toLowerCase()
+  const result = await dispatchMenuChoice(tool, choice)
 
-  switch (normalized) {
-    case '1':
-      await init({ skipBanner: true, codeType: 'grok' })
-      break
-    case '2':
-      await grokCommand()
-      break
-    case 'r':
-      await runCcrMenuFeature()
-      printSeparator()
-      return undefined
-    case 'u':
-      await runCcusageFeature()
-      printSeparator()
-      return undefined
-    case 'l':
-      await runCometixMenuFeature()
-      printSeparator()
-      return undefined
-    case 'p':
-      await probeCommand()
-      printSeparator()
-      return undefined
-    case 'g':
-      await grokCommand()
-      printSeparator()
-      return undefined
-    case 'x':
-      await reasonixCommand()
-      printSeparator()
-      return undefined
-    case '0': {
-      const currentLang = i18n.language as SupportedLang
-      await changeScriptLanguageFeature(currentLang)
-      printSeparator()
-      return undefined
-    }
-    case '-':
-      await uninstall()
-      printSeparator()
-      return undefined
-    case '+':
-      await checkUpdates()
-      printSeparator()
-      return undefined
-    case 's': {
-      const switched = await handleCodeToolSwitch('grok')
-      if (switched) {
-        return 'switch'
-      }
-      printSeparator()
-      return undefined
-    }
-    case 'q':
-      console.log(ansis.cyan(i18n.t('common:goodbye')))
-      return 'exit'
-    default:
-      return undefined
+  if (result === 'exit')
+    return 'exit'
+  if (result === 'switch')
+    return 'switch'
+  if (result === 'continue') {
+    printSeparator()
+    return undefined
   }
 
   printSeparator()
@@ -644,7 +310,6 @@ export async function showMainMenu(options: { codeType?: string, skipOnboarding?
       await runOnboardingWizard({ preferredCodeTool: options.codeType })
     }
 
-    // Handle code type parameter if provided
     if (options.codeType) {
       try {
         const resolvedType = await resolveCodeType(options.codeType)
@@ -661,25 +326,17 @@ export async function showMainMenu(options: { codeType?: string, skipOnboarding?
       }
     }
 
-    // Menu loop
     let exitMenu = false
     while (!exitMenu) {
       const codeTool = getCurrentCodeTool()
       displayBannerWithInfo(CODE_TOOL_BANNERS[codeTool] || 'CCJK')
 
-      const result = codeTool === 'clavue'
-        ? await showClavueMenu()
-        : codeTool === 'codex'
-          ? await showCodexMenu()
-          : codeTool === 'grok'
-            ? await showGrokMenu()
-            : await showClaudeCodeMenu()
+      const result = await showToolMenu(codeTool)
 
       if (result === 'exit') {
         exitMenu = true
       }
       else if (result === 'switch') {
-        // Loop will read updated config and refresh banner
         continue
       }
     }

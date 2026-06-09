@@ -199,18 +199,26 @@ export function upsertCodexMcpService(serviceId: string, service: CodexMcpServic
     writeFile(CODEX_CONFIG_FILE, '')
   }
 
-  let content = readFile(CODEX_CONFIG_FILE) || ''
+  let content = repairBareInlineTableLines(readFile(CODEX_CONFIG_FILE) || '')
   const basePath = `mcp_servers.${serviceId}`
 
   // Check if this is an existing service with 'url' field (SSE protocol)
   // If so, we should NOT add command/args fields
-  const parsed = content ? parseToml(content) as any : {}
-  const existingService = parsed.mcp_servers?.[serviceId]
+  let existingService: { url?: string, command?: string } | undefined
+  try {
+    const parsed = content
+      ? parseToml<{ mcp_servers?: Record<string, { url?: string, command?: string }> }>(content)
+      : {}
+    existingService = parsed.mcp_servers?.[serviceId]
+  }
+  catch {
+    existingService = undefined
+  }
 
   if (existingService?.url && !existingService?.command) {
     // This is an SSE-type service, only update non-conflicting fields
     if (service.env && Object.keys(service.env).length > 0) {
-      content = editToml(content, `${basePath}.env`, service.env)
+      content = upsertMcpEnv(content, serviceId, service.env)
     }
     if (service.startup_timeout_sec) {
       content = editToml(content, `${basePath}.startup_timeout_sec`, service.startup_timeout_sec)
@@ -223,7 +231,7 @@ export function upsertCodexMcpService(serviceId: string, service: CodexMcpServic
     content = editToml(content, `${basePath}.args`, service.args || [])
 
     if (service.env && Object.keys(service.env).length > 0) {
-      content = editToml(content, `${basePath}.env`, service.env)
+      content = upsertMcpEnv(content, serviceId, service.env)
     }
     if (service.startup_timeout_sec) {
       content = editToml(content, `${basePath}.startup_timeout_sec`, service.startup_timeout_sec)
@@ -234,8 +242,19 @@ export function upsertCodexMcpService(serviceId: string, service: CodexMcpServic
 }
 
 /**
+ * Build regex that matches an MCP service section and any nested sub-sections
+ * e.g. [mcp_servers.foo], [mcp_servers.foo.env], [mcp_servers.foo.tools.search]
+ */
+function buildMcpServiceSectionRegex(serviceId: string): RegExp {
+  return new RegExp(
+    `\\n?\\[mcp_servers\\.${escapeRegex(serviceId)}(?:\\.[^\\]]+)?\\][\\s\\S]*?(?=\\n\\[|$)`,
+    'g',
+  )
+}
+
+/**
  * Delete an MCP service section from Codex config
- * Only removes: mcp_servers.{serviceId}
+ * Removes: mcp_servers.{serviceId} and nested sections (e.g. .env, .tools.search)
  * Does NOT touch: model_providers, top-level fields, other MCP services
  *
  * @param serviceId - Service ID to delete
@@ -246,14 +265,42 @@ export function deleteCodexMcpService(serviceId: string): void {
   }
 
   const content = readFile(CODEX_CONFIG_FILE) || ''
+  const updatedContent = content.replace(buildMcpServiceSectionRegex(serviceId), '')
+  writeFile(CODEX_CONFIG_FILE, updatedContent)
+}
 
-  // Use regex to remove the entire section
-  const sectionRegex = new RegExp(
-    `\\n?\\[mcp_servers\\.${escapeRegex(serviceId)}\\][\\s\\S]*?(?=\\n\\[|$)`,
-    'g',
-  )
+/**
+ * List root MCP service IDs still present in config.toml (including orphan nested-only sections)
+ */
+export function listCodexMcpServiceIds(): string[] {
+  if (!exists(CODEX_CONFIG_FILE))
+    return []
 
-  const updatedContent = content.replace(sectionRegex, '')
+  const content = readFile(CODEX_CONFIG_FILE) || ''
+  const ids = new Set<string>()
+  const sectionRegex = /^\[mcp_servers\.([^\]]+)\]/gm
+
+  for (const match of content.matchAll(sectionRegex)) {
+    const rootId = match[1].split('.')[0]
+    if (rootId)
+      ids.add(rootId)
+  }
+
+  return Array.from(ids)
+}
+
+/**
+ * Remove every mcp_servers.* section from Codex config.toml
+ */
+export function deleteAllCodexMcpServices(): void {
+  if (!exists(CODEX_CONFIG_FILE))
+    return
+
+  const content = readFile(CODEX_CONFIG_FILE) || ''
+  const updatedContent = content
+    .replace(/\n?\[mcp_servers\.[^\]]+\][\s\S]*?(?=\n\[|$)/g, '')
+    .replace(/\n?#\s*---\s*MCP servers added by CCJK\s*---\s*/gi, '')
+
   writeFile(CODEX_CONFIG_FILE, updatedContent)
 }
 
@@ -295,4 +342,53 @@ export function batchUpdateCodexMcpServices(
  */
 function escapeRegex(str: string): string {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+function repairBareInlineTableLines(content: string): string {
+  return content
+    .split('\n')
+    .map((line) => {
+      const match = line.match(/^(\s*)(\{.*\})\s*$/)
+      if (!match)
+        return line
+
+      const table = match[2]
+      return /[A-Za-z0-9_-]+\s*=/.test(table) ? `${match[1]}env = ${table}` : line
+    })
+    .join('\n')
+}
+
+function upsertMcpEnv(content: string, serviceId: string, env: Record<string, string>): string {
+  const sectionHeader = `[mcp_servers.${serviceId}]`
+  const sectionIndex = content.indexOf(sectionHeader)
+
+  if (sectionIndex === -1)
+    return editToml(content, `mcp_servers.${serviceId}.env`, env)
+
+  const envLine = `env = { ${Object.entries(env)
+    .map(([key, value]) => `${formatTomlKey(key)} = ${formatTomlString(value)}`)
+    .join(', ')} }`
+
+  const bodyStart = sectionIndex + sectionHeader.length
+  const nextSectionOffset = content.slice(bodyStart).search(/\n\[/)
+  const sectionEnd = nextSectionOffset === -1 ? content.length : bodyStart + nextSectionOffset
+  const section = content.slice(sectionIndex, sectionEnd)
+
+  if (/^env\s*=/m.test(section)) {
+    const updatedSection = section.replace(/^env\s*=.*$/m, envLine)
+    return content.slice(0, sectionIndex) + updatedSection + content.slice(sectionEnd)
+  }
+
+  const insertAt = bodyStart
+  const prefix = content.slice(0, insertAt)
+  const suffix = content.slice(insertAt)
+  return `${prefix}\n${envLine}${suffix}`
+}
+
+function formatTomlKey(key: string): string {
+  return /^[A-Za-z0-9_-]+$/.test(key) ? key : JSON.stringify(key)
+}
+
+function formatTomlString(value: string): string {
+  return JSON.stringify(normalizeTomlPath(String(value)))
 }

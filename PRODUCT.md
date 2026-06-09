@@ -7,6 +7,44 @@
 
 ---
 
+## 0. 产品隐喻：医生 + 快捷操作员
+
+ccjk **不替代** 四个原生 CLI 写代码，只管理它们的**本地配置健康度**与**一键写入**。
+
+| 角色 | 职责 | 典型命令 / 菜单 |
+|---|---|---|
+| **医生** | 只读扫描：脏 MCP、坏 Skill、冗余 prompt、过时 AGENTS.md、API 探活 | `ccjk clean`、`ccjk probe`、菜单「环境清理」 |
+| **操作员** | 经确认后写入配置（备份先行）：init、API、MCP、模型、工作流 | `ccjk init`、`ccjk menu` 各子项 |
+| **护士**（未来） | 自动修复：`ccjk doctor --fix` | 路线图，非当前主路径 |
+
+四工具能力矩阵见 `src/config/tool-matrix.ts`（代码唯一真相源）。
+
+### 配置所有权
+
+| 工具 | 配置根目录 | MCP 格式 | Profile 存哪 |
+|---|---|---|---|
+| Clavue | `~/.clavue/` | settings.json | settings.json |
+| Claude Code | `~/.claude/` | settings.json | settings.json |
+| Codex | `~/.codex/` | config.toml | config.toml `[profiles.*]` |
+| Grok CLI | `~/.grok/` | （ccjk 不写 MCP） | `~/.ccjk/config.toml` profile |
+
+ccjk 自身配置只在 `~/.ccjk/`，**绝不混入** 各工具目录。
+
+### Codex 初始化预设（操作员）
+
+| 预设 | AGENTS 风格 | 工作流 | MCP |
+|---|---|---|---|
+| **干净** | 不写 | 不装 | 不装 |
+| **优化** | agents-md-baseline | 默认工程流 | 仅 context7 |
+| **自定义** | 用户自选 | 用户自选 | 用户自选 |
+
+### 环境清理（医生）
+
+- **智能模式**（默认）：只勾选高置信度脏项（非 CCJK 管理的 MCP、坏 Skill 等）
+- **全部清理**（`--purge-all`）：移除所有 MCP / Skills / prompts / `~/.codex/AGENTS.md`；删前备份 Codex
+
+---
+
 ## 1. 目标用户
 
 - **主体**：会用终端、需要在多个 API key / provider / profile 之间切换的开发者

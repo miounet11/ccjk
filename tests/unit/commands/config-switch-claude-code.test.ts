@@ -111,11 +111,15 @@ vi.mock('../../../src/utils/ccjk-config', () => ({
   })),
 }))
 
-vi.mock('../../../src/constants', () => ({
-  DEFAULT_CODE_TOOL_TYPE: 'claude-code',
-  isCodeToolType: vi.fn(() => true),
-  resolveCodeToolType: vi.fn(type => type || 'claude-code'),
-}))
+vi.mock('../../../src/constants', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../../src/constants')>()
+  return {
+    ...actual,
+    DEFAULT_CODE_TOOL_TYPE: 'claude-code',
+    isCodeToolType: vi.fn(() => true),
+    resolveCodeToolType: vi.fn(type => type || 'claude-code'),
+  }
+})
 
 const mockInquirer = vi.mocked(inquirer)
 const mockClaudeCodeConfigManager = vi.mocked(ClaudeCodeConfigManager)

@@ -548,26 +548,26 @@ describe('prompts utilities', () => {
 
   describe('resolveSystemPromptStyle', () => {
     const availablePrompts = [
-      { id: 'engineer-professional', name: 'Professional Engineer', description: 'Professional output style' },
-      { id: 'laowang-engineer', name: 'Laowang Engineer', description: 'Friendly style' },
-      { id: 'nekomata-engineer', name: 'Nekomata Engineer', description: 'Cat-themed style' },
+      { id: 'linus-mode', name: 'Professional Engineer', description: 'Professional output style' },
+      { id: 'dhh-mode', name: 'Laowang Engineer', description: 'Friendly style' },
+      { id: 'uncle-bob-mode', name: 'Nekomata Engineer', description: 'Cat-themed style' },
     ]
 
     it('should prioritize command line option when valid', async () => {
       const result = await resolveSystemPromptStyle(
         availablePrompts,
-        'laowang-engineer',
+        'dhh-mode',
         {
           version: '1.0.0',
           lastUpdated: '2024-01-01',
           general: { preferredLang: 'en', currentTool: 'codex' },
           claudeCode: { enabled: true, outputStyles: [], installType: 'global' },
-          codex: { enabled: true, systemPromptStyle: 'engineer-professional' },
+          codex: { enabled: true, systemPromptStyle: 'linus-mode' },
         },
         false, // skipPrompt = false
       )
 
-      expect(result).toBe('laowang-engineer')
+      expect(result).toBe('dhh-mode')
       expect(inquirer.prompt).not.toHaveBeenCalled()
     })
 
@@ -582,17 +582,17 @@ describe('prompts utilities', () => {
           lastUpdated: '2024-01-01',
           general: { preferredLang: 'en', currentTool: 'codex' },
           claudeCode: { enabled: true, outputStyles: [], installType: 'global' },
-          codex: { enabled: true, systemPromptStyle: 'nekomata-engineer' },
+          codex: { enabled: true, systemPromptStyle: 'uncle-bob-mode' },
         },
         true, // skipPrompt = true
       )
 
-      expect(result).toBe('nekomata-engineer')
+      expect(result).toBe('uncle-bob-mode')
       expect(consoleSpy).not.toHaveBeenCalled()
       expect(inquirer.prompt).not.toHaveBeenCalled()
     })
 
-    it('should default to engineer-professional in skip-prompt mode when no config exists', async () => {
+    it('should default to none in skip-prompt mode when no config exists', async () => {
       const result = await resolveSystemPromptStyle(
         availablePrompts,
         undefined, // No command line option
@@ -600,30 +600,30 @@ describe('prompts utilities', () => {
         true, // skipPrompt = true
       )
 
-      expect(result).toBe('engineer-professional')
+      expect(result).toBe('none')
       expect(inquirer.prompt).not.toHaveBeenCalled()
     })
 
     it('should prioritize command line option in skip-prompt mode', async () => {
       const result = await resolveSystemPromptStyle(
         availablePrompts,
-        'laowang-engineer', // Command line option
+        'dhh-mode', // Command line option
         {
           version: '1.0.0',
           lastUpdated: '2024-01-01',
           general: { preferredLang: 'en', currentTool: 'codex' },
           claudeCode: { enabled: true, outputStyles: [], installType: 'global' },
-          codex: { enabled: true, systemPromptStyle: 'nekomata-engineer' },
+          codex: { enabled: true, systemPromptStyle: 'uncle-bob-mode' },
         },
         true, // skipPrompt = true
       )
 
-      expect(result).toBe('laowang-engineer') // Command line option wins
+      expect(result).toBe('dhh-mode') // Command line option wins
       expect(inquirer.prompt).not.toHaveBeenCalled()
     })
 
     it('should ignore invalid command line option', async () => {
-      vi.mocked(inquirer.prompt).mockResolvedValue({ systemPrompt: 'engineer-professional' })
+      vi.mocked(inquirer.prompt).mockResolvedValue({ systemPrompt: 'linus-mode' })
 
       const result = await resolveSystemPromptStyle(
         availablePrompts,
@@ -631,7 +631,7 @@ describe('prompts utilities', () => {
         null,
       )
 
-      expect(result).toBe('engineer-professional')
+      expect(result).toBe('linus-mode')
       expect(inquirer.prompt).toHaveBeenCalled()
     })
 
@@ -647,11 +647,11 @@ describe('prompts utilities', () => {
           lastUpdated: '2024-01-01',
           general: { preferredLang: 'en', currentTool: 'codex' },
           claudeCode: { enabled: true, outputStyles: [], installType: 'global' },
-          codex: { enabled: true, systemPromptStyle: 'nekomata-engineer' },
+          codex: { enabled: true, systemPromptStyle: 'uncle-bob-mode' },
         },
       )
 
-      expect(result).toBe('nekomata-engineer')
+      expect(result).toBe('uncle-bob-mode')
       expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('language:currentSystemPromptFound'))
       expect(promptBoolean).toHaveBeenCalledWith(expect.objectContaining({
         message: expect.stringContaining('language:modifySystemPromptPrompt'),
@@ -661,7 +661,7 @@ describe('prompts utilities', () => {
 
     it('should prompt for style selection when user chooses to modify', async () => {
       vi.mocked(promptBoolean).mockResolvedValueOnce(true)
-      vi.mocked(inquirer.prompt).mockResolvedValueOnce({ systemPrompt: 'laowang-engineer' })
+      vi.mocked(inquirer.prompt).mockResolvedValueOnce({ systemPrompt: 'dhh-mode' })
 
       const result = await resolveSystemPromptStyle(
         availablePrompts,
@@ -671,26 +671,26 @@ describe('prompts utilities', () => {
           lastUpdated: '2024-01-01',
           general: { preferredLang: 'en', currentTool: 'codex' },
           claudeCode: { enabled: true, outputStyles: [], installType: 'global' },
-          codex: { enabled: true, systemPromptStyle: 'engineer-professional' },
+          codex: { enabled: true, systemPromptStyle: 'linus-mode' },
         },
       )
 
-      expect(result).toBe('laowang-engineer')
+      expect(result).toBe('dhh-mode')
       expect(promptBoolean).toHaveBeenCalled()
       expect(inquirer.prompt).toHaveBeenCalledTimes(1)
     })
 
     it('should ask user when no saved config', async () => {
-      vi.mocked(inquirer.prompt).mockResolvedValue({ systemPrompt: 'engineer-professional' })
+      vi.mocked(inquirer.prompt).mockResolvedValue({ systemPrompt: 'linus-mode' })
 
       const result = await resolveSystemPromptStyle(availablePrompts, undefined, null)
 
-      expect(result).toBe('engineer-professional')
+      expect(result).toBe('linus-mode')
       expect(inquirer.prompt).toHaveBeenCalled()
     })
 
     it('should handle saved config with unknown style', async () => {
-      vi.mocked(inquirer.prompt).mockResolvedValue({ systemPrompt: 'engineer-professional' })
+      vi.mocked(inquirer.prompt).mockResolvedValue({ systemPrompt: 'linus-mode' })
 
       const result = await resolveSystemPromptStyle(
         availablePrompts,
@@ -704,7 +704,7 @@ describe('prompts utilities', () => {
         },
       )
 
-      expect(result).toBe('engineer-professional')
+      expect(result).toBe('linus-mode')
       expect(inquirer.prompt).toHaveBeenCalled()
     })
 

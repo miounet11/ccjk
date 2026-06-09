@@ -33,7 +33,7 @@ vi.mock('dayjs')
 describe('config utilities', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    vi.mocked(ccjkConfig.readCcjkConfig).mockReturnValue({ preferredLang: 'en' } as any)
+    vi.mocked(ccjkConfig.readCcjkConfig).mockReturnValue({ preferredLang: 'en', codeToolType: 'claude-code' } as any)
   })
 
   afterEach(() => {

@@ -82,7 +82,7 @@ describe('ccjkUninstaller', () => {
     it('should remove outputStyle field from settings.json', async () => {
       const settingsPath = '/home/user/.claude/settings.json'
       const mockSettings = {
-        outputStyle: 'engineer-professional',
+        outputStyle: 'linus-mode',
         otherSetting: 'value',
       }
 

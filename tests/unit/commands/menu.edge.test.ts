@@ -55,12 +55,21 @@ vi.mock('../../../src/utils/code-tools/codex', () => ({
   runCodexWorkflowImport: vi.fn(),
   configureCodexApi: vi.fn(),
   configureCodexMcp: vi.fn(),
+  manageCodexMcp: vi.fn(),
   runCodexUpdate: vi.fn(),
   runCodexUninstall: vi.fn(),
 }))
 
 vi.mock('../../../src/commands/check-updates', () => ({
   checkUpdates: vi.fn(),
+}))
+
+vi.mock('../../../src/commands/onboarding-wizard', () => ({
+  runOnboardingWizard: vi.fn().mockResolvedValue(undefined),
+}))
+
+vi.mock('../../../src/utils/code-type-resolver', () => ({
+  resolveCodeType: vi.fn(),
 }))
 
 vi.mock('../../../src/utils/error-handler', () => ({
@@ -97,6 +106,14 @@ describe('menu command - Edge Cases', () => {
     vi.spyOn(console, 'error').mockImplementation(() => {})
     mockedPromptBoolean.mockReset()
     mockedPromptBoolean.mockResolvedValue(false)
+
+    const { readCcjkConfig } = await import('../../../src/utils/ccjk-config')
+    vi.mocked(readCcjkConfig).mockReturnValue({
+      version: '1.0.0',
+      preferredLang: 'en',
+      codeToolType: 'claude-code',
+      lastUpdated: '2025-09-14T00:00:00.000Z',
+    })
 
     // Reset displayBannerWithInfo to not throw errors by default
     const { displayBannerWithInfo } = await import('../../../src/utils/banner')
@@ -244,36 +261,6 @@ describe('menu command - Edge Cases', () => {
       await showMainMenu()
 
       expect(uninstall).toHaveBeenCalledWith()
-    })
-
-    it('should handle CCR menu feature correctly', async () => {
-      const { showMainMenu } = await import('../../../src/commands/menu')
-      const { runCcrMenuFeature } = await import('../../../src/utils/tools')
-
-      vi.mocked(inquirer.prompt)
-        .mockResolvedValueOnce({ choice: 'r' })
-      queuePromptBooleans(false)
-
-      vi.mocked(runCcrMenuFeature).mockResolvedValue(undefined)
-
-      await showMainMenu()
-
-      expect(runCcrMenuFeature).toHaveBeenCalledWith()
-    })
-
-    it('should handle Cometix menu feature correctly', async () => {
-      const { showMainMenu } = await import('../../../src/commands/menu')
-      const { runCometixMenuFeature } = await import('../../../src/utils/tools')
-
-      vi.mocked(inquirer.prompt)
-        .mockResolvedValueOnce({ choice: 'l' })
-      queuePromptBooleans(false)
-
-      vi.mocked(runCometixMenuFeature).mockResolvedValue(undefined)
-
-      await showMainMenu()
-
-      expect(runCometixMenuFeature).toHaveBeenCalledWith()
     })
 
     it('should handle all feature options without errors', async () => {

@@ -12,7 +12,6 @@ import { x } from 'tinyexec'
 // Removed MCP config imports; MCP configuration moved to codex-configure.ts
 import { AI_OUTPUT_LANGUAGES, CODEX_AGENTS_FILE, CODEX_AUTH_FILE, CODEX_CONFIG_FILE, CODEX_DIR, CODEX_PROMPTS_DIR, SUPPORTED_LANGS, CCJK_CONFIG_FILE } from '../../constants'
 import { ensureI18nInitialized, format, i18n } from '../../i18n'
-import { applyAiLanguageDirective } from '../config'
 import { copyDir, copyFile, ensureDir, exists, readFile, writeFile } from '../fs-operations'
 import { readJsonConfig, writeJsonConfig } from '../json-config'
 import { normalizeTomlPath, wrapCommandWithSudo } from '../platform'
@@ -24,6 +23,13 @@ import { parseToml } from '../toml-edit'
 import { readDefaultTomlConfig, readCcjkConfig, updateTomlConfig, updateCcjkConfig } from '../ccjk-config'
 import { detectConfigManagementMode } from './codex-config-detector'
 import { configureCodexMcp } from './codex-configure'
+import {
+  CODEX_WORKFLOW_CONFIG_BASE,
+  getCodexWorkflowGroupSentinel,
+  getCodexWorkflowIdFromSentinel,
+  getCodexWorkflowOptions,
+  isCodexWorkflowGroupSentinel,
+} from '../../config/codex-workflows'
 
 // Cache to avoid repeated backups in skip-prompt mode
 let cachedSkipPromptBackup: string | null = null
@@ -210,14 +216,20 @@ export function backupCodexFiles(): string | null {
   const timestamp = dayjs().format('YYYY-MM-DD_HH-mm-ss')
   const backupDir = createBackupDirectory(timestamp)
 
-  const tmpDir = join(CODEX_DIR, 'tmp')
-  const filter = (path: string): boolean => {
-    // Skip backup directories and temp directory (runtime artifacts, dangling symlinks)
-    // Use precise path matching to avoid false positives like 'tmp-config.toml'
-    return !path.includes('/backup') && !path.startsWith(tmpDir)
+  const files = [
+    ['config.toml', CODEX_CONFIG_FILE],
+    ['auth.json', CODEX_AUTH_FILE],
+    ['AGENTS.md', CODEX_AGENTS_FILE],
+  ] as const
+
+  for (const [name, source] of files) {
+    if (exists(source))
+      copyFile(source, join(backupDir, name))
   }
 
-  copyDir(CODEX_DIR, backupDir, { filter })
+  if (exists(CODEX_PROMPTS_DIR))
+    copyDir(CODEX_PROMPTS_DIR, join(backupDir, 'prompts'))
+
   if (process.env.CCJK_CODEX_SKIP_PROMPT_SINGLE_BACKUP === 'true')
     cachedSkipPromptBackup = backupDir
 
@@ -1094,6 +1106,12 @@ export async function runCodexWorkflowImport(): Promise<void> {
   console.log(ansis.green(i18n.t('codex:workflowInstall')))
 }
 
+export interface CodexSystemPromptSelectionOptions {
+  skipPrompt?: boolean
+  forcedStyle?: string
+  skipEntirely?: boolean
+}
+
 /**
  * Run Codex workflow import with language selection (AI output language + system prompt + workflow)
  * Reuses Claude Code's language selection functionality
@@ -1121,18 +1139,43 @@ export async function runCodexWorkflowImportWithLanguageSelection(
 
   // Step 2: Save AI output language to global config
   updateCcjkConfig({ aiOutputLang })
-  applyAiLanguageDirective(aiOutputLang)
+
+  const presetAutoApply = options?.setupPreset === 'clean' || options?.setupPreset === 'optimized'
 
   // Step 3: Continue with original workflow (system prompt + workflow selection)
-  await runCodexSystemPromptSelection(skipPrompt)
-  ensureCodexAgentsLanguageDirective(aiOutputLang)
-  await runCodexWorkflowSelection(options)
-  console.log(ansis.green(i18n.t('codex:workflowInstall')))
+  await runCodexSystemPromptSelection({
+    skipPrompt: skipPrompt || presetAutoApply,
+    forcedStyle: options?.systemPromptStyle,
+    skipEntirely: options?.skipAgentsLanguageDirective && options?.systemPromptStyle === 'none',
+  })
+
+  if (!options?.skipAgentsLanguageDirective)
+    ensureCodexAgentsLanguageDirective(aiOutputLang)
+
+  if (!options?.skipWorkflowInstall) {
+    await runCodexWorkflowSelection({
+      ...options,
+      skipPrompt: skipPrompt || presetAutoApply,
+    })
+    console.log(ansis.green(i18n.t('codex:workflowInstall')))
+  }
+  else {
+    console.log(ansis.gray(i18n.t('codex:preset.clean.skippedWorkflows')))
+  }
 
   return aiOutputLang
 }
 
-export async function runCodexSystemPromptSelection(skipPrompt = false): Promise<void> {
+export async function runCodexSystemPromptSelection(
+  options: CodexSystemPromptSelectionOptions | boolean = {},
+): Promise<void> {
+  const resolved = typeof options === 'boolean'
+    ? { skipPrompt: options }
+    : options
+
+  const { skipPrompt = false, forcedStyle, skipEntirely = false } = resolved
+  if (skipEntirely)
+    return
   ensureI18nInitialized()
   const rootDir = getRootDir()
 
@@ -1160,44 +1203,35 @@ export async function runCodexSystemPromptSelection(skipPrompt = false): Promise
   if (!exists(systemPromptSrc))
     return
 
-  // Available system prompt styles (same as Claude Code output styles)
-  const availablePrompts = [
-    {
-      id: 'engineer-professional',
-      name: i18n.t('configuration:outputStyles.engineer-professional.name'),
-      description: i18n.t('configuration:outputStyles.engineer-professional.description'),
-    },
-    {
-      id: 'laowang-engineer',
-      name: i18n.t('configuration:outputStyles.laowang-engineer.name'),
-      description: i18n.t('configuration:outputStyles.laowang-engineer.description'),
-    },
-    {
-      id: 'nekomata-engineer',
-      name: i18n.t('configuration:outputStyles.nekomata-engineer.name'),
-      description: i18n.t('configuration:outputStyles.nekomata-engineer.description'),
-    },
-    {
-      id: 'ojousama-engineer',
-      name: i18n.t('configuration:outputStyles.ojousama-engineer.name'),
-      description: i18n.t('configuration:outputStyles.ojousama-engineer.description'),
-    },
-  ].filter(style => exists(join(systemPromptSrc, `${style.id}.md`)))
-
-  if (availablePrompts.length === 0)
-    return
+  const { getCodexAgentsStylePrompts } = await import('../../config/output-styles')
+  const availablePrompts = getCodexAgentsStylePrompts(systemPromptSrc)
 
   // Use the new intelligent detection function
   const { resolveSystemPromptStyle } = await import('../prompts')
-  const systemPrompt = await resolveSystemPromptStyle(
-    availablePrompts,
-    undefined, // No command line option for this function
-    tomlConfig,
-    skipPrompt, // Pass skipPrompt flag
-  )
+  const systemPrompt = forcedStyle !== undefined
+    ? forcedStyle
+    : await resolveSystemPromptStyle(
+        availablePrompts,
+        undefined,
+        tomlConfig,
+        skipPrompt,
+      )
 
-  if (!systemPrompt)
+  if (!systemPrompt || systemPrompt === 'none') {
+    try {
+      const { updateTomlConfig } = await import('../ccjk-config')
+      const { CCJK_CONFIG_FILE } = await import('../../constants')
+      updateTomlConfig(CCJK_CONFIG_FILE, {
+        codex: {
+          systemPromptStyle: 'none',
+        },
+      } as any)
+    }
+    catch {
+      // Ignore config persistence errors.
+    }
     return
+  }
 
   // Read selected system prompt file
   const promptFile = join(systemPromptSrc, `${systemPrompt}.md`)
@@ -1234,6 +1268,9 @@ export async function runCodexSystemPromptSelection(skipPrompt = false): Promise
 
 export async function runCodexWorkflowSelection(options?: CodexFullInitOptions): Promise<void> {
   ensureI18nInitialized()
+
+  if (options?.skipWorkflowInstall)
+    return
 
   const { skipPrompt = false, workflows: presetWorkflows = [] } = options ?? {}
   const rootDir = getRootDir()
@@ -1305,7 +1342,7 @@ export async function runCodexWorkflowSelection(options?: CodexFullInitOptions):
     choices: addNumbersToChoices(allWorkflows.map(workflow => ({
       name: workflow.name,
       value: workflow.path,
-      checked: true, // Default all selected
+      checked: workflow.defaultSelected,
     }))),
   }])
 
@@ -1333,66 +1370,59 @@ export async function runCodexWorkflowSelection(options?: CodexFullInitOptions):
   }
 }
 
-// Sentinel value for grouped Git workflow option
-const GIT_GROUP_SENTINEL = '::gitGroup'
+function getAllWorkflowFiles(workflowSrc: string, preferredLang: string): Array<{ name: string, path: string, defaultSelected: boolean }> {
+  const optionNames = new Map(getCodexWorkflowOptions().map(option => [option.id, option.name]))
+  const workflows: Array<{ name: string, path: string, defaultSelected: boolean }> = []
 
-function getAllWorkflowFiles(workflowSrc: string, preferredLang: string): Array<{ name: string, path: string }> {
-  const workflows: Array<{ name: string, path: string }> = []
+  for (const config of CODEX_WORKFLOW_CONFIG_BASE.sort((a, b) => a.order - b.order)) {
+    const resolvedFiles = resolveCodexWorkflowFiles(workflowSrc, preferredLang, config)
+    if (resolvedFiles.length === 0)
+      continue
 
-  // workflowSrc is templates/common/workflow/
-  // Check for sixStep workflow (single file, use real path directly)
-  const sixStepFile = join(workflowSrc, 'sixStep', preferredLang, 'workflow.md')
-  if (exists(sixStepFile)) {
+    const name = optionNames.get(config.id) || config.id
+    const path = config.type === 'group'
+      ? getCodexWorkflowGroupSentinel(config.id)
+      : resolvedFiles[0]
+
     workflows.push({
-      name: i18n.t('workflow:workflowOption.sixStepsWorkflow'),
-      path: sixStepFile,
-    })
-  }
-
-  // Add Git workflow as a grouped option mirroring Claude Code's description
-  const gitPromptsDir = join(workflowSrc, 'git', preferredLang)
-  if (exists(gitPromptsDir)) {
-    workflows.push({
-      name: i18n.t('workflow:workflowOption.gitWorkflow'),
-      // Use sentinel path for grouped selection; expanded later
-      path: GIT_GROUP_SENTINEL,
+      name,
+      path,
+      defaultSelected: config.defaultSelected,
     })
   }
 
   return workflows
 }
 
+function resolveCodexWorkflowFiles(
+  workflowSrc: string,
+  preferredLang: string,
+  config: { category: string, files: string[] },
+): string[] {
+  const resolved: string[] = []
+  for (const file of config.files) {
+    const full = join(workflowSrc, config.category, preferredLang, file)
+    if (exists(full))
+      resolved.push(full)
+  }
+  return resolved
+}
+
 // Expand grouped selections to actual file paths
 function expandSelectedWorkflowPaths(paths: string[], workflowSrc: string, preferredLang: string): string[] {
   const expanded: string[] = []
   for (const p of paths) {
-    if (p === GIT_GROUP_SENTINEL) {
-      expanded.push(...getGitPromptFiles(workflowSrc, preferredLang))
+    if (isCodexWorkflowGroupSentinel(p)) {
+      const workflowId = getCodexWorkflowIdFromSentinel(p)
+      const config = CODEX_WORKFLOW_CONFIG_BASE.find(item => item.id === workflowId)
+      if (config)
+        expanded.push(...resolveCodexWorkflowFiles(workflowSrc, preferredLang, config))
     }
     else {
       expanded.push(p)
     }
   }
   return expanded
-}
-
-// Resolve actual Git prompt files from templates
-function getGitPromptFiles(workflowSrc: string, preferredLang: string): string[] {
-  const gitPromptsDir = join(workflowSrc, 'git', preferredLang)
-  const files = [
-    'git-commit.md',
-    'git-rollback.md',
-    'git-cleanBranches.md',
-    'git-worktree.md',
-  ]
-
-  const resolved: string[] = []
-  for (const f of files) {
-    const full = join(gitPromptsDir, f)
-    if (exists(full))
-      resolved.push(full)
-  }
-  return resolved
 }
 
 function toProvidersList(providers: CodexProvider[]): Array<{ name: string, value: string }> {
@@ -1798,9 +1828,13 @@ export async function configureCodexApi(options?: CodexFullInitOptions): Promise
   console.log(ansis.green(i18n.t('codex:apiConfigured')))
 }
 
-export { configureCodexMcp }
+export { configureCodexMcp, manageCodexMcp } from './codex-configure'
 
 export interface CodexFullInitOptions extends CodexWorkflowLanguageOptions {
+  setupPreset?: 'clean' | 'optimized' | 'custom'
+  systemPromptStyle?: string
+  skipWorkflowInstall?: boolean
+  skipAgentsLanguageDirective?: boolean
   // Workflow selection options
   workflows?: string[] // Specific workflows to install, empty means all
   // MCP service options
@@ -1820,10 +1854,36 @@ export async function runCodexFullInit(
 ): Promise<AiOutputLanguage | string> {
   ensureI18nInitialized()
 
-  await installCodexCli(options?.skipPrompt || false)
-  const aiOutputLang = await runCodexWorkflowImportWithLanguageSelection(options)
-  await configureCodexApi(options)
-  await configureCodexMcp(options)
+  let resolvedOptions = { ...options }
+
+  if (!resolvedOptions.skipPrompt && !resolvedOptions.setupPreset) {
+    const { applyCodexSetupPreset, promptCodexSetupPreset } = await import('../../config/codex-presets')
+    const preset = await promptCodexSetupPreset()
+    if (!preset) {
+      console.log(ansis.yellow(i18n.t('common:cancelled')))
+      return resolvedOptions.aiOutputLang || 'en'
+    }
+    resolvedOptions = {
+      ...resolvedOptions,
+      ...applyCodexSetupPreset(preset, resolvedOptions),
+    }
+    if (preset !== 'custom') {
+      const presetName = i18n.t(`codex:preset.${preset}.name`)
+      console.log(ansis.gray(`✔ ${i18n.t('codex:preset.applied', { preset: presetName })}`))
+    }
+  }
+  else if (resolvedOptions.setupPreset && resolvedOptions.setupPreset !== 'custom') {
+    const { applyCodexSetupPreset } = await import('../../config/codex-presets')
+    resolvedOptions = {
+      ...resolvedOptions,
+      ...applyCodexSetupPreset(resolvedOptions.setupPreset, resolvedOptions),
+    }
+  }
+
+  await installCodexCli(resolvedOptions.skipPrompt || false)
+  const aiOutputLang = await runCodexWorkflowImportWithLanguageSelection(resolvedOptions)
+  await configureCodexApi(resolvedOptions)
+  await configureCodexMcp(resolvedOptions)
 
   return aiOutputLang
 }

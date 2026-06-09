@@ -456,7 +456,7 @@ name = "Test"
         },
         codex: {
           enabled: true,
-          systemPromptStyle: 'engineer-professional',
+          systemPromptStyle: 'linus-mode',
           envKeyMigrated: true, // Already migrated
         },
       })
@@ -491,7 +491,7 @@ env_key = "TEST_API_KEY"
         },
         codex: {
           enabled: true,
-          systemPromptStyle: 'engineer-professional',
+          systemPromptStyle: 'linus-mode',
           // envKeyMigrated not set
         },
       })
@@ -619,7 +619,7 @@ env_key = "TEST_API_KEY"
         },
         codex: {
           enabled: true,
-          systemPromptStyle: 'engineer-professional',
+          systemPromptStyle: 'linus-mode',
           // Not migrated yet
         },
       })

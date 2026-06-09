@@ -1,4 +1,5 @@
 import type { SupportedLang } from '../constants'
+import type { ClaudeFamilyPermissionTier } from './claude-settings-normalizer'
 import type { McpServerConfig } from '../types'
 import ansis from 'ansis'
 import inquirer from 'inquirer'
@@ -30,7 +31,7 @@ import { selectMcpServices } from './mcp-selector'
 import { configureOutputStyle } from './output-style'
 import { isWindows } from './platform'
 import { addNumbersToChoices } from './prompt-helpers'
-import { importRecommendedEnv, importRecommendedPermissions, openSettingsJson } from './simple-config'
+import { applyRecommendedPermissionTier, getPermissionTierLabel, importRecommendedEnv, importRecommendedPermissions, openSettingsJson } from './simple-config'
 import { promptBoolean } from './toggle-prompt'
 import { formatApiKeyDisplay, validateApiKey } from './validator'
 import { getActiveCodeTool, getClaudeFamilyRuntimeLabel } from './code-tool-labels'
@@ -821,10 +822,22 @@ export async function configureEnvPermissionFeature(): Promise<void> {
         value: 'env',
       },
       {
-        name: `${i18n.t('configuration:importRecommendedPermissions') || 'Import permissions'} ${ansis.gray(
-          `- ${i18n.t('configuration:importRecommendedPermissionsDesc') || 'Import permission settings'}`,
+        name: `${i18n.t('configuration:permissionTierSafe') || 'Safe permissions'} ${ansis.gray(
+          `- ${i18n.t('configuration:permissionTierSafeDesc') || 'Read-only tools only'}`,
         )}`,
-        value: 'permissions',
+        value: 'permission-safe',
+      },
+      {
+        name: `${i18n.t('configuration:permissionTierStandard') || 'Standard permissions'} ${ansis.gray(
+          `- ${i18n.t('configuration:permissionTierStandardDesc') || 'Daily development without noisy prompts'}`,
+        )}`,
+        value: 'permission-standard',
+      },
+      {
+        name: `${i18n.t('configuration:permissionTierYolo') || 'YOLO permissions'} ${ansis.gray(
+          `- ${i18n.t('configuration:permissionTierYoloDesc') || 'Bypass prompts for trusted projects'}`,
+        )}`,
+        value: 'permission-yolo',
       },
       {
         name: `${i18n.t('configuration:openSettingsJson') || 'Open settings'} ${ansis.gray(
@@ -850,6 +863,14 @@ export async function configureEnvPermissionFeature(): Promise<void> {
         await importRecommendedPermissions(settingsTool)
         console.log(ansis.green(`✅ ${i18n.t('configuration:permissionsImportSuccess') || 'Permissions imported'}`))
         break
+      case 'permission-safe':
+      case 'permission-standard':
+      case 'permission-yolo': {
+        const tier = choice.replace('permission-', '') as ClaudeFamilyPermissionTier
+        await applyRecommendedPermissionTier(tier, settingsTool)
+        console.log(ansis.green(`✅ ${i18n.t('configuration:permissionTierApplied', { tier: getPermissionTierLabel(tier) }) || `Permission tier applied: ${tier}`}`))
+        break
+      }
       case 'open':
         console.log(ansis.cyan(i18n.t('configuration:openingSettingsJson') || 'Opening settings.json...'))
         await openSettingsJson(settingsTool)

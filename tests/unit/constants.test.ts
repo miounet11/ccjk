@@ -13,14 +13,18 @@ vi.mock('../../src/i18n', () => ({
 
 describe('constants helpers', () => {
   it('should validate code tool types', () => {
+    expect(isCodeToolType('clavue')).toBe(true)
     expect(isCodeToolType('claude-code')).toBe(true)
     expect(isCodeToolType('codex')).toBe(true)
+    expect(isCodeToolType('grok')).toBe(true)
     expect(isCodeToolType('unknown')).toBe(false)
   })
 
   it('should resolve code tool aliases and fallbacks', () => {
+    expect(resolveCodeToolType('cv')).toBe('clavue')
     expect(resolveCodeToolType('cc')).toBe('claude-code')
     expect(resolveCodeToolType('cx')).toBe('codex')
+    expect(resolveCodeToolType('gk')).toBe('grok')
     expect(resolveCodeToolType('invalid')).toBe(DEFAULT_CODE_TOOL_TYPE)
   })
 

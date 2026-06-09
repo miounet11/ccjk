@@ -18,9 +18,14 @@ vi.mock('../../src/constants', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../../src/constants')>()
   return {
     ...actual,
-    ClAUDE_CONFIG_FILE: '/mock/.claude/settings.json',
+    ClAUDE_CONFIG_FILE: '/mock/.claude.json',
+    SETTINGS_FILE: '/mock/.claude/settings.json',
   }
 })
+
+vi.mock('../../src/utils/ccjk-config', () => ({
+  readCcjkConfig: vi.fn(() => ({ codeToolType: 'claude-code' })),
+}))
 
 describe('aPI Key Approval Management', () => {
   const CCR_API_KEY = 'sk-ccjk-x-ccr'
@@ -172,8 +177,8 @@ describe('aPI Key Approval Management', () => {
 
       manageApiKeyApproval(CCR_API_KEY)
 
-      expect(readJsonConfig).toHaveBeenCalledWith('/mock/.claude/settings.json')
-      expect(writeJsonConfig).toHaveBeenCalledWith('/mock/.claude/settings.json', expect.objectContaining({
+      expect(readJsonConfig).toHaveBeenCalledWith('/mock/.claude.json')
+      expect(writeJsonConfig).toHaveBeenCalledWith('/mock/.claude.json', expect.objectContaining({
         customApiKeyResponses: expect.objectContaining({
           approved: expect.arrayContaining([CCR_API_KEY]),
           rejected: expect.not.arrayContaining([CCR_API_KEY]),
@@ -186,7 +191,7 @@ describe('aPI Key Approval Management', () => {
 
       manageApiKeyApproval(CCR_API_KEY)
 
-      expect(writeJsonConfig).toHaveBeenCalledWith('/mock/.claude/settings.json', expect.objectContaining({
+      expect(writeJsonConfig).toHaveBeenCalledWith('/mock/.claude.json', expect.objectContaining({
         mcpServers: {},
         customApiKeyResponses: expect.objectContaining({
           approved: expect.arrayContaining([CCR_API_KEY]),
@@ -306,7 +311,7 @@ describe('aPI Key Approval Management', () => {
       }
 
       // Exactly 20 characters
-      const exactApiKey = 'sk-ccjk-x-ccr-exact20'
+      const exactApiKey = 'sk-ccjk-x-ccr-exact2'
       expect(exactApiKey).toHaveLength(20)
 
       const result = ensureApiKeyApproved(config, exactApiKey)

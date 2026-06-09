@@ -2,7 +2,7 @@
  * Reasonix CLI 辅助（对标 grok-config.ts）。
  *
  * Reasonix 是 DeepSeek 原生终端 coding agent（npm i -g reasonix）。
- * ccjk 只做：探测安装/配置、生成启动建议、从 ~/.ccjk/profiles 注入 env 启动。
+ * ccjk 只做：探测安装/配置、生成启动建议、从 ~/.ccjk/config.toml profile 注入 env 启动。
  * 不把 key 写入 reasonix.toml（Reasonix 用 api_key_env 指向环境变量）。
  */
 

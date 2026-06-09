@@ -1,6 +1,6 @@
 {
   "name": "ccjk",
-  "version": "16.0.2",
+  "version": "16.1.0",
   "description": "Clavue / Claude Code / Codex / Grok CLI 统一配置工具（ccjk 交互与配置方法）",
   "type": "module",
   "bin": {
@@ -76,6 +76,8 @@
     "@types/fs-extra": "^11.0.4",
     "@types/inquirer": "^9.0.7",
     "@types/node": "^22.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.60.1",
+    "@typescript-eslint/parser": "^8.60.1",
     "eslint": "^9.0.0",
     "glob": "^11.0.1",
     "tsx": "^4.0.0",

@@ -4,7 +4,7 @@ import { getAvailableOutputStyles } from '../../src/utils/output-style'
 describe('output-style basic functionality', () => {
   it('should return correct number of output styles', () => {
     const styles = getAvailableOutputStyles()
-    expect(styles).toHaveLength(9)
+    expect(styles).toHaveLength(8)
   })
 
   it('should have 6 custom styles and 3 built-in styles', () => {
@@ -12,7 +12,7 @@ describe('output-style basic functionality', () => {
     const customStyles = styles.filter(s => s.isCustom)
     const builtinStyles = styles.filter(s => !s.isCustom)
 
-    expect(customStyles).toHaveLength(6)
+    expect(customStyles).toHaveLength(5)
     expect(builtinStyles).toHaveLength(3)
   })
 
@@ -21,12 +21,11 @@ describe('output-style basic functionality', () => {
     const customStyleIds = styles.filter(s => s.isCustom).map(s => s.id)
 
     expect(customStyleIds).toEqual([
+      'agents-md-baseline',
+      'plan-first',
+      'verify-and-ship',
+      'surgical-diff',
       'engineer-professional',
-      'nekomata-engineer',
-      'laowang-engineer',
-      'ojousama-engineer',
-      'rem-engineer',
-      'leibus-engineer',
     ])
   })
 

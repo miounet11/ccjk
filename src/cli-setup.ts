@@ -8,6 +8,7 @@ import { checkUpdates } from './commands/check-updates'
 import { configSwitchCommand } from './commands/config-switch'
 import { init } from './commands/init'
 import { showMainMenu } from './commands/menu'
+import { cleanCommand } from './commands/clean'
 import { uninstall } from './commands/uninstall'
 import { update } from './commands/update'
 import { grokCommand } from './commands/grok'
@@ -36,8 +37,8 @@ export interface CliOptions {
   apiOpusModel?: string // Default Opus model
   mcpServices?: string // default: all non-key services, "skip" to skip all
   workflows?: string // default: all workflows, "skip" to skip all
-  outputStyles?: string // default: all custom styles
-  defaultOutputStyle?: string // default: engineer-professional
+  outputStyles?: string // default: none, "all" installs curated styles
+  defaultOutputStyle?: string // default: none
   allLang?: string // New: unified language parameter
   installCometixLine?: string | boolean // New: CCometixLine installation control, default: true
 }
@@ -159,9 +160,9 @@ export function customizeHelp(sections: any[]): any[] {
       `  ${ansis.green('--config-action, -r')} <action> ${i18n.t('cli:help.optionDescriptions.configHandling')} (${i18n.t('cli:help.defaults.prefix')} backup)`,
       `  ${ansis.green('--mcp-services, -m')} <list>  ${i18n.t('cli:help.optionDescriptions.mcpServices')} (${i18n.t('cli:help.defaults.prefix')} all non-key services)`,
       `  ${ansis.green('--workflows, -w')} <list>    ${i18n.t('cli:help.optionDescriptions.workflows')} (${i18n.t('cli:help.defaults.prefix')} all workflows)`,
-      `  ${ansis.green('--output-styles, -o')} <styles> ${i18n.t('cli:help.optionDescriptions.outputStyles')} (${i18n.t('cli:help.defaults.prefix')} all custom styles)`,
-      `  ${ansis.green('--default-output-style, -d')} <style> ${i18n.t('cli:help.optionDescriptions.defaultOutputStyle')} (${i18n.t('cli:help.defaults.prefix')} engineer-professional)`,
-      `  ${ansis.green('--code-type, -T')} <type>   ${i18n.t('cli:help.optionDescriptions.codeToolType')} (claude-code, codex, cc=claude-code, cx=codex)`,
+      `  ${ansis.green('--output-styles, -o')} <styles> ${i18n.t('cli:help.optionDescriptions.outputStyles')} (${i18n.t('cli:help.defaults.prefix')} none)`,
+      `  ${ansis.green('--default-output-style, -d')} <style> ${i18n.t('cli:help.optionDescriptions.defaultOutputStyle')} (${i18n.t('cli:help.defaults.prefix')} none)`,
+      `  ${ansis.green('--code-type, -T')} <type>   ${i18n.t('cli:help.optionDescriptions.codeToolType')} (clavue, claude-code, codex, grok, cv, cc, cx, gk)`,
       `  ${ansis.green('--install-cometix-line, -x')} <value> ${i18n.t('cli:help.optionDescriptions.installStatuslineTool')} (${i18n.t('cli:help.defaults.prefix')} true)`,
     ].join('\n'),
   })
@@ -258,10 +259,10 @@ export async function setupCommands(cli: CAC): Promise<void> {
     .option('--provider, -p <provider>', 'API provider preset (302ai, glm, minimax, kimi, custom)')
     .option('--mcp-services, -m <services>', `Comma-separated MCP services to install (context7,mcp-deepwiki,Playwright,exa), "skip" to skip all, "all" for all non-key services, ${i18n.t('cli:help.defaults.prefix')} all`)
     .option('--workflows, -w <workflows>', `Comma-separated workflows to install (sixStepsWorkflow,featPlanUx,gitWorkflow,bmadWorkflow), "skip" to skip all, "all" for all workflows, ${i18n.t('cli:help.defaults.prefix')} all`)
-    .option('--output-styles, -o <styles>', `Comma-separated output styles (engineer-professional,nekomata-engineer,laowang-engineer,default,explanatory,learning), "skip" to skip all, "all" for all custom styles, ${i18n.t('cli:help.defaults.prefix')} all`)
-    .option('--default-output-style, -d <style>', `Default output style, ${i18n.t('cli:help.defaults.prefix')} engineer-professional`)
+    .option('--output-styles, -o <styles>', `Comma-separated output styles (agents-md-baseline,plan-first,verify-and-ship,surgical-diff,engineer-professional,default,explanatory,learning), "skip" to skip all, "all" for practical engineering styles, ${i18n.t('cli:help.defaults.prefix')} none`)
+    .option('--default-output-style, -d <style>', `Default output style (or "none" to keep original behavior), ${i18n.t('cli:help.defaults.prefix')} none`)
     .option('--all-lang, -g <lang>', 'Set all language parameters to this value')
-    .option('--code-type, -T <codeType>', 'Select code tool type (claude-code, codex, cc, cx)')
+    .option('--code-type, -T <codeType>', 'Select code tool type (clavue, claude-code, codex, grok, cv, cc, cx, gk)')
     .option('--install-cometix-line, -x <value>', `Install CCometixLine statusline tool (true/false), ${i18n.t('cli:help.defaults.prefix')} true`)
     .option('--api-configs <configs>', 'API configurations as JSON string for multiple profiles')
     .option('--api-configs-file <file>', 'Path to JSON file containing API configurations')
@@ -303,7 +304,7 @@ export async function setupCommands(cli: CAC): Promise<void> {
   cli
     .command('config-switch [target]', 'Switch Codex provider or Claude Code configuration, or list available configurations')
     .alias('cs')
-    .option('--code-type, -T <type>', 'Code tool type (claude-code, codex, cc, cx)')
+    .option('--code-type, -T <type>', 'Code tool type (clavue, claude-code, codex, grok, cv, cc, cx, gk)')
     .option('--lang <lang>', 'CCJK display language (zh-CN, en)')
     .option('--all-lang, -g <lang>', 'Set all language parameters to this value')
     .option('--list, -l', 'List available configurations')
@@ -315,12 +316,27 @@ export async function setupCommands(cli: CAC): Promise<void> {
       })
     }))
 
+  cli
+    .command('clean', 'Clean dirty MCP servers, skills, and redundant prompts')
+    .option('--code-type, -T <codeType>', 'Code tool context (clavue, claude-code, codex, grok)')
+    .option('-s, --skip-prompt', 'Non-interactive: clean only high-confidence items')
+    .option('--aggressive', 'Select all detected issues in non-interactive mode')
+    .option('--purge-all', 'Remove ALL MCP, skills, prompts, and ~/.codex/AGENTS.md')
+    .action(await withLanguageResolution(async (options) => {
+      await cleanCommand({
+        codeType: options.codeType,
+        skipPrompt: options.skipPrompt,
+        aggressive: options.aggressive,
+        purgeAll: options.purgeAll,
+      })
+    }))
+
   // Uninstall command - Remove CCJK configurations and tools
   cli
     .command('uninstall', 'Remove CCJK configurations and tools')
     .option('--lang, -l <lang>', 'CCJK display language (zh-CN, en)')
     .option('--all-lang, -g <lang>', 'Set all language parameters to this value')
-    .option('--code-type, -T <codeType>', 'Select code tool type (claude-code, codex, cc, cx)')
+    .option('--code-type, -T <codeType>', 'Select code tool type (clavue, claude-code, codex, grok, cv, cc, cx, gk)')
     .option('--mode, -m <mode>', 'Uninstall mode (complete/custom/interactive), default: interactive')
     .option('--items, -i <items>', 'Comma-separated items for custom uninstall mode')
     .action(await withLanguageResolution(async (options) => {
@@ -367,7 +383,7 @@ export async function setupCommands(cli: CAC): Promise<void> {
     .alias('check')
     .option('--lang, -l <lang>', 'CCJK display language (zh-CN, en)')
     .option('--all-lang, -g <lang>', 'Set all language parameters to this value')
-    .option('--code-type, -T <codeType>', 'Select code tool type (claude-code, codex, cc, cx)')
+    .option('--code-type, -T <codeType>', 'Select code tool type (clavue, claude-code, codex, grok, cv, cc, cx, gk)')
     .option('--skip-prompt, -s', 'Skip all interactive prompts (non-interactive mode)')
     .action(await withLanguageResolution(async (options) => {
       await checkUpdates(options)

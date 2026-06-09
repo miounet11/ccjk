@@ -320,8 +320,8 @@ export async function resolveSystemPromptStyle(
 
   // Priority 3: No saved config
   if (skipPrompt) {
-    // Non-interactive mode: default to engineer-professional
-    return 'engineer-professional'
+    // Non-interactive mode: keep original behavior
+    return 'none'
   }
 
   // Interactive mode: ask user to select
@@ -329,11 +329,17 @@ export async function resolveSystemPromptStyle(
     type: 'list',
     name: 'systemPrompt',
     message: i18n.t('codex:systemPromptPrompt'),
-    choices: addNumbersToChoices(availablePrompts.map(style => ({
-      name: `${style.name} - ${ansis.gray(style.description)}`,
-      value: style.id,
-    }))),
-    default: 'engineer-professional', // Default to engineer-professional
+    choices: addNumbersToChoices([
+      {
+        name: `${i18n.t('configuration:noOutputStyle')} - ${ansis.gray(i18n.t('configuration:noOutputStyleDesc'))}`,
+        value: 'none',
+      },
+      ...availablePrompts.map(style => ({
+        name: `${style.name} - ${ansis.gray(style.description)}`,
+        value: style.id,
+      })),
+    ]),
+    default: 'none',
   }])
 
   if (!systemPrompt) {

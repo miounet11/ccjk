@@ -16,6 +16,9 @@ vi.mock('inquirer')
 vi.mock('../../../src/utils/config')
 vi.mock('../../../src/utils/output-style')
 vi.mock('../../../src/utils/validator')
+vi.mock('../../../src/utils/ccjk-config', () => ({
+  readCcjkConfig: vi.fn(() => ({ codeToolType: 'claude-code' })),
+}))
 
 describe('config-operations utilities', () => {
   beforeAll(() => {
@@ -477,7 +480,7 @@ describe('config-operations utilities', () => {
     it('should apply AI language directive if provided', async () => {
       await updatePromptOnly('Chinese')
 
-      expect(config.applyAiLanguageDirective).toHaveBeenCalledWith('Chinese')
+      expect(config.applyAiLanguageDirective).toHaveBeenCalledWith('Chinese', 'claude-code')
     })
 
     it('should not apply AI language directive if not provided', async () => {
@@ -499,7 +502,7 @@ describe('config-operations utilities', () => {
         expect.stringContaining(i18n.t('configuration:configSuccess')),
       )
       expect(console.log).toHaveBeenCalledWith(
-        expect.stringContaining(i18n.t('common:complete')),
+        expect.stringContaining('claude'),
       )
     })
 
@@ -516,7 +519,7 @@ describe('config-operations utilities', () => {
       await updatePromptOnly('English')
 
       // copyConfigFiles is no longer called since memory files are not copied
-      expect(config.applyAiLanguageDirective).toHaveBeenCalledWith('English')
+      expect(config.applyAiLanguageDirective).toHaveBeenCalledWith('English', 'claude-code')
       expect(outputStyle.configureOutputStyle).toHaveBeenCalled()
     })
 
@@ -527,7 +530,7 @@ describe('config-operations utilities', () => {
         expect.stringContaining(i18n.t('configuration:configSuccess')),
       )
       expect(console.log).toHaveBeenCalledWith(
-        expect.stringContaining(i18n.t('common:complete')),
+        expect.stringContaining('claude'),
       )
     })
   })

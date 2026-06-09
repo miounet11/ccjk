@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 // Mock all external dependencies
 vi.mock('../../../../src/utils/fs-operations', () => ({
   copyDir: vi.fn(),
+  copyFile: vi.fn(),
   ensureDir: vi.fn(),
   exists: vi.fn(),
 }))
@@ -19,6 +20,7 @@ const mockedDayjs = (await import('dayjs')).default
 
 const mockedExists = vi.mocked(mockedFsOps.exists)
 const mockedCopyDir = vi.mocked(mockedFsOps.copyDir)
+const mockedCopyFile = vi.mocked(mockedFsOps.copyFile)
 const mockedEnsureDir = vi.mocked(mockedFsOps.ensureDir)
 
 // Import the functions to test after mocks are set up
@@ -45,6 +47,7 @@ describe('backupCodexComplete', () => {
     // Arrange
     mockedExists.mockImplementation(() => true)
     mockedCopyDir.mockImplementation(() => {})
+    mockedCopyFile.mockImplementation(() => {})
     mockedEnsureDir.mockImplementation(() => {})
 
     // Act
@@ -53,42 +56,38 @@ describe('backupCodexComplete', () => {
     // Assert - Test core behavior
     expect(mockedExists).toHaveBeenCalledWith(CODEX_DIR)
     expect(mockedEnsureDir).toHaveBeenCalled() // createBackupDirectory calls ensureDir
-    expect(mockedCopyDir).toHaveBeenCalledWith(
-      CODEX_DIR,
-      expectedBackupDir,
-      expect.objectContaining({
-        filter: expect.any(Function),
-      }),
-    )
+    expect(mockedCopyFile).toHaveBeenCalledWith(expect.stringContaining('config.toml'), join(expectedBackupDir, 'config.toml'))
+    expect(mockedCopyFile).toHaveBeenCalledWith(expect.stringContaining('auth.json'), join(expectedBackupDir, 'auth.json'))
+    expect(mockedCopyFile).toHaveBeenCalledWith(expect.stringContaining('AGENTS.md'), join(expectedBackupDir, 'AGENTS.md'))
+    expect(mockedCopyDir).toHaveBeenCalledWith(expect.stringContaining('prompts'), join(expectedBackupDir, 'prompts'))
     expect(result).toBe(expectedBackupDir)
   })
 
-  it('should exclude backup directory from backup using filter', async () => {
+  it('should not copy runtime-heavy codex directories', async () => {
     // Arrange
     mockedExists.mockImplementation(() => true)
     mockedCopyDir.mockImplementation(() => {})
+    mockedCopyFile.mockImplementation(() => {})
     mockedEnsureDir.mockImplementation(() => {})
 
     // Act
     backupCodexComplete()
 
-    // Assert - Check filter function excludes backup paths
-    expect(mockedCopyDir).toHaveBeenCalled()
-    const copyDirCall = mockedCopyDir.mock.calls[0]
-    const options = copyDirCall[2] as any
-    const filterFunction = options.filter
+    const copiedSources = [
+      ...mockedCopyFile.mock.calls.map(call => call[0]),
+      ...mockedCopyDir.mock.calls.map(call => call[0]),
+    ]
 
-    // Test filter function
-    expect(filterFunction('/some/path/file.txt')).toBe(true)
-    expect(filterFunction('/some/path/backup/file.txt')).toBe(false)
-    expect(filterFunction('/home/.codex/backup/old')).toBe(false)
-    expect(filterFunction('/home/.codex/config.toml')).toBe(true)
+    expect(copiedSources.some(path => path.includes('/sessions'))).toBe(false)
+    expect(copiedSources.some(path => path.includes('/.tmp'))).toBe(false)
+    expect(copiedSources.some(path => path.includes('/backup'))).toBe(false)
   })
 
   it('should return backup path on success', async () => {
     // Arrange
     mockedExists.mockImplementation(() => true)
     mockedCopyDir.mockImplementation(() => {})
+    mockedCopyFile.mockImplementation(() => {})
     mockedEnsureDir.mockImplementation(() => {})
 
     // Act
@@ -109,6 +108,7 @@ describe('backupCodexComplete', () => {
     // Assert
     expect(result).toBeNull()
     expect(mockedCopyDir).not.toHaveBeenCalled()
+    expect(mockedCopyFile).not.toHaveBeenCalled()
     expect(mockedEnsureDir).not.toHaveBeenCalled()
   })
 
@@ -116,7 +116,7 @@ describe('backupCodexComplete', () => {
     // Arrange
     mockedExists.mockImplementation(() => true)
     mockedEnsureDir.mockImplementation(() => {})
-    mockedCopyDir.mockImplementation(() => {
+    mockedCopyFile.mockImplementation(() => {
       throw new Error('Permission denied')
     })
 
@@ -140,6 +140,7 @@ describe('backupCodexComplete', () => {
     // Arrange
     mockedExists.mockImplementation(() => true)
     mockedCopyDir.mockImplementation(() => {})
+    mockedCopyFile.mockImplementation(() => {})
     mockedEnsureDir.mockImplementation(() => {})
 
     // Act

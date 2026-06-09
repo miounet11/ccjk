@@ -6,10 +6,15 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     setupFiles: ['./tests/setup.ts'],
+    include: ['tests/**/*.test.ts', 'tests/**/*.spec.ts'],
     exclude: [
       '**/node_modules/**',
       '**/dist/**',
       '**/docs/**',
+      // 历史 worktree / 归档代码，不属于当前 ccjk 主路径
+      '**/.claude/**',
+      '**/.clavue/**',
+      '**/src-v15-archive/**',
     ],
     coverage: {
       provider: 'v8',

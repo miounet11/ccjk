@@ -335,7 +335,7 @@ model_provider = "official"
       vi.mocked(resolveAiOutputLanguage).mockResolvedValue(mockAiOutputLang)
       vi.mocked(exists).mockReturnValue(true)
       vi.mocked(readFile).mockReturnValue('# System prompt content')
-      vi.mocked(inquirer.prompt).mockResolvedValue({ systemPrompt: 'engineer-professional' })
+      vi.mocked(inquirer.prompt).mockResolvedValue({ systemPrompt: 'linus-mode' })
 
       // Act
       await runCodexWorkflowImportWithLanguageSelection()
@@ -349,7 +349,7 @@ model_provider = "official"
       )
       expect(updateCcjkConfig).toHaveBeenCalledWith({ aiOutputLang: mockAiOutputLang })
       expect(updateCcjkConfig).toHaveBeenCalledWith({ templateLang: 'zh-CN' })
-      expect(applyAiLanguageDirective).toHaveBeenCalledWith(mockAiOutputLang)
+      expect(applyAiLanguageDirective).not.toHaveBeenCalled()
 
       const agentsWriteCall = vi.mocked(writeFile).mock.calls.find(call => call[0]?.includes('AGENTS.md'))
       expect(agentsWriteCall?.[1]).toContain('**Most Important:Always respond in Chinese-simplified**')
@@ -369,7 +369,7 @@ model_provider = "official"
       vi.mocked(resolveAiOutputLanguage).mockResolvedValue('en') // Should return saved config
       vi.mocked(exists).mockReturnValue(true)
       vi.mocked(readFile).mockReturnValue('# System prompt content')
-      vi.mocked(inquirer.prompt).mockResolvedValue({ systemPrompt: 'engineer-professional' })
+      vi.mocked(inquirer.prompt).mockResolvedValue({ systemPrompt: 'linus-mode' })
 
       // Act
       await runCodexWorkflowImportWithLanguageSelection()
@@ -400,7 +400,7 @@ model_provider = "official"
       vi.mocked(resolveAiOutputLanguage).mockResolvedValue('zh-CN') // Should return saved config
       vi.mocked(exists).mockReturnValue(true)
       vi.mocked(readFile).mockReturnValue('# System prompt content')
-      vi.mocked(inquirer.prompt).mockResolvedValue({ systemPrompt: 'engineer-professional' })
+      vi.mocked(inquirer.prompt).mockResolvedValue({ systemPrompt: 'linus-mode' })
 
       // Act
       await runCodexWorkflowImportWithLanguageSelection({ skipPrompt: true })
@@ -430,7 +430,7 @@ model_provider = "official"
         return path.includes('/en/') || path.includes('system-prompt') || path.includes('workflow') // English template exists
       })
       vi.mocked(readFile).mockReturnValue('# System prompt content')
-      vi.mocked(inquirer.prompt).mockResolvedValue({ systemPrompt: 'engineer-professional' })
+      vi.mocked(inquirer.prompt).mockResolvedValue({ systemPrompt: 'linus-mode' })
 
       // Act
       await runCodexWorkflowImportWithLanguageSelection()
@@ -472,7 +472,7 @@ model_provider = "official"
         return false
       })
       vi.mocked(readFile).mockReturnValue('# System prompt content')
-      vi.mocked(inquirer.prompt).mockResolvedValue({ systemPrompt: 'engineer-professional' })
+      vi.mocked(inquirer.prompt).mockResolvedValue({ systemPrompt: 'linus-mode' })
 
       // Act
       await runCodexWorkflowImportWithLanguageSelection()

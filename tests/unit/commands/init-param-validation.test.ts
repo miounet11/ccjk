@@ -70,45 +70,51 @@ describe('validateSkipPromptOptions', () => {
     options = {}
   })
 
-  it('should synchronise config and AI languages when allLang is core language', () => {
+  it('should synchronise config and AI languages when allLang is core language', async () => {
     options.allLang = 'zh-CN'
 
-    validateSkipPromptOptions(options)
+    await validateSkipPromptOptions(options)
 
     expect(options.configLang).toBe('zh-CN')
     expect(options.aiOutputLang).toBe('zh-CN')
   })
 
-  it('should default configLang to en when allLang is custom', () => {
+  it('should default configLang to en when allLang is custom', async () => {
     options.allLang = 'fr'
 
-    validateSkipPromptOptions(options)
+    await validateSkipPromptOptions(options)
 
     expect(options.configLang).toBe('en')
     expect(options.aiOutputLang).toBe('fr')
   })
 
-  it('should parse outputStyles string lists and defaults', () => {
-    options.outputStyles = 'engineer-professional,default'
+  it('should parse outputStyles string lists and defaults', async () => {
+    options.outputStyles = 'agents-md-baseline,default'
 
-    validateSkipPromptOptions(options)
+    await validateSkipPromptOptions(options)
 
-    expect(options.outputStyles).toEqual(['engineer-professional', 'default'])
-    expect(options.defaultOutputStyle).toBe('engineer-professional')
+    expect(options.outputStyles).toEqual(['agents-md-baseline', 'default'])
+    expect(options.defaultOutputStyle).toBe('none')
   })
 
-  it('should expand outputStyles \"all\" shortcut', () => {
+  it('should expand outputStyles \"all\" shortcut', async () => {
     options.outputStyles = 'all'
 
-    validateSkipPromptOptions(options)
+    await validateSkipPromptOptions(options)
 
-    expect(options.outputStyles).toEqual(['engineer-professional', 'nekomata-engineer', 'laowang-engineer'])
+    expect(options.outputStyles).toEqual([
+      'agents-md-baseline',
+      'plan-first',
+      'verify-and-ship',
+      'surgical-diff',
+      'engineer-professional',
+    ])
   })
 
-  it('should convert outputStyles "skip" to boolean false', () => {
+  it('should convert outputStyles "skip" to boolean false', async () => {
     options.outputStyles = 'skip'
 
-    validateSkipPromptOptions(options)
+    await validateSkipPromptOptions(options)
 
     expect(options.outputStyles).toBe(false)
   })
@@ -137,26 +143,26 @@ describe('validateSkipPromptOptions', () => {
     await expect(validateSkipPromptOptions(options)).rejects.toThrow('errors:apiKeyRequiredForAuthToken')
   })
 
-  it('should convert mcpServices string lists and defaults', () => {
+  it('should convert mcpServices string lists and defaults', async () => {
     options.mcpServices = 'service-a,service-c'
 
-    validateSkipPromptOptions(options)
+    await validateSkipPromptOptions(options)
 
     expect(options.mcpServices).toEqual(['service-a', 'service-c'])
   })
 
-  it('should treat mcpServices skip as false', () => {
+  it('should treat mcpServices skip as false', async () => {
     options.mcpServices = 'skip'
 
-    validateSkipPromptOptions(options)
+    await validateSkipPromptOptions(options)
 
     expect(options.mcpServices).toBe(false)
   })
 
-  it('should expand mcpServices all to available non-key services', () => {
+  it('should expand mcpServices all to available non-key services', async () => {
     options.mcpServices = 'all'
 
-    validateSkipPromptOptions(options)
+    await validateSkipPromptOptions(options)
 
     expect(options.mcpServices).toEqual(['service-a', 'service-c'])
   })
@@ -168,7 +174,7 @@ describe('validateSkipPromptOptions', () => {
   })
 
   it('should validate outputStyles array values', async () => {
-    options.outputStyles = ['engineer-professional', 'unknown']
+    options.outputStyles = ['agents-md-baseline', 'unknown']
 
     await expect(validateSkipPromptOptions(options)).rejects.toThrow('errors:invalidOutputStyle')
   })
@@ -179,26 +185,26 @@ describe('validateSkipPromptOptions', () => {
     await expect(validateSkipPromptOptions(options)).rejects.toThrow('errors:invalidDefaultOutputStyle')
   })
 
-  it('should convert workflows string to array and validate entries', () => {
+  it('should convert workflows string to array and validate entries', async () => {
     options.workflows = 'workflow-a,workflow-b'
 
-    validateSkipPromptOptions(options)
+    await validateSkipPromptOptions(options)
 
     expect(options.workflows).toEqual(['workflow-a', 'workflow-b'])
   })
 
-  it('should treat workflows skip as false', () => {
+  it('should treat workflows skip as false', async () => {
     options.workflows = 'skip'
 
-    validateSkipPromptOptions(options)
+    await validateSkipPromptOptions(options)
 
     expect(options.workflows).toBe(false)
   })
 
-  it('should expand workflows all to configured list', () => {
+  it('should expand workflows all to configured list', async () => {
     options.workflows = 'all'
 
-    validateSkipPromptOptions(options)
+    await validateSkipPromptOptions(options)
 
     expect(options.workflows).toEqual(['workflow-a', 'workflow-b'])
   })
@@ -216,18 +222,18 @@ describe('validateSkipPromptOptions', () => {
     await expect(validateSkipPromptOptions(options)).rejects.toThrow('Cannot specify both --api-configs and --api-configs-file at the same time')
   })
 
-  it('should set defaults for mcpServices, workflows and installCometixLine', () => {
-    validateSkipPromptOptions(options)
+  it('should set defaults for mcpServices, workflows and installCometixLine', async () => {
+    await validateSkipPromptOptions(options)
 
     expect(options.mcpServices).toEqual(['service-a', 'service-c'])
     expect(options.workflows).toEqual(['workflow-a', 'workflow-b'])
     expect(options.installCometixLine).toBe(true)
   })
 
-  it('should parse installCometixLine string boolean', () => {
+  it('should parse installCometixLine string boolean', async () => {
     options.installCometixLine = 'false'
 
-    validateSkipPromptOptions(options)
+    await validateSkipPromptOptions(options)
 
     expect(options.installCometixLine).toBe(false)
   })
@@ -248,25 +254,25 @@ describe('validateSkipPromptOptions', () => {
   })
 
   describe('aPI model validation', () => {
-    it('should accept valid apiModel parameter', () => {
+    it('should accept valid apiModel parameter', async () => {
       options.apiType = 'api_key'
       options.apiKey = 'sk-test'
       options.apiModel = 'claude-sonnet-4-5'
 
-      expect(() => validateSkipPromptOptions(options)).not.toThrow()
+      await expect(validateSkipPromptOptions(options)).resolves.toBeUndefined()
       expect(options.apiModel).toBe('claude-sonnet-4-5')
     })
 
-    it('should accept valid apiHaikuModel parameter', () => {
+    it('should accept valid apiHaikuModel parameter', async () => {
       options.apiType = 'api_key'
       options.apiKey = 'sk-test'
       options.apiHaikuModel = 'claude-haiku-4-5'
 
-      expect(() => validateSkipPromptOptions(options)).not.toThrow()
+      await expect(validateSkipPromptOptions(options)).resolves.toBeUndefined()
       expect(options.apiHaikuModel).toBe('claude-haiku-4-5')
     })
 
-    it('should accept multiple model parameters together', () => {
+    it('should accept multiple model parameters together', async () => {
       options.apiType = 'api_key'
       options.apiKey = 'sk-test'
       options.apiModel = 'claude-sonnet-4-5'
@@ -274,7 +280,7 @@ describe('validateSkipPromptOptions', () => {
       options.apiSonnetModel = 'claude-3.5-sonnet'
       options.apiOpusModel = 'claude-opus-4-5'
 
-      expect(() => validateSkipPromptOptions(options)).not.toThrow()
+      await expect(validateSkipPromptOptions(options)).resolves.toBeUndefined()
       expect(options.apiModel).toBe('claude-sonnet-4-5')
       expect(options.apiHaikuModel).toBe('claude-haiku-4-5')
       expect(options.apiSonnetModel).toBe('claude-3.5-sonnet')
@@ -297,11 +303,10 @@ describe('validateSkipPromptOptions', () => {
       await expect(validateSkipPromptOptions(options)).rejects.toThrow('Invalid model parameter')
     })
 
-    it('should allow model parameters without apiType in non-skip-prompt mode', () => {
+    it('should allow model parameters without apiType in non-skip-prompt mode', async () => {
       options.apiModel = 'claude-sonnet-4-5'
 
-      // Should not throw - validation only applies in skip-prompt mode
-      expect(() => validateSkipPromptOptions(options)).not.toThrow()
+      await expect(validateSkipPromptOptions(options)).resolves.toBeUndefined()
     })
   })
 })

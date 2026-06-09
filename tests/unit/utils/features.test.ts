@@ -59,6 +59,8 @@ vi.mock('../../../src/utils/mcp-selector', () => ({
 }))
 
 vi.mock('../../../src/utils/simple-config', () => ({
+  applyRecommendedPermissionTier: vi.fn(),
+  getPermissionTierLabel: vi.fn((tier: string) => tier),
   importRecommendedEnv: vi.fn(),
   importRecommendedPermissions: vi.fn(),
   openSettingsJson: vi.fn(),
@@ -248,7 +250,7 @@ describe('features utilities', () => {
       await configureDefaultModelFeature()
 
       expect(configModule.getExistingModelConfig).toHaveBeenCalled()
-      expect(configModule.updateDefaultModel).toHaveBeenCalledWith('opus')
+      expect(configModule.updateDefaultModel).toHaveBeenCalledWith('opus', 'clavue')
     })
 
     it('should show existing config and ask for modification', async () => {
@@ -264,7 +266,7 @@ describe('features utilities', () => {
 
       expect(configModule.getExistingModelConfig).toHaveBeenCalled()
       expect(inquirer.prompt).toHaveBeenCalledTimes(1)
-      expect(configModule.updateDefaultModel).toHaveBeenCalledWith('opus')
+      expect(configModule.updateDefaultModel).toHaveBeenCalledWith('opus', 'clavue')
     })
 
     it('should keep existing config when user declines modification', async () => {
@@ -291,7 +293,7 @@ describe('features utilities', () => {
 
       await configureDefaultModelFeature()
 
-      expect(configModule.updateDefaultModel).toHaveBeenCalledWith('default')
+      expect(configModule.updateDefaultModel).toHaveBeenCalledWith('default', 'clavue')
     })
 
     it('should handle user cancellation', async () => {
@@ -357,6 +359,7 @@ describe('features utilities', () => {
         'claude-3-haiku-20240307',
         'claude-3.5-sonnet-20241022',
         'claude-opus-4-5',
+        'clavue',
       )
     })
 
@@ -400,7 +403,7 @@ describe('features utilities', () => {
       await configureAiMemoryFeature()
 
       expect(selectAiOutputLanguage).toHaveBeenCalledWith()
-      expect(applyAiLanguageDirective).toHaveBeenCalledWith('chinese-simplified')
+      expect(applyAiLanguageDirective).toHaveBeenCalledWith('chinese-simplified', 'clavue')
       expect(updateCcjkConfig).toHaveBeenCalledWith({ aiOutputLang: 'chinese-simplified' })
     })
 
@@ -421,7 +424,7 @@ describe('features utilities', () => {
 
       expect(inquirer.prompt).toHaveBeenCalledTimes(1)
       expect(selectAiOutputLanguage).toHaveBeenCalled()
-      expect(applyAiLanguageDirective).toHaveBeenCalledWith('zh-CN')
+      expect(applyAiLanguageDirective).toHaveBeenCalledWith('zh-CN', 'clavue')
     })
 
     it('should keep existing language config when user declines modification', async () => {
@@ -450,7 +453,7 @@ describe('features utilities', () => {
 
       await configureAiMemoryFeature()
 
-      expect(_configureOutputStyle).toHaveBeenCalledWith()
+      expect(_configureOutputStyle).toHaveBeenCalledWith(undefined, undefined, 'clavue')
     })
 
     it('should handle user cancellation', async () => {
@@ -497,6 +500,22 @@ describe('features utilities', () => {
       await configureEnvPermissionFeature()
 
       expect(importRecommendedEnv).toHaveBeenCalled()
+    })
+
+    it('should apply Clavue yolo permission tier', async () => {
+      const { configureEnvPermissionFeature } = await import('../../../src/utils/features')
+      const { applyRecommendedPermissionTier } = await import('../../../src/utils/simple-config')
+      const { readCcjkConfig } = await import('../../../src/utils/ccjk-config')
+
+      vi.mocked(readCcjkConfig).mockReturnValue({ codeToolType: 'clavue' } as any)
+      vi.mocked(inquirer.prompt).mockResolvedValue({
+        choice: 'permission-yolo',
+      })
+      vi.mocked(applyRecommendedPermissionTier).mockResolvedValue(undefined)
+
+      await configureEnvPermissionFeature()
+
+      expect(applyRecommendedPermissionTier).toHaveBeenCalledWith('yolo', 'clavue')
     })
   })
 

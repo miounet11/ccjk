@@ -1,14 +1,14 @@
 import { describe, expect, it, vi } from 'vitest'
 import { resolveCodeType } from '../../../src/utils/code-type-resolver'
 
-// Mock readCcjkConfigAsync
+const VALID_OPTIONS = 'cv, cc, cx, gk, clavue, claude-code, codex, grok'
+
 vi.mock('../../../src/utils/ccjk-config', () => ({
   readCcjkConfigAsync: vi.fn().mockResolvedValue({
     codeToolType: 'codex',
   }),
 }))
 
-// Mock i18n
 vi.mock('../../../src/i18n', () => ({
   i18n: {
     t: vi.fn((key, variables) => {
@@ -32,67 +32,68 @@ describe('resolveCodeType', () => {
     expect(result).toBe('codex')
   })
 
-  it('should accept full code type names', async () => {
-    const result1 = await resolveCodeType('claude-code')
-    expect(result1).toBe('claude-code')
+  it('should resolve cv abbreviation to clavue', async () => {
+    const result = await resolveCodeType('cv')
+    expect(result).toBe('clavue')
+  })
 
-    const result2 = await resolveCodeType('codex')
-    expect(result2).toBe('codex')
+  it('should resolve gk abbreviation to grok', async () => {
+    const result = await resolveCodeType('gk')
+    expect(result).toBe('grok')
+  })
+
+  it('should accept full code type names', async () => {
+    expect(await resolveCodeType('claude-code')).toBe('claude-code')
+    expect(await resolveCodeType('codex')).toBe('codex')
+    expect(await resolveCodeType('clavue')).toBe('clavue')
+    expect(await resolveCodeType('grok')).toBe('grok')
   })
 
   it('should be case insensitive', async () => {
-    const result1 = await resolveCodeType('CC')
-    expect(result1).toBe('claude-code')
-
-    const result2 = await resolveCodeType('CX')
-    expect(result2).toBe('codex')
+    expect(await resolveCodeType('CC')).toBe('claude-code')
+    expect(await resolveCodeType('CX')).toBe('codex')
+    expect(await resolveCodeType('CV')).toBe('clavue')
   })
 
   it('should throw error for invalid code type', async () => {
     await expect(resolveCodeType('invalid')).rejects.toThrow(
-      'Invalid code type: "invalid". Valid options are: cc, cx, claude-code, codex. Using default: codex.',
+      `Invalid code type: "invalid". Valid options are: ${VALID_OPTIONS}. Using default: codex.`,
     )
   })
 
   it('should return default when no parameter provided', async () => {
     const result = await resolveCodeType()
-    expect(result).toBe('codex') // from mocked config
+    expect(result).toBe('codex')
   })
 
   it('should use DEFAULT_CODE_TOOL_TYPE when config read fails in error path', async () => {
     const { readCcjkConfigAsync } = await import('../../../src/utils/ccjk-config')
-
-    // Mock config read to fail
     vi.mocked(readCcjkConfigAsync).mockRejectedValueOnce(new Error('Config read failed'))
 
     await expect(resolveCodeType('invalid')).rejects.toThrow(
-      'Invalid code type: "invalid". Valid options are: cc, cx, claude-code, codex. Using default: claude-code.',
+      `Invalid code type: "invalid". Valid options are: ${VALID_OPTIONS}. Using default: clavue.`,
     )
   })
 
   it('should use config value as default when available in error path', async () => {
     const { readCcjkConfigAsync } = await import('../../../src/utils/ccjk-config')
-
-    // Mock config read to succeed with custom value
     vi.mocked(readCcjkConfigAsync).mockResolvedValueOnce({
       codeToolType: 'codex',
     } as any)
 
     await expect(resolveCodeType('invalid')).rejects.toThrow(
-      'Invalid code type: "invalid". Valid options are: cc, cx, claude-code, codex. Using default: codex.',
+      `Invalid code type: "invalid". Valid options are: ${VALID_OPTIONS}. Using default: codex.`,
     )
   })
 
   it('should handle invalid config value in error path', async () => {
     const { readCcjkConfigAsync } = await import('../../../src/utils/ccjk-config')
-
-    // Mock config read to return invalid code type
     vi.mocked(readCcjkConfigAsync).mockResolvedValueOnce({
       codeToolType: 'invalid-type',
     } as any)
 
     await expect(resolveCodeType('wrong')).rejects.toThrow(
-      'Invalid code type: "wrong". Valid options are: cc, cx, claude-code, codex. Using default: claude-code.',
+      `Invalid code type: "wrong". Valid options are: ${VALID_OPTIONS}. Using default: clavue.`,
     )
   })
 })

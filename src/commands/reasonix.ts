@@ -1,8 +1,6 @@
 import { spawnSync } from 'node:child_process'
-import { existsSync, readFileSync } from 'node:fs'
-import { homedir } from 'node:os'
-import { join } from 'pathe'
 import ansis from 'ansis'
+import { listCcjkProfileNames, readCcjkProfileByName } from '../utils/ccjk-profile-reader'
 import {
   buildReasonixHints,
   ensureReasonixProjectConfig,
@@ -12,27 +10,6 @@ import {
   mapProfileToReasonixEnv,
   suggestReasonixLaunch,
 } from '../utils/reasonix-config'
-
-const PROFILES_DIR = join(homedir(), '.ccjk', 'profiles')
-
-interface CcjkProfile {
-  name?: string
-  baseUrl?: string
-  apiKey?: string
-  model?: string
-  provider?: string
-}
-
-function readProfile(name: string): CcjkProfile | null {
-  const p = join(PROFILES_DIR, `${name}.json`)
-  if (!existsSync(p)) return null
-  try {
-    return JSON.parse(readFileSync(p, 'utf-8')) as CcjkProfile
-  }
-  catch {
-    return null
-  }
-}
 
 export interface ReasonixCommandOptions {
   sync?: boolean
@@ -52,6 +29,10 @@ export async function reasonixCommand(
   for (const line of buildReasonixHints()) {
     console.log(line)
   }
+  const names = listCcjkProfileNames()
+  if (names.length > 0) {
+    console.log(ansis.dim(`\n  可用 profile: ${names.join(', ')}`))
+  }
   console.log(ansis.dim('\n  ccjk reasonix <profile>          — 注入 key 并启动（无 reasonix.toml 时自动生成）'))
   console.log(ansis.dim('  ccjk reasonix <profile> --run -p "task" — 单次 reasonix run\n'))
 }
@@ -60,10 +41,10 @@ async function launchWithProfile(
   name: string,
   options: ReasonixCommandOptions,
 ): Promise<void> {
-  const profile = readProfile(name)
+  const profile = readCcjkProfileByName(name)
   if (!profile) {
     console.log(ansis.red(`Profile "${name}" 不存在`))
-    console.log(ansis.dim('  先运行 ccjk init 配置 API，或确认 ~/.ccjk/profiles/<name>.json 存在\n'))
+    console.log(ansis.dim('  先运行 ccjk init 配置 API（profile 保存在 ~/.ccjk/config.toml）\n'))
     return
   }
 

@@ -43,8 +43,62 @@ vi.mock('../../../src/utils/output-style', () => ({
 }))
 
 vi.mock('../../../src/utils/ccjk-config', () => ({
+  createDefaultTomlConfig: vi.fn(() => ({
+    version: '1.0.0',
+    lastUpdated: new Date().toISOString(),
+    general: { preferredLang: 'en', templateLang: 'en', aiOutputLang: 'en', currentTool: 'claude-code' },
+    claudeCode: { enabled: true, outputStyles: [], defaultOutputStyle: 'none', installType: 'global' },
+  })),
   readCcjkConfig: vi.fn(),
+  readCcjkConfigAsync: vi.fn().mockResolvedValue({ codeToolType: 'claude-code' }),
+  readDefaultTomlConfig: vi.fn(() => null),
   updateCcjkConfig: vi.fn(),
+  writeTomlConfig: vi.fn(),
+}))
+
+vi.mock('../../../src/utils/claude-code-config-manager', () => ({
+  ClaudeCodeConfigManager: {
+    addProfile: vi.fn(async profile => ({ success: true, addedProfile: { ...profile, id: 'test-profile' } })),
+    generateProfileId: vi.fn((name: string) => name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')),
+    getProfileByName: vi.fn(() => null),
+    switchProfile: vi.fn(async () => ({ success: true })),
+    applyProfileSettings: vi.fn(async () => undefined),
+  },
+}))
+
+vi.mock('../../../src/utils/runtime-settings', () => ({
+  activeSettingsFile: vi.fn(() => '/test/.claude/settings.json'),
+  getActiveCodeTool: vi.fn(() => 'claude-code'),
+  isClaudeFamilyCodeTool: vi.fn((tool: string) => tool === 'clavue' || tool === 'claude-code'),
+  resolveClaudeFamilySettingsTarget: vi.fn(() => ({
+    codeTool: 'claude-code',
+    configDir: '/test/.claude',
+    settingsFile: '/test/.claude/settings.json',
+    instructionsFile: '/test/.claude/CLAUDE.md',
+    runtimeConfigFile: '/test/.claude.json',
+    runtimeBackupDirName: 'backup',
+    displayName: 'Claude Code',
+    runtimeCommand: 'claude',
+    configDirDisplay: '~/.claude',
+  })),
+}))
+
+vi.mock('../../../src/utils/version-checker', () => ({
+  checkClaudeCodeVersionAndPrompt: vi.fn().mockResolvedValue(undefined),
+}))
+
+vi.mock('../../../src/utils/installation-manager', () => ({
+  handleMultipleInstallations: vi.fn().mockResolvedValue('global'),
+}))
+
+vi.mock('../../../src/utils/platform', () => ({
+  commandExists: vi.fn().mockResolvedValue(true),
+  isTermux: vi.fn().mockReturnValue(false),
+  isWindows: vi.fn().mockReturnValue(false),
+}))
+
+vi.mock('../../../src/utils/mcp-selector', () => ({
+  selectMcpServices: vi.fn().mockResolvedValue([]),
 }))
 
 vi.mock('../../../src/utils/cometix/installer', () => ({
@@ -61,20 +115,31 @@ vi.mock('../../../src/utils/claude-config', () => ({
 }))
 
 vi.mock('node:fs', () => ({
+  copyFileSync: vi.fn(),
   existsSync: vi.fn(),
+  mkdirSync: vi.fn(),
+  renameSync: vi.fn(),
+  rmSync: vi.fn(),
 }))
 
 vi.mock('../../../src/constants', () => ({
   CLAUDE_DIR: '/test/.claude',
+  CLAVUE_DIR: '/test/.clavue',
   DEFAULT_CODE_TOOL_TYPE: 'claude-code',
   SETTINGS_FILE: '/test/.claude/settings.json',
   CCJK_CONFIG_DIR: '/test/.ccjk',
   CCJK_CONFIG_FILE: '/test/.ccjk/config.toml',
+  CODE_TOOL_TYPES: ['clavue', 'claude-code', 'codex', 'grok'],
   CODE_TOOL_BANNERS: {
+    'clavue': 'CCJK',
     'claude-code': 'CCJK',
+    'codex': 'CCJK',
+    'grok': 'CCJK',
   },
   API_DEFAULT_URL: 'https://api.anthropic.com',
   API_ENV_KEY: 'ANTHROPIC_API_KEY',
+  settingsFileForTool: () => '/test/.claude/settings.json',
+  resolveCodeToolType: (value: string) => value || 'claude-code',
 }))
 
 describe('init command - API provider preset', () => {
@@ -228,6 +293,7 @@ describe('init command - API provider preset', () => {
           authType: 'api_key',
           key: 'test-key',
         }),
+        'claude-code',
       )
     })
 
@@ -269,6 +335,7 @@ describe('init command - API provider preset', () => {
           authType: 'auth_token',
           key: 'test-token',
         }),
+        'claude-code',
       )
     })
 
@@ -310,6 +377,7 @@ describe('init command - API provider preset', () => {
           authType: 'auth_token',
           key: 'test-token',
         }),
+        'claude-code',
       )
     })
 
@@ -455,7 +523,13 @@ describe('init command - API provider preset', () => {
       }
 
       await validateSkipPromptOptions(options)
-      expect(options.outputStyles).toEqual(['engineer-professional', 'nekomata-engineer', 'laowang-engineer'])
+      expect(options.outputStyles).toEqual([
+        'agents-md-baseline',
+        'plan-first',
+        'verify-and-ship',
+        'surgical-diff',
+        'engineer-professional',
+      ])
     })
 
     it('should parse outputStyles comma-separated string', async () => {
@@ -463,15 +537,15 @@ describe('init command - API provider preset', () => {
 
       const options: any = {
         skipPrompt: true,
-        outputStyles: 'engineer-professional,nekomata-engineer',
+        outputStyles: 'agents-md-baseline,engineer-professional',
         apiType: 'skip' as const,
       }
 
       await validateSkipPromptOptions(options)
-      expect(options.outputStyles).toEqual(['engineer-professional', 'nekomata-engineer'])
+      expect(options.outputStyles).toEqual(['agents-md-baseline', 'engineer-professional'])
     })
 
-    it('should default outputStyles to all styles', async () => {
+    it('should default outputStyles to empty array', async () => {
       const { validateSkipPromptOptions } = await import('../../../src/commands/init')
 
       const options: any = {
@@ -480,7 +554,7 @@ describe('init command - API provider preset', () => {
       }
 
       await validateSkipPromptOptions(options)
-      expect(options.outputStyles).toEqual(['engineer-professional', 'nekomata-engineer', 'laowang-engineer'])
+      expect(options.outputStyles).toEqual([])
     })
 
     it('should validate invalid output style', async () => {
@@ -502,15 +576,15 @@ describe('init command - API provider preset', () => {
 
       const options: any = {
         skipPrompt: true,
-        defaultOutputStyle: 'nekomata-engineer',
+        defaultOutputStyle: 'agents-md-baseline',
         apiType: 'skip' as const,
       }
 
       await validateSkipPromptOptions(options)
-      expect(options.defaultOutputStyle).toBe('nekomata-engineer')
+      expect(options.defaultOutputStyle).toBe('agents-md-baseline')
     })
 
-    it('should default to engineer-professional', async () => {
+    it('should default to none', async () => {
       const { validateSkipPromptOptions } = await import('../../../src/commands/init')
 
       const options: any = {
@@ -519,7 +593,7 @@ describe('init command - API provider preset', () => {
       }
 
       await validateSkipPromptOptions(options)
-      expect(options.defaultOutputStyle).toBe('engineer-professional')
+      expect(options.defaultOutputStyle).toBe('none')
     })
 
     it('should validate invalid default output style', async () => {

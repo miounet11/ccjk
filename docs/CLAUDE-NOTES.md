@@ -3,9 +3,23 @@
 > **所有工具（clavue / claude-code / codex / grok）的持久项目知识以本文为唯一来源。**
 > 工具原生 `CLAUDE.md` / `clavue.md` / `AGENTS.md` 易被各工具 `/init` 覆盖，请**优先阅读并依赖本文**。
 
+## 产品定位（2026-06 梳理）
+
+ccjk = **四工具（Clavue / Claude Code / Codex / Grok CLI）的医生 + 快捷操作员**。
+
+- **医生**：`ccjk clean` / `ccjk probe` —— 扫描脏 MCP、坏 Skill、冗余 prompt、过时 `~/.codex/AGENTS.md`；只读，不写盘。
+- **操作员**：`ccjk init` / 菜单子项 —— 备份后写入 API、MCP、模型、工作流、权限；不碰 agent runtime。
+- **能力矩阵**：`src/config/tool-matrix.ts`（四工具配置根、MCP 格式、doctor/operator 清单）。
+- **Codex 预设**：干净（零安装）/ 优化（baseline + 默认工作流 + context7）/ 自定义。
+- **清理范围**：Codex + Claude MCP、`~/.codex` skills/prompts/AGENTS、Grok skills（含 bundled）。
+- **菜单交互**（`ccjk` 启动）：
+  - 主菜单：`list` 箭头选择，按「操作员 / 医生 / 跨工具 / CCJK」分区
+  - **W 快捷向导**（`operator-hub`）：完整初始化、仅工作流、单项调整；Codex 另有「重置后初始化」
+  - **H 医生中心**（`doctor-hub`）：只读扫描报告 → API 探活 → 智能清理 → 全部清理
+
 ## 项目概览
 - **名称**：ccjk —— Clavue / Claude Code / Codex / Grok 的本地配置 CLI
-- **当前版本**：15.27.6
+- **当前版本**：16.1.0
 - **当前分支**：`fix/codex-init-write`（领先 origin 18 commits）
 - **描述**：统一 profile 切换、权限档位、状态栏、MCP、版本管理于一条命令。
 - **仓库**：https://github.com/miounet11/ccjk
@@ -41,6 +55,7 @@
 
 ## 当前焦点与已知状态（2026-06）
 - 正在进行 `fix/codex-init-write`：Codex init write 路径增强。
+- 2026-06-07：Codex 写配置前的完整备份只备份可恢复配置文件（`config.toml`、`auth.json`、`AGENTS.md`、`prompts/`），禁止递归复制整个 `~/.codex`。不要把 `sessions/`、`.tmp/`、`backup/` 等运行时目录带进备份，避免 ENOSPC。
 - 最近完成并验证（retro 2026-05-25）：`ccjk doctor` 新增 `[Runtime] shell environment` 段，检测 shell rc env shadow（切 profile 后未生效的头号黑洞）；status 表加 drift badge。
 - 其他进行中规划见 `.ccjk/plan/current/`（EXECUTIVE_SUMMARY、PHASE*、云服务端 API、菜单系统、认知演进等）。
 - 大量历史回溯与实现细节已沉淀在 `docs/` 与 `.clavue/retro/`（本次 NOTES 仅保留指针，避免膨胀）。
@@ -51,10 +66,10 @@
 - **Grok**：见下节（当前 capabilities 限制写入，仅文档 + 启动提示）。
 
 ## Grok 项目级支持
-- ccjk 当前对 Grok：仅探测安装 / OAuth 登录状态（`~/.grok/auth.json`）、生成启动建议命令。不写持久配置（capabilities 显式全 false）。
-- 推荐：先 `grok login`，然后在对话中显式引用 `docs/CLAUDE-NOTES.md`（或项目根 `GROK.md`）。
-- 项目指南文件：`GROK.md`（或 `docs/GROK-PROJECT-GUIDE.md`）包含本 NOTES 指针 + xAI 模型建议 + 本项目验证习惯。
-- 未来若 Grok 开放文件配置，ccjk 将通过扩展 capabilities 纳入统一层。
+- ccjk 对 Grok：**医生**（清理 `~/.grok/skills`）+ **轻量操作员**（`~/.ccjk/config.toml` 存 profile，`ccjk grok <profile>` 启动）。
+- 不写 Grok MCP / 工作流（`tool-matrix` 中 `configureMcp: false`）。
+- 推荐：先 `grok login`，`ccjk init -T grok` 存 profile，对话中引用 `docs/CLAUDE-NOTES.md`。
+- 未来若 Grok 开放 MCP 配置，扩展 `TOOL_MATRIX.grok` 即可。
 
 ## 变更管理
 - 本 NOTES 是**手动维护的蒸馏版**会话接管产物（2026-06 由 Grok 基于 plan mode 探索 + 用户确认创建）。

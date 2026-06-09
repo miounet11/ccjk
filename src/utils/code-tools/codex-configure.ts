@@ -8,7 +8,104 @@ import { getSystemRoot, isWindows } from '../platform'
 import { updateCcjkConfig } from '../ccjk-config'
 import { backupCodexComplete, getBackupMessage, readCodexConfig } from './codex'
 import { applyCodexPlatformCommand } from './codex-platform'
-import { batchUpdateCodexMcpServices } from './codex-toml-updater'
+import { batchUpdateCodexMcpServices, deleteCodexMcpService } from './codex-toml-updater'
+
+type CodexMcpAction = 'install' | 'remove' | 'list' | 'back'
+
+export async function manageCodexMcp(): Promise<void> {
+  ensureI18nInitialized()
+
+  const { action } = await inquirer.prompt<{ action: CodexMcpAction }>({
+    type: 'list',
+    name: 'action',
+    message: i18n.t('mcp:manageCodexMcp'),
+    choices: [
+      { name: i18n.t('mcp:installOrUpdateMcp'), value: 'install' },
+      { name: i18n.t('mcp:removeInstalledMcp'), value: 'remove' },
+      { name: i18n.t('mcp:listInstalledMcp'), value: 'list' },
+      { name: i18n.t('common:back'), value: 'back' },
+    ],
+  })
+
+  if (action === 'install') {
+    await configureCodexMcp()
+    return
+  }
+
+  if (action === 'remove') {
+    await removeCodexMcpServices()
+    return
+  }
+
+  if (action === 'list') {
+    listCodexMcpServices()
+  }
+}
+
+function getInstalledCodexMcpServices(): CodexMcpService[] {
+  return readCodexConfig()?.mcpServices || []
+}
+
+function listCodexMcpServices(): void {
+  const services = getInstalledCodexMcpServices()
+  if (services.length === 0) {
+    console.log(ansis.yellow(i18n.t('codex:noMcpConfigured')))
+    return
+  }
+
+  console.log(ansis.bold(i18n.t('mcp:installedMcpCount', { count: services.length })))
+  for (const service of services) {
+    const args = service.args?.length ? ` ${service.args.join(' ')}` : ''
+    console.log(`  ${ansis.cyan(service.id)} ${ansis.dim(`${service.command}${args}`)}`)
+  }
+}
+
+async function removeCodexMcpServices(): Promise<void> {
+  const services = getInstalledCodexMcpServices()
+  if (services.length === 0) {
+    console.log(ansis.yellow(i18n.t('codex:noMcpConfigured')))
+    return
+  }
+
+  const { selected } = await inquirer.prompt<{ selected: string[] }>({
+    type: 'checkbox',
+    name: 'selected',
+    message: `${i18n.t('mcp:selectMcpServicesToRemove')}${i18n.t('common:multiSelectHint')}`,
+    choices: services
+      .sort((a, b) => a.id.localeCompare(b.id))
+      .map(service => ({
+        name: `${service.id} - ${ansis.gray(service.command)}`,
+        value: service.id,
+      })),
+  })
+
+  if (!selected || selected.length === 0) {
+    console.log(ansis.yellow(i18n.t('common:cancelled')))
+    return
+  }
+
+  const { confirmed } = await inquirer.prompt<{ confirmed: boolean }>({
+    type: 'confirm',
+    name: 'confirmed',
+    message: i18n.t('mcp:confirmRemoveMcp', { services: selected.join(', ') }),
+    default: true,
+  })
+
+  if (!confirmed) {
+    console.log(ansis.yellow(i18n.t('common:cancelled')))
+    return
+  }
+
+  const backupPath = backupCodexComplete()
+  if (backupPath)
+    console.log(ansis.gray(getBackupMessage(backupPath)))
+
+  for (const id of selected)
+    deleteCodexMcpService(id)
+
+  updateCcjkConfig({ codeToolType: 'codex' })
+  console.log(ansis.green(i18n.t('mcp:mcpRemoved', { services: selected.join(', ') })))
+}
 
 export async function configureCodexMcp(options?: CodexFullInitOptions): Promise<void> {
   ensureI18nInitialized()

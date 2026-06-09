@@ -375,10 +375,18 @@ describe('claudeCodeConfigManager', () => {
           CUSTOM_ENV: 'keep',
         },
       }
-      mockReadJsonConfig.mockImplementationOnce(() => settings)
+      mockReadJsonConfig.mockImplementation((path: string) => {
+        if (path === testSettingsFile) {
+          return JSON.parse(JSON.stringify(settings))
+        }
+        return null
+      })
       let writtenSettings: any
-      mockWriteJsonConfig.mockImplementationOnce((_path, data) => {
-        writtenSettings = data
+      mockWriteJsonConfig.mockImplementation((path: string, data: any) => {
+        if (path === testSettingsFile) {
+          writtenSettings = data
+        }
+        writeFileSync(path, JSON.stringify(data, null, 2))
       })
 
       await ClaudeCodeConfigManager.applyProfileSettings({
@@ -386,7 +394,7 @@ describe('claudeCodeConfigManager', () => {
         name: 'Test',
         authType: 'api_key',
         apiKey: 'sk-new',
-      })
+      }, 'claude-code')
 
       expect(writtenSettings.env.ANTHROPIC_API_KEY).toBe('sk-new')
       expect(writtenSettings.env.CUSTOM_ENV).toBe('keep')

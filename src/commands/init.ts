@@ -127,19 +127,20 @@ export async function validateSkipPromptOptions(options: InitOptions): Promise<v
       options.outputStyles = false
     }
     else if (options.outputStyles === 'all') {
-      options.outputStyles = ['engineer-professional', 'nekomata-engineer', 'laowang-engineer']
+      const { getCustomOutputStyleIds } = await import('../config/output-styles')
+      options.outputStyles = getCustomOutputStyleIds()
     }
     else {
       options.outputStyles = options.outputStyles.split(',').map(s => s.trim())
     }
   }
   if (options.outputStyles === undefined) {
-    options.outputStyles = ['engineer-professional', 'nekomata-engineer', 'laowang-engineer']
+    options.outputStyles = []
   }
 
-  // Set default output style
+  // 默认不设置 outputStyle，保持工具原始行为
   if (!options.defaultOutputStyle) {
-    options.defaultOutputStyle = 'engineer-professional'
+    options.defaultOutputStyle = 'none'
   }
   // Parse installCometixLine parameter
   if (typeof options.installCometixLine === 'string') {
@@ -215,7 +216,8 @@ export async function validateSkipPromptOptions(options: InitOptions): Promise<v
 
   // Parse and validate output styles
   if (Array.isArray(options.outputStyles)) {
-    const validStyles = ['engineer-professional', 'nekomata-engineer', 'laowang-engineer', 'default', 'explanatory', 'learning']
+    const { getAllValidOutputStyleIds } = await import('../config/output-styles')
+    const validStyles = getAllValidOutputStyleIds()
     for (const style of options.outputStyles) {
       if (!validStyles.includes(style)) {
         throw new Error(i18n.t('errors:invalidOutputStyle', { style, validStyles: validStyles.join(', ') }))
@@ -225,7 +227,8 @@ export async function validateSkipPromptOptions(options: InitOptions): Promise<v
 
   // Validate default output style
   if (options.defaultOutputStyle) {
-    const validStyles = ['engineer-professional', 'nekomata-engineer', 'laowang-engineer', 'default', 'explanatory', 'learning']
+    const { getAllValidOutputStyleIds } = await import('../config/output-styles')
+    const validStyles = getAllValidOutputStyleIds()
     if (!validStyles.includes(options.defaultOutputStyle)) {
       throw new Error(i18n.t('errors:invalidDefaultOutputStyle', { style: options.defaultOutputStyle, validStyles: validStyles.join(', ') }))
     }
@@ -401,6 +404,11 @@ export async function init(options: InitOptions = {}): Promise<void> {
     if (codeToolType === 'grok') {
       const { configureIncrementalManagement } = await import('../utils/claude-code-incremental-manager')
       await configureIncrementalManagement()
+      updateCcjkConfig({
+        version,
+        preferredLang: i18n.language as SupportedLang,
+        codeToolType: 'grok',
+      })
       console.log(ansis.dim(`\n  ${i18n.t('menu:menuDescriptions.grokInitHint')}\n`))
       return
     }

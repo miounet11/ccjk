@@ -161,7 +161,7 @@ vi.mock('../../../../src/utils/ccjk-config', () => ({
   readDefaultTomlConfig: vi.fn(() => ({
     version: '1.0.0',
     general: { preferredLang: 'en', currentTool: 'codex' },
-    codex: { systemPromptStyle: 'engineer-professional' },
+    codex: { systemPromptStyle: 'linus-mode' },
   })),
 }))
 

@@ -8,6 +8,7 @@ import inquirer from 'inquirer'
 import { dirname, join } from 'pathe'
 import { getOrderedWorkflows, getWorkflowConfig } from '../config/workflows'
 import { ensureI18nInitialized, i18n } from '../i18n'
+import { addNumbersToChoices } from './prompt-helpers'
 import { resolveClaudeFamilySettingsTarget } from './runtime-settings'
 
 function getRootDir(): string {
@@ -31,13 +32,14 @@ export async function selectAndInstallWorkflows(
   const workflows = getOrderedWorkflows()
 
   // Build choices from configuration
-  const choices = workflows.map((workflow) => {
+  const choices = addNumbersToChoices(workflows.map((workflow) => {
     return {
-      name: workflow.name,
+      name: `${workflow.name}${workflow.description ? ` - ${ansis.gray(workflow.description)}` : ''}`,
       value: workflow.id,
       checked: workflow.defaultSelected,
+      short: workflow.name,
     }
-  })
+  }))
 
   // Multi-select workflow types or use preselected
   let selectedWorkflows: WorkflowType[]

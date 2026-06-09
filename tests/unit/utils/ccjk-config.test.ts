@@ -58,13 +58,13 @@ describe('ccjk-config utilities', () => {
     },
     claudeCode: {
       enabled: true,
-      outputStyles: ['engineer-professional', 'nekomata-engineer'],
-      defaultOutputStyle: 'nekomata-engineer',
+      outputStyles: ['linus-mode', 'uncle-bob-mode'],
+      defaultOutputStyle: 'uncle-bob-mode',
       installType: 'global',
     },
     codex: {
       enabled: false,
-      systemPromptStyle: 'engineer-professional',
+      systemPromptStyle: 'linus-mode',
     },
   }
 
@@ -78,13 +78,13 @@ current_tool = "claude-code"
 
 [claude_code]
 enabled = true
-output_styles = ["engineer-professional", "nekomata-engineer"]
-default_output_style = "nekomata-engineer"
+output_styles = ["linus-mode", "uncle-bob-mode"]
+default_output_style = "uncle-bob-mode"
 install_type = "global"
 
 [codex]
 enabled = false
-system_prompt_style = "engineer-professional"`
+system_prompt_style = "linus-mode"`
 
   describe('helper utilities', () => {
     it('should create default config with zh-CN AI output when preferredLang is zh-CN', () => {
@@ -102,8 +102,8 @@ system_prompt_style = "engineer-professional"`
         templateLang: 'en',
         aiOutputLang: 'zh-CN',
         codeToolType: 'codex',
-        outputStyles: ['engineer-professional'],
-        defaultOutputStyle: 'engineer-professional',
+        outputStyles: ['linus-mode'],
+        defaultOutputStyle: 'linus-mode',
         currentProfileId: 'profile-1',
         claudeCodeInstallation: { type: 'local' },
         claudeCode: { profiles: { 'profile-1': { name: 'Test' } } },
@@ -150,13 +150,13 @@ system_prompt_style = "engineer-professional"`
         },
         claudeCode: {
           enabled: false,
-          outputStyles: ['engineer-professional'],
-          defaultOutputStyle: 'engineer-professional',
+          outputStyles: ['linus-mode'],
+          defaultOutputStyle: 'linus-mode',
           installType: 'global' as const,
         },
         codex: {
           enabled: true,
-          systemPromptStyle: 'engineer-professional',
+          systemPromptStyle: 'linus-mode',
         },
       }
 
@@ -172,8 +172,8 @@ system_prompt_style = "engineer-professional"`
         aiOutputLang: 'en',
         codeToolType: 'codex',
         lastUpdated: '2024-01-01',
-        outputStyles: ['engineer-professional'],
-        defaultOutputStyle: 'engineer-professional',
+        outputStyles: ['linus-mode'],
+        defaultOutputStyle: 'linus-mode',
       })
       expect(mockExists).toHaveBeenCalled()
       expect(mockReadFile).toHaveBeenCalled()
@@ -227,13 +227,13 @@ system_prompt_style = "engineer-professional"`
         },
         claudeCode: {
           enabled: true,
-          outputStyles: ['engineer-professional'],
-          defaultOutputStyle: 'engineer-professional',
+          outputStyles: ['linus-mode'],
+          defaultOutputStyle: 'linus-mode',
           installType: 'global' as const,
         },
         codex: {
           enabled: false,
-          systemPromptStyle: 'engineer-professional',
+          systemPromptStyle: 'linus-mode',
         },
       }
       mockExists.mockReturnValue(true)
@@ -286,13 +286,13 @@ system_prompt_style = "engineer-professional"`
         },
         claudeCode: {
           enabled: false,
-          outputStyles: ['engineer-professional'],
-          defaultOutputStyle: 'engineer-professional',
+          outputStyles: ['linus-mode'],
+          defaultOutputStyle: 'linus-mode',
           installType: 'global',
         },
         codex: {
           enabled: true,
-          systemPromptStyle: 'nekomata-engineer',
+          systemPromptStyle: 'uncle-bob-mode',
         },
       }
 
@@ -381,13 +381,13 @@ system_prompt_style = "engineer-professional"`
         },
         claudeCode: {
           enabled: true,
-          outputStyles: ['engineer-professional'],
-          defaultOutputStyle: 'engineer-professional',
+          outputStyles: ['linus-mode'],
+          defaultOutputStyle: 'linus-mode',
           installType: 'global' as const,
         },
         codex: {
           enabled: false,
-          systemPromptStyle: 'engineer-professional',
+          systemPromptStyle: 'linus-mode',
         },
       }
       mockExists.mockReturnValue(true)
@@ -401,8 +401,8 @@ system_prompt_style = "engineer-professional"`
         preferredLang: 'en',
         lastUpdated: '2024-01-01',
         aiOutputLang: undefined,
-        outputStyles: ['engineer-professional'],
-        defaultOutputStyle: 'engineer-professional',
+        outputStyles: ['linus-mode'],
+        defaultOutputStyle: 'linus-mode',
         codeToolType: 'claude-code',
       })
     })
@@ -424,7 +424,7 @@ system_prompt_style = "engineer-professional"`
 
       expect(result.version).toBe('1.0.0')
       expect(result.preferredLang).toBe('en')
-      expect(result.codeToolType).toBe('claude-code')
+      expect(result.codeToolType).toBe(DEFAULT_CODE_TOOL_TYPE)
       expect(result.lastUpdated).toBeTruthy()
     })
 
@@ -438,13 +438,13 @@ system_prompt_style = "engineer-professional"`
         },
         claudeCode: {
           enabled: false,
-          outputStyles: ['engineer-professional'],
-          defaultOutputStyle: 'engineer-professional',
+          outputStyles: ['linus-mode'],
+          defaultOutputStyle: 'linus-mode',
           installType: 'global' as const,
         },
         codex: {
           enabled: true,
-          systemPromptStyle: 'engineer-professional',
+          systemPromptStyle: 'linus-mode',
         },
       }
       mockExists.mockReturnValue(true)
@@ -492,7 +492,7 @@ system_prompt_style = "engineer-professional"`
       expect(result).toEqual({
         version: '1.0.0',
         preferredLang: 'en',
-        codeToolType: 'claude-code',
+        codeToolType: DEFAULT_CODE_TOOL_TYPE,
         lastUpdated: expect.any(String),
       })
     })
@@ -508,13 +508,13 @@ system_prompt_style = "engineer-professional"`
         },
         claudeCode: {
           enabled: false,
-          outputStyles: ['engineer-professional'],
-          defaultOutputStyle: 'engineer-professional',
+          outputStyles: ['linus-mode'],
+          defaultOutputStyle: 'linus-mode',
           installType: 'global' as const,
         },
         codex: {
           enabled: true,
-          systemPromptStyle: 'engineer-professional',
+          systemPromptStyle: 'linus-mode',
         },
       }
       mockExists.mockReturnValue(true)
@@ -582,8 +582,8 @@ system_prompt_style = "engineer-professional"`
         version: '2.0.0',
         preferredLang: 'zh-CN' as const,
         aiOutputLang: 'zh-CN',
-        outputStyles: ['nekomata-engineer'],
-        defaultOutputStyle: 'nekomata-engineer',
+        outputStyles: ['uncle-bob-mode'],
+        defaultOutputStyle: 'uncle-bob-mode',
         codeToolType: 'codex' as const,
       }
 
@@ -680,13 +680,13 @@ system_prompt_style = "engineer-professional"`
           },
           claudeCode: {
             enabled: true,
-            outputStyles: ['engineer-professional'],
-            defaultOutputStyle: 'engineer-professional',
+            outputStyles: ['linus-mode'],
+            defaultOutputStyle: 'linus-mode',
             installType: 'global',
           },
           codex: {
             enabled: false,
-            systemPromptStyle: 'engineer-professional',
+            systemPromptStyle: 'linus-mode',
           },
         }
 
@@ -725,13 +725,13 @@ system_prompt_style = "engineer-professional"`
           },
           claudeCode: {
             enabled: true,
-            outputStyles: ['engineer-professional'],
-            defaultOutputStyle: 'engineer-professional',
+            outputStyles: ['linus-mode'],
+            defaultOutputStyle: 'linus-mode',
             installType: 'global',
           },
           codex: {
             enabled: false,
-            systemPromptStyle: 'engineer-professional',
+            systemPromptStyle: 'linus-mode',
           },
         }
 
@@ -771,9 +771,9 @@ system_prompt_style = "engineer-professional"`
         expect(result.general.currentTool).toBe(DEFAULT_CODE_TOOL_TYPE)
         expect(result.claudeCode.enabled).toBe(true)
         expect(result.codex.enabled).toBe(false)
-        expect(result.claudeCode.outputStyles).toEqual(['engineer-professional'])
-        expect(result.claudeCode.defaultOutputStyle).toBe('engineer-professional')
-        expect(result.codex.systemPromptStyle).toBe('engineer-professional')
+        expect(result.claudeCode.outputStyles).toEqual([])
+        expect(result.claudeCode.defaultOutputStyle).toBe('none')
+        expect(result.codex).not.toHaveProperty('systemPromptStyle')
       })
 
       it('should create config with custom language preference', () => {
@@ -802,8 +802,8 @@ system_prompt_style = "engineer-professional"`
             path: '/usr/local/bin/claude-code',
             configDir: '/Users/test/.claude',
           },
-          outputStyles: ['engineer-professional', 'nekomata-engineer'],
-          defaultOutputStyle: 'nekomata-engineer',
+          outputStyles: ['linus-mode', 'uncle-bob-mode'],
+          defaultOutputStyle: 'uncle-bob-mode',
           lastUpdated: '2025-09-21T08:00:00.000Z',
         }
 
@@ -813,8 +813,8 @@ system_prompt_style = "engineer-professional"`
         expect(result.general.preferredLang).toBe('zh-CN')
         expect(result.general.currentTool).toBe('claude-code')
         expect(result.claudeCode.enabled).toBe(true)
-        expect(result.claudeCode.outputStyles).toEqual(['engineer-professional', 'nekomata-engineer'])
-        expect(result.claudeCode.defaultOutputStyle).toBe('nekomata-engineer')
+        expect(result.claudeCode.outputStyles).toEqual(['linus-mode', 'uncle-bob-mode'])
+        expect(result.claudeCode.defaultOutputStyle).toBe('uncle-bob-mode')
         expect(result.claudeCode.installType).toBe('local')
         expect(result.codex.enabled).toBe(false)
       })
@@ -831,7 +831,7 @@ system_prompt_style = "engineer-professional"`
         expect(result.general.currentTool).toBe('codex')
         expect(result.claudeCode.enabled).toBe(false)
         expect(result.codex.enabled).toBe(true)
-        expect(result.codex.systemPromptStyle).toBe('engineer-professional')
+        expect(result.codex).not.toHaveProperty('systemPromptStyle')
       })
 
       it('should handle corrupted JSON config gracefully', () => {
@@ -858,7 +858,7 @@ system_prompt_style = "engineer-professional"`
         // Should use all defaults
         expect(result.version).toBe('1.0.0')
         expect(result.general.preferredLang).toBe('en')
-        expect(result.general.currentTool).toBe('claude-code')
+        expect(result.general.currentTool).toBe(DEFAULT_CODE_TOOL_TYPE)
         expect(result.claudeCode.enabled).toBe(false)
         expect(result.codex.enabled).toBe(false)
       })
@@ -887,14 +887,14 @@ preferredLang = "en"`
         },
         claudeCode: {
           enabled: true,
-          outputStyles: ['engineer-professional'],
-          defaultOutputStyle: 'engineer-professional',
+          outputStyles: ['linus-mode'],
+          defaultOutputStyle: 'linus-mode',
           installType: 'global',
           version: '1.5.0', // This should remain unchanged
         },
         codex: {
           enabled: false,
-          systemPromptStyle: 'engineer-professional',
+          systemPromptStyle: 'linus-mode',
         },
       }
 
@@ -942,13 +942,13 @@ enabled = true`
         },
         claudeCode: {
           enabled: true,
-          outputStyles: ['engineer-professional'],
-          defaultOutputStyle: 'engineer-professional',
+          outputStyles: ['linus-mode'],
+          defaultOutputStyle: 'linus-mode',
           installType: 'global',
         },
         codex: {
           enabled: false,
-          systemPromptStyle: 'engineer-professional',
+          systemPromptStyle: 'linus-mode',
         },
       }
 
@@ -990,13 +990,13 @@ preferredLang = "en"`
         },
         claudeCode: {
           enabled: true,
-          outputStyles: ['engineer-professional'],
-          defaultOutputStyle: 'engineer-professional',
+          outputStyles: ['linus-mode'],
+          defaultOutputStyle: 'linus-mode',
           installType: 'global',
         },
         codex: {
           enabled: false,
-          systemPromptStyle: 'engineer-professional',
+          systemPromptStyle: 'linus-mode',
         },
       }
 
@@ -1043,13 +1043,13 @@ preferredLang = "en"`
         },
         claudeCode: {
           enabled: true,
-          outputStyles: ['engineer-professional'],
-          defaultOutputStyle: 'engineer-professional',
+          outputStyles: ['linus-mode'],
+          defaultOutputStyle: 'linus-mode',
           installType: 'global',
         },
         codex: {
           enabled: false,
-          systemPromptStyle: 'engineer-professional',
+          systemPromptStyle: 'linus-mode',
         },
       }
 
@@ -1093,14 +1093,14 @@ version = "1.5.0"`
         },
         claudeCode: {
           enabled: true,
-          outputStyles: ['engineer-professional'],
-          defaultOutputStyle: 'engineer-professional',
+          outputStyles: ['linus-mode'],
+          defaultOutputStyle: 'linus-mode',
           installType: 'global',
           version: '1.5.0',
         },
         codex: {
           enabled: false,
-          systemPromptStyle: 'engineer-professional',
+          systemPromptStyle: 'linus-mode',
         },
       }
 
@@ -1143,13 +1143,13 @@ preferredLang = "en"`
         },
         claudeCode: {
           enabled: true,
-          outputStyles: ['engineer-professional'],
-          defaultOutputStyle: 'engineer-professional',
+          outputStyles: ['linus-mode'],
+          defaultOutputStyle: 'linus-mode',
           installType: 'global',
         },
         codex: {
           enabled: false,
-          systemPromptStyle: 'engineer-professional',
+          systemPromptStyle: 'linus-mode',
         },
       }
 
@@ -1194,13 +1194,13 @@ preferredLang = "en"`
         },
         claudeCode: {
           enabled: true,
-          outputStyles: ['engineer-professional'],
-          defaultOutputStyle: 'engineer-professional',
+          outputStyles: ['linus-mode'],
+          defaultOutputStyle: 'linus-mode',
           installType: 'global',
         },
         codex: {
           enabled: false,
-          systemPromptStyle: 'engineer-professional',
+          systemPromptStyle: 'linus-mode',
         },
       }
 
@@ -1274,13 +1274,13 @@ preferredLang = "en"`
         },
         claudeCode: {
           enabled: true,
-          outputStyles: ['engineer-professional'],
-          defaultOutputStyle: 'engineer-professional',
+          outputStyles: ['linus-mode'],
+          defaultOutputStyle: 'linus-mode',
           installType: 'global',
         },
         codex: {
           enabled: false,
-          systemPromptStyle: 'engineer-professional',
+          systemPromptStyle: 'linus-mode',
         },
       }
 
@@ -1313,13 +1313,13 @@ preferredLang = "en"`
         },
         claudeCode: {
           enabled: true,
-          outputStyles: ['engineer-professional'],
-          defaultOutputStyle: 'engineer-professional',
+          outputStyles: ['linus-mode'],
+          defaultOutputStyle: 'linus-mode',
           installType: 'global',
         },
         codex: {
           enabled: false,
-          systemPromptStyle: 'engineer-professional',
+          systemPromptStyle: 'linus-mode',
         },
       }
 
@@ -1358,13 +1358,13 @@ preferredLang = "en"`
         },
         claudeCode: {
           enabled: true,
-          outputStyles: ['engineer-professional'],
-          defaultOutputStyle: 'engineer-professional',
+          outputStyles: ['linus-mode'],
+          defaultOutputStyle: 'linus-mode',
           installType: 'global',
         },
         codex: {
           enabled: false,
-          systemPromptStyle: 'engineer-professional',
+          systemPromptStyle: 'linus-mode',
         },
       }
 
@@ -1407,13 +1407,13 @@ preferredLang = "en"`
         },
         claudeCode: {
           enabled: true,
-          outputStyles: ['engineer-professional'],
-          defaultOutputStyle: 'engineer-professional',
+          outputStyles: ['linus-mode'],
+          defaultOutputStyle: 'linus-mode',
           installType: 'global',
         },
         codex: {
           enabled: false,
-          systemPromptStyle: 'engineer-professional',
+          systemPromptStyle: 'linus-mode',
         },
       }
 
@@ -1457,13 +1457,13 @@ author = "developer"`
         },
         claudeCode: {
           enabled: true,
-          outputStyles: ['engineer-professional'],
-          defaultOutputStyle: 'engineer-professional',
+          outputStyles: ['linus-mode'],
+          defaultOutputStyle: 'linus-mode',
           installType: 'global',
         },
         codex: {
           enabled: false,
-          systemPromptStyle: 'engineer-professional',
+          systemPromptStyle: 'linus-mode',
         },
       }
 
@@ -1499,13 +1499,13 @@ preferredLang = "en"`
         },
         claudeCode: {
           enabled: true,
-          outputStyles: ['engineer-professional'],
-          defaultOutputStyle: 'engineer-professional',
+          outputStyles: ['linus-mode'],
+          defaultOutputStyle: 'linus-mode',
           installType: 'global',
         },
         codex: {
           enabled: false,
-          systemPromptStyle: 'engineer-professional',
+          systemPromptStyle: 'linus-mode',
         },
       }
 
@@ -1538,8 +1538,8 @@ preferredLang = "en"`
         },
         claudeCode: {
           enabled: true,
-          outputStyles: ['engineer-professional'],
-          defaultOutputStyle: 'engineer-professional',
+          outputStyles: ['linus-mode'],
+          defaultOutputStyle: 'linus-mode',
           installType: 'global',
           currentProfile: 'profile-1',
           profiles: {
@@ -1550,7 +1550,7 @@ preferredLang = "en"`
         },
         codex: {
           enabled: false,
-          systemPromptStyle: 'engineer-professional',
+          systemPromptStyle: 'linus-mode',
         },
       }
 
@@ -1586,13 +1586,13 @@ preferredLang = "en"`
         },
         claudeCode: {
           enabled: false,
-          outputStyles: ['engineer-professional'],
-          defaultOutputStyle: 'engineer-professional',
+          outputStyles: ['linus-mode'],
+          defaultOutputStyle: 'linus-mode',
           installType: 'global',
         },
         codex: {
           enabled: true,
-          systemPromptStyle: 'nekomata-engineer',
+          systemPromptStyle: 'uncle-bob-mode',
         },
       }
 
@@ -1638,12 +1638,12 @@ preferredLang = "en"`
         version: '1.0.0',
         preferredLang: 'en',
         codeToolType: 'codex',
-        systemPromptStyle: 'laowang-engineer',
+        systemPromptStyle: 'dhh-mode',
       }
 
       const result = migrateFromJsonConfig(jsonConfig)
 
-      expect(result.codex.systemPromptStyle).toBe('laowang-engineer')
+      expect(result.codex.systemPromptStyle).toBe('dhh-mode')
     })
 
     it('should default to global installType when claudeCodeInstallation is missing', () => {
@@ -1706,13 +1706,13 @@ preferredLang = "en"`
         },
         claudeCode: {
           enabled: true,
-          outputStyles: ['engineer-professional'],
-          defaultOutputStyle: 'engineer-professional',
+          outputStyles: ['linus-mode'],
+          defaultOutputStyle: 'linus-mode',
           installType: 'global',
         },
         codex: {
           enabled: false,
-          systemPromptStyle: 'engineer-professional',
+          systemPromptStyle: 'linus-mode',
         },
       }
 
@@ -1772,14 +1772,14 @@ preferredLang = "en"`
         },
         claudeCode: {
           enabled: true,
-          outputStyles: ['engineer-professional'],
-          defaultOutputStyle: 'engineer-professional',
+          outputStyles: ['linus-mode'],
+          defaultOutputStyle: 'linus-mode',
           installType: 'global',
           currentProfile: 'profile-1',
         },
         codex: {
           enabled: false,
-          systemPromptStyle: 'engineer-professional',
+          systemPromptStyle: 'linus-mode',
         },
       }
 
@@ -1792,15 +1792,15 @@ preferredLang = "en"`
 
       const updates = {
         claudeCode: {
-          outputStyles: ['nekomata-engineer'],
-          defaultOutputStyle: 'nekomata-engineer',
+          outputStyles: ['uncle-bob-mode'],
+          defaultOutputStyle: 'uncle-bob-mode',
         },
       } as PartialCcjkTomlConfig
 
       const result = updateTomlConfig(configPath, updates)
 
-      expect(result.claudeCode.outputStyles).toEqual(['nekomata-engineer'])
-      expect(result.claudeCode.defaultOutputStyle).toBe('nekomata-engineer')
+      expect(result.claudeCode.outputStyles).toEqual(['uncle-bob-mode'])
+      expect(result.claudeCode.defaultOutputStyle).toBe('uncle-bob-mode')
       expect(result.claudeCode.enabled).toBe(true) // Preserved
       expect(result.claudeCode.installType).toBe('global') // Preserved
     })
@@ -1816,13 +1816,13 @@ preferredLang = "en"`
         },
         claudeCode: {
           enabled: false,
-          outputStyles: ['engineer-professional'],
-          defaultOutputStyle: 'engineer-professional',
+          outputStyles: ['linus-mode'],
+          defaultOutputStyle: 'linus-mode',
           installType: 'global',
         },
         codex: {
           enabled: true,
-          systemPromptStyle: 'engineer-professional',
+          systemPromptStyle: 'linus-mode',
         },
       }
 
@@ -1835,13 +1835,13 @@ preferredLang = "en"`
 
       const updates = {
         codex: {
-          systemPromptStyle: 'laowang-engineer',
+          systemPromptStyle: 'dhh-mode',
         },
       } as PartialCcjkTomlConfig
 
       const result = updateTomlConfig(configPath, updates)
 
-      expect(result.codex.systemPromptStyle).toBe('laowang-engineer')
+      expect(result.codex.systemPromptStyle).toBe('dhh-mode')
       expect(result.codex.enabled).toBe(true) // Preserved
     })
   })

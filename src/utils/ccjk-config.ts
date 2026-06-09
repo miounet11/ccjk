@@ -234,10 +234,10 @@ function writeTomlConfig(configPath: string, config: CcjkTomlConfig): void {
       }
 
       // Codex section
-      edits.push(
-        ['codex.enabled', config.codex.enabled],
-        ['codex.systemPromptStyle', config.codex.systemPromptStyle],
-      )
+      edits.push(['codex.enabled', config.codex.enabled])
+      if (config.codex.systemPromptStyle !== undefined) {
+        edits.push(['codex.systemPromptStyle', config.codex.systemPromptStyle])
+      }
 
       try {
         // Apply incremental edits preserving user customizations
@@ -288,15 +288,14 @@ function createDefaultTomlConfig(preferredLang: SupportedLang = 'en', claudeCode
     },
     claudeCode: {
       enabled: true,
-      outputStyles: ['engineer-professional'],
-      defaultOutputStyle: 'engineer-professional',
+      outputStyles: [],
+      defaultOutputStyle: 'none',
       installType: claudeCodeInstallType,
       currentProfile: '',
       profiles: {},
     },
     codex: {
       enabled: false,
-      systemPromptStyle: 'engineer-professional',
     },
   }
 }
@@ -331,7 +330,9 @@ function migrateFromJsonConfig(jsonConfig: any): CcjkTomlConfig {
     },
     codex: {
       enabled: jsonConfig.codeToolType === 'codex',
-      systemPromptStyle: jsonConfig.systemPromptStyle || defaultConfig.codex.systemPromptStyle,
+      ...(jsonConfig.systemPromptStyle || defaultConfig.codex.systemPromptStyle
+        ? { systemPromptStyle: jsonConfig.systemPromptStyle || defaultConfig.codex.systemPromptStyle }
+        : {}),
     },
   }
 

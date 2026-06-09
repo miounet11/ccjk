@@ -16,11 +16,15 @@ import {
 } from '../../../src/utils/claude-config'
 
 // Mock dependencies
-vi.mock('../../../src/constants', () => ({
-  ClAUDE_CONFIG_FILE: '/test/.claude.json',
-  CLAUDE_DIR: '/test/.claude',
-  CLAUDE_VSC_CONFIG_FILE: '/test/.claude/config.json',
-}))
+vi.mock('../../../src/constants', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../../src/constants')>()
+  return {
+    ...actual,
+    ClAUDE_CONFIG_FILE: '/test/.claude.json',
+    CLAUDE_DIR: '/test/.claude',
+    CLAUDE_VSC_CONFIG_FILE: '/test/.claude/config.json',
+  }
+})
 
 vi.mock('../../../src/i18n', () => ({
   ensureI18nInitialized: vi.fn(),
@@ -42,6 +46,10 @@ vi.mock('../../../src/utils/object-utils', () => ({
 vi.mock('../../../src/utils/platform', () => ({
   getMcpCommand: vi.fn(() => ['npx']),
   isWindows: vi.fn(() => false),
+}))
+
+vi.mock('../../../src/utils/ccjk-config', () => ({
+  readCcjkConfig: vi.fn(() => ({ codeToolType: 'claude-code' })),
 }))
 
 const mockJsonConfig = vi.mocked(await import('../../../src/utils/json-config'))

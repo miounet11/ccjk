@@ -6,6 +6,24 @@ ccjk 是 Clavue / Claude Code / Codex 的本地配置 CLI。本文记录用户�
 
 ## [Unreleased]
 
+## [16.1.0] - 2026-06-09
+
+### Added
+- **医生 + 操作员**产品模型：`src/config/tool-matrix.ts` 定义四工具能力矩阵
+- `ccjk clean`：扫描并清理脏 MCP、坏 Skills、冗余 prompts、过时 `~/.codex/AGENTS.md`
+  - `--purge-all`：移除所有 MCP（Codex/Claude）、Skills（Codex/Claude/Grok）、prompts
+  - `-s`：非交互，仅清理高置信度项
+- **Codex 初始化预设**：干净（零安装）/ 优化（baseline + 默认工作流 + context7）/ 自定义
+- **医生中心**（菜单 `H`）：只读扫描报告 → API 探活 → 智能清理 → 全部清理
+- **快捷向导**（菜单 `W`）：完整初始化、仅工作流、单项调整；Codex 支持「重置后初始化」
+- Codex `config.toml` 嵌套 MCP 节完整删除（`[mcp_servers.*.env]` 等孤儿节）
+- 工程向 Codex 输出风格与工作流模板（去掉角色扮演类）
+
+### Changed
+- 主菜单改为 **list 箭头选择**，按「操作员 / 医生 / 跨工具 / CCJK」四区分组展示
+- 四工具菜单均暴露「环境清理（医生）」入口
+- `PRODUCT.md` / `docs/CLAUDE-NOTES.md` 补充医生+操作员定位与交互说明
+
 ## [16.0.2] - 2026-06-06
 
 ### Added

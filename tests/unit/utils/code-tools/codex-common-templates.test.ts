@@ -95,7 +95,7 @@ describe('codex - common templates usage', () => {
     mockCcjkConfig.readDefaultTomlConfig.mockReturnValue({})
 
     mockPrompts.resolveTemplateLanguage.mockResolvedValue('zh-CN')
-    mockPrompts.resolveSystemPromptStyle.mockResolvedValue('engineer-professional')
+    mockPrompts.resolveSystemPromptStyle.mockResolvedValue('linus-mode')
 
     mockNodeFs.existsSync.mockReturnValue(true)
     mockNodeUrl.fileURLToPath.mockReturnValue('/project/dist/utils/code-tools/codex.js')
@@ -260,7 +260,7 @@ describe('codex - common templates usage', () => {
       const codex = await import('../../../../src/utils/code-tools/codex')
 
       mockInquirer.default.prompt.mockResolvedValue({
-        workflows: ['__GIT_GROUP_SENTINEL__'], // Special marker for git group
+        workflows: ['::codexWorkflowGroup:gitWorkflow'],
       })
 
       const capturedReadPaths: string[] = []

@@ -141,7 +141,7 @@ vi.mock('../../../../src/utils/ccjk-config', () => ({
     },
     codex: {
       enabled: true,
-      systemPromptStyle: 'engineer-professional',
+      systemPromptStyle: 'linus-mode',
       envKeyMigrated: true,
     },
   })),

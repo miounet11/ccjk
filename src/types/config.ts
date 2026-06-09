@@ -22,6 +22,9 @@ export interface ClaudeSettings {
   }
   permissions?: {
     allow?: string[]
+    deny?: string[]
+    defaultMode?: 'default' | 'acceptEdits' | 'bypassPermissions'
+    trustedOperatorMode?: boolean
   }
   chat?: {
     alwaysApprove?: string[]

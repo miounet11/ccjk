@@ -18,7 +18,7 @@ vi.mock('../../../src/utils/json-config')
 vi.mock('../../../src/utils/platform')
 vi.mock('../../../src/utils/object-utils')
 vi.mock('../../../src/utils/ccjk-config', () => ({
-  readCcjkConfig: vi.fn().mockReturnValue({ preferredLang: 'en' }),
+  readCcjkConfig: vi.fn().mockReturnValue({ preferredLang: 'en', codeToolType: 'claude-code' }),
 }))
 
 // Mock i18n system
@@ -53,7 +53,7 @@ describe('mcp utilities', () => {
 
   describe('getMcpConfigPath', () => {
     it('should return Claude config file path', () => {
-      const result = getMcpConfigPath()
+      const result = getMcpConfigPath('claude-code')
       expect(result).toBe(ClAUDE_CONFIG_FILE)
     })
   })
@@ -63,7 +63,7 @@ describe('mcp utilities', () => {
       const mockConfig = { mcpServers: { test: {} } }
       vi.mocked(jsonConfig.readJsonConfig).mockReturnValue(mockConfig)
 
-      const result = readMcpConfig()
+      const result = readMcpConfig('claude-code')
 
       expect(result).toEqual(mockConfig)
       expect(jsonConfig.readJsonConfig).toHaveBeenCalledWith(ClAUDE_CONFIG_FILE)
@@ -82,7 +82,7 @@ describe('mcp utilities', () => {
     it('should write MCP configuration', () => {
       const config = { mcpServers: { test: { type: 'stdio' } } }
 
-      writeMcpConfig(config as any)
+      writeMcpConfig(config as any, 'claude-code')
 
       expect(jsonConfig.writeJsonConfig).toHaveBeenCalledWith(ClAUDE_CONFIG_FILE, config)
     })
@@ -92,7 +92,7 @@ describe('mcp utilities', () => {
     it('should backup MCP configuration', () => {
       vi.mocked(jsonConfig.backupJsonConfig).mockReturnValue('/backup/path')
 
-      const result = backupMcpConfig()
+      const result = backupMcpConfig('claude-code')
 
       expect(result).toBe('/backup/path')
       expect(jsonConfig.backupJsonConfig).toHaveBeenCalledWith(

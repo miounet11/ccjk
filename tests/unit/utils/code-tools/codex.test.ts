@@ -4,14 +4,14 @@ vi.mock('../../../../src/i18n', () => ({
   i18n: {
     t: (key: string) => {
       const translations: Record<string, string> = {
-        'configuration:outputStyles.engineer-professional.name': '工程师专业版',
-        'configuration:outputStyles.engineer-professional.description': '专业的软件工程师，严格遵循SOLID、KISS、DRY、YAGNI原则',
-        'configuration:outputStyles.laowang-engineer.name': '老王暴躁技术流',
-        'configuration:outputStyles.laowang-engineer.description': '老王暴躁技术流，绝不容忍代码报错和不规范的代码',
-        'configuration:outputStyles.nekomata-engineer.name': '猫娘工程师',
-        'configuration:outputStyles.nekomata-engineer.description': '专业的猫娘工程师幽浮喵，结合严谨工程师素养与可爱猫娘特质',
-        'configuration:outputStyles.ojousama-engineer.name': '傲娇大小姐工程师',
-        'configuration:outputStyles.ojousama-engineer.description': '傲娇金发大小姐程序员哈雷酱，融合严谨工程师素养与傲娇大小姐特质',
+        'configuration:outputStyles.linus-mode.name': '工程师专业版',
+        'configuration:outputStyles.linus-mode.description': '专业的软件工程师，严格遵循SOLID、KISS、DRY、YAGNI原则',
+        'configuration:outputStyles.dhh-mode.name': '老王暴躁技术流',
+        'configuration:outputStyles.dhh-mode.description': '老王暴躁技术流，绝不容忍代码报错和不规范的代码',
+        'configuration:outputStyles.uncle-bob-mode.name': '猫娘工程师',
+        'configuration:outputStyles.uncle-bob-mode.description': '专业的猫娘工程师幽浮喵，结合严谨工程师素养与可爱猫娘特质',
+        'configuration:outputStyles.carmack-mode.name': '傲娇大小姐工程师',
+        'configuration:outputStyles.carmack-mode.description': '傲娇金发大小姐程序员哈雷酱，融合严谨工程师素养与傲娇大小姐特质',
         'workflow:workflowOption.sixStepsWorkflow': '六步工作流 (workflow)',
         'workflow:workflowOption.gitWorkflow': 'Git 指令 (commit + rollback + cleanBranches + worktree)',
         'codex:systemPromptPrompt': '请选择系统提示词风格',
@@ -165,6 +165,11 @@ vi.mock('../../../../src/utils/trash', () => ({
   moveToTrash: vi.fn(),
 }))
 
+vi.mock('../../../../src/utils/codex-profile-v2', () => ({
+  codexProfileLaunchHint: vi.fn((profileName: string) => `codex --profile ${profileName}`),
+  syncCodexProfileFileAfterApiUpdate: vi.fn(),
+}))
+
 const installerMock = vi.hoisted(() => ({
   installCodex: vi.fn(),
 }))
@@ -190,7 +195,7 @@ vi.mock('../../../../src/utils/prompts', () => ({
   selectAiOutputLanguage: vi.fn(() => Promise.resolve('zh-CN')),
   resolveAiOutputLanguage: vi.fn(() => Promise.resolve('zh-CN')),
   selectScriptLanguage: vi.fn(() => Promise.resolve('zh-CN')),
-  resolveSystemPromptStyle: vi.fn(() => Promise.resolve('engineer-professional')),
+  resolveSystemPromptStyle: vi.fn(() => Promise.resolve('linus-mode')),
 }))
 
 const togglePromptModule = await import('../../../../src/utils/toggle-prompt')
@@ -210,7 +215,7 @@ describe('codex code tool utilities', () => {
     vi.mocked(inquirer.default.prompt).mockResolvedValue({
       mode: 'official',
       choice: '0',
-      systemPrompt: 'engineer-professional',
+      systemPrompt: 'linus-mode',
       workflows: [],
       action: 'trash',
     })
@@ -228,13 +233,13 @@ describe('codex code tool utilities', () => {
       },
       claudeCode: {
         enabled: false,
-        outputStyles: ['engineer-professional'],
-        defaultOutputStyle: 'engineer-professional',
+        outputStyles: ['linus-mode'],
+        defaultOutputStyle: 'linus-mode',
         installType: 'global',
       },
       codex: {
         enabled: true,
-        systemPromptStyle: 'engineer-professional',
+        systemPromptStyle: 'linus-mode',
       },
     })
   })
@@ -244,10 +249,13 @@ describe('codex code tool utilities', () => {
     const codexModule = await import('../../../../src/utils/code-tools/codex')
 
     // Test that the function executes without throwing errors
-    await expect(codexModule.runCodexFullInit()).resolves.toBe('zh-CN')
+    await expect(codexModule.runCodexFullInit({
+      skipPrompt: true,
+      setupPreset: 'optimized',
+    })).resolves.toBe('zh-CN')
 
     // Ensure installCodex is invoked for CLI installation
-    expect(mockedInstallCodex).toHaveBeenCalledWith(false)
+    expect(mockedInstallCodex).toHaveBeenCalledWith(true)
   })
 
   it('runCodexWorkflowImport should copy templates for current language', async () => {
@@ -349,9 +357,9 @@ describe('codex code tool utilities', () => {
 
     const codexModule = await import('../../../../src/utils/code-tools/codex')
     const writeFileMock = vi.mocked(fsOps.writeFile)
-    const copyDirMock = vi.mocked(fsOps.copyDir)
+    const copyFileMock = vi.mocked(fsOps.copyFile)
     writeFileMock.mockClear()
-    copyDirMock.mockClear()
+    copyFileMock.mockClear()
 
     // Mock promptBoolean (not used in official mode, but clear any previous mocks)
     mockedPromptBoolean.mockClear()
@@ -361,9 +369,12 @@ describe('codex code tool utilities', () => {
     // Verify that writeJsonConfig was called
     expect(jsonModule.writeJsonConfig).toHaveBeenCalled()
 
-    // Note: Backup now uses complete backup (copyDir) instead of partial backup (copyFile)
+    // Backup is scoped to recoverable config files, not the whole ~/.codex runtime tree.
     // This test validates the core functionality but backup verification is handled by dedicated backup tests
-    expect(copyDirMock).toHaveBeenCalled() // Verify backup functionality is called
+    expect(copyFileMock).toHaveBeenCalledWith(
+      '/home/test/.codex/config.toml',
+      expect.stringMatching(/\/home\/test\/\.codex\/backup\/backup_.*\/config\.toml$/),
+    )
     const configContent = writeFileMock.mock.calls[0][1] as string
     // In official mode, model_provider should be commented but providers should be preserved
     expect(configContent).toContain('# model_provider = "packycode"')
@@ -396,15 +407,18 @@ describe('codex code tool utilities', () => {
 
     const codexModule = await import('../../../../src/utils/code-tools/codex-configure')
     const writeFileMock = vi.mocked(fsOps.writeFile)
-    const copyDirMock = vi.mocked(fsOps.copyDir)
+    const copyFileMock = vi.mocked(fsOps.copyFile)
     writeFileMock.mockClear()
-    copyDirMock.mockClear()
+    copyFileMock.mockClear()
 
     await codexModule.configureCodexMcp()
 
-    // Note: Backup now uses complete backup (copyDir) instead of partial backup (copyFile)
+    // Backup is scoped to recoverable config files, not the whole ~/.codex runtime tree.
     // This test validates the core functionality but backup verification is handled by dedicated backup tests
-    expect(copyDirMock).toHaveBeenCalled() // Verify backup functionality is called
+    expect(copyFileMock).toHaveBeenCalledWith(
+      '/home/test/.codex/config.toml',
+      expect.stringMatching(/\/home\/test\/\.codex\/backup\/backup_.*\/config\.toml$/),
+    )
     expect(writeFileMock).toHaveBeenCalledTimes(1)
     const updated = writeFileMock.mock.calls[0][1] as string
     expect(updated).toContain('[mcp_servers.context7]')
@@ -449,7 +463,7 @@ describe('codex code tool utilities', () => {
     it('runCodexSystemPromptSelection should prompt user to select system prompt styles', async () => {
       const inquirer = await import('inquirer')
       vi.mocked(inquirer.default.prompt)
-        .mockResolvedValueOnce({ systemPrompt: 'nekomata-engineer' })
+        .mockResolvedValueOnce({ systemPrompt: 'uncle-bob-mode' })
 
       const fsOps = await import('../../../../src/utils/fs-operations')
       vi.mocked(fsOps.exists).mockImplementation((path) => {
@@ -840,7 +854,7 @@ describe('codex code tool utilities', () => {
     it('backupCodexAgents should handle backup creation failure', async () => {
       const fsOps = await import('../../../../src/utils/fs-operations')
       vi.mocked(fsOps.exists).mockReturnValue(true)
-      vi.mocked(fsOps.copyFile).mockImplementation(() => {
+      vi.mocked(fsOps.copyFile).mockImplementationOnce(() => {
         throw new Error('Copy failed')
       })
 
@@ -853,6 +867,7 @@ describe('codex code tool utilities', () => {
     it('backupCodexComplete should create full configuration backup', async () => {
       const fsOps = await import('../../../../src/utils/fs-operations')
       vi.mocked(fsOps.exists).mockReturnValue(true)
+      vi.mocked(fsOps.copyFile).mockImplementation(() => {})
       vi.mocked(fsOps.copyDir).mockImplementation(() => {})
       vi.mocked(fsOps.ensureDir).mockImplementation(() => {})
 
@@ -860,6 +875,7 @@ describe('codex code tool utilities', () => {
       const result = codexModule.backupCodexComplete()
 
       expect(result).toMatch(/backup.*backup_20\d{2}-/)
+      expect(fsOps.copyFile).toHaveBeenCalled()
       expect(fsOps.copyDir).toHaveBeenCalled()
     })
 
@@ -2008,18 +2024,13 @@ model_provider = ""
 
       // Mock file system operations
       vi.mocked(fsOps.exists).mockImplementation((path: string) => {
-        // Mock workflow source directory exists
-        if (path.includes('templates/common/workflow'))
+        const normalized = String(path)
+        if (normalized.endsWith('templates/common/workflow'))
           return true
-        // Mock sixStep workflow file exists
-        if (path.includes('sixStep') && path.includes('workflow.md'))
+        if (normalized.includes('sixStep') && normalized.includes('workflow.md'))
           return true
-        // Mock git workflow directory exists
-        if (path.includes('git') && path.includes('zh-CN'))
-          return true
-        // Mock git workflow files exist
-        if (path.includes('git-commit.md') || path.includes('git-rollback.md')
-          || path.includes('git-cleanBranches.md') || path.includes('git-worktree.md')) {
+        if (normalized.includes('git-commit.md') || normalized.includes('git-rollback.md')
+          || normalized.includes('git-cleanBranches.md') || normalized.includes('git-worktree.md')) {
           return true
         }
         return false
@@ -2249,16 +2260,14 @@ model_provider = ""
         lastUpdated: '2025-12-15',
       })
 
-      // Mock English workflow files exist
       vi.mocked(fsOps.exists).mockImplementation((path: string) => {
-        if (path.includes('templates/common/workflow'))
+        const normalized = String(path)
+        if (normalized.endsWith('templates/common/workflow'))
           return true
-        if (path.includes('sixStep') && path.includes('en') && path.includes('workflow.md'))
+        if (normalized.includes('sixStep') && normalized.includes('en') && normalized.includes('workflow.md'))
           return true
-        if (path.includes('git') && path.includes('en'))
-          return true
-        if (path.includes('git-commit.md') || path.includes('git-rollback.md')
-          || path.includes('git-cleanBranches.md') || path.includes('git-worktree.md')) {
+        if (normalized.includes('git-commit.md') || normalized.includes('git-rollback.md')
+          || normalized.includes('git-cleanBranches.md') || normalized.includes('git-worktree.md')) {
           return true
         }
         return false

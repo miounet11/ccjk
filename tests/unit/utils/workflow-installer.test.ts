@@ -42,6 +42,10 @@ vi.mock('../../../src/i18n', async (importOriginal) => {
   }
 })
 
+vi.mock('../../../src/utils/ccjk-config', () => ({
+  readCcjkConfig: vi.fn(() => ({ codeToolType: 'claude-code' })),
+}))
+
 describe('workflow-installer utilities', () => {
   beforeEach(() => {
     vi.clearAllMocks()

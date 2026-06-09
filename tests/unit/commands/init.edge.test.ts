@@ -241,7 +241,7 @@ describe('init - Edge Cases', () => {
       testMocks.resolveTemplateLanguage.mockResolvedValue('en') // language selection
       testMocks.promptBoolean.mockResolvedValueOnce(false)
 
-      await init({ skipPrompt: false })
+      await init({ skipPrompt: false, codeType: 'claude-code' })
 
       expect(mockConsoleLog).toHaveBeenCalledWith(
         expect.stringContaining(ansis.yellow(i18n.t('common:skip'))),
@@ -323,6 +323,7 @@ describe('init - Edge Cases', () => {
       await init({
         skipPrompt: true,
         configLang: 'en',
+        codeType: 'claude-code',
       })
 
       expect(testMocks.installClaudeCode).toHaveBeenCalled()

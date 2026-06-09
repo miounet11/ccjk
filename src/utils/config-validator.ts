@@ -55,6 +55,11 @@ export function validateClaudeSettings(settings: any): settings is ClaudeSetting
       console.log(i18n.t('errors:invalidPermissionsAllow'))
       return false
     }
+
+    if (settings.permissions.deny && !Array.isArray(settings.permissions.deny)) {
+      console.log(i18n.t('errors:invalidPermissionsAllow'))
+      return false
+    }
   }
 
   return true
@@ -93,6 +98,17 @@ export function sanitizeClaudeSettings(settings: any): ClaudeSettings {
       sanitized.permissions.allow = settings.permissions.allow.filter(
         (item: any) => typeof item === 'string',
       )
+    }
+    if (Array.isArray(settings.permissions.deny)) {
+      sanitized.permissions.deny = settings.permissions.deny.filter(
+        (item: any) => typeof item === 'string',
+      )
+    }
+    if (['default', 'acceptEdits', 'bypassPermissions'].includes(settings.permissions.defaultMode)) {
+      sanitized.permissions.defaultMode = settings.permissions.defaultMode
+    }
+    if (typeof settings.permissions.trustedOperatorMode === 'boolean') {
+      sanitized.permissions.trustedOperatorMode = settings.permissions.trustedOperatorMode
     }
   }
 

@@ -23,6 +23,7 @@ vi.mock('../../../src/utils/json-config', () => ({
   writeJsonConfig: vi.fn(),
 }))
 vi.mock('../../../src/utils/ccjk-config', () => ({
+  readCcjkConfig: vi.fn(() => ({ codeToolType: 'claude-code' })),
   updateCcjkConfig: vi.fn(),
 }))
 vi.mock('../../../src/constants', async (importOriginal) => {
@@ -81,14 +82,13 @@ describe('output-style', () => {
     it('should return all available output styles', () => {
       const styles = getAvailableOutputStyles()
 
-      expect(styles).toHaveLength(9)
+      expect(styles).toHaveLength(8)
       expect(styles.map(s => s.id)).toEqual([
+        'agents-md-baseline',
+        'plan-first',
+        'verify-and-ship',
+        'surgical-diff',
         'engineer-professional',
-        'nekomata-engineer',
-        'laowang-engineer',
-        'ojousama-engineer',
-        'rem-engineer',
-        'leibus-engineer',
         'default',
         'explanatory',
         'learning',
@@ -99,7 +99,7 @@ describe('output-style', () => {
       const styles = getAvailableOutputStyles()
       const customStyles = styles.filter(s => s.isCustom)
 
-      expect(customStyles).toHaveLength(6)
+      expect(customStyles).toHaveLength(5)
       customStyles.forEach((style) => {
         expect(style.filePath).toBeDefined()
         expect(style.filePath).toContain('.md')
@@ -116,19 +116,19 @@ describe('output-style', () => {
       })
     })
 
-    it('should include rem-engineer with correct configuration', () => {
+    it('should include agents-md-baseline with correct configuration', () => {
       const styles = getAvailableOutputStyles()
-      const remEngineer = styles.find(s => s.id === 'rem-engineer')
+      const linusMode = styles.find(s => s.id === 'agents-md-baseline')
 
-      expect(remEngineer).toBeDefined()
-      expect(remEngineer?.isCustom).toBe(true)
-      expect(remEngineer?.filePath).toBe('rem-engineer.md')
+      expect(linusMode).toBeDefined()
+      expect(linusMode?.isCustom).toBe(true)
+      expect(linusMode?.filePath).toBe('agents-md-baseline.md')
     })
   })
 
   describe('copyOutputStyles', () => {
     it('should copy selected styles to claude directory', async () => {
-      const selectedStyles = ['engineer-professional', 'nekomata-engineer']
+      const selectedStyles = ['agents-md-baseline', 'engineer-professional']
       const lang: SupportedLang = 'zh-CN'
 
       mockFsOperations.ensureDir.mockImplementation(() => {})
@@ -144,7 +144,7 @@ describe('output-style', () => {
     })
 
     it('should use shared common/output-styles path for templates', async () => {
-      const selectedStyles = ['engineer-professional']
+      const selectedStyles = ['agents-md-baseline']
       const lang: SupportedLang = 'zh-CN'
 
       mockFsOperations.ensureDir.mockImplementation(() => {})
@@ -164,7 +164,7 @@ describe('output-style', () => {
     })
 
     it('should use shared common/output-styles path for English locale', async () => {
-      const selectedStyles = ['engineer-professional']
+      const selectedStyles = ['agents-md-baseline']
       const lang: SupportedLang = 'en'
 
       mockFsOperations.ensureDir.mockImplementation(() => {})
@@ -184,7 +184,7 @@ describe('output-style', () => {
     })
 
     it('should skip non-existent template files', async () => {
-      const selectedStyles = ['engineer-professional']
+      const selectedStyles = ['agents-md-baseline']
       const lang: SupportedLang = 'zh-CN'
 
       mockFsOperations.ensureDir.mockImplementation(() => {})
@@ -197,7 +197,7 @@ describe('output-style', () => {
     })
 
     it('should only copy custom styles (built-in styles have no files)', async () => {
-      const selectedStyles = ['engineer-professional', 'default', 'explanatory']
+      const selectedStyles = ['agents-md-baseline', 'default', 'explanatory']
       const lang: SupportedLang = 'zh-CN'
 
       mockFsOperations.ensureDir.mockImplementation(() => {})
@@ -206,12 +206,12 @@ describe('output-style', () => {
 
       await copyOutputStyles(selectedStyles, lang)
 
-      // Only engineer-professional should be copied (custom style)
+      // Only agents-md-baseline should be copied (custom style)
       expect(mockFsOperations.copyFile).toHaveBeenCalledTimes(1)
     })
 
-    it('should copy rem-engineer template correctly', async () => {
-      const selectedStyles = ['rem-engineer']
+    it('should copy agents-md-baseline template correctly', async () => {
+      const selectedStyles = ['agents-md-baseline']
       const lang: SupportedLang = 'zh-CN'
 
       mockFsOperations.ensureDir.mockImplementation(() => {})
@@ -226,8 +226,8 @@ describe('output-style', () => {
       await copyOutputStyles(selectedStyles, lang)
 
       expect(mockFsOperations.copyFile).toHaveBeenCalledTimes(1)
-      expect(capturedSourcePath).toContain('rem-engineer.md')
-      expect(capturedDestPath).toContain('rem-engineer.md')
+      expect(capturedSourcePath).toContain('agents-md-baseline.md')
+      expect(capturedDestPath).toContain('agents-md-baseline.md')
       expect(capturedSourcePath).toMatch(/templates[/\\]common[/\\]output-styles[/\\]zh-CN/)
     })
   })
@@ -238,12 +238,12 @@ describe('output-style', () => {
       mockJsonConfig.readJsonConfig.mockImplementation(() => existingSettings)
       mockJsonConfig.writeJsonConfig.mockImplementation(() => {})
 
-      setGlobalDefaultOutputStyle('engineer-professional')
+      setGlobalDefaultOutputStyle('agents-md-baseline')
 
       expect(mockJsonConfig.writeJsonConfig).toHaveBeenCalledWith(
         expect.stringContaining('settings.json'),
         expect.objectContaining({
-          outputStyle: 'engineer-professional',
+          outputStyle: 'agents-md-baseline',
         }),
       )
     })
@@ -256,14 +256,14 @@ describe('output-style', () => {
       mockJsonConfig.readJsonConfig.mockImplementation(() => existingSettings)
       mockJsonConfig.writeJsonConfig.mockImplementation(() => {})
 
-      setGlobalDefaultOutputStyle('nekomata-engineer')
+      setGlobalDefaultOutputStyle('engineer-professional')
 
       expect(mockJsonConfig.writeJsonConfig).toHaveBeenCalledWith(
         expect.stringContaining('settings.json'),
         expect.objectContaining({
           env: { ANTHROPIC_API_KEY: 'test-key' },
           model: 'opus',
-          outputStyle: 'nekomata-engineer',
+          outputStyle: 'engineer-professional',
         }),
       )
     })
@@ -332,7 +332,7 @@ describe('output-style', () => {
     it('should remove outputStyle key from settings.json', () => {
       const existingSettings = {
         env: { ANTHROPIC_API_KEY: 'test-key' },
-        outputStyle: 'engineer-professional',
+        outputStyle: 'agents-md-baseline',
       }
       mockJsonConfig.readJsonConfig.mockImplementation(() => existingSettings)
       mockJsonConfig.writeJsonConfig.mockImplementation(() => {})
@@ -371,8 +371,8 @@ describe('output-style', () => {
       })
 
       mockInquirer.default.prompt = vi.fn()
-        .mockResolvedValueOnce({ selectedStyles: ['engineer-professional', 'nekomata-engineer'] })
-        .mockResolvedValueOnce({ defaultStyle: 'engineer-professional' })
+        .mockResolvedValueOnce({ selectedStyles: ['agents-md-baseline', 'engineer-professional'] })
+        .mockResolvedValueOnce({ defaultStyle: 'agents-md-baseline' })
       Object.assign(mockInquirer.default, {
         prompt: mockInquirer.default.prompt,
         prompts: {},
@@ -403,8 +403,8 @@ describe('output-style', () => {
       mockCcjkConfig.updateCcjkConfig.mockImplementation(() => {})
 
       await configureOutputStyle(
-        ['engineer-professional', 'default'], // preselectedStyles
-        'engineer-professional', // preselectedDefault
+        ['agents-md-baseline', 'default'], // preselectedStyles
+        'agents-md-baseline', // preselectedDefault
       )
 
       expect(mockInquirer.default.prompt).not.toHaveBeenCalled()
@@ -421,8 +421,8 @@ describe('output-style', () => {
       })
       mockFsOperations.removeFile.mockImplementation(() => {})
       mockInquirer.default.prompt = vi.fn()
-        .mockResolvedValueOnce({ selectedStyles: ['engineer-professional'] })
-        .mockResolvedValueOnce({ defaultStyle: 'engineer-professional' })
+        .mockResolvedValueOnce({ selectedStyles: ['agents-md-baseline'] })
+        .mockResolvedValueOnce({ defaultStyle: 'agents-md-baseline' })
       Object.assign(mockInquirer.default, {
         prompt: mockInquirer.default.prompt,
         prompts: {},
@@ -456,8 +456,8 @@ describe('output-style', () => {
       })
       mockFsOperations.removeFile.mockImplementation(() => {})
       mockInquirer.default.prompt = vi.fn()
-        .mockResolvedValueOnce({ selectedStyles: ['engineer-professional'] })
-        .mockResolvedValueOnce({ defaultStyle: 'engineer-professional' })
+        .mockResolvedValueOnce({ selectedStyles: ['agents-md-baseline'] })
+        .mockResolvedValueOnce({ defaultStyle: 'agents-md-baseline' })
       Object.assign(mockInquirer.default, {
         prompt: mockInquirer.default.prompt,
         prompts: {},
@@ -493,7 +493,7 @@ describe('output-style', () => {
         restoreDefaultPrompts: vi.fn(),
       })
 
-      mockJsonConfig.readJsonConfig.mockImplementation(() => ({ outputStyle: 'engineer-professional' }))
+      mockJsonConfig.readJsonConfig.mockImplementation(() => ({ outputStyle: 'agents-md-baseline' }))
       mockJsonConfig.writeJsonConfig.mockImplementation(() => {})
       mockCcjkConfig.updateCcjkConfig.mockImplementation(() => {})
 

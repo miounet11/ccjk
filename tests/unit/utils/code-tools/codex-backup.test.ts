@@ -51,13 +51,10 @@ describe('codex backup mechanism', () => {
       const expectedBackupDir = join(BACKUP_BASE_DIR, 'backup_2024-01-01_14-30-00')
       expect(result).toBe(expectedBackupDir)
       expect(mockEnsureDir).toHaveBeenCalledWith(expectedBackupDir)
-      expect(mockCopyDir).toHaveBeenCalledWith(
-        CODEX_DIR,
-        expectedBackupDir,
-        expect.objectContaining({
-          filter: expect.any(Function),
-        }),
-      )
+      expect(mockCopyFile).toHaveBeenCalledWith(join(CODEX_DIR, 'config.toml'), join(expectedBackupDir, 'config.toml'))
+      expect(mockCopyFile).toHaveBeenCalledWith(join(CODEX_DIR, 'auth.json'), join(expectedBackupDir, 'auth.json'))
+      expect(mockCopyFile).toHaveBeenCalledWith(join(CODEX_DIR, 'AGENTS.md'), join(expectedBackupDir, 'AGENTS.md'))
+      expect(mockCopyDir).toHaveBeenCalledWith(join(CODEX_DIR, 'prompts'), join(expectedBackupDir, 'prompts'))
     })
 
     it('should return null when .codex directory does not exist', async () => {
@@ -74,26 +71,23 @@ describe('codex backup mechanism', () => {
       expect(mockCopyDir).not.toHaveBeenCalled()
     })
 
-    it('should filter out backup directory when copying', async () => {
+    it('should only backup Codex configuration files and prompts', async () => {
       // Arrange
       mockExists.mockReturnValue(true)
-      let filterFunction: ((path: string) => boolean) | undefined
-
-      mockCopyDir.mockImplementation((_src, _dest, options) => {
-        filterFunction = options?.filter
-      })
 
       // Act
       const { backupCodexFiles } = await import('../../../../src/utils/code-tools/codex')
       backupCodexFiles()
 
       // Assert
-      expect(filterFunction).toBeDefined()
-      if (filterFunction) {
-        expect(filterFunction('/home/user/.codex/config.toml')).toBe(true)
-        expect(filterFunction('/home/user/.codex/backup/old-backup')).toBe(false)
-        expect(filterFunction('/home/user/.codex/some/backup/nested')).toBe(false)
-      }
+      expect(mockCopyDir).toHaveBeenCalledTimes(1)
+      expect(mockCopyDir).toHaveBeenCalledWith(join(CODEX_DIR, 'prompts'), expect.stringContaining('prompts'))
+      const copiedFileSources = mockCopyFile.mock.calls.map(call => call[0])
+      expect(copiedFileSources).toEqual([
+        join(CODEX_DIR, 'config.toml'),
+        join(CODEX_DIR, 'auth.json'),
+        join(CODEX_DIR, 'AGENTS.md'),
+      ])
     })
 
     it('should handle copy errors gracefully', async () => {

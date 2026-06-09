@@ -259,13 +259,13 @@ describe('installation manager utilities', () => {
         },
         claudeCode: {
           enabled: true,
-          outputStyles: ['engineer-professional'],
-          defaultOutputStyle: 'engineer-professional',
+          outputStyles: ['linus-mode'],
+          defaultOutputStyle: 'linus-mode',
           installType: 'local',
         },
         codex: {
           enabled: false,
-          systemPromptStyle: 'engineer-professional',
+          systemPromptStyle: 'linus-mode',
         },
       })
 

@@ -190,28 +190,29 @@ describe('npm Package Integration Tests', () => {
     // Fast npm pack validation - verify real package contents without installation
     console.log('Fast validation: verifying npm pack contents')
 
-    // Use npm pack --dry-run for fast content verification
-    // Skip husky prepare script to avoid Windows file locking issues
-    const { stdout: dryRunOutput } = await execAsync('npm pack --dry-run', {
+    const { stdout: packOutput } = await execAsync('npm pack --json', {
       cwd: projectRoot,
       timeout: 5000,
       env: {
         ...process.env,
-        HUSKY: '0', // Disable husky to avoid Windows file locking issues
-        NO_UPDATE_NOTIFIER: '1', // Disable npm update notifications
+        HUSKY: '0',
+        NO_UPDATE_NOTIFIER: '1',
       },
     })
 
-    // Extract file list from dry-run output
-    const packedFiles = dryRunOutput
-      .split('\n')
-      .filter(line => line.includes('npm notice'))
-      .map(line => line.replace(/npm notice\s*\d+\.\d+[kKmMgG]?B\s+/, '').trim())
-      .filter(Boolean)
+    const jsonStartIndex = packOutput.search(/[\[{]/)
+    const packData = JSON.parse(packOutput.slice(jsonStartIndex).trim())
+    const packedFiles: string[] = (packData[0]?.files || []).map((f: { path: string }) => f.path)
+
+    const tarballName = packData[0]?.filename
+    if (tarballName && existsSync(join(projectRoot, tarballName))) {
+      rmSync(join(projectRoot, tarballName), { force: true })
+    }
 
     // Verify critical files are included in pack
     const criticalFiles = [
-      'dist/index.js',
+      'dist/index.mjs',
+      'dist/cli.mjs',
       'dist/index.d.ts',
       'dist/i18n/locales/zh-CN/menu.json',
       'dist/i18n/locales/en/menu.json',

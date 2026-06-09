@@ -1,7 +1,7 @@
 import * as fs from 'node:fs'
 import { exec } from 'tinyexec'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { importRecommendedEnv, importRecommendedPermissions, openSettingsJson } from '../../../src/utils/simple-config'
+import { applyRecommendedPermissionTier, importRecommendedEnv, importRecommendedPermissions, openSettingsJson } from '../../../src/utils/simple-config'
 
 vi.mock('node:fs')
 vi.mock('tinyexec')
@@ -159,6 +159,34 @@ describe('simple-config utilities', () => {
       expect(savedSettings.permissions.allow).toContain('Bash')
     })
 
+    it('should apply yolo permission tier for Clavue', async () => {
+      const currentSettings = {
+        permissions: {
+          allow: ['CustomTool', 'Read'],
+        },
+      }
+
+      vi.mocked(fs.existsSync).mockReturnValue(true)
+      vi.mocked(fs.readFileSync).mockImplementation((path) => {
+        if (path.toString().includes('templates/claude-code/common/settings.json')) {
+          return JSON.stringify({})
+        }
+        return JSON.stringify(currentSettings)
+      })
+
+      const writeSpy = vi.mocked(fs.writeFileSync)
+
+      await applyRecommendedPermissionTier('yolo', 'clavue')
+
+      expect(writeSpy.mock.calls[0][0].toString()).toContain('.clavue')
+      const savedSettings = JSON.parse(writeSpy.mock.calls[0][1] as string)
+      expect(savedSettings.permissions.allow).toContain('Bash')
+      expect(savedSettings.permissions.allow).toContain('CustomTool')
+      expect(savedSettings.permissions.defaultMode).toBe('bypassPermissions')
+      expect(savedSettings.permissions.trustedOperatorMode).toBe(true)
+      expect(savedSettings.allowUnsandboxedCommands).toBe(true)
+    })
+
     it('should handle missing permissions in template', async () => {
       const templateSettings = {}
       const currentSettings = {
@@ -207,7 +235,7 @@ describe('simple-config utilities', () => {
 
       expect(writeSpy).toHaveBeenCalled()
       const savedSettings = JSON.parse(writeSpy.mock.calls[0][1] as string)
-      expect(savedSettings.permissions.deny).toEqual(['DangerousOp'])
+      expect(savedSettings.permissions.deny).toContain('Bash(rm -rf /)')
       expect(savedSettings.permissions.trustedOperatorMode).toBe(true)
     })
   })

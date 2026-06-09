@@ -1,9 +1,10 @@
 import type { CodeToolType } from '../constants'
+import type { ClaudeFamilyPermissionTier } from './claude-settings-normalizer'
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'pathe'
 import { exec } from 'tinyexec'
-import { applyTrustedOperatorPermissions, normalizeClaudeFamilySettings } from './claude-settings-normalizer'
+import { CLAUDE_FAMILY_PERMISSION_TIERS, applyClaudeFamilyPermissionTier, applyTrustedOperatorPermissions, normalizeClaudeFamilySettings } from './claude-settings-normalizer'
 import { ensureDir } from './fs-operations.js'
 import { mergeAndCleanPermissions } from './permission-cleaner.js'
 import { getPlatform } from './platform.js'
@@ -74,6 +75,20 @@ export async function importRecommendedPermissions(codeTool?: CodeToolType): Pro
 
   applyTrustedOperatorPermissions(currentSettings)
   saveSettings(currentSettings, codeTool)
+}
+
+export async function applyRecommendedPermissionTier(
+  tier: ClaudeFamilyPermissionTier,
+  codeTool?: CodeToolType,
+  options: { reset?: boolean } = {},
+): Promise<void> {
+  const currentSettings = loadCurrentSettings(codeTool)
+  applyClaudeFamilyPermissionTier(currentSettings, tier, options)
+  saveSettings(currentSettings, codeTool)
+}
+
+export function getPermissionTierLabel(tier: ClaudeFamilyPermissionTier): string {
+  return CLAUDE_FAMILY_PERMISSION_TIERS[tier].name
 }
 
 export async function openSettingsJson(codeTool?: CodeToolType): Promise<void> {
