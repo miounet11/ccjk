@@ -1,15 +1,15 @@
-# PRODUCT.md — ccjk 产品身份
+# PRODUCT.md — ccjk 产品身份（全访问加强 zero-config 工具）
 
-> 「Clavue / Claude Code / Codex / Grok 的本地配置 CLI。」
+> 「Clavue / Claude Code / Codex / Grok 的全访问加强 zero-config 本地配置 CLI。」
 > — package.json description
 
 本文件是 ccjk 的 program.md：人类拥有的 steering 文档。代码改动可以指出本文件需要更新的地方，但不直接 silent rewrite 本文件。
 
 ---
 
-## 0. 产品隐喻：医生 + 快捷操作员
+## 0. 产品隐喻：医生 + 快捷操作员（全访问加强）
 
-ccjk **不替代** 四个原生 CLI 写代码，只管理它们的**本地配置健康度**与**一键写入**。
+ccjk **不替代** 四个原生 CLI 写代码，只管理它们的**本地配置健康度**与**一键写入**。从 `npm i -g ccjk` 到四个工具全部配置就绪，全程 zero-config——自动探测已安装工具，最小化交互击键，首次运行即完成向导。
 
 | 角色 | 职责 | 典型命令 / 菜单 |
 |---|---|---|
@@ -47,10 +47,10 @@ ccjk 自身配置只在 `~/.ccjk/`，**绝不混入** 各工具目录。
 
 ## 1. 目标用户
 
-- **主体**：会用终端、需要在多个 API key / provider / profile 之间切换的开发者
+- **主体**：需要在 Clavue / Claude Code / Codex / Grok CLI 四个工具之间切换的开发者，不愿手动逐工具配置 API key、provider、profile
 - **次要**：CI 流水线（`doctor --json` / `probe --json` / `profile-diff --json` / `bench --json`）
 
-不是给完全不会终端的新手；不是给只用一个 key 一次配好就不动的人。
+ccjk 面向想一键配通四种工具而非逐个手动 setup 的开发者；不是给完全不会终端的新手，也不是给只用一个 key 一次配好就不动的人。
 
 ---
 
@@ -89,6 +89,7 @@ ccjk 是**配置工具**，不是 IDE 也不是 agent runtime。明确不做：
 
 | 承诺 | 来源 / 落地版本 |
 |---|---|
+| 首次运行自动 onboarding + 探测已装工具，全流程最少击键（zero-config） | v16.x |
 | 任何子菜单 ESC/Ctrl+C 必须**静默回菜单**（不报红字） | v15.27.1 |
 | `ccjk doctor` exit code: clean=0 / warn=1 / error=2 | v15.25 |
 | `ccjk use <profile>` 默认同步全部已装工具（clavue + claude-code + codex） | v15.21 |
@@ -100,7 +101,7 @@ ccjk 是**配置工具**，不是 IDE 也不是 agent runtime。明确不做：
 
 ## 5. provider 收录策略
 
-`src/core/providers.ts` 里的 catalog 是**已知能跑通的厂商**：
+`src/config/api-providers.ts` 里的 catalog 是**已知能跑通的厂商**：
 
 - 国内：GLM / Kimi / MiniMax / DeepSeek
 - 海外：Anthropic 官方 / OpenRouter

@@ -13,6 +13,15 @@ import { addCompletedOnboarding, setPrimaryApiKey } from './claude-config'
 import { normalizeClaudeFamilySettings } from './claude-settings-normalizer'
 import { clearModelEnv, MODEL_ENV_KEYS } from './config.model-keys'
 import {
+  saveProviderProfile,
+  generateProfileId as generateClavueProfileId,
+  readClavueJson,
+  writeClavueJson,
+  listProviderProfiles,
+  getActiveProviderProfileId,
+  createModelRouting,
+} from './clavue-provider-profile'
+import {
   copyDir,
   copyFile,
   ensureDir,
@@ -148,6 +157,24 @@ export function configureApi(apiConfig: ApiConfig | null, codeTool?: CodeToolTyp
     console.error('Failed to set onboarding flag', error)
   }
 
+  // Clavue 9.x: also write provider profile for composite model support
+  if (target.codeTool === 'clavue' && apiConfig.url && apiConfig.key) {
+    try {
+      const profileId = generateClavueProfileId('ccjk-default')
+      saveProviderProfile({
+        id: profileId,
+        name: 'ccjk-default',
+        baseUrl: apiConfig.url,
+        authType: apiConfig.authType || 'api_key',
+        apiKey: apiConfig.key,
+        setAsActive: true,
+      })
+    }
+    catch {
+      // Non-critical: provider profile write is optional enhancement
+    }
+  }
+
   return apiConfig
 }
 
@@ -213,6 +240,52 @@ export function updateCustomModel(
 
   normalizeClaudeFamilySettings(settings, { codeTool: target.codeTool })
   writeJsonConfig(target.settingsFile, settings)
+
+  // Clavue 9.x: update provider profile modelRouting for composite model support
+  if (target.codeTool === 'clavue') {
+    updateClavueProviderModelRouting(primaryModel, haikuModel, sonnetModel, opusModel)
+  }
+}
+
+/**
+ * Update the active Clavue provider profile's modelRouting slots.
+ * Creates a new profile if none exists.
+ */
+function updateClavueProviderModelRouting(
+  primaryModel?: string,
+  haikuModel?: string,
+  sonnetModel?: string,
+  opusModel?: string,
+): void {
+  try {
+    const activeId = getActiveProviderProfileId()
+    const profiles = listProviderProfiles()
+    const existingProfile = activeId ? profiles.find(p => p.id === activeId) : profiles[0]
+
+    const modelRouting = createModelRouting({
+      primaryModel: primaryModel?.trim() || existingProfile?.modelRouting?.primaryModel || '',
+      haikuModel: haikuModel?.trim() || existingProfile?.modelRouting?.smallFastModel || '',
+      sonnetModel: sonnetModel?.trim() || existingProfile?.modelRouting?.subagentModel || '',
+      opusModel: opusModel?.trim() || existingProfile?.modelRouting?.planModel || '',
+    })
+
+    if (existingProfile) {
+      saveProviderProfile({
+        id: existingProfile.id,
+        name: existingProfile.name,
+        baseUrl: existingProfile.baseUrl,
+        authType: existingProfile.authType,
+        apiKey: '', // credential already stored, don't overwrite
+        modelRouting,
+        modelMode: existingProfile.modelMode,
+        apiDialectMode: existingProfile.apiDialectMode,
+        setAsActive: true,
+      })
+    }
+  }
+  catch {
+    // Non-critical: modelRouting update is optional enhancement
+  }
 }
 
 /**
@@ -427,6 +500,19 @@ export function switchToOfficialLogin(codeTool?: CodeToolType): boolean {
       if (vscConfig) {
         delete vscConfig.primaryApiKey
         writeJsonConfig(CLAUDE_VSC_CONFIG_FILE, vscConfig)
+      }
+    }
+
+    // Clavue 9.x: also clear provider profiles when switching to official login
+    if (target.codeTool === 'clavue') {
+      try {
+        const clavueJson = readClavueJson()
+        clavueJson.clavueProviderProfiles = []
+        clavueJson.activeProviderProfileId = undefined
+        writeClavueJson(clavueJson)
+      }
+      catch {
+        // Non-critical cleanup
       }
     }
 

@@ -15,6 +15,7 @@ import { grokCommand } from './commands/grok'
 import { reasonixCommand } from './commands/reasonix'
 import { probeCommand } from './commands/probe'
 import { benchCommand } from './commands/bench'
+import { providerCommand } from './commands/provider'
 import { changeLanguage, i18n, initI18n } from './i18n'
 import { selectScriptLanguage } from './utils/prompts'
 import { readCcjkConfigAsync } from './utils/ccjk-config'
@@ -368,13 +369,20 @@ export async function setupCommands(cli: CAC): Promise<void> {
     .option('--json', 'JSON output')
     .action(await withLanguageResolution(async (options) => {
       await probeCommand({ json: options.json })
-    }))
+    }, true))
 
   cli
     .command('bench', 'Lightweight latency benchmark (probe)')
     .option('--json', 'JSON output')
     .action(await withLanguageResolution(async (options) => {
       await benchCommand({ json: options.json })
+    }, true))
+
+  cli
+    .command('provider [action] [profileId]', 'Manage Clavue provider profiles')
+    .option('--json', 'JSON output')
+    .action(await withLanguageResolution(async (action, profileId, options) => {
+      await providerCommand({ action, profileId, json: options.json })
     }))
 
   // Check updates command

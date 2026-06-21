@@ -6,6 +6,32 @@ ccjk 是 Clavue / Claude Code / Codex 的本地配置 CLI。本文记录用户�
 
 ## [Unreleased]
 
+## [16.3.0] - 2026-06-21
+
+### Added
+- **Clavue 9.x 组合模型支持**：`ccjk init --code-type clavue` 自动创建 provider profile（`~/.clavue/.clavue.json` + `.credentials.json`），支持 9 槽 modelRouting
+- **`ccjk provider` 命令**：list / current / validate 管理 Clavue provider profiles
+- Provider profile 单元测试（35 用例）
+
+### Changed
+- PRODUCT.md 定位更新为"全访问加强 zero-config 工具"
+- ARCHITECTURE.md 修复过时 `src/core/` 引用，更新为实际 `src/utils/` 结构
+- API/模型配置同步写入 provider profile（Clavue 9.x），不预设 modelMode 默认值
+
+### Removed
+- 删除 `IMPLEMENTATION_SUMMARY.md`（记录已移除的 Gastown 多 agent 系统）
+- 删除未使用的 `CLAVUE_MODEL_ROUTING_SLOTS` 导出
+
+### Internal
+- 新增 `src/utils/clavue-provider-profile.ts`：provider profile 管理器
+- 新增 `src/commands/provider.ts`：provider 管理命令
+- 新增 `docs/ccjk-audit-2026-06-21.md`：全量审计报告
+
+## [16.2.1] - 2026-06-10
+
+### Fixed
+- `ccjk probe --json` / `ccjk bench --json` 在未设置显示语言时不再弹出语言选择，便于非交互诊断 API/代理错误。
+
 ## [16.2.0] - 2026-06-09
 
 ### Added

@@ -10,26 +10,26 @@
 src/
   cli.ts                 -- 唯一 program 入口；只做参数路由
   commands/<name>.ts     -- 一文件一命令；与终端 IO 紧耦合
-  core/<topic>.ts        -- 纯函数 / 数据层；测试都打这层
+  utils/<topic>.ts       -- 纯函数 / 数据层；测试都打这层
   i18n/locales/{en,zh-CN}/*.json  -- 用户可见字串
 
 tests/
   commands/<name>.test.ts  -- 命令级集成测（mock IO）
 
-src/**/*.test.ts          -- core 纯函数单测（就近放置）
+src/**/*.test.ts          -- utils 纯函数单测（就近放置）
 ```
 
-依赖方向：`cli → commands → core → (i18n / fs / inquirer / ansis)`。**禁止反向**：core 不引 commands；commands 不引 cli。
+依赖方向：`cli → commands → utils → (i18n / fs / inquirer / ansis)`。**禁止反向**：utils 不引 commands；commands 不引 cli。
 
 ---
 
 ## 2. 不变量
 
 ### #1 备份先行
-任何写盘操作必须先调 `core/backup` 落 `.bak-<ts>` 备份。`rollback` 命令是这个不变量的兑现入口。
+任何写盘操作必须先调 `utils/` 中的备份逻辑（分布在 `codex-profile-v2.ts`、`claude-code-config-manager.ts` 等文件）落 `.bak-<ts>` 备份。`rollback` 命令是这个不变量的兑现入口。
 
 ### #2 lint 三层模型
-`core/lint.ts` 的体检规则走：
+`utils/` 中的配置校验规则（`claude-code-incremental-manager.ts`、`environment-cleaner.ts` 等）走：
 - **白名单** `KNOWN_ENV` —— Claude/Clavue 官方 env（~25 项）
 - **黑名单** `KNOWN_BAD_ENV` —— 已知第三方私有 / 已弃用 env（带原因）
 - **启发式** —— `apiKeyHelper-stale`、`bash-permissions-too-broad` 等
@@ -51,7 +51,7 @@ inquirer prompt 抛 `ExitPromptError` 是用户主动取消：
 `ccjk migrate` 从 `settings.json → profile` 只读不改源。**反向**（profile → settings）是 `ccjk use` 的语义。两个动作概念不能混用。
 
 ### #6 provider catalog 是元数据
-`core/providers.ts` 的 catalog 只记 `baseUrl / hint / docsUrl / region`，**不记 key**。key 永远在 `~/.ccjk/profiles/<name>.json` 里。catalog 可以 commit；profile 不行（用户敏感数据）。
+`config/api-providers.ts` 的 catalog 只记 `baseUrl / hint / docsUrl / region`，**不记 key**。key 永远在 `~/.ccjk/profiles/<name>.json` 里。catalog 可以 commit；profile 不行（用户敏感数据）。
 
 ---
 
@@ -59,23 +59,23 @@ inquirer prompt 抛 `ExitPromptError` 是用户主动取消：
 
 | 层 | 数量 | 例子 |
 |---|---|---|
-| core 纯函数 | 大头 (~250) | `core/lint.test.ts`、`core/profiles.test.ts`、`core/perms.test.ts` |
-| commands 集成 | 中等 (~70) | `tests/commands/probe.test.ts`、`tests/commands/menu.test.ts` |
+| utils 纯函数 | 大头 (~250) | `tests/unit/utils/config.test.ts`、`tests/unit/utils/claude-config.test.ts`、`tests/unit/config/tool-matrix.test.ts` |
+| commands 集成 | 中等 (~70) | `tests/commands/ccr.test.ts`、`tests/commands/cli-setup.test.ts` |
 | 端到端 | 极少 | `.clavue/retro/scripts/*.exp`（不入 CI，retro 时手跑） |
 
-总数随版本走，截至 v15.27.2 ≈ 323。新增功能必须带 commands-level 测试至少 1 例，core-level 测试覆盖核心分支。
+总数随版本走，截至 v15.27.2 ≈ 323。新增功能必须带 commands-level 测试至少 1 例，utils-level 测试覆盖核心分支。
 
 ---
 
 ## 4. 写新命令的 checklist
 
-1. `src/commands/<name>.ts` 实现命令；只做 IO + 调 core
+1. `src/commands/<name>.ts` 实现命令；只做 IO + 调 utils
 2. `src/cli.ts` 注册 `program.command('<name>')` + 选项 + action
 3. `tests/commands/<name>.test.ts` 至少 3 个用例（happy / 边界 / 失败）
 4. README 命令一览表 + QUICKSTART 相关段更新
 5. `pnpm typecheck && pnpm lint && pnpm test && pnpm build` 全绿
 6. CHANGELOG 加一条
-7. 不要在命令里直接 import 另一个命令（commands 之间通过 core 解耦）
+7. 不要在命令里直接 import 另一个命令（commands 之间通过 utils 解耦）
 
 ---
 
@@ -95,7 +95,7 @@ inquirer prompt 抛 `ExitPromptError` 是用户主动取消：
 ## 6. 何时改本文件
 
 - 新增 / 移除一条「不变量」（第 2 节）
-- 引入新顶层目录（src/brain/、src/utils/ 等出现时）
+- 引入新顶层目录（`src/utils/` 等出现时）
 - 测试金字塔比例失衡到需要重新阐述
 - 发布流程变化（自动化 / multi-branch / pre-release tag）
 

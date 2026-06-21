@@ -288,6 +288,31 @@ export class ClaudeCodeConfigManager {
       normalizeClaudeFamilySettings(settings, { codeTool: normalizedTool })
       writeJsonConfig(settingsFile, settings)
 
+      // Clavue 9.x: also write provider profile for composite model support
+      if (normalizedTool === 'clavue' && profile.baseUrl && profile.apiKey) {
+        try {
+          const { saveProviderProfile, generateProfileId, createModelRouting } = await import('./clavue-provider-profile')
+          const profileId = generateProfileId(profile.name || 'ccjk-profile')
+          saveProviderProfile({
+            id: profileId,
+            name: profile.name || 'ccjk-profile',
+            baseUrl: profile.baseUrl,
+            authType: profile.authType === 'ccr_proxy' ? 'api_key' : (profile.authType as 'api_key' | 'auth_token'),
+            apiKey: profile.apiKey,
+            modelRouting: createModelRouting({
+              primaryModel: profile.primaryModel,
+              haikuModel: profile.defaultHaikuModel,
+              sonnetModel: profile.defaultSonnetModel,
+              opusModel: profile.defaultOpusModel,
+            }),
+            setAsActive: true,
+          })
+        }
+        catch {
+          // Non-critical: provider profile write is optional enhancement
+        }
+      }
+
       const { setPrimaryApiKey, addCompletedOnboarding } = await import('./claude-config')
       setPrimaryApiKey(normalizedTool)
       addCompletedOnboarding(normalizedTool)
