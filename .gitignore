@@ -4,3 +4,8 @@ dist
 .DS_Store
 coverage
 .vitest
+
+# 运行时产物（工具会话状态 / IDE 本地配置 / 临时报告）
+.clavue/
+.cursor/
+setup-report-*.md
