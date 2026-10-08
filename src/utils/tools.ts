@@ -9,10 +9,10 @@ import { showCcrMenu } from './tools/ccr-menu'
 /**
  * Validates and returns a valid language code
  * @param lang - Language code to validate
- * @returns Valid language code ('zh-CN' or 'en'), defaults to 'en'
+ * @returns Valid language code, defaults to 'zh-CN'
  */
-export function getValidLanguage(lang: any): 'zh-CN' | 'en' {
-  return (lang === 'zh-CN' || lang === 'en') ? lang : 'en'
+export function getValidLanguage(lang: any): 'zh-CN' | 'en' | 'ja' {
+  return (lang === 'zh-CN' || lang === 'en' || lang === 'ja') ? lang : 'zh-CN'
 }
 
 export async function runCcusageFeature(): Promise<void> {

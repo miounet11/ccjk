@@ -11,6 +11,8 @@ import { dirname, join } from 'pathe'
 export const i18n: I18nInstance = i18next.createInstance()
 
 // All available namespaces based on current project structure
+const UI_LANGUAGES = ['zh-CN', 'en', 'ja'] as const
+
 const NAMESPACES = [
   'common',
   'api',
@@ -61,7 +63,7 @@ export async function initI18n(language: SupportedLang = 'zh-CN'): Promise<void>
       // Load all translations as a single flat structure
       ns: NAMESPACES,
       defaultNS: 'common',
-      preload: [language], // Preload the selected language
+      preload: UI_LANGUAGES, // Preload supported UI languages for stable runtime switching
 
       // Backend configuration for loading JSON files
       backend: {

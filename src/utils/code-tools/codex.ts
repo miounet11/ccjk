@@ -59,7 +59,7 @@ export interface CodexMcpService {
 }
 
 export interface CodexConfigData {
-  model: string | null // Default model to use (gpt-5.2, gpt-5.1-codex-max, etc.)
+  model: string | null // Default model to use (gpt-5.3, gpt-5.2, gpt-5.1-codex-max, etc.)
   modelProvider: string | null // API provider for model_provider field
   providers: CodexProvider[]
   mcpServices: CodexMcpService[]
@@ -1724,7 +1724,7 @@ export async function configureCodexApi(options?: CodexFullInitOptions): Promise
         type: 'input',
         name: 'model',
         message: `${i18n.t('configuration:enterCustomModel')}${i18n.t('common:emptyToSkip')}`,
-        default: 'gpt-5.2',
+        default: 'gpt-5.3',
       }])
       if (model.trim()) {
         customModel = model.trim()
@@ -1772,7 +1772,7 @@ export async function configureCodexApi(options?: CodexFullInitOptions): Promise
       wireApi: prefilledWireApi || 'responses',
       tempEnvKey,
       requiresOpenaiAuth: true,
-      model: customModel || prefilledModel || 'gpt-5.2', // Use custom model, provider's default model, or fallback
+      model: customModel || prefilledModel || 'gpt-5.3', // Use custom model, provider's default model, or fallback
     }
 
     providers.push(newProvider)
@@ -2254,10 +2254,10 @@ export async function switchToProvider(providerId: string): Promise<boolean> {
     else {
       // Provider doesn't have a model, check current model
       const currentModel = existingConfig.model
-      const knownModels = ['gpt-5.1-codex-max', 'gpt-5.1-codex-mini', 'gpt-5.2']
+      const knownModels = ['gpt-5.3', 'gpt-5.2', 'gpt-5.1-codex-max', 'gpt-5.1-codex-mini']
       if (!currentModel || !knownModels.includes(currentModel)) {
-        // Current model is not a known Codex model, change to gpt-5.2
-        targetModel = 'gpt-5.2'
+        // Current model is not a known Codex model, change to gpt-5.3
+        targetModel = 'gpt-5.3'
       }
       // Otherwise keep the current model
     }

@@ -8,9 +8,7 @@
 
 ## Behavior
 
-- Follow the current project request and the repository files.
-- Do not inherit global persona, language, or style rules from other tools.
-- Keep responses and edits scoped to this repository.
+- Let the active model make implementation decisions from the current request, repository context, and verification results.
 
 ## Validation
 

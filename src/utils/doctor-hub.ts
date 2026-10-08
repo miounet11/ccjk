@@ -45,6 +45,16 @@ export async function runDoctorHub(tool: CodeToolType): Promise<void> {
         short: i18n.t('hub:doctor.purgeAll'),
       },
       {
+        name: 'Primary tools health — Clavue / Claude / Codex / Grok',
+        value: 'tools-health',
+        short: 'Tools health',
+      },
+      {
+        name: 'Repair primary tools — strip dirty settings + recheck',
+        value: 'tools-repair',
+        short: 'Tools repair',
+      },
+      {
         name: i18n.t('common:back'),
         value: 'back',
         short: i18n.t('common:back'),
@@ -71,6 +81,16 @@ export async function runDoctorHub(tool: CodeToolType): Promise<void> {
       case 'purge':
         await cleanCommand({ codeType: tool, purgeAll: true })
         break
+      case 'tools-health': {
+        const { checkPrimaryToolsHealth, formatPrimaryToolsHealth } = await import('./primary-tools-health')
+        console.log(`\n${formatPrimaryToolsHealth(await checkPrimaryToolsHealth())}\n`)
+        break
+      }
+      case 'tools-repair': {
+        const { repairPrimaryToolsHealth, formatPrimaryToolsHealth } = await import('./primary-tools-health')
+        console.log(`\n${formatPrimaryToolsHealth(await repairPrimaryToolsHealth())}\n`)
+        break
+      }
       case 'back':
         exitHub = true
         break

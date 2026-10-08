@@ -178,6 +178,7 @@ export async function selectTemplateLanguage(): Promise<SupportedLang> {
   const LANG_HINT_KEYS = {
     'zh-CN': i18n.t('language:configLangHint.zh-CN'),
     'en': i18n.t('language:configLangHint.en'),
+    'ja': i18n.t('language:configLangHint.ja'),
   } as const
 
   const { lang } = await inquirer.prompt<{ lang: SupportedLang }>({
@@ -267,8 +268,8 @@ export async function resolveTemplateLanguage(
 
   // Priority 4: No saved config
   if (skipPrompt) {
-    // Non-interactive mode: default to English
-    return 'en'
+    // Non-interactive mode: default to Chinese
+    return 'zh-CN'
   }
 
   // Interactive mode: ask user to select

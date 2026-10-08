@@ -198,6 +198,12 @@ export const API_PROVIDER_PRESETS: ApiProviderPreset[] = [
     },
     description: 'DeepSeek official API (Anthropic-compatible endpoint)',
   },
+  {
+    id: 'xai',
+    name: 'xAI (Grok)',
+    supportedCodeTools: ['grok'],
+    description: 'xAI official Grok API',
+  },
 
 ]
 

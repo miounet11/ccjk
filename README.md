@@ -14,6 +14,18 @@ npm install -g ccjk
 
 升级：`npm install -g ccjk@latest`
 
+## 多语言
+
+ccjk 默认使用 **简体中文**，并支持英文和日文界面：
+
+```bash
+ccjk --lang zh-CN   # 简体中文（默认）
+ccjk --lang en      # English
+ccjk --lang ja      # 日本語
+```
+
+首次启动会先选择显示语言，再选择 Clavue / Claude Code / Codex / Grok CLI。进入菜单后建议按 **W** 走快捷向导；如果环境不确定，先按 **H** 做医生体检。
+
 ## 30 秒看懂
 
 | 角色 | 做什么 | 怎么用 |

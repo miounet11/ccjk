@@ -105,11 +105,11 @@ describe('tools', () => {
       expect(getValidLanguage('en')).toBe('en')
     })
 
-    it('should return "en" as default for invalid language', () => {
-      expect(getValidLanguage('fr')).toBe('en')
-      expect(getValidLanguage(null)).toBe('en')
-      expect(getValidLanguage(undefined)).toBe('en')
-      expect(getValidLanguage('')).toBe('en')
+    it('should return "zh-CN" as default for invalid language', () => {
+      expect(getValidLanguage('fr')).toBe('zh-CN')
+      expect(getValidLanguage(null)).toBe('zh-CN')
+      expect(getValidLanguage(undefined)).toBe('zh-CN')
+      expect(getValidLanguage('')).toBe('zh-CN')
     })
   })
 

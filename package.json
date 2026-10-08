@@ -1,7 +1,7 @@
 {
   "name": "ccjk",
-  "version": "16.3.0",
-  "description": "Clavue / Claude Code / Codex / Grok CLI 统一配置工具（ccjk 交互与配置方法）",
+  "version": "16.3.1",
+  "description": "Clavue / Claude Code / Codex / Grok CLI 统一配置工具，默认中文并支持 English / 日本語",
   "type": "module",
   "bin": {
     "ccjk": "bin/ccjk.mjs"
@@ -36,7 +36,10 @@
     "config",
     "profile",
     "statusline",
-    "permissions"
+    "permissions",
+    "i18n",
+    "japanese",
+    "chinese"
   ],
   "author": {
     "name": "CCJK Team",

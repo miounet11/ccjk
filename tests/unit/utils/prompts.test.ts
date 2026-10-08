@@ -436,10 +436,10 @@ describe('prompts utilities', () => {
       expect(inquirer.prompt).not.toHaveBeenCalled()
     })
 
-    it('should default to en in skip-prompt mode when no config exists', async () => {
+    it('should default to zh-CN in skip-prompt mode when no config exists', async () => {
       const result = await resolveTemplateLanguage(undefined, null, true) // skipPrompt = true
 
-      expect(result).toBe('en')
+      expect(result).toBe('zh-CN')
       expect(inquirer.prompt).not.toHaveBeenCalled()
     })
 

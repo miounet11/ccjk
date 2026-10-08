@@ -31,6 +31,11 @@ export const CODEX_AUTH_FILE = join(CODEX_DIR, 'auth.json')
 export const CODEX_AGENTS_FILE = join(CODEX_DIR, 'AGENTS.md')
 export const CODEX_PROMPTS_DIR = join(CODEX_DIR, 'prompts')
 
+// Grok CLI
+export const GROK_DIR = join(homedir(), '.grok')
+export const GROK_CONFIG_FILE = join(GROK_DIR, 'config.toml')
+export const GROK_AUTH_FILE = join(GROK_DIR, 'auth.json')
+
 // CCJK configuration paths
 export const CCJK_CONFIG_DIR = join(homedir(), '.ccjk')
 export const CCJK_CONFIG_FILE = join(CCJK_CONFIG_DIR, 'config.toml')
@@ -55,7 +60,12 @@ export const CODE_TOOL_BANNERS: Record<CodeToolType, string> = {
 export function settingsFileForTool(tool: CodeToolType): string {
   if (tool === 'clavue') return CLAVUE_SETTINGS_FILE
   if (tool === 'codex') return CODEX_CONFIG_FILE
+  if (tool === 'grok') return GROK_CONFIG_FILE
   return SETTINGS_FILE
+}
+
+export function isClaudeFamilyTool(value: unknown): value is 'clavue' | 'claude-code' {
+  return value === 'clavue' || value === 'claude-code'
 }
 
 // Short aliases for code tool types
@@ -88,7 +98,7 @@ export function resolveCodeToolType(value: unknown): CodeToolType {
   return DEFAULT_CODE_TOOL_TYPE
 }
 
-export const SUPPORTED_LANGS = ['zh-CN', 'en'] as const
+export const SUPPORTED_LANGS = ['zh-CN', 'en', 'ja'] as const
 export type SupportedLang = (typeof SUPPORTED_LANGS)[number]
 
 // Dynamic language labels using i18n
@@ -96,12 +106,14 @@ export type SupportedLang = (typeof SUPPORTED_LANGS)[number]
 export const LANG_LABELS = {
   'zh-CN': '简体中文',
   'en': 'English',
+  'ja': '日本語',
 } as const
 
 // AI output languages - labels are now retrieved via helper function
 export const AI_OUTPUT_LANGUAGES = {
   'zh-CN': { directive: 'Always respond in Chinese-simplified' },
   'en': { directive: 'Always respond in English' },
+  'ja': { directive: 'Always respond in Japanese' },
   'custom': { directive: '' },
 } as const
 

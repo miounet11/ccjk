@@ -540,7 +540,9 @@ export async function configureCodexDefaultModelFeature(): Promise<void> {
   if (currentModel) {
     // Display existing configuration
     console.log(`\n${ansis.blue(`ℹ ${i18n.t('configuration:existingModelConfig') || 'Existing model configuration'}`)}`)
-    const modelDisplay = currentModel === 'gpt-5.2'
+    const modelDisplay = currentModel === 'gpt-5.3'
+      ? 'GPT-5.3'
+      : currentModel === 'gpt-5.2'
       ? 'GPT-5.2'
       : currentModel === 'gpt-5.1-codex-max'
         ? 'GPT-5.1-Codex-Max'
@@ -561,11 +563,19 @@ export async function configureCodexDefaultModelFeature(): Promise<void> {
     }
   }
 
-  const { model } = await inquirer.prompt<{ model: 'gpt-5.1-codex-max' | 'gpt-5.1-codex-mini' | 'gpt-5.2' | 'custom' }>({
+  const { model } = await inquirer.prompt<{ model: 'gpt-5.3' | 'gpt-5.2' | 'gpt-5.1-codex-max' | 'gpt-5.1-codex-mini' | 'custom' }>({
     type: 'list',
     name: 'model',
     message: i18n.t('configuration:selectDefaultModel') || 'Select default model',
     choices: addNumbersToChoices([
+      {
+        name: i18n.t('configuration:codexModelOptions.gpt53'),
+        value: 'gpt-5.3' as const,
+      },
+      {
+        name: i18n.t('configuration:codexModelOptions.gpt52'),
+        value: 'gpt-5.2' as const,
+      },
       {
         name: i18n.t('configuration:codexModelOptions.gpt51CodexMax'),
         value: 'gpt-5.1-codex-max' as const,
@@ -575,15 +585,11 @@ export async function configureCodexDefaultModelFeature(): Promise<void> {
         value: 'gpt-5.1-codex-mini' as const,
       },
       {
-        name: i18n.t('configuration:codexModelOptions.gpt52'),
-        value: 'gpt-5.2' as const,
-      },
-      {
         name: i18n.t('configuration:codexModelOptions.custom'),
         value: 'custom' as const,
       },
     ]),
-    default: currentModel ? ['gpt-5.1-codex-max', 'gpt-5.1-codex-mini', 'gpt-5.2', 'custom'].indexOf(currentModel as any) : 2, // Default to gpt-5.2
+    default: currentModel ? ['gpt-5.3', 'gpt-5.2', 'gpt-5.1-codex-max', 'gpt-5.1-codex-mini', 'custom'].indexOf(currentModel as any) : 0, // Default to gpt-5.3
   })
 
   if (!model) {
@@ -840,6 +846,12 @@ export async function configureEnvPermissionFeature(): Promise<void> {
         value: 'permission-yolo',
       },
       {
+        name: `${i18n.t('configuration:permissionTierDev') || 'Developer Max'} ${ansis.gray(
+          `- ${i18n.t('configuration:permissionTierDevDesc') || 'All tools auto-allowed'}`,
+        )}`,
+        value: 'permission-dev',
+      },
+      {
         name: `${i18n.t('configuration:openSettingsJson') || 'Open settings'} ${ansis.gray(
           `- ${i18n.t('configuration:openSettingsJsonDesc') || 'View settings file'}`,
         )}`,
@@ -865,7 +877,8 @@ export async function configureEnvPermissionFeature(): Promise<void> {
         break
       case 'permission-safe':
       case 'permission-standard':
-      case 'permission-yolo': {
+      case 'permission-yolo':
+      case 'permission-dev': {
         const tier = choice.replace('permission-', '') as ClaudeFamilyPermissionTier
         await applyRecommendedPermissionTier(tier, settingsTool)
         console.log(ansis.green(`✅ ${i18n.t('configuration:permissionTierApplied', { tier: getPermissionTierLabel(tier) }) || `Permission tier applied: ${tier}`}`))

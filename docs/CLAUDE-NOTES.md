@@ -26,19 +26,16 @@ ccjk = **四工具（Clavue / Claude Code / Codex / Grok CLI）的医生 + 快�
 - **仓库**：https://github.com/miounet11/ccjk
 - **主路径**（5 分钟）：setup（onboard/init）→ code（用原生工具写代码）→ validate（doctor/probe/bench）→ recover（rollback/doctor --fix）→ deliver（profile export / migrate）
 
-## 核心纪律（每次任务必须遵守）
-- 始终用**中文简体**回复。
-- 遵循全局 [Coding Discipline Baseline](~/.clavue/clavue.md)（Karpathy 风格）+ 本项目规则。
-- **Surgical & Goal-driven**：最小代码满足请求；把模糊任务转为可验证目标；循环直到验证通过。
-- **验证命令**（有意义变更后必须本地跑）：
+## 协作参考（由模型基于任务自主判断）
+- 默认用用户当前语言回复；用户切换语言时跟随用户。
+- 本�只提供项目背景、常用路径和验证命令参考，不作为硬性行为约束。
+- 实现方式由模型结合当前请求、代码上下文、风险半径和验证结果自主选择。
+- **常用验证命令**：
   - `pnpm typecheck`
   - `pnpm lint`
   - `pnpm test`（或 curated `pnpm test:run` / `pnpm test:release`）
   - Codex / Claude 集成路径 smoke：`echo '<option>' | node dist/cli.mjs`
-- **Anti-aggression**：ccjk 仅补充 Claude Code 等运行时；绝不在 Claude 运行时自动注入 hook。Skills 仅显式调用。
-- **Workspace 所有权**：ccjk 配置只活在 `~/.ccjk/`；**绝不混入** `~/.claude/`、`~/.codex/`、`~/.clavue/`、`.claude/`、`.clavue/`。
-- **备份先行**：任何写盘必须先产生 `.bak-<ts>`（rollback 命令兑现）。
-- **Lint 三层模型**（core/lint.ts）：白名单 KNOWN_ENV + 黑名单 KNOWN_BAD_ENV + 启发式（过宽 bash、stale key helper 等）。
+- 涉及写盘、清理、同步、profile fan-out、doctor/lint 等行为时，以当前源码实现和测试结果为准。
 
 ## 架构与关键文档指针（只读这些，不要重复）
 - 完整代码组织与不变量：`ARCHITECTURE.md`

@@ -21,8 +21,8 @@ import { selectScriptLanguage } from './utils/prompts'
 import { readCcjkConfigAsync } from './utils/ccjk-config'
 
 export interface CliOptions {
-  lang?: 'zh-CN' | 'en'
-  configLang?: 'zh-CN' | 'en'
+  lang?: SupportedLang
+  configLang?: SupportedLang
   aiOutputLang?: string
   force?: boolean
   skipPrompt?: boolean
@@ -65,7 +65,7 @@ async function resolveAndSwitchLanguage(
       || (lang as SupportedLang)
       || (options?.lang as SupportedLang)
       || ccjkConfig?.preferredLang
-      || (skipPrompt ? 'en' : await selectScriptLanguage()) as SupportedLang
+      || (skipPrompt ? 'zh-CN' : await selectScriptLanguage()) as SupportedLang
 
   // Only switch if different from current language
   if (i18n.isInitialized && i18n.language !== targetLang) {
@@ -141,8 +141,8 @@ export function customizeHelp(sections: any[]): any[] {
   sections.push({
     title: ansis.yellow(i18n.t('cli:help.options')),
     body: [
-      `  ${ansis.green('--lang, -l')} <lang>         ${i18n.t('cli:help.optionDescriptions.displayLanguage')} (zh-CN, en)`,
-      `  ${ansis.green('--config-lang, -c')} <lang>  ${i18n.t('cli:help.optionDescriptions.configurationLanguage')} (zh-CN, en)`,
+      `  ${ansis.green('--lang, -l')} <lang>         ${i18n.t('cli:help.optionDescriptions.displayLanguage')} (zh-CN, en, ja)`,
+      `  ${ansis.green('--config-lang, -c')} <lang>  ${i18n.t('cli:help.optionDescriptions.configurationLanguage')} (zh-CN, en, ja)`,
       `  ${ansis.green('--force, -f')}               ${i18n.t('cli:help.optionDescriptions.forceOverwrite')}`,
       `  ${ansis.green('--help, -h')}                ${i18n.t('cli:help.optionDescriptions.displayHelp')}`,
       `  ${ansis.green('--version, -v')}             ${i18n.t('cli:help.optionDescriptions.displayVersion')}`,
@@ -231,9 +231,9 @@ export async function setupCommands(cli: CAC): Promise<void> {
   // Default command - show menu
   cli
     .command('', 'Show interactive menu (default)')
-    .option('--lang, -l <lang>', 'CCJK display language (zh-CN, en)')
+    .option('--lang, -l <lang>', 'CCJK display language (zh-CN, en, ja)')
     .option('--all-lang, -g <lang>', 'Set all language parameters to this value')
-    .option('--config-lang, -c <lang>', 'Configuration language (zh-CN, en)')
+    .option('--config-lang, -c <lang>', 'Configuration language (zh-CN, en, ja)')
     .option('--force, -f', 'Force overwrite existing configuration')
     .option('--code-type, -T <codeType>', 'Select code tool type (clavue, claude-code, codex, grok, cv, cc, cx, gk)')
     .action(await withLanguageResolution(async (options) => {
@@ -244,8 +244,8 @@ export async function setupCommands(cli: CAC): Promise<void> {
   cli
     .command('init', 'Initialize Claude Code configuration')
     .alias('i')
-    .option('--lang, -l <lang>', 'CCJK display language (zh-CN, en)')
-    .option('--config-lang, -c <lang>', 'Configuration language (zh-CN, en)')
+    .option('--lang, -l <lang>', 'CCJK display language (zh-CN, en, ja)')
+    .option('--config-lang, -c <lang>', 'Configuration language (zh-CN, en, ja)')
     .option('--ai-output-lang, -a <lang>', 'AI output language')
     .option('--force, -f', 'Force overwrite existing configuration')
     .option('--skip-prompt, -s', 'Skip all interactive prompts (non-interactive mode)')
@@ -275,9 +275,9 @@ export async function setupCommands(cli: CAC): Promise<void> {
   cli
     .command('update', 'Update Claude Code prompts only')
     .alias('u')
-    .option('--lang, -l <lang>', 'CCJK display language (zh-CN, en)')
+    .option('--lang, -l <lang>', 'CCJK display language (zh-CN, en, ja)')
     .option('--all-lang, -g <lang>', 'Set all language parameters to this value')
-    .option('--config-lang, -c <lang>', 'Configuration language (zh-CN, en)')
+    .option('--config-lang, -c <lang>', 'Configuration language (zh-CN, en, ja)')
     .action(await withLanguageResolution(async (options) => {
       await update(options)
     }))
@@ -285,7 +285,7 @@ export async function setupCommands(cli: CAC): Promise<void> {
   // CCR command - Configure Claude Code Router
   cli
     .command('ccr', 'Configure Claude Code Router for model proxy')
-    .option('--lang, -l <lang>', 'CCJK display language (zh-CN, en)')
+    .option('--lang, -l <lang>', 'CCJK display language (zh-CN, en, ja)')
     .option('--all-lang, -g <lang>', 'Set all language parameters to this value')
     .action(await withLanguageResolution(async () => {
       await ccr()
@@ -294,7 +294,7 @@ export async function setupCommands(cli: CAC): Promise<void> {
   // CCU command - Claude Code usage analysis
   cli
     .command('ccu [...args]', 'Run Claude Code usage analysis tool')
-    .option('--lang, -l <lang>', 'CCJK display language (zh-CN, en)')
+    .option('--lang, -l <lang>', 'CCJK display language (zh-CN, en, ja)')
     .option('--all-lang, -g <lang>', 'Set all language parameters to this value')
     .allowUnknownOptions()
     .action(await withLanguageResolution(async (args) => {
@@ -306,7 +306,7 @@ export async function setupCommands(cli: CAC): Promise<void> {
     .command('config-switch [target]', 'Switch Codex provider or Claude Code configuration, or list available configurations')
     .alias('cs')
     .option('--code-type, -T <type>', 'Code tool type (clavue, claude-code, codex, grok, cv, cc, cx, gk)')
-    .option('--lang <lang>', 'CCJK display language (zh-CN, en)')
+    .option('--lang <lang>', 'CCJK display language (zh-CN, en, ja)')
     .option('--all-lang, -g <lang>', 'Set all language parameters to this value')
     .option('--list, -l', 'List available configurations')
     .action(await withLanguageResolution(async (target, options) => {
@@ -335,7 +335,7 @@ export async function setupCommands(cli: CAC): Promise<void> {
   // Uninstall command - Remove CCJK configurations and tools
   cli
     .command('uninstall', 'Remove CCJK configurations and tools')
-    .option('--lang, -l <lang>', 'CCJK display language (zh-CN, en)')
+    .option('--lang, -l <lang>', 'CCJK display language (zh-CN, en, ja)')
     .option('--all-lang, -g <lang>', 'Set all language parameters to this value')
     .option('--code-type, -T <codeType>', 'Select code tool type (clavue, claude-code, codex, grok, cv, cc, cx, gk)')
     .option('--mode, -m <mode>', 'Uninstall mode (complete/custom/interactive), default: interactive')
@@ -364,6 +364,23 @@ export async function setupCommands(cli: CAC): Promise<void> {
       })
     }))
 
+  // External clients — pi / opencode / zcode / grokbuild / claudework
+  for (const clientId of ['pi', 'opencode', 'zcode', 'grokbuild', 'claudework', 'extclients']) {
+    cli
+      .command(`${clientId} [profile]`, clientId === 'extclients'
+        ? 'List all external clients status and usage'
+        : `${clientId} status and launch with optional ccjk profile`)
+      .action(await withLanguageResolution(async (profile) => {
+        if (clientId === 'extclients') {
+          const { listExternalClientsCommand } = await import('./commands/external-clients')
+          await listExternalClientsCommand()
+          return
+        }
+        const { externalClientCommand } = await import('./commands/external-clients')
+        await externalClientCommand(clientId, profile)
+      }))
+  }
+
   cli
     .command('probe', 'HTTP probe current API configuration')
     .option('--json', 'JSON output')
@@ -389,7 +406,7 @@ export async function setupCommands(cli: CAC): Promise<void> {
   cli
     .command('check-updates', 'Check and update Claude Code and CCR to latest versions')
     .alias('check')
-    .option('--lang, -l <lang>', 'CCJK display language (zh-CN, en)')
+    .option('--lang, -l <lang>', 'CCJK display language (zh-CN, en, ja)')
     .option('--all-lang, -g <lang>', 'Set all language parameters to this value')
     .option('--code-type, -T <codeType>', 'Select code tool type (clavue, claude-code, codex, grok, cv, cc, cx, gk)')
     .option('--skip-prompt, -s', 'Skip all interactive prompts (non-interactive mode)')

@@ -149,12 +149,19 @@ async function handleCodexChoice(choice: string): Promise<MenuResult | 'handled'
 
 async function handleGrokChoice(choice: string): Promise<MenuResult | 'handled'> {
   switch (choice) {
-    case '1':
-      await init({ skipBanner: true, codeType: 'grok' })
+    case '1': {
+      const { configureGrokApi } = await import('../utils/grok-config')
+      await configureGrokApi()
       return 'handled'
+    }
     case '2':
       await grokCommand()
       return 'handled'
+    case '3': {
+      const { configureGrokDefaultModel } = await import('../utils/grok-config')
+      await configureGrokDefaultModel()
+      return 'handled'
+    }
     default:
       return undefined as never
   }
@@ -187,6 +194,11 @@ async function handleSharedChoice(
     case 'x':
       await reasonixCommand()
       return 'continue'
+    case 'e': {
+      const { listExternalClientsCommand } = await import('./external-clients')
+      await listExternalClientsCommand()
+      return 'continue'
+    }
     case '0': {
       const currentLang = i18n.language as SupportedLang
       await changeScriptLanguageFeature(currentLang)

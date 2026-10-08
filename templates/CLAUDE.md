@@ -5,7 +5,7 @@
 
 ## Module Responsibilities
 
-Template system module providing multilingual configuration templates, AI personality styles, and workflow definitions for both Claude Code and Codex environments. Supports Chinese (zh-CN) and English (en) locales with comprehensive workflow coverage.
+Template system module providing multilingual configuration templates, AI output styles, and workflow definitions for Claude Code, Clavue, and Codex environments. Templates should provide optional project context and useful commands while leaving implementation decisions to the model based on the current task, code context, and verification results.
 
 ## Entry Points and Startup
 

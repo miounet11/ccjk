@@ -6,6 +6,15 @@ ccjk 是 Clavue / Claude Code / Codex 的本地配置 CLI。本文记录用户�
 
 ## [Unreleased]
 
+## [16.3.1] - 2026-07-22
+
+### Fixed
+- 对齐 Grok CLI 能力矩阵与真实 operator 分发：暂不暴露未实现的 API / MCP / AI memory / workflow 入口。
+- Grok 初始化不再误调用 Claude family incremental manager，仅切换 ccjk 活动工具并显示 Grok 启动提示。
+
+### Changed
+- Grok 菜单收敛为当前具备闭环的 profile / status / default model 配置路径。
+
 ## [16.3.0] - 2026-06-21
 
 ### Added

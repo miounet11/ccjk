@@ -1,5 +1,6 @@
 import type { CodeToolType } from '../constants'
 import type { StatusLineConfig } from '../types/config'
+import { normalizeClaudeSettings as guardNormalize } from './claude-settings-guard'
 
 export type ClaudeFamilyPermissionTier = 'safe' | 'standard' | 'yolo'
 
@@ -127,6 +128,10 @@ export function normalizeClaudeFamilySettings<T extends Record<string, any>>(
   if (!settings || typeof settings !== 'object' || Array.isArray(settings)) {
     return settings
   }
+
+  // Crash-prevention whitelist (dirty keys / bad fileSuggestion / thinking migration)
+  const guarded = guardNormalize(settings).settings as T
+  settings = guarded
 
   const mutableSettings = settings as Record<string, unknown>
   if (options.codeTool === 'clavue' && mutableSettings.plansDirectory === '.claude/plans') {

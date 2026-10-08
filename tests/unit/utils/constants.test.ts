@@ -86,13 +86,14 @@ describe('constants', () => {
 
   describe('language constants', () => {
     it('should define supported languages', () => {
-      expect(SUPPORTED_LANGS).toEqual(['zh-CN', 'en'])
+      expect(SUPPORTED_LANGS).toEqual(['zh-CN', 'en', 'ja'])
     })
 
     it('should define language labels', () => {
       expect(LANG_LABELS).toEqual({
         'zh-CN': '简体中文',
         'en': 'English',
+        'ja': '日本語',
       })
     })
 
@@ -100,6 +101,7 @@ describe('constants', () => {
       expect(AI_OUTPUT_LANGUAGES).toEqual({
         'zh-CN': { directive: 'Always respond in Chinese-simplified' },
         'en': { directive: 'Always respond in English' },
+        'ja': { directive: 'Always respond in Japanese' },
         'custom': { directive: '' },
       })
     })
@@ -180,14 +182,14 @@ describe('constants', () => {
 
     it('should have correct AiOutputLanguage type keys', () => {
       const aiLangKeys = Object.keys(AI_OUTPUT_LANGUAGES)
-      expect(aiLangKeys).toEqual(['zh-CN', 'en', 'custom'])
+      expect(aiLangKeys).toEqual(['zh-CN', 'en', 'ja', 'custom'])
     })
   })
 
   describe('constants structure validation', () => {
     it('should have correct array lengths for constants', () => {
       expect(CODE_TOOL_TYPES).toHaveLength(4)
-      expect(SUPPORTED_LANGS).toHaveLength(2)
+      expect(SUPPORTED_LANGS).toHaveLength(3)
     })
 
     it('should have consistent language support across objects', () => {

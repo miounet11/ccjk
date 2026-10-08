@@ -18,7 +18,7 @@ describe('i18next Setup', () => {
       expect(i18n.options.fallbackLng).toEqual(['en'])
     })
 
-    it('should support both zh-CN and en languages', async () => {
+    it('should support zh-CN, en and ja languages', async () => {
       await initI18n()
 
       // Test Chinese
@@ -28,6 +28,10 @@ describe('i18next Setup', () => {
       // Test English
       await i18n.changeLanguage('en')
       expect(i18n.language).toBe('en')
+
+      // Test Japanese
+      await i18n.changeLanguage('ja')
+      expect(i18n.language).toBe('ja')
     })
 
     it('should load all required namespaces', async () => {
@@ -53,6 +57,7 @@ describe('i18next Setup', () => {
       expectedNamespaces.forEach((ns) => {
         expect(i18n.hasResourceBundle('zh-CN', ns)).toBe(true)
         expect(i18n.hasResourceBundle('en', ns)).toBe(true)
+        expect(i18n.hasResourceBundle('ja', ns)).toBe(true)
       })
     })
   })

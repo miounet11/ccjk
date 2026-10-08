@@ -767,7 +767,7 @@ system_prompt_style = "linus-mode"`
         const result = createDefaultTomlConfig()
 
         expect(result.version).toBe('1.0.0')
-        expect(result.general.preferredLang).toBe('en')
+        expect(result.general.preferredLang).toBe('zh-CN')
         expect(result.general.currentTool).toBe(DEFAULT_CODE_TOOL_TYPE)
         expect(result.claudeCode.enabled).toBe(true)
         expect(result.codex.enabled).toBe(false)
@@ -846,7 +846,7 @@ system_prompt_style = "linus-mode"`
 
         // Should use defaults for invalid/missing fields
         expect(result.version).toBe('1.0.0')
-        expect(result.general.preferredLang).toBe('en')
+        expect(result.general.preferredLang).toBe('zh-CN')
         expect(result.general.currentTool).toBe('invalid-tool') // Function preserves original value, even if invalid
       })
 
@@ -857,7 +857,7 @@ system_prompt_style = "linus-mode"`
 
         // Should use all defaults
         expect(result.version).toBe('1.0.0')
-        expect(result.general.preferredLang).toBe('en')
+        expect(result.general.preferredLang).toBe('zh-CN')
         expect(result.general.currentTool).toBe(DEFAULT_CODE_TOOL_TYPE)
         expect(result.claudeCode.enabled).toBe(false)
         expect(result.codex.enabled).toBe(false)

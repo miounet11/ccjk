@@ -1,5 +1,6 @@
 import type { ClaudeSettings } from '../types/config'
 import { ensureI18nInitialized, i18n } from '../i18n'
+import { normalizeClaudeSettings } from './claude-settings-guard'
 
 /**
  * Validate Claude settings configuration
@@ -68,56 +69,15 @@ export function validateClaudeSettings(settings: any): settings is ClaudeSetting
 /**
  * Sanitize and fix common configuration issues
  */
+/**
+ * Sanitize and fix common configuration issues.
+ * Uses Claude Settings Guard (whitelist + migrations).
+ */
 export function sanitizeClaudeSettings(settings: any): ClaudeSettings {
-  const sanitized: ClaudeSettings = {}
-
-  // Handle null/undefined/non-object input
   if (!settings || typeof settings !== 'object') {
-    return sanitized
+    return {}
   }
-
-  // Copy valid model
-  if (settings.model && ['opus', 'sonnet', 'sonnet[1m]'].includes(settings.model)) {
-    sanitized.model = settings.model
-  }
-
-  // Copy and validate env
-  if (settings.env && typeof settings.env === 'object') {
-    sanitized.env = {}
-    for (const [key, value] of Object.entries(settings.env)) {
-      if (typeof value === 'string' || value === undefined) {
-        sanitized.env[key] = value as string
-      }
-    }
-  }
-
-  // Copy and validate permissions
-  if (settings.permissions && typeof settings.permissions === 'object') {
-    sanitized.permissions = {}
-    if (Array.isArray(settings.permissions.allow)) {
-      sanitized.permissions.allow = settings.permissions.allow.filter(
-        (item: any) => typeof item === 'string',
-      )
-    }
-    if (Array.isArray(settings.permissions.deny)) {
-      sanitized.permissions.deny = settings.permissions.deny.filter(
-        (item: any) => typeof item === 'string',
-      )
-    }
-    if (['default', 'acceptEdits', 'bypassPermissions'].includes(settings.permissions.defaultMode)) {
-      sanitized.permissions.defaultMode = settings.permissions.defaultMode
-    }
-    if (typeof settings.permissions.trustedOperatorMode === 'boolean') {
-      sanitized.permissions.trustedOperatorMode = settings.permissions.trustedOperatorMode
-    }
-  }
-
-  // Copy other valid properties
-  for (const [key, value] of Object.entries(settings)) {
-    if (!['model', 'env', 'permissions'].includes(key)) {
-      (sanitized as any)[key] = value
-    }
-  }
-
-  return sanitized
+  const { settings: cleaned } = normalizeClaudeSettings(settings)
+  return cleaned
 }
+

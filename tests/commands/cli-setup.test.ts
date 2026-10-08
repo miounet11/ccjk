@@ -137,7 +137,7 @@ describe('withLanguageResolution', () => {
 
       // Assert
       expect(mockSelectScriptLanguage).not.toHaveBeenCalled()
-      expect(mockChangeLanguage).not.toHaveBeenCalled() // Should use 'en' default
+      expect(mockChangeLanguage).toHaveBeenCalledWith('zh-CN') // Should use 'zh-CN' default
     })
 
     it('should respect skipPrompt from options', async () => {
@@ -151,7 +151,7 @@ describe('withLanguageResolution', () => {
 
       // Assert
       expect(mockSelectScriptLanguage).not.toHaveBeenCalled()
-      expect(mockChangeLanguage).not.toHaveBeenCalled() // Should use 'en' default
+      expect(mockChangeLanguage).toHaveBeenCalledWith('zh-CN') // Should use 'zh-CN' default
     })
 
     it('should prompt when skipPrompt is false', async () => {

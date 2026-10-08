@@ -34,7 +34,7 @@ function isSupportedLang(value: any): value is SupportedLang {
 }
 
 function sanitizePreferredLang(lang: any): SupportedLang {
-  return isSupportedLang(lang) ? lang : 'en'
+  return isSupportedLang(lang) ? lang : 'zh-CN'
 }
 
 function sanitizeCodeToolType(codeTool: any): CodeToolType {
@@ -276,7 +276,7 @@ function writeTomlConfig(configPath: string, config: CcjkTomlConfig): void {
  * @param claudeCodeInstallType - Claude Code installation type (global or local)
  * @returns Default configuration structure
  */
-function createDefaultTomlConfig(preferredLang: SupportedLang = 'en', claudeCodeInstallType: 'global' | 'local' = 'global'): CcjkTomlConfig {
+function createDefaultTomlConfig(preferredLang: SupportedLang = 'zh-CN', claudeCodeInstallType: 'global' | 'local' = 'global'): CcjkTomlConfig {
   return {
     version: '1.0.0',
     lastUpdated: new Date().toISOString(),
@@ -308,7 +308,7 @@ function createDefaultTomlConfig(preferredLang: SupportedLang = 'en', claudeCode
 function migrateFromJsonConfig(jsonConfig: any): CcjkTomlConfig {
   // Extract install type from old installation config
   const claudeCodeInstallType = jsonConfig.claudeCodeInstallation?.type || 'global'
-  const defaultConfig = createDefaultTomlConfig('en', claudeCodeInstallType)
+  const defaultConfig = createDefaultTomlConfig('zh-CN', claudeCodeInstallType)
 
   // Map JSON fields to TOML structure
   const tomlConfig: CcjkTomlConfig = {

@@ -199,10 +199,13 @@ export async function runOnboardingWizard(options: OnboardingOptions = {}): Prom
   const isZh = selectedLanguage === 'zh-CN'
 
   console.log('')
-  console.log(ansis.bold.yellow(isZh ? '🎉 欢迎使用 CCJK！' : '🎉 Welcome to CCJK!'))
+  console.log(ansis.bold.green(isZh ? '欢迎使用 CCJK · 中国龍配置向导' : 'Welcome to CCJK · Jade Dragon setup'))
   console.log(ansis.dim(isZh
-    ? '   先选择显示语言，再选择代码工具，然后进入对应控制中心。'
-    : '   Select display language first, then your code tool, then enter the control center.'))
+    ? '   先选择显示语言和代码工具；进入菜单后，按 W 走快捷向导，按 H 先做环境体检。'
+    : '   Choose language and code tool first; in the menu, press W for setup or H for a doctor check.'))
+  console.log(ansis.dim(isZh
+    ? '   建议顺序：语言 → 工具 → 快捷向导 → API/MCP/权限 → 医生复查。'
+    : '   Suggested path: language → tool → quick wizard → API/MCP/permissions → doctor re-check.'))
   console.log('')
 
   console.log(ansis.bold(`${isZh ? '步骤 1/2' : 'Step 1/2'}: ${isZh ? '显示语言' : 'Display language'}`))

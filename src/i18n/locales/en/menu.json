@@ -24,6 +24,8 @@
   "menuDescriptions.grokCrossTool": "Status check and profile launch hints",
   "menuOptions.reasonixCrossTool": "Reasonix",
   "menuDescriptions.reasonixCrossTool": "DeepSeek agent status and launch hints",
+  "menuOptions.externalClients": "External clients (pi/OpenCode/ZCode/GrokBuild/ClaudeWork)",
+  "menuDescriptions.externalClients": "List external client install status and profile launch usage",
   "menuDescriptions.codexFullInitWithPreset": "Full init (presets: clean / optimized / custom) + API + MCP",
   "menuDescriptions.changeLanguage": "Change CCJK interface language",
   "menuDescriptions.checkUpdates": "Check and update Claude Code versions",
@@ -66,6 +68,14 @@
   "menuDescriptions.grokInit": "Save a ccjk profile for Grok (API key + model)",
   "menuDescriptions.grokStatus": "Detect Grok CLI install/login and show launch commands",
   "menuDescriptions.grokInitHint": "After setup, run: ccjk grok <profile>",
+  "menuOptions.grokConfigureApi": "Configure API",
+  "menuDescriptions.grokConfigureApi": "Configure Grok API provider and key",
+  "menuOptions.grokConfigureMcp": "Configure MCP",
+  "menuDescriptions.grokConfigureMcp": "Manage Grok MCP servers",
+  "menuOptions.grokConfigureModel": "Configure default model",
+  "menuDescriptions.grokConfigureModel": "Set Grok default model (grok-4.1 etc.)",
+  "menuOptions.grokConfigureAiMemory": "Configure AI memory",
+  "menuDescriptions.grokConfigureAiMemory": "Configure Grok AI output language and style",
   "menuDescriptions.codexFullInit": "Install Codex + Import workflow + Configure API + Configure MCP",
   "menuDescriptions.codexImportWorkflow": "Import/update Codex workflow-related files",
   "menuDescriptions.codexConfigureApi": "Configure Codex API providers",
@@ -96,5 +106,7 @@
   "menuDescriptions.clavueCheckUpdates": "Check and update Clavue",
   "switchCodeToolPrompt": "Select code tool type",
   "codeToolSwitched": "Code tool switched to {{tool}}",
-  "selectFunction": "Select function"
+  "selectFunction": "Select function",
+  "guide.nextStep": "New here? Press W for the quick wizard; if the environment may be messy, press H for a doctor check first.",
+  "guide.shortcuts": "Shortcuts: W full/single setup · H scan & repair · S switch code tool · + check updates"
 }

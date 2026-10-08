@@ -1,4 +1,5 @@
 import type { Stats } from 'node:fs'
+import { randomBytes } from 'node:crypto'
 import {
   copyFileSync,
   existsSync,
@@ -11,8 +12,9 @@ import {
   statSync,
   unlinkSync,
   writeFileSync,
+  renameSync,
 } from 'node:fs'
-import { dirname } from 'pathe'
+import { dirname, join } from 'pathe'
 import { isWindows } from './platform'
 
 /**
@@ -76,6 +78,46 @@ export function writeFile(path: string, content: string, encoding: BufferEncodin
   catch (error) {
     throw new FileSystemError(
       `Failed to write file: ${path}`,
+      path,
+      error as Error,
+    )
+  }
+}
+
+
+
+/**
+ * Options for atomic file write
+ */
+export interface WriteFileAtomicOptions {
+  encoding?: BufferEncoding
+  mode?: number
+}
+
+/**
+ * Write content to file atomically (write to temp file, then rename)
+ */
+export function writeFileAtomic(path: string, content: string, options: WriteFileAtomicOptions | BufferEncoding = 'utf-8'): void {
+  const dir = dirname(path)
+  ensureDir(dir)
+  const opts: WriteFileAtomicOptions = typeof options === 'string'
+    ? { encoding: options }
+    : options
+  const encoding = opts.encoding ?? 'utf-8'
+  const tempFileName = `.tmp_${randomBytes(8).toString('hex')}_${Date.now()}`
+  const tempPath = join(dir, tempFileName)
+  try {
+    writeFileSync(tempPath, content, { encoding, mode: opts.mode })
+    renameSync(tempPath, path)
+  }
+  catch (error) {
+    try {
+      if (existsSync(tempPath))
+        unlinkSync(tempPath)
+    }
+    catch { /* ignore */ }
+    throw new FileSystemError(
+      `Failed to write file atomically: ${path}`,
       path,
       error as Error,
     )

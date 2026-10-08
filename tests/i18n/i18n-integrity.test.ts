@@ -17,7 +17,7 @@ describe('i18n Integrity Tests', () => {
       expect(existsSync(sourceLocalesPath), 'Source i18n directory should exist').toBe(true)
 
       // Define required namespaces and languages
-      const requiredLanguages = ['zh-CN', 'en']
+      const requiredLanguages = ['zh-CN', 'en', 'ja']
       const requiredNamespaces = [
         'common',
         'api',
@@ -69,15 +69,19 @@ describe('i18n Integrity Tests', () => {
       for (const ns of namespaces) {
         const zhFile = join(sourceLocalesPath, 'zh-CN', `${ns}.json`)
         const enFile = join(sourceLocalesPath, 'en', `${ns}.json`)
+        const jaFile = join(sourceLocalesPath, 'ja', `${ns}.json`)
 
-        if (existsSync(zhFile) && existsSync(enFile)) {
+        if (existsSync(zhFile) && existsSync(enFile) && existsSync(jaFile)) {
           const zhContent = JSON.parse(readFileSync(zhFile, 'utf-8'))
           const enContent = JSON.parse(readFileSync(enFile, 'utf-8'))
+          const jaContent = JSON.parse(readFileSync(jaFile, 'utf-8'))
 
           const zhKeys = Object.keys(zhContent).sort()
           const enKeys = Object.keys(enContent).sort()
+          const jaKeys = Object.keys(jaContent).sort()
 
           expect(zhKeys, `${ns}: zh-CN and en should have same keys`).toEqual(enKeys)
+          expect(zhKeys, `${ns}: zh-CN and ja should have same keys`).toEqual(jaKeys)
         }
       }
     })
@@ -93,7 +97,7 @@ describe('i18n Integrity Tests', () => {
         return
       }
 
-      const requiredLanguages = ['zh-CN', 'en']
+      const requiredLanguages = ['zh-CN', 'en', 'ja']
       const requiredNamespaces = [
         'common',
         'api',
@@ -231,8 +235,10 @@ describe('i18n Integrity Tests', () => {
         const criticalFiles = [
           'dist/i18n/locales/zh-CN/menu.json',
           'dist/i18n/locales/en/menu.json',
+          'dist/i18n/locales/ja/menu.json',
           'dist/i18n/locales/zh-CN/common.json',
           'dist/i18n/locales/en/common.json',
+          'dist/i18n/locales/ja/common.json',
         ]
 
         for (const file of criticalFiles) {
@@ -241,7 +247,7 @@ describe('i18n Integrity Tests', () => {
 
         // Count total i18n files
         const i18nMatches = packOutput.match(/dist\/i18n\/locales\/.*\.json/g) || []
-        const expectedMinCount = 28 // 14 namespaces × 2 languages
+        const expectedMinCount = 42 // 14 namespaces × 3 languages
 
         expect(i18nMatches.length, `Should include at least ${expectedMinCount} i18n files`).toBeGreaterThanOrEqual(expectedMinCount)
       }

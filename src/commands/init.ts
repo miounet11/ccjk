@@ -402,13 +402,15 @@ export async function init(options: InitOptions = {}): Promise<void> {
     }
 
     if (codeToolType === 'grok') {
-      const { configureIncrementalManagement } = await import('../utils/claude-code-incremental-manager')
-      await configureIncrementalManagement()
       updateCcjkConfig({
         version,
         preferredLang: i18n.language as SupportedLang,
         codeToolType: 'grok',
       })
+      console.log(ansis.green(`✔ ${i18n.t('menu:codeToolSwitched', { tool: 'Grok CLI' })}`))
+      // Write real Grok CLI config (~/.grok/config.toml) so third-party API works with plain `grok`
+      const { configureGrokApi } = await import('../utils/grok-config')
+      await configureGrokApi()
       console.log(ansis.dim(`\n  ${i18n.t('menu:menuDescriptions.grokInitHint')}\n`))
       return
     }

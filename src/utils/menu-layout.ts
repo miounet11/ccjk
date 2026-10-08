@@ -35,6 +35,7 @@ function line(key: string, labelKey: string, descKey: string): MenuLine {
 const CROSS_TOOL_LINES: MenuLine[] = [
   line('g', 'menu:menuOptions.grokCrossTool', 'menu:menuDescriptions.grokCrossTool'),
   line('x', 'menu:menuOptions.reasonixCrossTool', 'menu:menuDescriptions.reasonixCrossTool'),
+  line('e', 'menu:menuOptions.externalClients', 'menu:menuDescriptions.externalClients'),
 ]
 
 const DOCTOR_HUB = line('h', 'menu:menuOptions.doctorHub', 'menu:menuDescriptions.doctorHub')
@@ -96,8 +97,9 @@ export const TOOL_MENU_LAYOUTS: Record<CodeToolType, ToolMenuLayout> = {
   grok: {
     toolLabelKey: 'menu:toolHeaders.grok',
     operatorLines: [
-      line('1', 'menu:menuOptions.grokInit', 'menu:menuDescriptions.grokInit'),
+      line('1', 'menu:menuOptions.grokConfigureApi', 'menu:menuDescriptions.grokConfigureApi'),
       line('2', 'menu:menuOptions.grokStatus', 'menu:menuDescriptions.grokStatus'),
+      line('3', 'menu:menuOptions.grokConfigureModel', 'menu:menuDescriptions.grokConfigureModel'),
     ],
     doctorLines: [DOCTOR_HUB],
     ccjkUninstallKey: 'menu:menuOptions.uninstall',
@@ -218,6 +220,8 @@ export function printToolMenuHeader(tool: CodeToolType): void {
       `  ${i18n.t(layout.toolLabelKey)}  ${ansis.dim('|')}  ${ansis.gray(i18n.t('menu:configRoot', { path: configRoot }))}  ${ansis.dim('|')}  ${roles}`,
     ),
   )
+  console.log(ansis.green(`  ${i18n.t('menu:guide.nextStep')}`))
+  console.log(ansis.dim(`  ${i18n.t('menu:guide.shortcuts')}`))
   console.log('')
 }
 

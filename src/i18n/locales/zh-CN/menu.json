@@ -24,6 +24,8 @@
   "menuDescriptions.grokCrossTool": "状态检测与 profile 启动指引",
   "menuOptions.reasonixCrossTool": "Reasonix",
   "menuDescriptions.reasonixCrossTool": "DeepSeek agent 状态与启动指引",
+  "menuOptions.externalClients": "外部客户端 (pi/OpenCode/ZCode/GrokBuild/ClaudeWork)",
+  "menuDescriptions.externalClients": "一次性列出外部客户端安装状态与 profile 启动用法",
   "menuDescriptions.codexFullInitWithPreset": "完整初始化（预设：干净 / 优化 / 自定义）+ API + MCP",
   "menuDescriptions.changeLanguage": "更改 CCJK 界面语言",
   "menuDescriptions.checkUpdates": "检查并更新 Claude Code 的版本",
@@ -66,6 +68,14 @@
   "menuDescriptions.grokInit": "保存 Grok 可用的 ccjk profile（API Key + 模型）",
   "menuDescriptions.grokStatus": "检测 Grok CLI 安装与登录，查看启动命令",
   "menuDescriptions.grokInitHint": "配置完成后可运行: ccjk grok <profile>",
+  "menuOptions.grokConfigureApi": "配置 API",
+  "menuDescriptions.grokConfigureApi": "配置 Grok 的 API 提供商和密钥",
+  "menuOptions.grokConfigureMcp": "配置 MCP",
+  "menuDescriptions.grokConfigureMcp": "管理 Grok 的 MCP 服务器",
+  "menuOptions.grokConfigureModel": "配置默认模型",
+  "menuDescriptions.grokConfigureModel": "设置 Grok 默认模型（grok-4.1 等）",
+  "menuOptions.grokConfigureAiMemory": "配置 AI 记忆",
+  "menuDescriptions.grokConfigureAiMemory": "配置 Grok 的 AI 输出语言和风格",
   "menuDescriptions.codexFullInit": "安装 Codex + 导入工作流 + 配置 API + 配置 MCP 服务",
   "menuDescriptions.codexImportWorkflow": "仅导入/更新 Codex 工作流相关文件",
   "menuDescriptions.codexConfigureApi": "配置 Codex 的 API 提供商",
@@ -96,5 +106,7 @@
   "menuDescriptions.clavueCheckUpdates": "检查并更新 Clavue",
   "switchCodeToolPrompt": "请选择代码工具类型",
   "codeToolSwitched": "已切换为 {{tool}}",
-  "selectFunction": "请选择功能"
+  "selectFunction": "请选择功能",
+  "guide.nextStep": "新手建议：先按 W 走快捷向导；不确定环境是否干净，先按 H 做医生体检。",
+  "guide.shortcuts": "快捷键：W 完整/单项配置 · H 扫描与修复 · S 切换代码工具 · + 检查更新"
 }

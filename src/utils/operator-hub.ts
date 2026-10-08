@@ -26,6 +26,10 @@ import {
 import { printCodexReloadHint } from './codex-runtime'
 import { addNumbersToChoices } from './prompt-helpers'
 import { getToolMenuLayout } from './menu-layout'
+import {
+  configureGrokApi,
+  configureGrokDefaultModel,
+} from './grok-config'
 
 async function finishCodexOperatorAction(): Promise<void> {
   printCodexReloadHint()
@@ -54,6 +58,14 @@ async function promptTuneSingle(tool: CodeToolType): Promise<void> {
       case '6': await configureCodexAiMemoryFeature(); break
     }
     await finishCodexOperatorAction()
+    return
+  }
+
+  if (tool === 'grok') {
+    switch (picked) {
+      case '1': await configureGrokApi(); break
+      case '3': await configureGrokDefaultModel(); break
+    }
     return
   }
 
@@ -198,8 +210,16 @@ async function runGrokOperatorHub(): Promise<void> {
     message: i18n.t('menu:selectFunction'),
     choices: addNumbersToChoices([
       {
-        name: `${i18n.t('hub:operator.grokProfile')} — ${ansis.gray(i18n.t('menu:menuDescriptions.grokInit'))}`,
-        value: 'profile',
+        name: `${i18n.t('hub:operator.fullInit')} — ${ansis.gray(i18n.t('menu:menuDescriptions.grokInit'))}`,
+        value: 'init',
+      },
+      {
+        name: `${i18n.t('menu:menuOptions.grokConfigureApi')} — ${ansis.gray(i18n.t('menu:menuDescriptions.grokConfigureApi'))}`,
+        value: 'api',
+      },
+      {
+        name: `${i18n.t('menu:menuOptions.grokConfigureModel')} — ${ansis.gray(i18n.t('menu:menuDescriptions.grokConfigureModel'))}`,
+        value: 'model',
       },
       {
         name: `${i18n.t('hub:operator.grokLaunch')} — ${ansis.gray(i18n.t('menu:menuDescriptions.grokStatus'))}`,
@@ -210,8 +230,12 @@ async function runGrokOperatorHub(): Promise<void> {
   })
 
   switch (action) {
-    case 'profile':
-      await init({ skipBanner: true, codeType: 'grok' })
+    case 'init':
+    case 'api':
+      await configureGrokApi()
+      break
+    case 'model':
+      await configureGrokDefaultModel()
       break
     case 'launch':
       await grokCommand()

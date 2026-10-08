@@ -29,7 +29,7 @@ describe('aPI Provider Configuration', () => {
     it('should have valid supportedCodeTools values', () => {
       API_PROVIDER_PRESETS.forEach((provider) => {
         provider.supportedCodeTools.forEach((tool) => {
-          expect(['claude-code', 'codex']).toContain(tool)
+          expect(['claude-code', 'codex', 'grok']).toContain(tool)
         })
       })
     })

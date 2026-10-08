@@ -1,7 +1,8 @@
 import dayjs from 'dayjs'
 import { join } from 'pathe'
 // JSON utilities use English messages
-import { copyFile, ensureDir, exists, readFile, writeFile } from './fs-operations'
+import { guardSettingsPayload, isClaudeSettingsPath } from './claude-settings-guard'
+import { copyFile, ensureDir, exists, readFile, writeFile, writeFileAtomic } from './fs-operations'
 
 export interface JsonConfigOptions<T> {
   defaultValue?: T
@@ -10,6 +11,10 @@ export interface JsonConfigOptions<T> {
   backupDir?: string
   validate?: (data: any) => data is T
   sanitize?: (data: any) => T
+  /** Skip Claude settings guard when writing settings.json */
+  skipSettingsGuard?: boolean
+  /** Use atomic write (default true for settings) */
+  atomic?: boolean
 }
 
 /**
@@ -49,15 +54,32 @@ export function readJsonConfig<T>(path: string, options: JsonConfigOptions<T> = 
  * Write JSON configuration file
  */
 export function writeJsonConfig<T>(path: string, data: T, options: JsonConfigOptions<T> = {}): void {
-  const { pretty = true, backup = false, backupDir } = options
+  const { pretty = true, backup = false, backupDir, skipSettingsGuard = false, atomic = true } = options
 
-  // Backup existing file if requested
+  let payload = data
+  if (!skipSettingsGuard && isClaudeSettingsPath(path)) {
+    payload = guardSettingsPayload(path, data)
+    if (exists(path) && !backup) {
+      try {
+        backupJsonConfig(path, backupDir || join(path, '..', 'backup'))
+      }
+      catch {
+        // non-fatal
+      }
+    }
+  }
+
   if (backup && exists(path)) {
     backupJsonConfig(path, backupDir)
   }
 
-  const content = pretty ? JSON.stringify(data, null, 2) : JSON.stringify(data)
-  writeFile(path, content)
+  const content = pretty ? JSON.stringify(payload, null, 2) : JSON.stringify(payload)
+  if (atomic) {
+    writeFileAtomic(path, content)
+  }
+  else {
+    writeFile(path, content)
+  }
 }
 
 /**
