@@ -6,6 +6,24 @@ ccjk 是 Clavue / Claude Code / Codex 的本地配置 CLI。本文记录用户�
 
 ## [Unreleased]
 
+## [16.4.0] - 2026-10-09
+
+### Added
+- **外部客户端轻量接入**：新增 `ccjk pi` / `ccjk opencode` / `ccjk zcode` / `ccjk grokbuild` / `ccjk claudework` / `ccjk extclients` 命令，覆盖 pi、OpenCode、ZCode、Grok Build、ClaudeWork 五个客户端；`~/.ccjk` profile 以 `OPENAI_*` / `ANTHROPIC_*` 环境变量注入启动，OpenCode 额外支持直接写入 `opencode.json` provider（写前自动备份）
+- **日语语言包**：新增 `ja` 全量翻译（57 个 i18n 文件），CLI 现支持 zh-CN / en / ja 三语言
+- 主菜单跨工具分区新增「其他客户端」入口，一键查看外部客户端安装状态与启动用法
+
+### Changed
+- **三语言菜单文案按 Don't Make Me Think 重写**：医生中心→环境体检、操作员→常用设置、完整初始化→一键初始化；每个选项描述改为「做了会发生什么」的日常说法；新增首次使用引导（W 向导 / H 体检）
+- `ccjk config-switch --list` 对暂无专属列表的工具（clavue / grok）给出明确指向，不再静默退出；空 profile 提示补充下一步动作
+
+### Fixed
+- `ccjk probe` / `ccjk bench` 在未配置 API 时优雅提示并返回退出码 4（JSON 模式输出 `missing-config`），不再抛出未捕获异常
+- Grok 菜单布局测试与 `defaultModel` 类型错误对齐实际实现
+
+### Test
+- 全量套件 2595/2595 通过；onboarding 与 npm-pack 测试改为临时目录 + 私有 npm 缓存，不再依赖真实用户目录（沙箱 / CI 环境可稳定运行）
+
 ## [16.3.1] - 2026-07-22
 
 ### Fixed
