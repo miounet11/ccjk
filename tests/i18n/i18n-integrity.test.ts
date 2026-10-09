@@ -190,11 +190,11 @@ describe('i18n Integrity Tests', () => {
     it('should handle language switching correctly', async () => {
       await initI18n('zh-CN')
       const zhText = i18n.t('menu:selectFunction')
-      expect(zhText).toBe('请选择功能')
+      expect(zhText).toBe('想做什么？')
 
       await initI18n('en')
       const enText = i18n.t('menu:selectFunction')
-      expect(enText).toBe('Select function')
+      expect(enText).toBe('What would you like to do?')
     })
   })
 

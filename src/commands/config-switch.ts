@@ -81,6 +81,11 @@ async function handleList(codeType?: CodeToolType): Promise<void> {
   else if (targetCodeType === 'codex') {
     await listCodexProvidersWithDisplay()
   }
+  else {
+    // grok / clavue 等暂无专属列表：给出明确指向而非静默退出
+    console.log(ansis.yellow(i18n.t('multi-config:listNotSupported', { tool: targetCodeType })))
+    console.log(ansis.dim(i18n.t('multi-config:listNotSupportedHint', { tool: targetCodeType })))
+  }
 }
 
 /**
