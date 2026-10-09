@@ -1,11 +1,21 @@
-import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
-import { homedir } from 'node:os'
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
 import { join } from 'pathe'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-const CCJK_DIR = join(homedir(), '.ccjk')
+// 用临时目录替身 ~/.ccjk，测试在沙箱内不再触碰真实用户目录
+const CCJK_DIR = mkdtempSync(join(tmpdir(), 'ccjk-onboard-test-'))
 const ONBOARDING_FILE = join(CCJK_DIR, 'onboarding.json')
 const CONFIG_FILE = join(CCJK_DIR, 'config.toml')
+
+vi.mock('../../../src/constants', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../../src/constants')>()
+  return {
+    ...actual,
+    CCJK_CONFIG_DIR: CCJK_DIR,
+    CCJK_CONFIG_FILE: CONFIG_FILE,
+  }
+})
 
 vi.mock('inquirer', () => ({
   default: {
@@ -29,7 +39,6 @@ describe('onboarding-wizard', () => {
     vi.clearAllMocks()
     if (existsSync(ONBOARDING_FILE)) rmSync(ONBOARDING_FILE, { force: true })
     if (existsSync(CONFIG_FILE)) rmSync(CONFIG_FILE, { force: true })
-    if (!existsSync(CCJK_DIR)) mkdirSync(CCJK_DIR, { recursive: true })
   })
 
   afterEach(() => {

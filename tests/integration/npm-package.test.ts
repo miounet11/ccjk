@@ -9,6 +9,7 @@ const execAsync = promisify(exec)
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const projectRoot = join(__dirname, '../..')
 const testTmpDir = join(projectRoot, 'tmp-npm-test')
+const npmCacheDir = join(projectRoot, 'tmp-npm-cache')
 
 describe('npm Package Integration Tests', () => {
   // Clean up before and after tests with retry logic for Windows
@@ -20,6 +21,7 @@ describe('npm Package Integration Tests', () => {
     for (let i = 0; i < retries; i++) {
       try {
         rmSync(testTmpDir, { recursive: true, force: true, maxRetries: 3, retryDelay: 100 })
+        rmSync(npmCacheDir, { recursive: true, force: true, maxRetries: 3, retryDelay: 100 })
         return
       }
       catch (error: any) {
@@ -76,13 +78,15 @@ describe('npm Package Integration Tests', () => {
     }
 
     // Use npm pack with --json for detailed package contents
-    // Skip husky prepare script to avoid Windows file locking issues
+    // Skip husky prepare script to avoid Windows file locking issues.
+    // Use a private npm cache so sandboxed runs don't touch ~/.npm (EPERM there).
     const { stdout: packOutput } = await execAsync('npm pack --json', {
       cwd: projectRoot,
       env: {
         ...process.env,
         HUSKY: '0', // Disable husky to avoid Windows file locking issues
         NO_UPDATE_NOTIFIER: '1', // Disable npm update notifications
+        npm_config_cache: npmCacheDir,
       },
     })
     let packData: Array<{ files?: Array<{ path: string }>, filename?: string }>
@@ -197,6 +201,7 @@ describe('npm Package Integration Tests', () => {
         ...process.env,
         HUSKY: '0',
         NO_UPDATE_NOTIFIER: '1',
+        npm_config_cache: npmCacheDir,
       },
     })
 
