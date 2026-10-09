@@ -3,7 +3,7 @@ import inquirer from 'inquirer'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { configureCodexApi, configureCodexMcp, runCodexWorkflowImportWithLanguageSelection, runCodexWorkflowSelection } from '../../../../src/utils/code-tools/codex'
 import { applyAiLanguageDirective } from '../../../../src/utils/config'
-import { exists, readFile, writeFile } from '../../../../src/utils/fs-operations'
+import { exists, readFile, writeFile, writeFileAtomic } from '../../../../src/utils/fs-operations'
 import { resolveAiOutputLanguage, resolveTemplateLanguage } from '../../../../src/utils/prompts'
 import { readCcjkConfig, updateCcjkConfig } from '../../../../src/utils/ccjk-config'
 
@@ -64,6 +64,7 @@ vi.mock('../../../../src/utils/fs-operations', () => ({
   exists: vi.fn(),
   readFile: vi.fn(),
   writeFile: vi.fn(),
+  writeFileAtomic: vi.fn(),
   ensureDir: vi.fn(),
   copyFile: vi.fn(),
   copyDir: vi.fn(),
@@ -119,11 +120,13 @@ describe('codex Language Selection', () => {
       await configureCodexApi(options)
 
       // Assert
-      // New implementation uses targeted TOML updates, which may result in multiple writeFile calls
-      // We just verify that both config and auth files were written
+      // Implementation uses targeted TOML updates (writeFile) + writeJsonConfig
+      // (writeFileAtomic). Verify config.toml and auth.json were both written.
       const { calls } = vi.mocked(writeFile).mock
-      const configCalls = calls.filter(call => (call[0] as string).includes('config.toml'))
-      const authCall = calls.find(call => (call[0] as string).includes('auth.json'))
+      const atomicCalls = vi.mocked(writeFileAtomic).mock.calls
+      const allCalls = [...calls, ...atomicCalls]
+      const configCalls = allCalls.filter(call => (call[0] as string).includes('config.toml'))
+      const authCall = allCalls.find(call => (call[0] as string).includes('auth.json'))
 
       expect(configCalls.length).toBeGreaterThan(0)
       // Get the last config call (final state)

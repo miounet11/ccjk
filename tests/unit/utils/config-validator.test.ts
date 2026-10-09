@@ -172,12 +172,13 @@ describe('config-validator utilities', () => {
     })
 
     it('should copy valid model', () => {
-      expect(sanitizeClaudeSettings({ model: 'opus' })).toEqual({ model: 'opus' })
-      expect(sanitizeClaudeSettings({ model: 'sonnet' })).toEqual({ model: 'sonnet' })
+      // normalizeClaudeSettings injects $schema; assert subset via toMatchObject
+      expect(sanitizeClaudeSettings({ model: 'opus' })).toMatchObject({ model: 'opus' })
+      expect(sanitizeClaudeSettings({ model: 'sonnet' })).toMatchObject({ model: 'sonnet' })
     })
 
     it('should filter out invalid model', () => {
-      expect(sanitizeClaudeSettings({ model: 'invalid' })).toEqual({})
+      expect(sanitizeClaudeSettings({ model: 'invalid' })).not.toHaveProperty('model')
     })
 
     it('should sanitize env object', () => {
@@ -190,15 +191,21 @@ describe('config-validator utilities', () => {
         },
       }
       const sanitized = sanitizeClaudeSettings(settings)
+      // guard coerces numbers/booleans to strings, drops undefined/objects/arrays
       expect(sanitized.env).toEqual({
         STRING_VAR: 'value',
-        UNDEFINED_VAR: undefined,
+        NUMBER_VAR: '123',
       })
     })
 
     it('should handle invalid env type', () => {
-      expect(sanitizeClaudeSettings({ env: 'not-object' })).toEqual({})
-      expect(sanitizeClaudeSettings({ env: 123 })).toEqual({})
+      // guard drops invalid env; result keeps only injected $schema
+      expect(sanitizeClaudeSettings({ env: 'not-object' })).toEqual({
+        $schema: 'https://json.schemastore.org/claude-code-settings.json',
+      })
+      expect(sanitizeClaudeSettings({ env: 123 })).toEqual({
+        $schema: 'https://json.schemastore.org/claude-code-settings.json',
+      })
     })
 
     it('should sanitize permissions array', () => {
@@ -212,7 +219,9 @@ describe('config-validator utilities', () => {
     })
 
     it('should handle invalid permissions type', () => {
-      expect(sanitizeClaudeSettings({ permissions: 'not-object' })).toEqual({})
+      expect(sanitizeClaudeSettings({ permissions: 'not-object' })).toEqual({
+        $schema: 'https://json.schemastore.org/claude-code-settings.json',
+      })
     })
 
     it('should handle permissions without allow', () => {
@@ -228,13 +237,15 @@ describe('config-validator utilities', () => {
     })
 
     it('should preserve other properties', () => {
+      // guard strips non-official keys (crash vector) — custom fields are dropped
       const settings = {
         customField1: 'value1',
         customField2: { nested: 'object' },
         customField3: [1, 2, 3],
       }
-      const sanitized = sanitizeClaudeSettings(settings)
-      expect(sanitized).toEqual(settings)
+      expect(sanitizeClaudeSettings(settings)).toEqual({
+        $schema: 'https://json.schemastore.org/claude-code-settings.json',
+      })
     })
 
     it('should handle complex settings', () => {
@@ -250,29 +261,25 @@ describe('config-validator utilities', () => {
         customField: 'preserved',
         anotherField: { complex: 'object' },
       }
-      const sanitized = sanitizeClaudeSettings(settings)
-      expect(sanitized).toEqual({
+      // guard keeps official keys, coerces env numbers to strings,
+      // filters permission entries to strings, strips unknown keys
+      expect(sanitizeClaudeSettings(settings)).toEqual({
+        $schema: 'https://json.schemastore.org/claude-code-settings.json',
         model: 'opus',
         env: {
           VALID_STRING: 'string',
+          INVALID_NUMBER: '42',
         },
         permissions: {
           allow: ['Read', 'Write'],
         },
-        customField: 'preserved',
-        anotherField: { complex: 'object' },
       })
     })
 
     it('should handle empty env and permissions', () => {
-      const settings = {
-        env: {},
-        permissions: {},
-      }
-      const sanitized = sanitizeClaudeSettings(settings)
-      expect(sanitized).toEqual({
-        env: {},
-        permissions: {},
+      // guard normalizes empty containers away, leaving only $schema
+      expect(sanitizeClaudeSettings({ env: {}, permissions: {} })).toEqual({
+        $schema: 'https://json.schemastore.org/claude-code-settings.json',
       })
     })
   })

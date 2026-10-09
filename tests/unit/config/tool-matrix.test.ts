@@ -15,20 +15,20 @@ describe('tool-matrix', () => {
     expect(getToolsWithCapability('setupPresets')).toEqual(['codex'])
   })
 
-  it('marks grok as profile/status/model operator only until handlers exist', () => {
+  it('marks grok as api/model operator with doctor role', () => {
     const grok = getToolMatrix('grok')
     expect(grok.profileStorage).toBe('ccjk-profile')
     expect(grok.capabilities.fullInit).toBe(true)
     expect(grok.capabilities.configureModel).toBe(true)
     expect(grok.capabilities.cleanEnvironment).toBe(true)
-    expect(grok.capabilities.configureApi).toBe(false)
+    expect(grok.capabilities.configureApi).toBe(true)
     expect(grok.capabilities.configureMcp).toBe(false)
     expect(grok.capabilities.configureAiMemory).toBe(false)
     expect(grok.capabilities.updateWorkflow).toBe(false)
     expect(grok.operatorActions).toEqual([
-      'save-ccjk-profile',
-      'launch-with-profile',
+      'configure-api',
       'configure-model',
+      'launch-status',
       'clean-environment',
     ])
     expect(grok.skillsDirs.length).toBeGreaterThan(0)
