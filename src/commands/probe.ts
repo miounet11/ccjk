@@ -25,7 +25,15 @@ const EXIT_CODE: Record<ProbeStatus, number> = {
 export async function probeCommand(opts: { json?: boolean } = {}): Promise<void> {
   const creds = readActiveApiCreds()
   if (!creds.baseUrl) {
-    throw new Error('未找到 API 配置，请先运行 ccjk init 或菜单 3 配置 API')
+    const hint = '未找到 API 配置，请先运行 ccjk init 或菜单 3 配置 API'
+    if (opts.json) {
+      console.log(JSON.stringify({ status: 'missing-config', error: hint }, null, 2))
+    }
+    else {
+      console.log(ansis.yellow(`\n${hint}\n`))
+    }
+    process.exitCode = 4
+    return
   }
   const result = await runProbe(creds.baseUrl, creds.apiKey, creds.authToken)
   if (opts.json) {
