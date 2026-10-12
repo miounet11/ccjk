@@ -145,6 +145,78 @@ ccjk 是 Clavue / Claude Code / Codex 的本地配置 CLI。本文记录用户�
 - 新增 `src/utils/reasonix-config.ts`、`src/commands/reasonix.ts`
 - 新增 `tests/utils/reasonix-config.test.ts`（7 case）
 
+## [15.28.3] - 2026-05-29
+
+### Fixed
+- **`ccjk status` 的 Codex 行永远显示 `(无 profile)`**：v15.28.0 改成"不写顶层
+  `profile = "..."`、只写 `[profiles.<name>]`"后，`status` 的读取逻辑没跟上——
+  还在用顶层 `profile` 字段判断当前 profile，导致按新姿势配好 codex 的用户看到
+  `(无 profile)` + 空 baseUrl。改成：无顶层 profile 时从 `[profiles.*]` 段自动发现，
+  单个直接用，多个显示第一个 + `(+N)`（codex 靠 `--profile` 选，config 无"当前"概念）。
+  顶层 `profile`（老配置/手设）仍兼容。
+
+### Internal
+- 测试基线 355 → 357（+2：codex 新姿势段发现、多 profile 的 (+N) 提示）；
+  同时把 status.test.ts "全装齐"用例从已废弃的顶层 `profile` 改成新姿势，避免固化旧行为掩盖回归。
+
+## [15.28.2] - 2026-05-28
+
+### Fixed
+- **Codex 启动报 `legacy \`profile = "..."\` config is no longer supported`**：
+  ccjk 之前在 `~/.codex/config.toml` 顶层写 `profile = "<name>"` 作启动默认，
+  新版 codex CLI 已把它当 legacy 直接拒绝。改用 codex 官方推荐姿势：
+  - 不再写顶层 `profile`；用户用 `codex --profile <name>` 启动指定 profile
+  - `applyCodexProfile` 检测到老 `profile = "..."` 行会主动删除（迁移幂等）
+  - `ccjk doctor` 新增规则 `codex-legacy-toplevel-profile`（**error 级**，可
+    `ccjk doctor --fix` 自动清掉）
+  - `init` / `use` 完成后的提示语统一改成 `codex --profile <name>` 启动
+- 旧规则 `codex-toplevel-model-without-profile` 重写为 `codex-toplevel-model`：
+  顶层有 `model = "..."` 一律提示搬到 `[profiles.<name>].model`（不再因为有顶层 profile 就放过——顶层 profile 本身就是 legacy）
+
+### Internal
+- 测试基线 351 → 355（+4：legacy 顶层 profile 自动删 / lint error 规则 / autoFix 回归 / syncProfileToCodex 老配置迁移）
+
+## [15.28.1] - 2026-05-28
+
+### Fixed
+- **Profile 不再一把刷三个工具的 settings**：`Profile` 新增 `targetTools` 字段，
+  init / quick / migrate 写入时只记录"配置时选的那个工具"。`ccjk use` 切换 profile
+  时只同步到 `targetTools` 列出的工具——配 codex 不再污染 clavue 的 settings。
+  老 profile（无字段）保持向后兼容，默认同步到全部已装工具。
+- `ccjk list` / `ccjk show` 显示作用范围：`C` / `CC` / `CX` 缩写或全名。
+
+### Internal
+- 测试基线 349 → 351（targetTools 字段往返、老 profile 兼容）
+
+## [15.28.0] - 2026-05-28
+
+复刻 [zcf](https://github.com/UfoMiao/zcf) 的 provider / perms / codex 设计端到端，
+剔除全部第三方中转网关，三套配置（clavue / claude-code / codex）统一最简版。
+
+### Changed
+- **Provider 表瘦身**：内置 provider 只保留官方直连——`glm` / `z-ai` /
+  `bailian-coding` / `minimax` / `kimi` / `deepseek` / `anthropic` / `custom`。
+  删除 302.ai / Packy / Pateway / APIKEY.FUN / AICodeMirror / Crazyrouter 等
+  中转网关 preset；要用走 `custom` 手填 baseUrl + key。
+- **Provider 结构**：拆出 `claudeCode { baseUrl, authType, defaultModels }` 和
+  `codex { baseUrl, wireApi, defaultModel }` 两套字段。同一家厂商两端 baseUrl
+  不同时不再混淆。
+- **Codex API key 自动落到 `~/.codex/auth.json`**：`ccjk use` 切到 codex profile
+  会同时写入 `<ENV_KEY>` + `OPENAI_API_KEY` 两条；用户不再需要手动 `export`。
+- **权限档位对齐 zcf 模板**：`standard` / `yolo` 改用裸 `Bash` + 全部内置工具
+  裸名 + 主流 MCP 服务器名；老的 90 条 `Bash(cmd *)` 长清单删掉，靠 deny
+  兜底高危命令（`rm -rf /`、`git push --force`、`sudo`、`mkfs` 等）。
+- **init 流程简化**：默认一个 main model，自动填 haiku/sonnet/opus 槽位
+  （不再让用户配 4 槽位策略）。
+
+### Added
+- `src/core/codex-auth.ts`：`readAuthFile` / `writeAuthFile` / `removeAuthKey`
+- 启动时自动迁移老 profile：`glm-cn` → `glm`，`kimi-coding` → `kimi`，已删的
+  provider id 自动回退到 `custom`（baseUrl/apiKey 保留可用，幂等回写）
+
+### Internal
+- 测试基线 343 → 349（+8：codex auth 写入、profile 迁移、新模板覆盖）
+
 ## [15.27.6] - 2026-05-26
 
 ### Added

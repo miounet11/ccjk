@@ -8,7 +8,7 @@ import { readSettings } from '../core/settings.js';
 import type { ClaudeSettings } from '../core/settings.js';
 import { detectClaudeTier, detectCodexTier } from '../core/perms.js';
 import { lintSettings } from '../core/lint.js';
-import { lintCodexConfig } from '../core/codex-config.js';
+import { lintCodexConfig, listCodexProfiles } from '../core/codex-config.js';
 import { readTomlFile } from '../core/toml.js';
 import type { TomlDoc } from '../core/toml.js';
 import { readModeState } from '../core/modes.js';
@@ -227,20 +227,28 @@ function collectCodexRow(doc: TomlDoc): {
   permsTier: string;
   permsDetail: string;
 } {
-  const profileName = (doc.values.get('profile') as string | undefined) ?? '';
+  // 顶层 `profile = "..."` 是 legacy（新版 codex 拒绝），ccjk 已不再写它。
+  // 新姿势：只有 [profiles.<name>] 段，用户靠 `codex --profile <name>` 选。
+  // 读取要两条都覆盖：① 老配置/手设的顶层 profile；② 从段自动发现。
+  const topLevel = (doc.values.get('profile') as string | undefined) ?? '';
+  const sectionProfiles = listCodexProfiles(doc);
+  const activeProfile = topLevel || sectionProfiles[0] || '';
+  // 多个段且无顶层 profile：config 里没有"当前"概念，标 (+N) 提示靠 --profile 选
+  const extra = !topLevel && sectionProfiles.length > 1 ? sectionProfiles.length - 1 : 0;
+
   let baseUrl = '';
   let model = '(未设)';
-  if (profileName) {
-    const providerId = doc.values.get(`profiles.${profileName}.model_provider`) as string | undefined;
+  if (activeProfile) {
+    const providerId = doc.values.get(`profiles.${activeProfile}.model_provider`) as string | undefined;
     if (providerId) {
       const url = doc.values.get(`model_providers.${providerId}.base_url`) as string | undefined;
       if (url) baseUrl = hostnameOf(url);
     }
-    const m = doc.values.get(`profiles.${profileName}.model`) as string | undefined;
+    const m = doc.values.get(`profiles.${activeProfile}.model`) as string | undefined;
     if (m) model = m;
   }
   else {
-    // 顶层 model 锁定模式
+    // 顶层 model 锁定模式（既无顶层 profile 也无任何段）
     const m = doc.values.get('model') as string | undefined;
     if (m) model = m;
   }
@@ -249,10 +257,13 @@ function collectCodexRow(doc: TomlDoc): {
   const tier = detectCodexTier(doc);
   const ap = (doc.values.get('approval_policy') as string | undefined) ?? '(未设)';
   const sm = (doc.values.get('sandbox_mode') as string | undefined) ?? '(未设)';
+  const profileLabel = activeProfile
+    ? (extra > 0 ? `${activeProfile} (+${extra})` : activeProfile)
+    : '(无 profile)';
   return {
     tool: 'codex',
     installed: true,
-    profile: profileName ? profileName : '(无 profile)',
+    profile: profileLabel,
     baseUrl,
     model,
     health,

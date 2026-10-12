@@ -24,12 +24,14 @@ export interface TierDefinition {
 /**
  * 三个档位定义。
  *
- * 设计原则：
- * - safe：日常浏览/阅读代码，几乎不会触发授权弹窗。所有写操作仍需确认。
- * - standard：日常开发，git/包管理常见命令免弹窗，但破坏性命令仍要确认。
- * - yolo：大胆放飞，但保留 deny 兜底（rm -rf /、git push --force 等绝对禁止）。
+ * 设计原则（v15.28 起对齐 zcf 模板）：
+ * - safe：只读工具裸名 + 只读 mcp 服务器；写操作、Bash 都要确认。
+ * - standard：zcf 默认模板（裸 Bash + 全部裸工具名 + 主流 mcp 服务器），allowUnsandboxedCommands=false。
+ * - yolo：与 standard 相同的 allow，但 allowUnsandboxedCommands=true，并放行所有沙箱限制。
  *
- * 不要乱加规则：每条 allow/deny 都应能用一句话解释为什么放进或挡住。
+ * 三档共享同一份 deny（COMMON_DENY），即便 yolo 也兜住灾难性命令（rm -rf /、git push --force、sudo 等）。
+ *
+ * zcf 原始模板：templates/claude-code/common/settings.json（github.com/UfoMiao/zcf）
  */
 export const TIERS: Record<PermsTier, TierDefinition> = {
   safe: {
@@ -39,12 +41,28 @@ export const TIERS: Record<PermsTier, TierDefinition> = {
     claude: {
       // 裸工具名 = 该工具全部允许（Claude Code 官方语法）
       allow: [
+        // 只读核心
         'Read',
-        'Grep',
+        'NotebookRead',
         'Glob',
+        'Grep',
         'LS',
+        'KillShell',
+        'LSP',
+        'ToolSearch',
         'WebFetch',
         'WebSearch',
+        // 任务查询（不修改）
+        'TaskList',
+        'TaskGet',
+        'TaskOutput',
+        // 只读 MCP 服务器（不存在时 Claude 自动忽略）
+        'mcp__context7',
+        'mcp__exa',
+        'mcp__mcp-deepwiki',
+        'mcp__open-websearch',
+        'mcp__Playwright',
+        'mcp__serena',
       ],
       deny: COMMON_DENY(),
       allowUnsandboxedCommands: false,
@@ -58,92 +76,10 @@ export const TIERS: Record<PermsTier, TierDefinition> = {
   standard: {
     id: 'standard',
     name: '日常开发',
-    description: '只读 + 写文件 + git/包管理 + 常见 shell 免确认；危险命令仍拦截（推荐）',
+    description: '裸 Bash + 全部工具 + 主流 MCP 免确认；危险命令 deny 兜底（推荐）',
     claude: {
-      // Claude Code 官方语法：裸工具名匹配所有；Bash(cmd *) 用空格匹配前缀
-      // 参考: https://code.claude.com/docs/en/settings
-      allow: [
-        // 读 + 写
-        'Read', 'Grep', 'Glob', 'LS', 'WebFetch', 'WebSearch',
-        'Edit', 'Write', 'MultiEdit', 'NotebookEdit', 'NotebookRead',
-        'TodoWrite', 'Task', 'Skill',
-
-        // git —— 日常子命令全集（缺一个就弹一次窗）
-        'Bash(git status)', 'Bash(git status *)',
-        'Bash(git diff *)', 'Bash(git log *)', 'Bash(git show *)',
-        'Bash(git branch *)', 'Bash(git stash *)',
-        'Bash(git add *)', 'Bash(git commit *)', 'Bash(git rm *)',
-        'Bash(git pull *)', 'Bash(git fetch *)',
-        'Bash(git rebase *)', 'Bash(git merge *)', 'Bash(git cherry-pick *)',
-        'Bash(git checkout *)', 'Bash(git switch *)', 'Bash(git restore *)',
-        'Bash(git reset *)', 'Bash(git revert *)', 'Bash(git reflog *)',
-        'Bash(git tag *)', 'Bash(git push *)',
-        'Bash(git clone *)', 'Bash(git init *)', 'Bash(git remote *)',
-        'Bash(git config *)', 'Bash(git clean *)',
-        'Bash(git submodule *)', 'Bash(git worktree *)',
-        'Bash(git describe *)', 'Bash(git blame *)', 'Bash(git bisect *)',
-        'Bash(gh *)', // GitHub CLI
-
-        // 包管理
-        'Bash(npm *)', 'Bash(pnpm *)', 'Bash(yarn *)', 'Bash(bun *)',
-        'Bash(npx *)', 'Bash(pnpx *)', 'Bash(bunx *)',
-        'Bash(node *)', 'Bash(tsx *)', 'Bash(deno *)',
-
-        // Python
-        'Bash(python *)', 'Bash(python3 *)',
-        'Bash(pip *)', 'Bash(pip3 *)',
-        'Bash(uv *)', 'Bash(uvx *)', 'Bash(poetry *)', 'Bash(pipx *)',
-        'Bash(ruff *)', 'Bash(black *)', 'Bash(mypy *)', 'Bash(pytest *)',
-
-        // 其它语言
-        'Bash(cargo *)', 'Bash(rustc *)', 'Bash(rustup *)',
-        'Bash(go *)', 'Bash(gofmt *)',
-        'Bash(java *)', 'Bash(javac *)', 'Bash(mvn *)', 'Bash(gradle *)',
-        'Bash(ruby *)', 'Bash(gem *)', 'Bash(bundle *)', 'Bash(rake *)',
-        'Bash(php *)', 'Bash(composer *)',
-        'Bash(dotnet *)',
-        'Bash(make *)', 'Bash(cmake *)', 'Bash(ninja *)',
-
-        // 文件浏览 / 文本处理
-        'Bash(ls *)', 'Bash(ls)', 'Bash(cat *)', 'Bash(less *)', 'Bash(more *)',
-        'Bash(head *)', 'Bash(tail *)', 'Bash(wc *)',
-        'Bash(rg *)', 'Bash(grep *)', 'Bash(egrep *)', 'Bash(fgrep *)',
-        'Bash(find *)', 'Bash(fd *)', 'Bash(tree *)',
-        'Bash(sed *)', 'Bash(awk *)', 'Bash(cut *)', 'Bash(tr *)',
-        'Bash(sort *)', 'Bash(uniq *)', 'Bash(diff *)', 'Bash(comm *)',
-        'Bash(tee *)', 'Bash(xargs *)', 'Bash(jq *)', 'Bash(yq *)',
-        'Bash(echo *)', 'Bash(printf *)',
-        'Bash(pwd)', 'Bash(which *)', 'Bash(whereis *)', 'Bash(type *)',
-        'Bash(env)', 'Bash(printenv *)', 'Bash(date *)', 'Bash(date)',
-        'Bash(uname *)', 'Bash(uname)', 'Bash(hostname *)', 'Bash(hostname)',
-        'Bash(whoami)', 'Bash(id *)', 'Bash(id)',
-        'Bash(ps *)', 'Bash(ps)', 'Bash(top *)', 'Bash(htop *)',
-        'Bash(lsof *)', 'Bash(netstat *)', 'Bash(ss *)',
-        'Bash(df *)', 'Bash(df)', 'Bash(du *)', 'Bash(free *)',
-
-        // 文件操作 —— rm/mv/cp 都允许，但 deny 兜底拦危险参数
-        'Bash(mkdir *)', 'Bash(touch *)', 'Bash(cp *)', 'Bash(mv *)',
-        'Bash(rm *)', 'Bash(rmdir *)',
-        'Bash(ln *)', 'Bash(chmod *)', 'Bash(chown *)', 'Bash(chgrp *)',
-        'Bash(tar *)', 'Bash(zip *)', 'Bash(unzip *)',
-        'Bash(gzip *)', 'Bash(gunzip *)', 'Bash(bzip2 *)', 'Bash(xz *)',
-
-        // 网络
-        'Bash(curl *)', 'Bash(wget *)',
-        'Bash(ping *)', 'Bash(dig *)', 'Bash(nslookup *)', 'Bash(host *)',
-        'Bash(ssh *)', 'Bash(scp *)', 'Bash(rsync *)', 'Bash(sftp *)',
-
-        // 容器 / 云
-        'Bash(docker *)', 'Bash(docker-compose *)', 'Bash(podman *)',
-        'Bash(kubectl *)', 'Bash(helm *)', 'Bash(k9s *)',
-        'Bash(terraform *)', 'Bash(ansible *)',
-        'Bash(aws *)', 'Bash(gcloud *)', 'Bash(az *)',
-
-        // 工具
-        'Bash(brew *)', 'Bash(open *)',
-        'Bash(code *)', 'Bash(claude *)', 'Bash(clavue *)', 'Bash(codex *)', 'Bash(ccjk *)',
-        'Bash(vim *)', 'Bash(nvim *)', 'Bash(nano *)', 'Bash(emacs *)',
-      ],
+      // 对齐 zcf 模板：直接裸名，让 Claude Code 用工具默认语义匹配；不再列 Bash(cmd *) 长清单
+      allow: ZCF_TEMPLATE_ALLOW(),
       deny: COMMON_DENY(),
       allowUnsandboxedCommands: false,
     },
@@ -156,15 +92,9 @@ export const TIERS: Record<PermsTier, TierDefinition> = {
   yolo: {
     id: 'yolo',
     name: '放开授权',
-    description: '默认放行所有操作；仅保留极少数高危命令拦截（仅在可信项目里用）',
+    description: '与 standard 同 allow；但放行沙箱限制（仅在可信项目里用）',
     claude: {
-      // 裸工具名 = 全部允许
-      allow: [
-        'Read', 'Grep', 'Glob', 'LS', 'WebFetch', 'WebSearch',
-        'Edit', 'Write', 'MultiEdit', 'NotebookEdit', 'NotebookRead',
-        'TodoWrite', 'Task', 'Skill',
-        'Bash',
-      ],
+      allow: ZCF_TEMPLATE_ALLOW(),
       deny: COMMON_DENY(),
       allowUnsandboxedCommands: true,
     },
@@ -174,6 +104,51 @@ export const TIERS: Record<PermsTier, TierDefinition> = {
     },
   },
 };
+
+/**
+ * zcf 模板（templates/claude-code/common/settings.json）的 allow 列表。
+ * 直接用裸工具名（含裸 Bash），让 Claude Code 用工具默认语义匹配。
+ *
+ * 维护原则：每条都对应 Claude Code 内置工具或常见 MCP 服务器名；不要塞 Bash(cmd *) 这种细粒度规则。
+ */
+function ZCF_TEMPLATE_ALLOW(): string[] {
+  return [
+    // 内置工具（含裸 Bash —— 危险命令仍由 deny 兜底）
+    'Bash',
+    'Edit',
+    'Glob',
+    'Grep',
+    'KillShell',
+    'LS',
+    'LSP',
+    'MultiEdit',
+    'NotebookEdit',
+    'NotebookRead',
+    'Read',
+    'Skill',
+    'Task',
+    'TaskCreate',
+    'TaskGet',
+    'TaskList',
+    'TaskOutput',
+    'TaskStop',
+    'TaskUpdate',
+    'TodoWrite',
+    'ToolSearch',
+    'WebFetch',
+    'WebSearch',
+    'Write',
+    // 主流 MCP 服务器（未安装时 Claude 自动忽略）
+    'mcp__ide',
+    'mcp__exa',
+    'mcp__context7',
+    'mcp__mcp-deepwiki',
+    'mcp__Playwright',
+    'mcp__spec-workflow',
+    'mcp__open-websearch',
+    'mcp__serena',
+  ];
+}
 
 /**
  * 必须始终拦截的命令——任何档位都加。
@@ -294,17 +269,24 @@ function dedupe(arr: string[]): string[] {
 
 /**
  * 读出当前 settings 看起来最像哪个档位（仅做提示，不精确）。
- * 判断依据：是否启用 allowUnsandboxedCommands、裸 `Bash` 或 `Bash(*)` 是否在 allow 里。
+ *
+ * 判定规则（v15.28 起对齐 zcf 模板）：
+ * 1) 含裸 `Bash`（或老的 `Bash(*)`）：
+ *    - allowUnsandboxedCommands=true → yolo
+ *    - 否则 → standard（zcf 默认模板）
+ * 2) 不含裸 Bash，但含细粒度 `Bash(<cmd> ...)`：判 standard（兼容旧 ccjk 配置）
+ * 3) 仅含只读工具（裸名或 `Foo(*)`）：判 safe
+ * 4) 否则 null（用户魔改 / 未识别）
  */
 export function detectClaudeTier(settings: ClaudeSettings): PermsTier | null {
   const allow = settings.permissions?.allow ?? [];
   const allowUnsandboxed = (settings as Record<string, unknown>).allowUnsandboxedCommands === true;
   const hasBashWide = allow.includes('Bash') || allow.includes('Bash(*)');
-  if (allowUnsandboxed && hasBashWide) return 'yolo';
-  // standard：含 Bash(git ...) / Bash(npm ...) 之类的命令前缀
+  if (hasBashWide) return allowUnsandboxed ? 'yolo' : 'standard';
+  // 兼容 v15.27 及之前的 standard 写法：含 Bash(git ...) / Bash(npm ...) 之类的命令前缀
   if (allow.some(a => /^Bash\((git|npm|pnpm|yarn|node)\b/.test(a))) return 'standard';
-  // safe：只读 + 只识别裸名或 (*) 形式
-  if (allow.length > 0 && allow.every(a => /^(Read|Grep|Glob|LS|WebFetch|WebSearch)(\(.*\))?$/.test(a))) return 'safe';
+  // safe：只识别只读工具的裸名或 (*) 形式
+  if (allow.length > 0 && allow.every(a => /^(Read|NotebookRead|Grep|Glob|LS|KillShell|LSP|ToolSearch|WebFetch|WebSearch|TaskList|TaskGet|TaskOutput|mcp__[\w-]+)(\(.*\))?$/.test(a))) return 'safe';
   return null;
 }
 
