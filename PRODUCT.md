@@ -70,18 +70,21 @@ ccjk 面向想一键配通四种工具而非逐个手动 setup 的开发者；�
 
 ---
 
-## 3. 产品边界（不做清单）
+## 3. 产品边界
 
-ccjk 是**配置工具**，不是 IDE 也不是 agent runtime。明确不做：
+ccjk 仍是配置工具，不是 IDE，也不替用户写代码。2026-10-12 起，用户显式运行 `ccjk proxy` 时，可以额外启动一个**只听 127.0.0.1** 的本机代理。
+
+默认不做：
 
 - ❌ 不主动写代码
 - ❌ 不装 hooks
-- ❌ 不开后台进程 / 守护进程
-- ❌ 不修改 Claude / Clavue / Codex 自身的运行时行为
-- ❌ 单向：`settings.json → profile`（`migrate`），不反向覆盖 settings
+- ❌ 不在用户没运行 `ccjk proxy` 时驻留后台
 - ❌ 不在 Claude / Clavue 的 runtime 里偷偷调 ccjk 命令（reentrancy）
+- ❌ 不用官方客户端的身份去登录 ChatGPT、Copilot 或 xAI。账号槽只保存用户自己粘贴的凭证
 
-这条边界保证：用户随时可以卸了 ccjk 而不影响四个工具（Clavue / Claude Code / Codex / Grok）的正常使用。
+`ccjk proxy apply` 和界面里的「使用这家」会把地址写入 Claude Code、Clavue、Codex、Grok，以及 OpenCode / ClaudeWork 的已知配置。路由和聚合写成 `http://127.0.0.1:<端口>/t/<工具>`，每个工具各走各的上游；直接连接写成服务商自己的地址。分段按钮只预览，不写文件。写入前为每个文件留一次快照，`ccjk proxy revert` 或界面里的「恢复原来的配置」按快照还原。卸掉 ccjk 之前先 revert，否则这些工具还会指向已经不在的本机端口。
+
+直连模式不改请求路径。路由和聚合才把请求打到本机进程，再按协议转发。聚合命中的那一家不做故障转移。
 
 ---
 

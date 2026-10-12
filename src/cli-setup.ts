@@ -15,6 +15,7 @@ import { grokCommand } from './commands/grok'
 import { reasonixCommand } from './commands/reasonix'
 import { probeCommand } from './commands/probe'
 import { benchCommand } from './commands/bench'
+import { proxyCommand, uiCommand } from './commands/proxy'
 import { providerCommand } from './commands/provider'
 import { changeLanguage, i18n, initI18n } from './i18n'
 import { selectScriptLanguage } from './utils/prompts'
@@ -393,6 +394,34 @@ export async function setupCommands(cli: CAC): Promise<void> {
     .option('--json', 'JSON output')
     .action(await withLanguageResolution(async (options) => {
       await benchCommand({ json: options.json })
+    }, true))
+
+  cli
+    .command('proxy [action]', 'Local proxy: serve, start, stop, status, apply, revert, switch')
+    .option('--port <port>', 'Listen port')
+    .option('--tool <tool>', 'Tool id for apply, revert, or switch')
+    .option('--provider <id>', 'Provider id for switch')
+    .option('--dir <dir>', 'Proxy config directory')
+    .option('--detach', 'Kept for scripts; start always backgrounds')
+    .option('--open', 'Open the local UI')
+    .action(await withLanguageResolution(async (action, options) => {
+      await proxyCommand({
+        action,
+        port: options.port,
+        tool: options.tool,
+        provider: options.provider,
+        detach: options.detach,
+        open: options.open,
+        dir: options.dir,
+      })
+    }, true))
+
+  cli
+    .command('ui', 'Open the local proxy UI')
+    .option('--dir <dir>', 'Proxy config directory')
+    .option('--port <port>', 'Listen port')
+    .action(await withLanguageResolution(async (options) => {
+      await uiCommand({ dir: options.dir, port: options.port, open: true })
     }, true))
 
   cli

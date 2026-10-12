@@ -73,6 +73,8 @@ ccjk
 | `ccjk uninstall` | 卸载 CCJK 管理的配置 |
 | `ccjk ccr` | Claude Code Router 配置 |
 | `ccjk ccu` | Claude Code 用量分析 |
+| `ccjk proxy` | 本机代理：`start` / `stop` / `status` / `apply` / `revert` / `switch` |
+| `ccjk ui` | 打开本机代理界面（供应商、模式、故障转移、账号、会话、用量、预设、快捷切换） |
 
 工具别名：`-T cv`（Clavue）、`-T cc`（Claude Code）、`-T cx`（Codex）、`-T gk`（Grok）。
 

@@ -3,6 +3,10 @@
 > **所有工具（clavue / claude-code / codex / grok）的持久项目知识以本文为唯一来源。**
 > 工具原生 `CLAUDE.md` / `clavue.md` / `AGENTS.md` 易被各工具 `/init` 覆盖，请**优先阅读并依赖本文**。
 
+## 产品定位（2026-10-12 增补本机代理）
+
+在医生 + 操作员之外，`ccjk proxy` / `ccjk ui` 提供只听 127.0.0.1 的本机代理和完整界面：直连 / 路由 / 聚合、Anthropic / OpenAI Chat / Responses / Gemini / xAI 互转、熔断故障转移、聚合模型前缀 `ccjk-<供应商>--<模型>`、加密账号槽、会话只读列表、用量计数。不复活 `packages/` 归档，不用官方客户端身份登录订阅。写客户端配置前有一次快照，`ccjk proxy revert` 还原。界面分段只预览；点「使用这家」才写入。路由和聚合的地址是 `http://127.0.0.1:<端口>/t/<工具>`，Clavue 和 Claude Code 可以各走各的上游。直接连接写服务商自己的地址。
+
 ## 产品定位（2026-06 梳理）
 
 ccjk = **四工具（Clavue / Claude Code / Codex / Grok CLI）的医生 + 快捷操作员**。
