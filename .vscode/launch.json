@@ -1,0 +1,285 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "🚀 CCJK CLI Development",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/src/cli.ts",
+      "args": [],
+      "runtimeArgs": [
+        "--loader",
+        "tsx/esm"
+      ],
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "NODE_ENV": "development",
+        "DEBUG": "ccjk:*"
+      },
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "resolveSourceMapLocations": [
+        "${workspaceFolder}/**",
+        "!**/node_modules/**"
+      ]
+    },
+    {
+      "name": "🧪 Run Current Test File",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/node_modules/vitest/vitest.mjs",
+      "args": [
+        "run",
+        "${relativeFile}"
+      ],
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "NODE_ENV": "test"
+      },
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "skipFiles": [
+        "<node_internals>/**"
+      ]
+    },
+    {
+      "name": "🔍 Debug Current Test File",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/node_modules/vitest/vitest.mjs",
+      "args": [
+        "run",
+        "${relativeFile}",
+        "--no-coverage"
+      ],
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "NODE_ENV": "test",
+        "DEBUG": "ccjk:*"
+      },
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "skipFiles": [
+        "<node_internals>/**"
+      ]
+    },
+    {
+      "name": "🎯 CCJK CLI with Args",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/src/cli.ts",
+      "args": [
+        "init"
+      ],
+      "runtimeArgs": [
+        "--loader",
+        "tsx/esm"
+      ],
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "NODE_ENV": "development",
+        "DEBUG": "ccjk:*"
+      },
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "skipFiles": [
+        "<node_internals>/**"
+      ]
+    },
+    {
+      "name": "🔧 CCJK Menu Debug",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/src/cli.ts",
+      "args": [
+        "menu"
+      ],
+      "runtimeArgs": [
+        "--loader",
+        "tsx/esm"
+      ],
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "NODE_ENV": "development",
+        "DEBUG": "ccjk:*",
+        "CCJK_DEBUG_MENU": "true"
+      },
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "skipFiles": [
+        "<node_internals>/**"
+      ]
+    },
+    {
+      "name": "🧠 Brain System Debug",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/src/cli.ts",
+      "args": [],
+      "runtimeArgs": [
+        "--loader",
+        "tsx/esm"
+      ],
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "NODE_ENV": "development",
+        "DEBUG": "ccjk:brain:*",
+        "BRAIN_CONTEXT_COMPRESSION_ENABLED": "true",
+        "BRAIN_DEBUG": "true"
+      },
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "skipFiles": [
+        "<node_internals>/**"
+      ]
+    },
+    {
+      "name": "☁️ Cloud Sync Debug",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/src/cli.ts",
+      "args": [],
+      "runtimeArgs": [
+        "--loader",
+        "tsx/esm"
+      ],
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "NODE_ENV": "development",
+        "DEBUG": "ccjk:cloud:*",
+        "CLOUD_SYNC_ENABLED": "true",
+        "CLOUD_SYNC_DEBUG": "true"
+      },
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "skipFiles": [
+        "<node_internals>/**"
+      ]
+    },
+    {
+      "name": "🤖 Multi-Agent Debug",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/src/cli.ts",
+      "args": [],
+      "runtimeArgs": [
+        "--loader",
+        "tsx/esm"
+      ],
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "NODE_ENV": "development",
+        "DEBUG": "ccjk:agents:*",
+        "AGENTS_DEBUG": "true",
+        "AGENTS_MAX_CONCURRENT": "3"
+      },
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "skipFiles": [
+        "<node_internals>/**"
+      ]
+    },
+    {
+      "name": "📦 MCP Cloud Debug",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/src/cli.ts",
+      "args": [],
+      "runtimeArgs": [
+        "--loader",
+        "tsx/esm"
+      ],
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "NODE_ENV": "development",
+        "DEBUG": "ccjk:mcp:*",
+        "MCP_CLOUD_ENABLED": "true",
+        "MCP_DEBUG": "true"
+      },
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "skipFiles": [
+        "<node_internals>/**"
+      ]
+    },
+    {
+      "name": "🔥 Hot-Reload Skills Debug",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/src/cli.ts",
+      "args": [],
+      "runtimeArgs": [
+        "--loader",
+        "tsx/esm"
+      ],
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "NODE_ENV": "development",
+        "DEBUG": "ccjk:skills:*",
+        "SKILLS_HOT_RELOAD_ENABLED": "true",
+        "SKILLS_DEBUG": "true"
+      },
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "skipFiles": [
+        "<node_internals>/**"
+      ]
+    },
+    {
+      "name": "🧪 Integration Tests",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/node_modules/vitest/vitest.mjs",
+      "args": [
+        "run",
+        "--config",
+        "vitest.integration.config.ts"
+      ],
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "NODE_ENV": "test",
+        "DATABASE_URL": "postgresql://ccjk_user:ccjk_password@localhost:5433/ccjk_test",
+        "REDIS_URL": "redis://localhost:6379/15"
+      },
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "skipFiles": [
+        "<node_internals>/**"
+      ]
+    },
+    {
+      "name": "🎭 E2E Tests",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/node_modules/vitest/vitest.mjs",
+      "args": [
+        "run",
+        "--config",
+        "vitest.e2e.config.ts"
+      ],
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "NODE_ENV": "test",
+        "E2E_TEST": "true"
+      },
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "skipFiles": [
+        "<node_internals>/**"
+      ]
+    }
+  ],
+  "compounds": [
+    {
+      "name": "🚀 Full Development Stack",
+      "configurations": [
+        "🚀 CCJK CLI Development"
+      ],
+      "preLaunchTask": "Start Development Services",
+      "stopAll": true
+    }
+  ]
+}

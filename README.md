@@ -1,6 +1,6 @@
 # ccjk
 
-> Clavue / Claude Code / Codex 的本地配置 CLI。一条命令搞定 API、Profile、权限、MCP、状态栏、版本管理。
+> **Clavue / Claude Code / Codex / Grok CLI 的医生 + 快捷操作员** —— 扫描本地配置健康度，经确认后一键写入 API、MCP、模型与工作流。不替代原生工具写代码，不碰 agent runtime。
 
 [![npm](https://img.shields.io/npm/v/ccjk.svg)](https://www.npmjs.com/package/ccjk)
 [![license](https://img.shields.io/npm/l/ccjk.svg)](./LICENSE)
@@ -14,353 +14,126 @@ npm install -g ccjk
 
 升级：`npm install -g ccjk@latest`
 
-5 分钟上手 → [QUICKSTART.md](./docs/QUICKSTART.md)
+## 多语言
 
-## ccjk 能干什么
+ccjk 默认使用 **简体中文**，并支持英文和日文界面：
 
-| 场景 | 命令 |
+```bash
+ccjk --lang zh-CN   # 简体中文（默认）
+ccjk --lang en      # English
+ccjk --lang ja      # 日本語
+```
+
+首次启动会先选择显示语言，再选择 Clavue / Claude Code / Codex / Grok CLI。进入菜单后建议按 **W** 走快捷向导；如果环境不确定，先按 **H** 做医生体检。
+
+## 30 秒看懂
+
+| 角色 | 做什么 | 怎么用 |
+|---|---|---|
+| **医生** | 只读扫描脏 MCP、坏 Skill、冗余 prompt、配置风险 | `ccjk clean`、菜单 **H** 医生中心 |
+| **操作员** | 备份后写入 API / MCP / 模型 / 工作流 | `ccjk init`、菜单 **W** 快捷向导 |
+
+启动交互菜单（推荐入口）：
+
+```bash
+ccjk
+```
+
+主菜单按 **操作员 / 医生 / 跨工具 / CCJK** 分区；按 **W** 进快捷向导，按 **H** 进医生中心。
+
+## 常见场景
+
+| 场景 | 命令 / 操作 |
 |---|---|
-| 第一次装 ccjk 配置零基础 | `ccjk onboard`（无 profile 时自动跑） |
-| 第一次配 API key | `ccjk init` |
-| 装机后想一键配置好 | `ccjk workflow run starter` |
-| 写代码 / 闲聊切换思考强度 | `ccjk mode use code` / `ccjk mode use chat` |
-| 多个 API key 之间切换（GLM/Kimi/Anthropic/...） | `ccjk use` |
-| 想知道 API 通不通 / 多快 | `ccjk probe` / `ccjk bench` |
-| 不想每次都点确认权限 | `ccjk perms standard` |
-| 看不到当前模型/用量 | `ccjk statusline-install` |
-| settings.json 出问题 | `ccjk doctor --fix` |
-| CI 集成 / 脚本检测配置 drift | `ccjk doctor --json` |
-| 装 MCP 服务（context7、serena、playwright...） | `ccjk mcp` |
-| 看哪个工具该升级了 | `ccjk tools --check-updates` |
-| 写入出错想还原 | `ccjk rollback` |
-| 跨机器迁移配置 | `ccjk profile export` / `import` |
-| 已经手配过 settings.json 想纳入管理 | `ccjk migrate` |
-| 两个 profile 字段对比 | `ccjk profile-diff <a> <b>` |
-| 不想记命令 | `ccjk`（交互菜单） |
-| 想一眼看全配置状态 | `ccjk status` |
+| 第一次配置某个工具 | `ccjk init -T codex`（或 `clavue` / `claude-code` / `grok`） |
+| Codex 干净起步 / 日常优化 | 菜单 **W** → 完整初始化（预设：干净 / 优化 / 自定义） |
+| 环境脏了想清理 | `ccjk clean` 或菜单 **H** → 智能清理 |
+| 彻底重置 Codex 再初始化 | 菜单 **W** → 重置后初始化 |
+| API 通不通 | `ccjk probe` |
+| 切换 Codex API 提供商 | `ccjk config-switch` |
+| Grok / Reasonix 状态与启动 | `ccjk grok` / `ccjk reasonix` |
+| 检查工具版本更新 | `ccjk check-updates` |
 
-## 命令一览
-
-### 快速开始
-
-| 命令 | 用途 |
-|---|---|
-| `ccjk workflow ls` | 列出可用工作流（starter / team-import / reset-soft / dev-ready） |
-| `ccjk workflow run [id]` | **跑工作流**：按顺序执行多个 ccjk 命令（每步单独确认） |
-| `ccjk mode ls` | 列出可用对话模式（code / chat / fast / deep） |
-| `ccjk mode use [name]` | **切换对话模式**：thinking / effort 一键档位（同步 Claude+Codex） |
-| `ccjk mode show [name]` | 查看模式详情（不带参=当前） |
-| `ccjk mode add [name]` | 新建自定义模式（基于内置模式复制+改） |
-
-### 配置 API（init / use / profile）
-
-| 命令 | 用途 |
-|---|---|
-| `ccjk init` | 配 API：写 `~/.claude/settings.json` 的 env，并自动保存为 profile |
-| `ccjk use [name]` | 一键切换 profile（不带参=交互选） |
-| `ccjk migrate` | 反向导入：把已配好的 settings.json 抽成 profile（不动 settings 本身） |
-| `ccjk profile ls` / `show` / `rm` | profile 列表 / 详情 / 删除 |
-| `ccjk profile copy <from> <to>` | 基于现有 profile 复制（可选改 apiKey/baseUrl/model） |
-| `ccjk profile rename <old> <new>` | 重命名 profile |
-| `ccjk profile-diff <a> <b>` | 两个 profile 字段差异对比（`--json` CI 用） |
-| `ccjk profile export` | 导出 profile 为 JSON 包（迁移 / 团队共享） |
-| `ccjk profile import <file>` | 从 JSON 包导入 profile |
-| `ccjk probe [profile]` | 真实 HTTP 探活，看 baseUrl 通不通（`--json` CI 用） |
-| `ccjk bench [profile]` | 性能基准（TTFT / 吞吐），默认 3 run 取平均（`--json` CI 用） |
-
-### 权限档位（perms）
-
-| 命令 | 用途 |
-|---|---|
-| `ccjk perms [tier]` | 一键设权限档位（`safe` / `standard` / `yolo`），同步 3 个工具 |
-| `ccjk perms-show` | 查看三个工具当前的权限状态 |
-
-### MCP 服务
-
-| 命令 | 用途 |
-|---|---|
-| `ccjk mcp` | 选装预设 MCP 服务（交互勾选） |
-| `ccjk mcp-ls` | 列出已安装的 MCP |
-| `ccjk mcp-add <name>` | 添加自定义 MCP 服务 |
-| `ccjk mcp-rm [name]` | 卸载 MCP 服务 |
-
-### 状态栏（statusline）
-
-| 命令 | 用途 |
-|---|---|
-| `ccjk statusline-install` | 安装状态栏，显示模型 / 目录 / context 用量 / 今日调用 / 速率 |
-| `ccjk statusline-uninstall` | 卸载状态栏 |
-
-### 体检 / 还原
-
-| 命令 | 用途 |
-|---|---|
-| `ccjk doctor` | 检查 settings.json 的常见配置问题 |
-| `ccjk doctor --fix` | 自动修可修的问题（修改前备份） |
-| `ccjk rollback` | 从备份还原 settings.json / config.toml |
-
-### 工具版本管理
-
-| 命令 | 用途 |
-|---|---|
-| `ccjk tools` | 查看 Clavue / Claude Code / Codex 本地版本 |
-| `ccjk tools --check-updates` | 加查 npm latest，标记 outdated |
-| `ccjk install [tool]` | 安装代码工具（`--all` 装全部缺失的） |
-| `ccjk update [tool]` | 升级代码工具到最新版（`--all` 全部 outdated） |
-
-### 其他
+## CLI 命令
 
 | 命令 | 用途 |
 |---|---|
 | `ccjk` | 交互菜单（默认） |
-| `ccjk status` | **一眼看全**：profile / perms / mode / 工具版本 / MCP / 工作流 |
-| `ccjk completion <shell>` | 生成 bash/zsh/fish 补全脚本 |
-| `ccjk detect` | 列出已安装的代码工具 |
-| `ccjk git-install` | 安装 `/ccjk:git-commit` 等 slash 命令模板 |
+| `ccjk init` | 完整初始化（API、MCP、模型、工作流、记忆） |
+| `ccjk clean` | 环境清理：脏 MCP、坏 Skills、冗余 prompts |
+| `ccjk clean --purge-all` | 全部清理（删前备份 Codex 配置） |
+| `ccjk clean -s` | 非交互，仅清理高置信度项 |
+| `ccjk probe` | HTTP 探活当前 API |
+| `ccjk bench` | 轻量延迟基准 |
+| `ccjk config-switch` | 切换 Codex provider / Claude 配置 |
+| `ccjk update` | 仅更新工作流与记忆文档 |
+| `ccjk check-updates` | 检查并更新 Claude Code / Codex / CCR |
+| `ccjk grok [profile]` | Grok CLI 状态与 profile 启动 |
+| `ccjk reasonix [profile]` | Reasonix 伴侣：状态与启动 |
+| `ccjk uninstall` | 卸载 CCJK 管理的配置 |
+| `ccjk ccr` | Claude Code Router 配置 |
+| `ccjk ccu` | Claude Code 用量分析 |
+| `ccjk proxy` | 本机代理：`start` / `stop` / `status` / `apply` / `revert` / `switch` |
+| `ccjk ui` | 打开本机代理界面（供应商、模式、故障转移、账号、会话、用量、预设、快捷切换） |
 
----
-
-## 详解
-
-### Workflow：快速工作流
-
-把多个 ccjk 命令串起来一键跑，省去你按顺序敲。每步都会单独问你"执行 / 跳过 / 中止"，不会偷偷做事。
-
-| 工作流 | 步骤 |
-|---|---|
-| `starter` | 配 API → perms standard → statusline-install → 装常用 MCP（可选） |
-| `team-import` | 导入 profile 包 → 切到该 profile → perms standard → doctor --fix |
-| `reset-soft` | 卸 statusline → 切到 perms safe |
-| `dev-ready` | 切 code 对话模式 → perms standard → 装 git slash 命令 → doctor --fix |
-
-```bash
-ccjk workflow                   # 列出全部
-ccjk workflow run starter       # 直接跑 starter
-ccjk workflow run               # 交互选
-```
-
-工作流定义存在代码里，未来会支持 `~/.ccjk/workflows/<id>.json` 加载用户自定义（数据结构已就位）。
-
-### Mode：对话模式
-
-把 Claude/Clavue 的 `thinking` 设置和 Codex 的 `model_reasoning_effort` 抽象成一个统一档位，一键同步两个工具。
-
-| 模式 | Claude thinking | Codex effort | 适用 |
-|---|---|---|---|
-| `code` | on, budget 16k | high | 写代码、调 bug、重构 |
-| `chat` | off | medium | 答疑、解释概念、随便聊 |
-| `fast` | off | low | 简单查询、小修改、想立刻拿到结果 |
-| `deep` | on, budget 32k | high | 架构设计、复杂 debug、多角度推理 |
-
-```bash
-ccjk mode ls                    # 列出全部模式（标记当前）
-ccjk mode use code              # 切到 code 模式（同步 Claude + Codex）
-ccjk mode show                  # 看当前模式详情
-ccjk mode add fast2 --base fast --thinking off --effort low   # 自定义模式
-```
-
-写到工具的**原生字段**（`thinking`、`model_reasoning_effort`），卸载 ccjk 后配置依然有效。需要重启 Claude Code / Codex 才能生效。
-
-自定义模式存在 `~/.ccjk/modes/<id>.json`，可手动编辑。同名时覆盖内置。
-
-### Profile：多 API 切换
-
-`ccjk init` 配完 API 默认会问"保存为 profile？"。之后 `ccjk use` 可以在多个 profile 之间一键切换：
-
-```bash
-ccjk init -t clavue -p glm  --api-key sk-xxx --profile work -y
-ccjk init -t clavue -p kimi --api-key sk-yyy --profile free -y
-
-ccjk use            # 交互选 work / free
-ccjk use free       # 直接切到 free
-ccjk profile ls     # 看当前用的是哪个
-```
-
-切换后需重启 Claude Code 才能生效（settings.json 是启动时读的）。
-
-Profile 存储在 `~/.ccjk/profiles/<name>.json`，当前激活的记录在 `~/.ccjk/state.json`。
-
-#### 导出 / 导入：跨机器迁移
-
-```bash
-ccjk profile export                                 # 交互勾选
-ccjk profile export -n work free -o team.json -y    # 直接导出 work + free
-ccjk profile export --redact -o template.json -y    # 抹去 API key（"模板"）
-
-# 在另一台机器
-ccjk profile import team.json                       # 同名时交互问跳过/覆盖/重命名
-ccjk profile import team.json --conflict skip -y    # 全部 skip 已有的
-```
-
-包是简单 JSON（schema=1），可以手动编辑。带 key 的包**等同于凭证文件**，请妥善保管或用 `--redact` 导出无 key 模板再单独传 key。
-
-### Perms：一键档位授权
-
-一条命令把 Clavue / Claude Code / Codex 的权限同步到同一档位，减少每次操作都要点确认的烦躁。
-
-| 档位 | 适合 | Claude / Clavue | Codex |
-|---|---|---|---|
-| `safe` | 浏览代码、新手 | 仅放行只读（Read/Grep/...） | `approval_policy=untrusted`, `sandbox_mode=read-only` |
-| `standard`（推荐） | 日常开发 | + git/npm/pnpm/python/ls/cat 等高频命令 | `approval_policy=on-failure`, `sandbox_mode=workspace-write` |
-| `yolo` | 可信项目放飞 | `Bash(*)` + `allowUnsandboxedCommands=true` | `approval_policy=never`, `sandbox_mode=workspace-write` |
-
-不论哪一档，都强制写入 `deny`：`rm -rf /`、`git push --force`、`npm publish`、`sudo` 等不可逆 / 高危命令。
-
-```bash
-ccjk perms                                       # 交互选档位（推荐）
-ccjk perms standard                              # 直接应用 standard 到全部 3 个工具
-ccjk perms safe --tools clavue,claude-code       # 只作用于这两个
-ccjk perms yolo --reset                          # --reset 会清空原 allow 后再写
-ccjk perms-show                                  # 看三个工具当前各是哪档
-```
-
-合并策略：
-- `allow`：默认 append + dedupe，保护用户自定义白名单。`--reset` 强制覆盖。
-- `deny`：始终覆盖，确保危险命令一定被拦。
-
-### Statusline：底部状态栏
-
-显示模型、当前目录、context 用量、今日 API 调用次数、tokens 速率。
-
-```bash
-ccjk statusline-install        # 写入 settings.statusLine（重启 Claude Code 生效）
-ccjk statusline-uninstall      # 卸载
-```
-
-效果（一行）：
-
-```
-Sonnet 4.5 1M │ 📁 ccjk │ ⚡ 4.5% 45.0k │ 12 calls · 1.5k tok/m
-```
-
-字段含义：
-- `Sonnet 4.5 1M` — 模型名 + context window 大小（1M / 200k）
-- `📁 ccjk` — 当前工作目录的 basename（home 显示为 `~`）
-- `⚡ 4.5% 45.0k` — context 已用百分比 + 当前 token 数
-- `12 calls` — 今日总 API 调用数（聚合所有 transcripts）
-- `1.5k tok/m` 或 `80 tok/s` — 今日产出速率（output tokens / 活跃秒数）
-
-实现：扫 `~/.claude/projects/*/*.jsonl` 当天 mtime 文件，读 `message.usage` 聚合。错误一律 swallow，不会让 Claude Code UI 报红。
-
-### Doctor：体检 + 自动修复
-
-```bash
-ccjk doctor          # 列出问题，标记哪些可自动修
-ccjk doctor --fix    # 自动修可修的（修改前备份）
-ccjk doctor --fix -y # 跳过确认
-```
-
-| 规则 | 严重度 | 自动修 | 说明 |
-|---|---|---|---|
-| `model-overrides-env` | error | ✓ | 顶层 `settings.model` 会覆盖 `env.ANTHROPIC_MODEL` |
-| `duplicate-auth` | warn | ✓ | 同时存在 `API_KEY` 和 `AUTH_TOKEN`（保留 AUTH_TOKEN，删 API_KEY） |
-| `missing-credentials` | error | ✗ | 设了 `BASE_URL` 但缺凭证 → 跑 `ccjk init` |
-| `invalid-base-url` | error | ✗ | URL 格式不合法 → 跑 `ccjk init` |
-| `hook-bloat` | warn | ✗ | 单个 hook 注册超过 5 个处理器（人工审查） |
-
-### Rollback：从备份还原
-
-每次 `init` / `mcp` / `perms` / `doctor --fix` / `mcp-add/rm` / `statusline-install` 写入前都会自动备份到 `<file>.bak-<ISO时间戳>`。
-
-```bash
-ccjk rollback                 # 列所有备份，按时间倒序
-ccjk rollback -t clavue       # 只看一个工具的备份
-```
-
-还原前会再备份一份当前状态，所以**还原本身也可还原**。
-
-### Tools / Install / Update：版本管理
-
-三个开发工具的本地版本、npm 最新版、安装、升级——都在 ccjk 里。
-
-```bash
-ccjk tools                     # 看本地版本
-ccjk tools --check-updates     # 加查 npm latest
-
-ccjk install                   # 交互选要装的工具
-ccjk install codex             # 直接装 Codex
-ccjk install --all             # 装全部缺失的
-
-ccjk update                    # 交互选 outdated 的工具
-ccjk update claude-code        # 直接升级 Claude Code
-ccjk update --all              # 升级所有 outdated
-ccjk update --dry-run          # 只显示命令不执行
-```
-
-输出示例：
-
-```
-  Clavue         8.9.2    (latest)
-  Claude Code    2.1.138  (latest)
-  Codex          0.128.0  → 0.130.0 可升级
-```
-
-实现是 `npm install -g <pkg>` / `npm install -g <pkg>@<latest>`，命令完整列出后等用户确认。npm 因权限失败时会输出建议的 `sudo` 命令让用户自己跑，不假装成功。
-
-### 非交互模式
-
-适合脚本 / CI / 装机：
-
-```bash
-ccjk init -t clavue -p glm --api-key sk-xxx --profile work -y
-ccjk perms standard -y
-ccjk mcp -s context7 serena -y
-ccjk mcp-add my-server --command npx --args "-y @scope/pkg" -y
-ccjk doctor --fix -y
-ccjk statusline-install -y
-ccjk update --all -y
-ccjk git-install --scope user -y
-```
-
----
+工具别名：`-T cv`（Clavue）、`-T cc`（Claude Code）、`-T cx`（Codex）、`-T gk`（Grok）。
 
 ## 支持的工具
 
-| 工具 | 配置目标 | 范围 |
+| 工具 | 配置根目录 | ccjk 能力 |
 |---|---|---|
-| Clavue | `~/.claude/settings.json` | API / Profile / Perms / MCP / Statusline / Doctor / Rollback |
-| Claude Code | `~/.claude/settings.json` | API / Profile / Perms / MCP / Statusline / Doctor / Rollback |
-| Codex | `~/.codex/config.toml` | Perms / Detect / Install / Update（API 配置请直接编辑 config.toml） |
+| **Clavue** | `~/.clavue/` | 医生 + 操作员：init / MCP / 模型 / 工作流 / 权限 / 清理 |
+| **Claude Code** | `~/.claude/` | 同上 |
+| **Codex** | `~/.codex/`（`CODEX_HOME`） | 同上 + 三端共用配置（见下） |
+| **Grok CLI** | `~/.grok/` + `~/.ccjk/` profile | 医生（清理 skills）+ 轻量操作员（profile 启动） |
 
-### 内置 API Provider
+ccjk 自身配置只在 `~/.ccjk/`，**绝不混入**各工具目录。
 
-`glm` / `kimi` / `minimax` / `anthropic` / `custom`
+### Codex：CLI + 桌面 App + IDE 扩展
+
+OpenAI 官方设计下，三端**共用同一份** `config.toml`：
+
+- 默认路径：`~/.codex/config.toml`
+- 可用环境变量 `CODEX_HOME` 覆盖配置根
+- `~/Library/Application Support/Codex`（macOS）等是 Electron 运行时缓存，**不是**配置目录
+
+ccjk 写入配置后：
+
+- **CLI / IDE 扩展**：通常即时生效
+- **桌面 App**：若正在运行，需**完全退出后重新打开**
+
+医生中心会显示三端检测状态，并对第三方 provider + `features.goals` / `multi_agent` 给出配置风险提示。
+
+### Codex 初始化预设
+
+| 预设 | AGENTS | 工作流 | MCP |
+|---|---|---|---|
+| **干净** | 不写 | 不装 | 不装 |
+| **优化** | 工程基线 | 默认工程流 | 仅 context7 |
+| **自定义** | 用户自选 | 用户自选 | 用户自选 |
 
 ## 设计原则
 
-- **配置工具就是配置工具**。不做 brain、orchestrator、sandbox、dashboard 这类东西。
-- **不主动写代码**。不写 `~/.claude/CLAUDE.md`，不装 hooks，不开后台进程。
-- **可还原**。所有写入前都备份；`ccjk rollback` 能找回任何旧版本。
-- **可重复**。所有交互式命令都有非交互参数（`-y`、`--profile`、`--tools`、`--services`...），适合脚本。
-- **不偷跑命令**。`install` / `update` 会显示完整命令并等用户确认。
+- **配置工具就是配置工具** —— 不做 brain、orchestrator、后台守护进程
+- **不主动写代码** —— 不在运行时偷偷注入 hook 或命令
+- **备份先行** —— 任何写盘前产生 `.bak-<ts>` 备份
+- **可重复** —— `init -s`、`clean -s`、`clean --purge-all` 等支持脚本化
 
-## 从 v14 升级
-
-v15 是从零重写的精简版本，命令集和行为都和 v14.x 不兼容：
-
-- v14 的子命令（brain/sandbox/teleport/cloud-sync 等）在 v15 **不存在**。
-- v14 在 `~/.claude/CLAUDE.md` 注入的 "Smart Assistant Mode" 在 v15 **不会再写入**。如需手动清理旧版残留，删除该文件中相关段落即可。
-- 如果你只用 v14 的 init/mcp/doctor/git 等核心功能，直接 `npm install -g ccjk@latest` 升级即可。
-- 需要 v14 的扩展能力，请固定旧版本：`npm install -g ccjk@14`。
+产品细节见 [PRODUCT.md](./PRODUCT.md)，架构见 [ARCHITECTURE.md](./ARCHITECTURE.md)。
 
 ## 开发
 
 ```bash
 pnpm install
-pnpm typecheck    # TypeScript 检查
-pnpm test         # 跑全部测试（>150 测试）
-pnpm lint         # ESLint
-pnpm build        # tsc 出 dist/
+pnpm typecheck
+pnpm test          # 2500+ tests
+pnpm lint
+pnpm build
 ```
 
-CI 在每次 PR / push 到 main 时自动跑（Node 20 + 22 矩阵）。
-
-### Shell 补全
-
 ```bash
-ccjk completion bash > /usr/local/etc/bash_completion.d/ccjk
-ccjk completion zsh  > "${fpath[1]}/_ccjk"   # 然后 compinit
-ccjk completion fish > ~/.config/fish/completions/ccjk.fish
+# 冒烟：进入 Codex 菜单
+echo '' | node dist/cli.mjs -T codex
 ```
 
 ## 许可

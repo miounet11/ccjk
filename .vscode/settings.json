@@ -1,0 +1,191 @@
+{
+  "typescript.preferences.includePackageJsonAutoImports": "on",
+  "typescript.suggest.autoImports": true,
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "typescript.preferences.importModuleSpecifier": "relative",
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit",
+    "source.organizeImports": "explicit"
+  },
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true,
+  "editor.detectIndentation": false,
+  "files.eol": "\n",
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true,
+  "files.trimFinalNewlines": true,
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/coverage": true,
+    "**/.turbo": true,
+    "**/logs": true,
+    "**/*.log": true
+  },
+  "files.watcherExclude": {
+    "**/node_modules/**": true,
+    "**/dist/**": true,
+    "**/coverage/**": true,
+    "**/.turbo/**": true,
+    "**/logs/**": true
+  },
+  "eslint.workingDirectories": [
+    "."
+  ],
+  "eslint.validate": [
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact"
+  ],
+  "vitest.enable": true,
+  "vitest.commandLine": "pnpm vitest",
+  "testing.automaticallyOpenPeekView": "never",
+  "json.schemas": [
+    {
+      "fileMatch": [
+        "package.json"
+      ],
+      "url": "https://json.schemastore.org/package.json"
+    },
+    {
+      "fileMatch": [
+        "tsconfig.json",
+        "tsconfig.*.json"
+      ],
+      "url": "https://json.schemastore.org/tsconfig.json"
+    },
+    {
+      "fileMatch": [
+        ".eslintrc.json",
+        ".eslintrc"
+      ],
+      "url": "https://json.schemastore.org/eslintrc.json"
+    },
+    {
+      "fileMatch": [
+        "docker-compose.yml",
+        "docker-compose.*.yml"
+      ],
+      "url": "https://json.schemastore.org/docker-compose.json"
+    }
+  ],
+  "emmet.includeLanguages": {
+    "typescript": "html",
+    "javascript": "html"
+  },
+  "git.autofetch": true,
+  "git.enableSmartCommit": true,
+  "git.confirmSync": false,
+  "terminal.integrated.defaultProfile.osx": "zsh",
+  "terminal.integrated.defaultProfile.linux": "bash",
+  "terminal.integrated.defaultProfile.windows": "PowerShell",
+  "terminal.integrated.env.osx": {
+    "NODE_ENV": "development"
+  },
+  "terminal.integrated.env.linux": {
+    "NODE_ENV": "development"
+  },
+  "terminal.integrated.env.windows": {
+    "NODE_ENV": "development"
+  },
+  "debug.console.fontSize": 14,
+  "debug.console.lineHeight": 22,
+  "workbench.colorCustomizations": {
+    "terminal.background": "#1e1e1e",
+    "terminal.foreground": "#d4d4d4"
+  },
+  "extensions.recommendations": [
+    "esbenp.prettier-vscode",
+    "dbaeumer.vscode-eslint",
+    "ms-vscode.vscode-typescript-next",
+    "vitest.explorer",
+    "bradlc.vscode-tailwindcss",
+    "ms-vscode.vscode-json",
+    "redhat.vscode-yaml",
+    "ms-vscode-remote.remote-containers",
+    "ms-azuretools.vscode-docker",
+    "github.copilot",
+    "github.copilot-chat",
+    "ms-vscode.test-adapter-converter",
+    "hbenl.vscode-test-explorer"
+  ],
+  "cSpell.words": [
+    "ccjk",
+    "jinku",
+    "anthropic",
+    "claude",
+    "codex",
+    "aider",
+    "cline",
+    "cursor",
+    "unbuild",
+    "vitest",
+    "pnpm",
+    "tsx",
+    "eslint",
+    "prettier",
+    "husky",
+    "commitlint",
+    "changesets",
+    "postgres",
+    "redis",
+    "elasticsearch",
+    "kibana",
+    "minio",
+    "prometheus",
+    "grafana",
+    "jaeger",
+    "tracing",
+    "observability"
+  ],
+  "i18n-ally.localesPaths": [
+    "src/i18n/locales"
+  ],
+  "i18n-ally.keystyle": "nested",
+  "i18n-ally.sortKeys": true,
+  "i18n-ally.namespace": true,
+  "i18n-ally.enabledParsers": [
+    "json"
+  ],
+  "i18n-ally.sourceLanguage": "en",
+  "i18n-ally.displayLanguage": "en",
+  "todo-tree.general.tags": [
+    "TODO",
+    "FIXME",
+    "HACK",
+    "NOTE",
+    "XXX",
+    "BUG",
+    "REVIEW"
+  ],
+  "todo-tree.highlights.defaultHighlight": {
+    "icon": "alert",
+    "type": "tag",
+    "foreground": "red",
+    "background": "white",
+    "opacity": 50,
+    "iconColour": "blue"
+  },
+  "todo-tree.highlights.customHighlight": {
+    "TODO": {
+      "icon": "check",
+      "foreground": "black",
+      "iconColour": "yellow",
+      "gutterIcon": true
+    },
+    "FIXME": {
+      "foreground": "red",
+      "iconColour": "red",
+      "gutterIcon": true
+    },
+    "NOTE": {
+      "icon": "note",
+      "foreground": "blue",
+      "iconColour": "blue",
+      "gutterIcon": true
+    }
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "selectScriptLang": "CCJK 表示言語を選択",
+  "selectConfigLang": "Claude Code 設定言語を選択",
+  "selectAiOutputLang": "AI 出力言語を選択",
+  "aiOutputLangHint": "AI はこの言語で回答します",
+  "enterCustomLanguage": "カスタム言語を入力（例：Japanese, French など）",
+  "languageChanged": "言語を変更しました",
+  "configLangHint.zh-CN": "中国語ユーザーがカスタマイズしやすい",
+  "configLangHint.en": "トークン消費が少ない",
+  "configLangHint.ja": "日本語ユーザーがカスタマイズしやすい",
+  "languageRequired": "言語は必須です",
+  "labels.custom": "カスタム",
+  "currentConfigFound": "現在の AI 出力言語設定",
+  "modifyConfigPrompt": "AI 出力言語設定を変更しますか？",
+  "currentTemplateLanguageFound": "現在のテンプレート言語設定",
+  "modifyTemplateLanguagePrompt": "テンプレート言語設定を変更しますか？",
+  "usingFallbackTemplate": "表示言語をテンプレート言語として使いますか？",
+  "currentSystemPromptFound": "現在のシステムプロンプトスタイル設定",
+  "modifySystemPromptPrompt": "システムプロンプトスタイル設定を変更しますか？"
+}

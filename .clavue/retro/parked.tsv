@@ -1,0 +1,8 @@
+timestamp	run_tag	slice	total	predicted_energy_delta	reason_not_chosen
+2026-05-25T07:07:52Z	2026-05-25-product-interaction-retro	status-language-unify	19	+0.25	lower-frequency; can pick next round
+2026-05-25T07:07:52Z	2026-05-25-product-interaction-retro	doctor-staged-output	15	+0.15	higher risk + lower simplicity payoff
+2026-05-25T07:07:52Z	2026-05-25-product-interaction-retro	product-architecture-md-stubs	15	+0.0	doc-only; protocol round 5 will propose, not write
+2026-05-25T07:07:52Z	2026-05-25-product-interaction-retro	menu-auto-return	18	+0.3	merged into candidate A as natural by-product
+2026-05-25T08:00:00Z	2026-05-25-product-interaction-retro	init-post-write-shell-warning	20	+0.4	lower leverage than doctor folding; pick next round if doctor surface insufficient
+2026-05-25T08:00:00Z	2026-05-25-product-interaction-retro	status-drift-badge	19	+0.3	column layout fragile; revisit when status table next touched
+2026-05-25T08:00:00Z	2026-05-25-product-interaction-retro	doctor-fix-unset-snippet	16	+0.1	out-of-scope (writes outside ccjk-managed paths)

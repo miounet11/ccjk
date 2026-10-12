@@ -1,4 +1,151 @@
-# ccjk Release Notes（v15.20 – v15.26）
+# ccjk Release Notes（v15.20 – v16.2.0）
+
+## v16.2.0 — Codex 桌面端 + CLI + IDE 统一配置
+
+Codex 的 CLI、桌面 App、IDE 扩展共用同一份 `config.toml`（默认 `~/.codex`，可用 `CODEX_HOME` 覆盖）。ccjk 现在能识别三端运行时，并在医生/操作员流程里给出正确提示。
+
+- **运行时检测**：医生中心与扫描报告显示 CLI / 桌面 App / IDE 扩展安装状态
+- **配置体检**：第三方 API provider 开启 `features.goals` 或 `multi_agent` 时发出 warn（防 spawn_agent 400）
+- **写入后提示**：配置变更后提醒桌面 App 完全退出重开；CLI/IDE 通常即时生效
+- **README** 更新为 v16 医生+操作员产品模型
+
+**安装**
+
+```bash
+npm i -g ccjk@16.2.0
+```
+
+**验证**
+- `pnpm typecheck && pnpm test` 通过（2541 tests）
+- `pnpm build` 通过
+
+---
+
+## v16.1.0 — 医生 + 操作员模型、环境清理与分区菜单
+
+- `ccjk clean` / `--purge-all`：扫描并清理脏 MCP、坏 Skills、冗余 prompts
+- Codex 初始化预设：干净 / 优化 / 自定义
+- 菜单 **W** 快捷向导、**H** 医生中心；list 分区（操作员 / 医生 / 跨工具 / CCJK）
+
+**安装**
+
+```bash
+npm i -g ccjk@16.1.0
+```
+
+---
+
+## v16.0.2 — 四工具独立配置与 Clavue 专用菜单
+
+各代码工具（Clavue / Claude Code / Codex / Grok）配置路径与界面文案彻底分离，不再混用 Claude Code 品牌：
+
+- **首次引导**：先选语言，再选四种开发工具（Clavue 默认推荐）
+- **Clavue 专用菜单**：设置 / 更新 / API / MCP / 模型 / 记忆 / 权限 / 探活
+- **工具感知路由**：Clavue 写入 `~/.clavue`（settings、MCP、工作流、记忆文件）；Claude Code 仍写 `~/.claude`
+- **Clavue init**：检测/安装 `clavue` CLI，不再误装 Claude Code
+- **配置文案**：API 管理、模型选择、完成提示等均按当前工具显示名称（如「Clavue 配置管理」）
+
+**安装**
+
+```bash
+npm i -g ccjk@16.0.2
+```
+
+**验证**
+- `pnpm typecheck` 通过
+- `pnpm build` 通过
+- `tests/unit/utils/runtime-settings.test.ts`、`menu.test.ts`、`simple-config.test.ts` 通过
+
+---
+
+## v16.0.1 — 16.x 正式版（Reasonix + ccjk 品牌统一）
+
+16.x 首版正式发布，合并 alpha 线能力并剔除第三方品牌残留：
+
+- `ccjk reasonix` / `ccjk reasonix <profile>` — DeepSeek Reasonix agent 配置伴侣
+- 主菜单 `X.` Reasonix 快捷入口
+- 全面统一 ccjk 品牌（类名、文案、文档）；配置目录 `~/.ccjk/config.toml`
+
+**安装**
+
+```bash
+npm i -g ccjk@16.0.1
+```
+
+**验证**
+- `pnpm typecheck` 通过
+- `pnpm build` 通过
+
+---
+
+## v16.0.0-alpha.3 — Reasonix 伴侣集成
+
+在保持 ccjk「配置工具、非 Agent 运行时」边界的前提下，新增 Reasonix（DeepSeek 原生终端 coding agent）支持：
+
+- `ccjk reasonix` — 探测安装 / 配置 / API key，打印启动指引
+- `ccjk reasonix <profile>` — 从 ccjk profile 注入密钥并启动；无 `reasonix.toml` 时自动生成
+- 主菜单 `X.` 快捷入口
+
+**验证**
+- `pnpm typecheck` 通过
+- `pnpm build` 通过
+- `tests/utils/reasonix-config.test.ts` 7/7 通过
+
+---
+
+## v15.31.1 — 修复 Codex 0.135+ profile 配置
+
+Codex 0.135+ 不再接受 `config.toml` 里的顶层 `profile = "..."` 和旧 `[profiles.<name>]` 段。ccjk 现在按新格式写入：
+
+- `~/.codex/config.toml`：只保留通用配置、provider、MCP、projects。
+- `~/.codex/<name>.config.toml`：写入该 profile 的 `model`、`model_provider`、`model_reasoning_effort`。
+- 启动提示固定为 `codex --profile <name>`。
+- doctor 会识别旧 `profile` / `[profiles.*]`；自动修复只删除安全的顶层 `profile`，避免误删旧 profile 内容。
+
+**验证**
+- pnpm typecheck / lint / test 通过。
+- pnpm build 通过。
+
+---
+
+## v15.31.0 — Grok CLI 配置完全统一（无例外）
+
+Grok CLI 的配置流程现在与 Codex、Clavue、Claude Code **完全一致**：
+
+- 在 `ccjk init` 中选择 Grok CLI 后，走相同的 “选择 Provider → 设置 API Key / Base URL → 选择模型” 流程。
+- 支持通过 `xai` provider 或 custom 进行专业配置。
+- 配置后可通过 `ccjk grok --profile <name>` 启动使用（已支持注入对应模型配置）。
+- 移除了所有针对 Grok 的特殊分支和例外处理，实现“和大家都一样”的统一体验。
+
+此版本完成了用户要求的“最前面几个核心入口 + 设置逻辑和方法完全对齐 ccjk 统一风格，同时 Grok 无例外”的目标。
+
+**验证**
+- pnpm typecheck + lint 通过
+- 构建成功
+- 交互流程已统一
+
+---
+
+## v15.28.0 — 交互与设置方法统一打磨（用户体验重大升级）
+
+为提供一致的交互和设置体验，核心 CLI 交互部分（菜单、init/quick/edit/migrate、profile use、perms 档位、mode 切换等）统一为 ccjk 工作流与文案：
+
+- providers 数据模型改为 ccjk per-tool preset 结构（claudeCode / codex），已知 provider 预填 baseUrl/authType + defaultModels 列表，设置时大幅减少提问。
+- init / quick 等“设置方法”交互流程：preset 预填 + 优秀的 model 目录 select（含“其他手动输入”“留空”选项）。
+- profile use 切换逻辑增强（支持 targetTools scope 记忆 + 更清晰的 Codex 提示）。
+- menu 分组、子菜单（permsSubMenu、maintenanceSubMenu）、文案、确认消息等进一步打磨匹配 ccjk 线性工作流。
+- perms / mode 输出和流程细节统一为 ccjk 设计。
+
+**验证**
+- pnpm typecheck / lint 通过。
+- 构建成功，CLI 入口可用。
+- 3 轮打磨迭代完成（按用户要求）。
+
+此版本让 ccjk 在保持多工具支持（clavue 主推 + claude-code + codex + grok）的同时，单工具（尤其是 clavue/claude）设置和日常交互体验保持高度一致。
+
+---
+
+# ccjk Release Notes（v15.20 – v15.26）（历史）
 
 每个 release 都已发到 npm latest 并打了 git tag。本文是给 GitHub Releases 用的精简版，完整变更看 [CHANGELOG.md](../CHANGELOG.md)。
 

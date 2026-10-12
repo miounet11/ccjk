@@ -1,0 +1,243 @@
+import type { CodeToolType, SupportedLang } from '../constants'
+import type { WorkflowConfig, WorkflowInstallResult, WorkflowType } from '../types/workflow'
+import { existsSync } from 'node:fs'
+import { copyFile, mkdir, rm } from 'node:fs/promises'
+import { fileURLToPath } from 'node:url'
+import ansis from 'ansis'
+import inquirer from 'inquirer'
+import { dirname, join } from 'pathe'
+import { getOrderedWorkflows, getWorkflowConfig } from '../config/workflows'
+import { ensureI18nInitialized, i18n } from '../i18n'
+import { addNumbersToChoices } from './prompt-helpers'
+import { resolveClaudeFamilySettingsTarget } from './runtime-settings'
+
+function getRootDir(): string {
+  const currentFilePath = fileURLToPath(import.meta.url)
+  const distDir = dirname(dirname(currentFilePath))
+  return dirname(distDir)
+}
+
+const DEFAULT_CODE_TOOL_TEMPLATE = 'claude-code'
+
+// Categories that use shared templates from common directory
+const COMMON_TEMPLATE_CATEGORIES = ['git', 'sixStep']
+
+export async function selectAndInstallWorkflows(
+  configLang: SupportedLang,
+  preselectedWorkflows?: string[],
+  options: { codeToolType?: CodeToolType } = {},
+): Promise<void> {
+  ensureI18nInitialized()
+  const target = resolveClaudeFamilySettingsTarget(options.codeToolType)
+  const workflows = getOrderedWorkflows()
+
+  // Build choices from configuration
+  const choices = addNumbersToChoices(workflows.map((workflow) => {
+    return {
+      name: `${workflow.name}${workflow.description ? ` - ${ansis.gray(workflow.description)}` : ''}`,
+      value: workflow.id,
+      checked: workflow.defaultSelected,
+      short: workflow.name,
+    }
+  }))
+
+  // Multi-select workflow types or use preselected
+  let selectedWorkflows: WorkflowType[]
+
+  if (preselectedWorkflows) {
+    selectedWorkflows = preselectedWorkflows as WorkflowType[]
+  }
+  else {
+    const response = await inquirer.prompt<{ selectedWorkflows: WorkflowType[] }>({
+      type: 'checkbox',
+      name: 'selectedWorkflows',
+      message: `${i18n.t('workflow:selectWorkflowType')}${i18n.t('common:multiSelectHint')}`,
+      choices,
+    })
+    selectedWorkflows = response.selectedWorkflows
+  }
+
+  if (!selectedWorkflows || selectedWorkflows.length === 0) {
+    console.log(ansis.yellow(i18n.t('common:cancelled')))
+    return
+  }
+
+  // Clean up old version files before installation
+  await cleanupOldVersionFiles(target)
+
+  for (const workflowId of selectedWorkflows) {
+    const config = getWorkflowConfig(workflowId)
+    if (config) {
+      await installWorkflowWithDependencies(config, configLang, target)
+    }
+  }
+}
+
+async function installWorkflowWithDependencies(
+  config: WorkflowConfig,
+  configLang: SupportedLang,
+  target: ReturnType<typeof resolveClaudeFamilySettingsTarget>,
+): Promise<WorkflowInstallResult> {
+  const rootDir = getRootDir()
+  ensureI18nInitialized()
+  const result: WorkflowInstallResult = {
+    workflow: config.id,
+    success: true,
+    installedCommands: [],
+    installedAgents: [],
+    errors: [],
+  }
+
+  // Create static workflow option keys for i18n-ally compatibility
+  const WORKFLOW_OPTION_KEYS = {
+    commonTools: i18n.t('workflow:workflowOption.commonTools'),
+    sixStepsWorkflow: i18n.t('workflow:workflowOption.sixStepsWorkflow'),
+    featPlanUx: i18n.t('workflow:workflowOption.featPlanUx'),
+    gitWorkflow: i18n.t('workflow:workflowOption.gitWorkflow'),
+    bmadWorkflow: i18n.t('workflow:workflowOption.bmadWorkflow'),
+  } as const
+
+  const workflowName = WORKFLOW_OPTION_KEYS[config.id as keyof typeof WORKFLOW_OPTION_KEYS] || config.id
+  console.log(ansis.cyan(`\n📦 ${i18n.t('workflow:installingWorkflow')}: ${workflowName}...`))
+
+  // Install commands to new structure
+  const commandsDir = join(target.configDir, 'commands', 'ccjk')
+  if (!existsSync(commandsDir)) {
+    await mkdir(commandsDir, { recursive: true })
+  }
+
+  for (const commandFile of config.commands) {
+    // Shared workflows (git, sixStep) use templates from common directory
+    const isCommonTemplate = COMMON_TEMPLATE_CATEGORIES.includes(config.category)
+    const commandSource = isCommonTemplate
+      ? join(
+          rootDir,
+          'templates',
+          'common',
+          'workflow',
+          config.category,
+          configLang,
+          commandFile,
+        )
+      : join(
+          rootDir,
+          'templates',
+          DEFAULT_CODE_TOOL_TEMPLATE,
+          configLang,
+          'workflow',
+          config.category,
+          'commands',
+          commandFile,
+        )
+    // Keep original file names for all commands
+    const destFileName = commandFile
+    const commandDest = join(commandsDir, destFileName)
+
+    if (existsSync(commandSource)) {
+      try {
+        await copyFile(commandSource, commandDest)
+        result.installedCommands.push(destFileName)
+        console.log(ansis.gray(`  ✔ ${i18n.t('workflow:installedCommand')}: ccjk/${destFileName}`))
+      }
+      catch (error) {
+        const errorMsg = `${i18n.t('workflow:failedToInstallCommand')} ${commandFile}: ${error}`
+        result.errors?.push(errorMsg)
+        console.error(ansis.red(`  ✗ ${errorMsg}`))
+        result.success = false
+      }
+    }
+  }
+
+  // Install agents if autoInstallAgents is true
+  if (config.autoInstallAgents && config.agents.length > 0) {
+    const agentsCategoryDir = join(target.configDir, 'agents', 'ccjk', config.category)
+    if (!existsSync(agentsCategoryDir)) {
+      await mkdir(agentsCategoryDir, { recursive: true })
+    }
+
+    for (const agent of config.agents) {
+      const agentSource = join(
+        rootDir,
+        'templates',
+        DEFAULT_CODE_TOOL_TEMPLATE,
+        configLang,
+        'workflow',
+        config.category,
+        'agents',
+        agent.filename,
+      )
+      const agentDest = join(agentsCategoryDir, agent.filename)
+
+      if (existsSync(agentSource)) {
+        try {
+          await copyFile(agentSource, agentDest)
+          result.installedAgents.push(agent.filename)
+          console.log(ansis.gray(`  ✔ ${i18n.t('workflow:installedAgent')}: ccjk/${config.category}/${agent.filename}`))
+        }
+        catch (error) {
+          const errorMsg = `${i18n.t('workflow:failedToInstallAgent')} ${agent.filename}: ${error}`
+          result.errors?.push(errorMsg)
+          console.error(ansis.red(`  ✗ ${errorMsg}`))
+          if (agent.required) {
+            result.success = false
+          }
+        }
+      }
+    }
+  }
+
+  if (result.success) {
+    console.log(ansis.green(`✔ ${workflowName} ${i18n.t('workflow:workflowInstallSuccess')}`))
+
+    // Show special prompt for BMAD workflow
+    if (config.id === 'bmadWorkflow') {
+      console.log(ansis.cyan(`\n${i18n.t('workflow:bmadInitPrompt')}`))
+    }
+  }
+  else {
+    console.log(ansis.red(`✗ ${workflowName} ${i18n.t('workflow:workflowInstallError')}`))
+  }
+
+  return result
+}
+
+async function cleanupOldVersionFiles(target: ReturnType<typeof resolveClaudeFamilySettingsTarget>): Promise<void> {
+  ensureI18nInitialized()
+  console.log(ansis.cyan(`\n🧹 ${i18n.t('workflow:cleaningOldFiles')}...`))
+
+  const oldCommandFiles = [
+    join(target.configDir, 'commands', 'workflow.md'),
+    join(target.configDir, 'commands', 'feat.md'),
+  ]
+
+  const oldAgentFiles = [
+    join(target.configDir, 'agents', 'planner.md'),
+    join(target.configDir, 'agents', 'ui-ux-designer.md'),
+  ]
+
+  // Clean up old command files
+  for (const file of oldCommandFiles) {
+    if (existsSync(file)) {
+      try {
+        await rm(file, { force: true })
+        console.log(ansis.gray(`  ✔ ${i18n.t('workflow:removedOldFile')}: ${file.replace(target.configDir, target.configDirDisplay)}`))
+      }
+      catch {
+        console.error(ansis.yellow(`  ⚠ ${i18n.t('errors:failedToRemoveFile')}: ${file.replace(target.configDir, target.configDirDisplay)}`))
+      }
+    }
+  }
+
+  // Clean up old agent files
+  for (const file of oldAgentFiles) {
+    if (existsSync(file)) {
+      try {
+        await rm(file, { force: true })
+        console.log(ansis.gray(`  ✔ ${i18n.t('workflow:removedOldFile')}: ${file.replace(target.configDir, target.configDirDisplay)}`))
+      }
+      catch {
+        console.error(ansis.yellow(`  ⚠ ${i18n.t('errors:failedToRemoveFile')}: ${file.replace(target.configDir, target.configDirDisplay)}`))
+      }
+    }
+  }
+}

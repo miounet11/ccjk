@@ -4,7 +4,146 @@ ccjk 是 Clavue / Claude Code / Codex 的本地配置 CLI。本文记录用户�
 
 格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)。
 
-## [Unreleased]
+## [17.1.0] - 2026-10-12
+
+### Added
+- **本机代理与界面**：`ccjk proxy` 在 127.0.0.1 上转发请求，支持直连 / 路由 / 聚合、五种协议互转、熔断故障转移、聚合模型前缀，以及 `ccjk ui` 完整界面。
+- `ccjk proxy apply` / `revert` 把代理地址写入 Claude Code、Clavue、Codex、Grok、OpenCode、ClaudeWork，并按第一次快照还原。
+- 账号槽只保存用户自己的凭证（本机加密），界面标明官方客户端之外使用订阅可能违反厂商条款。不冒充官方客户端。
+
+### Changed
+- **本机界面**：侧边栏按工具切换。分段只预览，点「使用这家」才写入该工具；路由和聚合走 `/t/<工具>`，各工具互不影响。直接连接写服务商自己的地址。文案改为日常说法。
+- **界面手感与状态**：工具页的搜索与三档切换改为局部重绘，不再整页刷新，中文输入法不再被打断；写入期间按钮置灰，避免重复点击。侧边栏显示代理是否在跑（每 5 秒回看 `/api/health`）。
+- **服务商与账号管理**：已添加的服务商可就地改显示名称、换密钥、清除密钥，并标出「哪些工具正在用」；移除服务商后提示仍指向它的工具。账号可改备注、余额地址与令牌，缺少余额地址的会标出来。已添加的服务商在预设列表里显示「已添加」，不会重复添加。
+- **可访问性与窄屏**：三档切换改为标准 tablist（方向键可切、焦点可见），搜索框补了无障碍标签，暗色模式下补了对比度与焦点态。
+
+### Fixed
+- `ccjk proxy apply` 的直连模式此前会被写成 `/t/<工具>`，现在按每个工具已保存的接法写入服务商自己的地址。
+- 删除账号后 `proxy-accounts.json` 权限回落为默认 umask，现在与写入时一致保持仅本人可读。
+- CI 冒烟测试对齐实际产物入口 `dist/cli.mjs`，并改为校验真实存在的 `proxy` / `provider` 子命令（此前引用的 `dist/cli.js` 与已移除的 `status` / `completion` 命令会让 PR 检查必失败）。
+
+## [16.4.0] - 2026-10-09
+
+### Added
+- **外部客户端轻量接入**：新增 `ccjk pi` / `ccjk opencode` / `ccjk zcode` / `ccjk grokbuild` / `ccjk claudework` / `ccjk extclients` 命令，覆盖 pi、OpenCode、ZCode、Grok Build、ClaudeWork 五个客户端；`~/.ccjk` profile 以 `OPENAI_*` / `ANTHROPIC_*` 环境变量注入启动，OpenCode 额外支持直接写入 `opencode.json` provider（写前自动备份）
+- **日语语言包**：新增 `ja` 全量翻译（57 个 i18n 文件），CLI 现支持 zh-CN / en / ja 三语言
+- 主菜单跨工具分区新增「其他客户端」入口，一键查看外部客户端安装状态与启动用法
+
+### Changed
+- **三语言菜单文案按 Don't Make Me Think 重写**：医生中心→环境体检、操作员→常用设置、完整初始化→一键初始化；每个选项描述改为「做了会发生什么」的日常说法；新增首次使用引导（W 向导 / H 体检）
+- `ccjk config-switch --list` 对暂无专属列表的工具（clavue / grok）给出明确指向，不再静默退出；空 profile 提示补充下一步动作
+
+### Fixed
+- `ccjk probe` / `ccjk bench` 在未配置 API 时优雅提示并返回退出码 4（JSON 模式输出 `missing-config`），不再抛出未捕获异常
+- Grok 菜单布局测试与 `defaultModel` 类型错误对齐实际实现
+
+### Test
+- 全量套件 2595/2595 通过；onboarding 与 npm-pack 测试改为临时目录 + 私有 npm 缓存，不再依赖真实用户目录（沙箱 / CI 环境可稳定运行）
+
+## [16.3.1] - 2026-07-22
+
+### Fixed
+- 对齐 Grok CLI 能力矩阵与真实 operator 分发：暂不暴露未实现的 API / MCP / AI memory / workflow 入口。
+- Grok 初始化不再误调用 Claude family incremental manager，仅切换 ccjk 活动工具并显示 Grok 启动提示。
+
+### Changed
+- Grok 菜单收敛为当前具备闭环的 profile / status / default model 配置路径。
+
+## [16.3.0] - 2026-06-21
+
+### Added
+- **Clavue 9.x 组合模型支持**：`ccjk init --code-type clavue` 自动创建 provider profile（`~/.clavue/.clavue.json` + `.credentials.json`），支持 9 槽 modelRouting
+- **`ccjk provider` 命令**：list / current / validate 管理 Clavue provider profiles
+- Provider profile 单元测试（35 用例）
+
+### Changed
+- PRODUCT.md 定位更新为"全访问加强 zero-config 工具"
+- ARCHITECTURE.md 修复过时 `src/core/` 引用，更新为实际 `src/utils/` 结构
+- API/模型配置同步写入 provider profile（Clavue 9.x），不预设 modelMode 默认值
+
+### Removed
+- 删除 `IMPLEMENTATION_SUMMARY.md`（记录已移除的 Gastown 多 agent 系统）
+- 删除未使用的 `CLAVUE_MODEL_ROUTING_SLOTS` 导出
+
+### Internal
+- 新增 `src/utils/clavue-provider-profile.ts`：provider profile 管理器
+- 新增 `src/commands/provider.ts`：provider 管理命令
+- 新增 `docs/ccjk-audit-2026-06-21.md`：全量审计报告
+
+## [16.2.1] - 2026-06-10
+
+### Fixed
+- `ccjk probe --json` / `ccjk bench --json` 在未设置显示语言时不再弹出语言选择，便于非交互诊断 API/代理错误。
+
+## [16.2.0] - 2026-06-09
+
+### Added
+- **Codex 多端运行时**：`src/utils/codex-runtime.ts` 检测 CLI / 桌面 App / IDE 扩展（三者共用 `CODEX_HOME` / `~/.codex`）
+- `resolveCodexHome()`：尊重 `CODEX_HOME` 环境变量
+- 医生扫描报告新增「Codex 运行时」与「配置风险」段（第三方 provider + `features.goals` / `multi_agent` 预警）
+- 操作员写入后提示：桌面 App 需完全退出重开以加载新配置
+
+### Changed
+- 工具矩阵与菜单文案：Codex 显示为「CLI / 桌面 / IDE」共用配置
+- `README.md` 重写为 v16 医生+操作员模型与当前命令集
+
+## [16.1.0] - 2026-06-09
+
+### Added
+- **医生 + 操作员**产品模型：`src/config/tool-matrix.ts` 定义四工具能力矩阵
+- `ccjk clean`：扫描并清理脏 MCP、坏 Skills、冗余 prompts、过时 `~/.codex/AGENTS.md`
+  - `--purge-all`：移除所有 MCP（Codex/Claude）、Skills（Codex/Claude/Grok）、prompts
+  - `-s`：非交互，仅清理高置信度项
+- **Codex 初始化预设**：干净（零安装）/ 优化（baseline + 默认工作流 + context7）/ 自定义
+- **医生中心**（菜单 `H`）：只读扫描报告 → API 探活 → 智能清理 → 全部清理
+- **快捷向导**（菜单 `W`）：完整初始化、仅工作流、单项调整；Codex 支持「重置后初始化」
+- Codex `config.toml` 嵌套 MCP 节完整删除（`[mcp_servers.*.env]` 等孤儿节）
+- 工程向 Codex 输出风格与工作流模板（去掉角色扮演类）
+
+### Changed
+- 主菜单改为 **list 箭头选择**，按「操作员 / 医生 / 跨工具 / CCJK」四区分组展示
+- 四工具菜单均暴露「环境清理（医生）」入口
+- `PRODUCT.md` / `docs/CLAUDE-NOTES.md` 补充医生+操作员定位与交互说明
+
+## [16.0.2] - 2026-06-06
+
+### Added
+- 首次引导：先选显示语言，再选 Clavue / Claude Code / Codex / Grok CLI
+- Clavue 专用控制中心菜单（设置、更新、API、MCP、模型、记忆、权限、探活）
+- `runtime-settings` / `claude-settings-normalizer`：按工具路由 `~/.clavue` 与 `~/.claude`
+
+### Changed
+- Clavue 配置全流程写入 `~/.clavue`（不再误写 `~/.claude`）
+- 配置 API/模型/记忆/MCP/工作流/权限的界面文案按当前工具显示（Clavue 不再显示 Claude Code 文案）
+- Clavue init 检测并安装 `clavue` CLI，跳过 Claude Code 安装逻辑
+- Profile 应用、环境变量导入、输出风格等均按活动工具选择目标路径
+
+## [16.0.1] - 2026-06-03
+
+### Added
+- `ccjk reasonix`：Reasonix CLI 状态探测与启动指引（DeepSeek 原生 agent 伴侣）
+- `ccjk reasonix <profile>`：从 ccjk profile 注入 API key 并启动；无 `reasonix.toml` 时自动生成最小配置
+- 主菜单「其他工具」新增 `X.` Reasonix 入口
+
+### Changed
+- 全面剔除 ZCF 品牌引用，统一为 ccjk（`CcjkUninstaller`、文案、文档）
+- 配置目录 canonical 路径：`~/.ccjk/config.toml`
+
+### Internal
+- ZCF 基座重建合并为 16.x 正式线；`zcf-config` 测试重命名为 `ccjk-config`
+
+## [16.0.0-alpha.3] - 2026-06-03
+
+### Added
+- `ccjk reasonix`：Reasonix CLI 状态探测与启动指引（DeepSeek 原生 agent 伴侣，非 runtime 嵌入）
+- `ccjk reasonix <profile>`：从 `~/.ccjk/profiles` 注入 `DEEPSEEK_API_KEY` / `MIMO_API_KEY` 并启动 `reasonix chat`
+- 项目根无 `reasonix.toml` 时，从 profile 自动生成最小配置（不覆盖已有文件）
+- `--run` / `-p` 支持单次 `reasonix run`；`--no-sync` 跳过 toml 生成
+- 主菜单「其他工具」新增 `X.` Reasonix 入口
+
+### Internal
+- 新增 `src/utils/reasonix-config.ts`、`src/commands/reasonix.ts`
+- 新增 `tests/utils/reasonix-config.test.ts`（7 case）
 
 ## [15.28.3] - 2026-05-29
 
