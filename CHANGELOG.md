@@ -4,7 +4,7 @@ ccjk 是 Clavue / Claude Code / Codex 的本地配置 CLI。本文记录用户�
 
 格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)。
 
-## [Unreleased]
+## [17.0.0] - 2026-10-12
 
 ### Added
 - **本机代理与界面**：`ccjk proxy` 在 127.0.0.1 上转发请求，支持直连 / 路由 / 聚合、五种协议互转、熔断故障转移、聚合模型前缀，以及 `ccjk ui` 完整界面。
