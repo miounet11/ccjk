@@ -41,26 +41,16 @@ jobs:
       - name: Smoke test built CLI (POSIX)
         if: runner.os != 'Windows'
         run: |
-          node dist/cli.js --version
-          node dist/cli.js --help
-          node dist/cli.js status
-          node dist/cli.js completion bash > /tmp/ccjk.bash
-          node dist/cli.js completion zsh > /tmp/ccjk.zsh
-          node dist/cli.js completion fish > /tmp/ccjk.fish
-          test -s /tmp/ccjk.bash
-          test -s /tmp/ccjk.zsh
-          test -s /tmp/ccjk.fish
+          node dist/cli.mjs --version
+          node dist/cli.mjs --help
+          node dist/cli.mjs proxy --help
+          node dist/cli.mjs provider --help
 
       - name: Smoke test built CLI (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          node dist/cli.js --version
-          node dist/cli.js --help
-          node dist/cli.js status
-          node dist/cli.js completion bash > $env:TEMP/ccjk.bash
-          node dist/cli.js completion zsh > $env:TEMP/ccjk.zsh
-          node dist/cli.js completion fish > $env:TEMP/ccjk.fish
-          if ((Get-Item $env:TEMP/ccjk.bash).Length -le 0) { throw "bash completion empty" }
-          if ((Get-Item $env:TEMP/ccjk.zsh).Length -le 0) { throw "zsh completion empty" }
-          if ((Get-Item $env:TEMP/ccjk.fish).Length -le 0) { throw "fish completion empty" }
+          node dist/cli.mjs --version
+          node dist/cli.mjs --help
+          node dist/cli.mjs proxy --help
+          node dist/cli.mjs provider --help

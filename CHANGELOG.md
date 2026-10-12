@@ -4,7 +4,7 @@ ccjk 是 Clavue / Claude Code / Codex 的本地配置 CLI。本文记录用户�
 
 格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)。
 
-## [17.0.0] - 2026-10-12
+## [17.1.0] - 2026-10-12
 
 ### Added
 - **本机代理与界面**：`ccjk proxy` 在 127.0.0.1 上转发请求，支持直连 / 路由 / 聚合、五种协议互转、熔断故障转移、聚合模型前缀，以及 `ccjk ui` 完整界面。
@@ -20,6 +20,7 @@ ccjk 是 Clavue / Claude Code / Codex 的本地配置 CLI。本文记录用户�
 ### Fixed
 - `ccjk proxy apply` 的直连模式此前会被写成 `/t/<工具>`，现在按每个工具已保存的接法写入服务商自己的地址。
 - 删除账号后 `proxy-accounts.json` 权限回落为默认 umask，现在与写入时一致保持仅本人可读。
+- CI 冒烟测试对齐实际产物入口 `dist/cli.mjs`，并改为校验真实存在的 `proxy` / `provider` 子命令（此前引用的 `dist/cli.js` 与已移除的 `status` / `completion` 命令会让 PR 检查必失败）。
 
 ## [16.4.0] - 2026-10-09
 
