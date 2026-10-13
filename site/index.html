@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ccjk — Clavue / Claude Code / Codex / Grok 的本地配置医生</title>
+<meta name="description" content="ccjk 扫描本地配置，确认后写入 API、模型和工作流。需要时再开一个只听 127.0.0.1 的本机代理。不读钥匙串，不冒充官方客户端，不发送遥测。">
+<meta property="og:title" content="ccjk — 本地配置医生">
+<meta property="og:description" content="扫描本地配置，确认后写入。需要时再开一个只听本机的代理。">
+<meta property="og:type" content="website">
+<meta name="color-scheme" content="dark light">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🩺</text></svg>">
+<style>
+  :root {
+    --bg: #0b0c0e;
+    --bg-2: #121418;
+    --card: #16181d;
+    --line: #262a31;
+    --fg: #e8eaed;
+    --muted: #9aa2ad;
+    --accent: #4ade80;
+    --accent-2: #60a5fa;
+    --warn: #fbbf24;
+    --radius: 14px;
+    --max: 1040px;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font: 16px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+          "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--accent-2); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code, pre, .mono {
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  }
+  .wrap { max-width: var(--max); margin: 0 auto; padding: 0 24px; }
+
+  /* ---------- 顶栏 ---------- */
+  header {
+    position: sticky; top: 0; z-index: 10;
+    background: rgba(11,12,14,.82);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line);
+  }
+  .bar { display: flex; align-items: center; gap: 16px; height: 60px; }
+  .logo { font-weight: 700; font-size: 18px; letter-spacing: -.02em; color: var(--fg); }
+  .logo .dot { color: var(--accent); }
+  .bar nav { margin-left: auto; display: flex; gap: 22px; font-size: 14px; }
+  .bar nav a { color: var(--muted); }
+  .bar nav a:hover { color: var(--fg); text-decoration: none; }
+  @media (max-width: 720px) { .bar nav { display: none; } }
+
+  /* ---------- hero ---------- */
+  .hero { padding: 84px 0 64px; position: relative; overflow: hidden; }
+  .hero::before {
+    content: ""; position: absolute; inset: -40% 30% auto -20%; height: 620px;
+    background: radial-gradient(circle at 30% 30%, rgba(74,222,128,.14), transparent 62%),
+                radial-gradient(circle at 70% 40%, rgba(96,165,250,.12), transparent 60%);
+    pointer-events: none;
+  }
+  .hero > .wrap { position: relative; }
+  h1 {
+    font-size: clamp(38px, 6.2vw, 62px); line-height: 1.06;
+    margin: 18px 0 0; letter-spacing: -.035em; font-weight: 750;
+  }
+  h1 .accent { color: var(--accent); }
+  .tagline { font-size: clamp(17px, 2.3vw, 21px); color: var(--muted); margin: 18px 0 0; max-width: 720px; }
+  .badges { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 22px; }
+  .badge {
+    font-size: 12px; font-weight: 600; color: var(--muted);
+    border: 1px solid var(--line); border-radius: 999px; padding: 4px 11px; background: var(--card);
+  }
+  .badge.ok { color: var(--accent); border-color: rgba(74,222,128,.32); }
+
+  /* 安装命令 */
+  .install {
+    display: flex; align-items: center; gap: 12px; margin-top: 30px;
+    background: var(--bg-2); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 14px 16px; max-width: 520px;
+  }
+  .install code { font-size: 15px; color: var(--fg); flex: 1; }
+  .install code .p { color: var(--accent); user-select: none; }
+  .copy {
+    background: var(--card); color: var(--muted); border: 1px solid var(--line);
+    border-radius: 9px; padding: 6px 12px; font-size: 13px; cursor: pointer; white-space: nowrap;
+    transition: .15s;
+  }
+  .copy:hover { color: var(--fg); border-color: #3a4048; }
+  .cta { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 26px; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    border-radius: 10px; padding: 11px 20px; font-weight: 600; font-size: 15px;
+    border: 1px solid var(--line); color: var(--fg); background: var(--card);
+    transition: .15s;
+  }
+  .btn:hover { text-decoration: none; border-color: #3a4048; transform: translateY(-1px); }
+  .btn.primary { background: var(--accent); color: #06210f; border-color: var(--accent); }
+  .btn.primary:hover { filter: brightness(1.08); }
+
+  /* ---------- 章节 ---------- */
+  section { padding: 66px 0; border-top: 1px solid var(--line); }
+  h2 { font-size: clamp(24px, 3.4vw, 33px); letter-spacing: -.025em; margin: 0 0 10px; font-weight: 700; }
+  h2 + .lead { color: var(--muted); margin: 0 0 34px; max-width: 680px; }
+  h3 { font-size: 17px; margin: 0 0 8px; font-weight: 650; }
+
+  .grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+  .card {
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: var(--radius); padding: 22px;
+  }
+  .card .icon { font-size: 22px; margin-bottom: 12px; display: block; }
+  .card p { margin: 0; color: var(--muted); font-size: 14.5px; }
+
+  /* 三种接法 */
+  .modes { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+  .mode { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; }
+  .mode .tag {
+    font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+    color: var(--accent); display: block; margin-bottom: 9px;
+  }
+  .mode p { margin: 0; color: var(--muted); font-size: 14.5px; }
+
+  /* 终端 */
+  .term {
+    background: #08090b; border: 1px solid var(--line); border-radius: var(--radius);
+    overflow: hidden; box-shadow: 0 20px 50px -24px rgba(0,0,0,.9);
+  }
+  .term-bar {
+    display: flex; align-items: center; gap: 7px; padding: 11px 14px;
+    background: #111317; border-bottom: 1px solid var(--line);
+  }
+  .term-bar i { width: 11px; height: 11px; border-radius: 50%; background: #3a4048; display: block; }
+  .term-bar span { margin-left: 8px; font-size: 12px; color: var(--muted); }
+  .term pre { margin: 0; padding: 20px; font-size: 13.5px; line-height: 1.9; overflow-x: auto; }
+  .term .p { color: var(--accent); }
+  .term .c { color: var(--fg); }
+  .term .o { color: var(--muted); }
+  .term .g { color: var(--accent); }
+  .term .y { color: var(--warn); }
+
+  /* 表格 */
+  .tbl-scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius); }
+  table { width: 100%; border-collapse: collapse; font-size: 14.5px; min-width: 640px; }
+  th, td { padding: 14px 16px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: top; }
+  thead th { background: var(--bg-2); font-size: 13px; color: var(--muted); font-weight: 600; }
+  thead th:first-child { color: var(--fg); }
+  tbody tr:last-child td { border-bottom: 0; }
+  td:first-child { color: var(--muted); white-space: nowrap; }
+  col.self { background: rgba(74,222,128,.055); }
+  .yes { color: var(--accent); font-weight: 600; }
+  .no { color: var(--muted); }
+
+  /* 步骤 */
+  .steps { display: grid; gap: 14px; }
+  .step { display: flex; gap: 16px; align-items: flex-start; }
+  .step .n {
+    flex: none; width: 28px; height: 28px; border-radius: 8px; background: var(--card);
+    border: 1px solid var(--line); color: var(--accent); font-weight: 700; font-size: 14px;
+    display: grid; place-items: center;
+  }
+  .step code, .inline-code {
+    background: var(--bg-2); border: 1px solid var(--line); border-radius: 6px;
+    padding: 2px 7px; font-size: 13.5px; color: var(--fg);
+  }
+  .step p { margin: 4px 0 0; color: var(--muted); font-size: 14.5px; }
+
+  /* 边界 */
+  .bounds { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+  .bound { border-left: 2px solid var(--line); padding-left: 16px; }
+  .bound.no-b { border-color: #4b2f33; }
+  .bound p { margin: 4px 0 0; color: var(--muted); font-size: 14.5px; }
+
+  /* 页脚 */
+  footer { border-top: 1px solid var(--line); padding: 40px 0 56px; color: var(--muted); font-size: 14px; }
+  footer .row { display: flex; flex-wrap: wrap; gap: 18px 26px; align-items: center; }
+  footer .spacer { margin-left: auto; }
+  .disclaimer {
+    margin-top: 22px; padding: 14px 16px; border: 1px solid var(--line);
+    border-radius: 10px; background: var(--card); font-size: 13.5px; line-height: 1.7;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap bar">
+    <span class="logo">ccjk<span class="dot">.</span></span>
+    <nav>
+      <a href="#why">为什么</a>
+      <a href="#modes">三种接法</a>
+      <a href="#start">快速开始</a>
+      <a href="#compare">对比</a>
+      <a href="#bounds">边界</a>
+      <a href="https://github.com/miounet11/ccjk">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="wrap">
+    <div class="badges">
+      <span class="badge ok">v17.1.0</span>
+      <span class="badge">MIT</span>
+      <span class="badge">Node ≥ 20</span>
+      <span class="badge">本机代理只听 127.0.0.1</span>
+    </div>
+    <h1>少手改 JSON 和 TOML，<br>换模型只要<span class="accent">一条命令</span>。</h1>
+    <p class="tagline">
+      ccjk 是 Clavue、Claude Code、Codex、Grok 的本地配置医生。扫描本地配置，确认后写入 API、模型和工作流。
+      需要时再开一个只听本机的代理，不用再养一个常驻应用。
+    </p>
+
+    <div class="install">
+      <code><span class="p">$</span> npm install -g ccjk</code>
+      <button class="copy" data-copy="npm install -g ccjk">复制</button>
+    </div>
+
+    <div class="cta">
+      <a class="btn primary" href="https://github.com/miounet11/ccjk">在 GitHub 上看 →</a>
+      <a class="btn" href="https://www.npmjs.com/package/ccjk">npm</a>
+      <a class="btn" href="#start">30 秒开始</a>
+    </div>
+  </div>
+</div>
+
+<section id="why">
+  <div class="wrap">
+    <h2>手改配置这件事，本来就该交给工具</h2>
+    <p class="lead">每换一家模型，就要对着不同工具改不同格式的文件。ccjk 把它收成一条命令，并且在写盘前先备份。</p>
+    <div class="grid">
+      <div class="card">
+        <span class="icon">🩺</span>
+        <h3>扫描之后再写入</h3>
+        <p>先看本地配置的健康度，确认后才写。任何写盘前产生备份，代理写入另外留第一次快照，可以还原。</p>
+      </div>
+      <div class="card">
+        <span class="icon">⌨️</span>
+        <h3>和管配置是同一个命令</h3>
+        <p>换模型不用再装一个常驻应用。一行指定工具和「服务商 / 模型」，听得懂就直接连接，听不懂就经过本机翻译。</p>
+      </div>
+      <div class="card">
+        <span class="icon">🔒</span>
+        <h3>本机为界</h3>
+        <p>代理只听 <code class="inline-code">127.0.0.1</code>，不读钥匙串，不冒充官方客户端，不发送遥测。服务商密钥本机加密保存，不进配置文件。</p>
+      </div>
+      <div class="card">
+        <span class="icon">🧭</span>
+        <h3>中文界面，日常说法</h3>
+        <p>侧栏只列出本机已经装了的工具。搜索服务商或模型，点「用这个」就写入。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="modes">
+  <div class="wrap">
+    <h2>三种接法，按工具各走各的</h2>
+    <p class="lead">每个工具一条路由，互不影响。接法收在「高级：接法」里，点「使用这家」或「用这个」才写入。</p>
+    <div class="modes">
+      <div class="mode">
+        <span class="tag">直接连接</span>
+        <h3>写服务商自己的地址</h3>
+        <p>工具自己去连。Claude 系只对 Anthropic 消息接口直连；Codex、Grok、OpenCode 只对 OpenAI Chat、OpenAI Responses 和 xAI 直连。</p>
+      </div>
+      <div class="mode">
+        <span class="tag">经过本机</span>
+        <h3>协议互转与故障转移</h3>
+        <p>听不懂的接口由本机翻译。可以按顺序、轮流，或先用得少的换上游；同一段对话在上游还健康时继续用同一家。</p>
+      </div>
+      <div class="mode">
+        <span class="tag">一个列表里选</span>
+        <h3>聚合多个服务商</h3>
+        <p>把几家的模型放进一个列表，模型名带 <code class="inline-code">ccjk-&lt;服务商&gt;--&lt;模型&gt;</code> 前缀。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="demo">
+  <div class="wrap">
+    <h2>看起来是这样的</h2>
+    <p class="lead">下面的输出来自 ccjk 本身的命令行文案。</p>
+    <div class="term">
+      <div class="term-bar"><i></i><i></i><i></i><span>终端</span></div>
+      <pre><span class="p">$</span> <span class="c">ccjk proxy use --tool claude-code --model deepseek/deepseek-chat</span>
+<span class="g">已写入 /Users/你/.claude/settings.json</span>
+
+<span class="p">$</span> <span class="c">ccjk ui</span>
+<span class="g">已在后台启动代理：http://127.0.0.1:15721</span>
+<span class="g">界面 http://127.0.0.1:15721/ui</span>
+
+<span class="p">$</span> <span class="c">ccjk proxy start</span>
+<span class="g">ccjk proxy 正在监听 http://127.0.0.1:15721</span>
+<span class="o">只接受 127.0.0.1。Ctrl+C 停止。</span>
+
+<span class="p">$</span> <span class="c">ccjk proxy save --name 上班</span>
+<span class="g">已保存配置档 上班</span></pre>
+    </div>
+  </div>
+</section>
+
+<section id="start">
+  <div class="wrap">
+    <h2>30 秒开始</h2>
+    <p class="lead">需要 Node.js 20 或更新版本。</p>
+    <div class="steps">
+      <div class="step">
+        <span class="n">1</span>
+        <div>
+          <p style="margin:0"><code>npm install -g ccjk</code></p>
+          <p>装好之后，<code>ccjk</code> 打开医生 / 操作员菜单。</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="n">2</span>
+        <div>
+          <p style="margin:0"><code>ccjk ui</code></p>
+          <p>代理没在跑时会先拉起来，然后打开本机界面，默认 <code>http://127.0.0.1:15721/ui</code>。</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="n">3</span>
+        <div>
+          <p style="margin:0"><code>ccjk proxy use --tool claude-code --model deepseek/deepseek-chat</code></p>
+          <p>按「工具 + 服务商 / 模型」写入。这个工具听得懂该接口就直接连接，听不懂就经过本机。</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="n">4</span>
+        <div>
+          <p style="margin:0"><code>ccjk proxy revert</code></p>
+          <p>按第一次写入前的快照还原。卸掉 ccjk 之前先跑一次。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="compare">
+  <div class="wrap">
+    <h2>和 cc-switch、magpie 怎么选</h2>
+    <p class="lead">三家都在解决「别再手改各家配置」，形态不同。下面按各自介绍页写的事实对照。</p>
+    <div class="tbl-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th></th>
+            <th>ccjk</th>
+            <th><a href="https://github.com/farion1231/cc-switch">cc-switch</a></th>
+            <th><a href="https://github.com/yetone/magpie">magpie</a></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>形态</td><td class="yes">终端 CLI</td><td>桌面应用</td><td>菜单栏 + 本地网关</td></tr>
+          <tr><td>主业</td><td class="yes">扫配置、备份后写入、还原</td><td>在一个应用里管服务商、MCP、Skills、Prompts</td><td>把很多 agent 的模型接到一个网关</td></tr>
+          <tr><td>代理</td><td class="yes">可选，只听 127.0.0.1</td><td>以改各客户端配置为主</td><td>网关就是产品，默认本机，也可以共享到局域网</td></tr>
+          <tr><td>密钥</td><td class="yes">你自己的密钥，不读钥匙串</td><td>在应用里填写和切换</td><td>可读钥匙串，也能发现订阅</td></tr>
+          <tr><td>路由</td><td class="yes">顺序、轮流、按用量，同一段对话粘住</td><td>切换当前供应商</td><td>还有 smart、pace</td></tr>
+          <tr><td>遥测</td><td class="yes">没有</td><td class="no">介绍页没有把遥测当作功能</td><td class="no">介绍页写了每日遥测</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="bounds">
+  <div class="wrap">
+    <h2>我们不做什么</h2>
+    <p class="lead">说清楚边界，比堆功能更让人放心。</p>
+    <div class="bounds">
+      <div class="bound no-b">
+        <h3>不是 IDE，也不替工具写代码</h3>
+        <p>不碰 agent runtime，不在运行时偷偷注入 hook 或命令。</p>
+      </div>
+      <div class="bound no-b">
+        <h3>不用官方客户端身份登录</h3>
+        <p>账号槽只保存你自己粘贴的凭证。在官方客户端之外使用订阅，可能违反厂商条款。</p>
+      </div>
+      <div class="bound no-b">
+        <h3>不开到局域网</h3>
+        <p>只监听 127.0.0.1，不做局域网共享，也不做 Docker 分发。</p>
+      </div>
+      <div class="bound no-b">
+        <h3>不做 smart / pace 与订阅感知</h3>
+        <p>换上游只用顺序、轮流、用量三种。需要订阅重置窗口的策略，用 magpie。</p>
+      </div>
+    </div>
+    <p class="lead" style="margin-top:26px">
+      他们覆盖得更宽的地方：桌面里同时管 MCP、技能和提示词，菜单栏，订阅和钥匙串，六十多个 agent，
+      插件，局域网和 Docker。要这些，用他们。
+    </p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="row">
+      <span>ccjk · MIT</span>
+      <a href="https://github.com/miounet11/ccjk">GitHub</a>
+      <a href="https://www.npmjs.com/package/ccjk">npm</a>
+      <a href="https://github.com/miounet11/ccjk/blob/main/README.md">README</a>
+      <span class="spacer">Clavue / Claude Code / Codex / Grok</span>
+    </div>
+    <div class="disclaimer">
+      本站是 ccjk 的项目介绍页。ccjk 与 Anthropic、OpenAI、xAI 等厂商没有隶属关系，文中提到的产品名归各自所有。
+      请在遵守各厂商条款的前提下使用。
+    </div>
+  </div>
+</footer>
+
+<script>
+  document.querySelectorAll('.copy').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var text = btn.getAttribute('data-copy') || ''
+      var done = function () {
+        var old = btn.textContent
+        btn.textContent = '已复制'
+        setTimeout(function () { btn.textContent = old }, 1400)
+      }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(done).catch(function () { fallback(text); done() })
+      }
+      else { fallback(text); done() }
+    })
+  })
+  function fallback(text) {
+    var area = document.createElement('textarea')
+    area.value = text
+    area.style.position = 'fixed'
+    area.style.opacity = '0'
+    document.body.appendChild(area)
+    area.select()
+    try { document.execCommand('copy') } catch (e) {}
+    document.body.removeChild(area)
+  }
+</script>
+
+</body>
+</html>
