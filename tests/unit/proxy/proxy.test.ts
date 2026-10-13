@@ -1,23 +1,29 @@
+import { createServer as createHttpServer } from 'node:http'
 import { mkdtempSync, readFileSync, statSync, unlinkSync, writeFileSync } from 'node:fs'
+import { connect as netConnect, createServer as createNetServer, type Server } from 'node:net'
 import { tmpdir } from 'node:os'
 import { join } from 'pathe'
 import { afterEach, describe, expect, it } from 'vitest'
-import { applySavedRoutes } from '../../../src/commands/proxy'
+import { applySavedRoutes, proxyServeArgs } from '../../../src/commands/proxy'
 import { deleteAccount, getAccountToken, getProviderSecret, saveAccount, setProviderSecret } from '../../../src/proxy/accounts'
 import { aggregateModelId, parseAggregateModelId } from '../../../src/proxy/aggregate'
+import { assignModel } from '../../../src/proxy/assign'
 import { applyProxy, revertProxy } from '../../../src/proxy/apply-config'
 import { CircuitBreaker, failoverOrder, pickProvider } from '../../../src/proxy/circuit'
-import { upsertProvider, setToolRoute } from '../../../src/proxy/config-store'
+import { loadProxyConfig, saveProxyConfig, saveProxyProfile, setToolRoute, upsertProvider, useProxyProfile } from '../../../src/proxy/config-store'
 import { upstreamHeaders } from '../../../src/proxy/headers'
-import { fromAnthropic, openAiChatSseToAnthropicSse, responseFromOpenAIChat } from '../../../src/proxy/protocols'
+import { isLocalUpstream, providerFromClaudeSettings, providerFromCodexToml } from '../../../src/proxy/import-local'
+import { fetchUpstream } from '../../../src/proxy/outbound'
+import { fromAnthropic, openAiChatSseToAnthropicSse, responseFromOpenAIChat, toAnthropicRequest } from '../../../src/proxy/protocols'
 import { redact } from '../../../src/proxy/redact'
+import { rewriteModel, withSystemPrompt } from '../../../src/proxy/rewrite'
 import { forwardRequest } from '../../../src/proxy/router'
 import { startProxyServer } from '../../../src/proxy/server'
 import { listSessions } from '../../../src/proxy/sessions'
+import { pickByStrategy } from '../../../src/proxy/strategy'
 import { ACCOUNT_TOS_WARNING, PROXY_USER_AGENT } from '../../../src/proxy/types'
 import { renderUiPage } from '../../../src/proxy/ui-page'
 import { recordUsage, summarizeUsage } from '../../../src/proxy/usage'
-import { loadProxyConfig } from '../../../src/proxy/config-store'
 
 function tempDir(): string {
   return mkdtempSync(join(tmpdir(), 'ccjk-proxy-'))
@@ -67,7 +73,7 @@ describe('proxy circuit and aggregation', () => {
 })
 
 describe('proxy protocols', () => {
-  it('turns an unmatched tool result into user text and drops thinking blocks', () => {
+  it('keeps thinking text and turns an unmatched tool result into user text', () => {
     const canonical = fromAnthropic({
       model: 'claude',
       messages: [{
@@ -79,8 +85,9 @@ describe('proxy protocols', () => {
         ],
       }],
     })
-    expect(JSON.stringify(canonical)).not.toContain('secret-thought')
+    expect(canonical.messages.some(message => message.reasoning === 'secret-thought')).toBe(true)
     expect(canonical.messages.some(message => message.role === 'user' && message.text?.includes('without call'))).toBe(true)
+    expect(JSON.stringify(toAnthropicRequest(canonical))).toContain('secret-thought')
   })
 
   it('reads cache hits from the first non-zero field', () => {
@@ -102,6 +109,20 @@ describe('proxy protocols', () => {
     expect(out.indexOf('content_block_stop')).toBeLessThan(out.indexOf('message_delta'))
     expect(out).toContain('tail')
     expect(out).toContain('message_stop')
+    expect(out).toContain('"index":0')
+  })
+
+  it('maps openai reasoning_content onto an anthropic thinking block', () => {
+    const sse = [
+      'data: {"choices":[{"delta":{"reasoning_content":"secret-thought"}}]}',
+      'data: {"choices":[{"delta":{"content":"tail"}}]}',
+      'data: [DONE]',
+    ].join('\n')
+    const out = openAiChatSseToAnthropicSse(sse, 'm')
+    expect(out).toContain('secret-thought')
+    expect(out).toContain('"type":"thinking"')
+    expect(out).toContain('tail')
+    expect(out.indexOf('content_block_stop')).toBeLessThan(out.indexOf('message_delta'))
   })
 })
 
@@ -387,5 +408,311 @@ describe('proxy apply and forward', () => {
     const toml = readFileSync(routeFile, 'utf-8')
     expect(toml).toContain('http://127.0.0.1:15721/t/codex')
     expect(toml).not.toContain('https://api.deepseek.com')
+  })
+})
+
+describe('proxy model pick, strategy, import, and outbound', () => {
+  const servers: Array<{ close: (cb?: () => void) => void }> = []
+  afterEach(async () => {
+    await Promise.all(servers.splice(0).map(server => new Promise<void>(resolve => server.close(() => resolve()))))
+  })
+
+  function listen(server: Server): Promise<number> {
+    return new Promise((resolve) => {
+      server.listen(0, '127.0.0.1', () => {
+        const address = server.address()
+        resolve(address && typeof address === 'object' ? address.port : 0)
+      })
+    })
+  }
+
+  it('picks by rotate, usage, and a healthy sticky session', () => {
+    const healthy = () => true
+    const first = pickByStrategy({ strategy: 'rotate', chain: ['a', 'b'], cursor: 0, counts: {}, healthy })
+    expect(first).toEqual({ id: 'a', nextCursor: 1 })
+    const second = pickByStrategy({ strategy: 'rotate', chain: ['a', 'b'], cursor: first.nextCursor, counts: {}, healthy })
+    expect(second.id).toBe('b')
+    const usage = pickByStrategy({ strategy: 'usage', chain: ['a', 'b'], cursor: 0, counts: { a: 5, b: 1 }, healthy })
+    expect(usage.id).toBe('b')
+    const sticky = pickByStrategy({
+      strategy: 'rotate',
+      chain: ['a', 'b'],
+      cursor: 1,
+      counts: {},
+      stickyId: 'a',
+      healthy,
+    })
+    expect(sticky).toEqual({ id: 'a', nextCursor: 1 })
+  })
+
+  it('rewrites a provider/model alias and prefixes the system prompt', () => {
+    expect(rewriteModel('fast', { fast: 'deepseek/deepseek-chat' })).toBe('ccjk-deepseek--deepseek-chat')
+    const request = withSystemPrompt({ model: 'm', messages: [{ role: 'system', text: 'hi' }] }, 'be brief')
+    expect(request.messages[0]?.text?.startsWith('be brief')).toBe(true)
+    expect(request.messages[0]?.text).toContain('hi')
+  })
+
+  it('skips localhost upstreams and keeps a real https base', () => {
+    expect(isLocalUpstream('http://127.0.0.1:15721/t/codex')).toBe(true)
+    expect(isLocalUpstream('http://localhost:9')).toBe(true)
+    expect(providerFromClaudeSettings(JSON.stringify({
+      env: { ANTHROPIC_BASE_URL: 'http://127.0.0.1:15721', ANTHROPIC_MODEL: 'x' },
+    }))).toBeNull()
+    const claude = providerFromClaudeSettings(JSON.stringify({
+      env: { ANTHROPIC_BASE_URL: 'https://api.anthropic.com', ANTHROPIC_MODEL: 'claude-sonnet-4-5' },
+    }))
+    expect(claude?.provider.baseUrl).toBe('https://api.anthropic.com')
+    expect(claude?.provider.id).toBe('imported-claude')
+    const toml = [
+      'base_url = "https://api.example.com/v1"',
+      'model = "gpt-5.4"',
+      '# ccjk-proxy-begin',
+      'base_url = "http://127.0.0.1:15721/v1"',
+      '# ccjk-proxy-end',
+    ].join('\n')
+    expect(providerFromCodexToml(toml)?.provider.baseUrl).toBe('https://api.example.com/v1')
+    expect(providerFromCodexToml('base_url = "http://localhost:15721/v1"\n')).toBeNull()
+  })
+
+  it('estimates a reference price and a cache hit rate', () => {
+    const summary = summarizeUsage([{
+      at: 't',
+      providerId: 'deepseek',
+      model: 'deepseek-chat',
+      protocol: 'openai-chat',
+      status: 200,
+      latencyMs: 1,
+      inputTokens: 1_000_000,
+      outputTokens: 0,
+      cacheReadTokens: 1_000_000,
+    }])
+    expect(summary.costUsd).toBeCloseTo(0.34)
+    expect(summary.cacheHitRate).toBe(0.5)
+  })
+
+  it('keeps 用这个 on the page and still has the existing controls', () => {
+    const html = renderUiPage()
+    expect(html).toContain('用这个')
+    expect(html).toContain('快捷切换')
+    expect(html).toContain('ccjk-proxy')
+    expect(html).toContain('直接连接')
+    expect(html).toContain('使用这家')
+    expect(html).not.toContain('prompt(')
+    expect(html).not.toContain('alert(')
+  })
+
+  it('round-trips model and strategy', () => {
+    const dir = tempDir()
+    setToolRoute(dir, 'claude-code', {
+      mode: 'routing',
+      providerId: 'deepseek',
+      model: 'deepseek-chat',
+      strategy: 'usage',
+      failover: ['deepseek'],
+    })
+    saveProxyProfile(dir, '上班')
+    setToolRoute(dir, 'claude-code', { mode: 'direct', model: '' })
+    expect(loadProxyConfig(dir).tools['claude-code'].model).toBeUndefined()
+    useProxyProfile(dir, '上班')
+    const route = loadProxyConfig(dir).tools['claude-code']
+    expect(route.model).toBe('deepseek-chat')
+    expect(route.strategy).toBe('usage')
+    expect(route.mode).toBe('routing')
+  })
+
+  it('assigns a model onto a temp file and does not need the real home', () => {
+    const dir = tempDir()
+    const settings = join(dir, 'settings.json')
+    writeFileSync(settings, '{}')
+    upsertProvider(dir, {
+      id: 'deepseek',
+      name: 'DeepSeek',
+      protocol: 'openai-chat',
+      baseUrl: 'https://api.deepseek.com',
+      models: ['deepseek-chat'],
+    })
+    assignModel(dir, 'claude-code', 'deepseek/deepseek-chat')
+    const written = applySavedRoutes(dir, [{ tool: 'claude-code', path: settings, kind: 'claude-settings' }])
+    expect(written).toEqual([settings])
+    const env = (JSON.parse(readFileSync(settings, 'utf-8')) as { env: Record<string, string> }).env
+    expect(env.ANTHROPIC_BASE_URL).toBe('http://127.0.0.1:15721/t/claude-code')
+    expect(env.ANTHROPIC_MODEL).toBe('deepseek-chat')
+    expect(loadProxyConfig(dir).tools['claude-code'].mode).toBe('routing')
+  })
+
+  it('rotates providers and keeps one session on the healthy upstream', async () => {
+    const dir = tempDir()
+    upsertProvider(dir, { id: 'a', name: 'A', protocol: 'anthropic-messages', baseUrl: 'https://a.example', models: ['m'] })
+    upsertProvider(dir, { id: 'b', name: 'B', protocol: 'anthropic-messages', baseUrl: 'https://b.example', models: ['m'] })
+    setToolRoute(dir, 'claude-code', { mode: 'routing', providerId: 'a', failover: ['a', 'b'], strategy: 'rotate' })
+    const seen: string[] = []
+    const memory = { cursor: {}, sticky: {} }
+    const fetchImpl: typeof fetch = async (url) => {
+      seen.push(String(url))
+      return new Response(JSON.stringify({ content: [{ type: 'text', text: 'ok' }] }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      })
+    }
+    const deps = {
+      config: loadProxyConfig(dir),
+      apiKeyFor: () => 'k',
+      fetchImpl,
+      breaker: new CircuitBreaker(),
+      tool: 'claude-code' as const,
+      memory,
+    }
+    const same = JSON.stringify({ model: 'm', max_tokens: 4, messages: [{ role: 'user', content: 'same session' }] })
+    const other = JSON.stringify({ model: 'm', max_tokens: 4, messages: [{ role: 'user', content: 'other session' }] })
+    await forwardRequest('anthropic-messages', same, deps)
+    await forwardRequest('anthropic-messages', same, deps)
+    await forwardRequest('anthropic-messages', other, deps)
+    expect(seen[0]).toContain('a.example')
+    expect(seen[1]).toContain('a.example')
+    expect(seen[2]).toContain('b.example')
+  })
+
+  it('sends the next request to the provider that has been used less', async () => {
+    const dir = tempDir()
+    upsertProvider(dir, { id: 'a', name: 'A', protocol: 'anthropic-messages', baseUrl: 'https://a.example', models: ['m'] })
+    upsertProvider(dir, { id: 'b', name: 'B', protocol: 'anthropic-messages', baseUrl: 'https://b.example', models: ['m'] })
+    setToolRoute(dir, 'claude-code', { mode: 'routing', providerId: 'a', failover: ['a', 'b'], strategy: 'usage' })
+    let seen = ''
+    const result = await forwardRequest('anthropic-messages', JSON.stringify({
+      model: 'm',
+      max_tokens: 4,
+      messages: [{ role: 'user', content: 'hi' }],
+    }), {
+      config: loadProxyConfig(dir),
+      apiKeyFor: () => 'k',
+      fetchImpl: async (url) => {
+        seen = String(url)
+        return new Response(JSON.stringify({ content: [{ type: 'text', text: 'ok' }] }), {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        })
+      },
+      breaker: new CircuitBreaker(),
+      tool: 'claude-code',
+      usageCounts: () => ({ a: 10, b: 1 }),
+    })
+    expect(result.status).toBe(200)
+    expect(seen).toContain('b.example')
+  })
+
+  it('sends an aliased model to that provider with the system prompt', async () => {
+    const dir = tempDir()
+    upsertProvider(dir, { id: 'deepseek', name: 'DeepSeek', protocol: 'openai-chat', baseUrl: 'https://api.deepseek.com/v1', models: ['deepseek-chat'] })
+    setToolRoute(dir, 'claude-code', { mode: 'routing', providerId: 'deepseek', failover: ['deepseek'] })
+    const config = loadProxyConfig(dir)
+    config.aliases = { fast: 'deepseek/deepseek-chat' }
+    config.systemPrompt = 'be brief'
+    saveProxyConfig(dir, config)
+    let body = ''
+    const fetchImpl: typeof fetch = async (_url, init) => {
+      body = String(init?.body ?? '')
+      return new Response(JSON.stringify({ choices: [{ message: { content: 'ok' } }] }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      })
+    }
+    const result = await forwardRequest('anthropic-messages', JSON.stringify({
+      model: 'fast',
+      max_tokens: 8,
+      messages: [{ role: 'user', content: 'hi' }],
+    }), {
+      config: loadProxyConfig(dir),
+      apiKeyFor: () => 'k',
+      fetchImpl,
+      breaker: new CircuitBreaker(),
+      tool: 'claude-code',
+    })
+    expect(result.status).toBe(200)
+    expect(body).toContain('deepseek-chat')
+    expect(body).toContain('be brief')
+  })
+
+  it('keeps the old model list when fetching models fails', async () => {
+    const dir = tempDir()
+    upsertProvider(dir, { id: 'deepseek', name: 'DeepSeek', protocol: 'openai-chat', baseUrl: 'https://api.deepseek.com', models: ['keep-me'] })
+    const started = await startProxyServer({
+      dir,
+      port: 0,
+      fetchImpl: async () => new Response('nope', { status: 500 }),
+    })
+    servers.push(started.server)
+    const response = await fetch(`http://127.0.0.1:${started.port}/api/models`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ id: 'deepseek' }),
+    })
+    const payload = await response.json() as { ok: boolean, models: string[] }
+    expect(payload.ok).toBe(false)
+    expect(payload.models).toEqual(['keep-me'])
+    expect(loadProxyConfig(dir).providers[0]?.models).toEqual(['keep-me'])
+  })
+
+  it('tunnels through an HTTP CONNECT proxy and ignores proxyUrl when fetchImpl is set', async () => {
+    const origin = createHttpServer((_req, res) => {
+      res.end('from-origin')
+    })
+    const originPort = await listen(origin)
+    servers.push(origin)
+    const proxy = createNetServer((socket) => {
+      let buf = Buffer.alloc(0)
+      const onData = (chunk: Buffer) => {
+        buf = Buffer.concat([buf, chunk])
+        const end = buf.indexOf('\r\n\r\n')
+        if (end < 0)
+          return
+        socket.off('data', onData)
+        const head = buf.subarray(0, end).toString('utf8')
+        const target = /^CONNECT\s+(\S+)/.exec(head)?.[1] ?? ''
+        const [host, port] = target.split(':')
+        const upstream = netConnect({ host, port: Number(port) }, () => {
+          socket.write('HTTP/1.1 200 Connection Established\r\n\r\n')
+          const rest = buf.subarray(end + 4)
+          if (rest.length)
+            upstream.write(rest)
+          socket.pipe(upstream)
+          upstream.pipe(socket)
+        })
+      }
+      socket.on('data', onData)
+    })
+    const proxyPort = await listen(proxy)
+    servers.push(proxy)
+    const response = await fetchUpstream(`http://127.0.0.1:${originPort}/hello`, { method: 'GET' }, `http://127.0.0.1:${proxyPort}`)
+    expect(await response.text()).toBe('from-origin')
+    let called = false
+    const viaImpl = await fetchUpstream('http://example.invalid/nope', { method: 'GET' }, 'http://127.0.0.1:1', async () => {
+      called = true
+      return new Response('impl')
+    })
+    expect(called).toBe(true)
+    expect(await viaImpl.text()).toBe('impl')
+  })
+
+  it('relaunches the background proxy with the current node loader', () => {
+    expect(proxyServeArgs('15721', '/tmp/ccjk', '/usr/local/bin/ccjk', [])).toEqual([
+      '/usr/local/bin/ccjk',
+      'proxy',
+      'serve',
+      '--port',
+      '15721',
+      '--dir',
+      '/tmp/ccjk',
+    ])
+    expect(proxyServeArgs('18080', '/tmp/dev', '/repo/src/cli.ts', ['--import', 'tsx', '--inspect'])).toEqual([
+      '--import',
+      'tsx',
+      '/repo/src/cli.ts',
+      'proxy',
+      'serve',
+      '--port',
+      '18080',
+      '--dir',
+      '/tmp/dev',
+    ])
   })
 })

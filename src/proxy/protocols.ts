@@ -30,6 +30,20 @@ function textOf(value: unknown): string {
   }).filter(Boolean).join('')
 }
 
+function reasoningText(value: unknown): string {
+  if (!Array.isArray(value))
+    return ''
+  return value.map((block) => {
+    if (!isRecord(block))
+      return ''
+    if (block.type === 'thinking' && typeof block.thinking === 'string')
+      return block.thinking
+    if (block.type === 'redacted_thinking' && typeof block.data === 'string')
+      return block.data
+    return ''
+  }).filter(Boolean).join('')
+}
+
 function systemText(system: unknown): string {
   if (typeof system === 'string')
     return system
@@ -109,14 +123,20 @@ export function fromAnthropic(body: Json): CanonicalRequest {
     }
     const blocks = Array.isArray(raw.content) ? raw.content : []
     let text = ''
+    let reasoning = ''
     const toolCalls: CanonicalToolCall[] = []
     const images: string[] = []
     const toolResults: CanonicalMessage[] = []
     for (const block of blocks) {
       if (!isRecord(block))
         continue
-      if (block.type === 'thinking')
+      if (block.type === 'thinking' || block.type === 'redacted_thinking') {
+        if (typeof block.thinking === 'string')
+          reasoning += block.thinking
+        if (typeof block.data === 'string')
+          reasoning += block.data
         continue
+      }
       if (block.type === 'text' && typeof block.text === 'string')
         text += block.text
       if (block.type === 'image' && isRecord(block.source) && typeof block.source.data === 'string') {
@@ -138,8 +158,15 @@ export function fromAnthropic(body: Json): CanonicalRequest {
         })
       }
     }
-    if (text || toolCalls.length > 0 || images.length > 0)
-      messages.push({ role, text, toolCalls: toolCalls.length > 0 ? toolCalls : undefined, images: images.length > 0 ? images : undefined })
+    if (text || reasoning || toolCalls.length > 0 || images.length > 0) {
+      messages.push({
+        role,
+        text,
+        reasoning: reasoning || undefined,
+        toolCalls: toolCalls.length > 0 ? toolCalls : undefined,
+        images: images.length > 0 ? images : undefined,
+      })
+    }
     messages.push(...toolResults)
   }
 
@@ -176,6 +203,11 @@ export function fromOpenAIChat(body: Json): CanonicalRequest {
     }
     const images: string[] = []
     let text = ''
+    const reasoning = typeof raw.reasoning_content === 'string'
+      ? raw.reasoning_content
+      : typeof raw.reasoning === 'string'
+        ? raw.reasoning
+        : ''
     if (typeof raw.content === 'string')
       text = raw.content
     else if (Array.isArray(raw.content)) {
@@ -191,6 +223,7 @@ export function fromOpenAIChat(body: Json): CanonicalRequest {
     messages.push({
       role,
       text,
+      reasoning: reasoning || undefined,
       toolCalls: toolCalls.length > 0 ? toolCalls : undefined,
       toolCallId: typeof raw.tool_call_id === 'string' ? raw.tool_call_id : undefined,
       images: images.length > 0 ? images : undefined,
@@ -261,9 +294,21 @@ export function fromGemini(body: Json): CanonicalRequest {
   for (const raw of contents) {
     if (!isRecord(raw))
       continue
+    const parts = Array.isArray(raw.parts) ? raw.parts : []
+    let text = ''
+    let reasoning = ''
+    for (const part of parts) {
+      if (!isRecord(part) || typeof part.text !== 'string')
+        continue
+      if (part.thought === true)
+        reasoning += part.text
+      else
+        text += part.text
+    }
     messages.push({
       role: raw.role === 'model' ? 'assistant' : 'user',
-      text: textOf(raw.parts),
+      text,
+      reasoning: reasoning || undefined,
     })
   }
   const generation = isRecord(body.generationConfig) ? body.generationConfig : {}
@@ -306,6 +351,8 @@ export function toOpenAIChat(request: CanonicalRequest): Json {
       }
     }
     const row: Json = { role: message.role, content: chatContent(message) }
+    if (message.reasoning)
+      row.reasoning_content = message.reasoning
     if (message.toolCalls?.length) {
       row.tool_calls = message.toolCalls.map(call => ({
         id: call.id,
@@ -375,6 +422,8 @@ export function toAnthropicRequest(request: CanonicalRequest): Json {
       continue
     }
     const content: Json[] = []
+    if (message.reasoning)
+      content.push({ type: 'thinking', thinking: message.reasoning })
     if (message.text)
       content.push({ type: 'text', text: message.text })
     for (const url of message.images ?? []) {
@@ -422,10 +471,16 @@ export function toAnthropicRequest(request: CanonicalRequest): Json {
 
 export function toGemini(request: CanonicalRequest): Json {
   const system = request.messages.find(message => message.role === 'system')?.text
-  const contents = request.messages.filter(message => message.role !== 'system').map(message => ({
-    role: message.role === 'assistant' ? 'model' : 'user',
-    parts: [{ text: message.text ?? '' }],
-  }))
+  const contents = request.messages.filter(message => message.role !== 'system').map((message) => {
+    const parts: Json[] = []
+    if (message.reasoning)
+      parts.push({ text: message.reasoning, thought: true })
+    parts.push({ text: message.text ?? '' })
+    return {
+      role: message.role === 'assistant' ? 'model' : 'user',
+      parts,
+    }
+  })
   const body: Json = { contents, model: request.model }
   if (system)
     body.systemInstruction = { parts: [{ text: system }] }
@@ -479,8 +534,10 @@ function firstNonZero(raw: Json, keys: string[]): number | undefined {
 }
 
 export function responseFromAnthropic(body: Json): CanonicalResponse {
+  const reasoning = reasoningText(body.content)
   return {
     text: textOf(body.content),
+    reasoning: reasoning || undefined,
     toolCalls: Array.isArray(body.content)
       ? body.content.filter(isRecord).filter(block => block.type === 'tool_use').map(block => ({
           id: typeof block.id === 'string' ? block.id : '',
@@ -506,8 +563,10 @@ export function responseFromOpenAIChat(body: Json): CanonicalResponse {
         }
       })
     : []
+  const reasoning = typeof message.reasoning_content === 'string' ? message.reasoning_content : ''
   return {
     text: textOf(message.content),
+    reasoning: reasoning || undefined,
     toolCalls,
     usage: usageFrom(body.usage),
     finishReason: typeof choice.finish_reason === 'string' ? choice.finish_reason : undefined,
@@ -553,6 +612,8 @@ export function parseUpstreamResponse(protocol: UpstreamProtocol, body: Json): C
 
 export function toAnthropicResponse(model: string, response: CanonicalResponse): Json {
   const content: Json[] = []
+  if (response.reasoning)
+    content.push({ type: 'thinking', thinking: response.reasoning })
   if (response.text)
     content.push({ type: 'text', text: response.text })
   for (const call of response.toolCalls) {
@@ -581,6 +642,8 @@ export function toAnthropicResponse(model: string, response: CanonicalResponse):
 
 export function toOpenAIChatResponse(model: string, response: CanonicalResponse): Json {
   const message: Json = { role: 'assistant', content: response.text }
+  if (response.reasoning)
+    message.reasoning_content = response.reasoning
   if (response.toolCalls.length > 0) {
     message.tool_calls = response.toolCalls.map(call => ({
       id: call.id,
@@ -619,6 +682,9 @@ export function encodeClientResponse(protocol: UpstreamProtocol, model: string, 
 interface StreamState {
   started: boolean
   textOpen: boolean
+  textIndex: number
+  thinkingOpen: boolean
+  hadThinking: boolean
   toolOpen: boolean
   toolIndex: number
 }
@@ -632,7 +698,15 @@ function anthropicEvent(event: string, data: Json): string {
  * 上游省略 finish_reason 时，仍会先关上还开着的内容块，避免客户端丢掉最后一段。
  */
 export function openAiChatSseToAnthropicSse(sse: string, model: string): string {
-  const state: StreamState = { started: false, textOpen: false, toolOpen: false, toolIndex: -1 }
+  const state: StreamState = {
+    started: false,
+    textOpen: false,
+    textIndex: 0,
+    thinkingOpen: false,
+    hadThinking: false,
+    toolOpen: false,
+    toolIndex: -1,
+  }
   let out = ''
   const ensureStart = () => {
     if (state.started)
@@ -651,10 +725,16 @@ export function openAiChatSseToAnthropicSse(sse: string, model: string): string 
       },
     })
   }
+  const closeThinking = () => {
+    if (!state.thinkingOpen)
+      return
+    out += anthropicEvent('content_block_stop', { type: 'content_block_stop', index: 0 })
+    state.thinkingOpen = false
+  }
   const closeText = () => {
     if (!state.textOpen)
       return
-    out += anthropicEvent('content_block_stop', { type: 'content_block_stop', index: 0 })
+    out += anthropicEvent('content_block_stop', { type: 'content_block_stop', index: state.textIndex })
     state.textOpen = false
   }
   const closeTool = () => {
@@ -679,30 +759,58 @@ export function openAiChatSseToAnthropicSse(sse: string, model: string): string 
     }
     const choice = Array.isArray(json.choices) && isRecord(json.choices[0]) ? json.choices[0] : {}
     const delta = isRecord(choice.delta) ? choice.delta : {}
-    if (typeof delta.content === 'string' && delta.content) {
+    const reasoning = typeof delta.reasoning_content === 'string'
+      ? delta.reasoning_content
+      : typeof delta.reasoning === 'string'
+        ? delta.reasoning
+        : ''
+    if (reasoning) {
       ensureStart()
       closeTool()
-      if (!state.textOpen) {
-        state.textOpen = true
+      if (!state.thinkingOpen) {
+        closeText()
+        state.thinkingOpen = true
+        state.hadThinking = true
         out += anthropicEvent('content_block_start', {
           type: 'content_block_start',
           index: 0,
-          content_block: { type: 'text', text: '' },
+          content_block: { type: 'thinking', thinking: '' },
         })
       }
       out += anthropicEvent('content_block_delta', {
         type: 'content_block_delta',
         index: 0,
+        delta: { type: 'thinking_delta', thinking: reasoning },
+      })
+    }
+    if (typeof delta.content === 'string' && delta.content) {
+      ensureStart()
+      closeThinking()
+      closeTool()
+      if (!state.textOpen) {
+        state.textOpen = true
+        state.textIndex = state.hadThinking ? 1 : 0
+        out += anthropicEvent('content_block_start', {
+          type: 'content_block_start',
+          index: state.textIndex,
+          content_block: { type: 'text', text: '' },
+        })
+      }
+      out += anthropicEvent('content_block_delta', {
+        type: 'content_block_delta',
+        index: state.textIndex,
         delta: { type: 'text_delta', text: delta.content },
       })
     }
     if (Array.isArray(delta.tool_calls)) {
       ensureStart()
+      closeThinking()
       closeText()
       for (const call of delta.tool_calls) {
         if (!isRecord(call) || !isRecord(call.function))
           continue
-        const index = typeof call.index === 'number' ? call.index + 1 : state.toolIndex + 1
+        const base = typeof call.index === 'number' ? call.index : state.toolIndex
+        const index = base + (state.hadThinking ? 2 : 1)
         if (!state.toolOpen || index !== state.toolIndex) {
           closeTool()
           state.toolOpen = true
@@ -729,6 +837,7 @@ export function openAiChatSseToAnthropicSse(sse: string, model: string): string 
     }
   }
   ensureStart()
+  closeThinking()
   closeText()
   closeTool()
   out += anthropicEvent('message_delta', {

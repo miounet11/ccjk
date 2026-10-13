@@ -1,19 +1,30 @@
 import type { IncomingMessage, ServerResponse } from 'node:http'
-import process from 'node:process'
 import type { ApplyTarget } from './apply-config'
-import type { AccountKind, ProxyProvider, ProxyToolId, UpstreamProtocol } from './types'
+import type { AccountKind, ProxyProvider, ProxyToolId, RouteStrategy, UpstreamProtocol } from './types'
+import type { RouteMemory } from './router'
+import { existsSync, readFileSync } from 'node:fs'
+import { homedir } from 'node:os'
+import process from 'node:process'
 import { join } from 'pathe'
-import { aggregateModelId, listAggregateModels } from './aggregate'
-import { applyProxy, canConnectDirectly, revertProxy, wireApiFor } from './apply-config'
+import { CLAUDE_DIR, CLAVUE_DIR, CODEX_DIR, GROK_DIR } from '../constants'
+import { opencodeConfigFile } from '../config/external-clients'
+import { listAggregateModels } from './aggregate'
+import { applySavedRoutes, chosenClientModel } from './apply-saved'
+import { applyProxy, canConnectDirectly, defaultTargets, revertProxy, wireApiFor } from './apply-config'
 import { accountWarning, deleteAccount, deleteProviderSecret, getAccountToken, getProviderSecret, listAccounts, readQuota, saveAccount, setProviderSecret } from './accounts'
 import { CircuitBreaker } from './circuit'
-import { loadProxyConfig, removeProvider, setToolRoute, upsertProvider } from './config-store'
+import { loadProxyConfig, removeProvider, saveProxyProfile, setToolRoute, updateProxySettings, upsertProvider, useProxyProfile } from './config-store'
+import { providerFromClaudeSettings, providerFromCodexToml, providerFromGrokToml } from './import-local'
+import { installedTools } from './installed'
+import { modelsUrl, parseModelIds } from './models-remote'
+import { fetchUpstream } from './outbound'
 import { PROVIDER_PRESETS } from './presets'
 import { redact } from './redact'
 import { detectInbound, forwardRequest, splitToolPath } from './router'
 import { listSessions } from './sessions'
+import { upstreamHeaders } from './headers'
 import { isProxyToolId, PROXY_TOOL_IDS, PROXY_USER_AGENT } from './types'
-import { readUsage, recordUsage, summarizeUsage } from './usage'
+import { readUsage, recordUsage, summarizeUsage, usageCounts } from './usage'
 import { renderUiPage } from './ui-page'
 
 export interface ProxyRuntime {
@@ -27,6 +38,7 @@ export interface ProxyRuntime {
   port: number
   /** 只有真正的 ccjk proxy 进程会带上。测试里留空，避免写到用户家目录。 */
   targets?: ApplyTarget[]
+  memory: RouteMemory
 }
 
 const MODES = new Set(['direct', 'routing', 'aggregation'])
@@ -66,16 +78,53 @@ function publicState(runtime: ProxyRuntime) {
     userAgent: PROXY_USER_AGENT,
     tosWarning: accountWarning(),
     providers: config.providers.map(provider => ({
-      ...provider,
+      id: provider.id,
+      name: provider.name,
+      protocol: provider.protocol,
+      baseUrl: provider.baseUrl,
+      models: provider.models,
+      accountId: provider.accountId,
+      headers: provider.headers,
+      proxyUrl: stripProxyUserinfo(provider.proxyUrl),
       hasSecret: Boolean(getProviderSecret(runtime.dir, provider.id)),
     })),
     tools: config.tools,
     presets: PROVIDER_PRESETS,
     accounts: listAccounts(runtime.dir),
     circuits: runtime.breaker.snapshot(),
-    usage: summarizeUsage(readUsage(runtime.usageFile)),
+    usage: summarizeUsage(readUsage(runtime.usageFile), config.prices),
     canWrite: Boolean(runtime.targets?.length),
+    installed: installedTools(toolInstalled),
+    profiles: Object.keys(config.profiles ?? {}),
+    aliases: config.aliases ?? {},
+    systemPrompt: config.systemPrompt ?? '',
   }
+}
+
+function stripProxyUserinfo(value: string | undefined): string | undefined {
+  if (!value)
+    return undefined
+  try {
+    const url = new URL(value)
+    url.username = ''
+    url.password = ''
+    return url.toString()
+  }
+  catch {
+    return undefined
+  }
+}
+
+function toolInstalled(tool: ProxyToolId): boolean {
+  const paths: Record<ProxyToolId, string> = {
+    'claude-code': CLAUDE_DIR,
+    'clavue': CLAVUE_DIR,
+    'codex': CODEX_DIR,
+    'grok': GROK_DIR,
+    'opencode': join(opencodeConfigFile(), '..'),
+    'claudework': join(homedir(), '.claudework'),
+  }
+  return existsSync(paths[tool])
 }
 
 export async function handleProxyHttp(req: IncomingMessage, res: ServerResponse, runtime: ProxyRuntime): Promise<void> {
@@ -111,7 +160,8 @@ export async function handleProxyHttp(req: IncomingMessage, res: ServerResponse,
       return
     }
     if (req.method === 'GET' && path === '/api/usage') {
-      json(res, 200, summarizeUsage(readUsage(runtime.usageFile)))
+      const config = loadProxyConfig(runtime.dir)
+      json(res, 200, summarizeUsage(readUsage(runtime.usageFile), config.prices))
       return
     }
     if (req.method === 'POST' && path === '/api/providers') {
@@ -134,6 +184,22 @@ export async function handleProxyHttp(req: IncomingMessage, res: ServerResponse,
       await useProvider(req, res, runtime)
       return
     }
+    if (req.method === 'POST' && path === '/api/models') {
+      await refreshModels(req, res, runtime)
+      return
+    }
+    if (req.method === 'POST' && path === '/api/import') {
+      await importLocal(res, runtime)
+      return
+    }
+    if (req.method === 'POST' && path === '/api/profiles') {
+      await profiles(req, res, runtime)
+      return
+    }
+    if (req.method === 'POST' && path === '/api/settings') {
+      await settings(req, res, runtime)
+      return
+    }
     if (req.method === 'POST' && path === '/api/revert') {
       await revertTools(req, res, runtime)
       return
@@ -152,6 +218,8 @@ export async function handleProxyHttp(req: IncomingMessage, res: ServerResponse,
         fetchImpl: runtime.fetchImpl,
         breaker: runtime.breaker,
         tool: routed.tool,
+        memory: runtime.memory,
+        usageCounts: () => usageCounts(readUsage(runtime.usageFile)),
       })
       if (result.providerId) {
         recordUsage(runtime.usageFile, {
@@ -311,6 +379,8 @@ async function useProvider(req: IncomingMessage, res: ServerResponse, runtime: P
     mode?: 'direct' | 'routing' | 'aggregation'
     failover?: string[]
     members?: string[]
+    model?: string
+    strategy?: RouteStrategy
   }
   if (!body.tool || !isProxyToolId(body.tool))
     throw new Error('先选一个工具')
@@ -318,6 +388,9 @@ async function useProvider(req: IncomingMessage, res: ServerResponse, runtime: P
     throw new Error('先选一家服务商')
   if (!body.mode || !MODES.has(body.mode))
     throw new Error('先选连接方式')
+  const strategy = body.strategy === 'rotate' || body.strategy === 'usage' || body.strategy === 'order'
+    ? body.strategy
+    : undefined
   const config = loadProxyConfig(runtime.dir)
   const provider = config.providers.find(item => item.id === body.providerId)
   if (!provider)
@@ -332,20 +405,22 @@ async function useProvider(req: IncomingMessage, res: ServerResponse, runtime: P
     providerId: body.providerId,
     failover: body.failover ?? [body.providerId],
     members,
+    model: body.model,
+    strategy,
   })
   const targets = (runtime.targets ?? []).filter(target => target.tool === body.tool)
   if (targets.length === 0) {
     json(res, 200, { ok: true, applied: false, message: '已经记住。当前进程没有接到配置文件，所以还没写进工具。' })
     return
   }
-  const firstModel = provider.models[0] || provider.id
+  const rawModel = body.model || provider.models[0] || provider.id
   const written = applyProxy({
     targets,
     proxyBaseUrl: `http://127.0.0.1:${runtime.port}`,
     proxyToken: runtime.proxyToken,
     snapshotDir: join(runtime.dir, 'proxy-snapshots'),
     mode: body.mode,
-    defaultModel: body.mode === 'aggregation' ? aggregateModelId(provider.id, firstModel) : firstModel,
+    defaultModel: chosenClientModel(body.mode, provider.id, rawModel),
     upstreamBaseUrl: provider.baseUrl,
     upstreamToken: getProviderSecret(runtime.dir, provider.id) || '',
     wireApi: wireApiFor(provider.protocol),
@@ -364,6 +439,85 @@ async function revertTools(req: IncomingMessage, res: ServerResponse, runtime: P
   if (body.tool && isProxyToolId(body.tool))
     setToolRoute(runtime.dir, body.tool, { mode: 'direct' })
   json(res, 200, { ok: true, applied: true, restored })
+}
+
+async function refreshModels(req: IncomingMessage, res: ServerResponse, runtime: ProxyRuntime) {
+  const body = JSON.parse(await readBody(req)) as { id?: string }
+  const id = (body.id ?? '').trim()
+  const provider = loadProxyConfig(runtime.dir).providers.find(item => item.id === id)
+  if (!provider)
+    throw new Error('没有这家服务商')
+  const key = getProviderSecret(runtime.dir, id) || ''
+  try {
+    const response = await fetchUpstream(modelsUrl(provider.protocol, provider.baseUrl), {
+      method: 'GET',
+      headers: upstreamHeaders(provider.protocol, key, provider.headers),
+    }, provider.proxyUrl, runtime.fetchImpl)
+    if (!response.ok)
+      throw new Error(String(response.status))
+    const ids = parseModelIds(await response.json())
+    if (ids.length === 0)
+      throw new Error('空列表')
+    upsertProvider(runtime.dir, { ...provider, models: ids })
+    json(res, 200, { ok: true, models: ids })
+  }
+  catch {
+    json(res, 200, { ok: false, models: provider.models, message: '没拉到，仍用原来的模型列表' })
+  }
+}
+
+async function importLocal(res: ServerResponse, runtime: ProxyRuntime) {
+  const added: string[] = []
+  for (const target of defaultTargets()) {
+    if (target.kind === 'opencode-json' || !existsSync(target.path))
+      continue
+    const text = readFileSync(target.path, 'utf-8')
+    const imported = target.kind === 'claude-settings'
+      ? providerFromClaudeSettings(text)
+      : target.kind === 'codex-toml'
+        ? providerFromCodexToml(text)
+        : providerFromGrokToml(text)
+    if (!imported || added.includes(imported.provider.id))
+      continue
+    upsertProvider(runtime.dir, imported.provider)
+    if (imported.apiKey)
+      setProviderSecret(runtime.dir, imported.provider.id, imported.apiKey)
+    added.push(imported.provider.id)
+  }
+  json(res, 200, { ok: true, added })
+}
+
+async function profiles(req: IncomingMessage, res: ServerResponse, runtime: ProxyRuntime) {
+  const body = JSON.parse(await readBody(req)) as { action?: string, name?: string }
+  const name = body.name ?? ''
+  if (body.action === 'save') {
+    saveProxyProfile(runtime.dir, name)
+    json(res, 200, { ok: true, profiles: Object.keys(loadProxyConfig(runtime.dir).profiles ?? {}) })
+    return
+  }
+  if (body.action === 'use') {
+    useProxyProfile(runtime.dir, name)
+    const targets = runtime.targets ?? []
+    const written = targets.length > 0 ? applySavedRoutes(runtime.dir, targets, runtime.port) : []
+    json(res, 200, {
+      ok: true,
+      applied: targets.length > 0,
+      written,
+      message: targets.length > 0 ? undefined : '已经换成这套。当前进程没有接到配置文件，所以还没写进工具。',
+    })
+    return
+  }
+  throw new Error('要保存或换一套')
+}
+
+async function settings(req: IncomingMessage, res: ServerResponse, runtime: ProxyRuntime) {
+  const body = JSON.parse(await readBody(req)) as { systemPrompt?: string, aliases?: Record<string, string> }
+  const aliases = body.aliases && typeof body.aliases === 'object' ? body.aliases : undefined
+  updateProxySettings(runtime.dir, {
+    systemPrompt: typeof body.systemPrompt === 'string' ? body.systemPrompt : undefined,
+    aliases,
+  })
+  json(res, 200, { ok: true })
 }
 
 async function quota(req: IncomingMessage, res: ServerResponse, runtime: ProxyRuntime) {

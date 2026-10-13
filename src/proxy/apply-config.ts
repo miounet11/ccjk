@@ -98,7 +98,7 @@ function applyClaudeSettings(target: ApplyTarget, request: ApplyRequest) {
   env.ANTHROPIC_BASE_URL = endpoint.base
   env.ANTHROPIC_API_KEY = endpoint.token
   delete env.ANTHROPIC_AUTH_TOKEN
-  if (request.mode === 'aggregation' && request.defaultModel)
+  if (request.defaultModel)
     env.ANTHROPIC_MODEL = request.defaultModel
   current.env = env
   if (!existsSync(dirname(target.path)))
@@ -111,7 +111,7 @@ function applyCodex(target: ApplyTarget, request: ApplyRequest) {
   ensureParent(target.path)
   let content = existsSync(target.path) ? readFileSync(target.path, 'utf-8') : ''
   content = setAssignment(content, 'model_provider', 'ccjk')
-  if (request.mode === 'aggregation' && request.defaultModel)
+  if (request.defaultModel)
     content = setAssignment(content, 'model', request.defaultModel)
   const endpoint = endpointOf(request, target.tool)
   const base = endpoint.base.replace(/\/$/, '')

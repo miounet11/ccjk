@@ -1,21 +1,22 @@
 import { spawn } from 'node:child_process'
-import { randomBytes } from 'node:crypto'
 import process from 'node:process'
 import ansis from 'ansis'
 import { join } from 'pathe'
 import { CCJK_CONFIG_DIR, CLAUDE_DIR, CODEX_DIR, CODE_TOOL_TYPES, GROK_DIR, type CodeToolType } from '../constants'
-import { getProviderSecret, setProviderSecret } from '../proxy/accounts'
-import { aggregateModelId } from '../proxy/aggregate'
-import { applyProxy, canConnectDirectly, defaultTargets, revertProxy, wireApiFor, type ApplyTarget } from '../proxy/apply-config'
-import { loadProxyConfig, saveProxyConfig, setToolRoute } from '../proxy/config-store'
+import { applySavedRoutes, ensureProxyToken } from '../proxy/apply-saved'
+import { defaultTargets, revertProxy, type ApplyTarget } from '../proxy/apply-config'
+import { assignModel } from '../proxy/assign'
+import { loadProxyConfig, saveProxyConfig, saveProxyProfile, setToolRoute, useProxyProfile } from '../proxy/config-store'
 import { clearPid, readPid, startProxyServer, writePid } from '../proxy/server'
-import { DEFAULT_PROXY_PORT, isProxyToolId, PROXY_TOOL_IDS } from '../proxy/types'
+import { DEFAULT_PROXY_PORT, PROXY_TOOL_IDS } from '../proxy/types'
 
 export interface ProxyCommandOptions {
   action?: string
   port?: string
   tool?: string
   provider?: string
+  model?: string
+  name?: string
   detach?: boolean
   open?: boolean
   dir?: string
@@ -23,15 +24,6 @@ export interface ProxyCommandOptions {
 
 function configDir(options: ProxyCommandOptions): string {
   return options.dir || process.env.CCJK_PROXY_DIR || CCJK_CONFIG_DIR
-}
-
-function ensureToken(dir: string): string {
-  const existing = getProviderSecret(dir, '__proxy_token__')
-  if (existing)
-    return existing
-  const token = randomBytes(18).toString('hex')
-  setProviderSecret(dir, '__proxy_token__', token)
-  return token
 }
 
 function alive(pid: number): boolean {
@@ -82,6 +74,18 @@ export async function proxyCommand(options: ProxyCommandOptions = {}): Promise<v
     switchProvider(options, dir)
     return
   }
+  if (action === 'use') {
+    useModel(options, dir)
+    return
+  }
+  if (action === 'save') {
+    saveProfile(options, dir)
+    return
+  }
+  if (action === 'load') {
+    loadProfile(options, dir)
+    return
+  }
   status(dir)
   if (options.open)
     openBrowser(`${proxyBase(loadProxyConfig(dir).port)}/ui`)
@@ -90,7 +94,7 @@ export async function proxyCommand(options: ProxyCommandOptions = {}): Promise<v
 async function serve(options: ProxyCommandOptions, dir: string) {
   const config = loadProxyConfig(dir)
   const port = options.port ? Number(options.port) : config.port || DEFAULT_PROXY_PORT
-  const token = ensureToken(dir)
+  const token = ensureProxyToken(dir)
   const started = await startProxyServer({
     dir,
     port,
@@ -120,6 +124,12 @@ async function serve(options: ProxyCommandOptions, dir: string) {
   clearPid(dir)
 }
 
+/** 后台进程要沿用当前 Node 的启动参数。否则 tsx 入口会被当成普通脚本，start 和 ui 打印成功后马上退出。 */
+export function proxyServeArgs(port: string, dir: string, entry = process.argv[1] || '', execArgv: readonly string[] = process.execArgv): string[] {
+  const kept = execArgv.filter(arg => arg !== '--inspect' && arg !== '--inspect-brk' && !arg.startsWith('--inspect='))
+  return [...kept, entry, 'proxy', 'serve', '--port', port, '--dir', dir]
+}
+
 function start(options: ProxyCommandOptions, dir: string) {
   const existing = readPid(dir)
   if (existing && alive(existing)) {
@@ -129,7 +139,7 @@ function start(options: ProxyCommandOptions, dir: string) {
     return
   }
   const port = options.port || String(loadProxyConfig(dir).port || DEFAULT_PROXY_PORT)
-  const child = spawn(process.execPath, [process.argv[1] || '', 'proxy', 'serve', '--port', port, '--dir', dir], {
+  const child = spawn(process.execPath, proxyServeArgs(port, dir), {
     detached: true,
     stdio: 'ignore',
     env: process.env,
@@ -161,7 +171,9 @@ function status(dir: string) {
   console.log(`供应商 ${config.providers.length}`)
   for (const tool of PROXY_TOOL_IDS) {
     const route = config.tools[tool]
-    console.log(`  ${tool}  ${route.mode}  ${route.providerId || '-'}`)
+    const model = route.model ? `  ${route.model}` : ''
+    const strategy = route.strategy && route.strategy !== 'order' ? `  ${route.strategy}` : ''
+    console.log(`  ${tool}  ${route.mode}  ${route.providerId || '-'}${model}${strategy}`)
   }
 }
 
@@ -172,42 +184,7 @@ function selectedTargets(options: ProxyCommandOptions): ApplyTarget[] {
   return all.filter(target => target.tool === options.tool)
 }
 
-/** 按每个工具已经保存的接法写入。直接连接写服务商自己的地址；经过本机和聚合写 /t/<工具>。 */
-export function applySavedRoutes(dir: string, targets: ApplyTarget[]): string[] {
-  const config = loadProxyConfig(dir)
-  const token = ensureToken(dir)
-  const written: string[] = []
-  for (const target of targets) {
-    const route = isProxyToolId(target.tool) ? config.tools[target.tool] : undefined
-    const mode = route?.mode ?? 'routing'
-    const provider = route?.providerId
-      ? config.providers.find(item => item.id === route.providerId)
-      : undefined
-    if (mode === 'direct' && !provider) {
-      console.log(ansis.yellow(`${target.tool} 是直接连接，但还没选定服务商，已跳过`))
-      continue
-    }
-    if (mode === 'direct' && provider && !canConnectDirectly(target.tool, provider.protocol)) {
-      console.log(ansis.yellow(`${target.tool} 听不懂 ${provider.name} 的接口，已跳过。请改成经过本机。`))
-      continue
-    }
-    const firstModel = provider?.models[0] || provider?.id
-    written.push(...applyProxy({
-      targets: [target],
-      proxyBaseUrl: proxyBase(config.port),
-      proxyToken: token,
-      snapshotDir: join(dir, 'proxy-snapshots'),
-      mode,
-      defaultModel: mode === 'aggregation' && provider && firstModel
-        ? aggregateModelId(provider.id, firstModel)
-        : firstModel,
-      upstreamBaseUrl: provider?.baseUrl,
-      upstreamToken: provider ? (getProviderSecret(dir, provider.id) || '') : '',
-      wireApi: provider ? wireApiFor(provider.protocol) : undefined,
-    }))
-  }
-  return written
-}
+export { applySavedRoutes } from '../proxy/apply-saved'
 
 function apply(options: ProxyCommandOptions, dir: string) {
   const targets = selectedTargets(options)
@@ -234,6 +211,65 @@ function revert(options: ProxyCommandOptions, dir: string) {
     console.log(ansis.yellow('没有可还原的快照'))
   for (const path of restored)
     console.log(ansis.green(`已还原 ${path}`))
+}
+
+function useModel(options: ProxyCommandOptions, dir: string) {
+  if (!options.tool || !options.model) {
+    console.log(ansis.yellow('用法：ccjk proxy use --tool claude-code --model deepseek/deepseek-chat'))
+    process.exitCode = 1
+    return
+  }
+  try {
+    assignModel(dir, options.tool, options.model)
+  }
+  catch (error) {
+    console.log(ansis.red((error as Error).message))
+    process.exitCode = 1
+    return
+  }
+  const targets = selectedTargets(options)
+  const written = applySavedRoutes(dir, targets)
+  if (written.length === 0)
+    console.log(ansis.yellow('已经记住这个模型。没有写入配置文件。'))
+  for (const path of written)
+    console.log(ansis.green(`已写入 ${path}`))
+}
+
+function saveProfile(options: ProxyCommandOptions, dir: string) {
+  if (!options.name) {
+    console.log(ansis.yellow('用法：ccjk proxy save --name 上班'))
+    process.exitCode = 1
+    return
+  }
+  try {
+    saveProxyProfile(dir, options.name)
+  }
+  catch (error) {
+    console.log(ansis.red((error as Error).message))
+    process.exitCode = 1
+    return
+  }
+  console.log(ansis.green(`已保存配置档 ${options.name.trim()}`))
+}
+
+function loadProfile(options: ProxyCommandOptions, dir: string) {
+  if (!options.name) {
+    console.log(ansis.yellow('用法：ccjk proxy load --name 上班'))
+    process.exitCode = 1
+    return
+  }
+  try {
+    useProxyProfile(dir, options.name)
+  }
+  catch (error) {
+    console.log(ansis.red((error as Error).message))
+    process.exitCode = 1
+    return
+  }
+  const written = applySavedRoutes(dir, selectedTargets(options))
+  console.log(ansis.green(`已换成配置档 ${options.name.trim()}`))
+  for (const path of written)
+    console.log(ansis.green(`已写入 ${path}`))
 }
 
 function switchProvider(options: ProxyCommandOptions, dir: string) {

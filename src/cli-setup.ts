@@ -397,10 +397,12 @@ export async function setupCommands(cli: CAC): Promise<void> {
     }, true))
 
   cli
-    .command('proxy [action]', 'Local proxy: serve, start, stop, status, apply, revert, switch')
+    .command('proxy [action]', 'Local proxy: serve, start, stop, status, apply, revert, switch, use, save, load')
     .option('--port <port>', 'Listen port')
-    .option('--tool <tool>', 'Tool id for apply, revert, or switch')
+    .option('--tool <tool>', 'Tool id for apply, revert, switch, or use')
     .option('--provider <id>', 'Provider id for switch')
+    .option('--model <provider/model>', 'Model for use, for example deepseek/deepseek-chat')
+    .option('--name <name>', 'Profile name for save or load')
     .option('--dir <dir>', 'Proxy config directory')
     .option('--detach', 'Kept for scripts; start always backgrounds')
     .option('--open', 'Open the local UI')
@@ -410,6 +412,8 @@ export async function setupCommands(cli: CAC): Promise<void> {
         port: options.port,
         tool: options.tool,
         provider: options.provider,
+        model: options.model,
+        name: options.name,
         detach: options.detach,
         open: options.open,
         dir: options.dir,

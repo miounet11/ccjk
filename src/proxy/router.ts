@@ -1,8 +1,9 @@
 import type { CircuitBreaker } from './circuit'
-import type { CanonicalRequest, ProxyConfig, ProxyProvider, ProxyToolId, UpstreamProtocol } from './types'
+import type { CanonicalRequest, ProxyConfig, ProxyProvider, ProxyToolId, RouteStrategy, UpstreamProtocol } from './types'
 import { parseAggregateModelId } from './aggregate'
 import { failoverOrder, pickProvider } from './circuit'
 import { joinUpstreamUrl, upstreamHeaders } from './headers'
+import { fetchUpstream } from './outbound'
 import {
   encodeClientResponse,
   encodeUpstream,
@@ -11,6 +12,8 @@ import {
   parseUpstreamResponse,
 } from './protocols'
 import { redact } from './redact'
+import { withSystemPrompt, rewriteModel } from './rewrite'
+import { pickByStrategy, sessionKeyOf } from './strategy'
 import { isProxyToolId } from './types'
 
 export type InboundProtocol = UpstreamProtocol
@@ -21,6 +24,7 @@ export interface ResolvedRoute {
   upstreamModel: string
   /** 聚合命中某一家时不再故障转移。 */
   sticky: boolean
+  strategy: RouteStrategy
 }
 
 const INBOUND_TOOL: Partial<Record<InboundProtocol, ProxyToolId>> = {
@@ -61,6 +65,7 @@ export function resolveRoute(config: ProxyConfig, protocol: InboundProtocol, mod
       chain: [parsed.providerId],
       upstreamModel: parsed.model,
       sticky: true,
+      strategy: 'order',
     }
   }
   const tool: ProxyToolId = toolHint && isProxyToolId(toolHint)
@@ -76,6 +81,7 @@ export function resolveRoute(config: ProxyConfig, protocol: InboundProtocol, mod
       chain: primary ? [primary] : [],
       upstreamModel: model,
       sticky: true,
+      strategy: 'order',
     }
   }
   const chain = failoverOrder(route.providerId, route.failover)
@@ -84,6 +90,7 @@ export function resolveRoute(config: ProxyConfig, protocol: InboundProtocol, mod
     chain,
     upstreamModel: model,
     sticky: false,
+    strategy: route.strategy ?? 'order',
   }
 }
 
@@ -95,6 +102,11 @@ export interface ForwardResult {
   usage?: { inputTokens?: number, outputTokens?: number, cacheReadTokens?: number, cacheWriteTokens?: number }
 }
 
+export interface RouteMemory {
+  cursor: Record<string, number>
+  sticky: Record<string, string>
+}
+
 export interface ForwardDeps {
   config: ProxyConfig
   apiKeyFor: (providerId: string) => string | undefined
@@ -102,6 +114,9 @@ export interface ForwardDeps {
   breaker: CircuitBreaker
   /** 从 `/t/<工具>` 解析出的工具。空则按协议猜。 */
   tool?: string | null
+  memory?: RouteMemory
+  /** 只在按用量选上游时调用。成功请求的写出 token，没有就记 1。 */
+  usageCounts?: () => Record<string, number>
 }
 
 function upstreamPath(protocol: UpstreamProtocol, model: string): string {
@@ -134,11 +149,48 @@ export async function forwardRequest(
       body: JSON.stringify({ error: { message: redact((error as Error).message) } }),
     }
   }
+  parsed = withSystemPrompt(parsed, deps.config.systemPrompt)
+  parsed = { ...parsed, model: rewriteModel(parsed.model, deps.config.aliases) }
   const route = resolveRoute(deps.config, protocol, parsed.model, deps.tool)
-  const fetchImpl = deps.fetchImpl ?? fetch
-  const candidates = route.sticky ? route.chain : route.chain.filter(id => deps.breaker.canRequest(id))
-  const first = route.sticky ? candidates[0] : pickProvider(route.chain, deps.breaker)
-  const order = first ? [first, ...candidates.filter(id => id !== first)] : []
+  if (!deps.memory)
+    deps.memory = { cursor: {}, sticky: {} }
+  const memory = deps.memory
+  const toolKey = deps.tool || protocol
+  const session = sessionKeyOf(parsed)
+  const stickyKey = session ? `${toolKey}:${session}` : ''
+  let counts: Record<string, number> = {}
+  if (!route.sticky && route.mode === 'routing' && route.strategy === 'usage' && deps.usageCounts) {
+    try {
+      counts = deps.usageCounts()
+    }
+    catch {
+      counts = {}
+    }
+  }
+  let order: string[]
+  if (route.sticky) {
+    order = route.chain[0] ? [route.chain[0]] : []
+  }
+  else if (route.mode === 'routing') {
+    const stickyId = stickyKey ? memory.sticky[stickyKey] : undefined
+    const picked = pickByStrategy({
+      strategy: route.strategy,
+      chain: route.chain,
+      cursor: memory.cursor[toolKey] ?? 0,
+      counts,
+      stickyId,
+      healthy: id => deps.breaker.canRequest(id),
+    })
+    if (picked.id && route.strategy === 'rotate' && picked.id !== stickyId)
+      memory.cursor[toolKey] = picked.nextCursor
+    const healthy = route.chain.filter(id => deps.breaker.canRequest(id))
+    order = picked.id ? [picked.id, ...healthy.filter(id => id !== picked.id)] : []
+  }
+  else {
+    const first = pickProvider(route.chain, deps.breaker)
+    const candidates = route.chain.filter(id => deps.breaker.canRequest(id))
+    order = first ? [first, ...candidates.filter(id => id !== first)] : []
+  }
   if (order.length === 0) {
     return {
       status: 503,
@@ -162,14 +214,16 @@ export async function forwardRequest(
     const headers = upstreamHeaders(provider.protocol, apiKey, provider.headers)
     const url = joinUpstreamUrl(provider.baseUrl, upstreamPath(provider.protocol, request.model))
     try {
-      const response = await fetchImpl(url, {
+      const response = await fetchUpstream(url, {
         method: 'POST',
         headers,
         body: JSON.stringify(upstreamBody),
-      })
+      }, provider.proxyUrl, deps.fetchImpl)
       const text = await response.text()
       if (!response.ok) {
         deps.breaker.failure(providerId)
+        if (stickyKey && memory.sticky[stickyKey] === providerId)
+          delete memory.sticky[stickyKey]
         lastStatus = response.status
         lastBody = JSON.stringify({ error: { message: redact(text).slice(0, 2000), providerId } })
         if (route.sticky || !shouldTryNext(response.status))
@@ -177,6 +231,8 @@ export async function forwardRequest(
         continue
       }
       deps.breaker.success(providerId)
+      if (stickyKey && route.mode === 'routing')
+        memory.sticky[stickyKey] = providerId
       const contentType = response.headers.get('content-type') || ''
       if (contentType.includes('text/event-stream') && protocol === 'anthropic-messages' && provider.protocol === 'openai-chat') {
         return {
@@ -200,6 +256,8 @@ export async function forwardRequest(
     }
     catch (error) {
       deps.breaker.failure(providerId)
+      if (stickyKey && memory.sticky[stickyKey] === providerId)
+        delete memory.sticky[stickyKey]
       lastStatus = 502
       lastBody = JSON.stringify({ error: { message: redact((error as Error).message), providerId } })
       if (route.sticky)

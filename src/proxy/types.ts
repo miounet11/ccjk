@@ -16,7 +16,17 @@ export type UpstreamProtocol
 
 export type ProxyMode = 'direct' | 'routing' | 'aggregation'
 
+/** 路由换上游的方式。smart / pace 需要订阅重置窗口，这里不做。 */
+export type RouteStrategy = 'order' | 'rotate' | 'usage'
+
 export type AccountKind = 'chatgpt' | 'copilot' | 'xai'
+
+/** 每百万 token 的参考价，不是账单。 */
+export interface ModelPrice {
+  input: number
+  output: number
+  cacheRead?: number
+}
 
 /** 写入客户端、可出现在界面上的供应商。密钥不在这里。 */
 export interface ProxyProvider {
@@ -28,6 +38,8 @@ export interface ProxyProvider {
   /** 账号槽 id。有值时用账号令牌，不用单独的密钥。 */
   accountId?: string
   headers?: Record<string, string>
+  /** 访问这家上游时走的 HTTP 代理。只支持 http/https，不支持 SOCKS。 */
+  proxyUrl?: string
 }
 
 export interface ToolRoute {
@@ -38,6 +50,10 @@ export interface ToolRoute {
   failover: string[]
   /** 聚合成员。默认上游必须在里面。 */
   members: string[]
+  /** 写入客户端的模型。空则用这家的第一个模型。 */
+  model?: string
+  /** 经过本机时怎么换下一家。默认按顺序。 */
+  strategy?: RouteStrategy
 }
 
 export interface ProxyConfig {
@@ -45,6 +61,14 @@ export interface ProxyConfig {
   port: number
   providers: ProxyProvider[]
   tools: Record<ProxyToolId, ToolRoute>
+  /** 一整套工具接法，按名字切换。 */
+  profiles?: Record<string, Record<ProxyToolId, ToolRoute>>
+  /** 请求里的短名字，值写成 服务商/模型。 */
+  aliases?: Record<string, string>
+  /** 转发前加在系统说明最前面。 */
+  systemPrompt?: string
+  /** 覆盖内置参考价。键是模型名。 */
+  prices?: Record<string, ModelPrice>
 }
 
 export interface AccountPublic {
@@ -68,6 +92,8 @@ export interface CanonicalMessage {
   toolCalls?: CanonicalToolCall[]
   toolCallId?: string
   images?: string[]
+  /** 思考过程。转发时保留，不丢掉。 */
+  reasoning?: string
 }
 
 export interface CanonicalTool {
@@ -94,6 +120,7 @@ export interface CanonicalUsage {
 
 export interface CanonicalResponse {
   text: string
+  reasoning?: string
   toolCalls: CanonicalToolCall[]
   usage?: CanonicalUsage
   finishReason?: string

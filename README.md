@@ -1,18 +1,79 @@
 # ccjk
 
-> **Clavue / Claude Code / Codex / Grok CLI 的医生 + 快捷操作员** —— 扫描本地配置健康度，经确认后一键写入 API、MCP、模型与工作流。不替代原生工具写代码，不碰 agent runtime。
+> 给 Clavue、Claude Code、Codex、Grok 用的本地配置医生。需要时再开一个只听本机的代理。
 
 [![npm](https://img.shields.io/npm/v/ccjk.svg)](https://www.npmjs.com/package/ccjk)
 [![license](https://img.shields.io/npm/l/ccjk.svg)](./LICENSE)
 [![node](https://img.shields.io/node/v/ccjk.svg)](https://nodejs.org)
 
-## 安装
+扫描本地配置，确认后写入 API、MCP、模型和工作流。不替这些工具写代码。代理要你自己打开：只听 `127.0.0.1`，不读钥匙串，不冒充官方客户端，不发送遥测。
+
+**English.** A local config doctor for Clavue, Claude Code, Codex, and Grok. It scans, backs up, then writes API, MCP, model, and workflow settings. `ccjk ui` starts an optional proxy on `127.0.0.1` only. It does not read the keychain, impersonate official clients, or send telemetry.
+
+## 适合谁
+
+- 已经在用 Clavue、Claude Code、Codex 或 Grok，想少手改 JSON 和 TOML。
+- 想把几家模型接到这些工具上，并且只接受本机转发。
+- 希望换模型和管配置是同一个命令，而不是再养一个常驻应用。
+
+## 30 秒开始
+
+需要 Node.js 20 或更新版本。
 
 ```bash
 npm install -g ccjk
+ccjk
+ccjk ui
+ccjk proxy use --tool claude-code --model deepseek/deepseek-chat
 ```
 
+`ccjk` 打开医生 / 操作员菜单。`ccjk ui` 在代理没运行时把它拉起来，并打开本机界面，默认是 `http://127.0.0.1:15721/ui`。最后一行按「工具 + 服务商/模型」写入：这个工具听得懂该接口就直接连接，听不懂就经过本机。
+
 升级：`npm install -g ccjk@latest`
+
+## 和 cc-switch、magpie 怎么选
+
+三家都在解决「别再手改各家配置」。形态不同。
+
+| | ccjk | [cc-switch](https://github.com/farion1231/cc-switch) | [magpie](https://github.com/yetone/magpie) |
+|---|---|---|---|
+| 形态 | 终端 CLI | 桌面应用 | 菜单栏 + 本地网关 |
+| 主业 | 扫配置、备份后写入、还原 | 在一个应用里管服务商、MCP、Skills、Prompts | 把很多 agent 的模型接到一个网关 |
+| 代理 | 可选，只听 127.0.0.1 | 以改各客户端配置为主 | 网关就是产品，默认本机，也可以共享到局域网 |
+| 密钥 | 你自己的密钥。不读钥匙串 | 在应用里填写和切换 | 可读钥匙串，也能发现订阅 |
+| 路由 | 顺序、轮流、按用量，同一段对话粘住 | 切换当前供应商 | 还有 smart、pace |
+| 遥测 | 没有 | 介绍页没有把遥测当作功能 | 介绍页写了每日遥测 |
+
+已经在终端里管这几个工具时，ccjk 更直接：
+
+- 配置和代理是同一个命令。换模型不用再装一个常驻应用。
+- 代理不监听局域网，不读钥匙串，不冒充官方客户端，也不上报使用情况。
+- 写进工具之前先留快照，可以还原。
+- 中文界面。一行命令指定工具和「服务商/模型」。
+
+他们覆盖得更宽的地方，ccjk 不做：桌面里同时管 MCP、技能和提示词，菜单栏，订阅和钥匙串，六十多个 agent，插件，smart / pace，局域网和 Docker。要这些，用他们。
+
+## 可选的本机代理
+
+默认不开。`ccjk proxy start` 或 `ccjk ui` 之后才听 `127.0.0.1`，默认端口 `15721`。请求里的身份固定是 `ccjk-proxy`。
+
+界面里搜索服务商或模型，点「用这个」。三种接法在「高级：接法」里：直接连接、经过本机、一个列表里选。分段只改草稿，点「使用这家」或「用这个」才写入。
+
+- 听得懂的接口直接写服务商自己的地址和密钥，工具自己去连。Claude 系只对 Anthropic 消息接口直连；Codex、Grok、OpenCode 只对 OpenAI Chat、OpenAI Responses 和 xAI 直连。
+- 点「用这个」或 `proxy use` 时，如果指定了模型，会把这个工具自己的默认模型一起改成它。没指定模型时不改。想保留原来的默认模型，用「高级：接法」里的「使用这家」。
+- 听不懂就经过本机翻译。思考过程会留下来：OpenAI 的 `reasoning_content` 会变成 Claude 能读的 thinking。
+- 经过本机或聚合时，工具配置里写的是本机地址和本机令牌。服务商密钥放在 `proxy-secrets.json`（AES-256-GCM），不进 `proxy.json`。
+- 每个工具一条路由，路径是 `http://127.0.0.1:<端口>/t/<工具>`。聚合模型名是 `ccjk-<服务商>--<模型>`。
+- 经过本机时可以按顺序、轮流，或先用得少的换上游。同一段对话在上游还健康时继续用同一家。连续失败会熔断，再换下一家。
+- 可以从你自己的 Claude、Codex、Grok 配置导入地址。`127.0.0.1`、`localhost`、`::1` 会跳过。不读钥匙串，也不导入 OpenCode。
+- 模型别名和一段补充说明在转发出去之前写上。
+- 每个服务商可以再走一个 HTTP 出站代理（CONNECT）。页面上不显示这段地址里的账号密码；地址本身留在 `proxy.json`，进程要靠它连出去。
+- 用量页按每百万 token 估一个参考价，并给出缓存命中。这不是账单。
+- 配置档可以起中文名：`ccjk proxy save --name 上班`，`ccjk proxy load --name 上班`。
+- 第一次写入前留快照。`ccjk proxy revert` 或界面里的「恢复原来的配置」按快照还原。
+- 侧栏只列出本机已经装了的工具。一个都没检测到时，才列出全部。
+
+拉模型列表用的是你保存的密钥。拉失败就留着上一次的列表。
 
 ## 多语言
 
@@ -26,7 +87,7 @@ ccjk --lang ja      # 日本語
 
 首次启动会先选择显示语言，再选择 Clavue / Claude Code / Codex / Grok CLI。进入菜单后建议按 **W** 走快捷向导；如果环境不确定，先按 **H** 做医生体检。
 
-## 30 秒看懂
+## 医生和操作员
 
 | 角色 | 做什么 | 怎么用 |
 |---|---|---|
@@ -51,6 +112,9 @@ ccjk
 | 彻底重置 Codex 再初始化 | 菜单 **W** → 重置后初始化 |
 | API 通不通 | `ccjk probe` |
 | 切换 Codex API 提供商 | `ccjk config-switch` |
+| 给某个工具指定模型 | `ccjk proxy use --tool codex --model deepseek/deepseek-chat` |
+| 保存 / 换回一整套代理路由 | `ccjk proxy save --name 上班` / `ccjk proxy load --name 上班` |
+| 还原被代理改过的配置 | `ccjk proxy revert` |
 | Grok / Reasonix 状态与启动 | `ccjk grok` / `ccjk reasonix` |
 | 检查工具版本更新 | `ccjk check-updates` |
 
@@ -73,8 +137,8 @@ ccjk
 | `ccjk uninstall` | 卸载 CCJK 管理的配置 |
 | `ccjk ccr` | Claude Code Router 配置 |
 | `ccjk ccu` | Claude Code 用量分析 |
-| `ccjk proxy` | 本机代理：`start` / `stop` / `status` / `apply` / `revert` / `switch` |
-| `ccjk ui` | 打开本机代理界面（供应商、模式、故障转移、账号、会话、用量、预设、快捷切换） |
+| `ccjk proxy` | 本机代理：`serve` / `start` / `stop` / `status` / `apply` / `revert` / `switch` / `use` / `save` / `load` |
+| `ccjk ui` | 打开本机代理界面。代理没在跑时会先启动 |
 
 工具别名：`-T cv`（Clavue）、`-T cc`（Claude Code）、`-T cx`（Codex）、`-T gk`（Grok）。
 
@@ -87,7 +151,7 @@ ccjk
 | **Codex** | `~/.codex/`（`CODEX_HOME`） | 同上 + 三端共用配置（见下） |
 | **Grok CLI** | `~/.grok/` + `~/.ccjk/` profile | 医生（清理 skills）+ 轻量操作员（profile 启动） |
 
-ccjk 自身配置只在 `~/.ccjk/`，**绝不混入**各工具目录。
+ccjk 自身配置只在 `~/.ccjk/`，**绝不混入**各工具目录。代理配置也在这里：`proxy.json` 记路由，`proxy-secrets.json` 记密钥。
 
 ### Codex：CLI + 桌面 App + IDE 扩展
 
@@ -114,10 +178,11 @@ ccjk 写入配置后：
 
 ## 设计原则
 
-- **配置工具就是配置工具** —— 不做 brain、orchestrator、后台守护进程
+- **配置工具就是配置工具** —— 不做 brain、orchestrator。代理只在你运行 `ccjk proxy` 或 `ccjk ui` 时出现
 - **不主动写代码** —— 不在运行时偷偷注入 hook 或命令
-- **备份先行** —— 任何写盘前产生 `.bak-<ts>` 备份
-- **可重复** —— `init -s`、`clean -s`、`clean --purge-all` 等支持脚本化
+- **备份先行** —— 任何写盘前产生备份；代理写入另外留第一次快照，可用 `ccjk proxy revert` 还原
+- **可重复** —— `init -s`、`clean -s`、`clean --purge-all`、`proxy use` 等支持脚本化
+- **本机为界** —— 代理只听 `127.0.0.1`，不读钥匙串，不发送遥测
 
 产品细节见 [PRODUCT.md](./PRODUCT.md)，架构见 [ARCHITECTURE.md](./ARCHITECTURE.md)。
 
@@ -126,7 +191,7 @@ ccjk 写入配置后：
 ```bash
 pnpm install
 pnpm typecheck
-pnpm test          # 2500+ tests
+pnpm test
 pnpm lint
 pnpm build
 ```

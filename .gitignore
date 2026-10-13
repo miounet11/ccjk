@@ -9,3 +9,4 @@ coverage
 .clavue/
 .cursor/
 setup-report-*.md
+tmp-npm-cache/

@@ -28,6 +28,7 @@ export function startProxyServer(options: ListenOptions): Promise<{ server: Serv
     proxyToken: options.proxyToken ?? 'ccjk-local',
     port: options.port ?? DEFAULT_PROXY_PORT,
     targets: options.targets,
+    memory: { cursor: {}, sticky: {} },
   }
   const server = createServer((req, res) => {
     void handleProxyHttp(req, res, runtime)

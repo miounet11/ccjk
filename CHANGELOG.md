@@ -4,6 +4,21 @@ ccjk 是 Clavue / Claude Code / Codex 的本地配置 CLI。本文记录用户�
 
 格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)。
 
+## [Unreleased]
+
+### Fixed
+- `ccjk proxy start` 和 `ccjk ui` 后台拉起时会带上当前 Node 的启动参数。用 TypeScript 入口时，以前会打印已启动，服务却马上退出。
+
+### Changed
+- 写入客户端配置时，只要带了模型就会改写那个工具的默认模型（以前只在聚合模式下写）。点「用这个」或 `proxy use` 会带模型；「使用这家」不带就不写。
+
+### Added
+- 界面主路径改为按「服务商 / 模型」点「用这个」。`ccjk proxy use --tool <工具> --model <服务商>/<模型>` 一步写入。
+- 经过本机时可以按顺序、轮流，或先用得少的换上游。同一段对话在上游还健康时继续用同一家。
+- 可以从本机 Claude、Codex、Grok 配置导入地址（跳过 127.0.0.1 / localhost），可以向服务商拉取模型列表，拉失败就留着原来的。
+- 思考内容会跟着协议转换走，OpenAI 的 `reasoning_content` 会变成 Anthropic 的 thinking。
+- 配置档 `ccjk proxy save/load --name`，模型别名，转发前的补充说明，参考价和缓存命中，以及每家可选的 HTTP 出站代理。
+
 ## [17.1.0] - 2026-10-12
 
 ### Added
