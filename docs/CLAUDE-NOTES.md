@@ -44,8 +44,8 @@ ccjk = **四工具（Clavue / Claude Code / Codex / Grok CLI）的医生 + 快�
 ## 架构与关键文档指针（只读这些，不要重复）
 - 完整代码组织与不变量：`ARCHITECTURE.md`
 - 产品身份与主路径：`PRODUCT.md`
-- 实现总览与历史沉淀：`IMPLEMENTATION_SUMMARY.md`、`docs/ccjk-all-implementation-summary.md`、`docs/v11-implementation-summary.md` 等
-- 演进路线与硬化：`docs/HARDENING-ROADMAP.md`、`docs/RELEASE-NOTES.md`、`CHANGELOG.md`
+- 实现总览与历史沉淀：`docs/RELEASE-NOTES.md`、`CHANGELOG.md`
+- 演进路线与硬化：`CHANGELOG.md`、`docs/RELEASE-NOTES.md`（加固路线图等内部材料已移到私有仓 `ccjk-v`）
 - 源码结构（当前 src 薄层 + dist 运行时）：
   - `src/cli.ts`（唯一入口）
   - `src/commands/`（一命令一文件）
