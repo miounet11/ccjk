@@ -82,6 +82,8 @@ ccjk = **四工具（Clavue / Claude Code / Codex / Grok CLI）的医生 + 快�
 - **首屏示意图**：`docs/assets/architecture.svg` 为手绘 SVG（ASCII 实体，勿写裸 `·` / `→` 等非 ASCII，会被写成非法字节导致 XML 不合法）。`site/assets/architecture.svg` 是其副本，保持站点自包含；两份须同步。
 - **对比表只写各家 README 里的事实**，不臆测；ccjk 不做的（桌面管 MCP/Skills/Prompts、菜单栏、订阅与钥匙串、60+ agent、插件、smart/pace、局域网、Docker）明确写出「要这些用他们」。
 - **公开仓根目录不留杂物**：空壳 `setup-report-*.md`、内部 `*-audit-report.md` 已移出并加进 `.gitignore`。首页只留代码、文档、宣传页。
+- **内部信息复查（2026-10-15）**：`docs/.vitepress/v8-implementation-summary.md` 曾含内部服务器路径（`/www/wwwroot/www.claudehome.cn/...`）并已在公开仓暴露，已移出并加入 `.gitignore`。归档内部 docs 时要连 `docs/` 子目录一起扫，别只扫顶层。注意：从 HEAD 删除不等于从 git 历史清除，彻底清除需改写历史（尚未做）。
+- 公开仓 `docs/` 现只保留 `QUICKSTART.md`、`RELEASE-NOTES.md`、`CLAUDE-NOTES.md`、`assets/`，两份 README 的文档导航已同步指向它们。
 
 ## 变更管理
 - 本 NOTES 是**手动维护的蒸馏版**会话接管产物（2026-06 由 Grok 基于 plan mode 探索 + 用户确认创建）。

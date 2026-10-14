@@ -141,8 +141,10 @@ Where they go wider, ccjk doesn't: managing MCP, Skills and Prompts from a deskt
 
 ## Docs
 
+- [QUICKSTART.md](./docs/QUICKSTART.md) — copy-paste walkthrough
 - [PRODUCT.md](./PRODUCT.md) — product boundaries and behavior
 - [ARCHITECTURE.md](./ARCHITECTURE.md) — architecture invariants
+- [RELEASE-NOTES.md](./docs/RELEASE-NOTES.md) — release history
 - [CHANGELOG.md](./CHANGELOG.md) — what changed
 - [Landing page](./site/index.html) — a zero-dependency static intro page
 

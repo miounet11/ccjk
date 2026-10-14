@@ -10,6 +10,7 @@ coverage
 .cursor/
 setup-report-*.md
 *-audit-report.md
+docs/.vitepress/
 tmp-npm-cache/
 
 # 本地环境与构建缓存（不入库）

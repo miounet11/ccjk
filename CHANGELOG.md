@@ -10,6 +10,9 @@ ccjk 是 Clavue / Claude Code / Codex 的本地配置 CLI。本文记录用户�
 - **对外介绍重做**：README 拆成英文主入口 `README.md` 和中文详版 `README.zh-CN.md`，两份顶部互链；首屏加入 `docs/assets/architecture.svg` 架构示意图；补全 6 个客户端工具、28 个服务商预设、5 种协议、3 种路由的说明。宣传页 `site/index.html` 同步。
 - 公开仓根目录不再保留空壳 `setup-report-*.md` 与内部审计报告，已加入 `.gitignore`。
 
+### Security
+- 移出 `docs/.vitepress/v8-implementation-summary.md`：含内部服务器路径，且已随公开仓暴露。已加入 `.gitignore`。
+
 ### Fixed
 - `ccjk proxy start` 和 `ccjk ui` 后台拉起时会带上当前 Node 的启动参数。用 TypeScript 入口时，以前会打印已启动，服务却马上退出。
 

@@ -218,8 +218,10 @@ ccjk --lang ja      # 日本語
 
 ## 文档
 
+- [QUICKSTART.md](./docs/QUICKSTART.md) —— 可直接复制的上手指引
 - [PRODUCT.md](./PRODUCT.md) —— 产品边界与行为
 - [ARCHITECTURE.md](./ARCHITECTURE.md) —— 架构不变量
+- [RELEASE-NOTES.md](./docs/RELEASE-NOTES.md) —— 版本历史
 - [CHANGELOG.md](./CHANGELOG.md) —— 变更记录
 - [宣传页](./site/index.html) —— 零依赖静态介绍页
 
