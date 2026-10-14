@@ -9,6 +9,7 @@ coverage
 .clavue/
 .cursor/
 setup-report-*.md
+*-audit-report.md
 tmp-npm-cache/
 
 # 本地环境与构建缓存（不入库）

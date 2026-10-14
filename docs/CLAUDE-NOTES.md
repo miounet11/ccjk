@@ -73,6 +73,16 @@ ccjk = **四工具（Clavue / Claude Code / Codex / Grok CLI）的医生 + 快�
 - 推荐：先 `grok login`，`ccjk init -T grok` 存 profile，对话中引用 `docs/CLAUDE-NOTES.md`。
 - 未来若 Grok 开放 MCP 配置，扩展 `TOOL_MATRIX.grok` 即可。
 
+## 对外呈现（2026-10-14）
+
+公开仓 `miounet11/ccjk` 的介绍内容对标 magpie / cc-switch 重做，口径与边界如下：
+
+- **README 拆为两份**：`README.md` 作英文主入口，`README.zh-CN.md` 是中文详版，两份顶部互链。对外宣传以英文主文件为准，中文版跟进同一事实集。
+- **事实数字以代码为准**：6 个客户端工具（`PROXY_TOOL_IDS`）、28 个内置服务商预设（`src/proxy/presets.ts`）、5 种协议（`anthropic-messages` / `openai-chat` / `openai-responses` / `gemini` / `xai`）、3 种路由（顺序 / 轮流 / 用量）。改这些常量时同步 README 与宣传页。
+- **首屏示意图**：`docs/assets/architecture.svg` 为手绘 SVG（ASCII 实体，勿写裸 `·` / `→` 等非 ASCII，会被写成非法字节导致 XML 不合法）。`site/assets/architecture.svg` 是其副本，保持站点自包含；两份须同步。
+- **对比表只写各家 README 里的事实**，不臆测；ccjk 不做的（桌面管 MCP/Skills/Prompts、菜单栏、订阅与钥匙串、60+ agent、插件、smart/pace、局域网、Docker）明确写出「要这些用他们」。
+- **公开仓根目录不留杂物**：空壳 `setup-report-*.md`、内部 `*-audit-report.md` 已移出并加进 `.gitignore`。首页只留代码、文档、宣传页。
+
 ## 变更管理
 - 本 NOTES 是**手动维护的蒸馏版**会话接管产物（2026-06 由 Grok 基于 plan mode 探索 + 用户确认创建）。
 - 任何重大架构、纪律、验证命令变更，必须同步更新本文 + 根级 3 个指令文件。

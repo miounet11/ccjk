@@ -1,0 +1,121 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 600" width="1000" height="600" role="img" aria-label="ccjk sits between your local coding tools and model providers, listening on 127.0.0.1 only">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#4ade80"/>
+    </marker>
+    <marker id="arrow2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#60a5fa"/>
+    </marker>
+    <linearGradient id="centerFill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#16201a"/>
+      <stop offset="1" stop-color="#111519"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1000" height="600" rx="16" fill="#0d0f12"/>
+
+  <!-- header -->
+  <text x="40" y="52" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="30" font-weight="700" fill="#e8eaed">ccjk</text>
+  <text x="40" y="80" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="15" fill="#9aa2ad">One command for config and model switching. Proxy off by default.</text>
+
+  <!-- column labels -->
+  <text x="40" y="122" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="11" font-weight="600" letter-spacing="1.6" fill="#6b7280">YOUR LOCAL TOOLS</text>
+  <text x="720" y="122" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="11" font-weight="600" letter-spacing="1.6" fill="#6b7280">MODEL PROVIDERS</text>
+
+  <!-- left cards -->
+  <g font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="15">
+    <rect x="40" y="136" width="220" height="44" rx="10" fill="#14171c" stroke="#23272e"/>
+    <circle cx="64" cy="158" r="4" fill="#4ade80"/>
+    <text x="82" y="163" fill="#e8eaed">Clavue</text>
+
+    <rect x="40" y="192" width="220" height="44" rx="10" fill="#14171c" stroke="#23272e"/>
+    <circle cx="64" cy="214" r="4" fill="#4ade80"/>
+    <text x="82" y="219" fill="#e8eaed">Claude Code</text>
+
+    <rect x="40" y="248" width="220" height="44" rx="10" fill="#14171c" stroke="#23272e"/>
+    <circle cx="64" cy="270" r="4" fill="#4ade80"/>
+    <text x="82" y="275" fill="#e8eaed">Codex</text>
+
+    <rect x="40" y="304" width="220" height="44" rx="10" fill="#14171c" stroke="#23272e"/>
+    <circle cx="64" cy="326" r="4" fill="#4ade80"/>
+    <text x="82" y="331" fill="#e8eaed">Grok CLI</text>
+
+    <rect x="40" y="360" width="220" height="44" rx="10" fill="#14171c" stroke="#23272e"/>
+    <circle cx="64" cy="382" r="4" fill="#4ade80"/>
+    <text x="82" y="387" fill="#e8eaed">OpenCode</text>
+
+    <rect x="40" y="416" width="220" height="44" rx="10" fill="#14171c" stroke="#23272e"/>
+    <circle cx="64" cy="438" r="4" fill="#4ade80"/>
+    <text x="82" y="443" fill="#e8eaed">ClaudeWork</text>
+  </g>
+
+  <!-- right cards -->
+  <g font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="15">
+    <rect x="720" y="136" width="240" height="44" rx="10" fill="#14171c" stroke="#23272e"/>
+    <circle cx="744" cy="158" r="4" fill="#60a5fa"/>
+    <text x="762" y="163" fill="#e8eaed">Anthropic</text>
+
+    <rect x="720" y="192" width="240" height="44" rx="10" fill="#14171c" stroke="#23272e"/>
+    <circle cx="744" cy="214" r="4" fill="#60a5fa"/>
+    <text x="762" y="219" fill="#e8eaed">OpenAI</text>
+
+    <rect x="720" y="248" width="240" height="44" rx="10" fill="#14171c" stroke="#23272e"/>
+    <circle cx="744" cy="270" r="4" fill="#60a5fa"/>
+    <text x="762" y="275" fill="#e8eaed">Gemini</text>
+
+    <rect x="720" y="304" width="240" height="44" rx="10" fill="#14171c" stroke="#23272e"/>
+    <circle cx="744" cy="326" r="4" fill="#60a5fa"/>
+    <text x="762" y="331" fill="#e8eaed">xAI</text>
+
+    <rect x="720" y="360" width="240" height="44" rx="10" fill="#14171c" stroke="#23272e"/>
+    <circle cx="744" cy="382" r="4" fill="#60a5fa"/>
+    <text x="762" y="387" fill="#e8eaed">DeepSeek &#183; Kimi &#183; GLM</text>
+
+    <rect x="720" y="416" width="240" height="44" rx="10" fill="#14171c" stroke="#23272e" stroke-dasharray="4 4"/>
+    <text x="744" y="443" fill="#9aa2ad">+ 22 more presets</text>
+  </g>
+
+  <!-- connector spines -->
+  <g stroke="#39414d" stroke-width="1.5" fill="none">
+    <path d="M260 158 H278"/><path d="M260 214 H278"/><path d="M260 270 H278"/>
+    <path d="M260 326 H278"/><path d="M260 382 H278"/><path d="M260 438 H278"/>
+    <path d="M278 158 V438"/>
+    <path d="M702 158 H720"/><path d="M702 214 H720"/><path d="M702 270 H720"/>
+    <path d="M702 326 H720"/><path d="M702 382 H720"/><path d="M702 438 H720"/>
+    <path d="M702 158 V438"/>
+  </g>
+  <path d="M278 298 H326" stroke="#4ade80" stroke-width="2" marker-end="url(#arrow)"/>
+  <path d="M674 298 H698" stroke="#60a5fa" stroke-width="2" marker-end="url(#arrow2)"/>
+
+  <!-- center box -->
+  <rect x="330" y="136" width="340" height="324" rx="18" fill="url(#centerFill)" stroke="#2f5b41" stroke-width="1.5"/>
+  <rect x="330" y="136" width="340" height="324" rx="18" fill="none" stroke="#4ade80" stroke-opacity="0.14"/>
+
+  <text x="500" y="188" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="32" font-weight="700" fill="#e8eaed">ccjk</text>
+  <text x="500" y="212" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="14" fill="#9aa2ad">local config doctor + optional proxy</text>
+
+  <path d="M362 232 H638" stroke="#262a31" stroke-width="1"/>
+
+  <rect x="380" y="250" width="240" height="34" rx="9" fill="#0b0f0d" stroke="#2f5b41"/>
+  <text x="500" y="272" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="14" fill="#4ade80">http://127.0.0.1:15721</text>
+  <text x="500" y="304" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="12.5" fill="#6b7280">proxy off until you run it</text>
+
+  <path d="M362 322 H638" stroke="#262a31" stroke-width="1"/>
+
+  <g font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="13.5" text-anchor="middle">
+    <text x="500" y="350" fill="#9aa2ad"><tspan fill="#4ade80" font-weight="600">5</tspan> protocols &#183; <tspan fill="#4ade80" font-weight="600">3</tspan> routing modes</text>
+    <text x="500" y="378" fill="#9aa2ad"><tspan fill="#4ade80" font-weight="600">28</tspan> provider presets &#183; usage &amp; cost</text>
+  </g>
+
+  <text x="500" y="418" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="12" fill="#6b7280">scan &#8594; confirm &#8594; write, with backup</text>
+  <text x="500" y="440" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="12" fill="#6b7280">no telemetry &#183; no keychain</text>
+
+  <!-- footer -->
+  <text x="40" y="530" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="11" font-weight="600" letter-spacing="1.6" fill="#6b7280">BOUNDARIES</text>
+  <g font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="13" fill="#9aa2ad">
+    <text x="40" y="558">Listens on 127.0.0.1 only</text>
+    <text x="270" y="558">Sends no telemetry</text>
+    <text x="470" y="558">Never reads the keychain</text>
+    <text x="700" y="558">Backs up before writing</text>
+  </g>
+</svg>

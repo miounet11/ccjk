@@ -103,6 +103,10 @@
   .btn.primary { background: var(--accent); color: #06210f; border-color: var(--accent); }
   .btn.primary:hover { filter: brightness(1.08); }
 
+  /* hero 示意图 */
+  .hero-art { margin-top: 40px; }
+  .hero-art img { width: 100%; height: auto; display: block; border-radius: var(--radius); }
+
   /* ---------- 章节 ---------- */
   section { padding: 66px 0; border-top: 1px solid var(--line); }
   h2 { font-size: clamp(24px, 3.4vw, 33px); letter-spacing: -.025em; margin: 0 0 10px; font-weight: 700; }
@@ -226,6 +230,11 @@
       <a class="btn" href="https://www.npmjs.com/package/ccjk">npm</a>
       <a class="btn" href="#start">30 秒开始</a>
     </div>
+
+    <div class="hero-art">
+      <img src="assets/architecture.svg" width="900"
+           alt="ccjk 位于本地编码工具和模型服务商之间，只听 127.0.0.1">
+    </div>
   </div>
 </div>
 
@@ -245,14 +254,14 @@
         <p>换模型不用再装一个常驻应用。一行指定工具和「服务商 / 模型」，听得懂就直接连接，听不懂就经过本机翻译。</p>
       </div>
       <div class="card">
+        <span class="icon">🔌</span>
+        <h3>6 个工具，28 家服务商</h3>
+        <p>Clavue、Claude Code、Codex、Grok、OpenCode、ClaudeWork；内置 28 个服务商预设，也接任何 OpenAI 兼容端点。</p>
+      </div>
+      <div class="card">
         <span class="icon">🔒</span>
         <h3>本机为界</h3>
         <p>代理只听 <code class="inline-code">127.0.0.1</code>，不读钥匙串，不冒充官方客户端，不发送遥测。服务商密钥本机加密保存，不进配置文件。</p>
-      </div>
-      <div class="card">
-        <span class="icon">🧭</span>
-        <h3>中文界面，日常说法</h3>
-        <p>侧栏只列出本机已经装了的工具。搜索服务商或模型，点「用这个」就写入。</p>
       </div>
     </div>
   </div>
@@ -260,8 +269,8 @@
 
 <section id="modes">
   <div class="wrap">
-    <h2>三种接法，按工具各走各的</h2>
-    <p class="lead">每个工具一条路由，互不影响。接法收在「高级：接法」里，点「使用这家」或「用这个」才写入。</p>
+    <h2>三种接法，五种协议</h2>
+    <p class="lead">每个工具一条路由，互不影响。协议互转支持 anthropic-messages、openai-chat、openai-responses、gemini 和 xai。接法收在「高级：接法」里，点「使用这家」或「用这个」才写入。</p>
     <div class="modes">
       <div class="mode">
         <span class="tag">直接连接</span>
@@ -404,7 +413,8 @@
       <span>ccjk · MIT</span>
       <a href="https://github.com/miounet11/ccjk">GitHub</a>
       <a href="https://www.npmjs.com/package/ccjk">npm</a>
-      <a href="https://github.com/miounet11/ccjk/blob/main/README.md">README</a>
+      <a href="https://github.com/miounet11/ccjk/blob/main/README.md">README (EN)</a>
+      <a href="https://github.com/miounet11/ccjk/blob/main/README.zh-CN.md">README (中文)</a>
       <span class="spacer">Clavue / Claude Code / Codex / Grok</span>
     </div>
     <div class="disclaimer">
