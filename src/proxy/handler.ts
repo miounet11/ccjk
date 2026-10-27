@@ -164,6 +164,27 @@ export async function handleProxyHttp(req: IncomingMessage, res: ServerResponse,
       json(res, 200, summarizeUsage(readUsage(runtime.usageFile), config.prices))
       return
     }
+    if (req.method === 'GET' && path === '/api/logs') {
+      const limit = Math.min(Number(url.searchParams.get('limit')) || 200, 1000)
+      const provider = url.searchParams.get('provider') || ''
+      const failedOnly = url.searchParams.get('failed') === '1'
+      const events = readUsage(runtime.usageFile)
+        .filter(event => !provider || event.providerId === provider)
+        .filter(event => !failedOnly || event.status >= 400)
+        .slice(-limit)
+        .reverse()
+      json(res, 200, { events })
+      return
+    }
+    if (req.method === 'GET' && path === '/api/decisions') {
+      const limit = Math.min(Number(url.searchParams.get('limit')) || 100, 500)
+      const decisions = readUsage(runtime.usageFile)
+        .filter(event => Array.isArray(event.attempts) && event.attempts.length > 0)
+        .slice(-limit)
+        .reverse()
+      json(res, 200, { decisions })
+      return
+    }
     if (req.method === 'POST' && path === '/api/providers') {
       await mutateProviders(req, res, runtime)
       return
@@ -233,6 +254,7 @@ export async function handleProxyHttp(req: IncomingMessage, res: ServerResponse,
           outputTokens: result.usage?.outputTokens,
           cacheReadTokens: result.usage?.cacheReadTokens,
           cacheWriteTokens: result.usage?.cacheWriteTokens,
+          attempts: result.attempts,
         })
       }
       send(res, result.status, result.body, result.contentType.includes('event-stream')

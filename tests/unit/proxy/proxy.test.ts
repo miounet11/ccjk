@@ -4,7 +4,7 @@ import { connect as netConnect, createServer as createNetServer, type Server } f
 import { tmpdir } from 'node:os'
 import { join } from 'pathe'
 import { afterEach, describe, expect, it } from 'vitest'
-import { applySavedRoutes, proxyServeArgs } from '../../../src/commands/proxy'
+import { applySavedRoutes, proxyServeArgs, routeLines } from '../../../src/commands/proxy'
 import { deleteAccount, getAccountToken, getProviderSecret, saveAccount, setProviderSecret } from '../../../src/proxy/accounts'
 import { aggregateModelId, parseAggregateModelId } from '../../../src/proxy/aggregate'
 import { assignModel } from '../../../src/proxy/assign'
@@ -21,7 +21,7 @@ import { forwardRequest } from '../../../src/proxy/router'
 import { startProxyServer } from '../../../src/proxy/server'
 import { listSessions } from '../../../src/proxy/sessions'
 import { pickByStrategy } from '../../../src/proxy/strategy'
-import { ACCOUNT_TOS_WARNING, PROXY_USER_AGENT } from '../../../src/proxy/types'
+import { ACCOUNT_TOS_WARNING, PROXY_TOOL_IDS, PROXY_USER_AGENT } from '../../../src/proxy/types'
 import { renderUiPage } from '../../../src/proxy/ui-page'
 import { recordUsage, summarizeUsage } from '../../../src/proxy/usage'
 
@@ -232,6 +232,11 @@ describe('proxy apply and forward', () => {
     expect(seen[1].headers.authorization).toBe('Bearer sk-goodkeyvalue')
     expect(seen[1].headers['x-api-key']).toBeUndefined()
     expect(seen[1].headers['user-agent']).toBe(PROXY_USER_AGENT)
+    expect(result.attempts).toHaveLength(2)
+    expect(result.attempts?.[0].status).toBe(500)
+    expect(result.attempts?.[0].reason).toBe('换下一家')
+    expect(result.attempts?.[1].status).toBe(200)
+    expect(result.attempts?.[1].reason).toBeUndefined()
   })
 
   it('serves the UI, health, and an aggregated model list', async () => {
@@ -257,6 +262,72 @@ describe('proxy apply and forward', () => {
     const body = await models.json() as { data: Array<{ id: string }> }
     expect(body.data[0].id).toBe('ccjk-deepseek--deepseek-chat')
     expect(renderUiPage()).toContain('快捷切换')
+    expect(renderUiPage()).toContain('picker-grid')
+    expect(renderUiPage()).toContain('ccjk-lang')
+    expect(renderUiPage()).toContain('localizeTree')
+    expect(renderUiPage()).toContain('hero')
+    expect(renderUiPage()).toContain('skeleton-card')
+    expect(renderUiPage()).toContain('nav-icon')
+    expect(renderUiPage()).toContain('--space-4')
+    expect(renderUiPage()).toContain('logsHtml')
+    expect(renderUiPage()).toContain('routingHtml')
+    expect(renderUiPage()).toContain('palette-input')
+    expect(renderUiPage()).toContain('paletteEntries')
+    expect(renderUiPage()).toContain('data-range')
+  })
+
+  it('serves request logs and routing decisions newest first', async () => {
+    const dir = tempDir()
+    upsertProvider(dir, { id: 'a', name: 'A', protocol: 'anthropic-messages', baseUrl: 'https://a.example', models: ['m'] })
+    const started = await startProxyServer({ dir, port: 0, sessionRoots: [] })
+    servers.push(started.server)
+    recordUsage(started.runtime.usageFile, {
+      at: '2026-01-01T00:00:00Z',
+      providerId: 'a',
+      model: 'm',
+      protocol: 'anthropic-messages',
+      status: 200,
+      latencyMs: 12,
+      attempts: [{ providerId: 'a', status: 200, latencyMs: 12 }],
+    })
+    recordUsage(started.runtime.usageFile, {
+      at: '2026-01-01T00:00:01Z',
+      providerId: 'a',
+      model: 'm',
+      protocol: 'anthropic-messages',
+      status: 500,
+      latencyMs: 30,
+      attempts: [{ providerId: 'a', status: 500, latencyMs: 30, reason: '这家报错，停在这里' }],
+    })
+    const logs = await fetch(`http://127.0.0.1:${started.port}/api/logs`).then(r => r.json()) as { events: Array<{ status: number }> }
+    expect(logs.events).toHaveLength(2)
+    expect(logs.events[0].status).toBe(500)
+    const failed = await fetch(`http://127.0.0.1:${started.port}/api/logs?failed=1`).then(r => r.json()) as { events: unknown[] }
+    expect(failed.events).toHaveLength(1)
+    const decisions = await fetch(`http://127.0.0.1:${started.port}/api/decisions`).then(r => r.json()) as { decisions: Array<{ attempts?: unknown[] }> }
+    expect(decisions.decisions).toHaveLength(2)
+    expect(decisions.decisions[0].attempts?.[0]).toMatchObject({ providerId: 'a', status: 500 })
+  })
+
+  it('lists current routes with provider names via ls', async () => {
+    const dir = tempDir()
+    upsertProvider(dir, { id: 'deepseek', name: 'DeepSeek', protocol: 'openai-chat', baseUrl: 'https://api.deepseek.com', models: ['deepseek-chat'] })
+    setToolRoute(dir, 'claude-code', { mode: 'routing', providerId: 'deepseek', model: 'deepseek-chat', failover: ['deepseek'] })
+    const lines = routeLines(dir)
+    const claudeLine = lines.find(line => line.includes('claude-code'))
+    expect(claudeLine).toContain('DeepSeek')
+    expect(claudeLine).toContain('deepseek-chat')
+    expect(claudeLine).toContain('routing')
+    // 每个工具一行
+    expect(lines).toHaveLength(PROXY_TOOL_IDS.length)
+  })
+
+  it('falls back to the provider id when the route points at a missing provider', async () => {
+    const dir = tempDir()
+    setToolRoute(dir, 'codex', { mode: 'routing', providerId: 'ghost', failover: [] })
+    const line = routeLines(dir).find(item => item.includes('codex'))
+    expect(line).toContain('ghost')
+    expect(line).toContain('routing')
   })
 
   it('edits, hides, and removes providers without rewriting client files', async () => {

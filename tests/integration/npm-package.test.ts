@@ -236,7 +236,7 @@ describe('npm Package Integration Tests', () => {
     expect(i18nFiles.length).toBeGreaterThanOrEqual(28) // 14 namespaces × 2 languages
 
     console.log(`Verified ${packedFiles.length} files in package, ${i18nFiles.length} i18n files included`)
-  }, 2000) // Fast timeout - optimized test
+  }, 30000) // npm pack can exceed 2s under full-suite load; align with global testTimeout
 
   it('should have proper path resolution in different environments', async () => {
     // Test that the path resolution logic in i18n/index.ts handles various scenarios

@@ -2,6 +2,14 @@ import type { ModelPrice } from './types'
 import { appendFileSync, existsSync, mkdirSync, readFileSync } from 'node:fs'
 import { dirname } from 'pathe'
 
+/** 一次上游尝试，用来解释最后为什么落在这一家。 */
+export interface UsageAttempt {
+  providerId: string
+  status: number
+  latencyMs: number
+  reason?: string
+}
+
 export interface UsageEvent {
   at: string
   providerId: string
@@ -13,6 +21,8 @@ export interface UsageEvent {
   outputTokens?: number
   cacheReadTokens?: number
   cacheWriteTokens?: number
+  /** 这次请求依次试过哪些上游。旧记录没有这个字段。 */
+  attempts?: UsageAttempt[]
 }
 
 export interface UsageSummary {

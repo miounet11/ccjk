@@ -94,12 +94,23 @@ export function resolveRoute(config: ProxyConfig, protocol: InboundProtocol, mod
   }
 }
 
+/** 一次上游尝试。界面用它解释「为什么最后选了这家」。 */
+export interface RouteAttempt {
+  providerId: string
+  status: number
+  latencyMs: number
+  /** 跳过或失败的原因。成功时为空。 */
+  reason?: string
+}
+
 export interface ForwardResult {
   status: number
   contentType: string
   body: string
   providerId?: string
   usage?: { inputTokens?: number, outputTokens?: number, cacheReadTokens?: number, cacheWriteTokens?: number }
+  /** 按顺序尝试过的上游。 */
+  attempts?: RouteAttempt[]
 }
 
 export interface RouteMemory {
@@ -201,11 +212,13 @@ export async function forwardRequest(
 
   let lastStatus = 502
   let lastBody = '{"error":{"message":"上游失败"}}'
+  const attempts: RouteAttempt[] = []
   for (const providerId of order) {
     const provider = deps.config.providers.find(item => item.id === providerId)
     if (!provider) {
       lastStatus = 404
       lastBody = JSON.stringify({ error: { message: `找不到供应商 ${providerId}` } })
+      attempts.push({ providerId, status: 404, latencyMs: 0, reason: '找不到这家供应商' })
       continue
     }
     const apiKey = deps.apiKeyFor(providerId) ?? ''
@@ -213,6 +226,7 @@ export async function forwardRequest(
     const upstreamBody = encodeUpstream(provider.protocol, request)
     const headers = upstreamHeaders(provider.protocol, apiKey, provider.headers)
     const url = joinUpstreamUrl(provider.baseUrl, upstreamPath(provider.protocol, request.model))
+    const attemptStarted = Date.now()
     try {
       const response = await fetchUpstream(url, {
         method: 'POST',
@@ -226,13 +240,20 @@ export async function forwardRequest(
           delete memory.sticky[stickyKey]
         lastStatus = response.status
         lastBody = JSON.stringify({ error: { message: redact(text).slice(0, 2000), providerId } })
+        attempts.push({
+          providerId,
+          status: response.status,
+          latencyMs: Date.now() - attemptStarted,
+          reason: shouldTryNext(response.status) ? '换下一家' : '这家报错，停在这里',
+        })
         if (route.sticky || !shouldTryNext(response.status))
-          return { status: response.status, contentType: 'application/json', body: lastBody, providerId }
+          return { status: response.status, contentType: 'application/json', body: lastBody, providerId, attempts }
         continue
       }
       deps.breaker.success(providerId)
       if (stickyKey && route.mode === 'routing')
         memory.sticky[stickyKey] = providerId
+      attempts.push({ providerId, status: 200, latencyMs: Date.now() - attemptStarted })
       const contentType = response.headers.get('content-type') || ''
       if (contentType.includes('text/event-stream') && protocol === 'anthropic-messages' && provider.protocol === 'openai-chat') {
         return {
@@ -240,10 +261,11 @@ export async function forwardRequest(
           contentType: 'text/event-stream',
           body: openAiChatSseToAnthropicSse(text, request.model),
           providerId,
+          attempts,
         }
       }
       if (provider.protocol === protocol && contentType.includes('text/event-stream')) {
-        return { status: 200, contentType: 'text/event-stream', body: text, providerId }
+        return { status: 200, contentType: 'text/event-stream', body: text, providerId, attempts }
       }
       const canonical = parseUpstreamResponse(provider.protocol, JSON.parse(text) as Record<string, unknown>)
       return {
@@ -252,6 +274,7 @@ export async function forwardRequest(
         body: JSON.stringify(encodeClientResponse(protocol, request.model, canonical)),
         providerId,
         usage: canonical.usage,
+        attempts,
       }
     }
     catch (error) {
@@ -260,11 +283,12 @@ export async function forwardRequest(
         delete memory.sticky[stickyKey]
       lastStatus = 502
       lastBody = JSON.stringify({ error: { message: redact((error as Error).message), providerId } })
+      attempts.push({ providerId, status: 502, latencyMs: Date.now() - attemptStarted, reason: '请求没通' })
       if (route.sticky)
-        return { status: 502, contentType: 'application/json', body: lastBody, providerId }
+        return { status: 502, contentType: 'application/json', body: lastBody, providerId, attempts }
     }
   }
-  return { status: lastStatus, contentType: 'application/json', body: lastBody }
+  return { status: lastStatus, contentType: 'application/json', body: lastBody, attempts }
 }
 
 export function providerById(config: ProxyConfig, id: string): ProxyProvider | undefined {

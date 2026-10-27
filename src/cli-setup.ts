@@ -397,7 +397,7 @@ export async function setupCommands(cli: CAC): Promise<void> {
     }, true))
 
   cli
-    .command('proxy [action]', 'Local proxy: serve, start, stop, status, apply, revert, switch, use, save, load')
+    .command('proxy [action]', 'Local proxy: serve, start, stop, status, ls, apply, revert, switch, use, save, load')
     .option('--port <port>', 'Listen port')
     .option('--tool <tool>', 'Tool id for apply, revert, switch, or use')
     .option('--provider <id>', 'Provider id for switch')

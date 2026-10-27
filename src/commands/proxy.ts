@@ -74,6 +74,10 @@ export async function proxyCommand(options: ProxyCommandOptions = {}): Promise<v
     switchProvider(options, dir)
     return
   }
+  if (action === 'ls') {
+    listRoutes(dir)
+    return
+  }
   if (action === 'use') {
     useModel(options, dir)
     return
@@ -169,12 +173,24 @@ function status(dir: string) {
   console.log(running ? ansis.green(`运行中 pid ${pid}`) : ansis.yellow('没有运行'))
   console.log(`地址 ${proxyBase(config.port)}`)
   console.log(`供应商 ${config.providers.length}`)
-  for (const tool of PROXY_TOOL_IDS) {
+  listRoutes(dir)
+}
+
+function listRoutes(dir: string) {
+  for (const line of routeLines(dir))
+    console.log(line)
+}
+
+export function routeLines(dir: string): string[] {
+  const config = loadProxyConfig(dir)
+  return PROXY_TOOL_IDS.map((tool) => {
     const route = config.tools[tool]
+    const provider = config.providers.find(item => item.id === route.providerId)
+    const label = provider ? provider.name : (route.providerId || '-')
     const model = route.model ? `  ${route.model}` : ''
     const strategy = route.strategy && route.strategy !== 'order' ? `  ${route.strategy}` : ''
-    console.log(`  ${tool}  ${route.mode}  ${route.providerId || '-'}${model}${strategy}`)
-  }
+    return `  ${tool}  ${route.mode}  ${label}${model}${strategy}`
+  })
 }
 
 function selectedTargets(options: ProxyCommandOptions): ApplyTarget[] {

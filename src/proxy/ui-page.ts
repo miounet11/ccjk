@@ -26,8 +26,21 @@ export function renderUiPage(): string {
     --info: #0b3d73;
     --info-bg: #e8f2ff;
     --danger: #c41e16;
+    --danger-bg: #fdeceb;
     --shadow: 0 1px 2px rgba(0,0,0,.04), 0 12px 32px rgba(0,0,0,.06);
+    --shadow-sm: 0 1px 2px rgba(0,0,0,.05);
     --radius: 14px;
+    --radius-sm: 8px;
+    --radius-md: 10px;
+    --radius-lg: 18px;
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 24px;
+    --space-6: 32px;
+    --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+    --surface-2: #f2f2f4;
   }
   * { box-sizing: border-box; }
   .sr-only {
@@ -93,12 +106,46 @@ export function renderUiPage(): string {
   }
   .seg button[aria-selected="true"] { background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.08); font-weight: 600; }
   .hint { color: var(--muted); margin: 0 0 14px; min-height: 1.45em; }
+  @keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  .wrap.enter > * { animation: rise .18s ease both; }
+  @media (prefers-reduced-motion: reduce) { .wrap.enter > * { animation: none; } }
+  .hero {
+    background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow);
+    padding: 18px 20px; margin: 18px 0 20px;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .hero .hero-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+  .hero .hero-name { font-size: 22px; font-weight: 650; letter-spacing: -0.02em; word-break: break-all; }
+  .hero .hero-sub { color: var(--muted); font-size: 13px; }
+  .hero.empty-state { border: 1px dashed var(--line); box-shadow: none; background: transparent; }
+  .finder { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .finder input { flex: 1; }
+  .finder .count { color: var(--muted); font-size: 12px; white-space: nowrap; }
+  .kbd {
+    font: 12px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+    border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 5px;
+    padding: 2px 5px; color: var(--muted); background: var(--card);
+  }
   .banner, .warn {
     border-radius: 12px; padding: 12px 14px; margin: 0 0 16px;
   }
   .banner { background: var(--info-bg); color: var(--info); }
   .warn { background: var(--warn-bg); color: var(--warn); }
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px; }
+  .picker-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
+  .model-card {
+    display: flex; flex-direction: column; gap: 4px; align-items: flex-start;
+    text-align: left; padding: 14px 16px; border: none; cursor: pointer;
+    background: var(--card); color: var(--text); border-radius: var(--radius);
+    box-shadow: var(--shadow); font: inherit;
+  }
+  .model-card:hover:not(:disabled) { box-shadow: 0 0 0 2px var(--accent), var(--shadow); }
+  .model-card.on { box-shadow: 0 0 0 2px var(--accent), var(--shadow); background: var(--card); }
+  .model-card:disabled { cursor: default; opacity: .65; }
+  .model-card .model-name { font-size: 15px; font-weight: 600; letter-spacing: -0.01em; word-break: break-all; }
+  .model-card .model-provider { font-size: 12px; color: var(--muted); }
+  .model-card .model-state { font-size: 12px; color: var(--muted); }
+  .model-card.on .model-state { color: var(--ok); font-weight: 600; }
   .card {
     background: var(--card);
     border-radius: var(--radius);
@@ -160,6 +207,90 @@ export function renderUiPage(): string {
   table { width: 100%; border-collapse: collapse; margin-top: 8px; }
   th, td { text-align: left; padding: 10px 4px; border-bottom: 1px solid var(--line); vertical-align: middle; }
   th { color: var(--muted); font-size: 12px; font-weight: 600; }
+  tbody tr:hover { background: var(--surface-2); }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .mono { font-family: var(--font-mono); font-size: 12px; }
+  .toolbar {
+    display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap;
+    margin: 0 0 var(--space-4);
+  }
+  .toolbar .spacer { flex: 1; }
+  .panel-head {
+    display: flex; align-items: baseline; justify-content: space-between;
+    gap: var(--space-3); margin: 0 0 var(--space-2);
+  }
+  .panel-head h2 { margin: 0; }
+  .panel-head .meta { margin: 0; }
+  .pill {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 12px; font-weight: 600; border-radius: 99px;
+    padding: 2px 9px; background: var(--surface-2); color: var(--muted);
+    white-space: nowrap;
+  }
+  .pill.ok { background: var(--ok-bg); color: var(--ok); }
+  .pill.bad { background: var(--danger-bg); color: var(--danger); }
+  .pill.warn { background: var(--warn-bg); color: var(--warn); }
+  .pill.info { background: var(--info-bg); color: var(--info); }
+  .skeleton {
+    background: linear-gradient(90deg, var(--surface-2) 25%, var(--line) 37%, var(--surface-2) 63%);
+    background-size: 400% 100%;
+    animation: shimmer 1.4s ease infinite;
+    border-radius: var(--radius-sm);
+    height: 14px;
+  }
+  @keyframes shimmer { from { background-position: 100% 50%; } to { background-position: 0 50%; } }
+  @media (prefers-reduced-motion: reduce) { .skeleton { animation: none; } }
+  .skeleton-card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow-sm); padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+  .empty-state {
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    padding: 40px 16px; text-align: center; color: var(--muted);
+  }
+  .empty-state .empty-title { color: var(--text); font-weight: 600; }
+  .stack { display: flex; flex-direction: column; gap: var(--space-2); }
+  .timeline { display: flex; flex-direction: column; gap: 0; margin: 0; padding: 0; list-style: none; }
+  .timeline li { display: grid; grid-template-columns: 96px 1fr; gap: var(--space-3); padding: 10px 0; border-top: 1px solid var(--line); }
+  .timeline li:first-child { border-top: 0; }
+  .timeline .when { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+  .spark { display: block; width: 100%; height: 56px; overflow: visible; }
+  .spark polyline { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+  .spark .area { fill: var(--accent); opacity: .1; stroke: none; }
+  .nav-btn, .tool-btn { position: relative; }
+  .palette {
+    position: fixed; inset: 0; z-index: 60; display: none;
+    background: rgba(0,0,0,.28); backdrop-filter: blur(3px);
+    align-items: flex-start; justify-content: center; padding-top: 12vh;
+  }
+  .palette.open { display: flex; }
+  .palette-box {
+    width: min(560px, calc(100vw - 32px)); max-height: 62vh; overflow: hidden;
+    background: var(--card); border-radius: var(--radius-lg); box-shadow: 0 24px 64px rgba(0,0,0,.28);
+    display: flex; flex-direction: column;
+  }
+  .palette-box input {
+    border: 0; border-bottom: 1px solid var(--line); border-radius: 0;
+    padding: 14px 18px; font-size: 15px; background: transparent;
+  }
+  .palette-box input:focus { outline: none; }
+  .palette-list { overflow-y: auto; padding: 6px; }
+  .palette-group { color: var(--muted); font-size: 11px; font-weight: 600; padding: 8px 12px 4px; letter-spacing: .04em; }
+  .palette-item {
+    display: flex; align-items: center; gap: 10px; width: 100%;
+    border: 0; background: transparent; text-align: left; cursor: pointer;
+    padding: 9px 12px; border-radius: var(--radius-sm); font-size: 13px; color: var(--text);
+  }
+  .palette-item .sub { color: var(--muted); font-size: 12px; margin-left: auto; }
+  .palette-item.active, .palette-item:hover { background: var(--surface-2); }
+  .palette-empty { color: var(--muted); font-size: 13px; padding: 18px 14px; text-align: center; }
+  .nav-icon {
+    width: 14px; height: 14px; margin-right: 8px; vertical-align: -2px;
+    fill: none; stroke: currentColor; stroke-width: 1.5;
+    stroke-linecap: round; stroke-linejoin: round; opacity: .75;
+  }
+  .nav-btn[aria-current="true"] .nav-icon { opacity: 1; color: var(--accent); }
+  .nav-btn[aria-current="true"]::before, .tool-btn[aria-current="true"]::before {
+    content: ''; position: absolute; left: -10px; top: 50%; transform: translateY(-50%);
+    width: 3px; height: 18px; border-radius: 99px; background: var(--accent);
+  }
   #toast {
     position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(12px);
     background: #1d1d1f; color: white; border-radius: 999px;
@@ -168,6 +299,7 @@ export function renderUiPage(): string {
     max-width: min(560px, calc(100% - 32px));
   }
   #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  #toast.error { background: #c9403c; cursor: pointer; pointer-events: auto; }
   button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
     outline: 2px solid var(--accent);
     outline-offset: 2px;
@@ -216,29 +348,40 @@ export function renderUiPage(): string {
       --info: #d6e8ff;
       --info-bg: #1c3a5c;
       --danger: #ff453a;
+      --danger-bg: #3a1a18;
       --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px rgba(0,0,0,.35);
+      --surface-2: #3a3a3c;
     }
     body { background: radial-gradient(1200px 500px at 10% -10%, #1a2a40 0%, transparent 55%), var(--bg); }
     .nav-btn[aria-current="true"], .tool-btn[aria-current="true"], .seg button[aria-selected="true"] { background: #3a3a3c; }
     .chips span, button.quiet { background: #3a3a3c; color: #e5e5ea; }
+    .model-card { background: #2c2c2e; }
     .inuse { background: #3a3a3c; color: #c7c7cc; }
     input, select, textarea { background: #1c1c1e; border-color: #3a3a3c; }
     button.primary:disabled { background: #3a3a3c; color: #8e8e93; }
     #toast { background: #f5f5f7; color: #1d1d1f; }
+    #toast.error { background: #ff6961; color: #1d1d1f; }
   }
 </style>
 </head>
 <body>
 <div class="app">
   <aside>
-    <div class="brand"><strong>ccjk</strong><span>这台电脑上的模型开关</span></div>
-    <div class="group">快捷切换</div>
+    <div class="brand"><strong>ccjk</strong><span id="brand-sub">这台电脑上的模型开关</span></div>
+    <div class="group" id="nav-switch">快捷切换</div>
     <div id="tools"></div>
-    <div class="group">管理</div>
+    <div class="group" id="nav-manage">管理</div>
     <div id="more"></div>
     <div class="foot"><span class="dot"></span><span id="foot">本机</span></div>
+    <button type="button" class="quiet" id="lang-btn" style="margin-top:10px;width:100%">English</button>
   </aside>
-  <main><div class="wrap" id="wrap"><h1>正在打开…</h1></div></main>
+  <main><div class="wrap" id="wrap"><h1 id="boot">正在打开…</h1><div class="stack" style="margin-top:24px"><div class="skeleton-card"><div class="skeleton" style="width:45%"></div><div class="skeleton" style="width:70%"></div></div><div class="skeleton-card"><div class="skeleton" style="width:35%"></div><div class="skeleton" style="width:60%"></div></div><div class="skeleton-card"><div class="skeleton" style="width:50%"></div><div class="skeleton" style="width:80%"></div></div></div></div></main>
+</div>
+<div class="palette" id="palette" role="dialog" aria-modal="true" aria-label="快速跳转">
+  <div class="palette-box">
+    <input id="palette-input" type="text" placeholder="跳到页面、选模型…  ↑↓ 选，回车确认" autocomplete="off" aria-label="搜索">
+    <div class="palette-list" id="palette-list"></div>
+  </div>
 </div>
 <div id="toast" role="status"></div>
 <script>
@@ -255,21 +398,239 @@ const MORE = [
   ['providers', '服务商'],
   ['sessions', '会话'],
   ['usage', '用量'],
+  ['logs', '日志'],
+  ['routing', '选路'],
   ['accounts', '账号']
 ]
-const MODE_COPY = {
+const NAV_ICON = {
+  providers: '<svg class="nav-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4.5A1.5 1.5 0 0 1 3.5 3h9A1.5 1.5 0 0 1 14 4.5v7a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 2 11.5v-7Z"/><path d="M2 6.5h12"/></svg>',
+  sessions: '<svg class="nav-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 3.5A1.5 1.5 0 0 1 3.5 2h9A1.5 1.5 0 0 1 14 3.5v6A1.5 1.5 0 0 1 12.5 11H6l-4 3V3.5Z"/></svg>',
+  usage: '<svg class="nav-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 13V8M8 13V3M13 13v-3"/></svg>',
+  accounts: '<svg class="nav-icon" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="5.5" r="2.5"/><path d="M3 13c0-2.5 2.2-4 5-4s5 1.5 5 4"/></svg>',
+  logs: '<svg class="nav-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 4h10M3 8h10M3 12h6"/></svg>',
+  routing: '<svg class="nav-icon" viewBox="0 0 16 16" aria-hidden="true"><circle cx="4" cy="8" r="2"/><circle cx="12" cy="4" r="2"/><circle cx="12" cy="12" r="2"/><path d="M6 8h2l3-3M8 8l3 3"/></svg>',
+}
+const MODE_COPY_ZH = {
   direct: ['直接连接', '工具自己去找这家服务商，不经过这台电脑。'],
   routing: ['经过本机', '请求先到这台电脑，再转到你选的服务商。接口不一样也能用。这家不通，就按你勾的顺序换下一家。'],
   aggregation: ['一个列表里选', '几家的模型放进同一个列表。点哪个就用哪家。这家不通时不会自动换下一家。']
 }
-const PROTO = {
+const MODE_COPY_EN = {
+  direct: ['Direct', 'The tool talks to the provider itself. This machine stays out of the way.'],
+  routing: ['Through this machine', 'Requests hit this machine first, then go to the provider you picked. Works even when the API shape differs. If one fails, the next in your order is tried.'],
+  aggregation: ['One merged list', 'Models from several providers in a single list. Pick one and it is used. No automatic failover.']
+}
+const PROTO_ZH = {
   'anthropic-messages': 'Claude 接口',
   'openai-chat': '对话接口',
   'openai-responses': '新版对话接口',
   gemini: 'Gemini 接口',
   xai: 'Grok 接口'
 }
+const PROTO_EN = {
+  'anthropic-messages': 'Claude API',
+  'openai-chat': 'Chat API',
+  'openai-responses': 'Responses API',
+  gemini: 'Gemini API',
+  xai: 'Grok API'
+}
 const KINDS = { chatgpt: 'ChatGPT', copilot: 'Copilot', xai: 'xAI' }
+const EN = {
+  '这台电脑上的模型开关': 'Model switchboard on this machine',
+  '快捷切换': 'Switch',
+  '管理': 'Manage',
+  '正在打开…': 'Opening…',
+  '服务商': 'Providers',
+  '会话': 'Sessions',
+  '用量': 'Usage',
+  '账号': 'Accounts',
+  '没做成，再试一次': 'That did not work. Try again.',
+  '正在确认…': 'Checking…',
+  '本机代理运行中': 'Local proxy is running',
+  '本机代理没在跑': 'Local proxy is not running',
+  '请求身份 ccjk-proxy': 'identity ccjk-proxy',
+  ' · 未保存': ' · unsaved',
+  '最近用过的对话。这里只看，不删除。': 'Recent conversations. Read-only, nothing is deleted here.',
+  '正在读…': 'Reading…',
+  '还没有服务商。': 'No providers yet.',
+  '去添加一家': 'Add one',
+  '没有叫这个的服务商。': 'No provider by that name.',
+  '没有叫这个的模型。': 'No model by that name.',
+  '正在使用': 'In use',
+  '缺密钥': 'No key',
+  '点一下就用': 'Click to use',
+  '整套接法': 'Saved setups',
+  '把现在每个工具的选择存成一套，以后可以整套换回来。': 'Save the current choice for every tool as one set, and switch back to it later.',
+  '配置档名字': 'Setup name',
+  '例如 上班': 'e.g. work',
+  '保存这套': 'Save set',
+  '换成这套': 'Switch to it',
+  '还没有保存过。': 'Nothing saved yet.',
+  '发给每家的补充说明': 'Extra note sent to every provider',
+  '写在每次请求前面。别名一行一个，例如 fast=deepseek/deepseek-chat。': 'Prepended to every request. One alias per line, e.g. fast=deepseek/deepseek-chat.',
+  '补充说明': 'Extra note',
+  '模型别名': 'Model aliases',
+  '保存说明': 'Save note',
+  '还没有选定服务商。先在下面点「用这个」，或展开高级接法再点「使用这家」。': 'No provider picked yet. Click “Use this” below, or open Advanced and click “Use this one”.',
+  '这次打开没有连到配置文件。选择会记住，但还不会写进工具。': 'This session is not connected to config files. Choices are remembered but not written into tools yet.',
+  '找服务商或模型': 'Find provider or model',
+  '恢复': 'Restore',
+  '取消': 'Cancel',
+  '恢复原来的配置': 'Restore previous config',
+  '连接方式': 'Connection mode',
+  '高级：接法': 'Advanced: connection',
+  '这种接法用不了': 'Not supported',
+  '保存这个接法': 'Save this mode',
+  '使用这家': 'Use this one',
+  '直接连接时，这个工具听不懂这家。请改成「经过本机」。': 'In direct mode this tool cannot talk to this provider. Switch to “Through this machine”.',
+  '这家不通就换下一家': 'Fail over to the next provider',
+  '勾上的会按你选的方式试。点「使用这家」时一起保存。': 'Checked providers are tried in the order you choose. Saved when you click “Use this one”.',
+  '怎么换': 'How to switch',
+  '按顺序': 'In order',
+  '轮流': 'Rotate',
+  '先用得少的': 'Least used first',
+  '放进同一个列表': 'Put into one list',
+  '模型名字会变成 ccjk-服务商--模型名。请求里没写模型名时，走你点的那家。': 'Model names become ccjk-provider--model. If a request omits the model, the provider you picked is used.',
+  '选一家常用的，或自己填地址。密钥只留在这台电脑上。': 'Pick a common one, or enter your own URL. Keys stay on this machine.',
+  '从现有配置导入': 'Import from existing config',
+  '搜名称或地址': 'Search name or URL',
+  '自己填一家': 'Add your own',
+  '短名字': 'Short name',
+  '显示名称': 'Display name',
+  '接口': 'API',
+  '地址': 'URL',
+  '密钥，可稍后再填': 'Key, can be filled later',
+  '出站代理，可以不填': 'Outbound proxy, optional',
+  '模型，用逗号分开': 'Models, comma separated',
+  '添加这家': 'Add this provider',
+  '已经添加': 'Added',
+  '密钥': 'Key',
+  '粘贴密钥': 'Paste key',
+  '确认添加': 'Confirm',
+  '已添加': 'Added',
+  '添加': 'Add',
+  '常用服务商': 'Common providers',
+  '没有叫这个的。': 'Nothing by that name.',
+  '列表还是空的。': 'The list is still empty.',
+  '名称': 'Name',
+  ' 正在用': ' in use',
+  '没有密钥': 'No key',
+  '确认移除': 'Confirm remove',
+  '拉取模型': 'Fetch models',
+  '改': 'Edit',
+  '移除': 'Remove',
+  '新密钥，留空不改': 'New key, leave blank to keep',
+  '保存': 'Save',
+  '清除密钥': 'Clear key',
+  '短名字和地址是各家软件的锚点，不能改。要换地址请移除后重新添加。': 'The short name and URL are anchors used by each tool and cannot be changed. To change the URL, remove and re-add the provider.',
+  '出站代理': 'outbound proxy',
+  '参考价': 'est. cost',
+  '缓存命中': 'cache hit',
+  '只统计经过这台电脑的请求。直接连接的不在这里。价钱是参考，不是账单。': 'Only requests through this machine are counted. Direct connections are not included. Prices are estimates, not a bill.',
+  '请求': 'Requests',
+  '没成功': 'Failed',
+  '读入': 'In',
+  '写出': 'Out',
+  '次数': 'Count',
+  '失败': 'Failed',
+  '还没有请求经过这里。': 'No requests have gone through here yet.',
+  '贴上你自己已经有的令牌。这里不会打开官方软件去登录。': 'Paste a token you already have. Nothing here opens official apps to sign in.',
+  '类型': 'Kind',
+  '备注': 'Label',
+  '令牌': 'Token',
+  '余额地址，可以不填': 'Balance URL, optional',
+  '还没有账号。': 'No accounts yet.',
+  '查看余额': 'Check balance',
+  '没有余额地址': 'No balance URL',
+  '对话': 'Conversation',
+  '时间': 'When',
+  ' · 已压缩，这里不展开': ' · compacted, not expanded here',
+  '复制路径': 'Copy path',
+  '还没读到会话。用过 Claude Code 或 Codex 之后，标题会出现在这里。': 'No sessions found yet. Titles appear here after you use Claude Code or Codex.',
+  '已复制路径': 'Path copied',
+  '正在查…': 'Checking…',
+  '已取到余额': 'Balance fetched',
+  '先写短名字和地址': 'Fill in short name and URL first',
+  '短名字只能用小写字母、数字和短横线': 'Short name allows lowercase letters, digits and dashes only',
+  '已移除': 'Removed',
+  '已保存': 'Saved',
+  '没有改动': 'No changes',
+  '已清除密钥。这家暂时不能用，除非重新填。': 'Key cleared. This provider cannot be used until you add one.',
+  '写个短名字，再贴上令牌': 'Enter a short name and paste a token',
+  '已保存。令牌没有显示在页面上。': 'Saved. The token is not shown on the page.',
+  '改账号需要重新贴一次令牌': 'Editing an account requires pasting the token again',
+  '已保存这套': 'Set saved',
+  '已保存说明': 'Note saved',
+  '已更新模型列表': 'Model list updated',
+  '没拉到，仍用原来的列表': 'Fetch failed, keeping the old list',
+  '已从现有配置导入': 'Imported from existing config',
+  '没有读到本机上的服务商地址': 'No provider URLs found on this machine',
+  '已换成这套': 'Switched to that set',
+  '已经恢复原来的配置': 'Previous config restored',
+  '没有可恢复的备份': 'No backup to restore',
+  '这次没有连到配置文件': 'Not connected to config files this time',
+  '已经记住': 'Remembered'
+}
+function t(text, vars) {
+  let out = lang === 'en' && EN[text] !== undefined ? EN[text] : text
+  if (vars) Object.keys(vars).forEach(function (key) {
+    out = out.split('{' + key + '}').join(vars[key])
+  })
+  return out
+}
+const EN_KEYS = Object.keys(EN).sort(function (a, b) { return b.length - a.length })
+function localizeText(raw) {
+  if (lang !== 'en' || !raw) return raw
+  const trimmed = String(raw).trim()
+  if (EN[trimmed] !== undefined) return String(raw).replace(trimmed, EN[trimmed])
+  let out = String(raw)
+  EN_KEYS.forEach(function (key) {
+    if (key.length < 2) return
+    if (out.indexOf(key) >= 0) out = out.split(key).join(EN[key])
+  })
+  return out
+}
+const LOCAL_ATTRS = ['placeholder', 'title', 'aria-label']
+function localizeTree(root) {
+  if (lang !== 'en' || !root) return
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null)
+  const nodes = []
+  while (walker.nextNode()) nodes.push(walker.currentNode)
+  nodes.forEach(function (node) { node.nodeValue = localizeText(node.nodeValue) })
+  root.querySelectorAll('*').forEach(function (el) {
+    LOCAL_ATTRS.forEach(function (name) {
+      const value = el.getAttribute(name)
+      if (value && EN[value] !== undefined) el.setAttribute(name, EN[value])
+    })
+  })
+}
+let lang = (function () {
+  try {
+    const saved = localStorage.getItem('ccjk-lang')
+    if (saved === 'en' || saved === 'zh') return saved
+  }
+  catch (error) { /* private mode */ }
+  return 'zh'
+})()
+let MODE_COPY = MODE_COPY_ZH
+let PROTO = PROTO_ZH
+function applyLang() {
+  MODE_COPY = lang === 'en' ? MODE_COPY_EN : MODE_COPY_ZH
+  PROTO = lang === 'en' ? PROTO_EN : PROTO_ZH
+  document.documentElement.lang = lang === 'en' ? 'en' : 'zh-CN'
+  const swap = {
+    'brand-sub': '这台电脑上的模型开关',
+    'nav-switch': '快捷切换',
+    'nav-manage': '管理',
+    'boot': '正在打开…'
+  }
+  Object.keys(swap).forEach(function (id) {
+    const node = document.getElementById(id)
+    if (node) node.textContent = t(swap[id])
+  })
+  const btn = document.getElementById('lang-btn')
+  if (btn) btn.textContent = lang === 'en' ? '中文' : 'English'
+}
 let state = null
 let screen = 'tool'
 let tool = 'claude-code'
@@ -309,13 +670,19 @@ function when(value) {
   if (isNaN(date.getTime())) return value || ''
   return date.toLocaleString('zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })
 }
-function toast(text) {
+function toast(text, isError) {
   const node = document.getElementById('toast')
-  node.textContent = text
+  node.textContent = localizeText(text)
+  node.classList.toggle('error', !!isError)
   node.classList.add('show')
   clearTimeout(toast._t)
-  toast._t = setTimeout(function () { node.classList.remove('show') }, 2800)
+  const delay = isError ? 12000 : 2800
+  toast._t = setTimeout(function () { node.classList.remove('show') }, delay)
 }
+document.getElementById('toast').addEventListener('click', function () {
+  clearTimeout(toast._t)
+  this.classList.remove('show')
+})
 async function api(path, body) {
   const res = await fetch(path, body ? {
     method: 'POST',
@@ -379,20 +746,21 @@ async function pollHealth() {
   drawFoot()
 }
 function drawFoot() {
-  const label = health.checking ? '正在确认…' : (health.ok ? '本机代理运行中' : '本机代理没在跑')
+  const label = health.checking ? t('正在确认…') : (health.ok ? t('本机代理运行中') : t('本机代理没在跑'))
   const cls = health.checking ? 'checking' : (health.ok ? '' : 'bad')
   const port = state && state.port ? ' · 127.0.0.1:' + state.port : ''
-  document.getElementById('foot').innerHTML = '<span class="dot ' + cls + '"></span>' + label + port + '<br><span style="opacity:.7">请求身份 ccjk-proxy</span>'
+  document.getElementById('foot').innerHTML = '<span class="dot ' + cls + '"></span>' + label + port + '<br><span style="opacity:.7">' + t('请求身份 ccjk-proxy') + '</span>'
 }
 function drawNav() {
   document.getElementById('tools').innerHTML = visibleTools().map(function (row) {
     const route = state.tools[row[0]] || { mode: 'direct' }
     const how = (MODE_COPY[route.mode] || MODE_COPY.direct)[0]
     const unsaved = screen === 'tool' && tool === row[0] && draft !== route.mode
-    return '<button type="button" class="tool-btn" data-tool="' + row[0] + '" aria-current="' + (screen === 'tool' && tool === row[0]) + '"><b>' + row[1] + '</b><small>' + how + (unsaved ? ' · 未保存' : '') + '</small></button>'
+    return '<button type="button" class="tool-btn" data-tool="' + row[0] + '" aria-current="' + (screen === 'tool' && tool === row[0]) + '"><b>' + row[1] + '</b><small>' + how + (unsaved ? t(' · 未保存') : '') + '</small></button>'
   }).join('')
   document.getElementById('more').innerHTML = MORE.map(function (row) {
-    return '<button type="button" class="nav-btn" data-screen="' + row[0] + '" aria-current="' + (screen === row[0]) + '">' + row[1] + '</button>'
+    const icon = NAV_ICON[row[0]] || ''
+    return '<button type="button" class="nav-btn" data-screen="' + row[0] + '" aria-current="' + (screen === row[0]) + '">' + icon + t(row[1]) + '</button>'
   }).join('')
   document.getElementById('foot').textContent = ''
   drawFoot()
@@ -426,12 +794,60 @@ function draw() {
     loadSessions()
     return
   }
-  else if (screen === 'usage') wrap.innerHTML = usageHtml()
+  else if (screen === 'usage') {
+    wrap.innerHTML = usageHtml()
+    bind(wrap)
+    wrap.querySelectorAll('[data-range]').forEach(function (btn) {
+      btn.onclick = function () {
+        usageRange = btn.getAttribute('data-range') || '7d'
+        wrap.querySelectorAll('[data-range]').forEach(function (item) {
+          item.setAttribute('aria-selected', String(item === btn))
+        })
+        void loadUsage()
+      }
+    })
+    const refresh = document.getElementById('usage-refresh')
+    if (refresh) refresh.onclick = function () { void loadUsage() }
+    void loadUsage()
+    localizeTree(wrap)
+    wrap.classList.remove('enter')
+    void wrap.offsetWidth
+    wrap.classList.add('enter')
+    return
+  }
+  else if (screen === 'logs') {
+    wrap.innerHTML = logsHtml()
+    bind(wrap)
+    if (screen === 'logs')
+      armLogs(wrap)
+    loadLogs()
+    localizeTree(wrap)
+    wrap.classList.remove('enter')
+    void wrap.offsetWidth
+    wrap.classList.add('enter')
+    return
+  }
+  else if (screen === 'routing') {
+    wrap.innerHTML = routingHtml()
+    bind(wrap)
+    const refresh = document.getElementById('route-refresh')
+    if (refresh) refresh.onclick = function () { loadDecisions() }
+    void loadDecisions()
+    localizeTree(wrap)
+    wrap.classList.remove('enter')
+    void wrap.offsetWidth
+    wrap.classList.add('enter')
+    return
+  }
   else if (screen === 'accounts') wrap.innerHTML = accountsHtml()
   else wrap.innerHTML = toolHtml()
   bind(wrap)
   if (screen === 'tool')
     armTabs(wrap)
+  localizeTree(wrap)
+  wrap.classList.remove('enter')
+  void wrap.offsetWidth
+  wrap.classList.add('enter')
 }
 function armTabs(wrap) {
   const tabs = Array.prototype.slice.call(wrap.querySelectorAll('[data-mode]'))
@@ -482,10 +898,17 @@ function modelListHtml() {
   const rows = modelRows()
   if (!rows.length) return '<p class="empty">没有叫这个的模型。</p>'
   const route = routeOf()
-  return '<div class="list">' + rows.map(function (row) {
+  return '<div class="picker-grid">' + rows.map(function (row) {
     const on = route.providerId === row.provider.id && route.model === row.model
-    return '<div class="list-row"><div class="text"><h3>' + esc(row.label) + '</h3><div class="meta">' + esc(PROTO[row.provider.protocol] || '') + '</div></div>'
-      + '<button type="button" class="primary" data-pick="' + esc(row.provider.id) + '" data-model="' + esc(row.model) + '"' + (on ? ' disabled' : '') + '>' + (on ? '正在使用' : '用这个') + '</button></div>'
+    const noSecret = !row.provider.hasSecret
+    return '<button type="button" class="model-card' + (on ? ' on' : '') + '"' +
+      ' data-pick="' + esc(row.provider.id) + '" data-model="' + esc(row.model) + '"' +
+      (on || noSecret ? ' disabled' : '') +
+      ' aria-pressed="' + on + '">'
+      + '<span class="model-name">' + esc(row.model) + '</span>'
+      + '<span class="model-provider">' + esc(row.provider.name) + ' · ' + esc(PROTO[row.provider.protocol] || '') + '</span>'
+      + '<span class="model-state">' + (on ? '正在使用' : (noSecret ? '缺密钥' : '点一下就用')) + '</span>'
+      + '</button>'
   }).join('') + '</div>'
 }
 function aliasText() {
@@ -519,8 +942,9 @@ function toolHtml() {
     : '还没选定服务商。先在下面点「用这个」，或展开高级接法再点「使用这家」。'
   const offline = state.canWrite ? '' : '<div class="warn">这次打开没有连到配置文件。选择会记住，但还不会写进工具。</div>'
   const banner = dirty ? '<div class="banner">这个选法还没写进 ' + toolName(tool) + '。点一家上的按钮才会生效。</div>' : ''
+  const found = modelRows().length
   const finder = state.providers.length
-    ? '<div class="field" style="margin-bottom:12px"><label for="tq" class="sr-only">找服务商或模型</label><input id="tq" type="search" placeholder="找服务商或模型" value="' + esc(toolQuery) + '"></div>'
+    ? '<div class="finder"><label for="tq" class="sr-only">找服务商或模型</label><input id="tq" type="search" placeholder="找服务商或模型 · 按 / 聚焦" value="' + esc(toolQuery) + '"><span class="count" id="tq-count">' + found + '</span></div>'
     : ''
   const extra = state.providers.length && draft === 'routing'
     ? failoverHtml(route)
@@ -531,8 +955,16 @@ function toolHtml() {
   const modes = '<div class="seg" role="tablist" aria-label="连接方式">' + Object.keys(MODE_COPY).map(function (key) {
     return '<button type="button" role="tab" data-mode="' + key + '" aria-selected="' + (draft === key) + '" tabindex="' + (draft === key ? '0' : '-1') + '">' + MODE_COPY[key][0] + '</button>'
   }).join('') + '</div><p class="hint" id="mode-hint">' + copy[1] + '</p>'
+  const hero = current
+    ? '<section class="hero"><div class="hero-top"><div><div class="hero-name">' + esc(route.model || current.name) + '</div>'
+      + '<div class="hero-sub">' + esc(current.name) + ' · ' + esc(PROTO[current.protocol] || '') + ' · ' + esc(modeName) + '</div></div>'
+      + '<span class="badge">正在使用</span></div>'
+      + '<div class="actions"><button type="button" class="quiet" id="copy-model">复制模型名</button>'
+      + (route.model ? '' : '<span class="meta">这家没指定模型，用它的默认模型。</span>') + '</div></section>'
+    : '<section class="hero empty-state"><div class="hero-name">还没有选服务商</div>'
+      + '<div class="hero-sub">在下面点一个模型卡片，或展开「高级：接法」挑一家。</div></section>'
   return '<h1>' + toolName(tool) + '</h1><p class="lede">' + esc(using) + '</p>'
-    + offline + finder + '<div id="model-list">' + modelListHtml() + '</div>'
+    + offline + hero + finder + '<div id="model-list">' + modelListHtml() + '</div>'
     + '<details class="advanced"><summary>高级：接法</summary>' + modes + banner
     + '<div id="tool-extra">' + extra + '</div><div id="tool-cards">' + toolCardsHtml() + '</div></details>'
     + '<div style="margin-top:18px">' + restore + '</div>' + profileHtml()
@@ -637,18 +1069,116 @@ function addedTable() {
   }).join('') + '</table>'
 }
 function usageHtml() {
-  const usage = state.usage || { requests: 0, errors: 0, inputTokens: 0, outputTokens: 0, byProvider: {} }
-  const rows = Object.keys(usage.byProvider || {}).map(function (id) {
-    const row = usage.byProvider[id]
+  const ranges = [['today', '今天'], ['7d', '7 天'], ['30d', '30 天'], ['all', '全部']]
+  const tabs = '<div class="toolbar"><div class="seg" role="tablist" aria-label="时间范围" style="margin:0;max-width:420px">'
+    + ranges.map(function (row) {
+      return '<button type="button" role="tab" data-range="' + row[0] + '" aria-selected="' + (usageRange === row[0]) + '">' + row[1] + '</button>'
+    }).join('') + '</div><span class="spacer"></span><button type="button" class="quiet" id="usage-refresh">刷新</button></div>'
+  return '<h1>用量</h1><p class="lede">只统计经过这台电脑的请求。直接连接的不在这里。价钱是参考，不是账单。</p>'
+    + tabs + '<div id="usage-body"><p class="empty">正在读…</p></div>'
+}
+function usageRangeStart(range) {
+  const now = Date.now()
+  if (range === 'today') {
+    const d = new Date()
+    d.setHours(0, 0, 0, 0)
+    return d.getTime()
+  }
+  if (range === '7d') return now - 7 * 86400000
+  if (range === '30d') return now - 30 * 86400000
+  return 0
+}
+function usageSummaryOf(events, prices) {
+  const out = { requests: 0, errors: 0, inputTokens: 0, outputTokens: 0, byProvider: {}, byModel: {}, byAccount: {} }
+  events.forEach(function (event) {
+    out.requests += 1
+    if (event.status >= 400) out.errors += 1
+    out.inputTokens += event.inputTokens || 0
+    out.outputTokens += event.outputTokens || 0
+    const p = out.byProvider[event.providerId] || (out.byProvider[event.providerId] = { requests: 0, errors: 0 })
+    p.requests += 1
+    if (event.status >= 400) p.errors += 1
+    const m = out.byModel[event.model || ''] || (out.byModel[event.model || ''] = { requests: 0, outputTokens: 0 })
+    m.requests += 1
+    m.outputTokens += event.outputTokens || 0
+    const provider = state.providers.find(function (item) { return item.id === event.providerId })
+    const accountId = provider && provider.accountId ? provider.accountId : ''
+    const account = state.accounts.find(function (item) { return item.id === accountId })
+    const key = account ? account.label : (accountId || '未关联账号')
+    const a = out.byAccount[key] || (out.byAccount[key] = { requests: 0, outputTokens: 0 })
+    a.requests += 1
+    a.outputTokens += event.outputTokens || 0
+  })
+  void prices
+  return out
+}
+function sparkline(events) {
+  if (!events.length) return ''
+  const buckets = {}
+  events.forEach(function (event) {
+    const day = String(event.at || '').slice(0, 10)
+    if (!day) return
+    buckets[day] = (buckets[day] || 0) + 1
+  })
+  const days = Object.keys(buckets).sort().slice(-14)
+  if (days.length < 2) return ''
+  const values = days.map(function (day) { return buckets[day] })
+  const max = Math.max.apply(null, values.concat([1]))
+  const width = 100
+  const points = values.map(function (value, index) {
+    const x = (index / (values.length - 1)) * width
+    const y = 100 - (value / max) * 100
+    return x.toFixed(1) + ',' + y.toFixed(1)
+  })
+  const area = '0,100 ' + points.join(' ') + ' ' + width + ',100'
+  return '<section class="panel"><div class="panel-head"><h2>每天请求数</h2><span class="meta">' + days[0] + ' → ' + days[days.length - 1] + '</span></div>'
+    + '<svg class="spark" viewBox="0 0 100 100" preserveAspectRatio="none" aria-label="每天请求数趋势">'
+    + '<polygon class="area" points="' + area + '"></polygon>'
+    + '<polyline points="' + points.join(' ') + '"></polyline></svg></section>'
+}
+function usageBodyHtml(events) {
+  const summary = usageSummaryOf(events, state.prices)
+  const providerRows = Object.keys(summary.byProvider).map(function (id) {
+    const row = summary.byProvider[id]
     const name = (state.providers.find(function (item) { return item.id === id }) || {}).name || id
-    return '<tr><td>' + esc(name) + '</td><td>' + row.requests + '</td><td>' + row.errors + '</td></tr>'
+    return '<tr><td>' + esc(name) + '</td><td class="num">' + row.requests + '</td><td class="num">' + row.errors + '</td></tr>'
   }).join('')
-  const cost = usage.costUsd === undefined ? '' : stat(Number(usage.costUsd).toFixed(4), '参考价')
-  const hit = usage.cacheHitRate === undefined ? '' : stat(Math.round(Number(usage.cacheHitRate) * 100) + '%', '缓存命中')
-  return '<h1>用量</h1><p class="lede">只统计经过这台电脑的请求。直接连接的不在这里。价钱是参考，不是账单。</p><div class="stats">'
-    + stat(usage.requests, '请求') + stat(usage.errors, '没成功') + stat(usage.inputTokens, '读入') + stat(usage.outputTokens, '写出')
-    + cost + hit
-    + '</div>' + (rows ? '<section class="panel"><table><tr><th>服务商</th><th>次数</th><th>失败</th></tr>' + rows + '</table></section>' : '<p class="empty">还没有请求经过这里。</p>')
+  const modelRowsOut = Object.keys(summary.byModel).sort(function (a, b) {
+    return summary.byModel[b].requests - summary.byModel[a].requests
+  }).map(function (model) {
+    const row = summary.byModel[model]
+    return '<tr><td class="mono">' + esc(model || '（默认模型）') + '</td><td class="num">' + row.requests + '</td><td class="num">' + Number(row.outputTokens || 0).toLocaleString('zh-CN') + '</td></tr>'
+  }).join('')
+  const accountRowsOut = Object.keys(summary.byAccount).map(function (label) {
+    const row = summary.byAccount[label]
+    return '<tr><td>' + esc(label) + '</td><td class="num">' + row.requests + '</td><td class="num">' + Number(row.outputTokens || 0).toLocaleString('zh-CN') + '</td></tr>'
+  }).join('')
+  if (!summary.requests) {
+    return '<div class="empty-state"><div class="empty-title">这段时间还没有请求</div><div>换个时间范围看看，或者先用一次模型。</div></div>'
+  }
+  return '<div class="stats">'
+    + stat(summary.requests, '请求') + stat(summary.errors, '没成功') + stat(summary.inputTokens, '读入') + stat(summary.outputTokens, '写出')
+    + '</div>'
+    + sparkline(events)
+    + '<section class="panel"><div class="panel-head"><h2>按服务商</h2></div><table><thead><tr><th>服务商</th><th class="num">次数</th><th class="num">失败</th></tr></thead><tbody>' + providerRows + '</tbody></table></section>'
+    + '<section class="panel"><div class="panel-head"><h2>按模型</h2></div><table><thead><tr><th>模型</th><th class="num">次数</th><th class="num">写出 token</th></tr></thead><tbody>' + modelRowsOut + '</tbody></table></section>'
+    + '<section class="panel"><div class="panel-head"><h2>按账号</h2></div>' + (accountRowsOut
+      ? '<table><thead><tr><th>账号</th><th class="num">次数</th><th class="num">写出 token</th></tr></thead><tbody>' + accountRowsOut + '</tbody></table>'
+      : '<p class="empty">还没有关联账号的请求。</p>') + '</section>'
+}
+async function loadUsage() {
+  const node = document.getElementById('usage-body')
+  if (!node) return
+  try {
+    const data = await api('/api/logs?limit=1000')
+    const events = (data.events || []).slice().reverse()
+    const start = usageRangeStart(usageRange)
+    const filtered = start ? events.filter(function (event) { return Date.parse(event.at || '') >= start }) : events
+    node.innerHTML = usageBodyHtml(filtered)
+  }
+  catch (error) {
+    node.innerHTML = '<div class="empty-state"><div class="empty-title">读不到用量</div><div>' + esc(error.message) + '</div></div>'
+  }
 }
 function stat(n, label) {
   const text = typeof n === 'number' ? Number(n || 0).toLocaleString('zh-CN') : String(n)
@@ -717,6 +1247,118 @@ async function loadSessions() {
     if (node) node.innerHTML = '<p class="empty">' + esc(error.message) + '</p>'
   }
 }
+let logFilter = { provider: '', failed: false }
+let usageRange = '7d'
+let logsCache = []
+function logsHtml() {
+  const providers = state.providers.map(function (item) {
+    return '<option value="' + esc(item.id) + '">' + esc(item.name) + '</option>'
+  }).join('')
+  return '<h1>日志</h1><p class="lede">经过这台电脑的每一次请求。旧记录没有试过哪几家。</p>'
+    + '<div class="toolbar"><label class="sr-only" for="log-provider">服务商</label>'
+    + '<select id="log-provider"><option value="">全部服务商</option>' + providers + '</select>'
+    + '<label class="pill" style="cursor:pointer"><input type="checkbox" id="log-failed"> 只看失败的</label>'
+    + '<span class="spacer"></span>'
+    + '<button type="button" class="quiet" id="log-refresh">刷新</button></div>'
+    + '<div id="logs"><div class="stack"><div class="skeleton-card"><div class="skeleton" style="width:40%"></div></div><div class="skeleton-card"><div class="skeleton" style="width:65%"></div></div></div></div>'
+}
+async function loadLogs() {
+  const node = document.getElementById('logs')
+  if (!node) return
+  try {
+    const params = new URLSearchParams()
+    if (logFilter.provider) params.set('provider', logFilter.provider)
+    if (logFilter.failed) params.set('failed', '1')
+    params.set('limit', '200')
+    const data = await api('/api/logs?' + params.toString())
+    logsCache = data.events || []
+    node.innerHTML = logsTableHtml()
+  }
+  catch (error) {
+    node.innerHTML = '<div class="empty-state"><div class="empty-title">没读到日志</div><div>' + esc(error.message) + '</div>'
+      + '<button type="button" class="quiet" id="log-retry">再试一次</button></div>'
+    const retry = document.getElementById('log-retry')
+    if (retry) retry.onclick = function () { loadLogs() }
+  }
+}
+function logsTableHtml() {
+  if (!logsCache.length) {
+    return '<div class="empty-state"><div class="empty-title">还没有请求经过这里</div>'
+      + '<div>用一会儿工具，这里会按时间倒序列出每一次请求。</div></div>'
+  }
+  const rows = logsCache.map(function (event) {
+    const ok = event.status < 400
+    const name = (state.providers.find(function (item) { return item.id === event.providerId }) || {}).name || event.providerId
+    const tried = Array.isArray(event.attempts) && event.attempts.length > 1 ? ' · 试了 ' + event.attempts.length + ' 家' : ''
+    return '<tr><td class="mono">' + esc(when(event.at)) + '</td>'
+      + '<td>' + esc(name) + tried + '</td>'
+      + '<td class="mono">' + esc(event.model || '—') + '</td>'
+      + '<td class="num">' + esc(String(event.status)) + '</td>'
+      + '<td class="num">' + esc(String(event.latencyMs)) + ' ms</td>'
+      + '<td class="num">' + (event.inputTokens || 0) + ' / ' + (event.outputTokens || 0) + '</td>'
+      + '<td><span class="pill ' + (ok ? 'ok' : 'bad') + '">' + (ok ? '成功' : '失败') + '</span></td></tr>'
+  }).join('')
+  return '<section class="panel"><table><thead><tr><th>时间</th><th>服务商</th><th>模型</th><th class="num">状态</th><th class="num">耗时</th><th class="num">读 / 写</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></section>'
+}
+function routingHtml() {
+  return '<h1>选路</h1><p class="lede">每次请求先试了谁、为什么换下一家。只有开了「经过本机」并失败切过的请求才有这段记录。</p>'
+    + '<div class="toolbar"><span class="spacer"></span><button type="button" class="quiet" id="route-refresh">刷新</button></div>'
+    + '<div id="decisions"><div class="skeleton-card"><div class="skeleton" style="width:55%"></div></div></div>'
+}
+async function loadDecisions() {
+  const node = document.getElementById('decisions')
+  if (!node) return
+  try {
+    const data = await api('/api/decisions?limit=100')
+    const rows = data.decisions || []
+    if (!rows.length) {
+      node.innerHTML = '<div class="empty-state"><div class="empty-title">还没有选路记录</div>'
+        + '<div>把某个工具切到「经过本机」，请求失败切换一次之后，这里会显示完整经过。</div></div>'
+      return
+    }
+    node.innerHTML = rows.map(function (event) {
+      const steps = (event.attempts || []).map(function (attempt) {
+        const name = (state.providers.find(function (item) { return item.id === attempt.providerId }) || {}).name || attempt.providerId
+        const ok = attempt.status < 400
+        return '<li><span class="when">' + esc(when(event.at)) + '</span><div>'
+          + '<span class="pill ' + (ok ? 'ok' : 'bad') + '">' + esc(String(attempt.status)) + '</span> '
+          + esc(name) + ' · ' + esc(String(attempt.latencyMs)) + ' ms'
+          + (attempt.reason ? ' · <span class="meta">' + esc(attempt.reason) + '</span>' : '') + '</div></li>'
+      }).join('')
+      const finalName = (state.providers.find(function (item) { return item.id === event.providerId }) || {}).name || event.providerId
+      return '<section class="panel"><div class="panel-head"><h2>' + esc(event.model || '未指定模型') + '</h2>'
+        + '<span class="meta">最终用 ' + esc(finalName) + '</span></div>'
+        + '<ul class="timeline">' + steps + '</ul></section>'
+    }).join('')
+  }
+  catch (error) {
+    node.innerHTML = '<div class="empty-state"><div class="empty-title">没读到选路记录</div><div>' + esc(error.message) + '</div>'
+      + '<button type="button" class="quiet" id="route-retry">再试一次</button></div>'
+    const retry = document.getElementById('route-retry')
+    if (retry) retry.onclick = function () { loadDecisions() }
+  }
+}
+function armLogs(wrap) {
+  const provider = document.getElementById('log-provider')
+  if (provider) {
+    provider.value = logFilter.provider
+    provider.onchange = function () {
+      logFilter.provider = provider.value
+      loadLogs()
+    }
+  }
+  const failed = document.getElementById('log-failed')
+  if (failed) {
+    failed.checked = logFilter.failed
+    failed.onchange = function () {
+      logFilter.failed = failed.checked
+      loadLogs()
+    }
+  }
+  const refresh = document.getElementById('log-refresh')
+  if (refresh) refresh.onclick = function () { loadLogs() }
+  void wrap
+}
 async function useModel(id, model) {
   if (saving) return
   const provider = state.providers.find(function (item) { return item.id === id })
@@ -741,7 +1383,7 @@ async function useModel(id, model) {
     await load()
     toast(result.applied ? '已经改用 ' + provider.name + ' / ' + model : (result.message || '已经记住'))
   }
-  catch (error) { toast(error.message) }
+  catch (error) { toast(error.message, true) }
   finally { saving = false }
 }
 async function useProvider(id) {
@@ -749,7 +1391,7 @@ async function useProvider(id) {
   const provider = state.providers.find(function (item) { return item.id === id })
   if (!provider) return
   if (draft === 'direct' && !canDirect(provider.protocol)) {
-    toast(toolName(tool) + ' 听不懂这家的接口。请改成「经过本机」。')
+    toast(toolName(tool) + ' 听不懂这家的接口。请改成「经过本机」。', true)
     return
   }
   if (!provider.hasSecret) {
@@ -776,7 +1418,7 @@ async function useProvider(id) {
     await load()
     toast(result.applied ? '已经写进 ' + toolName(tool) + '。原来的配置还在，可以恢复。' : (result.message || '已经记住'))
   }
-  catch (error) { toast(error.message) }
+  catch (error) { toast(error.message, true) }
   finally {
     saving = false
     const again = document.querySelectorAll('[data-use]')
@@ -826,9 +1468,9 @@ function bind(wrap) {
       try {
         const result = await api('/api/models', { id: btn.getAttribute('data-models') })
         await load({ keepDraft: true })
-        toast(result.ok ? '已更新模型列表' : (result.message || '没拉到，仍用原来的列表'))
+        toast(result.ok ? '已更新模型列表' : (result.message || '没拉到，仍用原来的列表'), !result.ok)
       }
-      catch (error) { toast(error.message) }
+      catch (error) { toast(error.message, true) }
     }
   })
   const doImport = document.getElementById('do-import')
@@ -838,7 +1480,7 @@ function bind(wrap) {
       await load({ keepDraft: true })
       toast(result.added && result.added.length ? '已从现有配置导入' : '没有读到本机上的服务商地址')
     }
-    catch (error) { toast(error.message) }
+    catch (error) { toast(error.message, true) }
   }
   const profileSave = document.getElementById('profile-save')
   if (profileSave) profileSave.onclick = async function () {
@@ -848,7 +1490,7 @@ function bind(wrap) {
       await load({ keepDraft: true })
       toast('已保存这套')
     }
-    catch (error) { toast(error.message) }
+    catch (error) { toast(error.message, true) }
   }
   const profileUse = document.getElementById('profile-use')
   if (profileUse) profileUse.onclick = async function () {
@@ -859,7 +1501,7 @@ function bind(wrap) {
       await load()
       toast(result.applied ? '已换成这套，并写进工具' : (result.message || '已换成这套'))
     }
-    catch (error) { toast(error.message) }
+    catch (error) { toast(error.message, true) }
   }
   const saveSettings = document.getElementById('save-settings')
   if (saveSettings) saveSettings.onclick = async function () {
@@ -879,7 +1521,7 @@ function bind(wrap) {
       await load({ keepDraft: true })
       toast('已保存说明')
     }
-    catch (error) { toast(error.message) }
+    catch (error) { toast(error.message, true) }
   }
   wrap.querySelectorAll('[data-go]').forEach(function (btn) {
     btn.onclick = function () { screen = btn.getAttribute('data-go'); draw() }
@@ -894,9 +1536,9 @@ function bind(wrap) {
       const result = await api('/api/revert', { tool: tool })
       confirmRestore = false
       await load()
-      toast(result.applied === false ? '这次没有连到配置文件' : (result.restored && result.restored.length ? '已经恢复原来的配置' : '没有可恢复的备份'))
+      toast(result.applied === false ? '这次没有连到配置文件' : (result.restored && result.restored.length ? '已经恢复原来的配置' : '没有可恢复的备份'), result.applied === false)
     }
-    catch (error) { toast(error.message) }
+    catch (error) { toast(error.message, true) }
   }
   const q = document.getElementById('q')
   if (q) q.oninput = function () {
@@ -910,7 +1552,32 @@ function bind(wrap) {
     if (list) list.innerHTML = modelListHtml()
     const cards = document.getElementById('tool-cards')
     if (cards) cards.innerHTML = toolCardsHtml()
+    const count = document.getElementById('tq-count')
+    if (count) count.textContent = String(modelRows().length)
     bind(wrap)
+  }
+  const copyModel = document.getElementById('copy-model')
+  if (copyModel) copyModel.onclick = async function () {
+    const current = state.providers.find(function (item) { return item.id === routeOf().providerId })
+    const value = routeOf().model || (current ? current.name : '')
+    if (!value) return
+    try {
+      await navigator.clipboard.writeText(value)
+      toast('已复制 ' + value)
+    }
+    catch (error) {
+      const box = document.createElement('textarea')
+      box.value = value
+      box.setAttribute('readonly', '')
+      box.style.position = 'fixed'
+      box.style.opacity = '0'
+      document.body.appendChild(box)
+      box.select()
+      let copied = false
+      try { copied = document.execCommand('copy') } catch (copyError) { copied = false }
+      document.body.removeChild(box)
+      toast(copied ? '已复制 ' + value : '复制不了，手动记一下：' + value, !copied)
+    }
   }
   const add = document.getElementById('padd')
   if (add) add.onclick = async function () {
@@ -934,7 +1601,7 @@ function bind(wrap) {
       refreshPresets()
       toast('已添加')
     }
-    catch (error) { toast(error.message) }
+    catch (error) { toast(error.message, true) }
   }
   wrap.querySelectorAll('[data-preset]').forEach(function (btn) {
     btn.onclick = function () {
@@ -958,7 +1625,7 @@ function bind(wrap) {
       await load({ keepDraft: true })
       toast('已添加 ' + preset.name)
     }
-    catch (error) { toast(error.message) }
+    catch (error) { toast(error.message, true) }
   }
   const presetCancel = document.getElementById('preset-cancel')
   if (presetCancel) presetCancel.onclick = function () { pendingPreset = ''; draw() }
@@ -977,7 +1644,7 @@ function bind(wrap) {
         ? '已移除。' + affected.map(function (t) { return toolName(t) }).join('、') + ' 还指向这家，请重新选一家。'
         : '已移除')
     }
-    catch (error) { toast(error.message) }
+    catch (error) { toast(error.message, true) }
   }
   const cancelRemove = document.getElementById('cancel-remove')
   if (cancelRemove) cancelRemove.onclick = function () { pendingRemove = ''; refreshAdded() }
@@ -1002,7 +1669,7 @@ function bind(wrap) {
         await load({ keepDraft: true })
         toast(name || key ? '已保存' : '没有改动')
       }
-      catch (error) { toast(error.message) }
+      catch (error) { toast(error.message, true) }
     }
   })
   wrap.querySelectorAll('[data-forget]').forEach(function (btn) {
@@ -1013,7 +1680,7 @@ function bind(wrap) {
         await load({ keepDraft: true })
         toast('已清除密钥。这家暂时不能用，除非重新填。')
       }
-      catch (error) { toast(error.message) }
+      catch (error) { toast(error.message, true) }
     }
   })
   const saveAccount = document.getElementById('asave')
@@ -1033,7 +1700,7 @@ function bind(wrap) {
       await load({ keepDraft: true })
       toast('已保存。令牌没有显示在页面上。')
     }
-    catch (error) { toast(error.message) }
+    catch (error) { toast(error.message, true) }
   }
   wrap.querySelectorAll('[data-drop]').forEach(function (btn) {
     btn.onclick = function () { pendingDrop = btn.getAttribute('data-drop'); pendingAccount = ''; refreshAccounts() }
@@ -1047,7 +1714,7 @@ function bind(wrap) {
       await load({ keepDraft: true })
       toast('已移除')
     }
-    catch (error) { toast(error.message) }
+    catch (error) { toast(error.message, true) }
   }
   const cancelDrop = document.getElementById('cancel-drop')
   if (cancelDrop) cancelDrop.onclick = function () { pendingDrop = ''; refreshAccounts() }
@@ -1077,7 +1744,7 @@ function bind(wrap) {
         await load({ keepDraft: true })
         toast('已保存')
       }
-      catch (error) { toast(error.message) }
+      catch (error) { toast(error.message, true) }
     }
   })
   wrap.querySelectorAll('[data-quota]').forEach(function (btn) {
@@ -1096,6 +1763,122 @@ function bind(wrap) {
     }
   })
 }
+document.getElementById('lang-btn').addEventListener('click', function () {
+  lang = lang === 'en' ? 'zh' : 'en'
+  try { localStorage.setItem('ccjk-lang', lang) } catch (error) { /* private mode */ }
+  applyLang()
+  if (state) draw()
+})
+const palette = { open: false, items: [], active: 0 }
+function paletteEntries(query) {
+  const needle = String(query || '').trim().toLowerCase()
+  const hits = []
+  MORE.forEach(function (row) {
+    if (!needle || row[1].toLowerCase().indexOf(needle) >= 0 || row[0].indexOf(needle) >= 0)
+      hits.push({ group: '页面', label: row[1], sub: '', run: function () { screen = row[0]; draw() } })
+  })
+  modelRows().forEach(function (row) {
+    if (needle && row.label.toLowerCase().indexOf(needle) < 0) return
+    hits.push({
+      group: '模型',
+      label: row.label,
+      sub: row.provider.hasSecret ? '' : '缺密钥',
+      run: function () { screen = 'tool'; tool = row.provider.id; void useModel(row.provider.id, row.model) },
+    })
+  })
+  return hits.slice(0, 40)
+}
+function paletteRender() {
+  const list = document.getElementById('palette-list')
+  if (!list) return
+  if (!palette.items.length) {
+    list.innerHTML = '<div class="palette-empty">没有匹配项</div>'
+    return
+  }
+  let html = ''
+  let lastGroup = ''
+  palette.items.forEach(function (item, index) {
+    if (item.group !== lastGroup) {
+      html += '<div class="palette-group">' + esc(item.group) + '</div>'
+      lastGroup = item.group
+    }
+    html += '<button type="button" class="palette-item' + (index === palette.active ? ' active' : '') + '" data-palette-index="' + index + '">'
+      + esc(item.label) + (item.sub ? '<span class="sub">' + esc(item.sub) + '</span>' : '') + '</button>'
+  })
+  list.innerHTML = html
+  list.querySelectorAll('[data-palette-index]').forEach(function (btn) {
+    btn.onclick = function () { paletteRun(Number(btn.getAttribute('data-palette-index'))) }
+  })
+  const active = list.querySelector('.palette-item.active')
+  if (active && active.scrollIntoView) active.scrollIntoView({ block: 'nearest' })
+}
+function paletteSearch(value) {
+  palette.items = paletteEntries(value)
+  palette.active = 0
+  paletteRender()
+}
+function paletteRun(index) {
+  const item = palette.items[index]
+  paletteClose()
+  if (item) void item.run()
+}
+function paletteOpen() {
+  const root = document.getElementById('palette')
+  const input = document.getElementById('palette-input')
+  if (!root || !input) return
+  palette.open = true
+  root.classList.add('open')
+  input.value = ''
+  paletteSearch('')
+  input.focus()
+}
+function paletteClose() {
+  const root = document.getElementById('palette')
+  if (!root) return
+  palette.open = false
+  root.classList.remove('open')
+}
+document.addEventListener('click', function (event) {
+  if (event.target && event.target.id === 'palette') paletteClose()
+})
+document.addEventListener('keydown', function (event) {
+  if ((event.metaKey || event.ctrlKey) && String(event.key).toLowerCase() === 'k') {
+    event.preventDefault()
+    if (palette.open) paletteClose()
+    else paletteOpen()
+    return
+  }
+  if (!palette.open) return
+  if (event.key === 'Escape') { event.preventDefault(); paletteClose(); return }
+  if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+    event.preventDefault()
+    if (!palette.items.length) return
+    const step = event.key === 'ArrowDown' ? 1 : -1
+    palette.active = (palette.active + step + palette.items.length) % palette.items.length
+    paletteRender()
+    return
+  }
+  if (event.key === 'Enter') {
+    event.preventDefault()
+    paletteRun(palette.active)
+  }
+})
+document.addEventListener('input', function (event) {
+  if (event.target && event.target.id === 'palette-input') paletteSearch(event.target.value)
+})
+document.addEventListener('keydown', function (event) {
+  if (event.metaKey || event.ctrlKey || event.altKey) return
+  const tag = (event.target && event.target.tagName) || ''
+  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') {
+    if (event.key === 'Escape') event.target.blur()
+    return
+  }
+  if (event.key === '/') {
+    const box = document.getElementById('tq') || document.getElementById('q')
+    if (box) { event.preventDefault(); box.focus(); box.select(); }
+  }
+})
+applyLang()
 load().then(function () {
   pollHealth()
   if (healthTimer) clearInterval(healthTimer)
