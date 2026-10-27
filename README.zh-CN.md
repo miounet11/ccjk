@@ -80,6 +80,17 @@ ccjk init -T codex  # -T clavue | claude-code | codex | grok
 - **第一次写入前留快照。** `ccjk proxy revert` 按快照还原。
 - **用量与花费**：按每百万 token 估一个参考价，并给出缓存命中。这是估算，不是账单。
 
+### 本机控制台
+
+`ccjk ui` 打开的就是它，不用另装一个常驻应用：
+
+- **模型卡片**：每个工具一页，卡片上标「正在使用 / 缺密钥 / 点一下就用」；顶部卡片显示当前路由的模型名、协议和连接方式。
+- **日志**：每次经过本机的请求都留一条，可按服务商筛选、只看失败，显示时间、模型、状态码和耗时。
+- **选路**：一次请求依次试过哪几家、为什么换下一家，按时间线展开。
+- **用量**：今天 / 7 天 / 30 天 / 全部切换，按服务商、按模型、按账号分开统计，附一条趋势线。价钱仍是参考。
+- **快速跳转**：`⌘K` / `Ctrl+K` 搜页面和模型，`↑↓` 选，回车即用。
+- **中英切换**：界面里直接切换，选择记在本机，下次打开还是这个语言。
+
 ## 支持的工具
 
 | 工具 | 配置根目录 | ccjk 能力 |
@@ -125,8 +136,9 @@ Anthropic · OpenAI · xAI · Gemini · OpenRouter · DeepSeek · Kimi / Moonsho
 
 | | ccjk | [cc-switch](https://github.com/farion1231/cc-switch) | [magpie](https://github.com/yetone/magpie) |
 |---|---|---|---|
-| 形态 | 终端 CLI | 桌面应用 | 菜单栏 + 本地网关 |
+| 形态 | 终端 CLI + 本机 Web 控制台 | 桌面应用 | 菜单栏 + 本地网关 |
 | 主业 | 扫配置、备份后写入、还原 | 在一个应用里管服务商、MCP、Skills、Prompts | 把很多 agent 的模型接到一个网关 |
+| 观测 | 本机控制台：日志、选路时间线、按模型/账号用量 | 应用内看用量 | 网关侧看请求与用量 |
 | 代理 | 可选，只听 `127.0.0.1` | 以改各客户端配置为主 | 网关就是产品，默认本机，也可以共享到局域网 |
 | 密钥 | 你自己的密钥，不读钥匙串 | 在应用里填写和切换 | 可读钥匙串，也能发现订阅 |
 | 路由 | 顺序、轮流、按用量，同一段对话粘住 | 切换当前供应商 | 还有 smart、pace |
@@ -134,7 +146,7 @@ Anthropic · OpenAI · xAI · Gemini · OpenRouter · DeepSeek · Kimi / Moonsho
 
 已经在终端里管这几个工具时，ccjk 更直接：
 
-- 配置和代理是同一个命令。换模型不用再装一个常驻应用。
+- 配置和代理是同一个命令。换模型不用再装一个常驻应用：`ccjk proxy ls` 看现状，`ccjk proxy use` 换模型，`ccjk ui` 打开本机选择器界面。
 - 代理不监听局域网，不读钥匙串，不冒充官方客户端，也不上报使用情况。
 - 写进工具之前先留快照，可以还原。
 - 中文界面。一行命令指定工具和「服务商 / 模型」。
@@ -203,7 +215,7 @@ ccjk --lang ja      # 日本語
 | `ccjk uninstall` | 卸载 CCJK 管理的配置 |
 | `ccjk ccr` | Claude Code Router 配置 |
 | `ccjk ccu` | Claude Code 用量分析 |
-| `ccjk proxy` | 本机代理：`serve` / `start` / `stop` / `status` / `apply` / `revert` / `switch` / `use` / `save` / `load` |
+| `ccjk proxy` | 本机代理：`serve` / `start` / `stop` / `status` / `ls` / `apply` / `revert` / `switch` / `use` / `save` / `load` |
 | `ccjk ui` | 打开本机代理界面。代理没在跑时会先启动。 |
 
 工具别名：`-T cv`（Clavue）、`-T cc`（Claude Code）、`-T cx`（Codex）、`-T gk`（Grok）。

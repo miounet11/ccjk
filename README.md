@@ -80,6 +80,17 @@ ccjk init -T codex  # -T clavue | claude-code | codex | grok
 - **Snapshot before first write.** `ccjk proxy revert` restores exactly what was there.
 - **Usage and cost** per million tokens, with cache hits. An estimate, not a bill.
 
+### Local console
+
+`ccjk ui` opens it. No second app to keep running:
+
+- **Model cards** — one page per tool, each card marked in use / missing key / one click to use. The top card shows the current route's model, protocol and connection mode.
+- **Logs** — every request that passed through the local proxy: time, model, status and latency, filterable by provider or failures only.
+- **Routing** — for one request, which upstreams were tried and why it moved to the next, laid out as a timeline.
+- **Usage** — today / 7 days / 30 days / all, split by provider, by model and by account, with a trend line. Still an estimate.
+- **Quick jump** — `⌘K` / `Ctrl+K` searches pages and models; `↑↓` to move, Enter to use.
+- **Chinese / English** — switch inside the console; the choice is stored locally.
+
 ## Supported tools
 
 | Tool | Config root | What ccjk manages |
@@ -123,8 +134,9 @@ All three solve "stop hand-editing each tool's config". The shapes differ. Facts
 
 | | ccjk | [cc-switch](https://github.com/farion1231/cc-switch) | [magpie](https://github.com/yetone/magpie) |
 |---|---|---|---|
-| Shape | Terminal CLI | Desktop app | Menu bar + local gateway |
+| Shape | Terminal CLI + local web console | Desktop app | Menu bar + local gateway |
 | Main job | Scan, back up, write, restore | Manage providers, MCP, Skills, Prompts in one app | Route many agents' models through one gateway |
+| Observability | Console: logs, routing timeline, usage by model/account | Usage inside the app | Requests and usage on the gateway |
 | Proxy | Optional, `127.0.0.1` only | Mostly rewrites client config | The gateway *is* the product; local by default, can share on LAN |
 | Keys | Your keys. Never reads the keychain | Filled in and switched inside the app | Can read the keychain, can discover subscriptions |
 | Routing | Sequential, rotate, least-used; sticky per conversation | Switch current provider | Also smart, pace |

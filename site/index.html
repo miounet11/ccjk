@@ -259,6 +259,11 @@
         <p>Clavue、Claude Code、Codex、Grok、OpenCode、ClaudeWork；内置 28 个服务商预设，也接任何 OpenAI 兼容端点。</p>
       </div>
       <div class="card">
+        <span class="icon">📊</span>
+        <h3>本机控制台看得见</h3>
+        <p><code class="inline-code">ccjk ui</code> 打开：每次请求的日志、一次请求试过哪几家、按服务商 / 模型 / 账号拆开的用量，今天 / 7 天 / 30 天随便切。<code class="inline-code">⌘K</code> 搜页面和模型，界面可切中英。</p>
+      </div>
+      <div class="card">
         <span class="icon">🔒</span>
         <h3>本机为界</h3>
         <p>代理只听 <code class="inline-code">127.0.0.1</code>，不读钥匙串，不冒充官方客户端，不发送遥测。服务商密钥本机加密保存，不进配置文件。</p>
@@ -366,8 +371,9 @@
           </tr>
         </thead>
         <tbody>
-          <tr><td>形态</td><td class="yes">终端 CLI</td><td>桌面应用</td><td>菜单栏 + 本地网关</td></tr>
+          <tr><td>形态</td><td class="yes">终端 CLI + 本机 Web 控制台</td><td>桌面应用</td><td>菜单栏 + 本地网关</td></tr>
           <tr><td>主业</td><td class="yes">扫配置、备份后写入、还原</td><td>在一个应用里管服务商、MCP、Skills、Prompts</td><td>把很多 agent 的模型接到一个网关</td></tr>
+          <tr><td>观测</td><td class="yes">日志、选路时间线、按模型 / 账号用量</td><td>应用内看用量</td><td>网关侧看请求与用量</td></tr>
           <tr><td>代理</td><td class="yes">可选，只听 127.0.0.1</td><td>以改各客户端配置为主</td><td>网关就是产品，默认本机，也可以共享到局域网</td></tr>
           <tr><td>密钥</td><td class="yes">你自己的密钥，不读钥匙串</td><td>在应用里填写和切换</td><td>可读钥匙串，也能发现订阅</td></tr>
           <tr><td>路由</td><td class="yes">顺序、轮流、按用量，同一段对话粘住</td><td>切换当前供应商</td><td>还有 smart、pace</td></tr>
