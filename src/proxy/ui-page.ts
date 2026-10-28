@@ -1971,13 +1971,24 @@ document.addEventListener('keydown', function (event) {
 applyLang()
 // 列表与空状态是异步渲染的，晚于 draw() 里的 localizeTree，这里补一次。
 // 只监听 childList：localizeTree 改的是文本值（characterData），不会自触发。
+let lateNodes = []
+let lateFrame = 0
+function flushLateNodes() {
+  lateFrame = 0
+  const nodes = lateNodes
+  lateNodes = []
+  nodes.forEach(function (node) {
+    if (node.nodeType === 1) localizeTree(node)
+    else if (node.nodeType === 3 && node.nodeValue) node.nodeValue = localizeText(node.nodeValue)
+  })
+}
 new MutationObserver(function (records) {
   if (lang !== 'en') return
   records.forEach(function (record) {
-    record.addedNodes.forEach(function (node) {
-      if (node.nodeType === 1) localizeTree(node)
-    })
+    record.addedNodes.forEach(function (node) { lateNodes.push(node) })
   })
+  // 合并到下一帧处理，避免日志/选路页批量插入时逐节点重复扫描
+  if (lateNodes.length && !lateFrame) lateFrame = requestAnimationFrame(flushLateNodes)
 }).observe(document.body, { childList: true, subtree: true })
 function onLocationChange() {
   if (!applyRoute()) return
