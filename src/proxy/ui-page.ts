@@ -579,7 +579,24 @@ const EN = {
   '已经恢复原来的配置': 'Previous config restored',
   '没有可恢复的备份': 'No backup to restore',
   '这次没有连到配置文件': 'Not connected to config files this time',
-  '已经记住': 'Remembered'
+  '已经记住': 'Remembered',
+  '日志': 'Logs',
+  '选路': 'Routing',
+  '刷新': 'Refresh',
+  '全部服务商': 'All providers',
+  '只看失败的': 'Failures only',
+  '经过这台电脑的每一次请求。旧记录没有试过哪几家。': 'Every request that passed through this machine. Older records do not say which providers were tried.',
+  '还没有请求经过这里': 'No requests yet',
+  '用一会儿工具，这里会按时间倒序列出每一次请求，包括试了哪几家。': 'Use your tools for a while. Each request shows up here newest first, including which providers were tried.',
+  '没读到日志': 'Could not read logs',
+  '再试一次': 'Try again',
+  '每次请求先试了谁、为什么换下一家。只有开了「经过本机」并失败切过的请求才有这段记录。': 'Who was tried first and why the request moved on. Only requests routed "through this machine" that failed over are recorded here.',
+  '还没有选路记录': 'No routing records yet',
+  '把某个工具切到「经过本机」，请求失败切换一次之后，这里会显示完整经过。': 'Switch a tool to "Through this machine". After one request fails over, the full path shows up here.',
+  '没读到选路记录': 'Could not read routing records',
+  '未指定模型': 'No model specified',
+  '最终用': 'Finally used',
+  '试了 {n} 家': 'tried {n} providers'
 }
 function t(text, vars) {
   let out = lang === 'en' && EN[text] !== undefined ? EN[text] : text
@@ -1361,7 +1378,7 @@ function logsTableHtml() {
   const rows = logsCache.map(function (event) {
     const ok = event.status < 400
     const name = (state.providers.find(function (item) { return item.id === event.providerId }) || {}).name || event.providerId
-    const tried = Array.isArray(event.attempts) && event.attempts.length > 1 ? ' · 试了 ' + event.attempts.length + ' 家' : ''
+    const tried = Array.isArray(event.attempts) && event.attempts.length > 1 ? ' · ' + t('试了 {n} 家', { n: event.attempts.length }) : ''
     return '<tr><td class="mono">' + esc(when(event.at)) + '</td>'
       + '<td>' + esc(name) + tried + '</td>'
       + '<td class="mono">' + esc(event.model || '—') + '</td>'
