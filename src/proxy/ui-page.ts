@@ -410,7 +410,8 @@ const MORE = [
   ['usage', '用量'],
   ['logs', '日志'],
   ['routing', '选路'],
-  ['accounts', '账号']
+  ['accounts', '账号'],
+  ['settings', '设置']
 ]
 const NAV_ICON = {
   providers: '<svg class="nav-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4.5A1.5 1.5 0 0 1 3.5 3h9A1.5 1.5 0 0 1 14 4.5v7a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 2 11.5v-7Z"/><path d="M2 6.5h12"/></svg>',
@@ -419,6 +420,7 @@ const NAV_ICON = {
   accounts: '<svg class="nav-icon" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="5.5" r="2.5"/><path d="M3 13c0-2.5 2.2-4 5-4s5 1.5 5 4"/></svg>',
   logs: '<svg class="nav-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 4h10M3 8h10M3 12h6"/></svg>',
   routing: '<svg class="nav-icon" viewBox="0 0 16 16" aria-hidden="true"><circle cx="4" cy="8" r="2"/><circle cx="12" cy="4" r="2"/><circle cx="12" cy="12" r="2"/><path d="M6 8h2l3-3M8 8l3 3"/></svg>',
+  settings: '<svg class="nav-icon" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="2.5"/><path d="M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M12.6 3.4l-1.4 1.4M4.8 11.2l-1.4 1.4"/></svg>',
 }
 const MODE_COPY_ZH = {
   direct: ['直接连接', '工具自己去找这家服务商，不经过这台电脑。'],
@@ -609,7 +611,43 @@ const EN = {
   '今天': 'Today',
   '7 天': '7 days',
   '30 天': '30 days',
-  '全部': 'All'
+  '全部': 'All',
+  '参考成本': 'Est. cost',
+  '参考成本价': 'Reference prices',
+  '成本按每百万 token 参考价估算': 'Cost is estimated from per-million-token reference prices',
+  '全部用内置参考价': 'Using built-in reference prices',
+  '{n} 个自定义模型': '{n} custom models',
+  '每百万 token 的价格，只用于面板上的成本估算，不是账单。一行一个：': 'Prices per million tokens. Used only for the estimate on this panel, not for billing. One per line: ',
+  '可再加第四段缓存读入价。留空即恢复内置价。': 'Add a fourth field for cache-read price. Leave empty to fall back to built-in prices.',
+  '保存价格': 'Save prices',
+  '用内置价': 'Use built-in',
+  '已保存价格': 'Prices saved',
+  '已改用内置价': 'Now using built-in prices',
+  '这几行看不懂：': 'Cannot read these lines: ',
+  '（默认模型）': '(default model)',
+  '设置': 'Settings',
+  '这里能看到这台控制台当前真正生效的配置，说明、别名和成本价也能直接改。': 'Everything this console is actually running with. Notes, aliases and reference prices can be edited right here.',
+  '运行状态': 'Runtime',
+  '监听地址': 'Listening on',
+  '配置文件': 'Config file',
+  '可写入工具': 'Can write tools',
+  '是': 'Yes',
+  '否（只读）': 'No (read-only)',
+  '账号': 'Accounts',
+  '服务商': 'Providers',
+  '自定义价格': 'Custom prices',
+  '每个工具的接法': 'How each tool is wired',
+  '工具': 'Tool',
+  '接法': 'Mode',
+  '用哪家': 'Which provider',
+  '未选服务商': 'No provider selected',
+  '策略 {name}': 'strategy {name}',
+  '可换 {n} 家': '{n} in failover',
+  '还没有配过工具。': 'No tool configured yet.',
+  '系统说明': 'System prompt',
+  '会附加到每个经过本机的请求': 'Appended to every request that passes through this machine',
+  '保存说明与别名': 'Save notes and aliases',
+  '模型别名': 'Model aliases'
 }
 function t(text, vars) {
   let out = lang === 'en' && EN[text] !== undefined ? EN[text] : text
@@ -937,6 +975,7 @@ function renderScreen() {
     return
   }
   else if (screen === 'accounts') wrap.innerHTML = accountsHtml()
+  else if (screen === 'settings') wrap.innerHTML = settingsPageHtml()
   else wrap.innerHTML = toolHtml()
   bind(wrap)
   if (screen === 'tool')
@@ -1012,6 +1051,67 @@ function aliasText() {
   const aliases = state.aliases || {}
   return Object.keys(aliases).map(function (key) { return key + '=' + aliases[key] }).join('\\n')
 }
+function priceText() {
+  const prices = state.prices || {}
+  return Object.keys(prices).map(function (model) {
+    const row = prices[model] || {}
+    const parts = [model, row.input, row.output]
+    if (typeof row.cacheRead === 'number') parts.push(row.cacheRead)
+    return parts.join('=')
+  }).join('\\n')
+}
+function pricePanelHtml() {
+  const rows = Object.keys(state.prices || {}).length
+  return '<section class="panel"><div class="panel-head"><h2>参考成本价</h2>'
+    + '<span class="meta">' + (rows ? rows + ' 个自定义模型' : '全部用内置参考价') + '</span></div>'
+    + '<p class="meta">每百万 token 的价格，只用于面板上的成本估算，不是账单。一行一个：<code>模型=输入=输出</code>，可再加第四段缓存读入价。留空即恢复内置价。</p>'
+    + '<label class="field"><span class="sr-only">成本价</span><textarea id="prices" placeholder="deepseek-chat=0.27=1.1=0.07">' + esc(priceText()) + '</textarea></label>'
+    + '<div class="actions" style="margin-top:14px"><button type="button" class="primary" id="save-prices">保存价格</button>'
+    + '<button type="button" class="quiet" id="reset-prices">用内置价</button></div></section>'
+}
+function settingsPageHtml() {
+  const rows = [
+    ['监听地址', (state.listenHost || '127.0.0.1') + ':' + state.port],
+    ['配置文件', state.configPath || '—'],
+    ['可写入工具', state.canWrite ? '是' : '否（只读）'],
+    ['账号', String((state.accounts || []).length)],
+    ['服务商', String((state.providers || []).length)],
+    ['自定义价格', String(Object.keys(state.prices || {}).length)],
+  ]
+  const routeRows = Object.keys(state.tools || {}).map(function (id) {
+    const route = state.tools[id] || {}
+    const provider = (state.providers || []).find(function (item) { return item.id === route.providerId })
+    const mode = (MODE_COPY_ZH[route.mode] || MODE_COPY_ZH.direct)[0]
+    const extra = [provider ? provider.name : (route.providerId || '未选服务商')]
+    if (route.model) extra.push(route.model)
+    if (route.strategy) extra.push(t('策略 {name}', { name: route.strategy }))
+    if ((route.failover || []).length > 1) extra.push(t('可换 {n} 家', { n: route.failover.length }))
+    return '<tr><td>' + esc(toolName(id)) + '</td><td>' + esc(mode) + '</td><td class="mono">' + esc(extra.join(' · ')) + '</td></tr>'
+  }).join('')
+  return '<h1>设置</h1>'
+    + '<p class="lede">这里能看到这台控制台当前真正生效的配置，说明、别名和成本价也能直接改。</p>'
+    + '<section class="panel"><div class="panel-head"><h2>运行状态</h2></div>'
+    + '<table><tbody>' + rows.map(function (row) {
+      return '<tr><th>' + esc(row[0]) + '</th><td class="mono">' + esc(row[1]) + '</td></tr>'
+    }).join('') + '</tbody></table></section>'
+    + '<section class="panel"><div class="panel-head"><h2>每个工具的接法</h2></div>'
+    + (routeRows
+      ? '<table><thead><tr><th>工具</th><th>接法</th><th>用哪家</th></tr></thead><tbody>' + routeRows + '</tbody></table>'
+      : '<p class="empty">还没有配过工具。</p>')
+    + '</section>'
+    + settingsPanelsHtml()
+}
+function settingsPanelsHtml() {
+  const aliasText = Object.keys(state.aliases || {}).map(function (name) {
+    return name + '=' + state.aliases[name]
+  }).join('\\n')
+  return '<section class="panel"><div class="panel-head"><h2>系统说明</h2><span class="meta">会附加到每个经过本机的请求</span></div>'
+    + '<label class="field"><span class="sr-only">系统说明</span><textarea id="sysprompt" placeholder="例如：回答尽量短。">' + esc(state.systemPrompt || '') + '</textarea></label></section>'
+    + '<section class="panel"><div class="panel-head"><h2>模型别名</h2><span class="meta">一行一个：别名=服务商/模型</span></div>'
+    + '<label class="field"><span class="sr-only">模型别名</span><textarea id="aliases" placeholder="fast=deepseek/deepseek-chat">' + esc(aliasText) + '</textarea></label>'
+    + '<div class="actions" style="margin-top:14px"><button type="button" class="primary" id="save-settings">保存说明与别名</button></div></section>'
+    + pricePanelHtml()
+}
 function profileHtml() {
   const names = state.profiles || []
   const options = names.map(function (name) {
@@ -1027,6 +1127,7 @@ function profileHtml() {
     + '<label class="field"><span>补充说明</span><textarea id="sysprompt">' + esc(state.systemPrompt || '') + '</textarea></label>'
     + '<label class="field" style="margin-top:10px"><span>模型别名</span><textarea id="aliases">' + esc(aliasText()) + '</textarea></label>'
     + '<div class="actions" style="margin-top:14px"><button type="button" class="primary" id="save-settings">保存说明</button></div></section>'
+    + pricePanelHtml()
 }
 function toolHtml() {
   const route = routeOf()
@@ -1185,19 +1286,53 @@ function usageRangeStart(range) {
   if (range === '30d') return now - 30 * 86400000
   return 0
 }
+const BUILTIN_PRICES = {
+  'deepseek-chat': { input: 0.27, output: 1.1, cacheRead: 0.07 },
+  'claude-sonnet-4-5': { input: 3, output: 15, cacheRead: 0.3 },
+  'gpt-5.4': { input: 2.5, output: 15, cacheRead: 0.25 },
+  'grok-4': { input: 3, output: 15, cacheRead: 0.75 }
+}
+const DEFAULT_PRICE = { input: 1, output: 3, cacheRead: 0.1 }
+function priceFor(model, prices) {
+  const name = String(model || '')
+  const pick = function (row) {
+    if (!row) return null
+    const input = Number(row.input)
+    const output = Number(row.output)
+    if (!isFinite(input) || !isFinite(output) || input < 0 || output < 0) return null
+    const cacheRead = Number(row.cacheRead)
+    return { input: input, output: output, cacheRead: isFinite(cacheRead) && cacheRead >= 0 ? cacheRead : 0 }
+  }
+  if (prices && pick(prices[name])) return pick(prices[name])
+  const cut = name.indexOf('--')
+  const bare = cut >= 0 ? name.slice(cut + 2) : name
+  if (prices && pick(prices[bare])) return pick(prices[bare])
+  return pick(BUILTIN_PRICES[name]) || pick(BUILTIN_PRICES[bare]) || DEFAULT_PRICE
+}
+/** 参考价，按每百万 token 估算，不是账单。 */
+function usageCostOf(event, prices) {
+  const price = priceFor(event.model, prices)
+  const input = Number(event.inputTokens) || 0
+  const output = Number(event.outputTokens) || 0
+  const cacheRead = Number(event.cacheReadTokens) || 0
+  const total = (input * price.input + output * price.output + cacheRead * (price.cacheRead || 0)) / 1000000
+  return isFinite(total) ? total : 0
+}
 function usageSummaryOf(events, prices) {
-  const out = { requests: 0, errors: 0, inputTokens: 0, outputTokens: 0, byProvider: {}, byModel: {}, byAccount: {} }
+  const out = { requests: 0, errors: 0, inputTokens: 0, outputTokens: 0, costUsd: 0, byProvider: {}, byModel: {}, byAccount: {} }
   events.forEach(function (event) {
     out.requests += 1
     if (event.status >= 400) out.errors += 1
     out.inputTokens += event.inputTokens || 0
     out.outputTokens += event.outputTokens || 0
+    out.costUsd += usageCostOf(event, prices)
     const p = out.byProvider[event.providerId] || (out.byProvider[event.providerId] = { requests: 0, errors: 0 })
     p.requests += 1
     if (event.status >= 400) p.errors += 1
-    const m = out.byModel[event.model || ''] || (out.byModel[event.model || ''] = { requests: 0, outputTokens: 0 })
+    const m = out.byModel[event.model || ''] || (out.byModel[event.model || ''] = { requests: 0, outputTokens: 0, costUsd: 0 })
     m.requests += 1
     m.outputTokens += event.outputTokens || 0
+    m.costUsd += usageCostOf(event, prices)
     const provider = state.providers.find(function (item) { return item.id === event.providerId })
     const accountId = provider && provider.accountId ? provider.accountId : ''
     const account = state.accounts.find(function (item) { return item.id === accountId })
@@ -1206,7 +1341,6 @@ function usageSummaryOf(events, prices) {
     a.requests += 1
     a.outputTokens += event.outputTokens || 0
   })
-  void prices
   return out
 }
 function sparkline(events) {
@@ -1244,7 +1378,7 @@ function usageBodyHtml(events) {
     return summary.byModel[b].requests - summary.byModel[a].requests
   }).map(function (model) {
     const row = summary.byModel[model]
-    return '<tr><td class="mono">' + esc(model || '（默认模型）') + '</td><td class="num">' + row.requests + '</td><td class="num">' + Number(row.outputTokens || 0).toLocaleString('zh-CN') + '</td></tr>'
+    return '<tr><td class="mono">' + esc(model || '（默认模型）') + '</td><td class="num">' + row.requests + '</td><td class="num">' + Number(row.outputTokens || 0).toLocaleString('zh-CN') + '</td><td class="num">' + money(row.costUsd) + '</td></tr>'
   }).join('')
   const accountRowsOut = Object.keys(summary.byAccount).map(function (label) {
     const row = summary.byAccount[label]
@@ -1255,10 +1389,11 @@ function usageBodyHtml(events) {
   }
   return '<div class="stats">'
     + stat(summary.requests, '请求') + stat(summary.errors, '没成功') + stat(summary.inputTokens, '读入') + stat(summary.outputTokens, '写出')
+    + stat('$' + summary.costUsd.toFixed(4), '参考成本')
     + '</div>'
     + sparkline(events)
     + '<section class="panel"><div class="panel-head"><h2>按服务商</h2></div><table><thead><tr><th>服务商</th><th class="num">次数</th><th class="num">失败</th></tr></thead><tbody>' + providerRows + '</tbody></table></section>'
-    + '<section class="panel"><div class="panel-head"><h2>按模型</h2></div><table><thead><tr><th>模型</th><th class="num">次数</th><th class="num">写出 token</th></tr></thead><tbody>' + modelRowsOut + '</tbody></table></section>'
+    + '<section class="panel"><div class="panel-head"><h2>按模型</h2><span class="meta">成本按每百万 token 参考价估算</span></div><table><thead><tr><th>模型</th><th class="num">次数</th><th class="num">写出 token</th><th class="num">参考成本</th></tr></thead><tbody>' + modelRowsOut + '</tbody></table></section>'
     + '<section class="panel"><div class="panel-head"><h2>按账号</h2></div>' + (accountRowsOut
       ? '<table><thead><tr><th>账号</th><th class="num">次数</th><th class="num">写出 token</th></tr></thead><tbody>' + accountRowsOut + '</tbody></table>'
       : '<p class="empty">还没有关联账号的请求。</p>') + '</section>'
@@ -1276,6 +1411,12 @@ async function loadUsage() {
   catch (error) {
     node.innerHTML = '<div class="empty-state"><div class="empty-title">读不到用量</div><div>' + esc(error.message) + '</div></div>'
   }
+}
+/** 小于一分钱也显示出来，避免全都变成 $0.00。 */
+function money(value) {
+  const n = Number(value || 0)
+  if (!n) return '—'
+  return n < 0.01 ? '<$0.01' : '$' + n.toFixed(2)
 }
 function stat(n, label) {
   const text = typeof n === 'number' ? Number(n || 0).toLocaleString('zh-CN') : String(n)
@@ -1623,6 +1764,42 @@ function bind(wrap) {
       })
       await load({ keepDraft: true })
       toast('已保存说明')
+    }
+    catch (error) { toast(error.message, true) }
+  }
+  const savePrices = document.getElementById('save-prices')
+  if (savePrices) savePrices.onclick = async function () {
+    const prices = {}
+    const bad = []
+    document.getElementById('prices').value.split('\\n').forEach(function (line) {
+      const trimmed = line.trim()
+      if (!trimmed) return
+      const parts = trimmed.split('=').map(function (part) { return part.trim() })
+      const input = Number(parts[1])
+      const output = Number(parts[2])
+      if (parts.length < 3 || !parts[0] || !isFinite(input) || !isFinite(output) || input < 0 || output < 0) {
+        bad.push(trimmed)
+        return
+      }
+      const row = { input: input, output: output }
+      const cacheRead = Number(parts[3])
+      if (parts.length > 3 && isFinite(cacheRead) && cacheRead >= 0) row.cacheRead = cacheRead
+      prices[parts[0]] = row
+    })
+    if (bad.length) { toast('这几行看不懂：' + bad[0], true); return }
+    try {
+      await api('/api/settings', { prices: prices })
+      await load({ keepDraft: true })
+      toast('已保存价格')
+    }
+    catch (error) { toast(error.message, true) }
+  }
+  const resetPrices = document.getElementById('reset-prices')
+  if (resetPrices) resetPrices.onclick = async function () {
+    try {
+      await api('/api/settings', { prices: null })
+      await load({ keepDraft: true })
+      toast('已改用内置价')
     }
     catch (error) { toast(error.message, true) }
   }

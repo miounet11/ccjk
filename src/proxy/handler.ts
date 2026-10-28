@@ -1,6 +1,6 @@
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import type { ApplyTarget } from './apply-config'
-import type { AccountKind, ProxyProvider, ProxyToolId, RouteStrategy, UpstreamProtocol } from './types'
+import type { AccountKind, ModelPrice, ProxyProvider, ProxyToolId, RouteStrategy, UpstreamProtocol } from './types'
 import type { RouteMemory } from './router'
 import { existsSync, readFileSync } from 'node:fs'
 import { homedir } from 'node:os'
@@ -13,7 +13,7 @@ import { applySavedRoutes, chosenClientModel } from './apply-saved'
 import { applyProxy, canConnectDirectly, defaultTargets, revertProxy, wireApiFor } from './apply-config'
 import { accountWarning, deleteAccount, deleteProviderSecret, getAccountToken, getProviderSecret, listAccounts, readQuota, saveAccount, setProviderSecret } from './accounts'
 import { CircuitBreaker } from './circuit'
-import { loadProxyConfig, removeProvider, saveProxyProfile, setToolRoute, updateProxySettings, upsertProvider, useProxyProfile } from './config-store'
+import { loadProxyConfig, proxyConfigPath, removeProvider, saveProxyProfile, setToolRoute, updateProxySettings, upsertProvider, useProxyProfile } from './config-store'
 import { providerFromClaudeSettings, providerFromCodexToml, providerFromGrokToml } from './import-local'
 import { installedTools } from './installed'
 import { modelsUrl, parseModelIds } from './models-remote'
@@ -98,6 +98,8 @@ function publicState(runtime: ProxyRuntime) {
     profiles: Object.keys(config.profiles ?? {}),
     aliases: config.aliases ?? {},
     systemPrompt: config.systemPrompt ?? '',
+    prices: config.prices ?? {},
+    configPath: proxyConfigPath(runtime.dir),
   }
 }
 
@@ -533,11 +535,16 @@ async function profiles(req: IncomingMessage, res: ServerResponse, runtime: Prox
 }
 
 async function settings(req: IncomingMessage, res: ServerResponse, runtime: ProxyRuntime) {
-  const body = JSON.parse(await readBody(req)) as { systemPrompt?: string, aliases?: Record<string, string> }
+  const body = JSON.parse(await readBody(req)) as {
+    systemPrompt?: string
+    aliases?: Record<string, string>
+    prices?: Record<string, ModelPrice> | null
+  }
   const aliases = body.aliases && typeof body.aliases === 'object' ? body.aliases : undefined
   updateProxySettings(runtime.dir, {
     systemPrompt: typeof body.systemPrompt === 'string' ? body.systemPrompt : undefined,
     aliases,
+    prices: body.prices === null || (body.prices && typeof body.prices === 'object') ? body.prices : undefined,
   })
   json(res, 200, { ok: true })
 }

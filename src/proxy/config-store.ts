@@ -173,13 +173,15 @@ export function useProxyProfile(dir: string, name: string): ProxyConfig {
 
 export function updateProxySettings(
   dir: string,
-  patch: { systemPrompt?: string, aliases?: Record<string, string> },
+  patch: { systemPrompt?: string, aliases?: Record<string, string>, prices?: Record<string, ModelPrice> | null },
 ): ProxyConfig {
   const config = loadProxyConfig(dir)
   if (typeof patch.systemPrompt === 'string')
     config.systemPrompt = patch.systemPrompt.slice(0, 8000)
   if (patch.aliases)
     config.aliases = sanitizeAliases(patch.aliases)
+  if (patch.prices !== undefined)
+    config.prices = patch.prices === null ? undefined : sanitizePrices(patch.prices)
   saveProxyConfig(dir, config)
   return loadProxyConfig(dir)
 }
