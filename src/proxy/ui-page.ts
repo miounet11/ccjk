@@ -596,7 +596,20 @@ const EN = {
   '没读到选路记录': 'Could not read routing records',
   '未指定模型': 'No model specified',
   '最终用': 'Finally used',
-  '试了 {n} 家': 'tried {n} providers'
+  '试了 {n} 家': 'tried {n} providers',
+  '按账号': 'By account',
+  '还没有关联账号的请求。': 'No requests linked to an account yet.',
+  '写出 token': 'Output tokens',
+  '未关联账号': 'Unlinked account',
+  '按模型': 'By model',
+  '按服务商': 'By provider',
+  '这段时间还没有请求': 'No requests in this range',
+  '换个时间范围看看，或者先用一次模型。': 'Try a different range, or make one request first.',
+  '时间范围': 'Time range',
+  '今天': 'Today',
+  '7 天': '7 days',
+  '30 天': '30 days',
+  '全部': 'All'
 }
 function t(text, vars) {
   let out = lang === 'en' && EN[text] !== undefined ? EN[text] : text
