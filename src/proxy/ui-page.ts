@@ -231,6 +231,10 @@ export function renderUiPage(): string {
   .pill.bad { background: var(--danger-bg); color: var(--danger); }
   .pill.warn { background: var(--warn-bg); color: var(--warn); }
   .health { display: flex; align-items: center; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+  .verdict { margin: 0 0 12px; }
+  .spend { height: 3px; border-radius: 2px; background: var(--line); margin-top: 7px; overflow: hidden; }
+  .spend-bar { display: block; height: 100%; border-radius: 2px; background: var(--ok); }
+  .spend-bar.bad { background: var(--danger); }
   .pill.info { background: var(--info-bg); color: var(--info); }
   .skeleton {
     background: linear-gradient(90deg, var(--surface-2) 25%, var(--line) 37%, var(--surface-2) 63%);
@@ -1611,17 +1615,33 @@ async function loadDecisions() {
       return
     }
     node.innerHTML = rows.map(function (event) {
-      const steps = (event.attempts || []).map(function (attempt) {
+      const attempts = event.attempts || []
+      const total = attempts.reduce(function (sum, attempt) { return sum + (Number(attempt.latencyMs) || 0) }, 0)
+      const slowest = attempts.reduce(function (worst, attempt) {
+        return (Number(attempt.latencyMs) || 0) > (Number(worst.latencyMs) || 0) ? attempt : worst
+      }, attempts[0] || { latencyMs: 0 })
+      const failedCount = attempts.filter(function (attempt) { return attempt.status >= 400 }).length
+      const steps = attempts.map(function (attempt) {
         const name = (state.providers.find(function (item) { return item.id === attempt.providerId }) || {}).name || attempt.providerId
         const ok = attempt.status < 400
+        const latency = Number(attempt.latencyMs) || 0
+        const share = total > 0 ? Math.max(2, Math.round(latency / total * 100)) : 0
+        const isSlowest = attempts.length > 1 && attempt === slowest && latency > 0
         return '<li><span class="when">' + esc(when(event.at)) + '</span><div>'
           + '<span class="pill ' + (ok ? 'ok' : 'bad') + '">' + esc(String(attempt.status)) + '</span> '
-          + esc(name) + ' · ' + esc(String(attempt.latencyMs)) + ' ms'
-          + (attempt.reason ? ' · <span class="meta">' + esc(attempt.reason) + '</span>' : '') + '</div></li>'
+          + esc(name) + ' · ' + esc(String(latency)) + ' ms'
+          + (isSlowest ? ' · <span class="pill warn">最慢</span>' : '')
+          + (attempt.reason ? ' · <span class="meta">' + esc(attempt.reason) + '</span>' : '')
+          + '<div class="spend"><span class="spend-bar' + (ok ? '' : ' bad') + '" style="width:' + share + '%"></span></div>'
+          + '</div></li>'
       }).join('')
       const finalName = (state.providers.find(function (item) { return item.id === event.providerId }) || {}).name || event.providerId
+      const verdict = failedCount
+        ? '换了 ' + failedCount + ' 次才成功 · 共 ' + total + ' ms'
+        : '一次成功 · ' + total + ' ms'
       return '<section class="panel"><div class="panel-head"><h2>' + esc(event.model || '未指定模型') + '</h2>'
         + '<span class="meta">最终用 ' + esc(finalName) + '</span></div>'
+        + '<p class="meta verdict">' + esc(verdict) + '</p>'
         + '<ul class="timeline">' + steps + '</ul></section>'
     }).join('')
   }
