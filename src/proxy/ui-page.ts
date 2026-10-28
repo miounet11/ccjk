@@ -1183,6 +1183,8 @@ function wiringHtml() {
         warn = '<div class="warn">还没选服务商，所以这个工具现在没有可用地址。</div>'
       else if (row.mode === 'direct' && row.directOk === false)
         warn = '<div class="warn">这个工具听不懂这家的接口。直接连接填了也没用，请改成「经过本机」。</div>'
+      else if (row.mode === 'direct' && !row.baseUrl)
+        warn = '<div class="warn">这家服务商没填地址，直接连接不会生效。请补上地址，或改成「经过本机」。</div>'
       return '<div class="wire-row">'
         + '<div class="wire-head"><strong>' + esc(toolName(row.tool)) + '</strong>' + status
         + '<span class="meta">' + esc(mode) + '</span></div>'
