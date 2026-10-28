@@ -1969,6 +1969,16 @@ document.addEventListener('keydown', function (event) {
   }
 })
 applyLang()
+// 列表与空状态是异步渲染的，晚于 draw() 里的 localizeTree，这里补一次。
+// 只监听 childList：localizeTree 改的是文本值（characterData），不会自触发。
+new MutationObserver(function (records) {
+  if (lang !== 'en') return
+  records.forEach(function (record) {
+    record.addedNodes.forEach(function (node) {
+      if (node.nodeType === 1) localizeTree(node)
+    })
+  })
+}).observe(document.body, { childList: true, subtree: true })
 function onLocationChange() {
   if (!applyRoute()) return
   renderScreen()
