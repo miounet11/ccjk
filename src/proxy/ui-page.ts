@@ -232,6 +232,12 @@ export function renderUiPage(): string {
   .pill.warn { background: var(--warn-bg); color: var(--warn); }
   .health { display: flex; align-items: center; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
   .verdict { margin: 0 0 12px; }
+  .wire-row { border-top: 1px solid var(--line); padding: 14px 0; }
+  .wire-row:first-of-type { border-top: 0; padding-top: 4px; }
+  .wire-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .wire-url { display: flex; align-items: center; gap: 10px; margin-top: 8px; flex-wrap: wrap; }
+  .wire-url code { flex: 1 1 auto; min-width: 0; padding: 6px 10px; border-radius: 7px; background: var(--surface-2); font-family: var(--font-mono); font-size: 12.5px; overflow-wrap: anywhere; }
+  .wire-path { margin-top: 4px; overflow-wrap: anywhere; }
   .spend { height: 3px; border-radius: 2px; background: var(--line); margin-top: 7px; overflow: hidden; }
   .spend-bar { display: block; height: 100%; border-radius: 2px; background: var(--ok); }
   .spend-bar.bad { background: var(--danger); }
@@ -1153,7 +1159,41 @@ function settingsPageHtml() {
       ? '<table><thead><tr><th>工具</th><th>接法</th><th>用哪家</th></tr></thead><tbody>' + routeRows + '</tbody></table>'
       : '<p class="empty">还没有配过工具。</p>')
     + '</section>'
+    + wiringHtml()
     + settingsPanelsHtml()
+}
+/** 每个工具该填的地址和协议，手动配置时照着抄。 */
+function wiringHtml() {
+  const rows = state.wiring || []
+  if (!rows.length)
+    return ''
+  return '<section class="panel"><div class="panel-head"><h2>接入方式</h2>'
+    + '<span class="meta">手动配置时照着这里填</span></div>'
+    + '<p class="meta">这里列出每个工具当前实际生效的地址。改完上面「每个工具的接法」后，这里会跟着变。</p>'
+    + rows.map(function (row) {
+      const mode = (MODE_COPY_ZH[row.mode] || MODE_COPY_ZH.direct)[0]
+      const bits = []
+      if (row.providerName) bits.push(row.providerName)
+      if (row.model) bits.push(row.model)
+      const status = row.connected
+        ? '<span class="pill ok">已写入</span>'
+        : '<span class="pill quiet">未写入</span>'
+      let warn = ''
+      if (!row.providerName)
+        warn = '<div class="warn">还没选服务商，所以这个工具现在没有可用地址。</div>'
+      else if (row.mode === 'direct' && row.directOk === false)
+        warn = '<div class="warn">这个工具听不懂这家的接口。直接连接填了也没用，请改成「经过本机」。</div>'
+      return '<div class="wire-row">'
+        + '<div class="wire-head"><strong>' + esc(toolName(row.tool)) + '</strong>' + status
+        + '<span class="meta">' + esc(mode) + '</span></div>'
+        + '<div class="wire-url"><code>' + esc(row.baseUrl || '—') + '</code>'
+        + (row.baseUrl ? '<button type="button" class="quiet wire-copy" data-copy="' + esc(row.baseUrl) + '">复制</button>' : '')
+        + '</div>'
+        + (bits.length ? '<div class="meta">' + esc(bits.join(' · ')) + '</div>' : '')
+        + (row.path ? '<div class="meta mono wire-path">' + esc(row.path) + '</div>' : '')
+        + warn + '</div>'
+    }).join('')
+    + '</section>'
 }
 function settingsPanelsHtml() {
   const aliasText = Object.keys(state.aliases || {}).map(function (name) {
@@ -1763,6 +1803,19 @@ function drawToolSoft() {
   drawNav()
 }
 function bind(wrap) {
+  wrap.querySelectorAll('[data-copy]').forEach(function (btn) {
+    btn.onclick = async function () {
+      const value = btn.getAttribute('data-copy') || ''
+      if (!value) return
+      try {
+        await navigator.clipboard.writeText(value)
+        toast('已复制 ' + value)
+      }
+      catch (error) {
+        toast(value)
+      }
+    }
+  })
   wrap.querySelectorAll('[data-mode]').forEach(function (btn) {
     btn.onclick = function () {
       draft = btn.getAttribute('data-mode')

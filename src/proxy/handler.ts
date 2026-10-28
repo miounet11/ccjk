@@ -70,6 +70,39 @@ async function readBody(req: IncomingMessage): Promise<string> {
   return Buffer.concat(chunks).toString('utf8')
 }
 
+/**
+ * 每个工具现在怎么接、以及手动配置时该填什么。
+ * 面板直接展示，省得用户去猜地址和该用直连还是经过本机。
+ */
+function wiringRows(runtime: ProxyRuntime) {
+  const config = loadProxyConfig(runtime.dir)
+  const port = runtime.port || config.port || 0
+  const targets = runtime.targets ?? []
+  const routes = (config.tools ?? {}) as Record<string, { mode?: string, providerId?: string, model?: string } | undefined>
+  const tools = Array.from(new Set([...targets.map(target => target.tool), ...Object.keys(routes)]))
+  return tools.map((tool) => {
+    const route = routes[tool]
+    const provider = route?.providerId
+      ? config.providers.find(item => item.id === route.providerId)
+      : undefined
+    const target = targets.find(item => item.tool === tool)
+    const mode = route?.mode ?? 'routing'
+    return {
+      tool,
+      path: target?.path,
+      connected: Boolean(target),
+      mode,
+      providerName: provider?.name,
+      model: route?.model || provider?.models?.[0],
+      protocol: provider?.protocol,
+      directOk: provider ? canConnectDirectly(tool, provider.protocol) : false,
+      baseUrl: mode === 'direct'
+        ? (provider?.baseUrl ?? '')
+        : (port ? `http://127.0.0.1:${port}/t/${tool}` : ''),
+    }
+  })
+}
+
 function publicState(runtime: ProxyRuntime) {
   const config = loadProxyConfig(runtime.dir)
   return {
@@ -89,6 +122,8 @@ function publicState(runtime: ProxyRuntime) {
       hasSecret: Boolean(getProviderSecret(runtime.dir, provider.id)),
     })),
     tools: config.tools,
+    targets: (runtime.targets ?? []).map(target => ({ tool: target.tool, path: target.path, kind: target.kind })),
+    wiring: wiringRows(runtime),
     presets: PROVIDER_PRESETS,
     accounts: listAccounts(runtime.dir),
     circuits: runtime.breaker.snapshot(),
