@@ -9,7 +9,7 @@ Scan your local config, confirm, then write API keys, MCP servers, models and wo
 When a tool can't speak a provider's protocol, ccjk opens a proxy on `127.0.0.1` and translates.
 
 [![npm](https://img.shields.io/npm/v/ccjk.svg?color=111111)](https://www.npmjs.com/package/ccjk)
-[![license](https://img.shields.io/npm/l/ccjk.svg?color=111111)](./LICENSE)
+[![license](https://img.shields.io/npm/l/ccjk.svg?color=111111)](https://github.com/miounet11/ccjk/blob/main/LICENSE)
 [![node](https://img.shields.io/node/v/ccjk.svg?color=111111)](https://nodejs.org)
 [![stars](https://img.shields.io/github/stars/miounet11/ccjk?color=111111)](https://github.com/miounet11/ccjk/stargazers)<br>
 ![macOS](https://img.shields.io/badge/macOS-000000?logo=apple&logoColor=white)
@@ -17,11 +17,11 @@ When a tool can't speak a provider's protocol, ccjk opens a proxy on `127.0.0.1`
 ![Windows](https://img.shields.io/badge/Windows-0078D4?logo=windows&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
 
-**English** · [简体中文](./README.zh-CN.md)
+**English** · [简体中文](https://github.com/miounet11/ccjk/blob/main/README.zh-CN.md)
 
 <br>
 
-<img src="docs/assets/architecture.svg" width="900" alt="ccjk sits between your local coding tools and model providers, listening on 127.0.0.1 only">
+<img src="https://raw.githubusercontent.com/miounet11/ccjk/main/docs/assets/architecture.svg" width="900" alt="ccjk sits between your local coding tools and model providers, listening on 127.0.0.1 only">
 
 </div>
 
@@ -89,6 +89,7 @@ ccjk init -T codex  # -T clavue | claude-code | codex | grok
 - **Routing** — for one request, which upstreams were tried and why it moved to the next, laid out as a timeline.
 - **Usage** — today / 7 days / 30 days / all, split by provider, by model and by account, with a trend line. Still an estimate.
 - **Quick jump** — `⌘K` / `Ctrl+K` searches pages and models; `↑↓` to move, Enter to use.
+- **Deep links** — the address bar carries the route (`#/logs`, `#/routing`, `#/usage`, `#/providers`, `#/sessions`, `#/accounts`), so reload, bookmarks and back/forward land on the same page.
 - **Chinese / English** — switch inside the console; the choice is stored locally.
 
 ## Supported tools
@@ -151,14 +152,88 @@ If you already manage these tools from the terminal, ccjk is more direct:
 
 Where they go wider, ccjk doesn't: managing MCP, Skills and Prompts from a desktop, menu bar, subscriptions and keychain, 60+ agents, plugins, smart / pace, LAN and Docker. If you want those, use them.
 
+## Doctor and operator
+
+| Role | What it does | How |
+|---|---|---|
+| **Doctor** | Read-only scan for dirty MCP servers, broken Skills, redundant prompts, config risk | `ccjk clean`, menu **H** |
+| **Operator** | Back up, then write API keys / MCP / models / workflows | `ccjk init`, menu **W** |
+
+The interactive menu is the recommended entry point:
+
+```sh
+ccjk
+```
+
+It groups **operator / doctor / cross-tool / CCJK**. Press **W** for the quick wizard, **H** for the doctor.
+
+## Languages
+
+Simplified Chinese is the default. English and Japanese are also supported:
+
+```sh
+ccjk --lang zh-CN   # default
+ccjk --lang en      # English
+ccjk --lang ja      # 日本語
+```
+
+The first run asks for a display language, then for the tool (Clavue / Claude Code / Codex / Grok CLI). Inside the menu, **W** is the quick wizard; if the environment is unclear, run **H** first.
+
+## Common tasks
+
+| Task | Command / action |
+|---|---|
+| Configure a tool for the first time | `ccjk init -T codex` (or `clavue` / `claude-code` / `grok`) |
+| Clean start / daily preset for Codex | menu **W** → full init (clean / optimized / custom) |
+| Clean up a messy environment | `ccjk clean`, or menu **H** → smart cleanup |
+| Reset Codex completely, then init | menu **W** → reset then init |
+| Is the API reachable? | `ccjk probe` |
+| Switch the Codex API provider | `ccjk config-switch` |
+| Point one tool at a model | `ccjk proxy use --tool codex --model deepseek/deepseek-chat` |
+| Save / restore a whole proxy setup | `ccjk proxy save --name work` / `ccjk proxy load --name work` |
+| Undo proxy-written config | `ccjk proxy revert` |
+| Grok / Reasonix status and launch | `ccjk grok` / `ccjk reasonix` |
+| Check tool updates | `ccjk check-updates` |
+
+## CLI
+
+| Command | Purpose |
+|---|---|
+| `ccjk` | Interactive menu (default) |
+| `ccjk init` | Full init: API, MCP, models, workflows, memory |
+| `ccjk clean` | Cleanup: dirty MCP, broken Skills, redundant prompts |
+| `ccjk clean --purge-all` | Purge everything (Codex config backed up first) |
+| `ccjk clean -s` | Non-interactive, high-confidence items only |
+| `ccjk probe` | HTTP liveness check for the current API |
+| `ccjk bench` | Lightweight latency benchmark |
+| `ccjk config-switch` | Switch Codex provider / Claude config |
+| `ccjk update` | Update workflow and memory docs only |
+| `ccjk check-updates` | Check and update Claude Code / Codex / CCR |
+| `ccjk grok [profile]` | Grok CLI status and profile launch |
+| `ccjk reasonix [profile]` | Reasonix companion: status and launch |
+| `ccjk uninstall` | Remove CCJK-managed config |
+| `ccjk ccr` | Claude Code Router config |
+| `ccjk ccu` | Claude Code usage analysis |
+| `ccjk proxy` | Local proxy: `serve` / `start` / `stop` / `status` / `ls` / `apply` / `revert` / `switch` / `use` / `save` / `load` |
+| `ccjk ui` | Open the local console, starting the proxy if needed |
+
+Tool aliases: `-T cv` (Clavue), `-T cc` (Claude Code), `-T cx` (Codex), `-T gk` (Grok).
+
+## Design principles
+
+- **A config tool is a config tool** — not a brain, not an orchestrator. The proxy exists only while `ccjk proxy` or `ccjk ui` runs.
+- **No code written for you** — nothing injects hooks or commands at runtime.
+- **Backup first** — every write is preceded by a backup; proxy writes keep a first-touch snapshot, restorable with `ccjk proxy revert`.
+- **Scriptable** — `init -s`, `clean -s`, `clean --purge-all` and `proxy use` are non-interactive.
+
 ## Docs
 
-- [QUICKSTART.md](./docs/QUICKSTART.md) — copy-paste walkthrough
-- [PRODUCT.md](./PRODUCT.md) — product boundaries and behavior
-- [ARCHITECTURE.md](./ARCHITECTURE.md) — architecture invariants
-- [RELEASE-NOTES.md](./docs/RELEASE-NOTES.md) — release history
-- [CHANGELOG.md](./CHANGELOG.md) — what changed
-- [Landing page](./site/index.html) — a zero-dependency static intro page
+- [QUICKSTART.md](https://github.com/miounet11/ccjk/blob/main/docs/QUICKSTART.md) — copy-paste walkthrough
+- [PRODUCT.md](https://github.com/miounet11/ccjk/blob/main/PRODUCT.md) — product boundaries and behavior
+- [ARCHITECTURE.md](https://github.com/miounet11/ccjk/blob/main/ARCHITECTURE.md) — architecture invariants
+- [RELEASE-NOTES.md](https://github.com/miounet11/ccjk/blob/main/docs/RELEASE-NOTES.md) — release history
+- [CHANGELOG.md](https://github.com/miounet11/ccjk/blob/main/CHANGELOG.md) — what changed
+- [Landing page](https://github.com/miounet11/ccjk/blob/main/site/index.html) — a zero-dependency static intro page
 
 ## Development
 
@@ -175,4 +250,4 @@ echo '' | node dist/cli.mjs -T codex
 
 ## License
 
-[MIT](./LICENSE)
+[MIT](https://github.com/miounet11/ccjk/blob/main/LICENSE)

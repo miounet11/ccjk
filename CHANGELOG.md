@@ -13,13 +13,16 @@ ccjk 是 Clavue / Claude Code / Codex 的本地配置 CLI。本文记录用户�
 - 界面加载态改为骨架屏，新增设计 token 与统一的工具栏、标签、时间线组件。
 
 ### Changed
-- **对外介绍重做**：README 拆成英文主入口 `README.md` 和中文详版 `README.zh-CN.md`，两份顶部互链；首屏加入 `docs/assets/architecture.svg` 架构示意图；补全 6 个客户端工具、28 个服务商预设、5 种协议、3 种路由的说明。宣传页 `site/index.html` 同步。
+- **对外介绍重做**：README 拆成英文主入口 `README.md` 和中文详版 `README.zh-CN.md`，两份顶部互链；首屏加入 `docs/assets/architecture.svg` 架构示意图；补全 6 个客户端工具、28 个服务商预设、5 种协议、3 种路由的说明。宣传页 `site/index.html` 同步。英文版补齐「医生与操作员 / 多语言 / 常见场景 / CLI 命令 / 设计原则」五节，与中文版结构对齐。
+- **README 在 npm 上可用**：架构图与文档链接原先用相对路径，而 `docs/` 和 `site/` 不随 npm 包发布，在 npmjs.com 上是裂图和 404。图片改用 `raw.githubusercontent.com` 绝对地址，其余链接改为 `github.com/.../blob/main/`。
+- **npm 描述改为英文优先**：`package.json` 的 `description` 原为中文长句，改为英文短句并保留三语说明。
 - 公开仓根目录不再保留空壳 `setup-report-*.md` 与内部审计报告，已加入 `.gitignore`。
 
 ### Security
 - 移出 `docs/.vitepress/v8-implementation-summary.md`：含内部服务器路径，且已随公开仓暴露。已加入 `.gitignore`。
 
 ### Fixed
+- **控制台卡在「正在打开…」**：`ui-page.ts` 里 `parseRoute` 的正则藏在模板字符串中，`\/` 被转义成 `/`，下发到浏览器的正则因此非法，整个脚本在启动时抛 `SyntaxError`，页面只剩加载文案。改为字符串切片解析，不再依赖正则转义。
 - `ccjk proxy start` 和 `ccjk ui` 后台拉起时会带上当前 Node 的启动参数。用 TypeScript 入口时，以前会打印已启动，服务却马上退出。
 
 ### Changed

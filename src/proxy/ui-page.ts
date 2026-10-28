@@ -242,10 +242,20 @@ export function renderUiPage(): string {
   @media (prefers-reduced-motion: reduce) { .skeleton { animation: none; } }
   .skeleton-card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow-sm); padding: 16px; display: flex; flex-direction: column; gap: 10px; }
   .empty-state {
-    display: flex; flex-direction: column; align-items: center; gap: 6px;
-    padding: 40px 16px; text-align: center; color: var(--muted);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 8px; padding: 56px 24px; text-align: center; color: var(--muted);
+    border: 1px dashed var(--line); border-radius: var(--radius);
+    background: var(--card);
   }
-  .empty-state .empty-title { color: var(--text); font-weight: 600; }
+  @supports (background: color-mix(in srgb, red 50%, transparent)) {
+    .empty-state { background: color-mix(in srgb, var(--card) 55%, transparent); }
+  }
+  .empty-state .empty-title { color: var(--text); font-weight: 600; font-size: 15px; }
+  .empty-state .empty-desc { max-width: 42ch; line-height: 1.6; }
+  .empty-state .empty-icon {
+    width: 34px; height: 34px; margin-bottom: 4px; opacity: 0.5;
+  }
+  .empty-state .quiet { margin-top: 6px; }
   .stack { display: flex; flex-direction: column; gap: var(--space-2); }
   .timeline { display: flex; flex-direction: column; gap: 0; margin: 0; padding: 0; list-style: none; }
   .timeline li { display: grid; grid-template-columns: 96px 1fr; gap: var(--space-3); padding: 10px 0; border-top: 1px solid var(--line); }
@@ -720,6 +730,7 @@ async function load(options) {
   if (!options || !options.keepDraft)
     draft = (state.tools[tool] && state.tools[tool].mode) || 'direct'
   annotate()
+  applyRoute()
   draw()
 }
 function refreshPresets() {
@@ -774,18 +785,74 @@ function drawNav() {
         toolQuery = ''
       }
       screen = 'tool'
-      draw()
+      navigate()
     }
   })
   document.querySelectorAll('[data-screen]').forEach(function (btn) {
     btn.onclick = function () {
       screen = btn.getAttribute('data-screen')
       confirmRestore = false
-      draw()
+      navigate()
     }
   })
 }
+let appliedRoute = ''
+function routeHash() {
+  return screen === 'tool' ? '#/tool/' + encodeURIComponent(tool) : '#/' + screen
+}
+function parseRoute(raw) {
+  let body = String(raw || '')
+  if (body.slice(0, 1) === '#') body = body.slice(1)
+  if (body.slice(0, 1) === '/') body = body.slice(1)
+  if (!body) return null
+  const parts = body.split('/')
+  if (parts[0] === 'tool') {
+    let id = ''
+    try { id = decodeURIComponent(parts[1] || '') } catch (_) { return null }
+    return id ? { screen: 'tool', tool: id } : null
+  }
+  return MORE.some(function (row) { return row[0] === parts[0] }) ? { screen: parts[0] } : null
+}
+function routeHashOf(parsed) {
+  return parsed.screen === 'tool' ? '#/tool/' + encodeURIComponent(parsed.tool) : '#/' + parsed.screen
+}
+function syncRoute() {
+  const next = routeHash()
+  appliedRoute = next
+  if (String(location.hash || '') === next) return
+  history.replaceState(null, '', next)
+}
+function navigate() {
+  const next = routeHash()
+  if (String(location.hash || '') !== next) history.pushState(null, '', next)
+  appliedRoute = next
+  renderScreen()
+}
+function applyRoute() {
+  const parsed = parseRoute(location.hash)
+  if (!parsed) { appliedRoute = ''; return false }
+  const next = routeHashOf(parsed)
+  if (next === appliedRoute) {
+    if (String(location.hash || '') !== next) history.replaceState(null, '', next)
+    return false
+  }
+  if (parsed.screen === 'tool') {
+    tool = parsed.tool
+    screen = 'tool'
+    draft = (state && state.tools && state.tools[tool] && state.tools[tool].mode) || 'direct'
+  } else {
+    screen = parsed.screen
+  }
+  confirmRestore = false
+  appliedRoute = next
+  if (String(location.hash || '') !== next) history.replaceState(null, '', next)
+  return true
+}
 function draw() {
+  renderScreen()
+  syncRoute()
+}
+function renderScreen() {
   drawNav()
   const wrap = document.getElementById('wrap')
   if (screen === 'providers') wrap.innerHTML = providersHtml()
@@ -1250,6 +1317,10 @@ async function loadSessions() {
 let logFilter = { provider: '', failed: false }
 let usageRange = '7d'
 let logsCache = []
+function emptyIcon() {
+  return '<svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">'
+    + '<path d="M4 6h16M4 12h10M4 18h7" stroke-linecap="round"/></svg>'
+}
 function logsHtml() {
   const providers = state.providers.map(function (item) {
     return '<option value="' + esc(item.id) + '">' + esc(item.name) + '</option>'
@@ -1283,8 +1354,9 @@ async function loadLogs() {
 }
 function logsTableHtml() {
   if (!logsCache.length) {
-    return '<div class="empty-state"><div class="empty-title">还没有请求经过这里</div>'
-      + '<div>用一会儿工具，这里会按时间倒序列出每一次请求。</div></div>'
+    return '<div class="empty-state">' + emptyIcon()
+      + '<div class="empty-title">还没有请求经过这里</div>'
+      + '<div class="empty-desc">用一会儿工具，这里会按时间倒序列出每一次请求，包括试了哪几家。</div></div>'
   }
   const rows = logsCache.map(function (event) {
     const ok = event.status < 400
@@ -1312,8 +1384,9 @@ async function loadDecisions() {
     const data = await api('/api/decisions?limit=100')
     const rows = data.decisions || []
     if (!rows.length) {
-      node.innerHTML = '<div class="empty-state"><div class="empty-title">还没有选路记录</div>'
-        + '<div>把某个工具切到「经过本机」，请求失败切换一次之后，这里会显示完整经过。</div></div>'
+      node.innerHTML = '<div class="empty-state">' + emptyIcon()
+        + '<div class="empty-title">还没有选路记录</div>'
+        + '<div class="empty-desc">把某个工具切到「经过本机」，请求失败切换一次之后，这里会显示完整经过。</div></div>'
       return
     }
     node.innerHTML = rows.map(function (event) {
@@ -1366,7 +1439,7 @@ async function useModel(id, model) {
   if (!provider.hasSecret) {
     toast(provider.name + ' 还没有密钥，先去服务商页补上。')
     screen = 'providers'
-    draw()
+    navigate()
     return
   }
   const mode = canDirect(provider.protocol) ? 'direct' : 'routing'
@@ -1397,7 +1470,7 @@ async function useProvider(id) {
   if (!provider.hasSecret) {
     toast(provider.name + ' 还没有密钥，先去服务商页补上。')
     screen = 'providers'
-    draw()
+    navigate()
     return
   }
   const failover = Array.prototype.map.call(document.querySelectorAll('[data-fail]:checked'), function (node) { return node.getAttribute('data-fail') })
@@ -1524,7 +1597,7 @@ function bind(wrap) {
     catch (error) { toast(error.message, true) }
   }
   wrap.querySelectorAll('[data-go]').forEach(function (btn) {
-    btn.onclick = function () { screen = btn.getAttribute('data-go'); draw() }
+    btn.onclick = function () { screen = btn.getAttribute('data-go'); navigate() }
   })
   const ask = document.getElementById('ask-restore')
   if (ask) ask.onclick = function () { confirmRestore = true; draw() }
@@ -1775,7 +1848,7 @@ function paletteEntries(query) {
   const hits = []
   MORE.forEach(function (row) {
     if (!needle || row[1].toLowerCase().indexOf(needle) >= 0 || row[0].indexOf(needle) >= 0)
-      hits.push({ group: '页面', label: row[1], sub: '', run: function () { screen = row[0]; draw() } })
+      hits.push({ group: '页面', label: row[1], sub: '', run: function () { screen = row[0]; navigate() } })
   })
   modelRows().forEach(function (row) {
     if (needle && row.label.toLowerCase().indexOf(needle) < 0) return
@@ -1879,7 +1952,15 @@ document.addEventListener('keydown', function (event) {
   }
 })
 applyLang()
+function onLocationChange() {
+  if (!applyRoute()) return
+  renderScreen()
+}
+window.addEventListener('hashchange', onLocationChange)
+window.addEventListener('popstate', onLocationChange)
 load().then(function () {
+  applyRoute()
+  draw()
   pollHealth()
   if (healthTimer) clearInterval(healthTimer)
   healthTimer = setInterval(pollHealth, 5000)

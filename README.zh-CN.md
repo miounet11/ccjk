@@ -9,7 +9,7 @@
 遇到工具听不懂的接口，ccjk 在 `127.0.0.1` 开一个本机代理做翻译。
 
 [![npm](https://img.shields.io/npm/v/ccjk.svg?color=111111)](https://www.npmjs.com/package/ccjk)
-[![license](https://img.shields.io/npm/l/ccjk.svg?color=111111)](./LICENSE)
+[![license](https://img.shields.io/npm/l/ccjk.svg?color=111111)](https://github.com/miounet11/ccjk/blob/main/LICENSE)
 [![node](https://img.shields.io/node/v/ccjk.svg?color=111111)](https://nodejs.org)
 [![stars](https://img.shields.io/github/stars/miounet11/ccjk?color=111111)](https://github.com/miounet11/ccjk/stargazers)<br>
 ![macOS](https://img.shields.io/badge/macOS-000000?logo=apple&logoColor=white)
@@ -17,11 +17,11 @@
 ![Windows](https://img.shields.io/badge/Windows-0078D4?logo=windows&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
 
-[English](./README.md) · **简体中文**
+[English](https://github.com/miounet11/ccjk/blob/main/README.md) · **简体中文**
 
 <br>
 
-<img src="docs/assets/architecture.svg" width="900" alt="ccjk 位于本地编码工具和模型服务商之间，只听 127.0.0.1">
+<img src="https://raw.githubusercontent.com/miounet11/ccjk/main/docs/assets/architecture.svg" width="900" alt="ccjk 位于本地编码工具和模型服务商之间，只听 127.0.0.1">
 
 </div>
 
@@ -89,6 +89,7 @@ ccjk init -T codex  # -T clavue | claude-code | codex | grok
 - **选路**：一次请求依次试过哪几家、为什么换下一家，按时间线展开。
 - **用量**：今天 / 7 天 / 30 天 / 全部切换，按服务商、按模型、按账号分开统计，附一条趋势线。价钱仍是参考。
 - **快速跳转**：`⌘K` / `Ctrl+K` 搜页面和模型，`↑↓` 选，回车即用。
+- **页面直达**：地址栏带路由（`#/logs`、`#/routing`、`#/usage`、`#/providers`、`#/sessions`、`#/accounts`），刷新、收藏和浏览器前进后退都能停在原页。
 - **中英切换**：界面里直接切换，选择记在本机，下次打开还是这个语言。
 
 ## 支持的工具
@@ -230,12 +231,12 @@ ccjk --lang ja      # 日本語
 
 ## 文档
 
-- [QUICKSTART.md](./docs/QUICKSTART.md) —— 可直接复制的上手指引
-- [PRODUCT.md](./PRODUCT.md) —— 产品边界与行为
-- [ARCHITECTURE.md](./ARCHITECTURE.md) —— 架构不变量
-- [RELEASE-NOTES.md](./docs/RELEASE-NOTES.md) —— 版本历史
-- [CHANGELOG.md](./CHANGELOG.md) —— 变更记录
-- [宣传页](./site/index.html) —— 零依赖静态介绍页
+- [QUICKSTART.md](https://github.com/miounet11/ccjk/blob/main/docs/QUICKSTART.md) —— 可直接复制的上手指引
+- [PRODUCT.md](https://github.com/miounet11/ccjk/blob/main/PRODUCT.md) —— 产品边界与行为
+- [ARCHITECTURE.md](https://github.com/miounet11/ccjk/blob/main/ARCHITECTURE.md) —— 架构不变量
+- [RELEASE-NOTES.md](https://github.com/miounet11/ccjk/blob/main/docs/RELEASE-NOTES.md) —— 版本历史
+- [CHANGELOG.md](https://github.com/miounet11/ccjk/blob/main/CHANGELOG.md) —— 变更记录
+- [宣传页](https://github.com/miounet11/ccjk/blob/main/site/index.html) —— 零依赖静态介绍页
 
 ## 开发
 
@@ -252,4 +253,4 @@ echo '' | node dist/cli.mjs -T codex
 
 ## 许可
 
-[MIT](./LICENSE)
+[MIT](https://github.com/miounet11/ccjk/blob/main/LICENSE)

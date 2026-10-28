@@ -1,7 +1,7 @@
 {
   "name": "ccjk",
   "version": "17.2.0",
-  "description": "Clavue / Claude Code / Codex / Grok CLI 统一配置工具：备份后写入配置，本机 127.0.0.1 代理做协议互转，附带日志、选路与用量控制台。默认中文，支持 English / 日本語",
+  "description": "Config CLI for Clavue, Claude Code, Codex and Grok: scan, back up, then write API keys, MCP servers, models and workflows. Optional 127.0.0.1 proxy translates protocols, plus a local console for logs, routing and usage. English / 简体中文 / 日本語",
   "type": "module",
   "bin": {
     "ccjk": "bin/ccjk.mjs"
