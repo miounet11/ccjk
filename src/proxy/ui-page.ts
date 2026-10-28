@@ -230,6 +230,7 @@ export function renderUiPage(): string {
   .pill.ok { background: var(--ok-bg); color: var(--ok); }
   .pill.bad { background: var(--danger-bg); color: var(--danger); }
   .pill.warn { background: var(--warn-bg); color: var(--warn); }
+  .health { display: flex; align-items: center; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
   .pill.info { background: var(--info-bg); color: var(--info); }
   .skeleton {
     background: linear-gradient(90deg, var(--surface-2) 25%, var(--line) 37%, var(--surface-2) 63%);
@@ -774,6 +775,54 @@ async function api(path, body) {
   }
   return data
 }
+let providerHealth = {}
+/**
+ * 最近一段时间的真实表现，按服务商聚合成成功率和 P95 延迟。
+ * 只算有状态码的请求，正在进行的和网络层直接断掉的都跳过。
+ */
+function healthOf(events) {
+  const buckets = {}
+  events.forEach(function (event) {
+    if (!event || !event.providerId || typeof event.status !== 'number') return
+    const bucket = buckets[event.providerId] || (buckets[event.providerId] = { total: 0, failed: 0, latencies: [] })
+    bucket.total += 1
+    if (event.status >= 400) bucket.failed += 1
+    const latency = Number(event.latencyMs)
+    if (isFinite(latency) && latency >= 0) bucket.latencies.push(latency)
+  })
+  const out = {}
+  Object.keys(buckets).forEach(function (id) {
+    const bucket = buckets[id]
+    const sorted = bucket.latencies.slice().sort(function (a, b) { return a - b })
+    const p95 = sorted.length ? sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * 0.95))] : 0
+    out[id] = {
+      total: bucket.total,
+      okRate: bucket.total ? (bucket.total - bucket.failed) / bucket.total : 1,
+      p95: p95
+    }
+  })
+  return out
+}
+function healthHtml(providerId) {
+  const row = providerHealth[providerId]
+  if (!row || !row.total) return ''
+  const rate = Math.round(row.okRate * 100)
+  const tone = rate >= 99 ? 'ok' : (rate >= 90 ? 'warn' : 'bad')
+  const p95 = row.p95 >= 1000 ? (row.p95 / 1000).toFixed(1) + 's' : Math.round(row.p95) + 'ms'
+  return '<div class="health"><span class="pill ' + tone + '">' + rate + '%</span>'
+    + '<span class="meta">最近 ' + row.total + ' 次 · P95 ' + p95 + '</span></div>'
+}
+async function refreshHealth() {
+  try {
+    const data = await api('/api/logs?limit=500')
+    providerHealth = healthOf(data.events || [])
+    const area = document.getElementById('added-area')
+    if (area) area.innerHTML = addedTable()
+  }
+  catch {
+    // 日志读不到不影响服务商管理，保持无徽章状态即可
+  }
+}
 function annotate() {
   const tools = state.tools || {}
   state.providers.forEach(function (provider) {
@@ -800,6 +849,7 @@ async function load(options) {
   annotate()
   applyRoute()
   draw()
+  refreshHealth()
 }
 function refreshPresets() {
   const area = document.getElementById('preset-area')
@@ -1263,7 +1313,7 @@ function addedTable() {
         + '</div><div class="meta">短名字和地址是各家软件的锚点，不能改。要换地址请移除后重新添加。</div></td></tr>'
       : ''
     const via = provider.proxyUrl ? '<div class="meta">出站代理 ' + esc(provider.proxyUrl) + '</div>' : ''
-    return '<tr><td>' + esc(provider.name) + inUse + '<div class="meta">' + esc(PROTO[provider.protocol] || '') + '</div>' + via + '</td><td>' + esc(provider.baseUrl) + key + '</td><td>' + action + '</td></tr>' + editRow
+    return '<tr><td>' + esc(provider.name) + inUse + '<div class="meta">' + esc(PROTO[provider.protocol] || '') + '</div>' + via + healthHtml(provider.id) + '</td><td>' + esc(provider.baseUrl) + key + '</td><td>' + action + '</td></tr>' + editRow
   }).join('') + '</table>'
 }
 function usageHtml() {
